@@ -203,6 +203,19 @@ void VNCviewerApp32::RegisterSounds() {
 	
 }
 
+bool VNCviewerApp32::ProcessDialogMessage(MSG *pmsg)
+{
+	if (!m_dialogs.empty()) {
+		omni_mutex_lock l(m_dialogsMutex);
+		std::list<HWND>::iterator iter;
+		for (iter = m_dialogs.begin(); iter != m_dialogs.end(); iter++) {
+			if (IsDialogMessage(*iter, pmsg))
+				return true;
+		}
+	}
+	return false;
+}
+
 VNCviewerApp32::~VNCviewerApp32() {
 	// We don't need to clean up pcc if the thread has been joined.
 	if (m_pdaemon != NULL) delete m_pdaemon;

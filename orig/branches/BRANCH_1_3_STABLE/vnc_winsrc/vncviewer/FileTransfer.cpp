@@ -24,6 +24,7 @@
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
 #include "vncviewer.h"
+#include "VNCviewerApp32.h"
 #include "FileTransfer.h"
 #include "FileTransferItemInfo.h"
 
@@ -53,13 +54,18 @@ FileTransfer::~FileTransfer()
 	m_FTClientItemInfo.Free();
 	m_FTServerItemInfo.Free();
 }
-void 
+
+void
 FileTransfer::CreateFileTransferDialog()
 {
 	m_hwndFileTransfer = CreateDialog(m_pApp->m_instance, 
 									  MAKEINTRESOURCE(IDD_FILETRANSFER_DLG),
 									  NULL, 
 									  (DLGPROC) FileTransferDlgProc); 
+#ifndef _WIN32_WCE
+	VNCviewerApp32 *pApp = (VNCviewerApp32 *)(m_clientconn->m_pApp);
+	pApp->AddModelessDialog(m_hwndFileTransfer);
+#endif
 	ShowWindow(m_hwndFileTransfer, SW_SHOW);
 	UpdateWindow(m_hwndFileTransfer);
 	SetWindowLong(m_hwndFileTransfer, GWL_USERDATA, (LONG) this);
@@ -141,10 +147,8 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 				}
 			break;
 			case IDC_EXIT:
-				_this->m_clientconn->m_fileTransferDialogShown = false;
-				_this->m_FTClientItemInfo.Free();
-				_this->m_FTServerItemInfo.Free();
-				EndDialog(hwnd, TRUE);
+			case IDCANCEL:
+				PostMessage(hwnd, WM_CLOSE, 0, 0);
 				return TRUE;
 			case IDC_CLIENTUP:
 				SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
@@ -341,11 +345,16 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 		}
 		break;
 	case WM_CLOSE:
-	case WM_DESTROY:
 		_this->m_clientconn->m_fileTransferDialogShown = false;
 		_this->m_FTClientItemInfo.Free();
 		_this->m_FTServerItemInfo.Free();
-		EndDialog(hwnd, TRUE);
+#ifndef _WIN32_WCE
+		{
+			VNCviewerApp32 *pApp = (VNCviewerApp32 *)(_this->m_clientconn->m_pApp);
+			pApp->RemoveModelessDialog(hwnd);
+		}
+#endif
+		DestroyWindow(hwnd);
 		return TRUE;
 	}
 	return 0;

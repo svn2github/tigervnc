@@ -116,7 +116,7 @@ vncServer::vncServer()
 	SetSharedRect(temp);
 	SetPollingFlag(false);
 	SetPollingCycle(300);
-	PollingTimerChanged(false);
+	PollingCycleChanged(false);
 	m_cursor_pos.x = 0;
 	m_cursor_pos.y = 0;
 
@@ -1605,7 +1605,7 @@ vncServer::SetPollingCycle(UINT msec)
 {
 	if (m_polling_cycle != msec && msec > 10) {
 		m_polling_cycle = msec;
-		PollingTimerChanged(true);
+		PollingCycleChanged(true);
 	}
 }
 

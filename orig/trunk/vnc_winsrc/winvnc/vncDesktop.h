@@ -85,7 +85,7 @@ public:
 	void FillDisplayInfo(rfbServerInitMsg *scrInfo);
 	void SetLocalInputDisableHook(BOOL enable);
 	void SetLocalInputPriorityHook(BOOL enable);
-	void CaptureScreen(RECT &UpdateArea, BYTE *scrBuff, BOOL full_rgn);
+	void CaptureScreen(RECT &UpdateArea, BYTE *scrBuff);
 	int ScreenBuffSize();
 	HWND Window() { return m_hwnd; }
 
@@ -149,6 +149,7 @@ protected:
 	// Enabling & disabling clipboard handling
 	void SetClipboardActive(BOOL active) {m_clipboard_active = active;};
 
+	BOOL CheckUpdates();
 	void PerformPolling();
 	void PollWindow(HWND hwnd, RECT &rect);
 	void CheckRects(vncRegion &rgn, rectlist &rects);

@@ -292,8 +292,8 @@ public:
 	virtual BOOL GetPollingFlag() { return m_polling_flag; }
 	virtual UINT GetPollingCycle() { return m_polling_cycle; }
 	virtual void SetPollingCycle(UINT msec);
-	virtual BOOL PollingTimerChanged() { return m_polling_timer_changed; }
-	virtual void PollingTimerChanged(BOOL change) { m_polling_timer_changed = change; }
+	virtual BOOL PollingCycleChanged() { return m_polling_timer_changed; }
+	virtual void PollingCycleChanged(BOOL change) { m_polling_timer_changed = change; }
 
   BOOL checkPointer(vncClient *pClient);
 

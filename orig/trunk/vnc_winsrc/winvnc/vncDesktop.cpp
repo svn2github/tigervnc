@@ -61,9 +61,9 @@ ATOM VNC_WINDOWPOS_ATOM = NULL;
 class vncDesktopThread : public omni_thread
 {
 public:
-	vncDesktopThread() {m_returnsig = NULL;};
+	vncDesktopThread() { m_returnsig = NULL; }
 protected:
-	~vncDesktopThread() {if (m_returnsig != NULL) delete m_returnsig;};
+	~vncDesktopThread() { if (m_returnsig != NULL) delete m_returnsig; }
 public:
 	virtual BOOL Init(vncDesktop *desktop, vncServer *server);
 	virtual void *run_undetached(void *arg);
@@ -121,8 +121,7 @@ vncDesktopThread::run_undetached(void *arg)
 	HDESK home_desktop = GetThreadDesktop(GetCurrentThreadId());
 
 	// Attempt to initialise and return success or failure
-	if (!m_desktop->Startup())
-	{
+	if (!m_desktop->Startup()) {
 		vncService::SelectHDESK(home_desktop);
 		ReturnVal(FALSE);
 		return NULL;
@@ -132,357 +131,142 @@ vncDesktopThread::run_undetached(void *arg)
 	ReturnVal(TRUE);
 
 	RECT rect;
-	if (m_server->WindowShared())
+	if (m_server->WindowShared()) {
 		GetWindowRect(m_server->GetWindowShared(), &rect);
-	else
-	{
-		if (m_server->ScreenAreaShared())
-			rect = m_server->GetScreenAreaRect();
-		else
-			rect = m_desktop->m_bmrect;
+	} else if (m_server->ScreenAreaShared()) {
+		rect = m_server->GetScreenAreaRect();
+	} else {
+		rect = m_desktop->m_bmrect;
 	}
-	
+
 	IntersectRect(&rect, &rect, &m_desktop->m_bmrect);
 	m_server->SetSharedRect(rect);
 	m_desktop->m_qtrscreen.right = (rect.right - rect.left) / 2;
 	m_desktop->m_qtrscreen.bottom = (rect.bottom - rect.top) / 2;
 	m_desktop->m_polling_phase = 0;
-	
+
 	// START PROCESSING DESKTOP MESSAGES
 
 	// We set a flag inside the desktop handler here, to indicate it's now safe
 	// to handle clipboard messages
 	m_desktop->SetClipboardActive(TRUE);
 
-	// All UpdateRect messages are cached into a region cache object and are
-	// only passed to clients immediately before TriggerUpdate is called!
-	
-	SYSTEMTIME	systime;
-	FILETIME	ftime;
-	LARGE_INTEGER	now, droptime;
-	BOOL unhandled;
-	MSG msg;
+	SYSTEMTIME systime;
+	FILETIME ftime;
+	ULARGE_INTEGER now, droptime;
 	droptime.QuadPart = 0;
-	BOOL idle_skip = TRUE;
-	ULONG idle_skip_count = 0;
-	vncRegion rgn;
-	rectlist rectsToScan;
 
-
+	MSG msg;
 	while (TRUE)
 	{
-		unhandled = TRUE;
-			
 		if (!PeekMessage(&msg, m_desktop->Window(), NULL, NULL, PM_REMOVE))
 		{
-			// Thread has gone idle.  Now would be a good time to send an update.
-			// First, we must check that the screen hasnt changed too much.
-			if (idle_skip) {
-				idle_skip = FALSE;
-				if (idle_skip_count++ < 4) {
-					Sleep(5);
-					continue;
-				}
-			}
-			idle_skip_count = 0;
-
-
-			// Has the display resolution or desktop changed?
-			if (m_desktop->m_displaychanged || !vncService::InputDesktopSelected())
-			{
-				vnclog.Print(LL_STATE, VNCLOG("display resolution or desktop changed.\n"));
-
-				rfbServerInitMsg oldscrinfo = m_desktop->m_scrinfo;
-				m_desktop->m_displaychanged = FALSE;
-
-				// Attempt to close the old hooks
-				if (!m_desktop->Shutdown())
-				{
-					vnclog.Print(LL_INTERR, VNCLOG("failed to close desktop server.\n"));
-					m_server->KillAuthClients();
-					break;
-				}
-
-				// Now attempt to re-install them!
-				m_desktop->ChangeResNow();
-
-				if (!m_desktop->Startup())
-				{
-					vnclog.Print(LL_INTERR, VNCLOG("failed to re-start desktop server.\n"));
-					m_server->KillAuthClients();
-					break;
-				}
-
-				// Check if the screen info has changed
-				vnclog.Print(LL_INTINFO,
-							 VNCLOG("SCR: old screen format %dx%dx%d\n"),
-							 oldscrinfo.framebufferWidth,
-							 oldscrinfo.framebufferHeight,
-							 oldscrinfo.format.bitsPerPixel);
-				vnclog.Print(LL_INTINFO,
-							 VNCLOG("SCR: new screen format %dx%dx%d\n"),
-							 m_desktop->m_scrinfo.framebufferWidth,
-							 m_desktop->m_scrinfo.framebufferHeight,
-							 m_desktop->m_scrinfo.format.bitsPerPixel);
-				if (memcmp(&m_desktop->m_scrinfo, &oldscrinfo, sizeof(oldscrinfo)) != 0)
-				{
-					vnclog.Print(LL_CONNERR, VNCLOG("screen format has changed.\n"));
-				}
-
-				// Call this regardless of screen format change
-				m_server->UpdateLocalFormat();
-
-				// Add a full screen update to all the clients
-				m_desktop->m_changed_rgn.AddRect(m_desktop->m_bmrect);
-				m_server->UpdatePalette();
-			}
-
-			// Check polling timer
-			if (m_server->PollingTimerChanged()) {
-				m_desktop->m_timerid = SetTimer(m_desktop->m_hwnd,
-												m_desktop->m_timerid,
-												m_server->GetPollingCycle(),
-												NULL);
-				m_server->PollingTimerChanged(false);
-			}
-
-			// TRIGGER THE UPDATE
-
-			// Update screen size if required
-	
-			RECT old_rect, new_rect;
-
-			if (m_server->WindowShared()) {
-				GetWindowRect(m_server->GetWindowShared(), &new_rect);
-			} else if (m_server->ScreenAreaShared()) {
-				new_rect = m_server->GetScreenAreaRect();
-			} else {
-				new_rect = m_desktop->m_bmrect;
-			}
-			
-			old_rect = m_server->GetSharedRect();
-			IntersectRect(&new_rect, &new_rect, &m_desktop->m_bmrect);
-			
-			if (!EqualRect(&new_rect, &old_rect)) {
-				m_server->SetSharedRect(new_rect);
-				bool sendnewfb = false;
-
-				if ( old_rect.right - old_rect.left != new_rect.right - new_rect.left ||
-					 old_rect.bottom - old_rect.top != new_rect.bottom - new_rect.top ) 
-				{
-					sendnewfb = true;
-					m_desktop->m_qtrscreen.right = (new_rect.right - new_rect.left) / 2;
-					m_desktop->m_qtrscreen.bottom = (new_rect.bottom - new_rect.top) / 2;
-				}
-
-				m_server->SetNewFBSize(sendnewfb);
-				m_desktop->m_changed_rgn.Clear();
-				continue;
-			}
-
-			// If we have clients full region requests
-			if (m_server->FullRgnRequested()) {
-				// Capture screen to main buffer
-				m_desktop->CaptureScreen(old_rect, m_desktop->m_mainbuff, true);
-				// If we have a video driver - reset counter
-				if (m_desktop->m_videodriver != NULL) {
-					if (m_desktop->m_videodriver->driver)
-						m_desktop->m_videodriver->ResetCounter();
-				}
-			}
-
-			// If we have incremental update requests
-			if (m_server->IncrRgnRequested()) {
-
-				// Use either a mirror video driver, or perform polling
-				if (m_desktop->m_videodriver != NULL) {
-					if (m_desktop->m_videodriver->driver)
-						m_desktop->m_videodriver->HandleDriverChanges(m_desktop->m_changed_rgn);
-				} else {
-					if (m_server->GetPollingFlag() || m_desktop->m_polling_phase != 0) {
-						m_server->SetPollingFlag(false);
-						m_desktop->PerformPolling();
-					}
-				}
-
-				// Check for moved windows
-				if (m_server->FullScreen())
-					m_desktop->CalcCopyRects();
-
-				if (m_desktop->m_copyrect_set) {
-					// Send copyrect to all clients
-					m_server->CopyRect(m_desktop->m_copyrect_rect, m_desktop->m_copyrect_src);
-					m_desktop->m_copyrect_set = false;
-
-					// Copy new window rect to main buffer
-					m_desktop->CaptureScreen(m_desktop->m_copyrect_rect, m_desktop->m_mainbuff, true);
-					// Copy old window rect to back buffer
-					m_desktop->CopyRectToBuffer(m_desktop->m_copyrect_rect, m_desktop->m_copyrect_src);
-					// Get changed pixels to rgn
-					m_desktop->GetChangedRegion(rgn,m_desktop->m_copyrect_rect);
-					RECT rect;
-					rect.left= m_desktop->m_copyrect_src.x;
-					rect.top = m_desktop->m_copyrect_src.y;
-					rect.right = rect.left + (m_desktop->m_copyrect_rect.right - m_desktop->m_copyrect_rect.left);
-					rect.bottom = rect.top + (m_desktop->m_copyrect_rect.bottom - m_desktop->m_copyrect_rect.top);
-					// Refresh old window rect
-					m_desktop->m_changed_rgn.AddRect(rect);					
-					// Don't refresh new window rect
-					m_desktop->m_changed_rgn.SubtractRect(m_desktop->m_copyrect_rect);				
-				} 
-				
-				// Get only desktop area
-				vncRegion temprgn;
-				temprgn.Clear();
-				temprgn.AddRect(old_rect);
-				m_desktop->m_changed_rgn.Intersect(temprgn);
-				
-				// Get list of rectangles for check
-				rectsToScan.clear();
-				m_desktop->m_changed_rgn.Rectangles(rectsToScan);
-
-				// Capture and check them
-				m_desktop->CheckRects(rgn, rectsToScan);
-				
-				// Update the mouse 
-				m_server->UpdateMouse();
-			
-				// Send changed region data to all clients
-				m_server->UpdateRegion(rgn);
-				rgn.Clear();
-
-				// Clear changed region
-				m_desktop->m_changed_rgn.Clear();
-			}
-				
-			// Trigger an update to be sent
-			if ( (m_server->FullRgnRequested()) || (m_server->IncrRgnRequested()) )
-				m_server->TriggerUpdate();
+			// Whenever the message queue becomes empty, we check to see whether
+			// there are updates to be passed to clients
+			if (!m_desktop->CheckUpdates())
+				break;
 
 			// Now wait for more messages to be queued
 			if (!WaitMessage()) {
 				vnclog.Print(LL_INTERR, VNCLOG("WaitMessage() failed\n"));
 				break;
 			}
-
-		}	else {
-				
-		idle_skip = TRUE;
-		// Now switch, dependent upon the message type recieved
-		if (msg.message == RFB_SCREEN_UPDATE)
-		{
-			// An area of the screen has changed
-			RECT rect;
-				
-			rect.left =	(SHORT)LOWORD(msg.wParam);
-			rect.top = (SHORT)HIWORD(msg.wParam);
-			rect.right = (SHORT)LOWORD(msg.lParam);
-			rect.bottom = (SHORT)HIWORD(msg.lParam);
-
-			// Ignore it if we have driver
-			if (m_desktop->m_videodriver == NULL)
-				m_desktop->m_changed_rgn.AddRect(rect);
-
-			unhandled = FALSE;
 		}
-
-		if (msg.message == RFB_MOUSE_UPDATE)
+		else if (msg.message == RFB_SCREEN_UPDATE)
+		{
+			// An area of the screen has changed (ignore if we have a driver)
+			if (m_desktop->m_videodriver == NULL) {
+				RECT rect;
+				rect.left =	(SHORT)LOWORD(msg.wParam);
+				rect.top = (SHORT)HIWORD(msg.wParam);
+				rect.right = (SHORT)LOWORD(msg.lParam);
+				rect.bottom = (SHORT)HIWORD(msg.lParam);
+				m_desktop->m_changed_rgn.AddRect(rect);
+			}
+		}
+		else if (msg.message == RFB_MOUSE_UPDATE)
 		{
 			// Save the cursor ID
 			m_desktop->SetCursor((HCURSOR) msg.wParam);
 			m_desktop->m_cursormoved = TRUE;
-			
-			unhandled = FALSE;
 		}
-		// Blocking remote input events 
-
-		if ( msg.message == RFB_LOCAL_KEYBOARD )
+		else if (msg.message == RFB_LOCAL_KEYBOARD)
 		{
-			if (vncService::IsWin95()) 
-			{
+			// Block remote input events if necessary
+			if (vncService::IsWin95()) {
 				m_server->SetKeyboardCounter(-1);
-				if ( m_server->KeyboardCounter() < 0 )
-					{
-					// Get the current time as a 64-bit value
+				if (m_server->KeyboardCounter() < 0) {
 					GetSystemTime(&systime);
 					SystemTimeToFileTime(&systime, &ftime);
 					droptime.LowPart = ftime.dwLowDateTime; 
 					droptime.HighPart = ftime.dwHighDateTime;
-					droptime.QuadPart /= 10000000; // Convert it into seconds
-					m_server->SetKeyboardEnabled(false);
-					}
-			} else {
-					GetSystemTime(&systime);
-					SystemTimeToFileTime(&systime, &ftime);
-					droptime.LowPart = ftime.dwLowDateTime; 
-					droptime.HighPart = ftime.dwHighDateTime;
-					droptime.QuadPart /= 10000000; // Convert it into seconds
-					m_server->SetKeyboardEnabled(false);
-			}
-
-			unhandled = FALSE;
-		}
-
-		if ( msg.message == RFB_LOCAL_MOUSE )
-		{
-
-			if (vncService::IsWin95()) 
-			{
-				if (msg.wParam == WM_MOUSEMOVE)
-					m_server->SetMouseCounter(-1, msg.pt, true);
-				else
-					m_server->SetMouseCounter(-1, msg.pt, false);
-				
-				if ( (m_server->MouseCounter() < 0) && (droptime.QuadPart == 0 ) ) {
-					// Get the current time as a 64-bit value
-					GetSystemTime(&systime);
-					SystemTimeToFileTime(&systime, &ftime);
-					droptime.LowPart = ftime.dwLowDateTime; 
-					droptime.HighPart = ftime.dwHighDateTime;
-					droptime.QuadPart /= 10000000; // Convert it into seconds
+					droptime.QuadPart /= 10000000;	// convert into seconds
 					m_server->SetKeyboardEnabled(false);
 				}
-				
 			} else {
-					// Get the current time as a 64-bit value
+				GetSystemTime(&systime);
+				SystemTimeToFileTime(&systime, &ftime);
+				droptime.LowPart = ftime.dwLowDateTime; 
+				droptime.HighPart = ftime.dwHighDateTime;
+				droptime.QuadPart /= 10000000;	// convert into seconds
+				m_server->SetKeyboardEnabled(false);
+			}
+		}
+		else if (msg.message == RFB_LOCAL_MOUSE)
+		{
+			// Block remote input events if necessary
+			if (vncService::IsWin95()) {
+				if (msg.wParam == WM_MOUSEMOVE) {
+					m_server->SetMouseCounter(-1, msg.pt, true);
+				} else {
+					m_server->SetMouseCounter(-1, msg.pt, false);
+				}
+				if (m_server->MouseCounter() < 0 && droptime.QuadPart == 0) {
 					GetSystemTime(&systime);
 					SystemTimeToFileTime(&systime, &ftime);
 					droptime.LowPart = ftime.dwLowDateTime; 
 					droptime.HighPart = ftime.dwHighDateTime;
-					droptime.QuadPart /= 10000000; // Convert it into seconds
+					droptime.QuadPart /= 10000000;	// convert into seconds
 					m_server->SetKeyboardEnabled(false);
+				}
+			} else {
+				GetSystemTime(&systime);
+				SystemTimeToFileTime(&systime, &ftime);
+				droptime.LowPart = ftime.dwLowDateTime; 
+				droptime.HighPart = ftime.dwHighDateTime;
+				droptime.QuadPart /= 10000000;	// convert into seconds
+				m_server->SetKeyboardEnabled(false);
 			}
-
-			unhandled = FALSE;
 		}
-			if (msg.message == WM_QUIT) 
-				break;
-
-		if (unhandled)
-			DispatchMessage(&msg);
-
-		// Check timer for block remote input events 
-		if ( m_server->LocalInputPriority()  && (droptime.QuadPart != 0 )) 
+		else if (msg.message == WM_QUIT)
 		{
+			break;
+		}
+		else
+		{
+			// Process any other messages normally
+			DispatchMessage(&msg);
+		}
+
+		// Check timer to unblock remote input events if necessary
+		// FIXME: rewrite this stuff to eliminate code duplication (ses above).
+		// FIXME: Use time() instead of GetSystemTime().
+		// FIXME: It's not necessary to do this on receiving _each_ message.
+		if (m_server->LocalInputPriority() && droptime.QuadPart != 0) {
 			GetSystemTime(&systime);
 			SystemTimeToFileTime(&systime, &ftime);
 			now.LowPart = ftime.dwLowDateTime;
 			now.HighPart = ftime.dwHighDateTime;
-			now.QuadPart /= 10000000; // Convert it into seconds
+			now.QuadPart /= 10000000;	// convert into seconds
 
-			if (now.QuadPart - m_server->DisableTime() >= droptime.QuadPart )
-			{
+			if (now.QuadPart - m_server->DisableTime() >= droptime.QuadPart) {
 				m_server->SetKeyboardEnabled(true);
 				droptime.QuadPart = 0;
 				m_server->SetKeyboardCounter(0);
 				m_server->SetMouseCounter(0, msg.pt, false);
-			}						
+			}
 		}
-
 	}
-	
-}
-
 
 	m_desktop->SetClipboardActive(FALSE);
 	
@@ -502,7 +286,7 @@ vncDesktopThread::run_undetached(void *arg)
 	return NULL;
 }
 
-// Implementation
+// Implementation of the vncDesktop class
 
 vncDesktop::vncDesktop()
 {
@@ -619,6 +403,10 @@ vncDesktop::Startup()
 	} else {
 		m_timerid = SetTimer(m_hwnd, 1, 50, NULL);
 	}
+	if (!m_timerid) {
+		vnclog.Print(LL_INTERR, VNCLOG("SetTimer() failed.\n"));
+		return FALSE;
+	}
 
 	// Get hold of the WindowPos atom!
 	if ((VNC_WINDOWPOS_ATOM = GlobalAddAtom(VNC_WINDOWPOS_ATOMNAME)) == 0) {
@@ -636,10 +424,10 @@ vncDesktop::Shutdown()
 {
 	// If we created a timer then kill it
 	if (m_timerid != NULL)
-		KillTimer(NULL, m_timerid);
+		KillTimer(m_hwnd, m_timerid);
 
 	// If we created a window then kill it and the hooks
-	if(m_hwnd != NULL)
+	if (m_hwnd != NULL)
 	{	
 		//Remove the system hooks
 		//Unset keyboard and mouse hooks
@@ -1637,7 +1425,7 @@ vncDesktop::FillDisplayInfo(rfbServerInitMsg *scrinfo)
 // Function to capture an area of the screen immediately prior to sending
 // an update.
 void
-vncDesktop::CaptureScreen(RECT &rect, BYTE *scrBuff, BOOL full_rgn)
+vncDesktop::CaptureScreen(RECT &rect, BYTE *scrBuff)
 {
 	
 	// Protect the memory bitmap
@@ -1652,10 +1440,6 @@ vncDesktop::CaptureScreen(RECT &rect, BYTE *scrBuff, BOOL full_rgn)
 	HBITMAP oldbitmap;
 	if ((oldbitmap = (HBITMAP) SelectObject(m_hmemdc, m_membitmap)) == NULL)
 		return;
-
-	// Copy to back buffer if required 
-	if (!full_rgn)
-		CopyToBuffer(rect, m_backbuff);
 
 	// Capture screen into bitmap
 	BOOL blitok;
@@ -2109,6 +1893,182 @@ DesktopWndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	}
 }
 
+BOOL
+vncDesktop::CheckUpdates()
+{
+	// Re-install polling timer if necessary
+	if (m_server->PollingCycleChanged()) {
+		m_timerid = SetTimer(m_hwnd, m_timerid, m_server->GetPollingCycle(), NULL);
+		m_server->PollingCycleChanged(false);
+	}
+
+	// Has the display resolution or desktop changed?
+	if (m_displaychanged || !vncService::InputDesktopSelected())
+	{
+		vnclog.Print(LL_STATE, VNCLOG("display resolution or desktop changed.\n"));
+
+		rfbServerInitMsg oldscrinfo = m_scrinfo;
+		m_displaychanged = FALSE;
+
+		// Attempt to close the old hooks
+		if (!Shutdown()) {
+			vnclog.Print(LL_INTERR, VNCLOG("failed to close desktop server.\n"));
+			m_server->KillAuthClients();
+			return FALSE;
+		}
+
+		// Now attempt to re-install them!
+		ChangeResNow();
+
+		if (!Startup()) {
+			vnclog.Print(LL_INTERR, VNCLOG("failed to re-start desktop server.\n"));
+			m_server->KillAuthClients();
+			return FALSE;
+		}
+
+		// Check if the screen info has changed
+		vnclog.Print(LL_INTINFO,
+					 VNCLOG("SCR: old screen format %dx%dx%d\n"),
+					 oldscrinfo.framebufferWidth,
+					 oldscrinfo.framebufferHeight,
+					 oldscrinfo.format.bitsPerPixel);
+		vnclog.Print(LL_INTINFO,
+					 VNCLOG("SCR: new screen format %dx%dx%d\n"),
+					 m_scrinfo.framebufferWidth,
+					 m_scrinfo.framebufferHeight,
+					 m_scrinfo.format.bitsPerPixel);
+		if (memcmp(&m_scrinfo, &oldscrinfo, sizeof(oldscrinfo)) != 0) {
+			vnclog.Print(LL_INTINFO, VNCLOG("screen format has changed.\n"));
+		}
+
+		// Call this regardless of screen format change
+		m_server->UpdateLocalFormat();
+
+		// Add a full screen update to all the clients
+		m_changed_rgn.AddRect(m_bmrect);
+		m_server->UpdatePalette();
+	}
+
+	// TRIGGER THE UPDATE
+
+	RECT rect;
+	rect = m_server->GetSharedRect();
+
+	RECT new_rect;
+	if (m_server->WindowShared()) {
+		GetWindowRect(m_server->GetWindowShared(), &new_rect);
+	} else if (m_server->ScreenAreaShared()) {
+		new_rect = m_server->GetScreenAreaRect();
+	} else {
+		new_rect = m_bmrect;
+	}
+	IntersectRect(&new_rect, &new_rect, &m_bmrect);
+
+	// Update screen size if required
+	if (!EqualRect(&new_rect, &rect)) {
+		m_server->SetSharedRect(new_rect);
+		bool sendnewfb = false;
+
+		if ( rect.right - rect.left != new_rect.right - new_rect.left ||
+			 rect.bottom - rect.top != new_rect.bottom - new_rect.top ) 
+		{
+			sendnewfb = true;
+			m_qtrscreen.right = (new_rect.right - new_rect.left) / 2;
+			m_qtrscreen.bottom = (new_rect.bottom - new_rect.top) / 2;
+		}
+
+		// FIXME: We should not send NewFBSize if a client
+		//        did not send framebuffer update request.
+		m_server->SetNewFBSize(sendnewfb);
+		m_changed_rgn.Clear();
+		rect = new_rect;
+		return TRUE;
+	}
+
+	// If we have clients full region requests
+	if (m_server->FullRgnRequested()) {
+		// Capture screen to main buffer
+		CaptureScreen(rect, m_mainbuff);
+		// If we have a video driver - reset counter
+		if ( m_videodriver != NULL &&
+			 m_videodriver->driver )
+			m_videodriver->ResetCounter();
+	}
+
+	// DEBUG: Continue auditing the code from this point.
+
+	// If we have incremental update requests
+	if (m_server->IncrRgnRequested()) {
+
+		vncRegion rgn;
+
+		// Use either a mirror video driver, or perform polling
+		if (m_videodriver != NULL) {
+			if (m_videodriver->driver)
+				m_videodriver->HandleDriverChanges(m_changed_rgn);
+		} else {
+			if (m_server->GetPollingFlag() || m_polling_phase != 0) {
+				m_server->SetPollingFlag(false);
+				PerformPolling();
+			}
+		}
+
+		// Check for moved windows
+		if (m_server->FullScreen())
+			CalcCopyRects();
+
+		if (m_copyrect_set) {
+			// Send copyrect to all clients
+			m_server->CopyRect(m_copyrect_rect, m_copyrect_src);
+			m_copyrect_set = false;
+
+			// Copy new window rect to main buffer
+			CaptureScreen(m_copyrect_rect, m_mainbuff);
+			// Copy old window rect to back buffer
+			CopyRectToBuffer(m_copyrect_rect, m_copyrect_src);
+			// Get changed pixels to rgn
+			GetChangedRegion(rgn,m_copyrect_rect);
+			RECT rect;
+			rect.left= m_copyrect_src.x;
+			rect.top = m_copyrect_src.y;
+			rect.right = rect.left + (m_copyrect_rect.right - m_copyrect_rect.left);
+			rect.bottom = rect.top + (m_copyrect_rect.bottom - m_copyrect_rect.top);
+			// Refresh old window rect
+			m_changed_rgn.AddRect(rect);					
+			// Don't refresh new window rect
+			m_changed_rgn.SubtractRect(m_copyrect_rect);				
+		} 
+
+		// Get only desktop area
+		vncRegion temprgn;
+		temprgn.Clear();
+		temprgn.AddRect(rect);
+		m_changed_rgn.Intersect(temprgn);
+
+		// Get list of rectangles for checking
+		rectlist rectsToScan;
+		m_changed_rgn.Rectangles(rectsToScan);
+
+		// Capture and check them
+		CheckRects(rgn, rectsToScan);
+
+		// Update the mouse
+		m_server->UpdateMouse();
+
+		// Send changed region data to all clients
+		m_server->UpdateRegion(rgn);
+
+		// Clear changed region
+		m_changed_rgn.Clear();
+	}
+
+	// Trigger an update to be sent
+	if (m_server->FullRgnRequested() || m_server->IncrRgnRequested())
+		m_server->TriggerUpdate();
+
+	return TRUE;
+}
+
 inline void
 vncDesktop::CheckRects(vncRegion &rgn, rectlist &rects)
 {
@@ -2116,10 +2076,12 @@ vncDesktop::CheckRects(vncRegion &rgn, rectlist &rects)
 
 	for (i = rects.begin(); i != rects.end(); i++)
 	{
-		// Copy data to main and back buff
-		CaptureScreen(*i, m_mainbuff, false);
+		// Copy data to the main buffer
+		// FIXME: Maybe call CaptureScreen() just once?
+		//        Check what would be more efficient.
+		CaptureScreen(*i, m_mainbuff);
 
-		// Get the buffer to check for changes in the rect
+		// Check for changes in the rectangle
 		GetChangedRegion(rgn, *i);
 	}
 }

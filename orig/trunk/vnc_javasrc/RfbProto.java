@@ -790,7 +790,9 @@ class RfbProto {
 	// JDK1.1 on X incorrectly passes some keysyms straight through,
 	// so we do too.  JDK1.1.4 seems to have fixed this.
 	// The keysyms passed are 0xff00 .. XK_BackSpace .. XK_Delete
-	if ((key < 0xff00) || (key > 0xffff))
+	// Also, we pass through foreign currency keysyms (0x20a0..0x20af).
+	if ((key < 0xff00 || key > 0xffff) &&
+	    !(key >= 0x20a0 && key <= 0x20af))
 	  return;
       }
     }

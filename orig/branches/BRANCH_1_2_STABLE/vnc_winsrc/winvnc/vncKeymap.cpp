@@ -151,14 +151,13 @@ static keymap_t keymap[] = {
 
     // Modifiers
     
-  { XK_Shift_L,          VK_LSHIFT, 0 },
+  { XK_Shift_L,          VK_SHIFT, 0 },
   { XK_Shift_R,          VK_RSHIFT, 0 },
   { XK_Control_L,        VK_CONTROL, 0 },
   { XK_Control_R,        VK_CONTROL, 1 },
   { XK_Alt_L,            VK_MENU, 0 },
-  { XK_Alt_R,            VK_RMENU, 0 },
+  { XK_Alt_R,            VK_RMENU, 1 },
 };
-
 
 
 // doKeyboardEvent wraps the system keybd_event function and attempts to find
@@ -183,24 +182,24 @@ public:
   void press() {
     if (!(GetAsyncKeyState(vkCode) & 0x8000)) {
       doKeyboardEvent(vkCode, flags);
-      vnclog.Print(LL_INTINFO, "fake %d down", vkCode);
+      vnclog.Print(LL_INTINFO, "fake %d down\n", vkCode);
       pressed = true;
     }
   }
   void release() {
     if (GetAsyncKeyState(vkCode) & 0x8000) {
       doKeyboardEvent(vkCode, flags | KEYEVENTF_KEYUP);
-      vnclog.Print(LL_INTINFO, "fake %d up", vkCode);
+      vnclog.Print(LL_INTINFO, "fake %d up\n", vkCode);
       released = true;
     }
   }
   ~KeyStateModifier() {
     if (pressed) {
       doKeyboardEvent(vkCode, flags | KEYEVENTF_KEYUP);
-      vnclog.Print(LL_INTINFO, "fake %d up", vkCode);
+      vnclog.Print(LL_INTINFO, "fake %d up\n", vkCode);
     } else if (released) {
       doKeyboardEvent(vkCode, flags);
-      vnclog.Print(LL_INTINFO, "fake %d down", vkCode);
+      vnclog.Print(LL_INTINFO, "fake %d down\n", vkCode);
     }
   }
   int vkCode;
@@ -232,7 +231,7 @@ public:
 
       SHORT s = VkKeyScan(keysym);
       if (s == -1) {
-        vnclog.Print(LL_INTWARN, "ignoring unrecognised Latin-1 keysym %d",
+        vnclog.Print(LL_INTWARN, "ignoring unrecognised Latin-1 keysym %d\n",
                      keysym);
         return;
       }
@@ -261,7 +260,7 @@ public:
         }
       }
       vnclog.Print(LL_INTINFO,
-                   "latin-1 key: keysym %d(0x%x) vkCode 0x%x down %d",
+                   "latin-1 key: keysym %d(0x%x) vkCode 0x%x down %d\n",
                    keysym, keysym, vkCode, down);
 
       doKeyboardEvent(vkCode, down ? 0 : KEYEVENTF_KEYUP);
@@ -271,7 +270,7 @@ public:
       // see if it's a recognised keyboard key, otherwise ignore it
 
       if (vkMap.find(keysym) == vkMap.end()) {
-        vnclog.Print(LL_INTWARN, "ignoring unknown keysym %d",keysym);
+        vnclog.Print(LL_INTWARN, "ignoring unknown keysym %d\n",keysym);
         return;
       }
       BYTE vkCode = vkMap[keysym];
@@ -280,16 +279,27 @@ public:
       if (!down) flags |= KEYEVENTF_KEYUP;
 
       vnclog.Print(LL_INTINFO,
-                   "keyboard key: keysym %d(0x%x) vkCode 0x%x ext %d down %d",
+                  "keyboard key: keysym %d(0x%x) vkCode 0x%x ext %d down %d\n",
                    keysym, keysym, vkCode, extendedMap[keysym], down);
+
       if (down && (vkCode == VK_DELETE) &&
-        ((GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0) &&
-				((GetAsyncKeyState(VK_MENU) & 0x8000) != 0)) {
-        if (vncService::IsWinNT())
-          vncService::SimulateCtrlAltDel();
-      } else {
-        doKeyboardEvent(vkCode, flags);
+          ((GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0) &&
+          ((GetAsyncKeyState(VK_MENU) & 0x8000) != 0) &&
+          vncService::IsWinNT())
+      {
+        vncService::SimulateCtrlAltDel();
+        return;
       }
+
+      if (vncService::IsWin95()) {
+        switch (vkCode) {
+        case VK_RSHIFT:   vkCode = VK_SHIFT;   break;
+        case VK_RCONTROL: vkCode = VK_CONTROL; break;
+        case VK_RMENU:    vkCode = VK_MENU;    break;
+        }
+      }
+
+      doKeyboardEvent(vkCode, flags);
     }
   }
 

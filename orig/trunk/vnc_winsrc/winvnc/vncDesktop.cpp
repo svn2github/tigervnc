@@ -68,6 +68,8 @@ public:
 	virtual BOOL Init(vncDesktop *desktop, vncServer *server);
 	virtual void *run_undetached(void *arg);
 	virtual void ReturnVal(BOOL result);
+	virtual BOOL HandleDriverChanges();
+
 protected:
 	vncServer *m_server;
 	vncDesktop *m_desktop;
@@ -111,6 +113,33 @@ vncDesktopThread::ReturnVal(BOOL result)
 	m_returnset = TRUE;
 	m_return = result;
 	m_returnsig->signal();
+}
+
+BOOL
+vncDesktopThread::HandleDriverChanges()
+{   
+	// FIXME: What is aantal???
+	// FIXME: In vncVideoDriver, add methods instead of accessing the data dirrectly.
+
+	int oldaantal = m_desktop->m_videodriver->oldaantal;
+	int counter = m_desktop->m_videodriver->bufdata.buffer->counter;
+	if (oldaantal == counter)
+		return FALSE;
+
+	ULONG i;
+	if (oldaantal < counter) {
+		for (i = oldaantal; i < counter; i++)
+			m_desktop->m_changed_rgn.AddRect(m_desktop->m_videodriver->bufdata.buffer->pointrect[i].rect);
+	} else {
+		for (i = oldaantal; i < MAXCHANGES_BUF; i++)
+			m_desktop->m_changed_rgn.AddRect(m_desktop->m_videodriver->bufdata.buffer->pointrect[i].rect);
+		// FIXME: i = 1 or i = 0 here?
+		for (i = 1; i < counter; i++)
+			m_desktop->m_changed_rgn.AddRect(m_desktop->m_videodriver->bufdata.buffer->pointrect[i].rect);
+	}
+
+	m_desktop->m_videodriver->oldaantal = counter;
+	return TRUE;
 }
 
 void *
@@ -279,47 +308,58 @@ vncDesktopThread::run_undetached(void *arg)
 		
 			// If we have clients full region requests
 			if (m_server->FullRgnRequested()) {
-				//Capture screen to main buffer
+				// Capture screen to main buffer
 				m_desktop->CaptureScreen(old_rect, m_desktop->m_mainbuff, true);
+				// If we have a video driver - reset counter
+				if (m_desktop->m_videodriver != NULL)
+					if (m_desktop->m_videodriver->driver)
+						m_desktop->m_videodriver->oldaantal = m_desktop->m_videodriver->bufdata.buffer->counter;
 			}
 			
 			if (m_server->IncrRgnRequested()) {
-				// Polling section
-				//If polling timer 
-				if ( m_server->GetPollingFlag() || (m_desktop->m_pollingcycle !=0))	{
-					m_server->SetPollingFlag(false);
-					// Request update for all parts of screen
-					if( m_desktop->m_pollingcycle !=3)
-						m_desktop->RequestUpdate();
+				// Use videodriver if we have 
+				if (m_desktop->m_videodriver != NULL) {
+					if (m_desktop->m_videodriver->driver)
+						HandleDriverChanges();
+				} else {
+					// Polling section
+					//If polling timer 
+					if ( m_server->GetPollingFlag() || (m_desktop->m_pollingcycle !=0))	{
+						m_server->SetPollingFlag(false);
 
-					RECT rect;
-					rect.left = (m_desktop->m_pollingcycle % 2) * m_desktop->m_qtrscreen.right+old_rect.left;
-					rect.right = rect.left + m_desktop->m_qtrscreen.right;
-					rect.top = (m_desktop->m_pollingcycle / 2) * m_desktop->m_qtrscreen.bottom+old_rect.top;
-					rect.bottom = rect.top + m_desktop->m_qtrscreen.bottom;
+						// Request update for all parts of screen
+						if( m_desktop->m_pollingcycle !=3)
+							m_desktop->RequestUpdate();
+
+						RECT rect;
+						rect.left = (m_desktop->m_pollingcycle % 2) * m_desktop->m_qtrscreen.right+old_rect.left;
+						rect.right = rect.left + m_desktop->m_qtrscreen.right;
+						rect.top = (m_desktop->m_pollingcycle / 2) * m_desktop->m_qtrscreen.bottom+old_rect.top;
+						rect.bottom = rect.top + m_desktop->m_qtrscreen.bottom;
 						
-					if (m_server->PollFullScreen())	{
-						m_desktop->m_changed_rgn.AddRect(rect);
-					} else {
-						//Other polling 
-						if (m_server->PollForeground())	{
-							// Get the window rectangle for the currently selected window
-							HWND hwnd = GetForegroundWindow();
-							if (hwnd != NULL)
-								m_desktop->PollWindow(hwnd, rect);
-						}
-						if (m_server->PollUnderCursor()) {
-							// Find the mouse position
-							POINT mousepos;
-							if (GetCursorPos(&mousepos)) {
-								// Find the window under the mouse
-								HWND hwnd = WindowFromPoint(mousepos);
+						if (m_server->PollFullScreen())	{
+							m_desktop->m_changed_rgn.AddRect(rect);
+						} else {
+							//Other polling 
+							if (m_server->PollForeground())	{
+								// Get the window rectangle for the currently selected window
+								HWND hwnd = GetForegroundWindow();
 								if (hwnd != NULL)
 									m_desktop->PollWindow(hwnd, rect);
 							}
+							if (m_server->PollUnderCursor()) {
+								// Find the mouse position
+								POINT mousepos;
+								if (GetCursorPos(&mousepos)) {
+									// Find the window under the mouse
+									HWND hwnd = WindowFromPoint(mousepos);
+									if (hwnd != NULL)
+										m_desktop->PollWindow(hwnd, rect);
+								}
+							}
 						}
+						m_desktop->m_pollingcycle = (m_desktop->m_pollingcycle + 1) % 4;
 					}
-					m_desktop->m_pollingcycle = (m_desktop->m_pollingcycle + 1) % 4;
 				}
 
 				// Check for moved windows
@@ -395,7 +435,11 @@ vncDesktopThread::run_undetached(void *arg)
 			rect.top = (SHORT)HIWORD(msg.wParam);
 			rect.right = (SHORT)LOWORD(msg.lParam);
 			rect.bottom = (SHORT)HIWORD(msg.lParam);
-			m_desktop->m_changed_rgn.AddRect(rect);
+
+			// Ignore it if we have driver
+			if (m_desktop->m_videodriver == NULL)
+				m_desktop->m_changed_rgn.AddRect(rect);
+
 			unhandled = FALSE;
 		}
 
@@ -547,6 +591,8 @@ vncDesktop::vncDesktop()
 	m_hooks_may_change = FALSE;
 	lpDevMode = NULL;
 	m_copyrect_set = FALSE;
+
+	m_videodriver = NULL;
 }
 
 vncDesktop::~vncDesktop()
@@ -583,6 +629,9 @@ vncDesktop::Startup()
 	if (!InitDesktop())
 		return FALSE;
 
+	if (InitVideoDriver())
+		InvalidateRect(NULL,NULL,TRUE);
+
 	if (!InitBitmap())
 		return FALSE;
 
@@ -616,14 +665,17 @@ vncDesktop::Startup()
 
 	// Start up the keyboard and mouse hooks  for 
 	// local event priority over remote impl.
-	if(m_server->LocalInputPriority())
+	if (m_server->LocalInputPriority())
 		SetLocalInputPriorityHook(true);
-		
 
 	// Start a timer to handle Polling Mode.  The timer will cause
-	// an "idle" event once every second, which is necessary if Polling
-	// Mode is being used, to cause TriggerUpdate to be called.
-	m_timerid = SetTimer(m_hwnd, 1, m_server->GetPollingTimer(), NULL);
+	// an "idle" event, which is necessary if Polling Mode is being used,
+	// to cause TriggerUpdate to be called.
+	if (m_videodriver == NULL) {
+		m_timerid = SetTimer(m_hwnd, 1, m_server->GetPollingTimer(), NULL);
+	} else {
+		m_timerid = SetTimer(m_hwnd, 1, 50, NULL);
+	}
 
 	// Get hold of the WindowPos atom!
 	if ((VNC_WINDOWPOS_ATOM = GlobalAddAtom(VNC_WINDOWPOS_ATOMNAME)) == 0) {
@@ -719,7 +771,8 @@ vncDesktop::Shutdown()
 		}
 	}
 
-	
+	ShutdownVideoDriver();
+
 	return TRUE;
 }
 
@@ -2330,3 +2383,41 @@ vncDesktop::CopyRectToBuffer(RECT &dest, POINT &source)
 		}
 	}
 }
+
+BOOL
+vncDesktop::InitVideoDriver()
+{
+	// Mirror video drivers supported only under Win2K and WinXP
+	if (vncService::VersionMajor() != 5)
+		return FALSE;
+
+	if (m_videodriver != NULL && m_videodriver->testmapped()) {
+		vnclog.Print(LL_INTINFO, VNCLOG("video driver interface already active\n"));
+		return TRUE;
+	}
+	
+	m_videodriver = new vncVideoDriver;
+	m_videodriver->Activate_video_driver();
+
+	if (m_videodriver->MapSharedbuffers()) {
+		vnclog.Print(LL_INTINFO, VNCLOG("video driver interface activated\n"));
+		return TRUE;
+	} else {
+		delete m_videodriver;
+		m_videodriver = NULL;
+		vnclog.Print(LL_INTERR, VNCLOG("failed to activate video driver interface\n"));
+		return FALSE;
+	}
+}
+
+void
+vncDesktop::ShutdownVideoDriver()
+{
+	if (vncService::VersionMajor() != 5 || m_videodriver == NULL)
+		return;
+
+	delete m_videodriver;
+	m_videodriver = NULL;
+	vnclog.Print(LL_INTINFO, VNCLOG("video driver interface deactivated\n"));
+}
+

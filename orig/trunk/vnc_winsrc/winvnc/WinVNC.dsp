@@ -284,6 +284,10 @@ SOURCE=.\translate.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\VideoDriver.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\vncAbout.cpp
 # End Source File
 # Begin Source File
@@ -501,6 +505,10 @@ SOURCE=.\stdhdrs.h
 # Begin Source File
 
 SOURCE=.\translate.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VideoDriver.h
 # End Source File
 # Begin Source File
 

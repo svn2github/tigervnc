@@ -45,6 +45,7 @@ class vncDesktop;
 #include "RectList.h"
 #include "translate.h"
 #include <omnithread.h>
+#include "VideoDriver.h"
 
 // Constants
 extern const UINT RFB_SCREEN_UPDATE;
@@ -165,7 +166,9 @@ protected:
 	void CheckRects(vncRegion &rgn, rectlist &rects);
 	void GetChangedRegion(vncRegion &rgn, RECT &rect);											
 
-
+	// Video driver stuff
+	BOOL InitVideoDriver();
+	void ShutdownVideoDriver();
 
 	// DATA
 
@@ -178,6 +181,9 @@ protected:
 	BOOL			m_clipboard_active;
 	BOOL			m_hooks_active;
 	BOOL			m_hooks_may_change;
+
+	// Video driver stuff
+	vncVideoDriver	*m_videodriver;
 
 	// device contexts for memory and the screen
 	HDC				m_hmemdc;

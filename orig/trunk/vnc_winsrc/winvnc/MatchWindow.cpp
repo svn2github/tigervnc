@@ -298,7 +298,13 @@ LRESULT CALLBACK CMatchWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, L
 		DeleteObject(hBrush);
 		EndPaint(hWnd, &ps);
 		break;
+		
+	// WM_EXITSIZEMOVE was added to handle the case
+	// where windows moves the matchwindow back on screen
+	// when the user attempts to position it off the top
+	// of the desktop
 
+	case WM_EXITSIZEMOVE:
 	case WM_CAPTURECHANGED:
 
 		if (pMatchWnd->m_bSized && GetCapture()!=hWnd)

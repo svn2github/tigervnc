@@ -44,6 +44,7 @@
 #include "vncInstHandler.h"
 #include "vncService.h"
 
+
 // Application instance and name
 HINSTANCE	hAppInstance;
 #ifdef HORIZONLIVE
@@ -53,7 +54,7 @@ const char	*szAppName = "WinVNC";
 #endif
 
 DWORD		mainthreadId;
-
+VNCHelp help;
 // WinMain parses the command line and either calls the main App
 // routine or, under NT, the main service routine.
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine, int iCmdShow)
@@ -366,9 +367,10 @@ int WinVNCAppMain()
 	MSG msg;
 	while (GetMessage(&msg, NULL, 0,0) ) {
 		vnclog.Print(LL_INTINFO, VNCLOG("message %d received\n"), msg.message);
-
-		TranslateMessage(&msg);  // convert key ups and downs to chars
-		DispatchMessage(&msg);
+		if (!help.TranslateMsg(&msg)) {
+				TranslateMessage(&msg);  // convert key ups and downs to chars
+				DispatchMessage(&msg);
+			}
 	}
 
 	vnclog.Print(LL_STATE, VNCLOG("shutting down server\n"));

@@ -121,6 +121,10 @@
 #define IDC_STATIC_SECONDS              1089
 #define IDC_STATIC_TIMEOUT              1090
 #define IDC_STATIC_ACTION               1091
+#define IDC_STATIC_TEMPORARY            1092
+#define IDC_STATIC_CONN_PRIOR           1093
+#define IDC_STATIC_ADMINISTR            1094
+#define IDC_STATIC_DISPLAY_PORT         1095
 #define ID_PROPERTIES                   40001
 #define ID_CLOSE                        40002
 #define ID_KILLCLIENTS                  40003
@@ -135,7 +139,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        147
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1092
+#define _APS_NEXT_CONTROL_VALUE         1096
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

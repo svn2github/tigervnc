@@ -945,7 +945,7 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 				}
 
 				_this->m_scaling = !(_this->m_scale_num == 100);
-        _this->FixScaling();
+				_this->FixScaling();
 				
 				HWND hCopyRect = GetDlgItem(hwnd, ID_SESSION_SET_CRECT);
 				_this->m_UseEnc[rfbEncodingCopyRect] =

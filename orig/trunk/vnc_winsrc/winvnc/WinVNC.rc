@@ -79,56 +79,6 @@ BEGIN
     PUSHBUTTON      "Accept without &Password",IDACCEPT_NOPASS,70,78,95,17
 END
 
-IDD_ADVPROPERTIES DIALOG DISCARDABLE  0, 0, 309, 186
-STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_POPUP | 
-    WS_VISIBLE | WS_CAPTION | WS_SYSMENU
-CAPTION "Advanced Properties"
-FONT 8, "MS Sans Serif"
-BEGIN
-    GROUPBOX        "Query Settings",IDC_STATIC,5,5,223,76
-    CONTROL         "Query console on incoming connections",IDQUERY,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,13,17,211,12
-    LTEXT           "Query timeout:",IDC_STATIC_TIMEOUT,25,32,67,12,
-                    SS_CENTERIMAGE
-    EDITTEXT        IDQUERYTIMEOUT,95,32,22,12,ES_AUTOHSCROLL | ES_NUMBER
-    LTEXT           "seconds",IDC_STATIC_SECONDS,123,32,101,12,
-                    SS_CENTERIMAGE
-    LTEXT           "Default action:",IDC_STATIC_ACTION,25,47,67,12,
-                    SS_CENTERIMAGE
-    CONTROL         "Refuse",IDC_ACTION_REFUSE,"Button",BS_AUTORADIOBUTTON | 
-                    WS_GROUP | WS_TABSTOP,95,47,57,12
-    CONTROL         "Accept",IDC_ACTION_ACCEPT,"Button",BS_AUTORADIOBUTTON,
-                    152,47,72,12
-    CONTROL         "Allow option to accept without authentication",
-                    IDQUERYALLOWNOPASS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    13,62,211,12
-    GROUPBOX        "Administration",IDC_STATIC,5,85,156,96
-    CONTROL         "Disable empty passwords",IDREQUIREAUTH,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,13,97,144,12
-    CONTROL         "Allow loopback connections",IDALLOWLOOPBACK,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,13,112,144,12
-    CONTROL         "Allow only loopback connections",IDONLYLOOPBACK,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,25,127,132,12
-    CONTROL         "Log information to WinVNC.log",IDLOG,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,13,142,144,12
-    CONTROL         "Log detailed debugging information",IDLOGLOTS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,25,157,132,12
-    GROUPBOX        "Temporary",IDC_STATIC,167,85,137,31
-    CONTROL         "Enable built-in HTTP daemon",IDENABLEHTTPD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,180,98,123,10
-    GROUPBOX        "Connection Priority",IDC_STATIC,167,120,137,60
-    CONTROL         "Disconnect existing connections",IDPRIORITY0,"Button",
-                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,180,132,123,
-                    12
-    CONTROL         "Automatic shared sessions",IDPRIORITY1,"Button",
-                    BS_AUTORADIOBUTTON,180,147,123,12
-    CONTROL         "Refuse concurrent connections",IDPRIORITY2,"Button",
-                    BS_AUTORADIOBUTTON,180,162,123,12
-    DEFPUSHBUTTON   "&OK",IDOK,238,9,66,14
-    PUSHBUTTON      "&Apply",IDC_APPLY,238,27,66,14
-    PUSHBUTTON      "&Cancel",IDCANCEL,238,45,66,14
-END
-
 IDD_LIVESHAREPROP DIALOG DISCARDABLE  0, 0, 262, 118
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_POPUP | 
     WS_VISIBLE | WS_CAPTION | WS_SYSMENU
@@ -195,7 +145,7 @@ IDD_ACCEPT_REVERSE DIALOGEX 0, 0, 179, 55
 STYLE DS_SYSMODAL | DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | 
     WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "Begin LiveShare Session?"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "&OK",IDACCEPT,17,31,47,17
     PUSHBUTTON      "&Cancel",IDREJECT,113,31,48,17,0,WS_EX_TRANSPARENT
@@ -203,18 +153,17 @@ BEGIN
                     IDC_STATIC_TEXT2,8,2,163,17
 END
 
-IDD_PROPERTIES_PARENT DIALOGEX 0, 0, 312, 165
-STYLE DS_MODALFRAME | DS_CENTER | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | 
-    WS_CAPTION | WS_SYSMENU
-EXSTYLE WS_EX_CONTROLPARENT
-CAPTION "Property Page"
+IDD_PROPERTIES_PARENT DIALOGEX 0, 0, 312, 167
+STYLE DS_MODALFRAME | DS_CENTER | DS_CONTEXTHELP | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP | WS_EX_CONTROLPARENT
 FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "Tab1",IDC_TAB,"SysTabControl32",TCS_MULTILINE | 
-                    WS_TABSTOP,7,0,298,135
-    DEFPUSHBUTTON   "&OK",IDOK,139,143,50,15,WS_GROUP
-    PUSHBUTTON      "&Apply",IDC_APPLY,197,143,50,15
-    PUSHBUTTON      "&Cancel",IDCANCEL,255,143,50,15
+                    WS_TABSTOP,7,0,298,138
+    DEFPUSHBUTTON   "&OK",IDOK,139,145,50,15,WS_GROUP
+    PUSHBUTTON      "&Apply",IDC_APPLY,197,145,50,15
+    PUSHBUTTON      "&Cancel",IDCANCEL,255,145,50,15
 END
 
 IDD_SHARED_DESKTOP_AREA DIALOG DISCARDABLE  0, 0, 235, 90
@@ -267,8 +216,8 @@ BEGIN
                     NOT WS_GROUP
     CTEXT           "HTTP port:",IDC_HTTP_LABEL,198,59,35,10,SS_CENTERIMAGE | 
                     NOT WS_GROUP
-    GROUPBOX        "Display or port numbers to use:",IDC_STATIC,154,9,120,
-                    66
+    GROUPBOX        "Display or port numbers to use:",
+                    IDC_STATIC_DISPLAY_PORT,154,9,120,66
 END
 
 IDD_INPUT_HANDLING DIALOG DISCARDABLE  0, 0, 223, 93
@@ -352,7 +301,7 @@ IDD_ADMINISTRATION DIALOG DISCARDABLE  0, 0, 292, 108
 STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE
 FONT 8, "MS Sans Serif"
 BEGIN
-    GROUPBOX        "Administration",IDC_STATIC,7,7,141,94
+    GROUPBOX        "Administration",IDC_STATIC_ADMINISTR,7,7,141,94
     CONTROL         "Disable empty passwords",IDREQUIREAUTH,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,15,19,129,12
     CONTROL         "Allow loopback connections",IDALLOWLOOPBACK,"Button",
@@ -363,10 +312,11 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,15,64,125,12
     CONTROL         "Log detailed debugging information",IDLOGLOTS,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,22,79,123,12
-    GROUPBOX        "Temporary",IDC_STATIC,156,7,128,31
+    GROUPBOX        "Temporary",IDC_STATIC_TEMPORARY,156,7,128,31
     CONTROL         "Enable built-in HTTP daemon",IDENABLEHTTPD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,164,20,110,10
-    GROUPBOX        "Connection Priority",IDC_STATIC,156,39,128,62
+    GROUPBOX        "Connection Priority",IDC_STATIC_CONN_PRIOR,156,39,128,
+                    62
     CONTROL         "Disconnect existing connections",IDPRIORITY0,"Button",
                     BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,164,49,114,12
     CONTROL         "Automatic shared sessions",IDPRIORITY1,"Button",
@@ -424,25 +374,6 @@ BEGIN
         HORZGUIDE, 50
         HORZGUIDE, 65
         HORZGUIDE, 78
-    END
-
-    IDD_ADVPROPERTIES, DIALOG
-    BEGIN
-        LEFTMARGIN, 5
-        RIGHTMARGIN, 304
-        VERTGUIDE, 13
-        VERTGUIDE, 25
-        VERTGUIDE, 123
-        VERTGUIDE, 152
-        VERTGUIDE, 157
-        VERTGUIDE, 161
-        VERTGUIDE, 167
-        VERTGUIDE, 180
-        VERTGUIDE, 224
-        VERTGUIDE, 235
-        VERTGUIDE, 303
-        TOPMARGIN, 5
-        BOTTOMMARGIN, 180
     END
 
     IDD_LIVESHAREPROP, DIALOG
@@ -505,7 +436,7 @@ BEGIN
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 305
-        BOTTOMMARGIN, 158
+        BOTTOMMARGIN, 160
     END
 
     IDD_SHARED_DESKTOP_AREA, DIALOG
@@ -814,6 +745,93 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDI_LIVESHARE           "LiveShare"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDC_CONNECT_SOCK        "Accept socket connections"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDC_DISPLAYNO           "display:"
+    IDC_PASSWORD            "Primary password:"
+    IDC_POLL_FULLSCREEN     "Poll full screen"
+    IDC_CONSOLE_ONLY        "Poll console windows only"
+    IDC_POLL_FOREGROUND     "Poll foreground window"
+    IDC_POLL_UNDER_CURSOR   "Poll window under cursor"
+    IDC_ONEVENT_ONLY        "Poll on event received only"
+    IDC_REMOTE_DISABLE      "Disable remote keyboard and pointer on local activity"
+    IDC_PORTHTTP            "HTTP port:"
+    IDC_PORTRFB             "main port:"
+    IDC_PASSWORD_VIEWONLY   "View-only password:"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDC_SPECPORT            "ports"
+    IDC_POLL_TIMER          "Polling cycle:"
+    IDC_ACTION_REFUSE       "Refuse"
+    IDC_ACTION_ACCEPT       "Accept"
+    IDC_REMOVE_WALLPAPER    "Remove desktop wallpaper on client connections"
+    IDC_LOCKSETTING_NOTHING "Do nothing"
+    IDC_LOCKSETTING_LOCK    "Lock workstation"
+    IDC_LOCKSETTING_LOGOFF  "Logoff workstation"
+    IDC_DONT_SET_HOOKS      "Don't use VNCHooks.DLL while polling full screen"
+    IDC_ENABLE_FILE_TRANSFERS 
+                            "Enable file transfers between server and clients"
+    IDC_TAB                 "tab control"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDC_STATIC_ACTION       "Default action:"
+    IDC_STATIC_TEMPORARY    "Temporary"
+    IDC_STATIC_CONN_PRIOR   "Connection Priority"
+    IDC_STATIC_ADMINISTR    "Administration"
+    IDC_STATIC_DISPLAY_PORT "Display or port numbers to use:"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDC_DISABLE_INPUTS      "Disable remote keyboard and pointer (all clients view only"
+    IDC_APPLY               "&Apply"
+    IDC_PORTNO_AUTO         "auto"
+    IDC_DISABLE_LOCAL_INPUTS 
+                            "Disable local keyboard and pointer during client sessions"
+    IDQUERY                 "Query console on incoming connections"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDC_NAME_APPLI          "name application"
+    IDC_BMPCURSOR           "bitmap target"
+    IDC_WINDOW              "Window:"
+    IDC_SCREEN              "Rectangular area"
+    IDC_FULLSCREEN          "Full desktop"
+    IDC_DISABLE_TIME        "Input enabled after timeout:"
+    IDC_SPECDISPLAY         "display"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDOK                    "&OK"
+    IDCANCEL                "&Cancel"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDQUERYTIMEOUT          "Query timeout:"
+    IDREQUIREAUTH           "Disable empty passwords"
+    IDQUERYALLOWNOPASS      "Allow option to accept without authentication"
+    IDONLYLOOPBACK          "Allow only loopback connections"
+    IDLOGLOTS               "Log detailed debugging information"
+    IDALLOWLOOPBACK         "Allow loopback connections"
+    IDLOG                   "Log information to WinVNC.log"
+    IDPRIORITY0             "Disconnect existing connections"
+    IDPRIORITY2             "Refuse concurrent connections"
+    IDPRIORITY1             "Automatic shared sessions"
+    IDENABLEHTTPD           "Enable built-in HTTP daemon"
 END
 
 #endif    // English (U.S.) resources

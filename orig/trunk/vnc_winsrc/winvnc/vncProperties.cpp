@@ -432,6 +432,9 @@ vncProperties::ParentDlgProc(HWND hwnd,
 			// We return FALSE because we set the keyboard focus explicitly.
 			return FALSE;
 		}
+	case WM_HELP:	
+		help.Popup(lParam);
+		return 0;
     case WM_NOTIFY:
 		{
 			LPNMHDR pn = (LPNMHDR)lParam;			
@@ -535,6 +538,9 @@ BOOL CALLBACK vncProperties::IncomingDlgProc(HWND hwnd, UINT uMsg,
 			_this->m_incConnCtrl = new IncomingConnectionsControls(hwnd, _this->m_server);
 			return 0;
 		}
+	case WM_HELP:	
+		help.Popup(lParam);
+		return 0;
     case WM_COMMAND:		
 		switch (LOWORD(wParam))
 		{
@@ -604,6 +610,9 @@ BOOL CALLBACK vncProperties::PollDlgProc(HWND hwnd, UINT uMsg,
 			_this->m_pollcontrols = new PollControls(hwnd, _this->m_server); 
 			return 0;
 		}
+	case WM_HELP:	
+		help.Popup(lParam);
+		return 0;
 	case WM_COMMAND:	
 		switch (LOWORD(wParam))
 		{
@@ -706,6 +715,9 @@ BOOL CALLBACK vncProperties::SharedDlgProc(HWND hwnd, UINT uMsg,
 #endif
 			return 0;
 		}
+	case WM_HELP:	
+		help.Popup(lParam);
+		return 0;
 	case WM_COMMAND:	
 		switch (LOWORD(wParam))
 		{
@@ -849,6 +861,9 @@ BOOL CALLBACK vncProperties::InputHandlingDlgProc(HWND hwnd, UINT
 			_this->m_inputhandcontr = new InputHandlingControls(hwnd, _this->m_server);
 			return 0;
 		}
+	case WM_HELP:	
+		help.Popup(lParam);
+		return 0;
 	case WM_COMMAND:	
 		switch (LOWORD(wParam))
 		{
@@ -904,6 +919,9 @@ BOOL CALLBACK vncProperties::DisconnectDlgProc(HWND hwnd, UINT uMsg,
 				0);
 			return 0;
 		}
+	case WM_HELP:	
+		help.Popup(lParam);
+		return 0;
 	case WM_COMMAND:		
 		switch (LOWORD(wParam))
 		{
@@ -945,6 +963,9 @@ BOOL CALLBACK vncProperties::AdministrationDlgProc(HWND hwnd, UINT uMsg,
 			_this->m_AdminControls = new AdministrationControls(hwnd, _this->m_server);
 			return 0;
 		}
+	case WM_HELP:	
+		help.Popup(lParam);
+		return 0;
     case WM_COMMAND:		
 		switch (LOWORD(wParam))
 		{
@@ -983,6 +1004,9 @@ BOOL CALLBACK vncProperties::QuerySettingsDlgProc(HWND hwnd, UINT uMsg,
 			_this->m_QSControls = new QuerySettingsControls(hwnd, _this->m_server);
 			return 0;
 		}
+	case WM_HELP:	
+		help.Popup(lParam);
+		return 0;
     case WM_COMMAND:		
 		switch (LOWORD(wParam))
 		{

@@ -28,6 +28,7 @@
 
 #include "stdhdrs.h"
 #include "resource.h"
+#include "VNCHelp.h"
 
 // Application specific messages
 
@@ -43,7 +44,7 @@
 extern HINSTANCE	hAppInstance;
 extern const char	*szAppName;
 extern DWORD		mainthreadId;
-
+extern VNCHelp		help;
 // Main VNC server routine
 extern int WinVNCAppMain();
 

@@ -944,8 +944,8 @@ STRINGTABLE DISCARDABLE
 BEGIN
     IDC_SPECPORT            "Specify arbitrary TCP port numbers for incoming VNC and HTTP connections."
     IDC_POLLING_CYCLE       "Specify how often polling should be performed. Lowering the value improves responsiveness but also increases CPU usage."
-    IDC_ACTION_REFUSE       "Refuse"
-    IDC_ACTION_ACCEPT       "Accept"
+    IDC_ACTION_REFUSE       "Reject the connection if the confirmation dialog was timed out."
+    IDC_ACTION_ACCEPT       "Accept the connection if the confirmation dialog was timed out."
     IDC_REMOVE_WALLPAPER    "Do not show the desktop wallpaper while at least one viewer is connected to this server. This both saves bandwidth and decreases CPU utilization on the server, resulting in better responsiveness of the remote desktop."
     IDC_LOCKSETTING_NOTHING "Do nothing when a viewer disconnects. This is the default option."
     IDC_LOCKSETTING_LOCK    "Lock workstation on disconnect. This option is supported under Windows 2000/XP only."
@@ -958,7 +958,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDC_STATIC_ACTION       "Default action:"
+    IDC_STATIC_ACTION       "Default action determines what should be done if the confirmation dialog was timed out with no user input."
     IDC_STATIC_TEMPORARY    "Temporary"
     IDC_STATIC_CONN_PRIOR   "Connection Priority"
     IDC_STATIC_ADMINISTR    "Administration"
@@ -973,8 +973,8 @@ BEGIN
     IDC_PORTNO_AUTO         "When this option is set, the server will automatically find available port numbers, starting from port 5900 (corresponding to display 0). If built-in Web server is enabled, HTTP port will be set to VNC port minus 100."
     IDC_DISABLE_LOCAL_INPUTS 
                             "If set, local keyboard and mouse will be blocked while at least one VNC viewer is connected to this computer."
-    IDADVANCED              "Advanced ..."
-    IDQUERY                 "Query console on incoming connections"
+    IDADVANCED              "Advanced..."
+    IDQUERY                 "When a client connects, show a confirmation window allowing either to accept or to reject the connection."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -999,9 +999,9 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDQUERYTIMEOUT          "Query timeout:"
+    IDQUERYTIMEOUT          "Wait for the specified number of seconds, before the confirmation dialog will be closed and the default action will be performed."
     IDREQUIREAUTH           "Disable empty passwords"
-    IDQUERYALLOWNOPASS      "Allow option to accept without authentication"
+    IDQUERYALLOWNOPASS      "Normally, authentication is required if the connection is accepted. Setting this option activates additional button to accept connection without authentication (remote user is not asked for a password)."
     IDONLYLOOPBACK          "Allow only loopback connections"
     IDLOGLOTS               "Log detailed debugging information"
     IDALLOWLOOPBACK         "Allow loopback connections"

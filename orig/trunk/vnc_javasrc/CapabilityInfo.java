@@ -37,6 +37,16 @@ class CapabilityInfo {
     enabled = false;
   }
 
+  public CapabilityInfo(int code,
+			byte[] vendorSignature,
+			byte[] nameSignature) {
+    this.code = code;
+    this.vendorSignature = new String(vendorSignature);
+    this.nameSignature = new String(nameSignature);
+    this.description = null;
+    enabled = false;
+  }
+
   public int getCode() {
     return code;
   }

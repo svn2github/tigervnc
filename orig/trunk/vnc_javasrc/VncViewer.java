@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2001-2003 HorizonLive.com, Inc.  All Rights Reserved.
+//  Copyright (C) 2001-2004 HorizonLive.com, Inc.  All Rights Reserved.
 //  Copyright (C) 2002 Constantin Kaplinsky.  All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge.  All Rights Reserved.
 //
@@ -155,7 +155,6 @@ public class VncViewer extends java.applet.Applet
 
     try {
       connectAndAuthenticate();
-
       doProtocolInitialisation();
 
       vc = new VncCanvas(this);
@@ -299,28 +298,45 @@ public class VncViewer extends java.applet.Applet
     showConnectionStatus("Connecting to " + host + ", port " + port + "...");
 
     rfb = new RfbProto(host, port, this);
+    showConnectionStatus("Connected to server");
 
     rfb.readVersionMsg();
-
     showConnectionStatus("RFB server supports protocol version " +
 			 rfb.serverMajor + "." + rfb.serverMinor);
 
     rfb.writeVersionMsg();
-
     showConnectionStatus("Using RFB protocol version " +
 			 rfb.clientMajor + "." + rfb.clientMinor);
 
-    int authScheme = rfb.negotiateSecurity();
+    int secType = rfb.negotiateSecurity();
+    int authType = 0;
+
+    // FIXME: Map security types to authentication schemes in RfbProto.
+    switch (secType) {
+    case RfbProto.SecTypeNone:
+      authType = RfbProto.AuthNone;
+      break;
+    case RfbProto.SecTypeVncAuth:
+      authType = RfbProto.AuthVNC;
+      break;
+    case RfbProto.SecTypeTight:
+      showConnectionStatus("Enabling TightVNC protocol extensions");
+      rfb.initCapabilities();
+      rfb.setupTunneling();
+      authType = rfb.negotiateAuthenticationTight();
+      break;
+    default:
+      throw new Exception("Unknown security type " + secType);
+    }
+
     boolean success = false;
 
-    switch (authScheme) {
-
-    case RfbProto.SecTypeNone:
+    switch (authType) {
+    case RfbProto.AuthNone:
       showConnectionStatus("No authentication needed");
       success = true;
       break;
-
-    case RfbProto.SecTypeVncAuth:
+    case RfbProto.AuthVNC:
       showConnectionStatus("Performing standard VNC authentication");
       if (authenticator.isInteractionNecessary()) {
 	showAuthPanel();
@@ -334,9 +350,8 @@ public class VncViewer extends java.applet.Applet
 	  throw new Exception("Authentication failed");
       }
       break;
-
     default:
-      throw new Exception("Unknown authentication scheme " + authScheme);
+      throw new Exception("Unknown authentication scheme " + authType);
     }
 
     if (!success)
@@ -430,7 +445,6 @@ public class VncViewer extends java.applet.Applet
   void doProtocolInitialisation() throws IOException
   {
     rfb.writeClientInit();
-
     rfb.readServerInit();
 
     System.out.println("Desktop name is " + rfb.desktopName);
@@ -690,6 +704,7 @@ public class VncViewer extends java.applet.Applet
 
   //
   // fatalError() - print out a fatal error message.
+  // FIXME: Do we really need two versions of the fatalError() method?
   //
 
   synchronized public void fatalError(String str) {
@@ -706,18 +721,18 @@ public class VncViewer extends java.applet.Applet
 
   synchronized public void fatalError(String str, Exception e) {
  
-    if (rfb != null) {
+    if (rfb != null && rfb.closed()) {
       // Not necessary to show error message if the error was caused
       // by I/O problems after the rfb.close() method call.
-      if (rfb.closed()) {
-	System.out.println("RFB thread finished");
-	return;
-      }
-      rfb.close();
+      System.out.println("RFB thread finished");
+      return;
     }
 
-    e.printStackTrace();
     System.out.println(str);
+    e.printStackTrace();
+
+    if (rfb != null)
+      rfb.close();
 
     if (inAnApplet) {
       showMessage(str);

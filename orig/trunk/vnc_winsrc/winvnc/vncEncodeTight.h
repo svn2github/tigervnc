@@ -40,8 +40,8 @@ class vncEncodeTight;
 // changed, doing so will break compatibility with existing clients.
 #define TIGHT_MIN_TO_COMPRESS 12
 
-#define TIGHT_MAX_RECT_WIDTH 512
-#define TIGHT_MAX_RECT_HEIGHT 128
+// Maximum size of one tight rectangle. This value may be changed.
+#define TIGHT_MAX_RECT_SIZE  65536
 
 // C-style structures to store palette entries.
 // Such code probably should be converted into C++ classes.
@@ -65,7 +65,6 @@ typedef struct PALETTE_s {
 
 typedef struct PALETTE8_s {
 	CARD8 pixelValue[2];
-	int numPixels[2];
 	CARD8 colorIdx[256];
 } PALETTE8;
 
@@ -92,6 +91,7 @@ public:
 
 // Implementation
 protected:
+	int m_paletteMaxColors;
 	int m_paletteNumColors;
 	PALETTE m_palette;
 	PALETTE8 m_palette8;
@@ -103,26 +103,40 @@ protected:
 	int m_hdrBufferBytes;
 	BYTE *m_buffer;
 	int m_bufflen;
+	int *m_prevRowBuf;
+
+	bool m_usePixelFormat24;
 
 	UINT EncodeSubrect(BYTE *source, VSocket *outConn, BYTE *dest,
 					   int x, int y, int w, int h);
 	int SendSolidRect(BYTE *dest, int w, int h);
 	int SendIndexedRect(BYTE *dest, int w, int h);
 	int SendFullColorRect(BYTE *dest, int w, int h);
+	int SendGradientRect(BYTE *dest, int w, int h);
 	int CompressData(BYTE *dest, int streamId, int dataLen);
-	void FillPalette(int w, int h);
+
+	void FillPalette8(int w, int h);
+	void FillPalette16(int w, int h);
+	void FillPalette32(int w, int h);
 
 	void PaletteReset(void);
 	int PaletteFind(CARD32 rgb);
-	int PaletteInsert(CARD32 rgb);
-	void PaletteReset8(void);
-	int PaletteInsert8(CARD8 value);
+	int PaletteInsert(CARD32 rgb, int numPixels);
 
-	void Pack24(BYTE *buf, rfbPixelFormat *format, int count);
+	void Pack24(BYTE *buf, int count);
 
-	void EncodeIndexedRect8(CARD8 *buf, int w, int h);
-	void EncodeIndexedRect16(CARD8 *buf, int w, int h);
-	void EncodeIndexedRect32(CARD8 *buf, int w, int h);
+	void EncodeIndexedRect8(BYTE *buf, int w, int h);
+	void EncodeIndexedRect16(BYTE *buf, int w, int h);
+	void EncodeIndexedRect32(BYTE *buf, int w, int h);
+
+	void FilterGradient24(BYTE *buf, int w, int h);
+	void FilterGradient16(CARD16 *buf, int w, int h);
+	void FilterGradient32(CARD32 *buf, int w, int h);
+
+	int DetectStillImage (int w, int h);
+	int DetectStillImage24 (int w, int h);
+	int DetectStillImage16 (int w, int h);
+	int DetectStillImage32 (int w, int h);
 };
 
 #endif // _WINVNC_ENCODETIGHT

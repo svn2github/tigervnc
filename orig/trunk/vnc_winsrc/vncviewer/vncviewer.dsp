@@ -149,6 +149,14 @@ SOURCE=.\AuthDialog.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\CapsContainer.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CapsContainer.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\ClientConnection.cpp
 # End Source File
 # Begin Source File

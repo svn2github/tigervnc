@@ -138,12 +138,15 @@ void ClientConnection::Init(VNCviewerApp *pApp)
 	m_hPalette = NULL;
 	m_encPasswd[0] = '\0';
 
+	// Initialize our capability lists
+	m_authCaps.AddCapability(rfbVncAuth, rfbStandardVendor, rfbVncAuthSignature,
+							 "Standard VNC password authentication");
+
 	m_pFileTransfer = new FileTransfer(this, m_pApp);
 	m_FileTransferEnable = false;
 
 	// We take the initial conn options from the application defaults
 	m_opts = m_pApp->m_options;
-	
 	
 	m_sock = INVALID_SOCKET;
 	m_bKillThread = false;
@@ -744,7 +747,11 @@ void ClientConnection::ReadServerInit()
 	SizeWindow(true);
 }
 
-// FIXME: Code duplication, see next function
+//
+// In the protocol version 3.130, the server informs us about tunneling and
+// authentication methods supported. Here we read this information.
+//
+
 void ClientConnection::ReadHandshakingCaps()
 {
 	// Read the counts of list items following
@@ -753,12 +760,16 @@ void ClientConnection::ReadHandshakingCaps()
 	init_caps.nTunnelTypes = Swap16IfLE(init_caps.nTunnelTypes);
 	init_caps.nAuthenticationTypes = Swap16IfLE(init_caps.nAuthenticationTypes);
 
-	// Read the list of server messages
-	ReadCapabilitiesList(init_caps.nTunnelTypes);
-	ReadCapabilitiesList(init_caps.nAuthenticationTypes);
+	// Read the lists of tunneling and authentication methods
+	ReadCapabilityList(&m_tunnelCaps, init_caps.nTunnelTypes);
+	ReadCapabilityList(&m_authCaps, init_caps.nAuthenticationTypes);
 }
 
-// FIXME: Code duplication, see prev function
+//
+// In the protocol version 3.130, the server informs us about supported
+// protocol messages. Here we read this information.
+//
+
 void ClientConnection::ReadInteractionCaps()
 {
 	// Read the counts of list items following
@@ -767,21 +778,24 @@ void ClientConnection::ReadInteractionCaps()
 	intr_caps.nServerMessageTypes = Swap16IfLE(intr_caps.nServerMessageTypes);
 	intr_caps.nClientMessageTypes = Swap16IfLE(intr_caps.nClientMessageTypes);
 
-	// Read the list of server messages
-	ReadCapabilitiesList(intr_caps.nServerMessageTypes);
-	ReadCapabilitiesList(intr_caps.nClientMessageTypes);
+	// Read the lists of server- and client-initiated messages
+	ReadCapabilityList(&m_serverMsgCaps, intr_caps.nServerMessageTypes);
+	ReadCapabilityList(&m_clientMsgCaps, intr_caps.nClientMessageTypes);
 }
 
-// FIXME: Finished function will require arguments like a dictionary of
-// known capabilities, and a pointer to the resulting dictionary.
-void ClientConnection::ReadCapabilitiesList(int count)
+//
+// Read the list of rfbCapabilityInfo structures and enable corresponding
+// capabilities in the specified container. The count argument specifies how
+// many records to read from the socket.
+//
+
+void ClientConnection::ReadCapabilityList(CapsContainer *caps, int count)
 {
 	rfbCapabilityInfo msginfo;
 	for (int i = 0; i < count; i++) {
 		ReadExact((char *)&msginfo, sz_rfbCapabilityInfo);
 		msginfo.code = Swap32IfLE(msginfo.code);
-		// FIXME: Currently we don't process the list contents.
-		// FIXME: Move to a separate class e.g. vncCapsContainer.
+		caps->EnableCapability(&msginfo);		
 	}
 }
 

@@ -36,6 +36,7 @@
 #else
 #include "omnithread.h"
 #endif
+#include "CapsContainer.h"
 #include "VNCOptions.h"
 #include "VNCviewerApp.h"
 #include "KeyMap.h"
@@ -106,7 +107,7 @@ private:
 	void Authenticate();
 	void ReadServerInit();
 	void ReadInteractionCaps();
-	void ReadCapabilitiesList(int count);
+	void ReadCapabilityList(CapsContainer *caps, int count);
 	void SendClientInit();
 	void CreateLocalFramebuffer();
 	void SaveConnection();
@@ -308,7 +309,13 @@ private:
 
 	// RFB settings
 	VNCOptions m_opts;
-	
+
+	// Protocol capabilities
+	CapsContainer m_tunnelCaps;		// known tunneling/encryption methods
+	CapsContainer m_authCaps;		// known authentication schemes
+	CapsContainer m_serverMsgCaps;	// known non-standard server messages
+	CapsContainer m_clientMsgCaps;	// known non-standard client messages
+
 	TCHAR *m_desktopName;
 	unsigned char m_encPasswd[8];
 	rfbServerInitMsg m_si;

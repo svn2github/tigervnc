@@ -61,6 +61,10 @@ class ButtonPanel extends Panel implements ActionListener {
     refreshButton.addActionListener(this);
   }
 
+  //
+  // Enable buttons on successful connection.
+  //
+
   public void enableButtons() {
     disconnectButton.setEnabled(true);
     clipboardButton.setEnabled(true);
@@ -68,11 +72,30 @@ class ButtonPanel extends Panel implements ActionListener {
   }
 
   //
+  // Disable all buttons on disconnect.
+  //
+
+  public void disableButtonsOnDisconnect() {
+    remove(disconnectButton);
+    disconnectButton = new Button("Hide desktop");
+    disconnectButton.setEnabled(true);
+    add(disconnectButton, 0);
+    disconnectButton.addActionListener(this);
+
+    optionsButton.setEnabled(false);
+    clipboardButton.setEnabled(false);
+    ctrlAltDelButton.setEnabled(false);
+    refreshButton.setEnabled(false);
+
+    validate();
+  }
+
+  //
   // Enable/disable controls that should not be available in view-only
   // mode.
   //
 
-  void enableRemoteAccessControls(boolean enable) {
+  public void enableRemoteAccessControls(boolean enable) {
     ctrlAltDelButton.setEnabled(enable);
   }
 

@@ -69,6 +69,7 @@ public class VncViewer extends java.applet.Applet
   String host;
   int port;
   String passwordParam;
+  boolean showOfflineDesktop;
   int deferScreenUpdates;
   int deferCursorUpdates;
   int deferUpdateRequests;
@@ -121,7 +122,6 @@ public class VncViewer extends java.applet.Applet
 
     if (options.showControls) {
       buttonPanel = new ButtonPanel(this);
-      buttonPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
       gridbag.setConstraints(buttonPanel, gbc);
       vncContainer.add(buttonPanel);
     }
@@ -183,7 +183,20 @@ public class VncViewer extends java.applet.Applet
 		 host + ":" + port);
     } catch (EOFException e) {
       e.printStackTrace();
-      fatalError("Network error: remote side closed connection");
+      if (showOfflineDesktop) {
+	System.out.println("Network error: remote side closed connection");
+	if (vc != null) {
+	  vc.enableInput(false);
+	}
+	if (inSeparateFrame) {
+	  vncFrame.setTitle(rfb.desktopName + " [disconnected]");
+	}
+	if (options.showControls && buttonPanel != null) {
+	  buttonPanel.disableButtonsOnDisconnect();
+	}
+      } else {
+	fatalError("Network error: remote side closed connection");
+      }
     } catch (IOException e) {
       String str = e.getMessage();
       e.printStackTrace();
@@ -419,6 +432,12 @@ public class VncViewer extends java.applet.Applet
     }
 
     passwordParam = readParameter("PASSWORD", false);
+
+    // Do we continue showing desktop on remote disconnect?
+    showOfflineDesktop = false;
+    str = readParameter("Show Offline Desktop", false);
+    if (str != null && str.equalsIgnoreCase("Yes"))
+      showOfflineDesktop = true;
 
     // Fine tuning options.
     deferScreenUpdates = readIntParameter("Defer screen updates", 20);

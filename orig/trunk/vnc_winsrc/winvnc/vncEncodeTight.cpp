@@ -335,7 +335,7 @@ vncEncodeTight::SendGradientRect(BYTE *dest, int w, int h)
 	m_hdrBuffer[m_hdrBufferBytes++] = (3 | rfbTightExplicitFilter) << 4;
 	m_hdrBuffer[m_hdrBufferBytes++] = rfbTightFilterGradient;
 
-	if (usePixelFormat24) {
+	if (m_usePixelFormat24) {
 		FilterGradient24(m_buffer, w, h);
 		len = 3;
 	} else if (m_remoteformat.bitsPerPixel == 32) {
@@ -421,11 +421,11 @@ vncEncodeTight::FillPalette8(int w, int h)
 	c0 = data[0];
 	for (i = 1; i < w * h && data[i] == c0; i++);
 	if (i == w * h) {
-		paletteNumColors = 1;
+		m_paletteNumColors = 1;
 		return;                 // Solid rectangle
 	}
 
-	if (paletteMaxColors < 2)
+	if (m_paletteMaxColors < 2)
 		return;
 
 	n0 = i;
@@ -441,17 +441,17 @@ vncEncodeTight::FillPalette8(int w, int h)
 	}
 	if (i == w * h) {
 		if (n1 > n0) {
-			palette8.pixelValue[0] = c0;
-			palette8.pixelValue[1] = c1;
-			palette8.colorIdx[c0] = 0;
-			palette8.colorIdx[c1] = 1;
+			m_palette8.pixelValue[0] = c0;
+			m_palette8.pixelValue[1] = c1;
+			m_palette8.colorIdx[c0] = 0;
+			m_palette8.colorIdx[c1] = 1;
 		} else {
-			palette8.pixelValue[0] = c1;
-			palette8.pixelValue[1] = c0;
-			palette8.colorIdx[c0] = 1;
-			palette8.colorIdx[c1] = 0;
+			m_palette8.pixelValue[0] = c1;
+			m_palette8.pixelValue[1] = c0;
+			m_palette8.colorIdx[c0] = 1;
+			m_palette8.colorIdx[c1] = 0;
 		}
-		paletteNumColors = 2;   // Two colors
+		m_paletteNumColors = 2;   // Two colors
 	}
 }
 
@@ -469,11 +469,11 @@ vncEncodeTight::FillPalette##bpp(int w, int h)								  \
 	c0 = data[0];															  \
 	for (i = 1; i < w * h && data[i] == c0; i++);							  \
 	if (i == w * h) {														  \
-		paletteNumColors = 1;												  \
+		m_paletteNumColors = 1;												  \
 		return;                 /* Solid rectangle */						  \
 	}																		  \
 																			  \
-	if (paletteMaxColors < 2)												  \
+	if (m_paletteMaxColors < 2)												  \
 		return;																  \
 																			  \
 	n0 = i;																	  \
@@ -531,9 +531,9 @@ vncEncodeTight::PaletteFind(CARD32 rgb)
 	COLOR_LIST *pnode;
 
 	if (rgb & 0xFF000000) {
-		pnode = palette.hash[(int)((rgb >> 24) + (rgb >> 16) & 0xFF)];
+		pnode = m_palette.hash[(int)((rgb >> 24) + (rgb >> 16) & 0xFF)];
 	} else {
-		pnode = palette.hash[(int)((rgb >> 8) + rgb & 0xFF)];
+		pnode = m_palette.hash[(int)((rgb >> 8) + rgb & 0xFF)];
 	}
 
 	while (pnode != NULL) {
@@ -597,7 +597,7 @@ vncEncodeTight::PaletteInsert(CARD32 rgb, int numPixels)
 	}
 
 	// Add new palette entry into the freed slot.
-	pnode = &m_palette.list[paletteNumColors];
+	pnode = &m_palette.list[m_paletteNumColors];
 	if (prev_pnode != NULL) {
 		prev_pnode->next = pnode;
 	} else {

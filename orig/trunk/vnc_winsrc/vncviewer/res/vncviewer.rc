@@ -28,8 +28,8 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,2,4,0
- PRODUCTVERSION 1,2,4,0
+ FILEVERSION 1,2,5,0
+ PRODUCTVERSION 1,2,5,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -62,14 +62,14 @@ BEGIN
             VALUE "Comments", "Based on TridiaVNC by Tridia Corporation\0"
             VALUE "CompanyName", "Constantin Kaplinsky\0"
             VALUE "FileDescription", "vncviewer\0"
-            VALUE "FileVersion", "1, 2, 4, 0\0"
+            VALUE "FileVersion", "1, 2, 5, 0\0"
             VALUE "InternalName", "vncviewer\0"
-            VALUE "LegalCopyright", "Copyright   1999-2002 [many holders]\0"
+            VALUE "LegalCopyright", "Copyright (C) 1999-2002 [many holders]\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "vncviewer.exe\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "TightVNC Win32 Viewer\0"
-            VALUE "ProductVersion", "1, 2, 4, 0\0"
+            VALUE "ProductVersion", "1, 2, 5, 0\0"
             VALUE "SpecialBuild", "\0"
         END
     END
@@ -264,7 +264,7 @@ FONT 8, "MS Sans Serif"
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,135,100,50,14
     CONTROL         106,IDC_STATIC,"Static",SS_BITMAP | SS_SUNKEN,19,7,81,66
-    LTEXT           "TightVNC Viewer version 1.2.4\nCopyright (C) 2000-2002 Constantin Kaplinsky\nhttp://www.tightvnc.com/",
+    LTEXT           "TightVNC Viewer version 1.2.5\nCopyright (C) 2000-2002 Constantin Kaplinsky\nhttp://www.tightvnc.com/",
                     IDC_STATIC,135,7,190,27
     LTEXT           "Includes code from TridiaVNC 1.4.0\nCopyright (C) 2000, 2001 Tridia Corporation\nhttp://www.tridiavnc.com/",
                     IDC_STATIC,135,66,190,28

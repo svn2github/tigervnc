@@ -349,7 +349,8 @@ vncServer::Authenticated(vncClientId clientid)
 	{
 		MessageBeep(MB_OK);
 	}
-
+	if (authok)
+		GetClient(clientid)->setStartTime(time(0));
 	return authok;
 }
 

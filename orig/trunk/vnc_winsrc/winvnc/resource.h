@@ -44,6 +44,7 @@
 #define IDD_CLIENT_DISCONNECT           151
 #define IDD_ADMINISTRATION              152
 #define IDR_AUTHUNIXLOGIN_CLASS         153
+#define IDD_CONTROL_PANEL               153
 #define IDR_CAPINFO_CLASS               154
 #define IDR_CAPSCONTAINER_CLASS         155
 #define IDC_CONNECT_SOCK                1004
@@ -134,6 +135,18 @@
 #define IDC_LIVESHARE_LABEL             1097
 #define IDC_DONT_USE_DRIVER             1098
 #define IDC_CHECK_BLACK_RGN             1099
+#define IDC_LIST_CONNECTIONS            1100
+#define IDC_DISABLE_CLIENTS             1103
+#define IDC_ADD_CLIENT                  1104
+#define IDC_KILL_ALL                    1105
+#define IDC_KILL_SEL_CLIENT             1106
+#define IDC_PROPERTIES                  1107
+#define IDC_APPLY_STATUS                1111
+#define IDC_VIEW_ONLY_MODE              1112
+#define IDC_FULL_CONTROL                1113
+#define IDC_VIEW_ONLY                   1115
+#define IDC_FULL_CONTROL_CON            1116
+#define IDC_VIEW_ONLY_CON               1117
 #define ID_PROPERTIES                   40001
 #define ID_CLOSE                        40002
 #define ID_KILLCLIENTS                  40003
@@ -141,6 +154,7 @@
 #define ID_OUTGOING_CONN                40005
 #define ID_DEFAULT_PROPERTIES           40006
 #define ID_DISABLE_CONN                 40007
+#define ID_CONTROL_PANEL                40009
 
 // Next default values for new objects
 // 
@@ -148,7 +162,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        156
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1100
+#define _APS_NEXT_CONTROL_VALUE         1118
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -160,6 +160,10 @@ SOURCE=.\AdministrationControls.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\ControlPanel.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\d3des.c
 # End Source File
 # Begin Source File
@@ -413,6 +417,10 @@ SOURCE=.\WinVNC.rc
 # Begin Source File
 
 SOURCE=.\AdministrationControls.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ControlPanel.h
 # End Source File
 # Begin Source File
 

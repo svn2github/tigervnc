@@ -49,6 +49,7 @@
 
 // Constants
 const UINT MENU_PROPERTIES_SHOW = RegisterWindowMessage("WinVNC.Properties.User.Show");
+const UINT MENU_CONTROL_PANEL_SHOW = RegisterWindowMessage("WinVNC.ControlPanel.Show");
 const UINT MENU_SERVER_SHAREWINDOW = RegisterWindowMessage("WinVNC.Server.ShareWindow");
 const UINT MENU_DEFAULT_PROPERTIES_SHOW = RegisterWindowMessage("WinVNC.Properties.Default.Show");
 const UINT MENU_ABOUTBOX_SHOW = RegisterWindowMessage("WinVNC.AboutBox.Show");
@@ -252,6 +253,8 @@ vncMenu::vncMenu(vncServer *server)
 
 	// Install the tray icon!
 	AddTrayIcon();
+
+	CPanel = new ControlPanel(m_server, m_hwnd);
 }
 
 vncMenu::~vncMenu()
@@ -443,6 +446,7 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 		} else {
 			RestoreWallpaper();
 		}
+		_this->CPanel->UpdateListView();
 		return 0;
 
 		// STANDARD MESSAGE HANDLING
@@ -467,6 +471,9 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 			vnclog.Print(LL_INTINFO, VNCLOG("show user properties requested\n"));
 			_this->m_properties.Show(TRUE, TRUE);
 			_this->FlashTrayIcon(_this->m_server->AuthClientCount() != 0);
+			break;
+		case ID_CONTROL_PANEL:		
+			_this->CPanel->showDialog();
 			break;
 		
 		case ID_OUTGOING_CONN:
@@ -498,8 +505,10 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 				CheckMenuItem(_this->m_hmenu, ID_DISABLE_CONN, MF_CHECKED);
 				_this->m_winvnc_icon = _this->m_winvnc_disabled_icon;
 			}
+
 			// Update the icon
 			_this->FlashTrayIcon(_this->m_server->AuthClientCount() != 0);
+			_this->CPanel->setDisable();
 			break;
 
 		case ID_ABOUT:

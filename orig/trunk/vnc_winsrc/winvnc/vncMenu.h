@@ -38,10 +38,11 @@ class vncMenu;
 #include "vncServer.h"
 #include "vncProperties.h"
 #include "vncAbout.h"
-
+#include "ControlPanel.h"
 // Constants
 extern const UINT MENU_SERVER_SHAREWINDOW;
 extern const UINT MENU_PROPERTIES_SHOW;
+extern const UINT MENU_CONTROL_PANEL_SHOW;
 extern const UINT MENU_DEFAULT_PROPERTIES_SHOW;
 extern const UINT MENU_ABOUTBOX_SHOW;
 extern const UINT MENU_SERVICEHELPER_MSG;
@@ -78,6 +79,8 @@ protected:
 
 	// Properties object for this server
 	vncProperties	m_properties;
+
+	ControlPanel	*CPanel;
 
 	// About dialog for this server
 	vncAbout		m_about;

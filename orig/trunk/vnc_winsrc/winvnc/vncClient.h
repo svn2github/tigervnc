@@ -118,7 +118,8 @@ public:
 	virtual const char *GetClientName();
 	virtual const char *GetServerName();
 	virtual vncClientId GetClientId() {return m_id;};
-
+	char*	getStartTime() { return ctime(&startTime); }
+	void	setStartTime(time_t start) {startTime = start;}
 	BOOL SetNewFBSize(BOOL sendnewfb);
 	BOOL IncrRgnRequested(){return !m_incr_rgn.IsEmpty();};
 	BOOL FullRgnRequested(){return !m_full_rgn.IsEmpty();};
@@ -161,6 +162,8 @@ protected:
 	VSocket			*m_socket;
 	char			*m_client_name;
 	char			*m_server_name;
+	
+	time_t startTime;
 
 	// The client thread
 	omni_thread		*m_thread;

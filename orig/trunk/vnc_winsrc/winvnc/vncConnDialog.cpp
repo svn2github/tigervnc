@@ -77,7 +77,9 @@ BOOL CALLBACK vncConnDialog::vncConnDlgProc(HWND hwnd,
 
             SetWindowLong(hwnd, GWL_USERDATA, lParam);
             vncConnDialog *_this = (vncConnDialog *) lParam;
-            
+
+            SendDlgItemMessage(hwnd, IDC_FULL_CONTROL_CON, BM_SETCHECK, TRUE, 0);
+
             // Return success!
 			return TRUE;
 		}
@@ -119,7 +121,9 @@ BOOL CALLBACK vncConnDialog::vncConnDlgProc(HWND hwnd,
 			tmpsock->Create();
 			if (tmpsock->Connect(hostname, port)) {
 				// Add the new client to this server
-				_this->m_server->AddClient(tmpsock, TRUE, TRUE);
+				BOOL full = SendDlgItemMessage(hwnd, IDC_FULL_CONTROL_CON,
+												BM_GETCHECK, 0, 0) == BST_CHECKED;
+				_this->m_server->AddClient(tmpsock, TRUE, TRUE, full, full);
 
 				// And close the dialog
                 EndDialog(hwnd, TRUE);

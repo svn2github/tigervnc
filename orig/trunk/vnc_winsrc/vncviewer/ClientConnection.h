@@ -72,6 +72,7 @@ public:
 	int m_port;
     TCHAR m_host[MAX_HOST_NAME_LEN];
 	TCHAR m_display[256];
+	HWND m_hSess;
 	// Exceptions 
 	class UserCancelExc {};
 	class AuthenticationExc {};

@@ -83,7 +83,7 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
             SetWindowLong(hwnd, GWL_USERDATA, lParam);
             SessionDialog *_this = (SessionDialog *) lParam;
             CentreWindow(hwnd);
-			
+			_this->m_cc->m_hSess = hwnd;
             // Set up recently-used list
             int dwbuflen=255;
 			TCHAR valname[256];
@@ -169,8 +169,6 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 				}
 				case IDC_LOAD:
 					{
-					HWND hOpen = FindWindow(NULL,"Open VNC file");
-					if (SetForegroundWindow(hOpen) != 0) return TRUE;
 					TCHAR buf[80];
 					buf[0]='\0';
 					if (_this->m_cc->LoadConnection(buf, true) != -1) {

@@ -753,6 +753,10 @@ void ClientConnection::SizeWindow(bool centered)
 	m_winwidth1 = min(m_fullwinwidth1,  workwidth);
 	m_winheight1 = min(m_fullwinheight1, workheight);
 
+	DWORD style=SWP_SHOWWINDOW|SWP_NOMOVE;
+	if (centered){
+		style=SWP_SHOWWINDOW;
+	}
 	if (GetMenuState(GetSystemMenu(m_hwnd1, FALSE),
 					 ID_TOOLBAR, MF_BYCOMMAND) == MF_CHECKED) {
 		RECT rtb;
@@ -762,12 +766,14 @@ void ClientConnection::SizeWindow(bool centered)
 					 (workheight - min(m_winheight1+rtb.bottom-rtb.top-4, workheight)) / 2,
 					 m_winwidth1,
 					 min(m_winheight1+rtb.bottom-rtb.top-4, workheight),
-					 SWP_SHOWWINDOW);
+					 style);
 	} else {
-		SetWindowPos(m_hwnd1, HWND_TOP, 0, 0,
+		SetWindowPos(m_hwnd1, HWND_TOP, 
 					 (workwidth - m_winwidth1) / 2,
-					 (workheight - m_winheight1) / 2,
-					 SWP_SHOWWINDOW);
+					 (workheight - min(m_winheight1, workheight)) / 2,
+					 m_winwidth1,
+					 min(m_winheight1, workheight),
+					 style);
 	}
 	SetForegroundWindow(m_hwnd1);
 }

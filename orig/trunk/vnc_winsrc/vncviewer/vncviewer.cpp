@@ -37,9 +37,7 @@
 // All logging is done via the log object
 Log vnclog;
 HWND hwndd;
-
 HACCEL hAccel;
-HACCEL hAccel1;
 ACCEL Accel[7];
 #ifdef UNDER_CE
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdLine, int iCmdShow)
@@ -66,7 +64,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 
 	MSG msg;
 	
-
 	Accel[0].fVirt=FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
 	Accel[0].key=0x4f;
 	Accel[0].cmd=IDC_OPTIONBUTTON;

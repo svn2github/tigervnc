@@ -306,27 +306,26 @@ vncDesktopThread::run_undetached(void *arg)
 						rect.bottom = rect.top + m_desktop->m_qtrscreen.bottom;
 						m_desktop->m_changed_rgn.AddRect(rect);
 						m_desktop->m_pollingcycle = (m_desktop->m_pollingcycle + 1) % 4;
-					}
-				
-				} else {
-					if (m_server->PollForeground())
-					{
-						// Get the window rectangle for the currently selected window
-						HWND hwnd = GetForegroundWindow();
-						if (hwnd != NULL)
-							m_desktop->PollWindow(hwnd);
-					}
-					
-					if (m_server->PollUnderCursor())
-					{
-						// Find the mouse position
-						POINT mousepos;
-						if (GetCursorPos(&mousepos))
+					} else {
+						if (m_server->PollForeground())
 						{
-							// Find the window under the mouse
-							HWND hwnd = WindowFromPoint(mousepos);
+							// Get the window rectangle for the currently selected window
+							HWND hwnd = GetForegroundWindow();
 							if (hwnd != NULL)
 								m_desktop->PollWindow(hwnd);
+						}
+						
+						if (m_server->PollUnderCursor())
+						{
+							// Find the mouse position
+							POINT mousepos;
+							if (GetCursorPos(&mousepos))
+							{
+								// Find the window under the mouse
+								HWND hwnd = WindowFromPoint(mousepos);
+								if (hwnd != NULL)
+									m_desktop->PollWindow(hwnd);
+							}
 						}
 					}
 				}
@@ -1261,9 +1260,9 @@ vncDesktop::ThunkBitmapInfo()
 	m_formatmunged = FALSE;
 
 	// HACK ***.  Optimised blits don't work with palette-based displays, yet
-//	if (!m_bminfo.truecolour) {
-//		m_formatmunged = TRUE;
-//	}
+	if (!m_bminfo.truecolour) {
+		m_formatmunged = TRUE;
+	}
 
 	// Attempt to force the actual format into one we can handle
 	// We can handle 8-bit-palette and 16/32-bit-truecolour modes
@@ -1304,7 +1303,7 @@ vncDesktop::ThunkBitmapInfo()
 				m_bminfo.bmi.bmiHeader.biHeight *
 				m_bminfo.bmi.bmiHeader.biBitCount)/ 8);
 		// Display format is non-VNC compatible - use the slow blit method
-//		m_formatmunged = TRUE;
+		m_formatmunged = TRUE;
 		break;
 	}
 
@@ -1592,8 +1591,7 @@ vncDesktop::CreateBuffers()
 		vnclog.Print(LL_INTERR, VNCLOG("unable to allocate back buffer[%d]\n"), ScreenBuffSize());
 		return FALSE;
 	}
-	
-	
+
 	// Delete the old memory bitmap
 	if (m_membitmap != NULL) {
 		DeleteObject(m_membitmap);
@@ -1603,7 +1601,6 @@ vncDesktop::CreateBuffers()
 	// Replace old membitmap with DIB section
 	m_membitmap = tempbitmap;
 	m_mainbuff = (BYTE *)m_DIBbits;
-
 	vnclog.Print(LL_INTINFO, VNCLOG("enabled fast DIBsection blits OK\n"));
 	return TRUE;
 }
@@ -1755,13 +1752,6 @@ vncDesktop::CaptureMouse(BYTE *scrBuff, UINT scrBuffSize)
 	// Clip the bounding rect to the screen
 	RECT screen;
 	screen = m_server->getSharedRect();
-/*	screen.left=0;
-	screen.top=0;
-	screen.right=m_scrinfo.framebufferWidth;
-	screen.bottom=m_scrinfo.framebufferHeight;
-*/
-	//IntersectRect(&m_cursorpos, &m_cursorpos, &screen);
-
 	// Copy the mouse cursor into the screen buffer, if any of it is visible
 	if (IntersectRect(&m_cursorpos, &m_cursorpos, &screen))
 		CopyToBuffer(m_cursorpos, scrBuff);
@@ -2193,42 +2183,41 @@ vncDesktop::GetChangedRegion(vncRegion &rgn, RECT &rect)
 		if ( memcmp(zeroblock, o_topleft_ptr, bytesPerRowRect) != 0 )
 		{
 
-		// Work out way down the bitmap
-		unsigned char * o_row_ptr = o_topleft_ptr;
-	
-		const int blockbottom = Min(y+BLOCK_SIZE, rect.bottom);
-		for (x = rect.left; x<rect.right; x+=BLOCK_SIZE)
-		{
-			// Work our way across the row
-			unsigned char *o_block_ptr = o_row_ptr;
-
-			const UINT blockright = Min(x+BLOCK_SIZE, rect.right);
-			const UINT bytesPerBlockRow = (blockright-x) * bytesPerPixel;
-
-			// Scan this block
-			for (ay = y; ay < blockbottom; ay++)
+			// Work out way down the bitmap
+			unsigned char * o_row_ptr = o_topleft_ptr;
+			
+			const int blockbottom = Min(y+BLOCK_SIZE, rect.bottom);
+			for (x = rect.left; x<rect.right; x+=BLOCK_SIZE)
 			{
-				for (by = 0; by< BLOCK_SIZE* bytesPerPixel; by++)
+				// Work our way across the row
+				unsigned char *o_block_ptr = o_row_ptr;
+
+				const UINT blockright = Min(x+BLOCK_SIZE, rect.right);
+				const UINT bytesPerBlockRow = (blockright-x) * bytesPerPixel;
+
+				// Scan this block
+				for (ay = y; ay < blockbottom; ay++)
 				{
-					if ( o_block_ptr[by] != 0x00 )
-	//				if (memcmp(zeroblock, o_block_ptr, bytesPerBlockRow) != 0)
+					for (by = 0; by< BLOCK_SIZE* bytesPerPixel; by++)
 					{
-						// A pixel has changed, so this block needs updating
-						SetRect(&new_rect, x,y,blockright,blockbottom);
-						rgn.AddRect(new_rect);
-						ay = blockbottom;
-						break;
+						if ( o_block_ptr[by] != 0x00 )
+						{
+							// A pixel has changed, so this block needs updating
+							SetRect(&new_rect, x,y,blockright,blockbottom);
+							rgn.AddRect(new_rect);
+							ay = blockbottom;
+							break;
+						}
 					}
+
+					o_block_ptr += m_bytesPerRow;
 				}
 
-				o_block_ptr += m_bytesPerRow;
+				o_row_ptr += bytesPerBlockRow;
 			}
 
-			o_row_ptr += bytesPerBlockRow;
-		}
-
-		o_topleft_ptr += m_bytesPerRow * BLOCK_SIZE;
-		y+=BLOCK_SIZE-1;
+			o_topleft_ptr += m_bytesPerRow * BLOCK_SIZE;
+			y+=BLOCK_SIZE-1;
 		} else 
 			o_topleft_ptr += m_bytesPerRow;
 	}

@@ -392,12 +392,15 @@ vncProperties::DialogProc(HWND hwnd,
 				BM_SETCHECK,
 				_this->m_server->PollForeground(),
 				0);
+			EnableWindow(hPollForeground, !_this->m_server->PollFullScreen());
 
 			HWND hPollUnderCursor = GetDlgItem(hwnd, IDC_POLL_UNDER_CURSOR);
 			SendMessage(hPollUnderCursor,
 				BM_SETCHECK,
 				_this->m_server->PollUnderCursor(),
 				0);
+			EnableWindow(hPollUnderCursor, !_this->m_server->PollFullScreen());
+
 
 			HWND hPollConsoleOnly = GetDlgItem(hwnd, IDC_CONSOLE_ONLY);
 			SendMessage(hPollConsoleOnly,
@@ -419,6 +422,10 @@ vncProperties::DialogProc(HWND hwnd,
 
 			HWND hPollingTimer = GetDlgItem(hwnd, IDC_POLL_TIMER);
 			SetDlgItemInt(hwnd, IDC_POLL_TIMER, _this->m_server->GetPollingTimer(), FALSE);
+			EnableWindow(hPollingTimer,
+				_this->m_server->PollUnderCursor() || _this->m_server->PollForeground() ||
+				_this->m_server->PollFullScreen());
+
 
 #endif
 	
@@ -759,6 +766,7 @@ vncProperties::DialogProc(HWND hwnd,
 				// Get the poll-mode buttons
 				HWND hPollForeground = GetDlgItem(hwnd, IDC_POLL_FOREGROUND);
 				HWND hPollUnderCursor = GetDlgItem(hwnd, IDC_POLL_UNDER_CURSOR);
+				HWND hPollFullScreen = GetDlgItem(hwnd, IDC_POLL_FULLSCREEN);
 
 				// Determine whether to enable the modifier options
 				BOOL enabled = (SendMessage(hPollForeground, BM_GETCHECK, 0, 0) == BST_CHECKED) ||
@@ -769,6 +777,25 @@ vncProperties::DialogProc(HWND hwnd,
 
 				HWND hPollOnEventOnly = GetDlgItem(hwnd, IDC_ONEVENT_ONLY);
 				EnableWindow(hPollOnEventOnly, enabled);
+
+				HWND hPollingTimer = GetDlgItem(hwnd, IDC_POLL_TIMER);
+				EnableWindow(hPollingTimer, enabled || (SendMessage(hPollFullScreen, BM_GETCHECK, 0, 0) == BST_CHECKED));
+			}
+			return TRUE;
+
+		case IDC_POLL_FULLSCREEN:
+			{
+				HWND hPollFullScreen = GetDlgItem(hwnd, IDC_POLL_FULLSCREEN);
+				HWND hPollForeground = GetDlgItem(hwnd, IDC_POLL_FOREGROUND);
+				HWND hPollUnderCursor = GetDlgItem(hwnd, IDC_POLL_UNDER_CURSOR);
+				
+				BOOL enabled = (SendMessage(hPollFullScreen, BM_GETCHECK, 0, 0) == BST_CHECKED);
+				EnableWindow(hPollForeground, !enabled);
+				EnableWindow(hPollUnderCursor, !enabled);
+
+				HWND hPollingTimer = GetDlgItem(hwnd, IDC_POLL_TIMER);
+				EnableWindow(hPollingTimer,enabled || (SendMessage(hPollForeground, BM_GETCHECK, 0, 0) == BST_CHECKED) ||
+					(SendMessage(hPollUnderCursor, BM_GETCHECK, 0, 0) == BST_CHECKED));
 			}
 			return TRUE;
 
@@ -1220,6 +1247,7 @@ vncProperties::Load(BOOL usersettings)
 	m_pref_ScreenAreaShared = FALSE;
 	m_pref_PriorityTime = 3;
 	m_pref_LocalInputPriority = FALSE;
+	m_pref_PollingCycle = 300;
 
 #endif
 
@@ -1302,7 +1330,6 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	m_pref_LocalInputPriority=LoadInt(appkey, "LocalInputsPriority", m_pref_LocalInputPriority);
 	m_pref_PriorityTime =LoadInt(appkey, "LocalInputsPriorityTime", m_pref_PriorityTime);
 
-	
 	// Connection querying settings
 	m_pref_QuerySetting=LoadInt(appkey, "QuerySetting", m_pref_QuerySetting);
 	m_pref_QueryTimeout=LoadInt(appkey, "QueryTimeout", m_pref_QueryTimeout);
@@ -1319,6 +1346,8 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	m_pref_EnableRemoteInputs=LoadInt(appkey, "InputsEnabled", m_pref_EnableRemoteInputs);
 	m_pref_LockSettings=LoadInt(appkey, "LockSetting", m_pref_LockSettings);
 	m_pref_DisableLocalInputs=LoadInt(appkey, "LocalInputsDisabled", m_pref_DisableLocalInputs);
+	m_pref_PollingCycle=LoadInt(appkey, "PollingCycle", m_pref_PollingCycle);
+
 #else
 	strcpy(m_pref_LiveShareKey, m_server->GetLiveShareKey());
 
@@ -1334,7 +1363,6 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	m_pref_FullScreen = m_server->FullScreen();
 	m_pref_WindowShared = m_server->WindowShared();
 	m_pref_ScreenAreaShared = m_server->ScreenAreaShared();
-	
 }
 
 void
@@ -1371,6 +1399,7 @@ vncProperties::ApplyUserPrefs()
 	m_server->DisableLocalInputs(m_pref_DisableLocalInputs);
 	m_server->LocalInputPriority(m_pref_LocalInputPriority);
 	m_server->SetDisableTime(m_pref_PriorityTime);
+	m_server->SetPollingTimer(m_pref_PollingCycle);
 
 #endif
 
@@ -1381,7 +1410,7 @@ vncProperties::ApplyUserPrefs()
 	m_server->PollFullScreen(m_pref_PollFullScreen);
 	m_server->PollConsoleOnly(m_pref_PollConsoleOnly);
 	m_server->PollOnEventOnly(m_pref_PollOnEventOnly);
-	
+
 	m_server->FullScreen(m_pref_FullScreen);
 	m_server->WindowShared(m_pref_WindowShared);
 	m_server->ScreenAreaShared(m_pref_ScreenAreaShared);
@@ -1503,6 +1532,8 @@ vncProperties::SaveUserPrefs(HKEY appkey)
 
 	SaveInt(appkey, "OnlyPollConsole", m_server->PollConsoleOnly());
 	SaveInt(appkey, "OnlyPollOnEvent", m_server->PollOnEventOnly());
+	SaveInt(appkey, "PollingCycle", m_server->GetPollingTimer());
+
 #endif
 }
 

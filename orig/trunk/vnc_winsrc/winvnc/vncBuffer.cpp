@@ -221,11 +221,9 @@ vncBuffer::GetNumCodedRects(RECT &rect)
 RECT
 vncBuffer::GrabMouse()
 {
-//	if (FastCheckMainbuffer()) {
-		m_desktop->CaptureScreen(m_desktop->MouseRect(), m_mainbuff, NULL);
-		m_desktop->CaptureMouse(m_mainbuff, m_mainsize);
+	m_desktop->CaptureScreen(m_desktop->MouseRect(), m_mainbuff, NULL);
+	m_desktop->CaptureMouse(m_mainbuff, m_mainsize);
 
-//	}
 	return m_desktop->MouseRect();
 }
 
@@ -464,26 +462,14 @@ vncBuffer::EnableLastRect(BOOL enable)
 
 // Routine to translate a rectangle between pixel formats
 UINT
-vncBuffer::TranslateRect(const RECT &rect, VSocket *outConn, int offsetx, int offsety)
+vncBuffer::TranslateRect(const RECT &rect, VSocket *outConn,
+						 int offsetx, int offsety)
 {
-//	if (!FastCheckMainbuffer())
-//		return 0;
-
 	// Call the encoder to encode the rectangle into the client buffer...
-	return m_encoder->EncodeRect(m_mainbuff, outConn, m_clientbuff, rect, offsetx, offsety);
+	return m_encoder->EncodeRect(m_mainbuff, outConn, m_clientbuff, rect,
+								 offsetx, offsety);
 }
 
-/*
-// Verify that the fast blit buffer hasn't changed
-inline BOOL
-vncBuffer::FastCheckMainbuffer()
-{
-	VOID *tmp = m_desktop->OptimisedBlitBuffer();
-	if (tmp && (m_mainbuff != tmp))
-		return CheckBuffer();
-	return TRUE;
-}
-*/
 // Check if cursor shape update should be sent
 BOOL
 vncBuffer::IsCursorUpdatePending()

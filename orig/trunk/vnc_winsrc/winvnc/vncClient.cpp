@@ -1313,12 +1313,12 @@ vncClient::SendUpdate()
 		m_changed_rgn.Clear();
 		m_full_rgn.Clear();
 	}
-	else if(!m_incr_rgn.IsEmpty())
+	else if (!m_incr_rgn.IsEmpty())
 	{
-		// get region for sent from vncdesktop
+		// Get region to send from vncDesktop
 		toBeSent.Combine(m_changed_rgn);
-		// mouse stuff will be moved to vncdesktop ( or removed?)
-		/*
+		
+		// Mouse stuff for the case when cursor shape updates are off
 		if (!m_cursor_update_sent && !m_cursor_update_pending) {
 			if (!m_mousemoved) {
 				vncRegion tmpMouseRgn;
@@ -1328,21 +1328,22 @@ vncClient::SendUpdate()
 					m_mousemoved = true;
 				}
 			}
-			if (m_mousemoved)
-			{
-				// Grab the mouse
-				m_oldmousepos = m_buffer->GrabMouse();
-				if (IntersectRect(&m_oldmousepos, &m_oldmousepos, &m_server->getSharedRect()))
+			if (m_mousemoved) {
+				// Clear old cursor image only for fullscreen poll mode
+				if (m_server->PollFullScreen())
 					toBeSent.AddRect(m_oldmousepos);
+				
+				m_oldmousepos = m_buffer->GrabMouse();
+				if (IntersectRect(&m_oldmousepos, &m_oldmousepos,
+								  &m_server->getSharedRect())) {
+					toBeSent.AddRect(m_oldmousepos);
+				}
 				m_mousemoved = FALSE;
 			}
 		}
-		// end of mouse stuff block
-		*/
-		
-		//m_incr_rgn.Clear();
+
+		// m_incr_rgn.Clear();
 		m_changed_rgn.Clear();
-		
 	}
 
 	// Get the list of changed rectangles!

@@ -1267,7 +1267,7 @@ BOOL InitInstance()
 		);
 	prf_use_Deferral = GetProfileInt(
 		"use_Deferral",
-#ifndef HORIZONLIVE
+#ifdef HORIZONLIVE
 		FALSE	// we use full screen polling anyway
 #else
 		TRUE

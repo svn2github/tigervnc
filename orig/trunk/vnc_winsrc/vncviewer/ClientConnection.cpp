@@ -1601,6 +1601,8 @@ void ClientConnection::PositionChildWindow()
 			RECT fullwinrect;		
 			int den = max(m_si.framebufferWidth * 100 / parentwidth,
 							m_si.framebufferHeight * 100 / parentheight);
+			if (den < 1)
+				return;
 			SetRect(&fullwinrect, 0, 0, (m_si.framebufferWidth * 100 + den - 1) / den,
 					(m_si.framebufferHeight * 100 + den - 1) / den);						
 			while ((fullwinrect.right - fullwinrect.left > parentwidth) ||

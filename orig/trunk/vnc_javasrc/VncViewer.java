@@ -194,14 +194,15 @@ public class VncViewer extends java.applet.Applet
       vncFrame.show();
     } else {
       validate();
-      // FIXME: here setPasswordFocus() does not always work under
-      // Netscape 4.7x/Java 1.1.5/Linux. It seems like this call is
-      // being executed before the password field of the authenticator
-      // is fully drawn and activated, therefore requestFocus() does
-      // not work. Currently, I don't know how to solve this problem.
+      // FIXME: here moveFocusToPasswordField() does not always work
+      // under Netscape 4.7x/Java 1.1.5/Linux. It seems like this call
+      // is being executed before the password field of the
+      // authenticator is fully drawn and activated, therefore
+      // requestFocus() does not work. Currently, I don't know how to
+      // solve this problem.
       //   -- const
       if (password == null)
-	authenticator.setPasswordFocus();
+	authenticator.moveFocusToPasswordField();
     }
 
     boolean authenticationDone = false;
@@ -407,7 +408,7 @@ public class VncViewer extends java.applet.Applet
       if (vc != null && vncContainer.isAncestorOf(vc)) {
 	vc.requestFocus();
       } else if (vncContainer.isAncestorOf(authenticator)) {
-	authenticator.setPasswordFocus();
+	authenticator.moveFocusToPasswordField();
       }
     }
   }
@@ -474,7 +475,7 @@ public class VncViewer extends java.applet.Applet
 
   public void windowActivated(WindowEvent evt) {
     if (vncFrame.isAncestorOf(authenticator))
-      authenticator.setPasswordFocus();
+      authenticator.moveFocusToPasswordField();
   }
 
   //

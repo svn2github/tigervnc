@@ -948,8 +948,8 @@ class VncCanvas extends Canvas
       // Read foreground and background colors of the cursor.
       byte[] rgb = new byte[6];
       rfb.is.readFully(rgb, 0, 6);
-      int[] colors = { (0xFF << 24 | rgb[3] << 16 | rgb[4] << 8 | rgb[5]),
-		       (0xFF << 24 | rgb[0] << 16 | rgb[1] << 8 | rgb[2]) };
+      int[] colors = { (0xFF000000 | rgb[3] << 16 | rgb[4] << 8 | rgb[5]),
+		       (0xFF000000 | rgb[0] << 16 | rgb[1] << 8 | rgb[2]) };
 
       // Read pixel and mask data.
       byte[] pixBuf = new byte[bytesMaskData];
@@ -985,10 +985,11 @@ class VncCanvas extends Canvas
       }
 
     } else {
+      // encodingType == rfb.EncodingRichCursor
 
       // Read pixel and mask data.
-      byte[] pixBuf = new byte[width * height];
-      rfb.is.readFully(pixBuf, 0, width * height);
+      byte[] pixBuf = new byte[width * height * bytesPixel];
+      rfb.is.readFully(pixBuf, 0, width * height * bytesPixel);
       byte[] maskBuf = new byte[bytesMaskData];
       rfb.is.readFully(maskBuf, 0, bytesMaskData);
 
@@ -1001,7 +1002,14 @@ class VncCanvas extends Canvas
 	  maskByte = maskBuf[y * bytesPerRow + x];
 	  for (n = 7; n >= 0; n--) {
 	    if ((maskByte >> n & 1) != 0) {
-	      result = cm8.getRGB(pixBuf[i]);
+	      if (bytesPixel == 1) {
+		result = cm8.getRGB(pixBuf[i]);
+	      } else {
+		result = 0xFF000000 |
+		  (pixBuf[i * 4 + 1] & 0xFF) << 16 |
+		  (pixBuf[i * 4 + 2] & 0xFF) << 8 |
+		  (pixBuf[i * 4 + 3] & 0xFF);
+	      }
 	    } else {
 	      result = 0;	// Transparent pixel
 	    }
@@ -1010,7 +1018,14 @@ class VncCanvas extends Canvas
 	}
 	for (n = 7; n >= 8 - width % 8; n--) {
 	  if ((maskBuf[y * bytesPerRow + x] >> n & 1) != 0) {
-	    result = cm8.getRGB(pixBuf[i]);
+	    if (bytesPixel == 1) {
+	      result = cm8.getRGB(pixBuf[i]);
+	    } else {
+	      result = 0xFF000000 |
+		(pixBuf[i * 4 + 1] & 0xFF) << 16 |
+		(pixBuf[i * 4 + 2] & 0xFF) << 8 |
+		(pixBuf[i * 4 + 3] & 0xFF);
+	    }
 	  } else {
 	    result = 0;		// Transparent pixel
 	  }

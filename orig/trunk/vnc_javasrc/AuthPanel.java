@@ -88,7 +88,7 @@ class AuthPanel extends Panel implements ActionListener {
   // Move keyboard focus to the password text field object.
   //
 
-  public void setPasswordFocus() {
+  public void moveFocusToPasswordField() {
     password.requestFocus();
   }
 
@@ -110,7 +110,7 @@ class AuthPanel extends Panel implements ActionListener {
   public void retry() {
     retry.setText("Sorry. Try again.");
     password.setText("");
-    setPasswordFocus();
+    moveFocusToPasswordField();
   }
 
 }

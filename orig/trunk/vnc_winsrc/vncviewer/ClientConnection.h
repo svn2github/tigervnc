@@ -75,6 +75,7 @@ public:
 	int  LoadConnection(char *fname, bool sess);
 	void UnloadConnection() { m_opts.m_configSpecified = false; }
 	void SetFullScreenMode(bool enable);
+	HWND GetViewerWindow() {return m_hwnd1;};
 	int m_port;
     TCHAR m_host[MAX_HOST_NAME_LEN];
 	HWND m_hSess;
@@ -84,7 +85,6 @@ private:
 	static LRESULT CALLBACK WndProc1(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
 	static LRESULT CALLBACK Proc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
 	static LRESULT CALLBACK ScrollProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
-	static LRESULT CALLBACK DisableDlgProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
 	void DoBlit();
 	VNCviewerApp *m_pApp;
 	ConnectingDialog *m_connDlg;

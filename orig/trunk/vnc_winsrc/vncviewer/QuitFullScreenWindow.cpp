@@ -36,7 +36,6 @@ QuitFullScreenWindow::QuitFullScreenWindow(VNCviewerApp *pApp, ClientConnection 
 	m_pApp = pApp;
 	m_CConn = CConn;
 	m_DblClick = FALSE;
-	m_hOldCap = NULL;
 
 	//Creating button window.
 	WNDCLASSEX wcex;
@@ -94,8 +93,7 @@ QuitFullScreenWindow::QuitFullScreenWindow(VNCviewerApp *pApp, ClientConnection 
 void QuitFullScreenWindow::ShowButton(BOOL show)
 {
 	if (show) {
-		SetWindowPos(m_hwndButton, HWND_TOPMOST, 0, 0, 0, 0,
-					SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+		ShowWindow(m_hwndButton, SW_SHOW);
 	} else {
 		ShowWindow(m_hwndButton, SW_HIDE);
 	}
@@ -146,12 +144,7 @@ LRESULT CALLBACK QuitFullScreenWindow::QuitProc(HWND hwnd, UINT iMsg,
 			_this->m_MousePoint.x = ptsMousePoint.x;
 			_this->m_MousePoint.y = ptsMousePoint.y;
 			ClientToScreen(hwnd,&_this->m_MousePoint);
-			HWND hOld = GetCapture();
-			if (hOld != hwnd) {
-				_this->m_hOldCap = hOld;
-				GetClipCursor(&_this->m_rectOldCur);
-				SetCapture(hwnd);
-			}
+			SetCapture(hwnd);
 		}
 		break;	
 	case WM_LBUTTONUP:
@@ -159,8 +152,8 @@ LRESULT CALLBACK QuitFullScreenWindow::QuitProc(HWND hwnd, UINT iMsg,
 			_this->m_DblClick = FALSE;
 			_this->m_CConn->SetFullScreenMode(false);
 		}
-		SetCapture(_this->m_hOldCap);
-		ClipCursor(&_this->m_rectOldCur);
+		SetCapture(NULL);
+		SetFocus(_this->m_CConn->GetViewerWindow());
 		break;
 	case WM_DESTROY: 
 		// Destroy compatible bitmap, 

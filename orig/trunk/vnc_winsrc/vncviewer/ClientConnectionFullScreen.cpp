@@ -73,6 +73,7 @@ void ClientConnection::RealiseFullScreenMode(bool suppressPrompt)
 		SetWindowPos(m_hwnd1, HWND_TOP, -1, -1, cx + 3, cy + 3, SWP_FRAMECHANGED);
 		CheckMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_FULLSCREEN, MF_BYCOMMAND|MF_CHECKED);
 		m_QuitFSW->ShowButton(TRUE);
+		SetFocus(m_hwnd1);
 	} else {
 		m_QuitFSW->ShowButton(FALSE);
 		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_TOOLBAR, MF_BYCOMMAND|MF_ENABLED);

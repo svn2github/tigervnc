@@ -39,12 +39,10 @@ protected:
 	VNCviewerApp *m_pApp;
 	ClientConnection * m_CConn;
 	HWND m_hwndButton;
-	HWND m_hOldCap;
 	POINT m_MousePoint;
 	HDC m_hdcCompat;
 	HBITMAP m_hbmp;
 	BOOL m_DblClick;
-	RECT m_rectOldCur;
 };
 
 #endif // !defined(AFX_QUITFULLSCREENWINDOW_H__)

@@ -2221,6 +2221,7 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 				SetWindowPos(_this->m_hwnd1, HWND_TOP, 0,0,100,100, SWP_NOMOVE | SWP_NOSIZE);
 				_this->m_QuitFSW->ShowButton(TRUE);
 			}
+			SetFocus(hwnd);
 		}
 		return 0;
 	case WM_SIZE:		

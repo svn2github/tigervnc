@@ -78,6 +78,8 @@ FileTransfer::setFTDlgStatus(bool status)
 void
 FileTransfer::addTransferQueue(char *pLocalPath, char *pRemotePath, FileInfo *pFI, unsigned int attr)
 {
+	if (m_dw64TotalSize == 0) m_pFileTransferDlg->setStatusText("Starting Copy Operation");
+
 	m_dwDirSizeRqstNum = 0;
 	m_dw64TotalSize = 0;
 	m_bGettingTotalSize = true;
@@ -1096,6 +1098,8 @@ FileTransfer::procFileDownloadDataMsg()
 	
 	char *pBuf = new char [fdd.compressedSize];
 	m_pCC->ReadExact(pBuf, fdd.compressedSize);
+
+	if (!m_bFileTransfer) return false;
 
 	m_pFileTransferDlg->processDlgMessage(NULL);
 	if (m_bFTCancel) {

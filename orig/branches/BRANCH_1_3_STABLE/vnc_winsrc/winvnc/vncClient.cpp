@@ -1256,7 +1256,8 @@ vncClientThread::run(void *arg)
 				}
 
 				// Get the server to update the local clipboard
-				m_server->UpdateLocalClipText(text);
+				if (m_client->IsKeyboardEnabled() && m_client->IsPointerEnabled())
+					m_server->UpdateLocalClipText(text);
 
 				// Free the clip text we read
 				delete [] text;
@@ -1898,6 +1899,10 @@ void
 vncClient::UpdateClipText(LPSTR text)
 {
 	if (!m_protocol_ready) return;
+
+	// Don't send the clipboard contents to a view-only client
+	if (!IsKeyboardEnabled() || !IsPointerEnabled())
+		return;
 
 	// Lock out any update sends and send clip text to the client
 	omni_mutex_lock l(m_sendUpdateLock);

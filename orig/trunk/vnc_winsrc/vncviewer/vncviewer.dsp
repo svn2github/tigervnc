@@ -96,6 +96,14 @@ SOURCE=.\res\cursor1.cur
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\fileup.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\filereload.ico
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\idr_tray.ico
 # End Source File
 # Begin Source File

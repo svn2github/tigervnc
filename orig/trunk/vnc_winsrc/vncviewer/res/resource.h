@@ -35,6 +35,8 @@
 #define IDD_FTBROWSE_DLG                217
 #define IDD_FILETRANSFER_DLG            219
 #define IDD_FILETRANSFER_ABOUT          233
+#define IDI_FILEUP                      239
+#define IDI_FILERELOAD                  241
 #define IDC_HOSTNAME_EDIT               1000
 #define IDC_DPYNUM_EDIT                 1001
 #define IDC_BELLDEICONIFY               1001
@@ -106,9 +108,13 @@
 #define IDC_FTBROWSEEDIT                1092
 #define IDC_FTSTATUS                    1093
 #define IDC_BUTTON2                     1094
+#define IDC_SERVERRELOAD                1094
 #define IDC_BUTTON3                     1095
+#define IDC_SERVERUP                    1095
 #define IDC_BUTTON4                     1096
+#define IDC_CLIENTRELOAD                1096
 #define IDC_BUTTON5                     1097
+#define IDC_CLIENTUP                    1097
 #define ID_SESSION_SET_CRECT            32777
 #define IDC_ALLOW_COMPRESSLEVEL         32778
 #define IDC_ALLOW_JPEG                  32779
@@ -124,9 +130,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        238
+#define _APS_NEXT_RESOURCE_VALUE        244
 #define _APS_NEXT_COMMAND_VALUE         40011
-#define _APS_NEXT_CONTROL_VALUE         1085
+#define _APS_NEXT_CONTROL_VALUE         1089
 #define _APS_NEXT_SYMED_VALUE           154
 #endif
 #endif

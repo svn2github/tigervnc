@@ -1,3 +1,4 @@
+//  Copyright (C) 2002 Contantin Kaplinsky. All Rights Reserved.
 //  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
@@ -266,44 +267,15 @@ vncProperties::DialogProc(HWND hwnd,
 
 			// Initialise the properties controls
 			HWND hConnectSock = GetDlgItem(hwnd, IDC_CONNECT_SOCK);
-			SendMessage(hConnectSock,
-				BM_SETCHECK,
-				_this->m_server->SockConnected(),
-				0);
+			BOOL bConnectSock = _this->m_server->SockConnected();
+			SendMessage(hConnectSock, BM_SETCHECK, bConnectSock, 0);
 
-			HWND hConnectCorba = GetDlgItem(hwnd, IDC_CONNECT_CORBA);
-			SendMessage(hConnectCorba,
-				BM_SETCHECK,
-				_this->m_server->CORBAConnected(),
-				0);
-#if(defined(_CORBA))
-			EnableWindow(hConnectCorba, TRUE);
-#else
-			EnableWindow(hConnectCorba, FALSE);
-#endif
+			// Set the content of the password field to a predefined string.
+		    SetDlgItemText(hwnd, IDC_PASSWORD, "~~~~~~~~");
+			EnableWindow(GetDlgItem(hwnd, IDC_PASSWORD), bConnectSock);
 
-			HWND hPortNoAuto = GetDlgItem(hwnd, IDC_PORTNO_AUTO);
-			SendMessage(hPortNoAuto,
-				BM_SETCHECK,
-				_this->m_server->AutoPortSelect(),
-				0);
-			EnableWindow(hPortNoAuto, _this->m_server->SockConnected());
-			
-			HWND hPortNo = GetDlgItem(hwnd, IDC_PORTNO);
-			SetDlgItemInt(hwnd, IDC_PORTNO, PORT_TO_DISPLAY(_this->m_server->GetPort()), FALSE);
-			EnableWindow(hPortNo, _this->m_server->SockConnected()
-				&& !_this->m_server->AutoPortSelect());
-
-			HWND hPassword = GetDlgItem(hwnd, IDC_PASSWORD);
-			EnableWindow(hPassword, _this->m_server->SockConnected());
-
-			// Get the password
-			char passwd[MAXPWLEN];
-			_this->m_server->GetPassword(passwd);
-			{
-			    vncPasswd::ToText plain(passwd);
-			    SetDlgItemText(hwnd, IDC_PASSWORD, "~~~~~~~~");
-			}
+			// Set display/ports settings
+			_this->InitPortSettings(hwnd);
 
 			// Remote input settings
 			HWND hEnableRemoteInputs = GetDlgItem(hwnd, IDC_DISABLE_INPUTS);
@@ -374,44 +346,49 @@ vncProperties::DialogProc(HWND hwnd,
 			{
 				// Save the password if one was entered
 				char passwd[MAXPWLEN+1];
-				int len = GetDlgItemText(hwnd, IDC_PASSWORD, (LPSTR) &passwd, MAXPWLEN+1);
+				int len = GetDlgItemText(hwnd, IDC_PASSWORD, (LPSTR)&passwd, MAXPWLEN+1);
 				if (strcmp(passwd, "~~~~~~~~") != 0) {
-					if (len == 0)
-					{
+					if (len == 0) {
 						vncPasswd::FromClear crypt;
 						_this->m_server->SetPassword(crypt);
-					}
-					else
-					{
+					} else {
 						vncPasswd::FromText crypt(passwd);
 						_this->m_server->SetPassword(crypt);
 					}
 				}
 
 				// Save the new settings to the server
-				HWND hPortNoAuto = GetDlgItem(hwnd, IDC_PORTNO_AUTO);
-				_this->m_server->SetAutoPortSelect(
-					SendMessage(hPortNoAuto, BM_GETCHECK, 0, 0) == BST_CHECKED
-					);
+				int state = SendDlgItemMessage(hwnd, IDC_PORTNO_AUTO, BM_GETCHECK, 0, 0);
+				_this->m_server->SetAutoPortSelect(state == BST_CHECKED);
 
-				// only save the port number if we're not auto selecting!
-				if (!_this->m_server->AutoPortSelect())
-				{
-					BOOL success;
-					UINT portno = GetDlgItemInt(hwnd, IDC_PORTNO, &success, TRUE);
-					if (success)
-						_this->m_server->SetPort(DISPLAY_TO_PORT(portno));
+				// Save port numbers if we're not auto selecting
+				if (!_this->m_server->AutoPortSelect()) {
+					if ( SendDlgItemMessage(hwnd, IDC_SPECDISPLAY,
+											BM_GETCHECK, 0, 0) == BST_CHECKED ) {
+						// Display number was specified
+						BOOL ok;
+						UINT display = GetDlgItemInt(hwnd, IDC_DISPLAYNO, &ok, TRUE);
+						if (ok)
+							_this->m_server->SetPorts(DISPLAY_TO_PORT(display),
+													  DISPLAY_TO_HPORT(display));
+					} else {
+						// Assuming that port numbers were specified
+						BOOL ok1, ok2;
+						UINT port_rfb = GetDlgItemInt(hwnd, IDC_PORTRFB, &ok1, TRUE);
+						UINT port_http = GetDlgItemInt(hwnd, IDC_PORTHTTP, &ok2, TRUE);
+						if (ok1 && ok2)
+							_this->m_server->SetPorts(port_rfb, port_http);
+					}
 				}
-				
+
 				HWND hConnectSock = GetDlgItem(hwnd, IDC_CONNECT_SOCK);
 				_this->m_server->SockConnect(
 					SendMessage(hConnectSock, BM_GETCHECK, 0, 0) == BST_CHECKED
 					);
 
-				HWND hConnectCorba = GetDlgItem(hwnd, IDC_CONNECT_CORBA);
-				_this->m_server->CORBAConnect(
-					SendMessage(hConnectCorba, BM_GETCHECK, 0, 0) == BST_CHECKED
-					);
+				// Update display/port controls on pressing the "Apply" button
+				if (LOWORD(wParam) == IDC_APPLY)
+					_this->InitPortSettings(hwnd);
 
 				// Remote input stuff
 				HWND hEnableRemoteInputs = GetDlgItem(hwnd, IDC_DISABLE_INPUTS);
@@ -481,7 +458,7 @@ vncProperties::DialogProc(HWND hwnd,
 		case IDADVANCED:
 			vnclog.Print(LL_INTINFO, VNCLOG("newdialog (ADVANCED)\n"));
 			{
-				_this->EnableControls(FALSE, hwnd, _this);
+				EnableWindow(hwnd, FALSE);
 				_this->m_inadvanced = TRUE;
 				vncAdvancedProperties *aprop = new vncAdvancedProperties();
 				if (aprop->Init(_this->m_server))
@@ -491,7 +468,7 @@ vncProperties::DialogProc(HWND hwnd,
 				//aprop->DoDialog();
 				SetForegroundWindow(hwnd);
 				_this->m_inadvanced = FALSE;
-				_this->EnableControls(TRUE, hwnd, _this);
+				EnableWindow(hwnd, TRUE);
 				omni_thread::sleep(0, 200000000);
 			}
 			return TRUE;
@@ -499,19 +476,25 @@ vncProperties::DialogProc(HWND hwnd,
 		case IDC_CONNECT_SOCK:
 			// The user has clicked on the socket connect tickbox
 			{
-				HWND hConnectSock = GetDlgItem(hwnd, IDC_CONNECT_SOCK);
-				BOOL connectsockon =
-					(SendMessage(hConnectSock, BM_GETCHECK, 0, 0) == BST_CHECKED);
+				BOOL bConnectSock =
+					(SendDlgItemMessage(hwnd, IDC_CONNECT_SOCK,
+										BM_GETCHECK, 0, 0) == BST_CHECKED);
+
+				EnableWindow(GetDlgItem(hwnd, IDC_PASSWORD), bConnectSock);
 
 				HWND hPortNoAuto = GetDlgItem(hwnd, IDC_PORTNO_AUTO);
-				EnableWindow(hPortNoAuto, connectsockon);
-			
-				HWND hPortNo = GetDlgItem(hwnd, IDC_PORTNO);
-				EnableWindow(hPortNo, connectsockon
-					&& (SendMessage(hPortNoAuto, BM_GETCHECK, 0, 0) != BST_CHECKED));
-			
-				HWND hPassword = GetDlgItem(hwnd, IDC_PASSWORD);
-				EnableWindow(hPassword, connectsockon);
+				EnableWindow(hPortNoAuto, bConnectSock);
+				HWND hSpecDisplay = GetDlgItem(hwnd, IDC_SPECDISPLAY);
+				EnableWindow(hSpecDisplay, bConnectSock);
+				HWND hSpecPort = GetDlgItem(hwnd, IDC_SPECPORT);
+				EnableWindow(hSpecPort, bConnectSock);
+
+				EnableWindow(GetDlgItem(hwnd, IDC_DISPLAYNO), bConnectSock &&
+					(SendMessage(hSpecDisplay, BM_GETCHECK, 0, 0) == BST_CHECKED));
+				EnableWindow(GetDlgItem(hwnd, IDC_PORTRFB), bConnectSock &&
+					(SendMessage(hSpecPort, BM_GETCHECK, 0, 0) == BST_CHECKED));
+				EnableWindow(GetDlgItem(hwnd, IDC_PORTHTTP), bConnectSock &&
+					(SendMessage(hSpecPort, BM_GETCHECK, 0, 0) == BST_CHECKED));
 			}
 			return TRUE;
 
@@ -537,19 +520,47 @@ vncProperties::DialogProc(HWND hwnd,
 			return TRUE;
 
 		case IDC_PORTNO_AUTO:
-			// User has toggled the Auto Port Select feature.
-			// If this is in use, then we don't allow the Display number field
-			// to be modified!
 			{
-				// Get the auto select button
-				HWND hPortNoAuto = GetDlgItem(hwnd, IDC_PORTNO_AUTO);
+				EnableWindow(GetDlgItem(hwnd, IDC_DISPLAYNO), FALSE);
+				EnableWindow(GetDlgItem(hwnd, IDC_PORTRFB), FALSE);
+				EnableWindow(GetDlgItem(hwnd, IDC_PORTHTTP), FALSE);
 
-				// Should the portno field be modifiable?
-				BOOL enable = SendMessage(hPortNoAuto, BM_GETCHECK, 0, 0) != BST_CHECKED;
+				SetDlgItemText(hwnd, IDC_DISPLAYNO, "");
+				SetDlgItemText(hwnd, IDC_PORTRFB, "");
+				SetDlgItemText(hwnd, IDC_PORTHTTP, "");
+			}
+			return TRUE;
 
-				// Set the state
-				HWND hPortNo = GetDlgItem(hwnd, IDC_PORTNO);
-				EnableWindow(hPortNo, enable);
+		case IDC_SPECDISPLAY:
+			{
+				EnableWindow(GetDlgItem(hwnd, IDC_DISPLAYNO), TRUE);
+				EnableWindow(GetDlgItem(hwnd, IDC_PORTRFB), FALSE);
+				EnableWindow(GetDlgItem(hwnd, IDC_PORTHTTP), FALSE);
+
+				int display = PORT_TO_DISPLAY(_this->m_server->GetPort());
+				if (display < 0 || display > 99)
+					display = 0;
+				SetDlgItemInt(hwnd, IDC_DISPLAYNO, display, FALSE);
+				SetDlgItemInt(hwnd, IDC_PORTRFB, _this->m_server->GetPort(), FALSE);
+				SetDlgItemInt(hwnd, IDC_PORTHTTP, _this->m_server->GetHttpPort(), FALSE);
+			}
+			return TRUE;
+
+		case IDC_SPECPORT:
+			{
+				EnableWindow(GetDlgItem(hwnd, IDC_DISPLAYNO), FALSE);
+				EnableWindow(GetDlgItem(hwnd, IDC_PORTRFB), TRUE);
+				EnableWindow(GetDlgItem(hwnd, IDC_PORTHTTP), TRUE);
+
+				int d1 = PORT_TO_DISPLAY(_this->m_server->GetPort());
+				int d2 = HPORT_TO_DISPLAY(_this->m_server->GetHttpPort());
+				if (d1 == d2 && d1 >= 0 && d1 <= 99) {
+					SetDlgItemInt(hwnd, IDC_DISPLAYNO, d1, FALSE);
+				} else {
+					SetDlgItemText(hwnd, IDC_DISPLAYNO, "");
+				}
+				SetDlgItemInt(hwnd, IDC_PORTRFB, _this->m_server->GetPort(), FALSE);
+				SetDlgItemInt(hwnd, IDC_PORTHTTP, _this->m_server->GetHttpPort(), FALSE);
 			}
 			return TRUE;
 
@@ -560,82 +571,43 @@ vncProperties::DialogProc(HWND hwnd,
 	return 0;
 }
 
+// Set display/port settings to the correct state
 void
-vncProperties::EnableControls(BOOL state, HWND hwnd, vncProperties *_this)
+vncProperties::InitPortSettings(HWND hwnd)
 {
-	EnableWindow(hwnd, state);
-	//return;
+	BOOL bConnectSock = m_server->SockConnected();
+	BOOL bAutoPort = m_server->AutoPortSelect();
+	UINT port_rfb = m_server->GetPort();
+	UINT port_http = m_server->GetHttpPort();
+	int d1 = PORT_TO_DISPLAY(port_rfb);
+	int d2 = HPORT_TO_DISPLAY(port_http);
+	BOOL bValidDisplay = (d1 == d2 && d1 >= 0 && d1 <= 99);
 
-	HWND hOk = GetDlgItem(hwnd, IDOK);
-	EnableWindow(hOk, state);
-	HWND hCancel = GetDlgItem(hwnd, IDCANCEL);
-	EnableWindow(hCancel, state);
-	HWND hApply = GetDlgItem(hwnd, IDC_APPLY);
-	EnableWindow(hApply, state);
-	HWND hAdvanced = GetDlgItem(hwnd, IDADVANCED);
-	EnableWindow(hAdvanced, state);
+	CheckDlgButton(hwnd, IDC_PORTNO_AUTO,
+		(bAutoPort) ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(hwnd, IDC_SPECDISPLAY,
+		(!bAutoPort && bValidDisplay) ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(hwnd, IDC_SPECPORT,
+		(!bAutoPort && !bValidDisplay) ? BST_CHECKED : BST_UNCHECKED);
 
-	HWND hCon = GetDlgItem(hwnd, IDC_CONNECT_BORDER);
-	EnableWindow(hCon, state);
-	HWND hUp = GetDlgItem(hwnd, IDC_UPDATE_BORDER);
-	EnableWindow(hUp, state);
-	HWND hPortLabel = GetDlgItem(hwnd, IDC_PORTNO_LABEL);
-	EnableWindow(hPortLabel, state);
-	HWND hPassLabel = GetDlgItem(hwnd, IDC_PASSWORD_LABEL);
-	EnableWindow(hPassLabel, state);
-	
-	HWND hConnectSock = GetDlgItem(hwnd, IDC_CONNECT_SOCK);
-	EnableWindow(hConnectSock, state);
-	HWND hConnectCorba = GetDlgItem(hwnd, IDC_CONNECT_CORBA);
-#if(defined(_CORBA))
-	EnableWindow(hConnectCorba, state && TRUE);
-#else
-	EnableWindow(hConnectCorba, FALSE);
-#endif
+	EnableWindow(GetDlgItem(hwnd, IDC_PORTNO_AUTO), bConnectSock);
+	EnableWindow(GetDlgItem(hwnd, IDC_SPECDISPLAY), bConnectSock);
+	EnableWindow(GetDlgItem(hwnd, IDC_SPECPORT), bConnectSock);
 
-	HWND hPortNoAuto = GetDlgItem(hwnd, IDC_PORTNO_AUTO);
-	EnableWindow(hPortNoAuto, state && (SendMessage(hConnectSock, BM_GETCHECK, 0, 0) == BST_CHECKED));
-			
-	HWND hPortNo = GetDlgItem(hwnd, IDC_PORTNO);
-	EnableWindow(hPortNo, state && 
-		((SendMessage(hConnectSock, BM_GETCHECK, 0, 0) == BST_CHECKED) && 
-		 !(SendMessage(hPortNoAuto, BM_GETCHECK, 0, 0) == BST_CHECKED))
-		 );
+	if (bValidDisplay) {
+		SetDlgItemInt(hwnd, IDC_DISPLAYNO, d1, FALSE);
+	} else {
+		SetDlgItemText(hwnd, IDC_DISPLAYNO, "");
+	}
+	SetDlgItemInt(hwnd, IDC_PORTRFB, port_rfb, FALSE);
+	SetDlgItemInt(hwnd, IDC_PORTHTTP, port_http, FALSE);
 
-	HWND hPassword = GetDlgItem(hwnd, IDC_PASSWORD);
-	EnableWindow(hPassword, state && (SendMessage(hConnectSock, BM_GETCHECK, 0, 0) == BST_CHECKED));
-
-	// Remote input settings
-	HWND hEnableRemoteInputs = GetDlgItem(hwnd, IDC_DISABLE_INPUTS);
-	EnableWindow(hEnableRemoteInputs, state);
-
-	// Local input settings
-	HWND hDisableLocalInputs = GetDlgItem(hwnd, IDC_DISABLE_LOCAL_INPUTS);
-	EnableWindow(hDisableLocalInputs, state);
-
-	// Set the polling options
-	HWND hPollFullScreen = GetDlgItem(hwnd, IDC_POLL_FULLSCREEN);
-	EnableWindow(hPollFullScreen, state);
-
-	HWND hPollForeground = GetDlgItem(hwnd, IDC_POLL_FOREGROUND);
-	EnableWindow(hPollForeground, state);
-
-	HWND hPollUnderCursor = GetDlgItem(hwnd, IDC_POLL_UNDER_CURSOR);
-	EnableWindow(hPollUnderCursor, state);
-
-	HWND hPollConsoleOnly = GetDlgItem(hwnd, IDC_CONSOLE_ONLY);
-	EnableWindow(hPollConsoleOnly,
-		state && 
-		((SendMessage(hPollUnderCursor, BM_GETCHECK, 0, 0) == BST_CHECKED) || 
-		 (SendMessage(hPollForeground, BM_GETCHECK, 0, 0) == BST_CHECKED))
-		);
-
-	HWND hPollOnEventOnly = GetDlgItem(hwnd, IDC_ONEVENT_ONLY);
-	EnableWindow(hPollOnEventOnly,
-		state && 
-		((SendMessage(hPollUnderCursor, BM_GETCHECK, 0, 0) == BST_CHECKED) || 
-		 (SendMessage(hPollForeground, BM_GETCHECK, 0, 0) == BST_CHECKED))
-		);
+	EnableWindow(GetDlgItem(hwnd, IDC_DISPLAYNO),
+		bConnectSock && !bAutoPort && bValidDisplay);
+	EnableWindow(GetDlgItem(hwnd, IDC_PORTRFB),
+		bConnectSock && !bAutoPort && !bValidDisplay);
+	EnableWindow(GetDlgItem(hwnd, IDC_PORTHTTP),
+		bConnectSock && !bAutoPort && !bValidDisplay);
 }
 
 // Functions to load & save the settings
@@ -813,6 +785,7 @@ vncProperties::Load(BOOL usersettings)
 	// Set the default user prefs
 	vnclog.Print(LL_INTINFO, VNCLOG("clearing user settings\n"));
 	m_pref_AutoPortSelect=TRUE;
+	m_pref_PortNumber=RFB_PORT_OFFSET;
 	m_pref_SockConnect=TRUE;
 	m_pref_CORBAConn=FALSE;
 	{
@@ -899,6 +872,8 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	m_pref_SockConnect=LoadInt(appkey, "SocketConnect", m_pref_SockConnect);
 	m_pref_AutoPortSelect=LoadInt(appkey, "AutoPortSelect", m_pref_AutoPortSelect);
 	m_pref_PortNumber=LoadInt(appkey, "PortNumber", m_pref_PortNumber);
+	m_pref_HttpPortNumber=LoadInt(appkey, "HTTPPortNumber",
+		DISPLAY_TO_HPORT(PORT_TO_DISPLAY(m_pref_PortNumber)));
 	m_pref_BeepConnect=LoadInt(appkey, "BeepConnect", m_pref_BeepConnect);
 	m_pref_BeepDisconnect=LoadInt(appkey, "BeepDisconnect", m_pref_BeepDisconnect);
 	m_pref_IdleTimeout=LoadInt(appkey, "IdleTimeout", m_pref_IdleTimeout);
@@ -959,7 +934,7 @@ vncProperties::ApplyUserPrefs()
 	// Now change the listening port settings
 	m_server->SetAutoPortSelect(m_pref_AutoPortSelect);
 	if (!m_pref_AutoPortSelect)
-		m_server->SetPort(m_pref_PortNumber);
+		m_server->SetPorts(m_pref_PortNumber, m_pref_HttpPortNumber);
 	m_server->SockConnect(m_pref_SockConnect);
 
 	// Set the beep options
@@ -1063,8 +1038,10 @@ vncProperties::SaveUserPrefs(HKEY appkey)
 	// Connection prefs
 	SaveInt(appkey, "SocketConnect", m_server->SockConnected());
 	SaveInt(appkey, "AutoPortSelect", m_server->AutoPortSelect());
-	if (!m_server->AutoPortSelect())
+	if (!m_server->AutoPortSelect()) {
 		SaveInt(appkey, "PortNumber", m_server->GetPort());
+		SaveInt(appkey, "HTTPPortNumber", m_server->GetHttpPort());
+	}
 	SaveInt(appkey, "InputsEnabled", m_server->RemoteInputsEnabled());
 	SaveInt(appkey, "LocalInputsDisabled", m_server->LocalInputsDisabled());
 	SaveInt(appkey, "IdleTimeout", m_server->AutoIdleDisconnectTimeout());

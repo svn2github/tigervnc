@@ -164,13 +164,14 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 				queryEnabled,
 				0);
 
-			HWND hQueryAccept = GetDlgItem(hwnd, IDQUERYACCEPT);
-			SendMessage(hQueryAccept,
-				BM_SETCHECK,
-				_this->m_server->QueryAccept(),
-				0);
-			EnableWindow(hQueryAccept, queryEnabled);
-			
+			HWND hActionRefuse = GetDlgItem(hwnd, IDC_ACTION_REFUSE);
+			HWND hActionAccept = GetDlgItem(hwnd, IDC_ACTION_ACCEPT);
+			HWND hDefaultAction = (_this->m_server->QueryAccept()) ?
+				hActionAccept : hActionRefuse;
+			SendMessage(hDefaultAction, BM_SETCHECK, TRUE, 0);
+			EnableWindow(hActionRefuse, queryEnabled);
+			EnableWindow(hActionAccept, queryEnabled);
+
 			HWND hQueryAllowNoPass = GetDlgItem(hwnd, IDQUERYALLOWNOPASS);
 			SendMessage(hQueryAllowNoPass,
 				BM_SETCHECK,
@@ -265,7 +266,7 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 					? 4 : 2
 					);
 
-				HWND hQueryAccept = GetDlgItem(hwnd, IDQUERYACCEPT);
+				HWND hQueryAccept = GetDlgItem(hwnd, IDC_ACTION_ACCEPT);
 				_this->m_server->SetQueryAccept(
 					SendMessage(hQueryAccept, BM_GETCHECK, 0, 0) == BST_CHECKED
 					);
@@ -331,14 +332,10 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 				BOOL queryon =
 					(SendMessage(hQuery, BM_GETCHECK, 0, 0) == BST_CHECKED);
 
-				HWND hQueryAccept = GetDlgItem(hwnd, IDQUERYACCEPT);
-				EnableWindow(hQueryAccept, queryon);
-			
-				HWND hQueryTimeout = GetDlgItem(hwnd, IDQUERYTIMEOUT);
-				EnableWindow(hQueryTimeout, queryon);
-
-				HWND hQueryAllowNoPass = GetDlgItem(hwnd, IDQUERYALLOWNOPASS);
-				EnableWindow(hQueryAllowNoPass, queryon);
+				EnableWindow(GetDlgItem(hwnd, IDC_ACTION_REFUSE), queryon);
+				EnableWindow(GetDlgItem(hwnd, IDC_ACTION_ACCEPT), queryon);
+				EnableWindow(GetDlgItem(hwnd, IDQUERYTIMEOUT), queryon);
+				EnableWindow(GetDlgItem(hwnd, IDQUERYALLOWNOPASS), queryon);
 			}
 			return TRUE;
 

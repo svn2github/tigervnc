@@ -146,8 +146,9 @@ public:
 
 	// Name and port number handling
 	virtual void SetName(const char * name);
-	virtual void SetPort(const UINT port);
-	virtual UINT GetPort();
+	virtual void SetPorts(const UINT port_rfb, const UINT port_http);
+	virtual UINT GetPort() { return m_port; };
+	virtual UINT GetHttpPort() { return m_port_http; };
 	virtual void SetAutoPortSelect(const BOOL autoport) {
 	    if (autoport && !m_autoportselect)
 	    {
@@ -260,6 +261,7 @@ protected:
 
 	// General preferences
 	UINT				m_port;
+	UINT				m_port_http;
 	BOOL				m_autoportselect;
 	char				m_password[MAXPWLEN];
 	BOOL				m_passwd_required;

@@ -26,47 +26,56 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // Dialog
 //
 
-IDD_PROPERTIES DIALOG DISCARDABLE  0, 0, 221, 204
+IDD_PROPERTIES DIALOG DISCARDABLE  0, 0, 223, 228
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_POPUP | 
     WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "Property Page"
 FONT 8, "MS Sans Serif"
 BEGIN
-    PUSHBUTTON      "&Cancel",IDCANCEL,165,25,51,15
-    DEFPUSHBUTTON   "&OK",IDOK,165,5,51,15
-    GROUPBOX        "Incoming Connections",IDC_CONNECT_BORDER,5,5,155,115
-    CONTROL         "Accept Socket Connections",IDC_CONNECT_SOCK,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,15,145,15
-    CONTROL         "Accept CORBA Connections",IDC_CONNECT_CORBA,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,70,145,15
-    LTEXT           "Display Number :",IDC_PORTNO_LABEL,19,30,56,15,
-                    SS_CENTERIMAGE
-    LTEXT           "Password :",IDC_PASSWORD_LABEL,19,50,56,15,
-                    SS_CENTERIMAGE
-    EDITTEXT        IDC_PORTNO,75,30,40,15,ES_AUTOHSCROLL | ES_NUMBER
-    EDITTEXT        IDC_PASSWORD,75,50,80,15,ES_PASSWORD | ES_AUTOHSCROLL
-    GROUPBOX        "Update Handling",IDC_UPDATE_BORDER,5,125,211,72
-    CONTROL         "Poll Full Screen",IDC_POLL_FULLSCREEN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,134,105,15
-    CONTROL         "Poll Console Windows Only",IDC_CONSOLE_ONLY,"Button",
-                    BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,115,134,65,
-                    15
-    CONTROL         "Poll Foreground Window",IDC_POLL_FOREGROUND,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,155,105,15
-    CONTROL         "Poll Window Under Cursor",IDC_POLL_UNDER_CURSOR,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,174,105,16
-    CONTROL         "Poll On Event Received Only",IDC_ONEVENT_ONLY,"Button",
-                    BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,115,155,65,
-                    15
-    CONTROL         "Disable Remote Keyboard && Pointer",IDC_DISABLE_INPUTS,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,85,145,15
-    PUSHBUTTON      "&Apply",IDC_APPLY,165,45,51,15
-    CONTROL         "Auto",IDC_PORTNO_AUTO,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,120,30,35,15
-    CONTROL         "Disable Local Keyboard && Pointer",
+    GROUPBOX        "Incoming Connections",IDC_STATIC,5,5,143,104
+    CONTROL         "Accept socket connections",IDC_CONNECT_SOCK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,16,128,12
+    LTEXT           "Password:",IDC_PASSWORD_LABEL,19,30,44,12,
+                    SS_CENTERIMAGE | NOT WS_GROUP
+    EDITTEXT        IDC_PASSWORD,69,30,68,12,ES_PASSWORD | ES_AUTOHSCROLL
+    LTEXT           "Display or port numbers to use:",IDC_STATIC,19,46,121,
+                    12,NOT WS_GROUP
+    CONTROL         "auto",IDC_PORTNO_AUTO,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP | WS_TABSTOP,19,61,33,12
+    CONTROL         "display:",IDC_SPECDISPLAY,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,59,61,46,12
+    EDITTEXT        IDC_DISPLAYNO,109,61,27,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "ports:",IDC_SPECPORT,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,19,79,35,12
+    EDITTEXT        IDC_PORTRFB,59,79,27,12,ES_AUTOHSCROLL | ES_NUMBER
+    CTEXT           "and",IDC_STATIC,91,79,12,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_PORTHTTP,109,79,27,12,ES_AUTOHSCROLL | ES_NUMBER
+    CTEXT           "(main)",IDC_STATIC,59,93,27,10,SS_CENTERIMAGE
+    CTEXT           "(HTTP)",IDC_STATIC,109,93,27,10,SS_CENTERIMAGE
+    GROUPBOX        "Input Handling",IDC_STATIC,5,113,213,44
+    CONTROL         "Disable remote keyboard and pointer (view only)",
+                    IDC_DISABLE_INPUTS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    13,124,201,12
+    CONTROL         "Disable local keyboard and pointer",
                     IDC_DISABLE_LOCAL_INPUTS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,10,100,145,15
-    PUSHBUTTON      "Ad&vanced",IDADVANCED,165,85,51,15
+                    WS_TABSTOP,13,139,201,12
+    GROUPBOX        "Update Handling",IDC_STATIC,5,161,213,60
+    CONTROL         "Poll foreground window",IDC_POLL_FOREGROUND,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,174,98,13
+    CONTROL         "Poll window under cursor",IDC_POLL_UNDER_CURSOR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,189,98,13
+    CONTROL         "Poll full screen",IDC_POLL_FULLSCREEN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,204,98,13
+    CONTROL         "Poll console windows only",IDC_CONSOLE_ONLY,"Button",
+                    BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,112,174,102,
+                    13
+    CONTROL         "Poll on event received only",IDC_ONEVENT_ONLY,"Button",
+                    BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,112,189,102,
+                    13
+    DEFPUSHBUTTON   "&OK",IDOK,158,8,60,14
+    PUSHBUTTON      "&Apply",IDC_APPLY,158,27,60,14
+    PUSHBUTTON      "&Cancel",IDCANCEL,158,47,60,14
+    PUSHBUTTON      "Ad&vanced...",IDADVANCED,158,95,60,14
 END
 
 IDD_ABOUT DIALOG DISCARDABLE  0, 0, 326, 122
@@ -119,47 +128,51 @@ BEGIN
     PUSHBUTTON      "Accept without &Password",IDACCEPT_NOPASS,70,78,95,17
 END
 
-IDD_ADVPROPERTIES DIALOG DISCARDABLE  0, 0, 280, 181
+IDD_ADVPROPERTIES DIALOG DISCARDABLE  0, 0, 309, 186
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_POPUP | 
     WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "Advanced Properties"
 FONT 8, "MS Sans Serif"
 BEGIN
-    PUSHBUTTON      "&Cancel",IDCANCEL,208,25,67,15
-    DEFPUSHBUTTON   "&OK",IDOK,208,5,67,15
-    GROUPBOX        "Query Settings",IDC_QUERY_BORDER,5,5,185,80
-    CONTROL         "AutoAccept (instead of Refuse) if query times out",
-                    IDQUERYACCEPT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,
-                    49,172,12
-    PUSHBUTTON      "&Apply",IDC_APPLY,208,45,67,15
+    GROUPBOX        "Query Settings",IDC_STATIC,5,5,223,76
     CONTROL         "Query console on incoming connections",IDQUERY,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,13,17,172,12
-    LTEXT           "Query Timeout:",IDQUERYTIMEOUT_LABEL,25,32,53,14,
-                    SS_CENTERIMAGE
-    EDITTEXT        IDQUERYTIMEOUT,79,32,22,13,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "Disable empty passwords",IDREQUIREAUTH,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,13,162,121,12
-    CONTROL         "Allow option to Accept without Password",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,17,211,12
+    LTEXT           "Query timeout:",IDC_STATIC,25,32,67,12,SS_CENTERIMAGE
+    EDITTEXT        IDQUERYTIMEOUT,95,32,22,12,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "seconds",IDC_STATIC,123,32,101,12,SS_CENTERIMAGE
+    LTEXT           "Default action:",IDC_STATIC,25,47,67,12,SS_CENTERIMAGE
+    CONTROL         "Refuse",IDC_ACTION_REFUSE,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP | WS_TABSTOP,95,47,57,12
+    CONTROL         "Accept",IDC_ACTION_ACCEPT,"Button",BS_AUTORADIOBUTTON,
+                    152,47,72,12
+    CONTROL         "Allow option to accept without authentication",
                     IDQUERYALLOWNOPASS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    13,65,172,12
-    CONTROL         "Allow ONLY loopback",IDONLYLOOPBACK,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,175,130,100,12
-    CONTROL         "Log extensive debug info",IDLOGLOTS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,175,162,100,12
+                    13,62,211,12
+    GROUPBOX        "Administration",IDC_STATIC,5,85,156,96
+    CONTROL         "Disable empty passwords",IDREQUIREAUTH,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,97,144,12
     CONTROL         "Allow loopback connections",IDALLOWLOOPBACK,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,155,114,120,12
-    CONTROL         "Log info to Winvnc.log",IDLOG,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,155,146,120,12
-    GROUPBOX        "Connection Priority",IDPRIORITY,5,92,137,62
-    CONTROL         "Disconnect existing connections",IDPRIORITY0,"Button",
-                    BS_AUTORADIOBUTTON | WS_GROUP,13,105,121,12
-    CONTROL         "Refuse concurrent connections",IDPRIORITY2,"Button",
-                    BS_AUTORADIOBUTTON,13,135,121,12
-    CONTROL         "Automatic shared sessions",IDPRIORITY1,"Button",
-                    BS_AUTORADIOBUTTON,13,120,121,12
-    LTEXT           "seconds",IDC_STATIC,105,32,43,14,SS_CENTERIMAGE
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,112,144,12
+    CONTROL         "Allow only loopback connections",IDONLYLOOPBACK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,25,127,132,12
+    CONTROL         "Log information to WinVNC.log",IDLOG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,142,144,12
+    CONTROL         "Log detailed debugging information",IDLOGLOTS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,25,157,132,12
+    GROUPBOX        "Web access",IDC_STATIC,167,85,137,31
     CONTROL         "Enable built-in HTTP daemon",IDENABLEHTTPD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,155,97,120,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,180,98,123,10
+    GROUPBOX        "Connection Priority",IDC_STATIC,167,120,137,60
+    CONTROL         "Disconnect existing connections",IDPRIORITY0,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,180,132,123,
+                    12
+    CONTROL         "Automatic shared sessions",IDPRIORITY1,"Button",
+                    BS_AUTORADIOBUTTON,180,147,123,12
+    CONTROL         "Refuse concurrent connections",IDPRIORITY2,"Button",
+                    BS_AUTORADIOBUTTON,180,162,123,12
+    DEFPUSHBUTTON   "&OK",IDOK,235,9,69,15
+    PUSHBUTTON      "&Cancel",IDCANCEL,235,27,69,15
+    PUSHBUTTON      "&Apply",IDC_APPLY,235,45,69,15
 END
 
 
@@ -174,40 +187,15 @@ BEGIN
     IDD_PROPERTIES, DIALOG
     BEGIN
         LEFTMARGIN, 5
-        RIGHTMARGIN, 216
-        VERTGUIDE, 10
-        VERTGUIDE, 19
-        VERTGUIDE, 75
-        VERTGUIDE, 115
-        VERTGUIDE, 120
-        VERTGUIDE, 155
-        VERTGUIDE, 160
-        VERTGUIDE, 165
-        VERTGUIDE, 180
+        RIGHTMARGIN, 218
+        VERTGUIDE, 13
+        VERTGUIDE, 111
+        VERTGUIDE, 158
+        VERTGUIDE, 214
         TOPMARGIN, 5
-        BOTTOMMARGIN, 197
-        HORZGUIDE, 15
-        HORZGUIDE, 20
-        HORZGUIDE, 25
-        HORZGUIDE, 30
-        HORZGUIDE, 40
-        HORZGUIDE, 45
-        HORZGUIDE, 50
-        HORZGUIDE, 60
-        HORZGUIDE, 65
-        HORZGUIDE, 70
+        BOTTOMMARGIN, 223
         HORZGUIDE, 85
-        HORZGUIDE, 90
-        HORZGUIDE, 100
-        HORZGUIDE, 115
-        HORZGUIDE, 120
-        HORZGUIDE, 125
-        HORZGUIDE, 134
-        HORZGUIDE, 149
-        HORZGUIDE, 155
-        HORZGUIDE, 170
-        HORZGUIDE, 174
-        HORZGUIDE, 190
+        HORZGUIDE, 109
     END
 
     IDD_ABOUT, DIALOG
@@ -379,7 +367,7 @@ IDR_VNCVIEWER_JAR       JAVAARCHIVE DISCARDABLE "res\\VncViewer.jar"
 //
 
 IDR_AUTHPANEL_CLASS     JAVACLASS DISCARDABLE   "res\\AuthPanel.class"
-IDR_CLIPBOARDFRAME_CLASS JAVACLASS DISCARDABLE  "res\\ClipboardFrame.class"
+IDR_CLIPBOARDFRAME_CLASS JAVACLASS DISCARDABLE   "res\\ClipboardFrame.class"
 IDR_OPTIONSFRAME_CLASS  JAVACLASS DISCARDABLE   "res\\OptionsFrame.class"
 IDR_RFBPROTO_CLASS      JAVACLASS DISCARDABLE   "res\\RfbProto.class"
 IDR_VNCCANVAS_CLASS     JAVACLASS DISCARDABLE   "res\\VncCanvas.class"

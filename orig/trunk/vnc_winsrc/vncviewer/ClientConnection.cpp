@@ -318,7 +318,7 @@ void ClientConnection::CreateDisplay()
 	wndclass1.hIcon			= (HICON)LoadIcon(m_pApp->m_instance,
 												MAKEINTRESOURCE(IDI_MAINICON));
 	wndclass1.hCursor		= LoadCursor(NULL, IDC_ARROW);
-	wndclass1.hbrBackground	= (HBRUSH) GetStockObject(NULL_BRUSH);
+	wndclass1.hbrBackground	= (HBRUSH) GetStockObject(BLACK_BRUSH);
     wndclass1.lpszMenuName	= (LPCTSTR)NULL;
 	wndclass1.lpszClassName	= VWR_WND_CLASS_NAME;
 
@@ -354,8 +354,8 @@ void ClientConnection::CreateDisplay()
 	m_hwnd1 = CreateWindow(VWR_WND_CLASS_NAME,
 			      _T("VNCviewer"),
 			      WS_BORDER|WS_CAPTION|WS_SYSMENU|WS_SIZEBOX|
-				  WS_MINIMIZEBOX|WS_MAXIMIZEBOX
-				  |WS_CLIPCHILDREN,
+				  WS_MINIMIZEBOX|WS_MAXIMIZEBOX|
+				  WS_CLIPCHILDREN,
 			      CW_USEDEFAULT,
 			      CW_USEDEFAULT,
 			      CW_USEDEFAULT,       // x-size
@@ -1194,7 +1194,7 @@ void ClientConnection::SizeWindow(bool centered)
 	m_winwidth1 = min(m_fullwinwidth1,  workwidth);
 	m_winheight1 = min(m_fullwinheight1, workheight);
 
-	DWORD style = SWP_SHOWWINDOW|SWP_NOMOVE;
+	DWORD style = SWP_SHOWWINDOW | SWP_NOMOVE;
 	if (centered) {
 		style = SWP_SHOWWINDOW;
 	}
@@ -1702,12 +1702,7 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 		SystemParametersInfo(SPI_GETWORKAREA, 0, &workrect, 0);
 		GetWindowRect(_this->m_hToolbar, &rtb);
 		win = *(LPMINMAXINFO) lParam;
-		if (_this->InFullScreenMode()) {
-			win.ptMaxSize.x = _this->m_fullwinwidth + 8;
-			win.ptMaxSize.y = _this->m_fullwinheight + 8;
-			win.ptMaxTrackSize.x = _this->m_fullwinwidth + 8;
-			win.ptMaxTrackSize.y = _this->m_fullwinheight + 8;
-		} else {
+		if (!_this->InFullScreenMode()) {
 			if (GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
 				ID_TOOLBAR,MF_BYCOMMAND) == MF_CHECKED) {
 				win.ptMaxSize.x = _this->m_winwidth1;
@@ -1736,8 +1731,10 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 			SetWindowPos(_this->m_hToolbar, HWND_TOP, 0, 0,
 					rwn.right - rwn.left, rtb.bottom - rtb.top, SWP_SHOWWINDOW);
 		} else {
-			SetWindowPos(_this->m_hwnd, HWND_TOP, 0, 0,
-					rwn.right, rwn.bottom, SWP_SHOWWINDOW);
+			SetWindowPos(_this->m_hwnd, HWND_TOP, (rwn.right -
+				_this->m_fullwinwidth) / 2, (rwn.bottom -
+				_this->m_fullwinheight) / 2,
+					_this->m_fullwinwidth, _this->m_fullwinheight, SWP_SHOWWINDOW);
 		}
 		
 		return 0;
@@ -1968,9 +1965,9 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 			// is actually bigger than the remote screen.
 			GetClientRect(hwnd, &rect);
 			_this->m_cliwidth = min( (int)(rect.right - rect.left),
-									 (int)_this->m_si.framebufferWidth );
+									 (int)_this->m_si.framebufferWidth  * _this->m_opts.m_scale_num / _this->m_opts.m_scale_den);
 			_this->m_cliheight = min( (int)(rect.bottom - rect.top),
-									 (int)_this->m_si.framebufferHeight );
+									 (int)_this->m_si.framebufferHeight  * _this->m_opts.m_scale_num / _this->m_opts.m_scale_den);
 
 			_this->m_hScrollMax = _this->m_si.framebufferWidth * _this->m_opts.m_scale_num / _this->m_opts.m_scale_den;
 			_this->m_vScrollMax = _this->m_si.framebufferHeight* _this->m_opts.m_scale_num / _this->m_opts.m_scale_den;

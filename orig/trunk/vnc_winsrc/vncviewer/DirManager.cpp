@@ -111,8 +111,8 @@ DirManager::getFilesInfo(FileInfo *pFI, char *pPath, unsigned short dirOnly)
 {
 	if (strlen(pPath) == 0) return getDriveInfo(pFI);
 
-	char *_pPath = strdup(pPath);
-	strcat(_pPath, "\\*");
+	char _pPath[MAX_PATH];
+	sprintf(_pPath, "%s\\*", pPath);
 
 	WIN32_FIND_DATA FindFileData;
 	SetErrorMode(SEM_FAILCRITICALERRORS);
@@ -211,7 +211,8 @@ DirManager::getInfo(char *pFullPath, FILEINFO *pFIStruct)
 char *
 DirManager::getPath(char *pFullPath)
 {
-	char *_pFullPath = strdup(pFullPath);
+	char _pFullPath[MAX_PATH];
+	strcpy(_pFullPath, pFullPath);
 
 	for (int i = strlen(_pFullPath) - 2; i > 0; i--) {
 		if (_pFullPath[i] == '\\') {
@@ -219,13 +220,15 @@ DirManager::getPath(char *pFullPath)
 			break;
 		}
 	}
-	return _pFullPath;
+	strcpy(m_szTempPath, _pFullPath);
+	return m_szTempPath;
 }
 
 char *
 DirManager::getName(char *pFullPath)
 {
-	char *_pFullPath = strdup(pFullPath);
+	char _pFullPath[MAX_PATH];
+	strcpy(_pFullPath, pFullPath);
 
 	for (int i = strlen(_pFullPath) - 2; i > 0; i--) {
 		if (_pFullPath[i] == '\\') {
@@ -233,7 +236,8 @@ DirManager::getName(char *pFullPath)
 			break;
 		}
 	}
-	return _pFullPath;
+	strcpy(m_szTempName, _pFullPath);
+	return m_szTempName;
 }
 
 bool

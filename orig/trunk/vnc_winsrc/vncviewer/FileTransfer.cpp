@@ -31,21 +31,6 @@
 #include "FileInfoEx.h"
 #include "FileTransferDialog.h"
 
-DWORD NumWritten;
-HANDLE hLogFile = CreateFile("e:\\new_vnc2.log", GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
-
-void 
-qw(LPCSTR format,...)
-{
-	char text[1024];
-	va_list args;
-	va_start(args, format);
-	int nSize = _vsnprintf(text, sizeof(text), format, args);
-	strcat(text, "\n");
-	nSize = strlen(text);
-	WriteFile(hLogFile, text, nSize, &NumWritten, NULL);
-}
-
 FileTransfer::FileTransfer(ClientConnection * pCC, VNCviewerApp * pApp)
 {
 	m_pCC = pCC;
@@ -499,7 +484,8 @@ FileTransfer::sendFileListRqstMsg(unsigned short dirNameSize, char *pDirName,
 {
 	m_fileListRequestQueue.add(pDirName, 0, 0, dest);
 
-	char *_pDirName = strdup(pDirName);
+	char _pDirName[MAX_PATH];
+	strcpy(_pDirName, pDirName);
 	CARD16 _dirNameSize = convertToUnixPath(_pDirName);
 
 	int msgLen = sz_rfbFileListRequestMsg + _dirNameSize;
@@ -537,7 +523,8 @@ bool
 FileTransfer::sendFileDownloadRqstMsg(unsigned short filenameLen, char *pFilename, 
 									  unsigned int position)
 {
-	char *_pFilename = strdup(pFilename);
+	char _pFilename[MAX_PATH];
+	strcpy(_pFilename, pFilename);
 	CARD16 _filenameLen = convertToUnixPath(_pFilename);
 
 	int msgLen = sz_rfbFileDownloadRequestMsg + _filenameLen;
@@ -562,7 +549,8 @@ bool
 FileTransfer::sendFileUploadRqstMsg(unsigned short filenameLen, char *pFilename, 
 									unsigned int position)
 {
-	char *_pFilename = strdup(pFilename);
+	char _pFilename[MAX_PATH];
+	strcpy(_pFilename, pFilename);
 	CARD16 _filenameLen = convertToUnixPath(_pFilename);
 
 	int msgLen = sz_rfbFileUploadRequestMsg + _filenameLen;
@@ -668,7 +656,8 @@ FileTransfer::sendFileUploadFailedMsg(unsigned short reasonLen, char *pReason)
 bool 
 FileTransfer::sendFileCreateDirRqstMsg(unsigned short dirNameLen, char *pDirName)
 {
-	char *_pDirName = strdup(pDirName);
+	char _pDirName[MAX_PATH];
+	strcpy(_pDirName, pDirName);
 	CARD16 _dirNameLen = convertToUnixPath(_pDirName);
 
 	int msgLen = sz_rfbFileCreateDirRequestMsg + _dirNameLen;
@@ -690,7 +679,8 @@ FileTransfer::sendFileCreateDirRqstMsg(unsigned short dirNameLen, char *pDirName
 bool 
 FileTransfer::sendFileDirSizeRqstMsg(unsigned short dirNameLen, char *pDirName, int dest)
 {
-	char *_pDirName = strdup(pDirName);
+	char _pDirName[MAX_PATH];
+	strcpy(_pDirName, pDirName);
 	CARD16 _dirNameLen = convertToUnixPath(_pDirName);
 
 	int msgLen = sz_rfbFileDirSizeRequestMsg + _dirNameLen;
@@ -713,8 +703,8 @@ bool
 FileTransfer::sendFileRenameRqstMsg(unsigned short oldNameLen, unsigned short newNameLen, 
 									char *pOldName, char *pNewName)
 {
-	char *_pOldName = strdup(pOldName);
-	char *_pNewName = strdup(pNewName);
+	char _pOldName[MAX_PATH]; strcpy(_pOldName, pOldName);
+	char _pNewName[MAX_PATH]; strcpy(_pNewName, pNewName);
 	CARD16 _oldNameLen = convertToUnixPath(_pOldName);
 	CARD16 _newNameLen = convertToUnixPath(_pNewName);
 
@@ -737,7 +727,8 @@ FileTransfer::sendFileRenameRqstMsg(unsigned short oldNameLen, unsigned short ne
 bool 
 FileTransfer::sendFileDeleteRqstMsg(unsigned short nameLen, char *pName)
 {
-	char *_pName = strdup(pName);
+	char _pName[MAX_PATH];
+	strcpy(_pName, pName);
 	CARD16 _nameLen = convertToUnixPath(_pName);
 
 	int msgLen = sz_rfbFileDeleteRequestMsg + _nameLen;
@@ -1075,7 +1066,6 @@ FileTransfer::procFileDownloadDataMsg()
 //		mTime = Swap32IfLE(mTime);
 		m_fileWriter.setTime(mTime);
 		m_fileWriter.close();
-		qw("procFileDownloadDataMsg: mTime = %d, path = %s\n", mTime, m_fileTransferInfoEx.getFullRemPathAt(0));
 		m_pFileTransferDlg->m_pStatusBox->setStatusText("Download Completed: %s", m_fileTransferInfoEx.getFullLocPathAt(0));
 		m_fileTransferInfoEx.deleteAt(0);
 		checkTransferQueue();

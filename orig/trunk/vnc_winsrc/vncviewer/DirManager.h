@@ -64,6 +64,8 @@ public:
 
 private:
 	DWORD m_dwLastError;
+	char m_szTempPath[MAX_PATH];
+	char m_szTempName[MAX_PATH];
 };
 
 #endif // !defined(DIRMANAGER)

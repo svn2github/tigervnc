@@ -3,7 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "IncomingConnectionsControls.h"
-
+#include "WinVNC.h"
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -116,8 +116,13 @@ void IncomingConnectionsControls::Apply()
 			BOOL ok1, ok2;
 			UINT port_rfb = GetDlgItemInt(m_hwnd, IDC_PORTRFB, &ok1, TRUE);
 			UINT port_http = GetDlgItemInt(m_hwnd, IDC_PORTHTTP, &ok2, TRUE);
-			if (ok1 && ok2)
-				m_server->SetPorts(port_rfb, port_http);
+			if (port_rfb != port_http) {
+				if (ok1 && ok2)
+					m_server->SetPorts(port_rfb, port_http);
+			} else {
+				MessageBox(NULL, "WARNING:RFB and HTTP ports should be different",
+							szAppName, MB_ICONEXCLAMATION | MB_OK);
+			}
 		}
 	}
 	

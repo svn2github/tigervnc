@@ -199,8 +199,13 @@ void Log::ReallyPrint(char *format, va_list ap)
 	// Exclude path prefix from the format string if needed
 	char *format_ptr = format;
 	if (m_prefix != NULL && strlen(format) > m_prefix_len + 4) {
+#ifndef _DEBUG
 		if (memcmp(format, m_prefix, m_prefix_len) == 0)
 			format_ptr = format + m_prefix_len;
+#else
+		if (_strnicmp(format, m_prefix, m_prefix_len) == 0)
+			format_ptr = format + m_prefix_len;
+#endif
 	}
 
 	// Prepare the complete log message

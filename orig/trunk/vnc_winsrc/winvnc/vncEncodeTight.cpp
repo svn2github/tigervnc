@@ -45,8 +45,8 @@
 // where i in [0..8]. RequiredBuffSize() method depends on this.
 
 const TIGHT_CONF vncEncodeTight::m_conf[10] = {
-	{  1024,   64,   6, 65536, 0, 0, 0, 0,   0,   0,   4 },
-	{  2048,  128,   6, 65536, 1, 1, 1, 0,   0,   0,  12 },
+	{   512,   32,   6, 65536, 0, 0, 0, 0,   0,   0,   4 },
+	{  2048,  128,   6, 65536, 1, 1, 1, 0,   0,   0,   8 },
 	{  6144,  256,   8, 65536, 3, 3, 2, 0,   0,   0,  24 },
 	{ 10240, 1024,  12, 65536, 5, 5, 3, 0,   0,   0,  32 },
 	{ 16384, 2048,  12, 65536, 6, 6, 4, 0,   0,   0,  32 },
@@ -579,8 +579,6 @@ vncEncodeTight::FillPalette##bpp(int count)									  \
 	CARD##bpp c0, c1, ci;													  \
 	int i, n0, n1, ni;														  \
 																			  \
-	PaletteReset();															  \
-																			  \
 	c0 = data[0];															  \
 	for (i = 1; i < count && data[i] == c0; i++);							  \
 	if (i == count) {														  \
@@ -588,8 +586,10 @@ vncEncodeTight::FillPalette##bpp(int count)									  \
 		return;																  \
 	}																		  \
 																			  \
-	if (m_paletteMaxColors < 2)												  \
+	if (m_paletteMaxColors < 2) {											  \
+		m_paletteNumColors = 0; /* Full-color format preferred */			  \
 		return;																  \
+	}																		  \
 																			  \
 	n0 = i;																	  \
 	c1 = data[i];															  \
@@ -615,6 +615,7 @@ vncEncodeTight::FillPalette##bpp(int count)									  \
 		return;																  \
 	}																		  \
 																			  \
+	PaletteReset();															  \
 	PaletteInsert (c0, (CARD32)n0, bpp);									  \
 	PaletteInsert (c1, (CARD32)n1, bpp);									  \
 																			  \
@@ -718,16 +719,18 @@ vncEncodeTight::PaletteInsert(CARD32 rgb, int numPixels, int bpp)
 
 //
 // Converting 32-bit color samples into 24-bit colors.
-// Should be called only when redMax, greenMax and blueMax are 256.
-// 8-bit samples assumed to be byte-aligned.
+// Should be called only when redMax, greenMax and blueMax are 255.
+// Color components assumed to be byte-aligned.
 //
 
 void
 vncEncodeTight::Pack24(BYTE *buf, int count)
 {
-	int i;
+	CARD32 *buf32;
 	CARD32 pix;
 	int r_shift, g_shift, b_shift;
+
+	buf32 = (CARD32 *)buf;
 
 	if (!m_localformat.bigEndian == !m_remoteformat.bigEndian) {
 		r_shift = m_remoteformat.redShift;
@@ -739,11 +742,11 @@ vncEncodeTight::Pack24(BYTE *buf, int count)
 		b_shift = 24 - m_remoteformat.blueShift;
 	}
 
-	for (i = 0; i < count; i++) {
-		pix = ((CARD32 *)buf)[i];
-		buf[i*3]   = (BYTE)(pix >> r_shift);
-		buf[i*3+1] = (BYTE)(pix >> g_shift);
-		buf[i*3+2] = (BYTE)(pix >> b_shift);
+	while (count--) {
+		pix = *buf32++;
+		*buf++ = (char)(pix >> r_shift);
+		*buf++ = (char)(pix >> g_shift);
+		*buf++ = (char)(pix >> b_shift);
 	}
 }
 
@@ -845,8 +848,8 @@ DEFINE_MONO_ENCODE_FUNCTION(32)
 
 //
 // ``Gradient'' filter for 24-bit color samples.
-// Should be called only when redMax, greenMax and blueMax are 256.
-// 8-bit samples assumed to be byte-aligned.
+// Should be called only when redMax, greenMax and blueMax are 255.
+// Color components assumed to be byte-aligned.
 //
 
 void

@@ -81,6 +81,11 @@ class RfbProto {
   boolean inNormalProtocol = false;
   VncViewer viewer;
 
+  // Java on UNIX does not call keyPressed() on some keys, for example
+  // swedish keys To prevent our workaround to produce duplicate
+  // keypresses on JVMs that actually works, keep track of if
+  // keyPressed() for a "broken" key was called or not. 
+  boolean brokenKeyPressed = false;
 
   //
   // Constructor.  Just make TCP connection to RFB server.
@@ -603,9 +608,9 @@ class RfbProto {
 
       key = keyChar;
 
-      if (key < 32) {
+      if (key < 0x20) {
         if (evt.isControlDown()) {
-          key += 96;
+          key += 0x60;
         } else {
           switch(key) {
           case KeyEvent.VK_BACK_SPACE: key = 0xff08; break;
@@ -614,16 +619,41 @@ class RfbProto {
           case KeyEvent.VK_ESCAPE:     key = 0xff1b; break;
           }
         }
-      } else if (key >= 127) {
-        if (key == 127) {
-          key = 0xffff;
-        } else {
-          // JDK1.1 on X incorrectly passes some keysyms straight through,
-          // so we do too.  JDK1.1.4 seems to have fixed this.
-          if ((key < 0xff00) || (key > 0xffff))
-            return;
-        }
+      } else if (key == 0x7f) {
+	// Delete
+	key = 0xffff;
+      } else if (key > 0xff) {
+	// JDK1.1 on X incorrectly passes some keysyms straight through,
+	// so we do too.  JDK1.1.4 seems to have fixed this.
+	// The keysyms passed are 0xff00 .. XK_BackSpace .. XK_Delete
+	if ((key < 0xff00) || (key > 0xffff))
+	  return;
       }
+    }
+
+    // Fake keyPresses for keys that only generates keyRelease events
+    if ((key == 0xe5) || (key == 0xc5) || // XK_aring / XK_Aring
+	(key == 0xe4) || (key == 0xc4) || // XK_adiaeresis / XK_Adiaeresis
+	(key == 0xf6) || (key == 0xd6) || // XK_odiaeresis / XK_Odiaeresis
+	(key == 0xa7) || (key == 0xbd) || // XK_section / XK_onehalf
+	(key == 0xa3)) {                  // XK_sterling
+      // Make sure we do not send keypress events twice on platforms
+      // with correct JVMs (those that actually report KeyPress for all
+      // keys)	
+      if (down)
+	brokenKeyPressed = true;
+
+      if (!down && !brokenKeyPressed) {
+	// We've got a release event for this key, but haven't received
+        // a press. Fake it. 
+	eventBufLen = 0;
+	writeModifierKeyEvents(evt.getModifiers());
+	writeKeyEvent(key, true);
+	os.write(eventBuf, 0, eventBufLen);
+      }
+
+      if (!down)
+	brokenKeyPressed = false;  
     }
 
     eventBufLen = 0;

@@ -245,7 +245,7 @@ int WinVNCAppMain()
 	// Now enter the message handling loop until told to quit!
 	MSG msg;
 	while (GetMessage(&msg, NULL, 0,0) ) {
-		vnclog.Print(LL_INTINFO, VNCLOG("message %d recieved\n"), msg.message);
+		vnclog.Print(LL_INTINFO, VNCLOG("message %d received\n"), msg.message);
 
 		TranslateMessage(&msg);  // convert key ups and downs to chars
 		DispatchMessage(&msg);

@@ -424,11 +424,8 @@ vncProperties::ParentDlgProc(HWND hwnd,
         
 				// Yes, so close the dialog
 				vnclog.Print(LL_INTINFO, VNCLOG("enddialog (OK)\n"));
-
 				_this->m_returncode_valid = TRUE;
-
 				EndDialog(hwnd, IDOK);
-				DestroyWindow(hwnd);
 				_this->m_dlgvisible = FALSE;
 				_this->m_hTab = NULL;
 			}
@@ -438,7 +435,6 @@ vncProperties::ParentDlgProc(HWND hwnd,
 			vnclog.Print(LL_INTINFO, VNCLOG("enddialog (CANCEL)\n"));
 			_this->m_returncode_valid = TRUE;
 			EndDialog(hwnd, IDCANCEL);
-			DestroyWindow(hwnd);
 			_this->m_dlgvisible = FALSE;
 			_this->m_hTab = NULL;
 			return TRUE;		
@@ -455,7 +451,7 @@ BOOL CALLBACK vncProperties::IncomingDlgProc(HWND hwnd, UINT uMsg,
 	// This is set only once WM_INITDIALOG has been recieved, though!
 	vncProperties *_this = (vncProperties *) GetWindowLong(hwnd, GWL_USERDATA);
 	
-	switch (uMsg)
+		switch (uMsg)
 	{
 	case WM_INITDIALOG:
 		{

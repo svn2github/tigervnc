@@ -111,25 +111,7 @@ protected:
 
 	bool m_usePixelFormat24;
 
-	// Compression level stuff. The following array contains various
-	// encoder parameters for each of 10 compression levels (0..9).
-	//
-	// NOTE: m_conf[9].maxRectSize should be >= m_conf[i].maxRectSize,
-	// where i in [0..8]. RequiredBuffSize() method depends on this.
-
-	static const TIGHT_CONF m_conf[10] = {
-		{  1024,   64,   6, 65536, 0, 0, 0, 0,   0,   0,   4 },
-		{  2048,  128,   6, 65536, 1, 1, 1, 0,   0,   0,  12 },
-		{  6144,  256,   8, 65536, 3, 3, 2, 0,   0,   0,  24 },
-		{ 10240, 1024,  12, 65536, 5, 5, 3, 0,   0,   0,  32 },
-		{ 16384, 2048,  12, 65536, 6, 6, 4, 0,   0,   0,  32 },
-		{ 32768, 2048,  12,  4096, 7, 7, 5, 4, 150, 380,  32 },
-		{ 65536, 2048,  16,  4096, 7, 7, 6, 4, 170, 420,  48 },
-		{ 65536, 2048,  16,  4096, 8, 8, 7, 5, 180, 450,  64 },
-		{ 65536, 2048,  32,  8192, 9, 9, 8, 6, 190, 475,  64 },
-		{ 65536, 2048,  32,  8192, 9, 9, 9, 6, 200, 500,  96 }
-	};
-
+	static const TIGHT_CONF m_conf[10];
 	int m_compressLevel;
 
 	// Protected member functions.

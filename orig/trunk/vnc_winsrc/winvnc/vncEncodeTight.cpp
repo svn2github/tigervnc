@@ -38,6 +38,25 @@
 
 #include "vncEncodeTight.h"
 
+// Compression level stuff. The following array contains various
+// encoder parameters for each of 10 compression levels (0..9).
+//
+// NOTE: m_conf[9].maxRectSize should be >= m_conf[i].maxRectSize,
+// where i in [0..8]. RequiredBuffSize() method depends on this.
+
+const TIGHT_CONF vncEncodeTight::m_conf[10] = {
+	{  1024,   64,   6, 65536, 0, 0, 0, 0,   0,   0,   4 },
+	{  2048,  128,   6, 65536, 1, 1, 1, 0,   0,   0,  12 },
+	{  6144,  256,   8, 65536, 3, 3, 2, 0,   0,   0,  24 },
+	{ 10240, 1024,  12, 65536, 5, 5, 3, 0,   0,   0,  32 },
+	{ 16384, 2048,  12, 65536, 6, 6, 4, 0,   0,   0,  32 },
+	{ 32768, 2048,  12,  4096, 7, 7, 5, 4, 150, 380,  32 },
+	{ 65536, 2048,  16,  4096, 7, 7, 6, 4, 170, 420,  48 },
+	{ 65536, 2048,  16,  4096, 8, 8, 7, 5, 180, 450,  64 },
+	{ 65536, 2048,  32,  8192, 9, 9, 8, 6, 190, 475,  64 },
+	{ 65536, 2048,  32,  8192, 9, 9, 9, 6, 200, 500,  96 }
+};
+
 vncEncodeTight::vncEncodeTight()
 {
 	m_buffer = NULL;
@@ -324,7 +343,7 @@ vncEncodeTight::SendIndexedRect(BYTE *dest, int w, int h)
 	// Prepare palette, convert image.
 	switch (m_remoteformat.bitsPerPixel) {
 	case 32:
-		EncodeIndexedRect32((CARD8 *)m_buffer, w, h);
+		EncodeIndexedRect32((CARD8 *)m_buffer, w * h);
 
 		for (i = 0; i < m_paletteNumColors; i++) {
 			((CARD32 *)paletteBuf)[i] =
@@ -342,7 +361,7 @@ vncEncodeTight::SendIndexedRect(BYTE *dest, int w, int h)
 		break;
 
 	case 16:
-		EncodeIndexedRect16((CARD8 *)m_buffer, w, h);
+		EncodeIndexedRect16((CARD8 *)m_buffer, w * h);
 
 		for (i = 0; i < m_paletteNumColors; i++) {
 			((CARD16 *)paletteBuf)[i] =
@@ -597,7 +616,7 @@ void
 vncEncodeTight::PaletteReset(void)
 {
 	m_paletteNumColors = 0;
-	memset(palette.hash, 0, 256 * sizeof(COLOR_LIST *));
+	memset(m_palette.hash, 0, 256 * sizeof(COLOR_LIST *));
 }
 
 int
@@ -740,10 +759,10 @@ DEFINE_IDX_ENCODE_FUNCTION(32)
 #define DEFINE_MONO_ENCODE_FUNCTION(bpp)									  \
 																			  \
 void																		  \
-vncEncodeTight::EncodeMonoRect##bpp(BYTE buf, int w, int h)					  \
+vncEncodeTight::EncodeMonoRect##bpp(BYTE *buf, int w, int h)				  \
 {																			  \
 	CARD##bpp *ptr;															  \
-	CARD##bpp bg, sample;													  \
+	CARD##bpp bg;															  \
 	unsigned int value, mask;												  \
 	int aligned_width;														  \
 	int x, y, bg_bits;														  \

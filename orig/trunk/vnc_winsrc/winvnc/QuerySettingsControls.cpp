@@ -32,7 +32,7 @@ void QuerySettingsControls::Apply()
 {
 	// Save the timeout
 	char timeout[256];
-	if (GetDlgItemText(m_hwnd, IDQUERYTIMEOUT, (LPSTR) &timeout, 256) == 0)
+	if (GetDlgItemText(m_hwnd, IDQUERYTIMEOUT, (LPSTR) &timeout, 256) != 0)
 		m_server->SetQueryTimeout(atoi(timeout));
 					
 	// Save the new settings to the server

@@ -52,10 +52,11 @@ public:
 	static int WinVNCServiceMain();
 
 	// Routine to install the WinVNC service on the local machine
-	static int InstallService();
+	static int InstallService(BOOL silent=0);
+	static int ReinstallService();
 
 	// Routine to remove the WinVNC service from the local machine
-	static int RemoveService();
+	static int RemoveService(BOOL silent=0);
 
 	// SERVICE SUPPORT FUNCTIONS
 

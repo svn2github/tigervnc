@@ -1398,9 +1398,6 @@ vncProperties::Load(BOOL usersettings)
 
 				// Close the user registry hive so it can unload if required
 				RegCloseKey(HKEY_CURRENT_USER);
-			} else {
-				// DEBUG!
-				MessageBox(NULL, "We have a problem...", "Oops", MB_OK);
 			}
 		}
 	} else {

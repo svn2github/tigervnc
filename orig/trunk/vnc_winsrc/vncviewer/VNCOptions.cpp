@@ -691,7 +691,8 @@ BOOL CALLBACK VNCOptions::DlgProc(HWND hwndDlg, UINT uMsg,
 
 	case WM_COMMAND:
 		switch (LOWORD(wParam))	{
-		case IDOK: 
+		case IDOK:
+			SetFocus(GetDlgItem(hwndDlg, IDOK));
 			SendMessage(_this->m_hPageConnection, WM_COMMAND, IDC_OK, 0);
 			SendMessage(_this->m_hPageGeneral, WM_COMMAND, IDC_OK, 0);
 			EndDialog(hwndDlg, TRUE);
@@ -895,7 +896,7 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 		switch (LOWORD(wParam)) {
 		case IDC_SCALE_EDIT:
 			switch (HIWORD(wParam)) {
-			case CBN_EDITCHANGE:
+			case CBN_KILLFOCUS:
 				Lim(hwnd, IDC_SCALE_EDIT, 1, 150);
 				return 0;
 			}
@@ -952,7 +953,7 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 			}
 			return 0;
 		case IDC_OK: 
-			{			
+			{		 
 				HWND hListBox = GetDlgItem(hwnd, IDC_ENCODING);
 				int i = SendMessage(hListBox, CB_GETCURSEL, 0, 0);
 				switch (i) {
@@ -1188,21 +1189,21 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 		switch (LOWORD(wParam)) {
 		case IDC_LISTEN_PORT:
 			switch (HIWORD(wParam)) {
-			case EN_CHANGE:
+			case EN_KILLFOCUS:
 				Lim(hwnd, IDC_LISTEN_PORT, 1, 6553);				
 				return 0;
 			}
 			return 0;
 		case IDC_EDIT_AMOUNT_LIST:
 			switch (HIWORD(wParam)) {
-			case EN_CHANGE:
+			case EN_KILLFOCUS:
 				Lim(hwnd, IDC_EDIT_AMOUNT_LIST, 1, 64);				
 				return 0;
 			}
 			return 0;
 		case IDC_EDIT_LOG_LEVEL:
 			switch (HIWORD(wParam)) {
-			case EN_CHANGE:
+			case EN_KILLFOCUS:
 				Lim(hwnd, IDC_EDIT_LOG_LEVEL, 1, 12);				
 				return 0;
 			}

@@ -136,32 +136,9 @@ class vncCanvas extends Canvas
 	  case rfbProto.EncodingCopyRect:
 	  {
 	    rfb.readCopyRect();
-
-	    int sx = rfb.copyRectSrcX, sy = rfb.copyRectSrcY;
-	    int rx = rfb.updateRectX, ry = rfb.updateRectY;
-	    int rw = rfb.updateRectW, rh = rfb.updateRectH;
-
-	    softCursorLockArea(sx, sy, rw, rh);
-
-	    int dx, dy;
-	    if (sy * rfb.framebufferWidth + sx >
-		ry * rfb.framebufferWidth + rx) {
-	      for (dy = 0; dy < rh; dy++) {
-		for (dx = 0; dx < rw; dx++) {
-		  pixels[(ry + dy) * rfb.framebufferWidth + (rx + dx)] =
-		    pixels[(sy + dy) * rfb.framebufferWidth + (sx + dx)];
-		}
-	      }
-	    } else {
-	      for (dy = rh - 1; dy >= 0; dy--) {
-		for (dx = rw - 1; dx >= 0; dx--) {
-		  pixels[(ry + dy) * rfb.framebufferWidth + (rx + dx)] =
-		    pixels[(sy + dy) * rfb.framebufferWidth + (sx + dx)];
-		}
-	      }
-	    }
-
-	    handleUpdatedPixels(rx, ry, rw, rh);
+	    softCursorLockArea(rfb.copyRectSrcX, rfb.copyRectSrcY,
+			       rfb.updateRectW, rfb.updateRectH);
+	    handleCopyRect();
 	    break;
 	  }
 
@@ -172,7 +149,7 @@ class vncCanvas extends Canvas
 	    int nSubrects = rfb.is.readInt();
 	    int bg = rfb.is.read();
 	    int pixel, x, y, w, h;
-	    fillPixelsArea(rx, ry, rw, rh, (byte)bg);
+	    fillLargeArea(rx, ry, rw, rh, (byte)bg);
 
 	    for (int j = 0; j < nSubrects; j++) {
 	      pixel = rfb.is.read();
@@ -181,7 +158,7 @@ class vncCanvas extends Canvas
 	      w = rfb.is.readUnsignedShort();
 	      h = rfb.is.readUnsignedShort();
 
-	      fillPixelsArea(x, y, w, h, (byte)pixel);
+	      fillSmallArea(x, y, w, h, (byte)pixel);
 	    }
 
 	    handleUpdatedPixels(rx, ry, rw, rh);
@@ -196,7 +173,7 @@ class vncCanvas extends Canvas
 	    int bg = rfb.is.read();
 	    int pixel, x, y, w, h;
 
-	    fillPixelsArea(rx, ry, rw, rh, (byte)bg);
+	    fillSmallArea(rx, ry, rw, rh, (byte)bg);
 
 	    for (int j = 0; j < nSubrects; j++) {
 	      pixel = rfb.is.read();
@@ -205,7 +182,7 @@ class vncCanvas extends Canvas
 	      w = rfb.is.read();
 	      h = rfb.is.read();
 
-	      fillPixelsArea(x, y, w, h, (byte)pixel);
+	      fillSmallArea(x, y, w, h, (byte)pixel);
 	    }
 
 	    handleUpdatedPixels(rx, ry, rw, rh);
@@ -233,14 +210,16 @@ class vncCanvas extends Canvas
 		int subencoding = rfb.is.read();
 
 		if ((subencoding & rfb.HextileRaw) != 0) {
-		  drawRawRect(tx, ty, tw, th);
+		  for (int j = ty; j < (ty + th); j++) {
+		    rfb.is.readFully(pixels, j*rfb.framebufferWidth+tx, tw);
+		  }
 		  continue;
 		}
 
 		if ((subencoding & rfb.HextileBackgroundSpecified) != 0)
 		  bg = rfb.is.read();
 
-		fillPixelsArea(tx, ty, tw, th, (byte)bg);
+		fillLargeArea(tx, ty, tw, th, (byte)bg);
 
 		if ((subencoding & rfb.HextileForegroundSpecified) != 0)
 		  fg = rfb.is.read();
@@ -260,7 +239,7 @@ class vncCanvas extends Canvas
 		      sw = (b2 >> 4) + 1;
 		      sh = (b2 & 0xf) + 1;
 
-		      fillPixelsArea(sx, sy, sw, sh, (byte)fg);
+		      fillSmallArea(sx, sy, sw, sh, (byte)fg);
 		    }
 
 		  } else {
@@ -273,7 +252,7 @@ class vncCanvas extends Canvas
 		      sw = (b2 >> 4) + 1;
 		      sh = (b2 & 0xf) + 1;
 
-		      fillPixelsArea(sx, sy, sw, sh, (byte)fg);
+		      fillSmallArea(sx, sy, sw, sh, (byte)fg);
 		    }
 		  }
 		}
@@ -359,6 +338,70 @@ class vncCanvas extends Canvas
 
 
   //
+  // Handle CopyRect rectangle (fast version).
+  //
+
+  void handleCopyRect() throws IOException {
+
+    int sx = rfb.copyRectSrcX, sy = rfb.copyRectSrcY;
+    int rx = rfb.updateRectX, ry = rfb.updateRectY;
+    int rw = rfb.updateRectW, rh = rfb.updateRectH;
+
+    // This call is redundant, but it decreases drawing delays.
+    sg.copyArea(sx, sy, rw, rh, rx - sx, ry - sy);
+
+    int y0, y1, delta;
+    if (sy > ry) {
+      y0 = 0; y1 = rh; delta = 1;
+    } else if (sy < ry) {
+      y0 = rh - 1; y1 = -1; delta = -1;
+    } else {
+      handleCopyRectSlow();
+      return;
+    }
+
+    for (int dy = y0; dy != y1; dy += delta) {
+      ByteArrayInputStream src = new ByteArrayInputStream(pixels);
+      src.skip((sy + dy) * rfb.framebufferWidth + sx);
+      src.read(pixels, (ry + dy) * rfb.framebufferWidth + rx, rw);
+    }
+
+    handleUpdatedPixels(rx, ry, rw, rh);
+  }
+
+
+  //
+  // Handle CopyRect rectangle (slow version, scanlines may overlap).
+  //
+
+  void handleCopyRectSlow() throws IOException {
+
+    int sx = rfb.copyRectSrcX, sy = rfb.copyRectSrcY;
+    int rx = rfb.updateRectX, ry = rfb.updateRectY;
+    int rw = rfb.updateRectW, rh = rfb.updateRectH;
+
+    int dx, dy;
+    if (sy * rfb.framebufferWidth + sx > ry * rfb.framebufferWidth + rx) {
+      for (dy = 0; dy < rh; dy++) {
+	for (dx = 0; dx < rw; dx++) {
+	  pixels[(ry + dy) * rfb.framebufferWidth + (rx + dx)] =
+	    pixels[(sy + dy) * rfb.framebufferWidth + (sx + dx)];
+	}
+      }
+    } else {
+      for (dy = rh - 1; dy >= 0; dy--) {
+	for (dx = rw - 1; dx >= 0; dx--) {
+	  pixels[(ry + dy) * rfb.framebufferWidth + (rx + dx)] =
+	    pixels[(sy + dy) * rfb.framebufferWidth + (sx + dx)];
+	}
+      }
+    }
+
+    handleUpdatedPixels(rx, ry, rw, rh);
+  }
+
+
+  //
   // Draw a zlib rectangle.
   //
 
@@ -401,7 +444,11 @@ class vncCanvas extends Canvas
     // Handle solid rectangles.
     if (comp_ctl == rfb.TightFill) {
       int bg = rfb.is.readUnsignedByte();
-      fillPixelsArea(x, y, w, h, (byte)bg);
+
+      sg.setColor(colors[bg]);	// This two calls are redundant,
+      sg.fillRect(x, y, w, h);	// but they decrease drawing delays.
+
+      fillLargeArea(x, y, w, h, (byte)bg);
       handleUpdatedPixels(x, y, w, h);
       return;
     }
@@ -520,11 +567,13 @@ class vncCanvas extends Canvas
     }
   }
 
+
   //
-  // Reflect fillRect operation on the pixels[] array.
+  // Emulate fillRect operation on the pixels[] array.
+  // This version is optimized for very small rectangles.
   //
 
-  void fillPixelsArea(int x, int y, int w, int h, byte pixel) {
+  void fillSmallArea(int x, int y, int w, int h, byte pixel) {
 
     int offset = y * rfb.framebufferWidth + x;
     for (int dy = 0; dy < h; dy++) {
@@ -534,6 +583,29 @@ class vncCanvas extends Canvas
       offset += (rfb.framebufferWidth - w);
     }
   }
+
+
+  //
+  // Emulate fillRect operation on the pixels[] array.
+  // This version is optimized for rectangles that are large enough.
+  //
+
+  void fillLargeArea(int x, int y, int w, int h, byte pixel) {
+
+    byte[] buf = new byte[w];
+    for (int i = 0; i < w; i++) {
+      buf[i] = pixel;
+    }
+    ByteArrayInputStream pixelStream = new ByteArrayInputStream(buf);
+
+    int offset = y * rfb.framebufferWidth + x;
+    for (int dy = 0; dy < h; dy++) {
+      pixelStream.reset();
+      pixelStream.read(pixels, offset, w);
+      offset += rfb.framebufferWidth;
+    }
+  }
+
 
   //
   // Handle events.

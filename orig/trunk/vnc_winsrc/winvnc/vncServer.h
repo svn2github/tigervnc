@@ -222,10 +222,14 @@ public:
 	virtual UINT QuerySetting() {return m_querysetting;};
 	virtual void SetQueryTimeout(const UINT setting) {m_querytimeout = setting;};
 	virtual UINT QueryTimeout() {return m_querytimeout;};
-	virtual void SetQueryAccept(const bool setting) {m_queryaccept = setting;};
+	virtual void SetQueryAccept(const BOOL setting) {m_queryaccept = setting;};
 	virtual BOOL QueryAccept() {return m_queryaccept;};
 	virtual void SetQueryAllowNoPass(const BOOL setting) {m_queryallownopass = setting;};
 	virtual BOOL QueryAllowNoPass() {return m_queryallownopass;};
+
+	// Whether or not to allow incoming HTTP connections
+	virtual BOOL SetHttpdEnabled(BOOL enable);
+	virtual BOOL HttpdEnabled() {return m_httpd_enabled;};
 
 	// Whether or not to allow connections from the local machine
 	virtual void SetLoopbackOk(BOOL ok) {m_loopback_allowed = ok;};
@@ -259,6 +263,7 @@ protected:
 	char				m_password[MAXPWLEN];
 	BOOL				m_passwd_required;
 	BOOL				m_loopback_allowed;
+	BOOL				m_httpd_enabled;
 	BOOL				m_loopbackOnly;
 	BOOL				m_disableTrayIcon;
 	char				*m_auth_hosts;

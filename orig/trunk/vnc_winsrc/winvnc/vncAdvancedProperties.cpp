@@ -188,6 +188,11 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 			sprintf(timeout, "%d", (int)t);
 		    SetDlgItemText(hwnd, IDQUERYTIMEOUT, (const char *) timeout);
 
+			SendDlgItemMessage(hwnd, IDENABLEHTTPD,
+				BM_SETCHECK,
+				_this->m_server->HttpdEnabled(),
+				0);
+
 			HWND hLoopback = GetDlgItem(hwnd, IDALLOWLOOPBACK);
 			BOOL loopbackEnabled = _this->m_server->LoopbackOk();
 			SendMessage(hLoopback,
@@ -278,6 +283,7 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 					_this->m_server->SetConnectPriority(0);
 
 				_this->m_server->SetAuthRequired(IsDlgButtonChecked(hwnd, IDREQUIREAUTH));
+				_this->m_server->SetHttpdEnabled(IsDlgButtonChecked(hwnd, IDENABLEHTTPD));
 				_this->m_server->SetLoopbackOk(IsDlgButtonChecked(hwnd, IDALLOWLOOPBACK));
 				_this->m_server->SetLoopbackOnly(IsDlgButtonChecked(hwnd, IDONLYLOOPBACK));
 
@@ -481,7 +487,8 @@ vncAdvancedProperties::Load(BOOL usersettings)
 	vnclog.SetMode(LoadInt(hkLocal, "DebugMode", 0));
 	vnclog.SetLevel(LoadInt(hkLocal, "DebugLevel", 0));
 
-	// Authentication required, loopback allowed, loopbackOnly
+	// Authentication required, httpd enabled, loopback allowed, loopbackOnly
+	m_server->SetHttpdEnabled(LoadInt(hkLocal, "EnableHTTPDaemon", true));
 	m_server->SetLoopbackOnly(LoadInt(hkLocal, "LoopbackOnly", false));
 	if (m_server->LoopbackOnly())
 		m_server->SetLoopbackOk(true);
@@ -597,6 +604,7 @@ vncAdvancedProperties::ApplyUserPrefs()
 	//m_server->SetConnectPriority(priority);
 
 	//m_server->SetAuthRequired(IsDlgButtonChecked(hwnd, IDREQUIREAUTH));
+	//m_server->SetHttpdEnabled(IsDlgButtonChecked(hwnd, IDENABLEHTTPD));
 	//m_server->SetLoopbackOk(IsDlgButtonChecked(hwnd, IDALLOWLOOPBACK));
 	//m_server->SetLoopbackOnly(IsDlgButtonChecked(hwnd, IDONLYLOOPBACK));
 
@@ -681,6 +689,7 @@ vncAdvancedProperties::Save()
 	SaveInt(hkLocal, "DebugMode", vnclog.GetMode());
 	SaveInt(hkLocal, "DebugLevel", vnclog.GetLevel());
 	SaveInt(hkLocal, "LoopbackOnly", m_server->LoopbackOnly());
+	SaveInt(hkLocal, "EnableHTTPDaemon", m_server->HttpdEnabled());
 	SaveInt(hkLocal, "AllowLoopback", m_server->LoopbackOk());
 	SaveInt(hkLocal, "AuthRequired", m_server->AuthRequired());
 	RegCloseKey(hkLocal);

@@ -83,6 +83,7 @@ vncServer::vncServer()
 	m_loopbackOnly = FALSE;
 	m_disableTrayIcon = FALSE;
 	m_loopback_allowed = FALSE;
+	m_httpd_enabled = TRUE;
 	m_lock_on_exit = 0;
 	m_connect_pri = 0;
 
@@ -969,7 +970,7 @@ vncServer::SockConnect(BOOL On)
 			}
 
 			// Now let's start the HTTP connection stuff
-			if (m_httpConn == NULL)
+			if (m_httpConn == NULL && m_httpd_enabled)
 			{
 				m_httpConn = new vncHTTPConnect;
 				if (m_httpConn != NULL)
@@ -1018,6 +1019,19 @@ BOOL
 vncServer::SockConnected()
 {
 	return m_socketConn != NULL;
+}
+
+BOOL
+vncServer::SetHttpdEnabled(BOOL enable)
+{
+	if (enable != m_httpd_enabled)
+	{
+		m_httpd_enabled = enable;
+		BOOL socketConn = SockConnected();
+		SockConnect(FALSE);
+		SockConnect(socketConn);
+	}
+	return TRUE;
 }
 
 BOOL

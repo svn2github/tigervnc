@@ -45,6 +45,7 @@ public:
 	DWORD getLastError() { return m_dwLastError; };
 
 	bool getTime(unsigned int *pTime);
+	bool getSize(unsigned int *pSize);
 
 private:
 	HANDLE m_hFile;

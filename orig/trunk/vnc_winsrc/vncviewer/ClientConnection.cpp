@@ -2226,14 +2226,10 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 		// Close the worker thread as well
 		if (_this->m_fileTransferDialogShown) {
 			if (_this->m_pFileTransfer->isTransferEnable()) {
-				if (MessageBox(hwnd, 
-					_T("File Transfer is active. Are you sure you want to disconnect? This will result in active file transfer operation being discontinued."),
-					_T("Closing Active File Transfer"),
-					MB_YESNO | MB_ICONQUESTION) == IDYES) {
-					_this->m_pFileTransfer->closeUndoneTransfer();
-				} else {
-					return 1;
-				}
+				_this->m_pFileTransfer->m_bSendWMCloseOnYes = true;
+				_this->m_pFileTransfer->m_pFileTransferDlg->m_bEndFTDlgOnYes = true;
+				_this->m_pFileTransfer->m_pFileTransferDlg->createCancelingDlg();
+				return 0;
 			}
 
 		}
@@ -2948,12 +2944,10 @@ void* ClientConnection::run_undetached(void* arg) {
 			  omni_mutex_lock l(m_readMutex);  // we need this if we're not using ReadExact
 			  int bytes = recv(m_sock, (char *) &msgType, 1, MSG_PEEK);
 			  if (bytes == 0) {
-                m_pFileTransfer->closeUndoneTransfer();
 			    vnclog.Print(0, _T("Connection closed\n") );
 			    throw WarningException(_T("Connection closed"));
 			  }
 			  if (bytes < 0) {
-                m_pFileTransfer->closeUndoneTransfer();
 			    vnclog.Print(3, _T("Socket error reading message: %d\n"), WSAGetLastError() );
 			    throw WarningException("Error while waiting for server message");
 			  }

@@ -290,7 +290,7 @@ DirManager::deleteIt(char *pPath, FILEINFO *pFIStruct)
 					}
 				} else {
 					bResult = false;
-					m_dwLastError = lastEntries;
+					m_dwLastError = lastError;
 					fi.deleteAt(lastEntries);
 				}
 			} else {

@@ -47,6 +47,8 @@ FileTransferDialog::FileTransferDialog(HINSTANCE hInst, FileTransfer *pFT)
 	m_pStatusBox = NULL;
 	m_pProgress = NULL;
 	m_bFirstStart = true;
+	m_bDlgShown = false;
+	m_bEndFTDlgOnYes = false;
 	m_szLocalPath[0] = '\0';
 	m_szRemotePath[0] = '\0';
 	m_szLocalPathTmp[0] = '\0';
@@ -58,6 +60,7 @@ FileTransferDialog::FileTransferDialog(HINSTANCE hInst, FileTransfer *pFT)
 	m_dwCheckedLV = 0;
 	m_nextLocalPathCtrlID = -1;
 	m_nextRemotePathCtrlID = -1;
+	m_hwndFTCanceling = NULL;
 }
 
 FileTransferDialog::~FileTransferDialog()
@@ -68,14 +71,13 @@ FileTransferDialog::~FileTransferDialog()
 bool
 FileTransferDialog::createFileTransferDialog()
 {
-	m_hwndFileTransfer = CreateDialog(m_hInstance, 
-									  MAKEINTRESOURCE(IDD_FILETRANSFER_DLG),
-									  NULL, 
-									  (DLGPROC) fileTransferDlgProc);
+	m_hwndFileTransfer = CreateDialogParam(m_hInstance, 
+										   MAKEINTRESOURCE(IDD_FILETRANSFER_DLG),
+										   NULL, 
+										   (DLGPROC) fileTransferDlgProc,
+										   (LONG) this);
 	
 	if (m_hwndFileTransfer == NULL) return false;
-
-	SetWindowLong(m_hwndFileTransfer, GWL_USERDATA, (LONG) this);
 
 	m_pLocalLV = new FTListView(GetDlgItem(m_hwndFileTransfer, IDC_FTCLIENTLIST));
 	m_pRemoteLV = new FTListView(GetDlgItem(m_hwndFileTransfer, IDC_FTSERVERLIST));
@@ -110,6 +112,7 @@ FileTransferDialog::createFileTransferDialog()
 
 	ShowWindow(m_hwndFileTransfer, SW_SHOW);
 	UpdateWindow(m_hwndFileTransfer);
+	m_bDlgShown = true;
 
 	if (m_bFirstStart) {
 		DirManager dm;
@@ -173,6 +176,12 @@ FileTransferDialog::addAllLVColumns()
 void
 FileTransferDialog::closeFileTransferDialog()
 {
+	if (m_pFileTransfer->isTransferEnable()) {
+		m_bEndFTDlgOnYes = true;
+		if (m_hwndFTCanceling == NULL) createCancelingDlg();
+		return;
+	}
+
 	if (m_pLocalLV != NULL) {
 		m_pLocalLV->deleteAllItems();
 		delete m_pLocalLV;
@@ -205,6 +214,7 @@ FileTransferDialog::closeFileTransferDialog()
 	}
 	
 	EndDialog(m_hwndFileTransfer, TRUE);
+	m_bDlgShown = false;
 	m_pFileTransfer->setFTDlgStatus(false);
 }
 
@@ -215,6 +225,7 @@ FileTransferDialog::fileTransferDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 	switch (uMsg)
 	{
 	case WM_INITDIALOG:
+		SetWindowLong(hwnd, GWL_USERDATA, (LONG) lParam);
 		SetForegroundWindow(hwnd);
 		CentreWindow(hwnd);
 		return FALSE;
@@ -478,7 +489,8 @@ FileTransferDialog::onFTCopy()
 void 
 FileTransferDialog::onFTCancel()
 {
-	m_pFileTransfer->m_bFTCancel = true;
+	m_bEndFTDlgOnYes = false;
+	createCancelingDlg();
 }
 
 void 
@@ -607,6 +619,64 @@ FileTransferDialog::confirmDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
 		return TRUE;
 	}
 	return FALSE;
+}
+
+bool 
+FileTransferDialog::createCancelingDlg()
+{
+	m_hwndFTCanceling = CreateDialogParam(m_hInstance, 
+										  MAKEINTRESOURCE(IDD_FTCANCELING),
+										  NULL, 
+										  (DLGPROC) cancelingDlgProc,
+										  (LONG) this);
+	ShowWindow(m_hwndFTCanceling, SW_SHOW);
+	DrawIcon(GetDC(m_hwndFTCanceling), 15, 22, LoadIcon(NULL, IDI_QUESTION));
+	UpdateWindow(m_hwndFTCanceling);
+	return true;
+}
+
+BOOL CALLBACK 
+FileTransferDialog::cancelingDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	FileTransferDialog *_this = (FileTransferDialog *) GetWindowLong(hwnd, GWL_USERDATA);
+	switch (uMsg)
+	{
+	case WM_INITDIALOG:
+		{
+			SetWindowLong(hwnd, GWL_USERDATA, (LONG) lParam);
+			SetForegroundWindow(hwnd);
+			CentreWindow(hwnd);
+		}
+		return TRUE;
+	case WM_COMMAND:
+		switch (LOWORD(wParam))
+		{
+			case IDOK:
+				_this->endCancelingDlg(TRUE);
+				return TRUE;
+			case IDCANCEL:
+				_this->endCancelingDlg(FALSE);
+				return TRUE;
+		}
+	break;
+	case WM_CLOSE:
+	case WM_DESTROY:
+		_this->endCancelingDlg(FALSE);
+		return TRUE;
+	}
+	return FALSE;
+}
+
+void
+FileTransferDialog::endCancelingDlg(BOOL result)
+{
+	if (m_hwndFTCanceling != NULL) {
+		EndDialog(m_hwndFTCanceling, result);
+		m_hwndFTCanceling = NULL;
+		if (result) {
+			m_pFileTransfer->m_bFTCancel = true;
+		}
+	}
 }
 
 bool
@@ -820,6 +890,8 @@ FileTransferDialog::onRemotePathItemChange()
 void
 FileTransferDialog::checkFTDialog()
 {
+	if (!m_bDlgShown) return;
+
 	int locPathLen = strlen(m_szLocalPath);
 	int remPathLen = strlen(m_szRemotePath);
 

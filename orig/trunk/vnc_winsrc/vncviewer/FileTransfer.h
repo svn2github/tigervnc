@@ -43,6 +43,8 @@ public:
 	FileTransfer(ClientConnection * pCC, VNCviewerApp * pApp);
 	~FileTransfer();
 
+	FileTransferDialog *m_pFileTransferDlg;
+
 	void createFileTransfer();
 
 	bool sendFileListRqstMsg(unsigned short dirNameSize, char *pDirName,
@@ -95,6 +97,7 @@ public:
 	void closeUndoneTransfer();
 
 	bool m_bFTCancel;
+	bool m_bSendWMCloseOnYes;
 
 private:
 	int convertToUnixPath(char *path);
@@ -112,6 +115,9 @@ private:
 	bool procFLRDelete(unsigned short numFiles, FileInfo *pFI);
 	bool procFLRRename(unsigned short numFiles, FileInfo *pFI);
 
+	bool setErrorString(char *pPrefix, DWORD error);
+	LPVOID formatErrorString(DWORD error);
+
 	int isExistName(FileInfo *pFI, char *pName);
 	
 	void resizeTotalSize64();
@@ -119,8 +125,6 @@ private:
 
 	ClientConnection *m_pCC;
 	VNCviewerApp *m_pApp;
-
-	FileTransferDialog *m_pFileTransferDlg;
 
 	FileInfo m_fileListRequestQueue;
 	FileInfo m_fileLastRqstFailedMsgs;

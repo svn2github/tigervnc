@@ -51,6 +51,7 @@ public:
 	static BOOL CALLBACK FTCreateDirDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static BOOL CALLBACK FTRenameDirDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static BOOL CALLBACK confirmDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	static BOOL CALLBACK cancelingDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	void addLocalLVItems(FileInfo *pFI);
 	void addRemoteLVItems(FileInfo *pFI);
@@ -68,6 +69,9 @@ public:
 
 	bool createRenameDirDlg(char *pName, char *pText1, char *pText2);
 	INT_PTR createConfirmDlg(FILEINFO *pFIStruct1, FILEINFO *pFIStruct2);
+	bool createCancelingDlg();
+	void endCancelingDlg(BOOL result);
+	bool m_bEndFTDlgOnYes;
 
 private:
 	FileTransfer *m_pFileTransfer;
@@ -79,6 +83,7 @@ private:
 	FTEditBox *m_pRemoteEB;
 
 	HWND m_hwndFileTransfer;
+	HWND m_hwndFTCanceling;
 	HINSTANCE m_hInstance;
 
 	bool addAllLVColumns();
@@ -123,6 +128,8 @@ private:
 	char *m_pConfirmDlgText;
 
 	bool m_bFirstStart;
+	bool m_bDlgShown;
+
 	int m_nextLocalPathCtrlID;
 	int m_nextRemotePathCtrlID;
 

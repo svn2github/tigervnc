@@ -91,3 +91,17 @@ FileReader::getTime(unsigned int *pTime)
 	m_dwLastError = ERROR_SUCCESS;
 	return true;
 }
+
+bool 
+FileReader::getSize(unsigned int *pSize)
+{
+	DWORD dwSizeLow = GetFileSize(m_hFile, NULL);
+	if (dwSizeLow == INVALID_FILE_SIZE) {
+		m_dwLastError = GetLastError();
+		return false;
+	} else {
+		*pSize = dwSizeLow;
+		m_dwLastError = ERROR_SUCCESS;
+		return true;
+	}
+}

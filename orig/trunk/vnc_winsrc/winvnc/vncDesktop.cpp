@@ -3152,8 +3152,8 @@ vncDesktop::checkInvalidSharedWindow( RECT &new_rect )
 		return true ;
 	}
 
-	// return the window bounds
-	::GetWindowRect( hwnd, &new_rect ) ;
+	// return the intersected window bounds
+	::CopyRect( &new_rect, &rect ) ;
 
 	return false ;
 }

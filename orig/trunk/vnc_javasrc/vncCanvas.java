@@ -45,7 +45,6 @@ class vncCanvas extends Canvas
   Graphics pig, pig2;
   boolean needToResetClip;
 
-  /* Tight decoder. */
   final static int tightZlibBufferSize = 512;
   Inflater[] tightInflaters;
 
@@ -128,6 +127,17 @@ class vncCanvas extends Canvas
 	    needToResetClip = false;
 	  }
 
+	  if (rfb.updateRectEncoding == rfb.EncodingXCursor ||
+	      rfb.updateRectEncoding == rfb.EncodingRichCursor) {
+	    handleCursorShapeUpdate(rfb.updateRectEncoding,
+				    rfb.updateRectX, rfb.updateRectY,
+				    rfb.updateRectW, rfb.updateRectH);
+	    continue;
+	  }
+
+	  softCursorLockArea(rfb.updateRectX, rfb.updateRectY,
+			     rfb.updateRectW, rfb.updateRectH);
+
 	  switch (rfb.updateRectEncoding) {
 
 	  case rfb.EncodingRaw:
@@ -137,6 +147,10 @@ class vncCanvas extends Canvas
 
 	  case rfb.EncodingCopyRect:
 	    rfb.readCopyRect();
+
+	    softCursorLockArea(rfb.copyRectSrcX, rfb.copyRectSrcY,
+			       rfb.updateRectW, rfb.updateRectH);
+
 	    pig.copyArea(rfb.copyRectSrcX, rfb.copyRectSrcY,
 			 rfb.updateRectW, rfb.updateRectH,
 			 rfb.updateRectX - rfb.copyRectSrcX,
@@ -331,24 +345,8 @@ class vncCanvas extends Canvas
 
 	  case rfb.EncodingTight:
 	  {
-            drawTightRect( rfb.updateRectX, rfb.updateRectY,
-                           rfb.updateRectW, rfb.updateRectH );
-
-	    break;
-	  }
-
-	  case rfb.EncodingXCursor:
-	  {
-            handleXCursorUpdate( rfb.updateRectX, rfb.updateRectY,
-                                 rfb.updateRectW, rfb.updateRectH );
-
-	    break;
-	  }
-
-	  case rfb.EncodingRichCursor:
-	  {
-            handleRichCursorUpdate( rfb.updateRectX, rfb.updateRectY,
-                                    rfb.updateRectW, rfb.updateRectH );
+	    drawTightRect( rfb.updateRectX, rfb.updateRectY,
+			   rfb.updateRectW, rfb.updateRectH );
 
 	    break;
 	  }
@@ -357,6 +355,8 @@ class vncCanvas extends Canvas
 	    throw new IOException("Unknown RFB rectangle encoding " +
 				  rfb.updateRectEncoding);
 	  }
+
+	  softCursorUnlockScreen();
 	}
 	rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
 					  rfb.framebufferHeight, true);
@@ -461,7 +461,7 @@ class vncCanvas extends Canvas
     // Flush zlib streams if we are told by the server to do so.
     for (int stream_id = 0; stream_id < 4; stream_id++) {
       if ((comp_ctl & 1) != 0 && tightInflaters[stream_id] != null) {
-        tightInflaters[stream_id] = null;
+	tightInflaters[stream_id] = null;
       }
       comp_ctl >>= 1;
     }
@@ -488,15 +488,15 @@ class vncCanvas extends Canvas
     if ((comp_ctl & rfb.TightExplicitFilter) != 0) {
       int filter_id = rfb.is.readUnsignedByte();
       if (filter_id == rfb.TightFilterPalette) {
-        numColors = rfb.is.readUnsignedByte() + 1; // Must be 2.
-        if (numColors != 2) {
-          throw new IOException("Incorrect tight palette size: " + numColors);
-        }
-        palette[0] = rfb.is.readByte();
-        palette[1] = rfb.is.readByte();
-        rowSize = (w + 7) / 8;
+	numColors = rfb.is.readUnsignedByte() + 1; // Must be 2.
+	if (numColors != 2) {
+	  throw new IOException("Incorrect tight palette size: " + numColors);
+	}
+	palette[0] = rfb.is.readByte();
+	palette[1] = rfb.is.readByte();
+	rowSize = (w + 7) / 8;
       } else if (filter_id != rfb.TightFilterCopy) {
-        throw new IOException("Incorrect tight filter id: " + filter_id);
+	throw new IOException("Incorrect tight filter id: " + filter_id);
       }
     }
 
@@ -513,26 +513,26 @@ class vncCanvas extends Canvas
       rfb.is.readFully(zlibData, 0, zlibDataLen);
       int stream_id = comp_ctl & 0x03;
       if (tightInflaters[stream_id] == null) {
-        tightInflaters[stream_id] = new Inflater();
+	tightInflaters[stream_id] = new Inflater();
       }
       Inflater myInflater = tightInflaters[stream_id];
       myInflater.setInput(zlibData, 0, zlibDataLen);
       try {
-        if (numColors != 2 && !v.options.drawEachPixelForRawRects) {
-          // Speed optimization for special case.
-          for (int j = y; j < (y + h); j++) {
-            myInflater.inflate(pixels, j * rfb.framebufferWidth + x, w);
-          }
-          handleUpdatedPixels(x, y, w, h);
-          return;
-        }
-        else {
-          // Generic case -- use extra buffering layer.
-          myInflater.inflate(rawData, 0, rawDataLen);
-        }
+	if (numColors != 2 && !v.options.drawEachPixelForRawRects) {
+	  // Speed optimization for special case.
+	  for (int j = y; j < (y + h); j++) {
+	    myInflater.inflate(pixels, j * rfb.framebufferWidth + x, w);
+	  }
+	  handleUpdatedPixels(x, y, w, h);
+	  return;
+	}
+	else {
+	  // Generic case -- use extra buffering layer.
+	  myInflater.inflate(rawData, 0, rawDataLen);
+	}
       }
       catch(DataFormatException dfe) {
-        throw new IOException(dfe.toString());
+	throw new IOException(dfe.toString());
       }
     }
 
@@ -547,20 +547,20 @@ class vncCanvas extends Canvas
     int dx, dy;
     if (v.options.drawEachPixelForRawRects) {
       for (dy = 0; dy < h; dy++) {
-        for (dx = 0; dx < w; dx++) {
-          myColor = colors[ 0x000000ff & rawData[dy * w + dx] ];
-          sg.setColor(myColor);
-          sg.fillRect(x + dx, y + dy, 1, 1);
-          pig.setColor(myColor);
-          pig.fillRect(x + dx, y + dy, 1, 1);
-        }
+	for (dx = 0; dx < w; dx++) {
+	  myColor = colors[ 0x000000ff & rawData[dy * w + dx] ];
+	  sg.setColor(myColor);
+	  sg.fillRect(x + dx, y + dy, 1, 1);
+	  pig.setColor(myColor);
+	  pig.fillRect(x + dx, y + dy, 1, 1);
+	}
       }
     } else {
       for (dy = 0; dy < h; dy++) {
-        for (dx = 0; dx < w; dx++) {
-          pixels[(y + dy) * rfb.framebufferWidth + (x + dx)] =
-            rawData[dy * w + dx];
-        }
+	for (dx = 0; dx < w; dx++) {
+	  pixels[(y + dy) * rfb.framebufferWidth + (x + dx)] =
+	    rawData[dy * w + dx];
+	}
       }
       handleUpdatedPixels(x, y, w, h);
     }
@@ -572,7 +572,7 @@ class vncCanvas extends Canvas
   //
 
   void drawMonoData(int x, int y, int w, int h,
-                    byte[] src, byte[] palette)
+		    byte[] src, byte[] palette)
     throws IOException {
 
     if (v.options.drawEachPixelForRawRects) {
@@ -588,26 +588,26 @@ class vncCanvas extends Canvas
       myPalette[1] = colors[0xFF & palette[1]];
 
       for (dy = 0; dy < h; dy++) {
-        i = x;
-        for (dx = 0; dx < w / 8; dx++) {
-          b = src[dy*rowBytes+dx];
-          for (n = 7; n >= 0; n--) {
-            myColor = myPalette[b >> n & 1];
-            sg.setColor(myColor);
-            sg.fillRect(i, y + dy, 1, 1);
-            pig.setColor(myColor);
-            pig.fillRect(i, y + dy, 1, 1);
-            i++;
-          }
-        }
-        for (n = 7; n >= 8 - w % 8; n--) {
-          myColor = myPalette[src[dy*rowBytes+dx] >> n & 1];
-          sg.setColor(myColor);
-          sg.fillRect(i, y + dy, 1, 1);
-          pig.setColor(myColor);
-          pig.fillRect(i, y + dy, 1, 1);
-          i++;
-        }
+	i = x;
+	for (dx = 0; dx < w / 8; dx++) {
+	  b = src[dy*rowBytes+dx];
+	  for (n = 7; n >= 0; n--) {
+	    myColor = myPalette[b >> n & 1];
+	    sg.setColor(myColor);
+	    sg.fillRect(i, y + dy, 1, 1);
+	    pig.setColor(myColor);
+	    pig.fillRect(i, y + dy, 1, 1);
+	    i++;
+	  }
+	}
+	for (n = 7; n >= 8 - w % 8; n--) {
+	  myColor = myPalette[src[dy*rowBytes+dx] >> n & 1];
+	  sg.setColor(myColor);
+	  sg.fillRect(i, y + dy, 1, 1);
+	  pig.setColor(myColor);
+	  pig.fillRect(i, y + dy, 1, 1);
+	  i++;
+	}
       }
     } else {
       // "Fast" drawing mode
@@ -618,15 +618,15 @@ class vncCanvas extends Canvas
       byte b;
 
       for (dy = 0; dy < h; dy++) {
-        for (dx = 0; dx < w / 8; dx++) {
-          b = src[dy*rowBytes+dx];
-          for (n = 7; n >= 0; n--)
-            pixels[i++] = palette[b >> n & 1];
-        }
-        for (n = 7; n >= 8 - w % 8; n--) {
-          pixels[i++] = palette[src[dy*rowBytes+dx] >> n & 1];
-        }
-        i += (rfb.framebufferWidth - w);
+	for (dx = 0; dx < w / 8; dx++) {
+	  b = src[dy*rowBytes+dx];
+	  for (n = 7; n >= 0; n--)
+	    pixels[i++] = palette[b >> n & 1];
+	}
+	for (n = 7; n >= 8 - w % 8; n--) {
+	  pixels[i++] = palette[src[dy*rowBytes+dx] >> n & 1];
+	}
+	i += (rfb.framebufferWidth - w);
       }
       handleUpdatedPixels(x, y, w, h);
     }
@@ -682,8 +682,10 @@ class vncCanvas extends Canvas
       try {
 	switch (evt.id) {
 	case Event.MOUSE_MOVE:
-	case Event.MOUSE_DOWN:
 	case Event.MOUSE_DRAG:
+	  softCursorMove(evt.x, evt.y);
+	  // *** pass through ***
+	case Event.MOUSE_DOWN:
 	case Event.MOUSE_UP:
 	  if (v.gotFocus) {
 	    requestFocus();
@@ -725,25 +727,18 @@ class vncCanvas extends Canvas
   boolean rcCursorHidden, rcLockSet;
 
   //
-  // Handle XCursor update.
+  // Handle cursor shape update (XCursor and RichCursor encodings).
   //
 
-  void handleXCursorUpdate(int xhot, int yhot, int width, int height)
-    throws IOException {
-
-  }
-
-  //
-  // Handle RichCursor update.
-  //
-
-  void handleRichCursorUpdate(int xhot, int yhot, int width, int height)
+  synchronized void
+    handleCursorShapeUpdate(int encodingType,
+			    int xhot, int yhot, int width, int height)
     throws IOException {
 
     int bytesPerRow = (width + 7) / 8;
     int bytesMaskData = bytesPerRow * height;
 
-    FreeCursors();
+    softCursorFree();
 
     if (width * height == 0)
       return;
@@ -758,7 +753,36 @@ class vncCanvas extends Canvas
     // Read cursor pixel data.
 
     rcSource = new byte[width * height];
-    rfb.is.readFully(rcSource, 0, width * height);
+
+    if (encodingType == rfb.EncodingXCursor) {
+      byte[] xcolors = new byte[6];
+      rfb.is.readFully(xcolors, 0, 6);
+      byte[] rcolors = new byte[2];
+      rcolors[1] = (byte)((xcolors[0] >> 5 & 0x07) |
+			  (xcolors[1] >> 2 & 0x38) |
+			  (xcolors[2] & 0xC0));
+      rcolors[0] = (byte)((xcolors[3] >> 5 & 0x07) |
+			  (xcolors[4] >> 2 & 0x38) |
+			  (xcolors[5] & 0xC0));
+      byte[] buf = new byte[bytesMaskData];
+      rfb.is.readFully(buf, 0, bytesMaskData);
+
+      int x, y, n, b;
+      int i = 0;
+      for (y = 0; y < height; y++) {
+	for (x = 0; x < width / 8; x++) {
+	  b = buf[y * bytesPerRow + x];
+	  for (n = 7; n >= 0; n--)
+	    rcSource[i++] = rcolors[b >> n & 1];
+	}
+	for (n = 7; n >= 8 - width % 8; n--) {
+	  rcSource[i++] = rcolors[buf[y * bytesPerRow + x] >> n & 1];
+	}
+      }
+    } else {
+      // rfb.EncodingRichCursor
+      rfb.is.readFully(rcSource, 0, width * height);
+    }
 
     // Read and decode mask data.
     
@@ -771,12 +795,12 @@ class vncCanvas extends Canvas
     int i = 0;
     for (y = 0; y < height; y++) {
       for (x = 0; x < width / 8; x++) {
-        b = buf[y * bytesPerRow + x];
-        for (n = 7; n >= 0; n--)
-          rcMask[i++] = false; // (b >> n & 1) != 0;
+	b = buf[y * bytesPerRow + x];
+	for (n = 7; n >= 0; n--)
+	  rcMask[i++] = (b >> n & 1) != 0;
       }
       for (n = 7; n >= 8 - width % 8; n--) {
-        rcMask[i++] = false; // (buf[y * bytesPerRow + x] >> n & 1) != 0;
+	rcMask[i++] = (buf[y * bytesPerRow + x] >> n & 1) != 0;
       }
     }
 
@@ -788,8 +812,8 @@ class vncCanvas extends Canvas
     rcWidth = width;
     rcHeight = height;
 
-    SoftCursorCopyArea(OPER_SAVE);
-    SoftCursorDraw();
+    softCursorSaveArea();
+    softCursorDraw();
 
     rcCursorHidden = false;
     rcLockSet = false;
@@ -798,55 +822,165 @@ class vncCanvas extends Canvas
   }
 
   //
-  // Save screen data in buffer or restore it back to screen.
+  // softCursorLockArea(). This method should be used to prevent
+  // collisions between simultaneous framebuffer update operations and
+  // cursor drawing operations caused by movements of pointing device.
+  // The parameters denote a rectangle where mouse cursor should not
+  // be drawn. Every next call to this function expands locked area so
+  // previous locks remain active.
   //
 
-  void SoftCursorCopyArea(int oper) throws IOException {
+  synchronized void
+    softCursorLockArea(int x, int y, int w, int h) throws IOException {
 
-    // FIXME: Make a function.
-    int x = rcCursorX - rcHotX;
-    int y = rcCursorY - rcHotY;
-    if (x >= rfb.framebufferWidth || y >= rfb.framebufferHeight)
+    if (!prevCursorSet)
       return;
 
-    int w = rcWidth;
-    int h = rcHeight;
-    if (x < 0) {
-      w += x;
-      x = 0;
-    } else if (x + w > rfb.framebufferWidth) {
-      w = rfb.framebufferWidth - x;
+    if (!rcLockSet) {
+      rcLockX = x;
+      rcLockY = y;
+      rcLockWidth = w;
+      rcLockHeight = h;
+      rcLockSet = true;
+    } else {
+      int newX = (x < rcLockX) ? x : rcLockX;
+      int newY = (y < rcLockY) ? y : rcLockY;
+      rcLockWidth = (x + w > rcLockX + rcLockWidth) ?
+	(x + w - newX) : (rcLockX + rcLockWidth - newX);
+      rcLockHeight = (y + h > rcLockY + rcLockHeight) ?
+	(y + h - newY) : (rcLockY + rcLockHeight - newY);
+      rcLockX = newX;
+      rcLockY = newY;
     }
-    if (y < 0) {
-      h += y;
-      y = 0;
-    } else if (y + h > rfb.framebufferHeight) {
-      h = rfb.framebufferHeight - y;
+
+    if (!rcCursorHidden && softCursorInLockedArea()) {
+      softCursorRestoreArea();
+      rcCursorHidden = true;
     }
+  }
+
+  //
+  // softCursorUnlockScreen(). This function discards all locks
+  // performed since previous softCursorUnlockScreen() call.
+  //
+
+  synchronized void softCursorUnlockScreen() throws IOException {
+
+    if (!prevCursorSet)
+      return;
+
+    if (rcCursorHidden) {
+      softCursorSaveArea();
+      softCursorDraw();
+      rcCursorHidden = false;
+    }
+    rcLockSet = false;
+  }
+
+  //
+  // softCursorMove(). Moves soft cursor in particular location. This
+  // function respects locking of screen areas so when the cursor is
+  // moved in the locked area, it becomes invisible until
+  // softCursorUnlockScreen() method is called.
+  //
+
+  synchronized void softCursorMove(int x, int y) throws IOException {
+
+    if (prevCursorSet && !rcCursorHidden) {
+      softCursorRestoreArea();
+      rcCursorHidden = true;
+    }
+
+    rcCursorX = x;
+    rcCursorY = y;
+
+    if (prevCursorSet && !(rcLockSet && softCursorInLockedArea())) {
+      softCursorSaveArea();
+      softCursorDraw();
+      rcCursorHidden = false;
+    }
+  }
+
+  //
+  // Free all data associated with cursor.
+  //
+
+  synchronized void softCursorFree() throws IOException {
+
+    if (prevCursorSet) {
+      softCursorRestoreArea();
+      rcSavedArea = null;
+      rcSource = null;
+      rcMask = null;
+      prevCursorSet = false;
+    }
+  }
+
+  //////////////////////////////////////////////////////////////////
+  //
+  // Low-level methods implementing software cursor functionality.
+  //
+
+  //
+  // Check if cursor is within locked part of screen.
+  //
+
+  boolean softCursorInLockedArea() {
+
+    return (rcLockX < rcCursorX - rcHotX + rcWidth &&
+	    rcLockY < rcCursorY - rcHotY + rcHeight &&
+	    rcLockX + rcLockWidth > rcCursorX - rcHotX &&
+	    rcLockY + rcLockHeight > rcCursorY - rcHotY);
+  }
+
+  //
+  // Save screen data in memory buffer.
+  //
+
+  void softCursorSaveArea() {
+
+    Rectangle r = new Rectangle();
+    softCursorToScreen(r, null);
+    int x = r.x;
+    int y = r.y;
+    int w = r.width;
+    int h = r.height;
 
     // FIXME: Support "reliable" mode.
     int dx, dy, i = 0;
-    if (oper == OPER_SAVE) {
-      // Save screen area in memory.
-      for (dy = y; dy < y + h; dy++) {
-        for (dx = x; dx < x + w; dx++)
-          rcSavedArea[i++] = pixels[dy * rfb.framebufferWidth + dx];
-      }
-    } else {
-      // Restore screen area.
-      for (dy = y; dy < y + h; dy++) {
-        for (dx = x; dx < x + w; dx++)
-          pixels[dy * rfb.framebufferWidth + dx] = rcSavedArea[i++];
-      }
-      handleUpdatedPixels(x, y, w, h);
+    for (dy = y; dy < y + h; dy++) {
+      for (dx = x; dx < x + w; dx++)
+	rcSavedArea[i++] = pixels[dy * rfb.framebufferWidth + dx];
     }
+  }
+
+  //
+  // Restore screen data saved in memory buffer.
+  //
+
+  void softCursorRestoreArea() throws IOException {
+
+    Rectangle r = new Rectangle();
+    softCursorToScreen(r, null);
+    int x = r.x;
+    int y = r.y;
+    int w = r.width;
+    int h = r.height;
+
+    // FIXME: Support "reliable" mode.
+    int dx, dy, i = 0;
+    for (dy = y; dy < y + h; dy++) {
+      for (dx = x; dx < x + w; dx++)
+	pixels[dy * rfb.framebufferWidth + dx] = rcSavedArea[i++];
+    }
+    handleUpdatedPixels(r.x, r.y, r.width, r.height);
   }
 
   //
   // Draw cursor.
   //
 
-  void SoftCursorDraw() throws IOException {
+  void softCursorDraw() throws IOException {
 
     int x, y, x0, y0;
     int offset;
@@ -855,54 +989,63 @@ class vncCanvas extends Canvas
     for (y = 0; y < rcHeight; y++) {
       y0 = rcCursorY - rcHotY + y;
       if (y0 >= 0 && y0 < rfb.framebufferHeight) {
-        for (x = 0; x < rcWidth; x++) {
-          x0 = rcCursorX - rcHotX + x;
-          if (x0 >= 0 && x0 < rfb.framebufferWidth) {
-            offset = y * rcWidth + x;
-            if (rcMask[offset]) {
-              pixels[y0 * rfb.framebufferWidth + x0] = rcSource[offset];
-            }
-          }
-        }
+	for (x = 0; x < rcWidth; x++) {
+	  x0 = rcCursorX - rcHotX + x;
+	  if (x0 >= 0 && x0 < rfb.framebufferWidth) {
+	    offset = y * rcWidth + x;
+	    if (rcMask[offset]) {
+	      pixels[y0 * rfb.framebufferWidth + x0] = rcSource[offset];
+	    }
+	  }
+	}
       }
     }
 
-    // FIXME: Make a function.
-    x = rcCursorX - rcHotX;
-    y = rcCursorY - rcHotY;
-    if (x >= rfb.framebufferWidth || y >= rfb.framebufferHeight)
-      return;
+    Rectangle r = new Rectangle();
+    softCursorToScreen(r, null);
 
+    handleUpdatedPixels(r.x, r.y, r.width, r.height);
+  }
+
+  //
+  // Calculate position, size and offset for the part of cursor
+  // located inside framebuffer bounds.
+  //
+
+  void softCursorToScreen(Rectangle screenArea, Point cursorOffset) {
+
+    int cx = 0, cy = 0;
+
+    int x = rcCursorX - rcHotX;
+    int y = rcCursorY - rcHotY;
     int w = rcWidth;
     int h = rcHeight;
+
     if (x < 0) {
-      w += x;
+      cx = -x;
+      w -= cx;
       x = 0;
     } else if (x + w > rfb.framebufferWidth) {
       w = rfb.framebufferWidth - x;
     }
     if (y < 0) {
-      h += y;
+      cy = -y;
+      h -= cy;
       y = 0;
     } else if (y + h > rfb.framebufferHeight) {
       h = rfb.framebufferHeight - y;
     }
 
-    handleUpdatedPixels(x, y, w, h);
-  }
-
-  //
-  // Free all data associated with cursor.
-  //
-
-  void FreeCursors() throws IOException {
-
-    if (prevCursorSet) {
-      SoftCursorCopyArea(OPER_RESTORE);
-      rcSavedArea = null;
-      rcSource = null;
-      rcMask = null;
-      prevCursorSet = false;
+    if (w < 0) {
+      cx = 0; x = 0; w = 0;
     }
+    if (h < 0) {
+      cy = 0; y = 0; h = 0;
+    }
+
+    if (screenArea != null)
+      screenArea.setBounds(x, y, w, h);
+    if (cursorOffset != null)
+      cursorOffset.setLocation(cx, cy);
   }
 }

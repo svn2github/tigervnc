@@ -218,15 +218,15 @@ class optionsFrame extends Frame {
       labels[compressLevelIndex].enable();
       choices[compressLevelIndex].enable();
       try {
-        compressLevel =
-          Integer.parseInt(choices[compressLevelIndex].getSelectedItem());
+	compressLevel =
+	  Integer.parseInt(choices[compressLevelIndex].getSelectedItem());
       }
       catch (NumberFormatException e) {
-        compressLevel = -1;
+	compressLevel = -1;
       }
       if (compressLevel >= 1 && compressLevel <= 9) {
-        encodings[nEncodings++] =
-          rfbProto.EncodingCompressLevel0 + compressLevel;
+	encodings[nEncodings++] =
+	  rfbProto.EncodingCompressLevel0 + compressLevel;
       }
     } else {
       labels[compressLevelIndex].disable();
@@ -239,10 +239,10 @@ class optionsFrame extends Frame {
       !choices[cursorUpdatesIndex].getSelectedItem().equals("Disable");
 
     if (requestCursorUpdates) {
-//       encodings[nEncodings++] = rfbProto.EncodingXCursor;
+      encodings[nEncodings++] = rfbProto.EncodingXCursor;
       encodings[nEncodings++] = rfbProto.EncodingRichCursor;
       ignoreCursorUpdates =
-        choices[cursorUpdatesIndex].getSelectedItem().equals("Ignore");
+	choices[cursorUpdatesIndex].getSelectedItem().equals("Ignore");
     }
 
     v.setEncodings();

@@ -41,7 +41,7 @@ public class vncviewer extends java.applet.Applet
     v.mainArgs = argv;
     v.inAnApplet = false;
 
-    v.f = new Frame("VNC");
+    v.f = new Frame("TightVNC");
     v.f.add("Center", v);
 
     v.init();
@@ -60,6 +60,7 @@ public class vncviewer extends java.applet.Applet
   Button optionsButton;
   Button clipboardButton;
   Button ctrlAltDelButton;
+  vncCanvas vc;
   optionsFrame options;
   clipboardFrame clipboard;
   authenticationPanel authenticator;
@@ -118,7 +119,7 @@ public class vncviewer extends java.applet.Applet
 
       doProtocolInitialisation();
 
-      vncCanvas vc = new vncCanvas(this);
+      vc = new vncCanvas(this);
       gbc.weightx = 1.0;
       gbc.weighty = 1.0;
       gridbag.setConstraints(vc,gbc);
@@ -273,6 +274,7 @@ public class vncviewer extends java.applet.Applet
     try {
       if ((rfb != null) && rfb.inNormalProtocol) {
 	rfb.writeSetEncodings(options.encodings, options.nEncodings);
+	vc.softCursorFree();
       }
     } catch (Exception e) {
       e.printStackTrace();

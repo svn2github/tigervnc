@@ -1533,7 +1533,7 @@ void ClientConnection::PositionChildWindow()
 			vscroll = true;
 			rparent.right = rparent.right - 15;
 			parentwidth = parentwidth - 15;
-			if ((parentwidth  < m_fullwinwidth) && !vscroll) {  
+			if ((parentwidth  < m_fullwinwidth) && !hscroll) {  
 				hscroll = true;
 				rparent.bottom = rparent.bottom - 15;
 				parentheight = parentheight - 15;
@@ -1544,7 +1544,7 @@ void ClientConnection::PositionChildWindow()
 			if (m_hhscroll == NULL) {
 				m_hhscroll =  CreateWindow("scrollbar",  
 									NULL,               
-									SBS_HORZ | WS_CHILD,            
+									SBS_HORZ | WS_VISIBLE | WS_CHILD,            
 									rparent.left,                  
 									rparent.bottom,                  
 									parentwidth,      
@@ -1565,7 +1565,7 @@ void ClientConnection::PositionChildWindow()
 			if (m_hvscroll == NULL) {
 				m_hvscroll =  CreateWindow("scrollbar",  
 									NULL,               
-									SBS_RIGHTALIGN | SBS_VERT | WS_CHILD,            
+									SBS_VERT | WS_VISIBLE | WS_CHILD,            
 									rparent.right,                  
 									rparent.top,                  
 									15,      

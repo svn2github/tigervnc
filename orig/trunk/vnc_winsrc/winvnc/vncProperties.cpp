@@ -1441,8 +1441,8 @@ vncProperties::ApplyUserPrefs()
 	
 	m_server->SetDisableTime(m_pref_PriorityTime);
 	m_server->SetPollingCycle(m_pref_PollingCycle);
-
 #endif
+
 	// Enable/disable external authentication
 	m_server->EnableExternalAuth(m_pref_externalAuth);
 	m_server->SockConnect(m_pref_SockConnect);
@@ -1460,7 +1460,6 @@ vncProperties::ApplyUserPrefs()
 	m_server->ScreenAreaShared(m_pref_ScreenAreaShared);
 
 	m_server->LocalInputPriority(m_pref_LocalInputPriority);
-
 }
 
 void

@@ -131,10 +131,19 @@ void ClientConnection::ReadCursorShape(rfbFramebufferUpdateRectHeader *pfburh) {
 
 	omni_mutex_lock l(m_cursorMutex);
 
-	rcHotX = pfburh->r.x;
-	rcHotY = pfburh->r.y;
 	rcWidth = pfburh->r.w;
 	rcHeight = pfburh->r.h;
+	rcHotX = (rcHotX < rcWidth) ? pfburh->r.x : rcWidth - 1;
+	rcHotY = (rcHotY < rcHeight) ? pfburh->r.y : rcHeight - 1;
+
+	{
+		omni_mutex_lock l(m_bitmapdcMutex);
+		ObjectSelector b1(m_hBitmapDC, m_hBitmap);
+		PaletteSelector ps1(m_hBitmapDC, m_hPalette);
+		m_hSavedAreaDC = CreateCompatibleDC(m_hBitmapDC);
+		m_hSavedAreaBitmap =
+			CreateCompatibleBitmap(m_hBitmapDC, rcWidth, rcHeight);
+	}
 
 	SoftCursorSaveArea();
 	SoftCursorDraw();
@@ -241,6 +250,8 @@ void ClientConnection::SoftCursorFree() {
 	if (prevCursorSet) {
 		if (!rcCursorHidden)
 			SoftCursorRestoreArea();
+		DeleteObject(m_hSavedAreaBitmap);
+		DeleteDC(m_hSavedAreaDC);
 		delete[] rcSource;
 		delete[] rcMask;
 		prevCursorSet = false;
@@ -278,17 +289,13 @@ void ClientConnection::SoftCursorSaveArea() {
 	int h = r.bottom - r.top;
 
 	omni_mutex_lock l(m_bitmapdcMutex);
-
 	ObjectSelector b1(m_hBitmapDC, m_hBitmap);
 	PaletteSelector ps1(m_hBitmapDC, m_hPalette);
-
-	m_hSavedAreaDC = CreateCompatibleDC(m_hBitmapDC);
-	m_hSavedAreaBitmap = CreateCompatibleBitmap(m_hBitmapDC, w, h);
 	ObjectSelector b2(m_hSavedAreaDC, m_hSavedAreaBitmap);
 	PaletteSelector ps2(m_hSavedAreaDC, m_hPalette);
 
 	if (!BitBlt(m_hSavedAreaDC, 0, 0, w, h, m_hBitmapDC, x, y, SRCCOPY)) {
-		vnclog.Print(0, _T("Error in blit in ClientConnection::Cursor\n"));
+		vnclog.Print(0, _T("Error saving screen under cursor\n"));
 	}
 }
 
@@ -300,20 +307,20 @@ void ClientConnection::SoftCursorRestoreArea() {
 
 	RECT r;
 	SoftCursorToScreen(&r, NULL);
+	int x = r.left;
+	int y = r.top;
+	int w = r.right - r.left;
+	int h = r.bottom - r.top;
 
 	omni_mutex_lock l(m_bitmapdcMutex);
 	ObjectSelector b1(m_hBitmapDC, m_hBitmap);
-	PaletteSelector p(m_hBitmapDC, m_hPalette);
+	PaletteSelector ps1(m_hBitmapDC, m_hPalette);
 	ObjectSelector b2(m_hSavedAreaDC, m_hSavedAreaBitmap);
-	PaletteSelector ps(m_hSavedAreaDC, m_hPalette);
+	PaletteSelector ps2(m_hSavedAreaDC, m_hPalette);
 
-	if (!BitBlt(m_hBitmapDC, r.left, r.top, r.right - r.left, r.bottom - r.top,
-				m_hSavedAreaDC, 0, 0, SRCCOPY)) {
-		vnclog.Print(0, _T("Error in blit in ClientConnection::Cursor\n"));
+	if (!BitBlt(m_hBitmapDC, x, y, w, h, m_hSavedAreaDC, 0, 0, SRCCOPY)) {
+		vnclog.Print(0, _T("Error restoring screen under cursor\n"));
 	}
-
-	DeleteObject(m_hSavedAreaBitmap);
-	DeleteDC(m_hSavedAreaDC);
 
 	InvalidateScreenRect(&r);
 }

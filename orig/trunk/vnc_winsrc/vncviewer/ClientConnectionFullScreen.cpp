@@ -236,6 +236,7 @@ LRESULT CALLBACK DisableButton::DisableProc(HWND hwnd, UINT iMsg,
 	case WM_LBUTTONUP:
 		ReleaseCapture();
 		ClipCursor(NULL);
+		break;
 	case WM_DESTROY: 
 		// Destroy compatible bitmap, 
 		// and the bitmap.  

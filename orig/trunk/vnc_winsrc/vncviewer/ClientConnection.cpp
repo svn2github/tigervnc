@@ -394,31 +394,43 @@ void ClientConnection::CreateDisplay()
 	// Add stuff to System menu
 	HMENU hsysmenu = GetSystemMenu(m_hwnd1, FALSE);
 	if (!m_opts.m_restricted) {
-		AppendMenu(hsysmenu, MF_STRING, IDC_OPTIONBUTTON,	_T("Connection &options...	Ctrl-Alt-Shift-O"));
-		AppendMenu(hsysmenu, MF_STRING, ID_CONN_ABOUT,		_T("Connection &info	Ctrl-Alt-Shift-I"));
-		AppendMenu(hsysmenu, MF_STRING, ID_REQUEST_REFRESH,	_T("Request screen &refresh	Ctrl-Alt-Shift-R"));
-
+		bool save_item_flags = (m_serverInitiated) ? MF_GRAYED : 0;
 		AppendMenu(hsysmenu, MF_SEPARATOR, NULL, NULL);
-		AppendMenu(hsysmenu, MF_STRING, ID_FULLSCREEN,		_T("&Full screen	Ctrl-Alt-Shift-F"));
-		AppendMenu(hsysmenu, MF_STRING, ID_TOOLBAR,	    	_T("&Tool Bar	Ctrl-Alt-Shift-T"));
+		AppendMenu(hsysmenu, MF_STRING, IDC_OPTIONBUTTON,
+				   _T("Connection &options...\tCtrl-Alt-Shift-O"));
+		AppendMenu(hsysmenu, MF_STRING, ID_CONN_ABOUT,
+				   _T("Connection &info\tCtrl-Alt-Shift-I"));
+		AppendMenu(hsysmenu, MF_STRING, ID_REQUEST_REFRESH,
+				   _T("Request screen &refresh\tCtrl-Alt-Shift-R"));
 		AppendMenu(hsysmenu, MF_SEPARATOR, NULL, NULL);
- 		AppendMenu(hsysmenu, MF_STRING, ID_CONN_CTLALTDEL,	_T("Send Ctl-Alt-Del"));
-		AppendMenu(hsysmenu, MF_STRING, ID_CONN_CTLDOWN,	_T("Key Ctrl"));
-		AppendMenu(hsysmenu, MF_STRING, ID_CONN_ALTDOWN,	_T("Key Alt"));
-		
+		AppendMenu(hsysmenu, MF_STRING, ID_FULLSCREEN,
+				   _T("&Full screen\tCtrl-Alt-Shift-F"));
+		AppendMenu(hsysmenu, MF_STRING, ID_TOOLBAR,
+				   _T("Show &toolbar\tCtrl-Alt-Shift-T"));
 		AppendMenu(hsysmenu, MF_SEPARATOR, NULL, NULL);
-		AppendMenu(hsysmenu, MF_STRING, ID_NEWCONN,			_T("&New connection...	Ctrl-Alt-Shift-N"));
-		AppendMenu(hsysmenu, MF_STRING | (m_serverInitiated ? MF_GRAYED : 0), 
-			ID_CONN_SAVE_AS,	                            _T("&Save connection info as...	Ctrl-Alt-Shift-S"));
+		AppendMenu(hsysmenu, MF_STRING, ID_CONN_CTLALTDEL,
+				   _T("Send Ctl-Alt-&Del"));
+		AppendMenu(hsysmenu, MF_STRING, ID_CONN_CTLDOWN,
+				   _T("Ctrl key down"));
+		AppendMenu(hsysmenu, MF_STRING, ID_CONN_ALTDOWN,
+				   _T("Alt key down"));
+		AppendMenu(hsysmenu, MF_SEPARATOR, NULL, NULL);
+		AppendMenu(hsysmenu, MF_STRING, ID_NEWCONN,
+				   _T("&New connection...\tCtrl-Alt-Shift-N"));
+		AppendMenu(hsysmenu, save_item_flags, ID_CONN_SAVE_AS,
+				   _T("&Save connection info as...\tCtrl-Alt-Shift-S"));
+		AppendMenu(hsysmenu, MF_SEPARATOR, NULL, NULL);
+		AppendMenu(hsysmenu, MF_STRING | MF_GRAYED, IDD_FILETRANSFER,
+				   _T("Transf&er files..."));
 	}
-    AppendMenu(hsysmenu, MF_SEPARATOR, NULL, NULL);
-	AppendMenu(hsysmenu, MF_STRING | MF_GRAYED, IDD_FILETRANSFER, _T("File Transfer"));
 
-    AppendMenu(hsysmenu, MF_SEPARATOR, NULL, NULL);
-	AppendMenu(hsysmenu, MF_STRING, IDD_APP_ABOUT,		    _T("&About VNCviewer..."));
+	AppendMenu(hsysmenu, MF_SEPARATOR, NULL, NULL);
+	AppendMenu(hsysmenu, MF_STRING, IDD_APP_ABOUT,
+			   _T("&About TightVNC Viewer..."));
 	if (m_opts.m_listening) {
 		AppendMenu(hsysmenu, MF_SEPARATOR, NULL, NULL);
-		AppendMenu(hsysmenu, MF_STRING, ID_CLOSEDAEMON, _T("Close listening &daemon"));
+		AppendMenu(hsysmenu, MF_STRING, ID_CLOSEDAEMON,
+				   _T("Close &listening &daemon"));
 	}
 	DrawMenuBar(m_hwnd1);
 

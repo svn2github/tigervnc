@@ -1300,7 +1300,7 @@ vncClientThread::run(void *arg)
 				char *pBuff = new char [8192];
 				m_socket->ReadExact(pBuff, msg.fud.size);
 				WriteFile(m_hFiletoWrite, pBuff, msg.fud.size, &dwNumberOfBytesWritten, NULL);
-				if (msg.fud.num == msg.fud.amount) {
+				if (msg.fud.num == msg.fud.amount - 1) {
 					CloseHandle(m_hFiletoWrite);
 				}
 				delete [] pBuff;

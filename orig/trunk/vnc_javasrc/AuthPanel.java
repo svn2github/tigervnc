@@ -99,6 +99,7 @@ class AuthPanel extends Panel implements ActionListener {
 
   public synchronized void actionPerformed(ActionEvent evt) {
     if (evt.getSource() == password || evt.getSource() == ok) {
+      password.setEnabled(false);
       notify();
     }
   }
@@ -109,6 +110,7 @@ class AuthPanel extends Panel implements ActionListener {
 
   public void retry() {
     retry.setText("Sorry. Try again.");
+    password.setEnabled(true);
     password.setText("");
     moveFocusToPasswordField();
   }

@@ -47,6 +47,35 @@ void ClientConnection::SetFullScreenMode(bool enable)
 	RealiseFullScreenMode(false);
 }
 
+LRESULT CALLBACK ClientConnection::DisableDlgProc(HWND hwnd, UINT iMsg,
+												  WPARAM wParam, LPARAM lParam)
+{
+	// We use the dialog-box's USERDATA to store a _this pointer
+	// This is set only once WM_INITDIALOG has been recieved, though!
+	ClientConnection *_this = (ClientConnection *) GetWindowLong(hwnd, GWL_USERDATA);
+
+	switch (iMsg) {
+	case WM_INITDIALOG: 
+		{
+			// Retrieve the Dialog box parameter and use it as a pointer
+			// to the calling VNCOptions object
+			SetWindowLong(hwnd, GWL_USERDATA, lParam);
+			ClientConnection *_this = (ClientConnection *) lParam;
+		}
+		return TRUE;
+	case WM_COMMAND:
+		switch (LOWORD(wParam))	{
+		case IDC_DISABLE:
+			_this->SetFullScreenMode(false);
+			DestroyWindow(_this->m_hdisable);
+			_this->m_hdisable = NULL;
+			return TRUE;
+		}
+		return FALSE;
+	}
+	return 0;
+}
+
 // If the options have been changed other than by calling 
 // SetFullScreenMode, you need to call this to make it happen.
 void ClientConnection::RealiseFullScreenMode(bool suppressPrompt)
@@ -71,7 +100,8 @@ void ClientConnection::RealiseFullScreenMode(bool suppressPrompt)
 		int cy = GetSystemMetrics(SM_CYSCREEN);
 		SetWindowPos(m_hwnd1, HWND_TOPMOST, -1, -1, cx + 3, cy + 3, SWP_FRAMECHANGED);
 		CheckMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_FULLSCREEN, MF_BYCOMMAND|MF_CHECKED);
-		
+		m_hdisable = CreateDialogParam(pApp->m_instance, MAKEINTRESOURCE(IDD_FULL_SCREEN_DISABLE),
+					m_hwndscroll, (DLGPROC)DisableDlgProc, (LONG)this);
 	} else {
 		ShowWindow(m_hToolbar, SW_SHOW);
 		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_TOOLBAR, MF_BYCOMMAND|MF_ENABLED);

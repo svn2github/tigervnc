@@ -81,6 +81,7 @@ private:
 	static LRESULT CALLBACK WndProc1(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
 	static LRESULT CALLBACK Proc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
 	static LRESULT CALLBACK ScrollProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
+	static LRESULT CALLBACK DisableDlgProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
 	void DoBlit();
 	VNCviewerApp *m_pApp;
 	ConnectingDialog *m_connDlg;
@@ -93,7 +94,7 @@ private:
 	SOCKET m_sock;
 	bool m_serverInitiated;
 	HWND m_hwnd, m_hbands, m_hwnd1, 
-		 m_hToolbar, m_hwndscroll;
+		 m_hToolbar, m_hwndscroll, m_hdisable;
 		
 	void Init(VNCviewerApp *pApp);
 	void InitCapabilities();

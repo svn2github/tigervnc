@@ -203,6 +203,7 @@ BOOL CALLBACK ControlPanel::DialogProc(HWND hwnd, UINT uMsg,
 				vncClientList selconn;
 				_this->getSelectedConn(&selconn);
 				EndDialog(hwnd, 0);
+				DestroyWindow(hwnd);
 				_this->m_hwnd = NULL;				
 				vncClientList::iterator ci;
 				for (ci = selconn.begin(); ci != selconn.end(); ci++) {

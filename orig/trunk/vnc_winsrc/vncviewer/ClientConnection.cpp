@@ -131,6 +131,7 @@ void ClientConnection::Init(VNCviewerApp *pApp)
 	m_hwnd1 = NULL;
 	m_hwndscroll = NULL;
 	m_hToolbar = NULL;
+	m_hdisable = NULL;
 	m_desktopName = NULL;
 	m_port = -1;
 	m_serverInitiated = false;

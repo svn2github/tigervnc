@@ -436,7 +436,9 @@ void ClientConnection::FilterGradient##bpp (int numRows)                      \
                         thatRow[c] & max[c]);                                 \
       thisRow[c] = pix[c];                                                    \
     }                                                                         \
-    dst[y*m_tightRectWidth] = COLOR_FROM_PIXEL24_ADDRESS(pix);                \
+    dst[y*m_tightRectWidth] = PALETTERGB((CARD32)pix[0] * 255 / max[0],       \
+                                         (CARD32)pix[1] * 255 / max[1],       \
+                                         (CARD32)pix[2] * 255 / max[2]);      \
                                                                               \
     /* Remaining pixels of a row */                                           \
     for (x = 1; x < m_tightRectWidth; x++) {                                  \
@@ -451,7 +453,9 @@ void ClientConnection::FilterGradient##bpp (int numRows)                      \
                           est[c] & max[c]);                                   \
         thisRow[x*3+c] = pix[c];                                              \
       }                                                                       \
-      dst[y*m_tightRectWidth+x] = COLOR_FROM_PIXEL24_ADDRESS(pix);            \
+      dst[y*m_tightRectWidth+x] = PALETTERGB((CARD32)pix[0] * 255 / max[0],   \
+                                             (CARD32)pix[1] * 255 / max[1],   \
+                                             (CARD32)pix[2] * 255 / max[2]);  \
     }                                                                         \
     memcpy(thatRow, thisRow, m_tightRectWidth * 3 * sizeof(CARD16));          \
   }                                                                           \

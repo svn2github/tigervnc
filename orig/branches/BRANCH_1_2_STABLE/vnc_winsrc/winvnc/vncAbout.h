@@ -57,4 +57,4 @@ public:
 	BOOL m_dlgvisible;
 };
 
-#endif // _WINVNC_VNCPROPERTIES
+#endif // _WINVNC_VNCABOUT

@@ -758,7 +758,7 @@ vncClientThread::run(void *arg)
 					msg.ke.key = Swap32IfLE(msg.ke.key);
 
 					// Get the keymapper to do the work
-					m_client->m_keymap.DoXkeysym(msg.ke.key, msg.ke.down);
+					vncKeymap::keyEvent(msg.ke.key, msg.ke.down != 0);
 
 					m_client->m_remoteevent = TRUE;
 				}

@@ -1,3 +1,4 @@
+//  Copyright (C) 2002 RealVNC Ltd. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
 //  This file is part of the VNC system.
@@ -19,30 +20,19 @@
 //
 // TightVNC distribution homepage on the Web: http://www.tightvnc.com/
 //
-// If the source code for the VNC system is not available from the place 
-// whence you received this file, check http://www.uk.research.att.com/vnc or contact
-// the authors on vnc@uk.research.att.com for information on obtaining it.
-
-
-// KeyMap.h
-// mapping of windows virtual key codes to X keysyms.
+// If the source code for the program is not available from the place from
+// which you received this file, check http://www.realvnc.com/ or contact
+// the authors on info@realvnc.com for information on obtaining it.
 
 #ifndef KEYMAP_H__
 #define KEYMAP_H__
 
-#include "stdhdrs.h"
 #include "rfb.h"
 
 class vncKeymap {
 public:
-	vncKeymap();
-
-	// Simulate a specified X keysym locally
-	void DoXkeysym(CARD32 keysym, BOOL keydown);
-	static void ClearShiftKeys();
-private:
-	unsigned char buf[4]; // lots of space for now
-	BYTE keystate[256];
+  static void keyEvent(CARD32 keysym, bool down);
+  static void ClearShiftKeys();
 };
 
 

@@ -233,24 +233,17 @@ class optionsFrame extends Frame {
       choices[compressLevelIndex].disable();
     }
 
-    if (choices[cursorUpdatesIndex].getSelectedItem().equals("Enable")) {
-      requestCursorUpdates = true;
-      ignoreCursorUpdates = false;
-    }
-    else if (choices[cursorUpdatesIndex].getSelectedItem().equals("Ignore")) {
-      requestCursorUpdates = true;
-      ignoreCursorUpdates = true;
-    }
-    else {
-      requestCursorUpdates = false;
-    }
+    // Request cursor shape updates if necessary.
 
-/***** Disabled until these encodings are implemented.
+    requestCursorUpdates =
+      !choices[cursorUpdatesIndex].getSelectedItem().equals("Disable");
+
     if (requestCursorUpdates) {
-      encodings[nEncodings++] = rfbProto.EncodingXCursor;
+//       encodings[nEncodings++] = rfbProto.EncodingXCursor;
       encodings[nEncodings++] = rfbProto.EncodingRichCursor;
+      ignoreCursorUpdates =
+        choices[cursorUpdatesIndex].getSelectedItem().equals("Ignore");
     }
-*****/
 
     v.setEncodings();
   }

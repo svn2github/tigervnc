@@ -337,6 +337,22 @@ class vncCanvas extends Canvas
 	    break;
 	  }
 
+	  case rfb.EncodingXCursor:
+	  {
+            handleXCursorUpdate( rfb.updateRectX, rfb.updateRectY,
+                                 rfb.updateRectW, rfb.updateRectH );
+
+	    break;
+	  }
+
+	  case rfb.EncodingRichCursor:
+	  {
+            handleRichCursorUpdate( rfb.updateRectX, rfb.updateRectY,
+                                    rfb.updateRectW, rfb.updateRectH );
+
+	    break;
+	  }
+
 	  default:
 	    throw new IOException("Unknown RFB rectangle encoding " +
 				  rfb.updateRectEncoding);
@@ -687,5 +703,199 @@ class vncCanvas extends Canvas
       return true;
     }
     return false;
+  }
+
+
+  //////////////////////////////////////////////////////////////////
+  //
+  // Handle cursor shape updates (XCursor and RichCursor encodings).
+  //
+
+  final static int OPER_SAVE    = 0;
+  final static int OPER_RESTORE = 1;
+
+  boolean prevCursorSet = false;
+
+  byte[] rcSavedArea;
+  byte[] rcSource;
+  boolean[] rcMask;
+  int rcHotX, rcHotY, rcWidth, rcHeight;
+  int rcCursorX = 40, rcCursorY = 40;
+  int rcLockX, rcLockY, rcLockWidth, rcLockHeight;
+  boolean rcCursorHidden, rcLockSet;
+
+  //
+  // Handle XCursor update.
+  //
+
+  void handleXCursorUpdate(int xhot, int yhot, int width, int height)
+    throws IOException {
+
+  }
+
+  //
+  // Handle RichCursor update.
+  //
+
+  void handleRichCursorUpdate(int xhot, int yhot, int width, int height)
+    throws IOException {
+
+    int bytesPerRow = (width + 7) / 8;
+    int bytesMaskData = bytesPerRow * height;
+
+    FreeCursors();
+
+    if (width * height == 0)
+      return;
+
+    // Read cursor pixel data.
+
+    rcSource = new byte[width * height];
+    rfb.is.readFully(rcSource, 0, width * height);
+
+    // Read and decode mask data.
+    
+    byte[] buf = new byte[bytesMaskData];
+    rfb.is.readFully(buf, 0, bytesMaskData);
+
+    rcMask = new boolean[width * height];
+
+    int x, y, n, b;
+    int i = 0;
+    for (y = 0; y < height; y++) {
+      for (x = 0; x < width / 8; x++) {
+        b = buf[y * bytesPerRow + x];
+        for (n = 7; n >= 0; n--)
+          rcMask[i++] = false; // (b >> n & 1) != 0;
+      }
+      for (n = 7; n >= 8 - width % 8; n--) {
+        rcMask[i++] = false; // (buf[y * bytesPerRow + x] >> n & 1) != 0;
+      }
+    }
+
+    // Set remaining data associated with cursor.
+
+    rcSavedArea = new byte[width * height];
+    rcHotX = xhot;
+    rcHotY = yhot;
+    rcWidth = width;
+    rcHeight = height;
+
+    SoftCursorCopyArea(OPER_SAVE);
+    SoftCursorDraw();
+
+    rcCursorHidden = false;
+    rcLockSet = false;
+
+    prevCursorSet = true;
+  }
+
+  //
+  // Save screen data in buffer or restore it back to screen.
+  //
+
+  void SoftCursorCopyArea(int oper) throws IOException {
+
+    // FIXME: Make a function.
+    int x = rcCursorX - rcHotX;
+    int y = rcCursorY - rcHotY;
+    if (x >= rfb.framebufferWidth || y >= rfb.framebufferHeight)
+      return;
+
+    int w = rcWidth;
+    int h = rcHeight;
+    if (x < 0) {
+      w += x;
+      x = 0;
+    } else if (x + w > rfb.framebufferWidth) {
+      w = rfb.framebufferWidth - x;
+    }
+    if (y < 0) {
+      h += y;
+      y = 0;
+    } else if (y + h > rfb.framebufferHeight) {
+      h = rfb.framebufferHeight - y;
+    }
+
+    // FIXME: Support "reliable" mode.
+    int dx, dy, i = 0;
+    if (oper == OPER_SAVE) {
+      // Save screen area in memory.
+      for (dy = y; dy < y + h; dy++) {
+        for (dx = x; dx < x + w; dx++)
+          rcSavedArea[i++] = pixels[dy * rfb.framebufferWidth + dx];
+      }
+    } else {
+      // Restore screen area.
+      for (dy = y; dy < y + h; dy++) {
+        for (dx = x; dx < x + w; dx++)
+          pixels[dy * rfb.framebufferWidth + dx] = rcSavedArea[i++];
+      }
+      handleUpdatedPixels(x, y, w, h);
+    }
+  }
+
+  //
+  // Draw cursor.
+  //
+
+  void SoftCursorDraw() throws IOException {
+
+    int x, y, x0, y0;
+    int offset;
+
+    // FIXME: Support "reliable" mode.
+    for (y = 0; y < rcHeight; y++) {
+      y0 = rcCursorY - rcHotY + y;
+      if (y0 >= 0 && y0 < rfb.framebufferHeight) {
+        for (x = 0; x < rcWidth; x++) {
+          x0 = rcCursorX - rcHotX + x;
+          if (x0 >= 0 && x0 < rfb.framebufferWidth) {
+            offset = y * rcWidth + x;
+            if (rcMask[offset]) {
+              pixels[y0 * rfb.framebufferWidth + x0] = rcSource[offset];
+            }
+          }
+        }
+      }
+    }
+
+    // FIXME: Make a function.
+    x = rcCursorX - rcHotX;
+    y = rcCursorY - rcHotY;
+    if (x >= rfb.framebufferWidth || y >= rfb.framebufferHeight)
+      return;
+
+    int w = rcWidth;
+    int h = rcHeight;
+    if (x < 0) {
+      w += x;
+      x = 0;
+    } else if (x + w > rfb.framebufferWidth) {
+      w = rfb.framebufferWidth - x;
+    }
+    if (y < 0) {
+      h += y;
+      y = 0;
+    } else if (y + h > rfb.framebufferHeight) {
+      h = rfb.framebufferHeight - y;
+    }
+
+    handleUpdatedPixels(x, y, w, h);
+  }
+
+  //
+  // Free all data associated with cursor.
+  //
+
+  void FreeCursors() throws IOException {
+
+    if (prevCursorSet) {
+      SoftCursorCopyArea(OPER_RESTORE);
+      rcSavedArea = null;
+      rcSource = null;
+      rcMask = null;
+      prevCursorSet = false;
+    }
   }
 }

@@ -27,9 +27,7 @@
 
 // Create the main log object
 #ifdef HORIZONLIVE
-// ( uncomment this when doing serious debugging )
-// Log vnclog(7, LL_ALL, "G:\\appshare_vnc.log", true);
-Log vnclog(0, 1, "appshare.log", false);
+Log vnclog( 0, 1, NULL, true ) ;
 #else
 Log vnclog(0, 1, "WinVNC.log", false);
 #endif

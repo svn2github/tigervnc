@@ -57,8 +57,24 @@ extern "C" {
 #define MAX_ENCODINGS 20
 #define VWR_WND_CLASS_NAME _T("VNCviewer")
 
-const rfbPixelFormat vnc8bitFormat = {8, 8, 1, 1, 7,7,3, 0,3,6,0,0};
-const rfbPixelFormat vnc16bitFormat = {16, 16, 1, 1, 63, 31, 31, 0,6,11,0,0};
+/*
+ * Macro to compare pixel formats.
+ */
+
+#define PF_EQ(x,y)							\
+	((x.bitsPerPixel == y.bitsPerPixel) &&				\
+	 (x.depth == y.depth) &&					\
+	 ((x.bigEndian == y.bigEndian) || (x.bitsPerPixel == 8)) &&	\
+	 (x.trueColour == y.trueColour) &&				\
+	 (!x.trueColour || ((x.redMax == y.redMax) &&			\
+			    (x.greenMax == y.greenMax) &&		\
+			    (x.blueMax == y.blueMax) &&			\
+			    (x.redShift == y.redShift) &&		\
+			    (x.greenShift == y.greenShift) &&		\
+			    (x.blueShift == y.blueShift))))
+
+const rfbPixelFormat vnc8bitFormat = {8, 8, 0, 1, 7,7,3, 0,3,6,0,0};
+const rfbPixelFormat vnc16bitFormat = {16, 16, 0, 1, 63, 31, 31, 0,6,11,0,0};
 
 
 // *************************************************************************
@@ -1942,7 +1958,7 @@ void ClientConnection::SendAppropriateFramebufferUpdateRequest()
 		SetFormatAndEncodings();
 		m_pendingFormatChange = false;
 		// If the pixel format has changed, request whole screen
-		if (memcmp(&m_myFormat, &oldFormat, sizeof(rfbPixelFormat)) != 0) {
+		if (!PF_EQ(m_myFormat, oldFormat)) {
 			SendFullFramebufferUpdateRequest();	
 		} else {
 			SendIncrementalFramebufferUpdateRequest();

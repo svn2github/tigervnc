@@ -6,3 +6,4 @@ VNCHooks.lib: VNCHooks.dll
 VNCHooks.dll: VNCHooks.cpp SharedData.cpp VNCHooks.h SharedData.h
 	copy /b VNCHooks-bcc32.def VNCHooks.def
 	bcc32.exe $(CFLAGS) VNCHooks.cpp SharedData.cpp
+	copy /b VNCHooks-vc.def VNCHooks.def

@@ -26,7 +26,9 @@ LIBS=zlib\zlib.lib libjpeg\libjpeg.lib VNCHooks\VNCHooks.lib
 .cpp.obj:
 	$(CC) -c $(CFLAGS) $<
 .rc.res:
+	echo:>afxres.h
 	$(RC) -r $<
+	del afxres.h
 
 winvnc.exe: $(OBJS) $(LIBS) winvnc.res
 	$(LD) $(LDFLAGS) c0w32 $(OBJS), $@, , $(LIBS) import32 cw32mt, , winvnc.res

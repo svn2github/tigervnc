@@ -1252,26 +1252,24 @@ vncClientThread::run(void *arg)
 					}
  					FindClose(FLRhandle);	
 				}
-				if (ftii.GetNumEntries() != 0) {
-					int dsSize = ftii.GetNumEntries() * 8;
-					int msgLen = sz_rfbFileListDataMsg + dsSize + ftii.GetSummaryNamesLength() + ftii.GetNumEntries();
-					char *pAllMessage = new char [msgLen];
-					rfbFileListDataMsg *pFLD = (rfbFileListDataMsg *) pAllMessage;
-					FTSIZEDATA *pftsd = (FTSIZEDATA *) &pAllMessage[sz_rfbFileListDataMsg];
-					char *pFilenames = &pAllMessage[sz_rfbFileListDataMsg + dsSize];
-					pFLD->type = rfbFileListData;
-					pFLD->flags = msg.flr.flags;
-					pFLD->numFiles = Swap16IfLE(ftii.GetNumEntries());
-					pFLD->dataSize = Swap16IfLE(ftii.GetSummaryNamesLength() + ftii.GetNumEntries());
-					pFLD->compressedSize = Swap16IfLE(msgLen);
-					for (int i = 0; i < ftii.GetNumEntries(); i++) {
-						pftsd[i].size = ftii.GetSizeAt(i);
-						pftsd[i].data = ftii.GetDataAt(i);
-						strcpy(pFilenames, ftii.GetNameAt(i));
-						pFilenames = pFilenames + strlen(pFilenames) + 1;
-					}
-					m_socket->SendExact(pAllMessage, msgLen);
+				int dsSize = ftii.GetNumEntries() * 8;
+				int msgLen = sz_rfbFileListDataMsg + dsSize + ftii.GetSummaryNamesLength() + ftii.GetNumEntries();
+				char *pAllMessage = new char [msgLen];
+				rfbFileListDataMsg *pFLD = (rfbFileListDataMsg *) pAllMessage;
+				FTSIZEDATA *pftsd = (FTSIZEDATA *) &pAllMessage[sz_rfbFileListDataMsg];
+				char *pFilenames = &pAllMessage[sz_rfbFileListDataMsg + dsSize];
+				pFLD->type = rfbFileListData;
+				pFLD->flags = msg.flr.flags;
+				pFLD->numFiles = Swap16IfLE(ftii.GetNumEntries());
+				pFLD->dataSize = Swap16IfLE(ftii.GetSummaryNamesLength() + ftii.GetNumEntries());
+				pFLD->compressedSize = Swap16IfLE(msgLen);
+				for (int i = 0; i < ftii.GetNumEntries(); i++) {
+					pftsd[i].size = Swap32IfLE(ftii.GetSizeAt(i));
+					pftsd[i].data = Swap32IfLE(ftii.GetDataAt(i));
+					strcpy(pFilenames, ftii.GetNameAt(i));
+					pFilenames = pFilenames + strlen(pFilenames) + 1;
 				}
+				m_socket->SendExact(pAllMessage, msgLen);
 			}
 			break;
 
@@ -1441,8 +1439,9 @@ vncClientThread::run(void *arg)
 			{
 				m_client->m_bDownloadEnable = FALSE;
 				msg.fdc.reasonLen = Swap16IfLE(msg.fdc.reasonLen);
-				char *reason = new char[msg.fdc.reasonLen];
+				char *reason = new char[msg.fdc.reasonLen + 1];
 				m_socket->ReadExact(reason, msg.fdc.reasonLen);
+				reason[msg.fdc.reasonLen] = '\0';
 				delete [] reason;
 			}
 			break;
@@ -1456,7 +1455,7 @@ vncClientThread::run(void *arg)
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileUploadFailedMsg-1))
 			{
 				msg.fuf.reasonLen = Swap16IfLE(msg.fuf.reasonLen);
-				char *reason = new char[msg.fuf.reasonLen];
+				char *reason = new char[msg.fuf.reasonLen + 1];
 				m_socket->ReadExact(reason, msg.fuf.reasonLen);
 				reason[msg.fuf.reasonLen] = '\0';
 				if (strcmp(m_FullFilename, "") != 0) {

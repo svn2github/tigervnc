@@ -36,6 +36,7 @@
 #define FT_FLR_DEST_BROWSE   101
 #define FT_FLR_DEST_DOWNLOAD 102
 #define FT_FLR_DEST_UPLOAD   103
+#define FT_FLR_DEST_DELETE   104
 
 #define FT_FDSR_DEST_MAIN     200
 #define FT_FDSR_DEST_DOWNLOAD 201
@@ -175,6 +176,7 @@ private:
 
 	void ProcessFLRUpload();
 	void ProcessFLRDownload();
+	void ProcessFLRDelete();
 	void ProcessFDSDMain(DWORD dSize);
 
 	void SetEndTransfer(char *statusText);
@@ -190,6 +192,9 @@ private:
 	DWORD m_dwProgBarPercent;
 	DWORD m_dwFTProgBarValue;
 	DWORD m_dwFTProgBarPercent;
+	DWORD m_dwNumDelItems;
+	DWORD m_dwNumDelFiles;
+	DWORD m_dwNumDelFolders;
 
 	HWND m_hwndFileTransfer;
 	HWND m_hwndFTClientList;
@@ -220,6 +225,7 @@ private:
 	FileTransferItemInfo m_FTClientItemInfo;
 	FileTransferItemInfo m_FTServerItemInfo;
 	FileTransferItemInfo m_TransferInfo;
+	FileTransferItemInfo m_DeleteInfo;
 
 	char m_szLocalMyDocPath[MAX_PATH];
 	char m_szRemoteMyDocPath[MAX_PATH];

@@ -1311,8 +1311,55 @@ FileTransfer::ProcessFLRMessage()
 	case FT_FLR_DEST_DOWNLOAD:
 		ProcessFLRDownload();
 		break;
+	case FT_FLR_DEST_DELETE:
+		ProcessFLRDelete();
+		break;
 	}
+}
 
+void
+FileTransfer::ProcessFLRDelete()
+{
+	rfbFileListDataMsg fld;
+	m_clientconn->ReadExact((char *) &fld, sz_rfbFileListDataMsg);
+	if (fld.flags & 0x80) {
+		SetFTDlgCursor(IDC_ARROW);
+		return;
+	}
+	fld.numFiles = Swap16IfLE(fld.numFiles);
+	fld.dataSize = Swap16IfLE(fld.dataSize);
+	fld.compressedSize = Swap16IfLE(fld.compressedSize);
+	FTSIZEDATA *pftSD = new FTSIZEDATA[fld.numFiles];
+	char *pFilenames = new char[fld.dataSize];
+	m_clientconn->ReadExact((char *)pftSD, fld.numFiles * 8);
+	m_clientconn->ReadExact(pFilenames, fld.dataSize);
+	FileTransferItemInfo ftii;
+	CreateItemInfoList(&ftii, pftSD, fld.numFiles, pFilenames, fld.dataSize);
+	int num = m_DeleteInfo.GetNumEntries() - 1;
+	int numDel = m_dwNumDelFiles + m_dwNumDelFolders;
+	if ((num < 0) || ((numDel) > num)) return;
+	if (IsExistName(&ftii, m_DeleteInfo.GetNameAt(numDel)) < 0) {
+		SetStatusText("%s\\%s deleted", m_ServerPath, m_DeleteInfo.GetNameAt(numDel));
+		if (m_DeleteInfo.GetIntSizeAt(numDel) < 0) {
+			m_dwNumDelFolders++;
+		} else {
+			m_dwNumDelFiles++;
+		}
+	}
+	if ((numDel + 1) == m_dwNumDelItems) {
+		SetStatusText("Delete Operation Successfully Completed. %d folder(s), %d file(s) deleted.", 
+					  m_dwNumDelFolders, m_dwNumDelFiles);
+		m_dwNumDelFolders = 0; m_dwNumDelFiles = 0;
+		m_DeleteInfo.Free();
+		SetFTDlgCursor(IDC_ARROW);
+	}
+	m_FTServerItemInfo.Free();
+	ListView_DeleteAllItems(m_hwndFTServerList); 
+	CreateItemInfoList(&m_FTServerItemInfo, pftSD, fld.numFiles, pFilenames, fld.dataSize);
+	delete [] pftSD;
+	delete [] pFilenames;
+	m_FTServerItemInfo.Sort();
+	ShowListViewItems(m_hwndFTServerList, &m_FTServerItemInfo);
 }
 
 void
@@ -1909,7 +1956,8 @@ FileTransfer::FTClientDelete(FileTransferItemInfo *ftfi)
 {
 	char buff[MAX_PATH];
 	ftfi->Sort();
-	int i = ftfi->GetNumEntries() - 1;
+	int numDir = ftfi->GetNumEntries();
+	int i = numDir - 1;
 	while (ftfi->GetIntSizeAt(i) >= 0) {
 			sprintf(buff, "%s\\%s", m_ClientPath, ftfi->GetNameAt(i));
 			DeleteFile(buff);
@@ -1921,6 +1969,8 @@ FileTransfer::FTClientDelete(FileTransferItemInfo *ftfi)
 				return;
 			}
 	}
+	int numFiles = numDir - i - 1;
+	numDir -= numFiles;
 	if (ftfi->GetNumEntries() == 0) return;
 	char fullPath[MAX_PATH];
 	FileTransferItemInfo delDirInfo;
@@ -1956,25 +2006,25 @@ FileTransfer::FTClientDelete(FileTransferItemInfo *ftfi)
 	m_bClientRefresh = TRUE;
 	ShowClientItems(m_ClientPath);
 	CheckClientLV();
+	SetStatusText("Delete Operation Successfully Completed. %d folder(s), %d file(s) deleted.", numDir, numFiles);
 }
 
 void
 FileTransfer::ServerDeleteDir()
 {
-	FileTransferItemInfo ftfi;
-	int result = IDNO;;
-	int numSel = GetSelectedItems(m_hwndFTServerList, &ftfi);
-	if (numSel == 1) {
-		if (ftfi.GetIntSizeAt(0) < 0) {
+	int result = IDNO;
+	m_dwNumDelItems = GetSelectedItems(m_hwndFTServerList, &m_DeleteInfo);
+	if (m_dwNumDelItems == 1) {
+		if (m_DeleteInfo.GetIntSizeAt(0) < 0) {
 			char buf[MAX_PATH + 57];
-			sprintf(buf, "Are you sure you want to delete '%s' and all its contents?", ftfi.GetNameAt(0));
+			sprintf(buf, "Are you sure you want to delete '%s' and all its contents?", m_DeleteInfo.GetNameAt(0));
 			result = MessageBox(m_hwndFileTransfer, 
 								_T("Are you sure you want to delete all selected files and folders?"),
 								_T("Confirm Folder Delete"),
 								MB_YESNO | MB_ICONQUESTION);
 		} else {
 			char buf[MAX_PATH + 38];
-			sprintf(buf, "Are you sure you want to delete file '%s'?", ftfi.GetNameAt(0));
+			sprintf(buf, "Are you sure you want to delete file '%s'?", m_DeleteInfo.GetNameAt(0));
 			result = MessageBox(m_hwndFileTransfer, 
 								_T(buf),
 								_T("Confirm File Delete"),
@@ -1988,11 +2038,12 @@ FileTransfer::ServerDeleteDir()
 	}
 	if (result == IDYES) {
 		char delPath[MAX_PATH];
-		for (int i = 0; i < ftfi.GetNumEntries(); i++) {
-			sprintf(delPath, "%s\\%s", m_ServerPath, ftfi.GetNameAt(i));
-			m_bServerRefresh = TRUE;
+		m_dwNumDelFiles = 0; m_dwNumDelFolders = 0;
+		SetFTDlgCursor(IDC_WAIT);
+		for (int i = 0; i < m_DeleteInfo.GetNumEntries(); i++) {
+			sprintf(delPath, "%s\\%s", m_ServerPath, m_DeleteInfo.GetNameAt(i));
 			SendFileDeleteRequestMessage(delPath);
-			SendFileListRequestMessage(m_ServerPath, 0, FT_FLR_DEST_MAIN);
+			SendFileListRequestMessage(m_ServerPath, 0, FT_FLR_DEST_DELETE);
 		}
 	}
 }

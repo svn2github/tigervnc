@@ -945,6 +945,12 @@ int ClientConnection::SelectSecurityType()
 		if (secType != rfbSecTypeInvalid) break;
     }
 
+    if (secType == rfbSecTypeInvalid) {
+		vnclog.Print(0, _T("Server did not offer supported security type\n"),
+					 (int)secType);
+		throw ErrorException("Server did not offer supported security type!");
+	}
+
 	return (int)secType;
 }
 

@@ -26,6 +26,9 @@
 
 // WinVNC header file
 
+#ifndef __WINVNC_H
+#define __WINVNC_H
+
 #include "stdhdrs.h"
 #include "resource.h"
 #include "VNCHelp.h"
@@ -102,3 +105,5 @@ const char * const hzPIDFileName = "..\\logs\\appshare.pid" ;
 #endif // _DEBUG
 
 #endif // HORIZONLIVE
+
+#endif // __WINVNC_H

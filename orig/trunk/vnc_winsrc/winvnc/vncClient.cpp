@@ -546,9 +546,11 @@ vncClientThread::AuthenticateExternal()
 	memset(buf, '\0', len);
 	delete[] buf;
 
-	BOOL auth_ok = VerifyExternalAuth(username, password,
-									  m_socket->GetSockName(),
-									  m_socket->GetPeerName());
+	char *sockName = strdup(m_socket->GetSockName());
+	char *peerName = strdup(m_socket->GetPeerName());
+	BOOL auth_ok = VerifyExternalAuth(username, password, sockName, peerName);
+	free(sockName);
+	free(peerName);
 
 	memset(username, '\0', strlen(username));
 	memset(password, '\0', strlen(password));

@@ -1454,10 +1454,12 @@ vncEncodeTight::PrepareRowForJpeg##bpp(BYTE *dst, CARD##bpp *src, int count)\
 	bool endianMismatch =													\
 		(!m_localformat.bigEndian != !m_remoteformat.bigEndian);			\
 																			\
-	int r_shift, g_shift, b_shift;											\
-		r_shift = m_remoteformat.redShift;									\
-		g_shift = m_remoteformat.greenShift;								\
-		b_shift = m_remoteformat.blueShift; 								\
+	int r_shift = m_remoteformat.redShift;									\
+	int g_shift = m_remoteformat.greenShift;								\
+	int b_shift = m_remoteformat.blueShift; 								\
+	int r_max = m_remoteformat.redMax;										\
+	int g_max = m_remoteformat.greenMax;									\
+	int b_max = m_remoteformat.blueMax; 									\
 																			\
 	CARD##bpp pix;															\
 	while (count--) {														\
@@ -1465,12 +1467,9 @@ vncEncodeTight::PrepareRowForJpeg##bpp(BYTE *dst, CARD##bpp *src, int count)\
 		if (endianMismatch) {												\
 			pix = Swap##bpp(pix);											\
 		}																	\
-		*dst++ = (BYTE)(pix >> m_remoteformat.redShift &					\
-						m_remoteformat.redMax); 							\
-		*dst++ = (BYTE)(pix >> m_remoteformat.greenShift &					\
-						m_remoteformat.greenMax);							\
-		*dst++ = (BYTE)(pix >> m_remoteformat.blueShift &					\
-						m_remoteformat.blueMax);							\
+		*dst++ = (BYTE)((pix >> r_shift & r_max) * 255 / r_max);			\
+		*dst++ = (BYTE)((pix >> g_shift & g_max) * 255 / g_max);			\
+		*dst++ = (BYTE)((pix >> b_shift & b_max) * 255 / b_max);			\
 	}																		\
 }
 

@@ -229,22 +229,22 @@ BEGIN
                     WS_VISIBLE,98,55,32,10
 END
 
-IDD_SESSION_DLG DIALOG DISCARDABLE  0, 0, 272, 63
+IDD_SESSION_DLG DIALOG DISCARDABLE  0, 0, 245, 63
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Connection details"
 FONT 8, "MS Sans Serif"
 BEGIN
-    COMBOBOX        IDC_HOSTNAME_EDIT,90,7,126,66,CBS_DROPDOWN | 
+    COMBOBOX        IDC_HOSTNAME_EDIT,51,7,134,66,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    DEFPUSHBUTTON   "OK",IDOK,225,7,40,14
-    PUSHBUTTON      "Cancel",IDCANCEL,225,24,40,14
-    PUSHBUTTON      "Options...",IDC_OPTIONBUTTON,225,42,40,14
-    LTEXT           "VNC server:",IDC_STATIC,46,9,39,8
-    CONTROL         108,IDC_STATIC,"Static",SS_BITMAP,7,7,32,30
-    LTEXT           "Use host:display format\ne.g. snoopy:2",IDC_STATIC,90,
-                    26,88,17
-    LTEXT           "(Display defaults to 0 if not given)",IDC_STATIC,90,44,
-                    105,8
+    DEFPUSHBUTTON   "OK",IDOK,193,7,45,14
+    PUSHBUTTON      "Cancel",IDCANCEL,193,24,45,14
+    PUSHBUTTON      "Options...",IDC_OPTIONBUTTON,193,42,45,14
+    LTEXT           "VNC server:",IDC_STATIC,7,9,39,8
+    CONTROL         108,IDC_STATIC,"Static",SS_BITMAP,7,26,32,30
+    CTEXT           "The following formats are supported:\nhost,  host:display,  host::port",
+                    IDC_STATIC,51,26,134,17
+    CTEXT           "(default is to use display 0 or port 5900)",IDC_STATIC,
+                    51,44,134,12
 END
 
 IDD_SERVINFO_DLG DIALOG DISCARDABLE  0, 0, 224, 170
@@ -305,7 +305,11 @@ BEGIN
     IDD_SESSION_DLG, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 265
+        RIGHTMARGIN, 238
+        VERTGUIDE, 26
+        VERTGUIDE, 51
+        VERTGUIDE, 185
+        VERTGUIDE, 193
         TOPMARGIN, 7
         BOTTOMMARGIN, 56
         HORZGUIDE, 17

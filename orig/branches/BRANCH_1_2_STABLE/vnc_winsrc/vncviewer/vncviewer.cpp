@@ -110,29 +110,37 @@ void CentreWindow(HWND hwnd)
 	SetForegroundWindow(hwnd);
 }
 
-// Convert "host:display" into host and port
+// Convert "host:display" or "host::port" into host and port
 // Returns true if valid format, false if not.
 // Takes initial string, addresses of results and size of host buffer in wchars.
 // If the display info passed in is longer than the size of the host buffer, it
 // is assumed to be invalid, so false is returned.
 bool ParseDisplay(LPTSTR display, LPTSTR phost, int hostlen, int *pport) 
 {
-    int tmpport;
-    if (hostlen < (int) _tcslen(display))
+    if (hostlen < (int)_tcslen(display))
         return false;
-    TCHAR *colonpos = _tcschr( display, L':' );
+
+    int tmp_port;
+    TCHAR *colonpos = _tcschr(display, L':');
     if (colonpos == NULL) {
-        tmpport = 0;
+		// No colon -- use default port number
+        tmp_port = RFB_PORT_OFFSET;
 		_tcsncpy(phost, display, MAX_HOST_NAME_LEN);
 	} else {
-		_tcsncpy(phost, display, colonpos-display);
-		phost[colonpos-display] = L'\0';
-		if (_stscanf(colonpos+1, TEXT("%d"), &tmpport) != 1) 
-			return false;
+		_tcsncpy(phost, display, colonpos - display);
+		phost[colonpos - display] = L'\0';
+		if (colonpos[1] == L':') {
+			// Two colons -- interpret as a port number
+			if (_stscanf(colonpos + 2, TEXT("%d"), &tmp_port) != 1) 
+				return false;
+		} else {
+			// One colon -- interpret as a display number
+			if (_stscanf(colonpos + 1, TEXT("%d"), &tmp_port) != 1) 
+				return false;
+			tmp_port += RFB_PORT_OFFSET;
+		}
 	}
-    if (tmpport < 100)
-        tmpport += RFB_PORT_OFFSET;
-    *pport = tmpport;
+    *pport = tmp_port;
     return true;
 }
 

@@ -218,12 +218,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 		}
 
 #ifdef HORIZONLIVE
-			if (strncmp(&szCmdLine[i], winvncNoSettings, strlen(winvncNoSettings)) == 0)
-			{
-				// Set nosettings flag
-				vncService::SetNoSettings(true);
-				return WinVNCAppMain();
-			}
+		if (strncmp(&szCmdLine[i], winvncNoSettings, strlen(winvncNoSettings)) == 0)
+		{
+			// Set nosettings flag
+			vncService::SetNoSettings(true);
+			return WinVNCAppMain();
+		}
 #endif
 
 		// Either the user gave the -help option or there is something odd on the cmd-line!

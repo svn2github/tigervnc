@@ -227,6 +227,13 @@ is the full list of parameters supported in TightVNC Java viewer:
     there is no mouse and keyboard activity on the client side.
 
 
+HINTS
+=====
+
+--> To refresh remote desktop in the view-only mode, press "r" or "R"
+    on the keyboard.
+
+
 ACKNOWLEDGEMENTS
 ================
 

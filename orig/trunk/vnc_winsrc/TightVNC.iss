@@ -12,7 +12,7 @@ AppUpdatesURL=http://www.tightvnc.com
 DefaultDirName={pf}\TightVNC
 DefaultGroupName=TightVNC
 AlwaysCreateUninstallIcon=no
-LicenseFile=LICENSE.txt
+LicenseFile=LICENCE.txt
 
 WindowVisible=No
 CompressLevel=9
@@ -28,7 +28,7 @@ Source: "README.txt"; DestDir: "{app}"; CopyMode: alwaysoverwrite
 Source: "VNCHooks.dll"; DestDir: "{app}"; CopyMode: alwaysoverwrite
 Source: "vncviewer.exe"; DestDir: "{app}"; CopyMode: alwaysoverwrite
 Source: "WhatsNew.txt"; DestDir: "{app}"; CopyMode: alwaysoverwrite
-Source: "LICENSE.txt"; DestDir: "{app}"; CopyMode: alwaysoverwrite
+Source: "LICENCE.txt"; DestDir: "{app}"; CopyMode: alwaysoverwrite
 Source: "VNCHooks_Settings.reg"; DestDir: "{app}"; CopyMode: alwaysoverwrite
 
 [Icons]

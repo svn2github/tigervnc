@@ -115,6 +115,7 @@ private:
 	void SendClientInit();
 	void CreateLocalFramebuffer();
 	void SaveConnection();
+	void SaveListConnection();
 	
 	void SetupPixelFormat();
 	void SetFormatAndEncodings();

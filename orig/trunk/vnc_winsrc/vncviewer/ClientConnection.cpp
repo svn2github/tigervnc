@@ -531,7 +531,23 @@ void ClientConnection::CreateDisplay()
 		CheckMenuItem(GetSystemMenu(m_hwnd1, FALSE),
 					ID_TOOLBAR, MF_BYCOMMAND|MF_CHECKED);
 	}
+	SaveListConnection();
 	
+	// record which client created this window
+	
+#ifndef _WIN32_WCE
+	// We want to know when the clipboard changes, so
+	// insert ourselves in the viewer chain. But doing
+	// this will cause us to be notified immediately of
+	// the current state.
+	// We don't want to send that.
+	m_initialClipboardSeen = false;
+	m_hwndNextViewer = SetClipboardViewer(m_hwnd);
+#endif
+}
+
+void ClientConnection::SaveListConnection()
+{
 	if (!m_serverInitiated) {
 		TCHAR  valname[3];
 		int dwbuflen = 255;
@@ -581,17 +597,6 @@ void ClientConnection::CreateDisplay()
 		m_opts.SaveOpt(m_opts.m_display,
 						"Software\\ORL\\VNCviewer\\MRU1");
 	}		
-	// record which client created this window
-	
-#ifndef _WIN32_WCE
-	// We want to know when the clipboard changes, so
-	// insert ourselves in the viewer chain. But doing
-	// this will cause us to be notified immediately of
-	// the current state.
-	// We don't want to send that.
-	m_initialClipboardSeen = false;
-	m_hwndNextViewer = SetClipboardViewer(m_hwnd);
-#endif
 }
 
 void ClientConnection::EnableFullControlOptions()

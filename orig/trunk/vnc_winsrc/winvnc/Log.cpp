@@ -148,16 +148,30 @@ inline void Log::ReallyPrintLine(LPSTR line)
 
 void Log::ReallyPrint(LPSTR format, va_list ap) 
 {
+	// Write current time to the log if necessary
 	time_t current = time(0);
 	if (current != m_lastLogTime) {
 		m_lastLogTime = current;
-		ReallyPrintLine(ctime(&m_lastLogTime));
+
+		char time_str[32];
+		strncpy(time_str, ctime(&m_lastLogTime), 24);
+		strcpy(&time_str[24], "\r\n");
+		ReallyPrintLine(time_str);
 	}
 
-	// - Write the log message
+	// Prepare the complete log message
 	TCHAR line[LINE_BUFFER_SIZE];
-	_vsnprintf(line, sizeof(line)-sizeof(TCHAR), format, ap);
-	line[LINE_BUFFER_SIZE-1] = (TCHAR)'\0';
+	_vsnprintf(line, sizeof(line) - 2 * sizeof(TCHAR), format, ap);
+	line[LINE_BUFFER_SIZE-2] = (TCHAR)'\0';
+#if (!defined(_UNICODE) && !defined(_MBCS))
+	int len = strlen(line);
+	if (len > 0 && len <= sizeof(line) - 2 * sizeof(TCHAR) && line[len-1] == (TCHAR)'\n') {
+		// Replace trailing '\n' with MS-DOS style end-of-line.
+		line[len-1] = (TCHAR)'\r';
+		line[len] =   (TCHAR)'\n';
+		line[len+1] = (TCHAR)'\0';
+	}
+#endif
 	ReallyPrintLine(line);
 }
 

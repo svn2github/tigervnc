@@ -125,20 +125,28 @@ void Log::CloseFile() {
 
 void Log::ReallyPrint(LPTSTR format, va_list ap) 
 {
-    TCHAR line[LINE_BUFFER_SIZE];
-    _vsntprintf(line, sizeof(line) - sizeof(TCHAR), format, ap);
+	TCHAR line[LINE_BUFFER_SIZE];
+	_vsntprintf(line, sizeof(line) - 2 * sizeof(TCHAR), format, ap);
+	line[LINE_BUFFER_SIZE-2] = (TCHAR)'\0';
+	int len = _tcslen(line);
+	if (len > 0 && len <= sizeof(line) - 2 * sizeof(TCHAR) && line[len-1] == (TCHAR)'\n') {
+		// Replace trailing '\n' with MS-DOS style end-of-line.
+		line[len-1] = (TCHAR)'\r';
+		line[len] =   (TCHAR)'\n';
+		line[len+1] = (TCHAR)'\0';
+	}
+
     if (m_todebug) OutputDebugString(line);
 
     if (m_toconsole) {
         DWORD byteswritten;
         WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), line, _tcslen(line)*sizeof(TCHAR), &byteswritten, NULL); 
-    };
+    }
 
     if (m_tofile && (hlogfile != NULL)) {
         DWORD byteswritten;
         WriteFile(hlogfile, line, _tcslen(line)*sizeof(TCHAR), &byteswritten, NULL); 
-
-    }	
+    }
 }
 
 #else

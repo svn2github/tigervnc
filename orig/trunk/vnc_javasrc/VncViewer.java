@@ -63,6 +63,7 @@ public class VncViewer extends java.applet.Applet
   AuthPanel authenticator;
   VncCanvas vc;
   OptionsFrame options;
+  RecordingFrame recording;
   ClipboardFrame clipboard;
 
   // Variables read from parameter values.
@@ -97,6 +98,7 @@ public class VncViewer extends java.applet.Applet
     }
 
     options = new OptionsFrame(this);
+    recording = new RecordingFrame(this);
     clipboard = new ClipboardFrame(this);
     authenticator = new AuthPanel();
 
@@ -559,6 +561,7 @@ public class VncViewer extends java.applet.Applet
     }
     System.out.println("Disconnect");
     options.dispose();
+    recording.dispose();
     clipboard.dispose();
 
     if (inAnApplet) {
@@ -614,6 +617,7 @@ public class VncViewer extends java.applet.Applet
   public void destroy() {
     vncContainer.removeAll();
     options.dispose();
+    recording.dispose();
     clipboard.dispose();
     if (rfb != null) {
       rfb.close();

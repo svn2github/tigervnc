@@ -32,6 +32,7 @@ class ButtonPanel extends Panel implements ActionListener {
   VncViewer viewer;
   Button disconnectButton;
   Button optionsButton;
+  Button recordButton;
   Button clipboardButton;
   Button ctrlAltDelButton;
   Button refreshButton;
@@ -47,6 +48,9 @@ class ButtonPanel extends Panel implements ActionListener {
     optionsButton = new Button("Options");
     add(optionsButton);
     optionsButton.addActionListener(this);
+    recordButton = new Button("Record");
+    add(recordButton);
+    recordButton.addActionListener(this);
     clipboardButton = new Button("Clipboard");
     clipboardButton.setEnabled(false);
     add(clipboardButton);
@@ -112,6 +116,9 @@ class ButtonPanel extends Panel implements ActionListener {
 
     } else if (evt.getSource() == optionsButton) {
       viewer.options.setVisible(!viewer.options.isVisible());
+
+    } else if (evt.getSource() == recordButton) {
+      viewer.recording.setVisible(!viewer.recording.isVisible());
 
     } else if (evt.getSource() == clipboardButton) {
       viewer.clipboard.setVisible(!viewer.clipboard.isVisible());

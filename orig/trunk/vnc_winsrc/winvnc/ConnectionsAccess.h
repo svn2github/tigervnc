@@ -16,7 +16,7 @@
 class ConnectionsAccess  
 {
 public:
-	ConnectionsAccess(vncServer* server, HWND hwnd);
+	ConnectionsAccess(vncServer * server, HWND hwnd);
 	static BOOL CALLBACK EditDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	void Apply();
 	void Init();
@@ -27,11 +27,10 @@ public:
 	void Edit();
 	virtual ~ConnectionsAccess();
 protected:
-	BOOL TransformPattern(BOOL add, char IPpart, char * strpattern);
-	BOOL MatchStringToPattern(char * strpattern);
+	BOOL FormatPattern(BOOL toList, TCHAR strpattern[256]);
 	DWORD DoEditDialog();
-    BOOL InsertListViewItem(int Numbe, TCHAR ItemString[2][20]);
-	void GetListViewItem(int Numbe, TCHAR ItemString[2][20]);
+    BOOL InsertListViewItem(int Numbe, TCHAR ItemString[2][256]);
+	void GetListViewItem(int Numbe, TCHAR ItemString[2][256]);
     BOOL InitListViewColumns();
 	int	GetSelectedItem();
 	void SetSelectedItem(int number);
@@ -39,8 +38,8 @@ protected:
 	int GetItemCount();
 
 	HWND m_hwnd;
-    vncServer* m_server;
-	TCHAR ItemString[2][20];
+    vncServer * m_server;
+	TCHAR ItemString[2][256];
 	BOOL m_edit;
 	HWND m_hwnd_edit_dialog;
 };

@@ -197,7 +197,7 @@ vncProperties::Show(BOOL show, BOOL usersettings)
 				int result = DialogBoxParam(hAppInstance,
 				    MAKEINTRESOURCE(IDD_PROPERTIES_PARENT), 
 				    NULL,
-						(DLGPROC) ParentDlgProc,
+					(DLGPROC) ParentDlgProc,
 				    (LONG) this);
 
 				if (!m_returncode_valid)
@@ -542,10 +542,18 @@ BOOL CALLBACK vncProperties::ConnectionsAccessDlgProc(HWND hwnd, UINT uMsg,
 	case WM_HELP:	
 		help.Popup(lParam);
 		return 0;
+	case WM_NOTIFY:
+		{
+			LPNMHDR pn = (LPNMHDR)lParam;			
+			if (pn->idFrom == IDC_LIST_HOSTS && 
+				pn->code == NM_DBLCLK) 
+				_this->m_ConnAccessCtrl->Edit();
+		}
+		return 0;
     case WM_COMMAND:		
 		switch (LOWORD(wParam))
 		{
-		      
+		case IDOK:
 		case IDC_APPLY:
 			_this->m_ConnAccessCtrl->Apply();
 			return TRUE;
@@ -914,7 +922,7 @@ void
 vncProperties::SaveString(HKEY key, LPCSTR keyname, const char *buffer)
 {
 	RegSetValueEx(key, keyname, 0,
-		REG_SZ, (const unsigned char *)buffer, strlen(buffer));
+		REG_SZ, (const unsigned char *)buffer, strlen(buffer) + 1);
 }
 char *
 vncProperties::LoadString(HKEY key, LPCSTR keyname)

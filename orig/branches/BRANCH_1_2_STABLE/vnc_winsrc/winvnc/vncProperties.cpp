@@ -284,6 +284,14 @@ vncProperties::DialogProc(HWND hwnd,
 			SetDlgItemText(hwnd, IDC_PASSWORD_VIEWONLY, "~~~~~~~~");
 			EnableWindow(GetDlgItem(hwnd, IDC_PASSWORD_VIEWONLY), bConnectSock);
 
+			// Set the initial keyboard focus
+			if (bConnectSock) {
+				SetFocus(GetDlgItem(hwnd, IDC_PASSWORD));
+				SendDlgItemMessage(hwnd, IDC_PASSWORD, EM_SETSEL, 0, (LPARAM)-1);
+			} else {
+				SetFocus(hConnectSock);
+			}
+
 			// Set display/ports settings
 			_this->InitPortSettings(hwnd);
 

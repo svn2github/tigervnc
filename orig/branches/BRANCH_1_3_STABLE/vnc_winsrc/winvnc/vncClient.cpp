@@ -1323,6 +1323,8 @@ vncClientThread::run(void *arg)
 						} while (FindNextFile(FLRhandle, &FindFileData));
 					} else {
 						if (LastError != ERROR_SUCCESS && LastError != ERROR_FILE_NOT_FOUND) {
+							omni_mutex_lock l(m_client->m_sendUpdateLock);
+
 							rfbFileListDataMsg fld;
 							fld.type = rfbFileListData;
 							fld.numFiles = Swap16IfLE(0);
@@ -1352,6 +1354,7 @@ vncClientThread::run(void *arg)
 					strcpy(pFilenames, ftii.GetNameAt(i));
 					pFilenames = pFilenames + strlen(pFilenames) + 1;
 				}
+				omni_mutex_lock l(m_client->m_sendUpdateLock);
 				m_socket->SendExact(pAllMessage, msgLen);
 			}
 			break;
@@ -1894,9 +1897,10 @@ vncClient::CopyRect(RECT &dest, POINT &source)
 void
 vncClient::UpdateClipText(LPSTR text)
 {
-	// Lock out any update sends and send clip text to the client
-	omni_mutex_lock l(m_regionLock);
 	if (!m_protocol_ready) return;
+
+	// Lock out any update sends and send clip text to the client
+	omni_mutex_lock l(m_sendUpdateLock);
 
 	rfbServerCutTextMsg message;
 	message.length = Swap32IfLE(strlen(text));
@@ -2070,6 +2074,8 @@ vncClient::SendUpdate()
 			return FALSE;
 	}
 
+	omni_mutex_lock l(m_sendUpdateLock);
+
 	// Otherwise, send <number of rectangles> header
 	rfbFramebufferUpdateMsg header;
 	header.nRects = Swap16IfLE(numrects);
@@ -2216,6 +2222,8 @@ vncClient::SendPalette()
 	}
 
 	// Compose the message
+	omni_mutex_lock l(m_sendUpdateLock);
+
 	setcmap.type = rfbSetColourMapEntries;
 	setcmap.firstColour = Swap16IfLE(0);
 	setcmap.nColours = Swap16IfLE(ncolours);
@@ -2344,6 +2352,8 @@ vncClientThread::ConvertPath(char *path)
 void 
 vncClient::SendFileUploadCancel(unsigned short reasonLen, char *reason)
 {
+	omni_mutex_lock l(m_sendUpdateLock);
+
 	int msgLen = sz_rfbFileUploadCancelMsg + reasonLen;
 	char *pAllFUCMessage = new char[msgLen];
 	rfbFileUploadCancelMsg *pFUC = (rfbFileUploadCancelMsg *) pAllFUCMessage;
@@ -2366,6 +2376,8 @@ vncClient::Time70ToFiletime(unsigned int mTime, FILETIME *pFiletime)
 void 
 vncClient::SendFileDownloadFailed(unsigned short reasonLen, char *reason)
 {
+	omni_mutex_lock l(m_sendUpdateLock);
+
 	int msgLen = sz_rfbFileDownloadFailedMsg + reasonLen;
 	char *pAllFDFMessage = new char[msgLen];
 	rfbFileDownloadFailedMsg *pFDF = (rfbFileDownloadFailedMsg *) pAllFDFMessage;
@@ -2380,6 +2392,8 @@ vncClient::SendFileDownloadFailed(unsigned short reasonLen, char *reason)
 void 
 vncClient::SendFileDownloadData(unsigned int mTime)
 {
+	omni_mutex_lock l(m_sendUpdateLock);
+
 	int msgLen = sz_rfbFileDownloadDataMsg + sizeof(unsigned int);
 	char *pAllFDDMessage = new char[msgLen];
 	rfbFileDownloadDataMsg *pFDD = (rfbFileDownloadDataMsg *) pAllFDDMessage;
@@ -2417,6 +2431,8 @@ vncClient::SendFileDownloadPortion()
 void 
 vncClient::SendFileDownloadData(unsigned short sizeFile, char *pFile)
 {
+	omni_mutex_lock l(m_sendUpdateLock);
+
 	int msgLen = sz_rfbFileDownloadDataMsg + sizeFile;
 	char *pAllFDDMessage = new char[msgLen];
 	rfbFileDownloadDataMsg *pFDD = (rfbFileDownloadDataMsg *) pAllFDDMessage;

@@ -1,5 +1,5 @@
 
-TightVNC 1.2.7 Binary Distribution for Windows platforms
+TightVNC 1.2.8 Binary Distribution for Windows platforms
 ========================================================
 
 This distribution is based on the standard VNC source with
@@ -18,14 +18,10 @@ License (GPL), inclided in the file LICENCE.txt. You can freely use
 the software for any legal purpose, but we're asking for a donation to
 the TightVNC project from commercial users, as well as from motivated
 individuals, who like the software. You can donate any amount of your
-choice starting at 10 U.S. dollars via the Kagi Internet store:
+choice starting at 10 U.S. dollars. See the details here:
 
-   http://order.kagi.com/?AWD
+   http://www.tightvnc.com/contribute.html
 
 Your support ensures we can add more new features and fix more bugs,
 making TightVNC a better software for you. Thank you in advance!
-
-Please visit the project homepage at the following URL for more info:
-
-   http://www.tightvnc.com/
 

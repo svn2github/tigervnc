@@ -1,4 +1,5 @@
 //
+//  Copyright (C) 2001 HorizonLive.com, Inc.  All Rights Reserved.
 //  Copyright (C) 2001 Const Kaplinsky.  All Rights Reserved.
 //  Copyright (C) 2000 Tridia Corporation.  All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge.  All Rights Reserved.
@@ -27,8 +28,10 @@
 //
 
 import java.awt.*;
+import java.awt.event.*;
 
-class optionsFrame extends Frame {
+class optionsFrame extends Frame
+  implements WindowListener, ActionListener, ItemListener {
 
   static String[] names = {
     "Encoding",
@@ -62,7 +65,7 @@ class optionsFrame extends Frame {
   Label[] labels = new Label[names.length];
   Choice[] choices = new Choice[names.length];
   Button dismiss;
-  vncviewer v;
+  vncviewer viewer;
 
 
   //
@@ -87,10 +90,10 @@ class optionsFrame extends Frame {
   // arrays.
   //
 
-  optionsFrame(vncviewer v1) {
+  optionsFrame(vncviewer v) {
     super("TightVNC Options");
 
-    v = v1;
+    viewer = v;
 
     GridBagLayout gridbag = new GridBagLayout();
     setLayout(gridbag);
@@ -108,6 +111,7 @@ class optionsFrame extends Frame {
       gbc.gridwidth = GridBagConstraints.REMAINDER;
       gridbag.setConstraints(choices[i],gbc);
       add(choices[i]);
+      choices[i].addItemListener(this);
 
       for (int j = 0; j < values[i].length; j++) {
 	choices[i].addItem(values[i][j]);
@@ -118,8 +122,11 @@ class optionsFrame extends Frame {
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gridbag.setConstraints(dismiss,gbc);
     add(dismiss);
+    dismiss.addActionListener(this);
 
     pack();
+
+    addWindowListener(this);
 
     // Set up defaults
 
@@ -134,7 +141,7 @@ class optionsFrame extends Frame {
     // But let them be overridden by parameters
 
     for (int i = 0; i < names.length; i++) {
-      String s = v.readParameter(names[i], false);
+      String s = viewer.readParameter(names[i], false);
       if (s != null) {
 	for (int j = 0; j < values[i].length; j++) {
 	  if (s.equalsIgnoreCase(values[i][j])) {
@@ -147,7 +154,7 @@ class optionsFrame extends Frame {
     // "Show Controls" setting does not have associated GUI option
 
     showControls = true;
-    String s = v.readParameter("Show Controls", false);
+    String s = viewer.readParameter("Show Controls", false);
     if (s != null && s.equalsIgnoreCase("No"))
       showControls = false;
 
@@ -159,7 +166,7 @@ class optionsFrame extends Frame {
 
 
   //
-  // Disable shareDesktop option
+  // Disable the shareDesktop option
   //
 
   void disableShareDesktop() {
@@ -167,6 +174,9 @@ class optionsFrame extends Frame {
     choices[shareDesktopIndex].setEnabled(false);
   }
 
+  //
+  // Disable the viewOnly option
+  //
 
   void disableViewOnly() {
     labels[viewOnlyIndex].setEnabled(false);
@@ -253,7 +263,7 @@ class optionsFrame extends Frame {
 
     encodings[nEncodings++] = rfbProto.EncodingLastRect;
 
-    v.setEncodings();
+    viewer.setEncodings();
   }
 
   //
@@ -274,32 +284,50 @@ class optionsFrame extends Frame {
   }
 
 
-
   //
-  // Respond to an action i.e. choice or button press
+  // Respond to actions on Choice controls
   //
 
-  public boolean action(Event evt, Object arg) {
+  public void itemStateChanged(ItemEvent evt) {
+    Object source = evt.getSource();
 
-    if (evt.target == dismiss) {
-      setVisible(false);
-      return true;
-
-    } else if ((evt.target == choices[encodingIndex]) ||
-	       (evt.target == choices[compressLevelIndex]) ||
-	       (evt.target == choices[cursorUpdatesIndex]) ||
-	       (evt.target == choices[useCopyRectIndex])) {
+    if (source == choices[encodingIndex] ||
+        source == choices[compressLevelIndex] ||
+        source == choices[cursorUpdatesIndex] ||
+        source == choices[useCopyRectIndex]) {
 
       setEncodings();
-      return true;
 
-    } else if ((evt.target == choices[mouseButtonIndex]) ||
-	       (evt.target == choices[shareDesktopIndex]) ||
-	       (evt.target == choices[viewOnlyIndex])) {
+    } else if (source == choices[mouseButtonIndex] ||
+	       source == choices[shareDesktopIndex] ||
+	       source == choices[viewOnlyIndex]) {
 
       setOtherOptions();
-      return true;
     }
-    return false;
   }
+
+  //
+  // Respond to button press
+  //
+
+  public void actionPerformed(ActionEvent evt) {
+    if (evt.getSource() == dismiss) {
+      setVisible(false);
+    }
+  }
+
+  //
+  // Respond to window events
+  //
+
+  public void windowClosing(WindowEvent evt) {
+    setVisible(false);
+  }
+
+  public void windowActivated(WindowEvent evt) {}
+  public void windowDeactivated(WindowEvent evt) {}
+  public void windowOpened(WindowEvent evt) {}
+  public void windowClosed(WindowEvent evt) {}
+  public void windowIconified(WindowEvent evt) {}
+  public void windowDeiconified(WindowEvent evt) {}
 }

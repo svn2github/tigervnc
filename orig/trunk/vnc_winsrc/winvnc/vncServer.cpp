@@ -1039,7 +1039,7 @@ vncServer::SockConnect(BOOL On)
 	else
 	{
 		// *** JNW - Trying to fix up a lock-up when the listening socket closes
-#if !defined HORIZONLIVE
+#ifndef HORIZONLIVE
 	
 		KillAuthClients();
 		KillUnauthClients();

@@ -609,7 +609,7 @@ vncDesktop::Startup()
 		m_server->PollFullScreen(TRUE);
 	}
 
-#if !defined HORIZONLIVE
+#ifndef HORIZONLIVE
 	// Start up the keyboard and mouse filters
 	SetKeyboardFilterHook(m_server->LocalInputsDisabled());
 	SetMouseFilterHook(m_server->LocalInputsDisabled());
@@ -652,7 +652,7 @@ vncDesktop::Shutdown()
 		SetLocalInputPriorityHook(false);
 		UnSetHook(m_hwnd);
 
-#if !defined HORIZONLIVE
+#ifndef HORIZONLIVE
 		// Stop the keyboard and mouse filters
 		SetKeyboardFilterHook(false);
 		SetMouseFilterHook(false);
@@ -973,7 +973,7 @@ vncDesktop::OptimizeDisplayForConnection()
 	HKEY checkdetails = NULL;
 	result = FALSE;
 
-#if !defined HORIZONLIVE
+#ifndef HORIZONLIVE
 	RegOpenKeyEx(HKEY_LOCAL_MACHINE, 
 				"Software\\ORL\\WinVNC3",
 				0,
@@ -1058,7 +1058,7 @@ vncDesktop::ResetDisplayToNormal()
 	HKEY checkdetails = NULL;
 	HKEY oldvalue = NULL;
 
-#if !defined HORIZONLIVE
+#ifndef HORIZONLIVE
 	
 	RegOpenKeyEx(HKEY_LOCAL_MACHINE, 
 				"Software\\ORL\\WinVNC3",
@@ -1108,7 +1108,7 @@ vncDesktop::ResetDisplayToNormal()
 		memset(inouttext, 0, MAX_REG_ENTRY_LEN);
 		slen=MAX_REG_ENTRY_LEN;	
 	
-#if !defined HORIZONLIVE
+#ifndef HORIZONLIVE
 
 		// *** Get the FontSmoothing value - Jeremy Peaks
 		RegQueryValueEx(oldvalue,

@@ -208,7 +208,7 @@ vncClientThread::InitAuthenticate()
 	}
 
 	// By default we disallow passwordless workstations!
-#if !defined HORIZONLIVE
+#ifndef HORIZONLIVE
 	if ((strlen(plain) == 0) && m_server->AuthRequired())
 	{
 		vnclog.Print(LL_CONNERR, VNCLOG("no password specified for server - client rejected\n"));

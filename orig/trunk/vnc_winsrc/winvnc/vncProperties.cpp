@@ -546,7 +546,7 @@ vncProperties::DialogProc(HWND hwnd,
 		case IDOK:
 		case IDC_APPLY:
 			{
-#if !defined HORIZONLIVE				
+#ifndef HORIZONLIVE				
 				// Save the password if one was entered
 				char passwd[MAXPWLEN+1];
 				int len = GetDlgItemText(hwnd, IDC_PASSWORD, (LPSTR)&passwd, MAXPWLEN+1);
@@ -722,7 +722,7 @@ vncProperties::DialogProc(HWND hwnd,
 				if (LOWORD(wParam) == IDOK)
 				{
 
-# ifdef HORIZONLIVE					
+#ifdef HORIZONLIVE					
 					if (_this->m_server->AuthClientCount() == 0)
 					{
 						char hostemp [_MAX_PATH];
@@ -803,7 +803,7 @@ vncProperties::DialogProc(HWND hwnd,
 			}
 			return TRUE;
 
-#if !defined HORIZONLIVE		
+#ifndef HORIZONLIVE		
 		case IDC_CONNECT_SOCK:
 			// The user has clicked on the socket connect tickbox
 			{
@@ -1346,7 +1346,7 @@ vncProperties::Load(BOOL usersettings)
 	{
 		vnclog.Print(LL_INTINFO, VNCLOG("loading DEFAULT local settings\n"));
 		LoadUserPrefs(hkDefault);
-#if !defined HORIZONLIVE
+#ifndef HORIZONLIVE
 		m_allowshutdown = LoadInt(hkDefault, "AllowShutdown", m_allowshutdown);
 		m_allowproperties = LoadInt(hkDefault, "AllowProperties", m_allowproperties);
 		m_alloweditclients = LoadInt(hkDefault, "AllowEditClients", m_alloweditclients);
@@ -1361,7 +1361,7 @@ vncProperties::Load(BOOL usersettings)
 		{
 			vnclog.Print(LL_INTINFO, VNCLOG("loading \"%s\" local settings\n"), username);
 			LoadUserPrefs(hkLocalUser);
-#if !defined HORIZONLIVE
+#ifndef HORIZONLIVE
 			m_allowshutdown = LoadInt(hkLocalUser, "AllowShutdown", m_allowshutdown);
 			m_allowproperties = LoadInt(hkLocalUser, "AllowProperties", m_allowproperties);
 			m_alloweditclients = LoadInt(hkLocalUser, "AllowEditClients", m_alloweditclients);
@@ -1403,7 +1403,7 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 {
 	// LOAD USER PREFS FROM THE SELECTED KEY
 
-#if !defined HORIZONLIVE
+#ifndef HORIZONLIVE
 	// Connection prefs
 	m_pref_SockConnect=LoadInt(appkey, "SocketConnect", m_pref_SockConnect);
 	m_pref_AutoPortSelect=LoadInt(appkey, "AutoPortSelect", m_pref_AutoPortSelect);
@@ -1460,7 +1460,7 @@ void
 vncProperties::ApplyUserPrefs()
 {
 	// APPLY THE CACHED PREFERENCES TO THE SERVER
-#if !defined HORIZONLIVE
+#ifndef HORIZONLIVE
 	// Update the connection querying settings
 	m_server->SetQuerySetting(m_pref_QuerySetting);
 	m_server->SetQueryTimeout(m_pref_QueryTimeout);
@@ -1584,7 +1584,7 @@ vncProperties::Save()
 void
 vncProperties::SaveUserPrefs(HKEY appkey)
 {
-#if !defined HORIZONLIVE
+#ifndef HORIZONLIVE
 
 	// SAVE THE PER USER PREFS
 	vnclog.Print(LL_INTINFO, VNCLOG("saving current settings to registry\n"));

@@ -647,7 +647,7 @@ vncAdvancedProperties::Load(BOOL usersettings)
 	vnclog.SetMode(LoadInt(hkLocal, "DebugMode", 0));
 	vnclog.SetLevel(LoadInt(hkLocal, "DebugLevel", 0));
 
-#if !defined HORIZONLIVE	
+#ifndef HORIZONLIVE	
 	// Authentication required, httpd enabled, loopback allowed, loopbackOnly
 	m_server->SetHttpdEnabled(LoadInt(hkLocal, "EnableHTTPDaemon", true),
 							  LoadInt(hkLocal, "EnableURLParams", false));
@@ -731,7 +731,7 @@ vncAdvancedProperties::Load(BOOL usersettings)
 void
 vncAdvancedProperties::LoadUserPrefs(HKEY appkey)
 {
-#if !defined HORIZONLIVE	
+#ifndef HORIZONLIVE	
 
 	// LOAD USER PREFS FROM THE SELECTED KEY
 
@@ -750,7 +750,7 @@ vncAdvancedProperties::LoadUserPrefs(HKEY appkey)
 void
 vncAdvancedProperties::ApplyUserPrefs()
 {
-#if !defined HORIZONLIVE	
+#ifndef HORIZONLIVE	
 
 	// APPLY THE CACHED PREFERENCES TO THE SERVER
 
@@ -853,7 +853,7 @@ vncAdvancedProperties::Save()
 		KEY_WRITE | KEY_READ, NULL, &hkLocal, &dw) != ERROR_SUCCESS)
 		return;
 
-#if !defined HORIZONLIVE
+#ifndef HORIZONLIVE
 	SaveInt(hkLocal, "ConnectPriority", m_server->ConnectPriority());
 	SaveInt(hkLocal, "LoopbackOnly", m_server->LoopbackOnly());
 	SaveInt(hkLocal, "EnableHTTPDaemon", m_server->HttpdEnabled());

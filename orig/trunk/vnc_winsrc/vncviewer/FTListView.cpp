@@ -69,7 +69,7 @@ FTListView::onGetDispInfo(NMLVDISPINFO *pDI)
 				}
 				break;
 			case FT_ATTR_FOLDER:
-				pDI->item.pszText = "Folder";
+				pDI->item.pszText = "";
 				break;
 			default:
 				pDI->item.pszText = "Unspecified";

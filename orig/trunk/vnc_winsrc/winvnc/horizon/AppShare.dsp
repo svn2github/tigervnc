@@ -45,7 +45,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I ".." /I "..\.." /I "$(WINVNC_HOME)\VNCHooks" /I "$(WINVNC_HOME)\libjpeg" /I "$(WINVNC_HOME)\omnithread" /I "$(WINVNC_HOME)\zlib" /D "__WIN32__" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_OMNITHREAD_DLL" /FD /GZ /c
 # SUBTRACT BASE CPP /X /u /YX
-# ADD CPP /nologo /MT /W3 /GX /Od /Ob2 /I ".." /I "../.." /I "./lib" /I "../VNCHooks" /I "../libjpeg" /I "../omnithread" /I "$(PATH_TO_VNC_1_2)/winvnc" /I "C:\Program Files\HTML Help Workshop\include" /D WINVER=0x0500 /D "__WIN32__" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_OMNITHREAD_DLL" /D "HORIZONLIVE" /FD /GZ /c
+# ADD CPP /nologo /MT /W3 /GX /Od /Ob2 /I "./lib" /I ".." /I "../.." /I "../VNCHooks" /I "../libjpeg" /I "../omnithread" /I "$(PATH_TO_VNC_1_2)/winvnc" /I "C:\Program Files\HTML Help Workshop\include" /D WINVER=0x0500 /D "__WIN32__" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_OMNITHREAD_DLL" /D "HORIZONLIVE" /FD /GZ /c
 # SUBTRACT CPP /X /u /YX
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
@@ -57,7 +57,7 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib wsock32.lib omnithread_rtd.lib libjpeg.lib VNCHooks.lib zlib.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"libcmtd.lib" /pdbtype:sept /libpath:"." /libpath:".." /libpath:"$(WINVNC_HOME)" /libpath:"$(WINVNC_HOME)\Debug"
 # SUBTRACT BASE LINK32 /nodefaultlib
-# ADD LINK32 comctl32.lib htmlhelp.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib wsock32.lib shlwapi.lib omnithread_rt.lib libjpeg.a libz.a VNCHOOKS.lib /nologo /subsystem:windows /pdb:none /machine:I386 /out:"C:\Documents and Settings\Administrator\Application Data\HorizonLive\SecureDoor\HZSDControl\2.0.0.0\Doors\appshare_1_7_2\data\Release-AppShare.exe" /libpath:"./HorizonLive" /libpath:"C:\Program Files\HTML Help Workshop\lib"
+# ADD LINK32 comctl32.lib htmlhelp.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib wsock32.lib shlwapi.lib omnithread_rt.lib libjpeg.a libz.a VNCHOOKS.lib /nologo /subsystem:windows /pdb:none /machine:I386 /out:"C:\Documents and Settings\Administrator\Application Data\HorizonLive\SecureDoor\HZSDControl\2.0.0.0\Doors\appshare_1_7_2\data\Release-AppShare.exe" /libpath:"./lib/libjpeg" /libpath:"./lib/zlib" /libpath:"./HorizonLive" /libpath:"C:\Program Files\HTML Help Workshop\lib"
 # SUBTRACT LINK32 /debug
 
 !ELSEIF  "$(CFG)" == "AppShare - Win32 Debug"
@@ -227,10 +227,6 @@ SOURCE=..\vncEncodeZlib.cpp
 # Begin Source File
 
 SOURCE=..\vncEncodeZlibHex.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\VNCHelp.cpp
 # End Source File
 # Begin Source File
 
@@ -427,10 +423,6 @@ SOURCE=..\vncEncodeZlib.h
 # Begin Source File
 
 SOURCE=..\vncEncodeZlibHex.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\VNCHelp.h
 # End Source File
 # Begin Source File
 

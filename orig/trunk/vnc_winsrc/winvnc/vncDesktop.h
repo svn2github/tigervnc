@@ -277,6 +277,7 @@ protected:
 		bool clear_area = true ) ;
 
 	bool wasWindowOpen ;
+	bool wasWindowIconic ;
 	bool wasWindowOnScreen ;
 	
 	horizonPollingAdapter* m_polling_adapter ;

@@ -358,6 +358,7 @@ vncDesktop::vncDesktop()
 	m_polling_adapter = new horizonPollingAdapter( this ) ;
 	
 	wasWindowOpen = true ;
+	wasWindowIconic = false ;
 	wasWindowOnScreen = true ;
 #endif
 }
@@ -2156,22 +2157,25 @@ vncDesktop::CheckUpdates()
 			return TRUE ;
 		}
 
+		// remember window was open
+		wasWindowOpen = true ;
+
 		// the window is minimized
 		if ( IsIconic( m_server->GetWindowShared() ) == TRUE )
 		{
-			if ( wasWindowOpen == true )
+			if ( wasWindowIconic == false )
 			{
 				sendWindowIconicMessage() ;
 
 				// remember the window was closed
-				wasWindowOpen = false ;
+				wasWindowIconic = true ;
 			}
 						
 			return TRUE ;
 		}
-		
-		// remember window was open
-		wasWindowOpen = true ;
+
+		// remember window was not iconic
+		wasWindowIconic = false ;
 #else
 		HWND hwnd = m_server->GetWindowShared();
 		BOOL success = (hwnd != NULL) && GetWindowRect(hwnd, &new_rect);

@@ -1243,8 +1243,8 @@ vncClientThread::run(void *arg)
 						HWND temp = GetDesktopWindow();
 						GetWindowRect(temp,&coord);
 
-						unsigned long x = (msg.pe.x * 65535) / (coord.right - coord.left);
-						unsigned long y = (msg.pe.y * 65535) / (coord.bottom - coord.top);
+						unsigned long x = (msg.pe.x * 65535) / (coord.right - coord.left - 1);
+						unsigned long y = (msg.pe.y * 65535) / (coord.bottom - coord.top - 1);
 
 						// Do the pointer event					
 						::mouse_event(flags, (DWORD)x, (DWORD)y, wheel_movement, 0);

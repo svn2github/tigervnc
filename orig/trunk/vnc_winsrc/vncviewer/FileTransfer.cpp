@@ -493,6 +493,7 @@ FileTransfer::ShowClientItems(char *path)
 					BlockingFileTransferDialog(TRUE);
 					path[strlen(path) - 2] = '\0';
 					strcpy(m_ClientPathTmp, m_ClientPath);
+					FindClose(m_handle);
 					return;
 				}
 				break;
@@ -505,8 +506,10 @@ FileTransfer::ShowClientItems(char *path)
 			path[strlen(path) - 2] = '\0';
 			strcpy(m_ClientPath, m_ClientPathTmp);
 			SetWindowText(m_hwndFTClientPath, m_ClientPath);
+			FindClose(m_handle);
 			return;
 		} 
+		FindClose(m_handle);
 		m_handle = FindFirstFile(path, &m_FindFileData);
 		if (m_FTClientItemInfo !=NULL) delete [] m_FTClientItemInfo;
 		m_FTClientItemInfo = new FTITEMINFO [FilesNum];

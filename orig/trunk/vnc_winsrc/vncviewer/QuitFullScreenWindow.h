@@ -32,6 +32,7 @@ class QuitFullScreenWindow
 public:
 	QuitFullScreenWindow(VNCviewerApp *pApp, ClientConnection * CConn);
 	void ShowButton(BOOL show);
+	HWND GetButton() {return m_hwndButton;};
 	virtual ~QuitFullScreenWindow();
 protected:
 	static LRESULT CALLBACK QuitProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);

@@ -74,8 +74,6 @@ void ClientConnection::RealiseFullScreenMode(bool suppressPrompt)
 					MB_OK | MB_ICONINFORMATION | MB_TOPMOST | MB_SETFOREGROUND);
 			}
 		}
-		ShowWindow(m_hToolbar, SW_HIDE);
-		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_TOOLBAR, MF_BYCOMMAND|MF_GRAYED);
 		ShowWindow(m_hwnd1, SW_MAXIMIZE);
 		style = GetWindowLong(m_hwnd1, GWL_STYLE);
 		style &= ~(WS_DLGFRAME | WS_THICKFRAME);
@@ -84,13 +82,9 @@ void ClientConnection::RealiseFullScreenMode(bool suppressPrompt)
 		int cx = GetSystemMetrics(SM_CXSCREEN);
 		int cy = GetSystemMetrics(SM_CYSCREEN);
 		SetWindowPos(m_hwnd1, HWND_TOP, -1, -1, cx + 3, cy + 3, SWP_FRAMECHANGED);
-		CheckMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_FULLSCREEN, MF_BYCOMMAND|MF_CHECKED);
-		if (showToolBar)
-			m_QuitFSW->ShowButton(TRUE);
 		SetFocus(m_hwnd1);
+		CheckMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_FULLSCREEN, MF_BYCOMMAND|MF_CHECKED);
 	} else {
-		m_QuitFSW->ShowButton(FALSE);
-		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_TOOLBAR, MF_BYCOMMAND|MF_ENABLED);
 		style |= (WS_DLGFRAME | WS_THICKFRAME);
 		
 		SetWindowLong(m_hwnd1, GWL_STYLE, style);

@@ -1561,9 +1561,9 @@ void ClientConnection::PositionChildWindow()
 	
 	int parentwidth = rparent.right - rparent.left;
 	int parentheight = rparent.bottom - rparent.top; 
-				
-	if (GetMenuState(GetSystemMenu(m_hwnd1, FALSE),
-				ID_TOOLBAR, MF_BYCOMMAND) == MF_CHECKED) {
+	BOOL toolbar = GetMenuState(GetSystemMenu(m_hwnd1, FALSE),
+				ID_TOOLBAR, MF_BYCOMMAND) == MF_CHECKED;	
+	if (toolbar && !InFullScreenMode()) {
 		RECT rtb;
 		GetWindowRect(m_hToolbar, &rtb);
 		int rtbheight = rtb.bottom - rtb.top - 3;
@@ -1574,7 +1574,7 @@ void ClientConnection::PositionChildWindow()
 	} else {
 		ShowWindow(m_hToolbar, SW_HIDE);
 	}
-	
+
 	SetWindowPos(m_hwndscroll, HWND_TOP, rparent.left - 1, rparent.top - 1,
 					parentwidth + 2, parentheight + 2, SWP_SHOWWINDOW);
 	if (!m_opts.m_FitWindow) {
@@ -1672,6 +1672,7 @@ void ClientConnection::PositionChildWindow()
 	} else {
 		InvalidateRect(m_hwnd, NULL, FALSE);
 	}
+	m_QuitFSW->ShowButton(toolbar && InFullScreenMode());
 	UpdateWindow(m_hwnd);
 }
 
@@ -2193,37 +2194,29 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 			}
 			return 0;
 		}
-		break;		
+		break;
 	case WM_ACTIVATEAPP:
-		if (!wParam) {
-			if (!_this->m_running) return 0;
-			if (_this->InFullScreenMode()) {
-				_this->m_QuitFSW->ShowButton(FALSE);
-				// We must top being topmost, but we want to choose our
-				// position carefully.
-				HWND foreground = GetForegroundWindow();
-				HWND hwndafter = NULL;
-				if ((foreground == NULL) || 
-					(GetWindowLong(foreground, GWL_EXSTYLE) & WS_EX_TOPMOST)) {
-					hwndafter = HWND_NOTOPMOST;
-				} else {
-					hwndafter = GetNextWindow(foreground, GW_HWNDNEXT); 
-				}
-
-				SetWindowPos(_this->m_hwnd1, hwndafter, 0,0,100,100, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);		
+		SetFocus(_this->m_hwnd1);
+		break;
+	case WM_ACTIVATE:
+		{
+			BOOL enable = (GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
+							ID_TOOLBAR, MF_BYCOMMAND) == MF_CHECKED) && 
+							_this->InFullScreenMode();
+			if (wParam == WA_INACTIVE) {
+				if ( _this->m_opts.m_ViewOnly) return 0;
+					_this->SwitchOffKey();
+			
+				if ((HWND)lParam != _this->m_QuitFSW->GetButton() && enable)			
+					_this->m_QuitFSW->ShowButton(FALSE);			
+			} else {
+				hotkeys.SetWindow(hwnd);
+				if (enable)
+					_this->m_QuitFSW->ShowButton(TRUE);
+				SetFocus(_this->m_hwnd1);
 			}
-			vnclog.Print(6, _T("Losing focus - cancelling modifiers\n"));
-			if ( _this->m_opts.m_ViewOnly) return 0;
-			_this->SwitchOffKey();
-		} else {					
-			hotkeys.SetWindow(hwnd);
-			if (_this->InFullScreenMode()) {
-				SetWindowPos(_this->m_hwnd1, HWND_TOP, 0,0,100,100, SWP_NOMOVE | SWP_NOSIZE);
-				_this->m_QuitFSW->ShowButton(TRUE);
-			}
-			SetFocus(hwnd);
 		}
-		return 0;
+		break;
 	case WM_SIZE:		
 		_this->PositionChildWindow();			
 		return 0;	

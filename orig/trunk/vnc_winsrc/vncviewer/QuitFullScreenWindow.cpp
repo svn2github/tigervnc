@@ -94,6 +94,7 @@ void QuitFullScreenWindow::ShowButton(BOOL show)
 {
 	if (show) {
 		ShowWindow(m_hwndButton, SW_SHOW);
+		SetFocus(m_CConn->GetViewerWindow());
 	} else {
 		ShowWindow(m_hwndButton, SW_HIDE);
 	}

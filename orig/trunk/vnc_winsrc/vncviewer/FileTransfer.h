@@ -135,6 +135,8 @@ private:
 	void SendFileDeleteRequestMessage(char *path);
 	void SendFileSpecDirRequestMessage(unsigned char flags, unsigned short specFlags);
 	void CreateItemInfoList(FileTransferItemInfo *pftii, FTSIZEDATA *ftsd, int ftsdNum, char *pfnames, int fnamesSize);
+	void InitFTIcons();
+	void DestroyFTIcons();
 	void InitProgressBar(int nPosition);
 	void InitFTProgressBar(int nPosition);
 	void IncreaseProgBarPos(int pos);
@@ -153,9 +155,9 @@ private:
 	void SetDefaultBlockSize() { m_dwFileBlockSize = 8192; };
 	void FTClientDelete(FileTransferItemInfo *ftfi);
 
-
 	DWORD GetSelectedFileSize(char *path, FileTransferItemInfo *pFTFI);
 
+	void CloseFileTransferDialog();
 	void SetStatusText(LPCSTR format,...);
 	void ClearStatusText() { SetWindowText(m_hwndFTStatus, ""); };
 	void MakeStatusText(char *prefix, char *path1, char *path2, char *name);
@@ -210,6 +212,7 @@ private:
 	HWND m_hwndFTBrowse;
 	
 	BOOL m_bFTCOPY;
+	BOOL m_bFirstStart;
     BOOL m_bUploadStarted;
     BOOL m_bDownloadStarted;
 	BOOL m_bTransferEnable;
@@ -223,6 +226,21 @@ private:
     HANDLE m_hFiletoRead;
 	HTREEITEM m_hTreeItem;
 	HINSTANCE m_FTInstance;
+    HIMAGELIST m_hImageList;
+
+	HANDLE m_hIconCopyGray;
+	HANDLE m_hIconUpload;
+	HANDLE m_hIconDownload;
+	HANDLE m_hIconDelete;
+	HANDLE m_hIconDeleteGray;
+	HANDLE m_hIconRename;
+	HANDLE m_hIconRenameGray;
+	HANDLE m_hIconCreateLocFolder;
+	HANDLE m_hIconCreateLocFolderGray;
+	HANDLE m_hIconCreateRemFolder;
+	HANDLE m_hIconCreateRemFolderGray;
+	HANDLE m_hIconCancel;
+	HANDLE m_hIconCancelGray;
 
 	FileTransferItemInfo m_FTClientItemInfo;
 	FileTransferItemInfo m_FTServerItemInfo;

@@ -5,6 +5,7 @@
 #define IDR_TRAY                        101
 #define IDD_HELP                        101
 #define ID_CONN_CTLESC                  102
+#define IDD_FULL_SCREEN_DISABLE         102
 #define IDR_TRAYMENU                    103
 #define ID_CONN_ABOUT                   103
 #define IDI_MAINICON                    104
@@ -48,7 +49,20 @@
 #define IDI_RENAME                      249
 #define IDD_FTCANCELING                 251
 #define IDD_FTCONFIRM                   252
-#define IDB_DISABLE_FS                  253
+#define IDI_FTFILE                      253
+#define IDI_FTDIR                       254
+#define IDI_UPLOAD                      255
+#define IDI_DELETEGRAY                  257
+#define IDI_DOWNLOAD                    258
+#define IDI_RENAMEGRAY                  260
+#define IDI_COPYGRAY                    261
+#define IDI_CREATELOCALFOLDER           262
+#define IDI_CREATELOCFOLDERGRAY         263
+#define IDI_CREATEREMOTEFOLDER          264
+#define IDI_CREATEREMFOLDERGRAY         265
+#define IDI_CANCELFT                    266
+#define IDI_CANCELFTGRAY                267
+#define IDB_DISABLE_FS                  268
 #define IDC_HOSTNAME_EDIT               1000
 #define IDC_DPYNUM_EDIT                 1001
 #define IDC_BELLDEICONIFY               1002
@@ -155,26 +169,27 @@
 #define IDC_TVNC_SERV_LABEL             1128
 #define IDC_FTSTATUS                    1130
 #define IDC_BUTTON2                     1131
-#define IDC_CLIENTCREATEDIR             1131
 #define IDC_LISTEN_PORT                 1132
 #define IDC_BUTTON3                     1133
 #define IDC_SERVERUP                    1134
 #define IDC_BUTTON4                     1135
 #define IDC_CLIENTRELOAD                1136
 #define IDC_BUTTON5                     1137
-#define IDC_RENAME                      1137
+#define IDC_FTRENAME                    1137
 #define IDC_CLIENTUP                    1138
 #define IDC_LOG_BROWSE                  1139
-#define IDC_SERVERCREATEDIR             1140
 #define IDC_EDITDIRNAME                 1141
 #define IDC_AUTO_SCROLLING              1142
 #define IDC_FILETRANSFERPERCENT         1145
 #define IDC_CURRENTFILEPERCENT          1146
 #define IDC_PROGRESS                    1147
 #define IDC_MAINTEXT                    1151
-#define IDC_DELETE                      1154
+#define IDC_FTDELETE                    1154
 #define ID_FTYESTOALL                   1155
 #define IDC_FTCONFIRMTEXT               1156
+#define IDC_DISABLE                     1157
+#define IDC_CREATEREMFLD                1159
+#define IDC_CREATELOCFLD                1160
 #define ID_SESSION_SET_CRECT            32777
 #define IDC_ALLOW_COMPRESSLEVEL         32778
 #define IDC_ALLOW_JPEG                  32779
@@ -189,9 +204,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        254
+#define _APS_NEXT_RESOURCE_VALUE        268
 #define _APS_NEXT_COMMAND_VALUE         40011
-#define _APS_NEXT_CONTROL_VALUE         1158
+#define _APS_NEXT_CONTROL_VALUE         1161
 #define _APS_NEXT_SYMED_VALUE           244
 #endif
 #endif

@@ -27,6 +27,7 @@ LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
 //
 
 IDB_BITMAP1             BITMAP  DISCARDABLE     "toolbar.bmp"
+IDB_DISABLE_FS          BITMAP  DISCARDABLE     "DisableFS.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -122,7 +123,6 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 
 IDB_VNCBITMAP           BITMAP  DISCARDABLE     "tightvnc.bmp"
 IDB_VNC32               BITMAP  DISCARDABLE     "tightvnc48.bmp"
-IDB_DISABLE_FS          BITMAP  DISCARDABLE     "DisableFS.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -232,47 +232,52 @@ BEGIN
     PUSHBUTTON      "&Cancel",IDC_FTBROWSECANCEL,95,175,50,14
 END
 
-IDD_FILETRANSFER_DLG DIALOGEX 0, 0, 499, 282
+IDD_FILETRANSFER_DLG DIALOGEX 0, 0, 540, 282
 STYLE DS_MODALFRAME | DS_CONTEXTHELP | WS_POPUP | WS_CLIPCHILDREN | 
     WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "TightVNC File Transfers"
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
-    CTEXT           "Local Computer",IDC_LOCAL_COMP_LABEL,7,7,220,10
-    CTEXT           "TightVNC Server",IDC_TVNC_SERV_LABEL,272,7,220,10
-    PUSHBUTTON      "...",IDC_CLIENTBROWSE_BUT,185,21,14,12,WS_GROUP
-    PUSHBUTTON      "",IDC_CLIENTUP,199,21,14,12,BS_ICON
-    PUSHBUTTON      "",IDC_CLIENTRELOAD,213,21,14,12,BS_ICON
-    PUSHBUTTON      "...",IDC_SERVERBROWSE_BUT,448,21,14,12,WS_GROUP
-    PUSHBUTTON      "",IDC_SERVERUP,462,21,14,12,BS_ICON
-    PUSHBUTTON      "",IDC_SERVERRELOAD,478,21,14,12,BS_ICON
+    CTEXT           "Local Computer",IDC_LOCAL_COMP_LABEL,7,7,206,10
+    CTEXT           "TightVNC Server",IDC_TVNC_SERV_LABEL,327,7,206,10
+    PUSHBUTTON      "...",IDC_CLIENTBROWSE_BUT,171,21,14,12,WS_GROUP
+    PUSHBUTTON      "",IDC_CLIENTUP,185,21,14,12,BS_ICON
+    PUSHBUTTON      "",IDC_CLIENTRELOAD,199,21,14,12,BS_ICON
+    PUSHBUTTON      "...",IDC_SERVERBROWSE_BUT,491,21,14,12,WS_GROUP
+    PUSHBUTTON      "",IDC_SERVERUP,505,21,14,12,BS_ICON
+    PUSHBUTTON      "",IDC_SERVERRELOAD,519,21,14,12,BS_ICON
     CONTROL         "List1",IDC_FTCLIENTLIST,"SysListView32",LVS_REPORT | 
                     LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | WS_BORDER | 
-                    WS_GROUP | WS_TABSTOP,7,40,220,196
+                    WS_GROUP | WS_TABSTOP,7,40,206,196
     CONTROL         "List2",IDC_FTSERVERLIST,"SysListView32",LVS_REPORT | 
                     LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | WS_BORDER | 
-                    WS_GROUP | WS_TABSTOP,272,40,220,196
-    PUSHBUTTON      "<--->",IDC_FTCOPY,232,80,33,14,WS_DISABLED | WS_GROUP
+                    WS_GROUP | WS_TABSTOP,327,40,206,196
     CONTROL         "Progress1",IDC_PROGRESS,"msctls_progress32",WS_BORDER,
-                    313,244,150,10
-    PUSHBUTTON      "Cancel",IDC_FTCANCEL,232,171,33,14,WS_DISABLED
+                    375,244,133,10
     LTEXT           "",IDC_FTSTATUS,7,261,426,14,SS_CENTERIMAGE
-    PUSHBUTTON      "&Close",IDC_EXIT,442,261,50,14
-    PUSHBUTTON      "",IDC_SERVERCREATEDIR,251,40,14,12,BS_ICON
-    PUSHBUTTON      "",IDC_CLIENTCREATEDIR,232,40,14,12,BS_ICON
+    PUSHBUTTON      "&Close",IDC_EXIT,483,261,50,14
     LTEXT           "File Transfer",IDC_STATIC,7,245,43,8
     CONTROL         "Progress1",IDC_FTPROGRESS,"msctls_progress32",WS_BORDER,
-                    50,244,150,10
-    CTEXT           "0%",IDC_FILETRANSFERPERCENT,209,245,18,8
-    LTEXT           "Current File",IDC_STATIC,270,245,36,8
-    CTEXT           "0%",IDC_CURRENTFILEPERCENT,474,245,18,8
-    COMBOBOX        IDC_CLIENTPATH,7,21,175,93,CBS_DROPDOWN | 
+                    55,244,133,10
+    CTEXT           "0%",IDC_FILETRANSFERPERCENT,195,245,18,8
+    LTEXT           "Current File",IDC_STATIC,327,245,36,8
+    CTEXT           "0%",IDC_CURRENTFILEPERCENT,515,245,18,8
+    COMBOBOX        IDC_CLIENTPATH,7,21,161,93,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_SERVERPATH,270,21,175,93,CBS_DROPDOWN | 
+    COMBOBOX        IDC_SERVERPATH,327,21,161,93,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Delete",IDC_DELETE,232,122,33,14,WS_DISABLED
-    PUSHBUTTON      "Rename",IDC_RENAME,232,101,33,14,WS_DISABLED
+    ICON            "",IDC_FTCOPY,220,100,20,20,SS_NOTIFY | SS_REALSIZEIMAGE
+    ICON            "",IDC_FTRENAME,220,120,20,20,SS_NOTIFY | 
+                    SS_REALSIZEIMAGE
+    ICON            "",IDC_FTDELETE,220,140,20,20,SS_NOTIFY | 
+                    SS_REALSIZEIMAGE
+    ICON            "",IDC_CREATELOCFLD,220,49,20,20,SS_NOTIFY | 
+                    SS_REALSIZEIMAGE
+    ICON            "",IDC_CREATEREMFLD,220,65,20,20,SS_NOTIFY | 
+                    SS_REALSIZEIMAGE
+    ICON            "",IDC_FTCANCEL,220,175,21,20,SS_NOTIFY | 
+                    SS_REALSIZEIMAGE
 END
 
 IDD_SESSION_DLG DIALOGEX 0, 0, 253, 85
@@ -401,6 +406,15 @@ BEGIN
     LTEXT           "",IDC_STATUS_STATIC,7,21,196,10,NOT WS_GROUP
 END
 
+IDD_FULL_SCREEN_DISABLE DIALOGEX 0, 0, 68, 28
+STYLE WS_CHILD | WS_VISIBLE | WS_CAPTION
+EXSTYLE WS_EX_TOOLWINDOW
+CAPTION "Full screen mode"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    PUSHBUTTON      "Disable",IDC_DISABLE,3,3,61,21
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -467,9 +481,10 @@ BEGIN
     IDD_FILETRANSFER_DLG, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 492
-        VERTGUIDE, 232
-        VERTGUIDE, 265
+        RIGHTMARGIN, 533
+        VERTGUIDE, 213
+        VERTGUIDE, 250
+        VERTGUIDE, 327
         TOPMARGIN, 7
         BOTTOMMARGIN, 275
         HORZGUIDE, 27
@@ -549,6 +564,14 @@ BEGIN
         RIGHTMARGIN, 203
         TOPMARGIN, 7
         BOTTOMMARGIN, 54
+    END
+
+    IDD_FULL_SCREEN_DISABLE, DIALOG
+    BEGIN
+        LEFTMARGIN, 3
+        RIGHTMARGIN, 64
+        TOPMARGIN, 3
+        BOTTOMMARGIN, 24
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -652,9 +675,21 @@ IDR_TRAY                ICON    DISCARDABLE     "idr_tray.ico"
 IDI_MAINICON            ICON    DISCARDABLE     "vncviewer.ico"
 IDI_FILEUP              ICON    DISCARDABLE     "fileup.ico"
 IDI_FILERELOAD          ICON    DISCARDABLE     "filereload.ico"
-IDI_CREATEDIR           ICON    DISCARDABLE     "createdir.ico"
-IDI_DELETE              ICON    DISCARDABLE     "deletedi.ico"
-IDI_RENAME              ICON    DISCARDABLE     "rename.ico"
+IDI_FTFILE              ICON    DISCARDABLE     "ftfile.ico"
+IDI_FTDIR               ICON    DISCARDABLE     "icon1.ico"
+IDI_UPLOAD              ICON    DISCARDABLE     "upload.ico"
+IDI_DELETE              ICON    DISCARDABLE     "del.ico"
+IDI_DELETEGRAY          ICON    DISCARDABLE     "delgray.ico"
+IDI_DOWNLOAD            ICON    DISCARDABLE     "download.ico"
+IDI_RENAME              ICON    DISCARDABLE     "ren.ico"
+IDI_RENAMEGRAY          ICON    DISCARDABLE     "rengray.ico"
+IDI_COPYGRAY            ICON    DISCARDABLE     "copygray.ico"
+IDI_CREATELOCALFOLDER   ICON    DISCARDABLE     "crtlcfld.ico"
+IDI_CREATELOCFOLDERGRAY ICON    DISCARDABLE     "crtlcfgr.ico"
+IDI_CREATEREMOTEFOLDER  ICON    DISCARDABLE     "crtrmfld.ico"
+IDI_CREATEREMFOLDERGRAY ICON    DISCARDABLE     "crtrfgra.ico"
+IDI_CANCELFT            ICON    DISCARDABLE     "cancelft.ico"
+IDI_CANCELFTGRAY        ICON    DISCARDABLE     "cancelgr.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

@@ -92,6 +92,18 @@ LINK32=link.exe
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;cnt;rtf;gif;jpg;jpeg;jpe"
 # Begin Source File
 
+SOURCE=.\res\cancelft.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\cancelgr.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\copygray.ico
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\createdi.ico
 # End Source File
 # Begin Source File
@@ -100,7 +112,27 @@ SOURCE=.\res\createdir.ico
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\crtlcfgr.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\crtlcfld.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\crtrfgra.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\crtrmfld.ico
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\cursor1.cur
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\del.ico
 # End Source File
 # Begin Source File
 
@@ -108,7 +140,15 @@ SOURCE=.\res\deletedi.ico
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\delgray.ico
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\DisableFS.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\download.ico
 # End Source File
 # Begin Source File
 
@@ -120,6 +160,14 @@ SOURCE=.\res\fileup.ico
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\ftfile.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\icon1.ico
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\idr_tray.ico
 # End Source File
 # Begin Source File
@@ -128,7 +176,15 @@ SOURCE=.\res\nocursor.cur
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\ren.ico
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\rename.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\rengray.ico
 # End Source File
 # Begin Source File
 
@@ -149,6 +205,10 @@ SOURCE=.\res\toolbar.bmp
 # Begin Source File
 
 SOURCE=.\res\toolbar1.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\upload.ico
 # End Source File
 # Begin Source File
 

@@ -100,7 +100,11 @@ BOOL CALLBACK vncConnDialog::vncConnDlgProc(HWND hwnd,
 			portp = strchr(hostname, ':');
 			if (portp) {
 				*portp++ = '\0';
-				port += atoi(portp);
+				if (*portp == ':') {
+					port = atoi(++portp);	// Port number after "::"
+				} else {
+					port += atoi(portp);	// Display number after ":"
+				}
 			}
 
 			// Attempt to create a new socket

@@ -105,10 +105,10 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,145,29,145,10
     COMBOBOX        IDC_SCALE_EDIT,181,14,35,74,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    GROUPBOX        "Mouse cursor",IDC_STATIC,136,104,160,49
-    GROUPBOX        "Format and encoding",IDC_STATIC,4,4,123,130
-    GROUPBOX        "Mouse",IDC_STATIC,136,61,160,39
-    GROUPBOX        "Display",IDC_STATIC,136,4,160,52
+    GROUPBOX        "Mouse cursor",IDC_STATIC_MCURSOR,136,104,160,49
+    GROUPBOX        "Format and encoding",IDC_STATIC_FORMAT,4,4,123,130
+    GROUPBOX        "Mouse",IDC_STATIC_MOUSE,136,61,160,39
+    GROUPBOX        "Display",IDC_STATIC_DISPLAY,136,4,160,52
     LTEXT           "Use encoding:",IDC_STATIC_ENCODING,12,15,49,10,
                     SS_CENTERIMAGE
     LTEXT           "%",IDC_STATIC_P,221,15,10,10,SS_CENTERIMAGE
@@ -121,7 +121,7 @@ BEGIN
     LTEXT           "1",IDC_STATIC_LEVEL,75,68,28,10
     LTEXT           "1",IDC_STATIC_QUALITY,78,107,25,10
     LTEXT           "Scale by:",IDC_STATIC_SCALE,145,15,36,10,SS_CENTERIMAGE
-    GROUPBOX        "Restrictions",IDC_STATIC,4,137,123,38
+    GROUPBOX        "Restrictions",IDC_STATIC_RESTRICTIONS,4,137,123,38
 END
 
 IDD_FTBROWSE_DLG DIALOGEX 0, 0, 164, 215
@@ -172,7 +172,7 @@ IDD_SESSION_DLG DIALOGEX 0, 0, 253, 85
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Connection details"
-FONT 8, "MS Sans Serif", 0, 0, 0x1
+FONT 8, "MS Sans Serif"
 BEGIN
     COMBOBOX        IDC_HOSTNAME_EDIT,51,7,109,66,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -189,7 +189,7 @@ BEGIN
     PUSHBUTTON      "&Listening mode",IDC_LIST_MODE,189,64,57,14
     LTEXT           "VNC server:",IDC_STATIC_SERVER,7,9,39,8
     GROUPBOX        "Connection profile",IDC_CONN_PROF,51,24,129,54
-    CONTROL         108,IDC_STATIC,"Static",SS_BITMAP,9,28,32,30
+    CONTROL         108,IDC_STATIC_PICTURE,"Static",SS_BITMAP,9,28,32,30
 END
 
 IDD_SERVINFO_DLG DIALOG DISCARDABLE  0, 0, 224, 170
@@ -235,8 +235,8 @@ BEGIN
                     40,108,9
     CHECKBOX        "Log to file",IDC_CHECK_LOG_FILE,14,73,45,11
     EDITTEXT        IDC_EDIT_LOG_FILE,92,85,96,15,ES_AUTOHSCROLL
-    GROUPBOX        "Interface options",IDC_STATIC,4,4,292,54
-    GROUPBOX        "Logging",IDC_STATIC,4,61,292,45
+    GROUPBOX        "Interface options",IDC_STATIC_IOPTIONS,4,4,292,54
+    GROUPBOX        "Logging",IDC_STATIC_LOGGING,4,61,292,45
     LTEXT           "Name log file (full path):",IDC_STATIC_LOG_FILE,14,89,
                     77,8
     EDITTEXT        IDC_EDIT_LOG_LEVEL,232,86,23,14,ES_AUTOHSCROLL
@@ -245,14 +245,14 @@ BEGIN
                     UDS_ARROWKEYS,162,38,11,13
     CONTROL         "Spin2",IDC_SPIN2,"msctls_updown32",UDS_ALIGNRIGHT | 
                     UDS_ARROWKEYS,258,86,11,14
-    GROUPBOX        "Local cursor",IDC_STATIC,4,109,292,26
+    GROUPBOX        "Local cursor",IDC_STATIC_LCURSOR,4,109,292,26
     CONTROL         "Dotcursor",IDC_DOTCURSOR_RADIO,"Button",
                     BS_AUTORADIOBUTTON,14,121,70,8
     CONTROL         "Nocursor",IDC_NOCURSOR_RADIO,"Button",
                     BS_AUTORADIOBUTTON,114,121,69,8
     CONTROL         "Normalcursor",IDC_NORMALCURSOR_RADIO,"Button",
                     BS_AUTORADIOBUTTON,208,121,66,8
-    GROUPBOX        "Listen mode",IDC_STATIC,4,145,292,30
+    GROUPBOX        "Listen mode",IDC_STATIC_LMODE,4,145,292,30
     EDITTEXT        IDC_LISTEN_PORT,131,155,50,15,ES_AUTOHSCROLL | ES_NUMBER | 
                     WS_GROUP
     LTEXT           "Port for listen  reverse connections:",IDC_STATIC_PORT,
@@ -640,6 +640,20 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDC_NORMALCURSOR_RADIO  "Normalcursor"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDC_STATIC_FORMAT       "Format and encoding."
+    IDC_STATIC_RESTRICTIONS "Restrictions."
+    IDC_STATIC_DISPLAY      "Display."
+    IDC_STATIC_MOUSE        "Mouse."
+    IDC_STATIC_MCURSOR      "Mouse cursor."
+    IDC_STATIC_IOPTIONS     "Interface options."
+    IDC_STATIC_LOGGING      "Logging."
+    IDC_STATIC_LCURSOR      "Local cursor."
+    IDC_STATIC_LMODE        "Listen mode."
+    IDC_STATIC_PICTURE      "Picture."
 END
 
 #endif    // English (U.S.) resources

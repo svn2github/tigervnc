@@ -4,7 +4,7 @@
 //
 #define IDR_TRAY                        101
 #define IDD_HELP                        101
-#define ID_CONN_CTLESC                  102  
+#define ID_CONN_CTLESC                  102
 #define IDR_TRAYMENU                    103
 #define ID_CONN_ABOUT                   103
 #define IDI_MAINICON                    104
@@ -135,6 +135,16 @@
 #define IDC_STATIC_LOG_FILE             1107
 #define IDC_STATIC_LOG_LEVEL            1108
 #define IDC_STATIC_PORT                 1109
+#define IDC_STATIC_FORMAT               1110
+#define IDC_STATIC_RESTRICTIONS         1111
+#define IDC_STATIC_DISPLAY              1112
+#define IDC_STATIC_MOUSE                1113
+#define IDC_STATIC_MCURSOR              1114
+#define IDC_STATIC_IOPTIONS             1115
+#define IDC_STATIC_LOGGING              1116
+#define IDC_STATIC_LCURSOR              1117
+#define IDC_STATIC_LMODE                1118
+#define IDC_STATIC_PICTURE              1119
 #define ID_SESSION_SET_CRECT            32777
 #define IDC_ALLOW_COMPRESSLEVEL         32778
 #define IDC_ALLOW_JPEG                  32779
@@ -152,7 +162,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        244
 #define _APS_NEXT_COMMAND_VALUE         40011
-#define _APS_NEXT_CONTROL_VALUE         1110
+#define _APS_NEXT_CONTROL_VALUE         1120
 #define _APS_NEXT_SYMED_VALUE           154
 #endif
 #endif

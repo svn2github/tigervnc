@@ -145,6 +145,8 @@
 #define IDC_STATIC_LCURSOR              1117
 #define IDC_STATIC_LMODE                1118
 #define IDC_STATIC_PICTURE              1119
+#define IDC_BUTTON1                     1120
+#define IDC_FTCOPY                      1120
 #define ID_SESSION_SET_CRECT            32777
 #define IDC_ALLOW_COMPRESSLEVEL         32778
 #define IDC_ALLOW_JPEG                  32779
@@ -162,7 +164,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        244
 #define _APS_NEXT_COMMAND_VALUE         40011
-#define _APS_NEXT_CONTROL_VALUE         1120
+#define _APS_NEXT_CONTROL_VALUE         1121
 #define _APS_NEXT_SYMED_VALUE           154
 #endif
 #endif

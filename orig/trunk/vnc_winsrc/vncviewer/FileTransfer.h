@@ -22,6 +22,9 @@ typedef struct tagFTITEMINFO
 class FileTransfer  
 {
 public:
+	FileTransfer(ClientConnection * pCC, VNCviewerApp * pApp);
+	void FTInsertColumn(HWND hwnd, char *iText, int iOrder, int xWidth);
+	void ClearFTItemInfo(FTITEMINFO *ftiteminfo);
 	void CreateFileTransferDialog();
 	void ShowListViewItems(HWND hwnd, FTITEMINFO *FTItemInfo, int NumItem);
 	void ConvertPath(char *path);
@@ -29,7 +32,7 @@ public:
 	void SendFileListRequestMessage(char *filename);
 	void ShowServerItems();
 	void ShowClientItems(char path[rfbMAX_PATH]);
-	void BlockingFileTransferDialog(bool status);
+	void BlockingFileTransferDialog(BOOL status);
 	void ProcessDlgMessage(HWND hwnd);
 	void ShowTreeViewItems(HWND hwnd, LPNMTREEVIEW m_lParam);
 	void CreateFTBrowseDialog(BOOL status);
@@ -45,16 +48,14 @@ public:
 	FTITEMINFO * m_FTServerItemInfo;
 	void OnGetDispClientInfo(NMLVDISPINFO *plvdi); 
 	void OnGetDispServerInfo(NMLVDISPINFO *plvdi); 
-	FileTransfer(ClientConnection * pCC, VNCviewerApp * pApp);
 	static LRESULT CALLBACK FileTransferDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-	static BOOL CALLBACK AboutFileTransferDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static BOOL CALLBACK FTBrowseDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	void FileTransferDownload();
 	void FileTransferUpload();
 
 	ClientConnection * m_clientconn;
 	VNCviewerApp * m_pApp; 
-
+	
 	HWND m_hwndFileTransfer;
 	HWND m_hwndFTClientList;
 	HWND m_hwndFTServerList;
@@ -66,13 +67,13 @@ public:
 	
 	BOOL m_TransferEnable;
 	BOOL m_bServerBrowseRequest;
+	BOOL m_bFTCOPY;
 
 	HANDLE m_hFiletoWrite;
 	HTREEITEM m_hTreeItem;
 	HINSTANCE m_FTInstance;
 
 	virtual ~FileTransfer();
-
 };
 
 #endif // !defined(FILETRANSFER)

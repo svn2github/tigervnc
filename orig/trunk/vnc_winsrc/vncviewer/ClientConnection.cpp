@@ -338,7 +338,7 @@ void ClientConnection::CreateDisplay()
 	wndclass.hIcon			= (HICON)LoadIcon(m_pApp->m_instance,
 												MAKEINTRESOURCE(IDI_MAINICON));
 	wndclass.hCursor		= LoadCursor(NULL, IDC_ARROW);
-	wndclass.hbrBackground	= (HBRUSH) GetSysColorBrush(COLOR_ACTIVEBORDER);
+	wndclass.hbrBackground	= (HBRUSH) GetSysColorBrush(COLOR_BTNFACE);
     wndclass.lpszMenuName	= (LPCTSTR)NULL;
 	wndclass.lpszClassName	= VWR_WND_CLASS_NAME;
 
@@ -537,8 +537,6 @@ HWND ClientConnection::CreateToolbar()
 	memset(but, 0, sizeof(but));
 	int i = 0;
 
-	but[i++].fsStyle	= TBSTYLE_SEP;
-
 	but[i].iBitmap		= 0;
 	but[i].idCommand	= IDC_OPTIONBUTTON;
 	but[i].fsState		= TBSTATE_ENABLED;
@@ -610,11 +608,16 @@ HWND ClientConnection::CreateToolbar()
 	int numButtons = i;
 	assert(numButtons <= MAX_TOOLBAR_BUTTONS);
 
-	return CreateToolbarEx(m_hwnd1,
+	HWND hwndToolbar = CreateToolbarEx(m_hwnd1,
 		WS_CHILD | TBSTYLE_TOOLTIPS | 
 		WS_CLIPSIBLINGS | TBSTYLE_FLAT,
 		ID_TOOLBAR, 12, m_pApp->m_instance,
 		IDB_BITMAP1, but, numButtons, 0, 0, 0, 0, sizeof(TBBUTTON));
+
+	if (hwndToolbar != NULL)
+		SendMessage(hwndToolbar, TB_SETINDENT, 4, 0);
+
+	return hwndToolbar;
 }
 
 void ClientConnection::SaveListConnection()

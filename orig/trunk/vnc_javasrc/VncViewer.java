@@ -76,6 +76,7 @@ public class VncViewer extends java.applet.Applet
   String eightBitColorsDef;
 
   // Variables read from parameter values.
+  String socketFactory;
   String host;
   int port;
   String passwordParam;
@@ -594,6 +595,9 @@ public class VncViewer extends java.applet.Applet
     deferScreenUpdates = readIntParameter("Defer screen updates", 20);
     deferCursorUpdates = readIntParameter("Defer cursor updates", 10);
     deferUpdateRequests = readIntParameter("Defer update requests", 50);
+
+    // SocketFactory.
+    socketFactory = readParameter("SocketFactory", false);
   }
 
   public String readParameter(String name, boolean required) {

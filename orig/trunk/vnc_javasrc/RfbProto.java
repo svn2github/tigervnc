@@ -119,7 +119,22 @@ class RfbProto {
     viewer = v;
     host = h;
     port = p;
-    sock = new Socket(host, port);
+
+    if (viewer.socketFactory == null) {
+      sock = new Socket(host, port);
+    } else {
+      try {
+	Class factoryClass = Class.forName(viewer.socketFactory);
+	SocketFactory factory = (SocketFactory)factoryClass.newInstance();
+	if (viewer.inAnApplet)
+	  sock = factory.createSocket(host, port, viewer);
+	else
+	  sock = factory.createSocket(host, port, viewer.mainArgs);
+      } catch(Exception e) {
+	e.printStackTrace();
+	throw new IOException(e.getMessage());
+      }
+    }
     is = new DataInputStream(new BufferedInputStream(sock.getInputStream(),
 						     16384));
     os = sock.getOutputStream();

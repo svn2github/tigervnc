@@ -238,6 +238,16 @@ is the full list of parameters supported in TightVNC Java viewer:
     mouse and keyboard events, but causes delays in updating the screen when
     there is no mouse and keyboard activity on the client side.
 
+--> "SocketFactory" (no GUI equivalent)
+
+    Value: name of the class.
+    Default: none.
+
+    This option provides the way to define an alternate I/O implementation.
+    The dynamically referenced class must implement a SocketFactory
+    interface, and create a Socket, as configured by this parameter. See the
+    source in the SocketFactory.class.
+
 
 RECORDING VNC SESSIONS
 ======================

@@ -24,6 +24,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
 import java.io.*;
+import java.lang.*;
 import java.util.zip.*;
 
 
@@ -372,9 +373,8 @@ class vncCanvas extends Canvas
     }
 
     for (int dy = y0; dy != y1; dy += delta) {
-      ByteArrayInputStream src = new ByteArrayInputStream(pixels);
-      src.skip((sy + dy) * rfb.framebufferWidth + sx);
-      src.read(pixels, (ry + dy) * rfb.framebufferWidth + rx, rw);
+      System.arraycopy(pixels, (sy + dy) * rfb.framebufferWidth + sx,
+                       pixels, (ry + dy) * rfb.framebufferWidth + rx, rw);
     }
 
     handleUpdatedPixels(rx, ry, rw, rh);
@@ -585,17 +585,17 @@ class vncCanvas extends Canvas
   //
 
   void fillLargeArea(int x, int y, int w, int h, byte pixel) {
-
-    byte[] buf = new byte[w];
-    for (int i = 0; i < w; i++) {
-      buf[i] = pixel;
-    }
-    ByteArrayInputStream pixelStream = new ByteArrayInputStream(buf);
+    if (h * w == 0)
+      return;
 
     int offset = y * rfb.framebufferWidth + x;
-    for (int dy = 0; dy < h; dy++) {
-      pixelStream.reset();
-      pixelStream.read(pixels, offset, w);
+    for (int i = 0; i < w; i++) {
+      pixels[offset+i] = pixel;
+    }
+
+    for (int rows = h - 1; rows > 0; rows--) {
+      System.arraycopy(pixels, offset,
+                       pixels, offset + rfb.framebufferWidth, w);
       offset += rfb.framebufferWidth;
     }
   }

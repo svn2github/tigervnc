@@ -396,17 +396,6 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 			}
 		break;
 		}
-		{
-		LPTOOLTIPTEXT TTStr = (LPTOOLTIPTEXT)lParam;
-		if (TTStr->hdr.code == TTN_NEEDTEXT) {
-			switch (TTStr->hdr.idFrom) {
-			case IDC_FTCOPY:
-				TTStr->lpszText = "Copy button text";
-				break;
-			}
-			return 0;
-		}
-		}
 		break;
 	case WM_CHECKUPLOADQUEUE:
 		_this->CheckUploadQueue();

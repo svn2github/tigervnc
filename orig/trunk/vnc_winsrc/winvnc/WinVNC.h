@@ -26,6 +26,10 @@
 
 // WinVNC header file
 
+#ifdef HORIZONLIVE
+#include "horizon/horizonMain.h"
+#else
+
 #ifndef __WINVNC_H
 #define __WINVNC_H
 
@@ -43,11 +47,7 @@
 #define WM_SRV_CLIENT_AUTHENTICATED	WM_USER+3
 #define WM_SRV_CLIENT_DISCONNECT	WM_USER+4
 
-#ifdef HORIZONLIVE
-#define WINVNC_REGISTRY_KEY "Software\\HorizonLive\\AppShareHost"
-#else
 #define WINVNC_REGISTRY_KEY "Software\\ORL\\WinVNC3"
-#endif
 
 // Export the application details
 extern HINSTANCE	hAppInstance;
@@ -87,23 +87,6 @@ const char winvncUsageText[] =
 	" [-settings] [-defaultsettings] [-killallclients]\n"
 	" [-sharewindow  \"title\"] [-about] [-help]\n";
 
-#ifdef HORIZONLIVE
-
-// additional command-line option
-const char winvncNoSettings[]		= "-nosettings";
-
-// custom signal for requesting quit
-const int LS_QUIT = 0x800D ;
-
-// log and pid filenames
-#ifdef _DEBUG
-const char * const hzLogFileName = "G:\\appshare_instance.log" ;
-const char * const hzPIDFileName = "G:\\appshare.pid" ;
-#else
-const char * const hzLogFileName = "..\\logs\\appshare_instance.log" ;
-const char * const hzPIDFileName = "..\\logs\\appshare.pid" ;
-#endif // _DEBUG
+#endif // __WINVNC_H
 
 #endif // HORIZONLIVE
-
-#endif // __WINVNC_H

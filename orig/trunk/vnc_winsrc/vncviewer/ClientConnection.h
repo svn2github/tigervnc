@@ -120,7 +120,9 @@ private:
 	void SizeWindow();
 	bool ScrollScreen(int dx, int dy);
 	void UpdateScrollbars();
-    
+
+	void InvalidateScreenRect(const RECT *pRect);
+
 	void ReadRawRect(rfbFramebufferUpdateRectHeader *pfburh);
 	void ReadCopyRect(rfbFramebufferUpdateRectHeader *pfburh);
     void ReadRRERect(rfbFramebufferUpdateRectHeader *pfburh);

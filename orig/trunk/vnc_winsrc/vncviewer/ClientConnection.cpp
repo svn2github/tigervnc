@@ -1935,39 +1935,17 @@ void ClientConnection::ReadScreenUpdate() {
 			log.Print(0, _T("Unknown encoding %d - not supported!\n"), surh.encoding);
 			break;
 		}
-		
-		RECT rect;
-		
-		if (m_opts.m_scaling) {
-			// If we're scaling, we transform the coordinates of the rectangle received
-			// into the corresponding window coords, and invalidate *that* region.
-			
-			// First, we adjust coords to avoid rounding down when scaling.
-			int n = m_opts.m_scale_num;
-			int d = m_opts.m_scale_den;
-			int left   = (surh.r.x / d) * d;
-			int top    = (surh.r.y / d) * d;
-			int right  = (surh.r.x + surh.r.w + d - 1) / d * d; // round up
-			int bottom = (surh.r.y + surh.r.h + d - 1) / d * d; // round up
 
-			// Then we scale the rectangle, which should now give whole numbers
-			rect.left   = (left   * n / d) - m_hScrollPos;
-			rect.top    = (top    * n / d) - m_vScrollPos;
-			rect.right  = (right  * n / d) - m_hScrollPos;
-			rect.bottom = (bottom * n / d) - m_vScrollPos;;
-		} else {
-			rect.left   = surh.r.x - m_hScrollPos;
-			rect.top    = surh.r.y - m_vScrollPos;
-			rect.right  = rect.left + surh.r.w;
-			rect.bottom = rect.top  + surh.r.h;
-		}
-		InvalidateRect(m_hwnd, &rect, FALSE);
+		// Tell the system to update a screen rectangle. Note that
+		// InvalidateScreenRect member function knows about scaling.
+		RECT rect;
+		SetRect(&rect, surh.r.x, surh.r.y,
+				surh.r.x + surh.r.w, surh.r.y + surh.r.h);
+		InvalidateScreenRect(&rect);
 
 		// Now we may discard "soft cursor locks".
 		SoftCursorUnlockScreen();
 	}	
-
-
 
 	// Inform the other thread that an update is needed.
 	PostMessage(m_hwnd, WM_REGIONUPDATED, NULL, NULL);
@@ -2141,3 +2119,38 @@ void ClientConnection::CheckZlibBufferSize(int bufsize)
 
 
 }
+
+//
+// Invalidate a screen rectangle respecting scaling set by user.
+//
+
+void ClientConnection::InvalidateScreenRect(const RECT *pRect) {
+	RECT rect;
+
+	// If we're scaling, we transform the coordinates of the rectangle
+	// received into the corresponding window coords, and invalidate
+	// *that* region.
+
+	if (m_opts.m_scaling) {
+		// First, we adjust coords to avoid rounding down when scaling.
+		int n = m_opts.m_scale_num;
+		int d = m_opts.m_scale_den;
+		int left   = (pRect->left / d) * d;
+		int top    = (pRect->top  / d) * d;
+		int right  = (pRect->right  + d - 1) / d * d; // round up
+		int bottom = (pRect->bottom + d - 1) / d * d; // round up
+
+		// Then we scale the rectangle, which should now give whole numbers.
+		rect.left   = (left   * n / d) - m_hScrollPos;
+		rect.top    = (top    * n / d) - m_vScrollPos;
+		rect.right  = (right  * n / d) - m_hScrollPos;
+		rect.bottom = (bottom * n / d) - m_vScrollPos;
+	} else {
+		rect.left   = pRect->left   - m_hScrollPos;
+		rect.top    = pRect->top    - m_vScrollPos;
+		rect.right  = pRect->right  - m_hScrollPos;
+		rect.bottom = pRect->bottom - m_vScrollPos;
+	}
+	InvalidateRect(m_hwnd, &rect, FALSE);
+}
+

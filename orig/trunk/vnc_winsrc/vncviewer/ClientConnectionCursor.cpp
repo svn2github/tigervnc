@@ -315,11 +315,7 @@ void ClientConnection::SoftCursorRestoreArea() {
 	DeleteObject(m_hSavedAreaBitmap);
 	DeleteDC(m_hSavedAreaDC);
 
-	r.left   -= m_hScrollPos;
-	r.top    -= m_vScrollPos;
-	r.right  -= m_hScrollPos;
-	r.bottom -= m_vScrollPos;
-	InvalidateRect(m_hwnd, &r, FALSE);
+	InvalidateScreenRect(&r);
 }
 
 //
@@ -354,11 +350,7 @@ void ClientConnection::SoftCursorDraw() {
 
 	RECT r;
 	SoftCursorToScreen(&r, NULL);
-	r.left   -= m_hScrollPos;
-	r.top    -= m_vScrollPos;
-	r.right  -= m_hScrollPos;
-	r.bottom -= m_vScrollPos;
-	InvalidateRect(m_hwnd, &r, FALSE);
+	InvalidateScreenRect(&r);
 }
 
 //

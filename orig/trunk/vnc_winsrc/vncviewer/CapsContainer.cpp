@@ -24,11 +24,14 @@
 #include "CapsContainer.h"
 
 //
-// The constructor. Currently there is nothing to initialize.
+// The constructor.
 //
 
-CapsContainer::CapsContainer()
+CapsContainer::CapsContainer(int maxCaps)
 {
+	maxSize = maxCaps;
+	listSize = 0;
+	plist = new CARD32[maxSize];
 }
 
 //
@@ -37,6 +40,8 @@ CapsContainer::CapsContainer()
 
 CapsContainer::~CapsContainer()
 {
+	delete[] plist;
+
 	// Remove char[] strings allocated by the new[] operator.
 	std::map<CARD32,char*>::const_iterator iter;
 	for (iter = descMap.begin(); iter != descMap.end(); iter++) {
@@ -141,6 +146,9 @@ CapsContainer::Enable(const rfbCapabilityInfo *capinfo)
 	}
 
 	enableMap[capinfo->code] = true;
+	if (listSize < maxSize) {
+		plist[listSize++] = capinfo->code;
+	}
 	return true;
 }
 
@@ -152,5 +160,16 @@ bool
 CapsContainer::IsEnabled(CARD32 code)
 {
 	return (IsKnown(code)) ? enableMap[code] : false;
+}
+
+//
+// Return the capability code at the specified index.
+// If the index is not valid, return 0.
+//
+
+CARD32
+CapsContainer::GetByOrder(int idx)
+{
+	return (idx < listSize) ? plist[idx] : 0;
 }
 

@@ -103,9 +103,11 @@ private:
 	void Connect();
 	void SetSocketOptions();
 	void NegotiateProtocolVersion();
-	void ReadHandshakingCaps();
+	void ReadTunnelingCaps();
 	void SetupTunneling();
+	void ReadAuthenticationCaps();
 	void Authenticate();
+	bool AuthenticateVNC(char *errBuf, int errBufSize, bool *again);
 	void ReadServerInit();
 	void ReadInteractionCaps();
 	void ReadCapabilityList(CapsContainer *caps, int count);

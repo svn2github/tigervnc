@@ -35,7 +35,8 @@
 class CapsContainer
 {
 public:
-	CapsContainer();
+	CapsContainer(int maxCaps);
+	CapsContainer() { CapsContainer(64); }
 	~CapsContainer();
 
 	void Add(const rfbCapabilityInfo *capinfo, const char *desc = NULL);
@@ -48,11 +49,17 @@ public:
 
 	bool Enable(const rfbCapabilityInfo *capinfo);
 	bool IsEnabled(CARD32 code);
+	int NumEnabled() { return listSize; }
+	CARD32 GetByOrder(int idx);
 
 private:
 	std::map<CARD32,rfbCapabilityInfo> infoMap;
 	std::map<CARD32,char*> descMap;
 	std::map<CARD32,bool> enableMap;
+
+	int maxSize;
+	int listSize;
+	CARD32 *plist;
 };
 
 #endif // _VNC_CAPSCONTAINER

@@ -1,3 +1,4 @@
+//  Copyright (C) 2003 Constantin Kaplinsky. All Rights Reserved.
 //  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
@@ -267,7 +268,7 @@ void ClientConnection::Run()
 
 	// Only for protocol version 3.130
 	if (m_minorVersion >= 130)
-		ReadHandshakingCaps();
+		ReadTunnelingCaps();
 
 	// Only for protocol version 3.130
 	if (m_minorVersion >= 130)
@@ -733,123 +734,132 @@ void ClientConnection::SetupTunneling()
 
 void ClientConnection::Authenticate()
 {
-	CARD32 authScheme, reasonLen, authResult;
-    CARD8 challenge[CHALLENGESIZE];
-
-	// Send our preferred authentication scheme (protocol 3.130).
-	if (m_minorVersion >= 130) {
-		authScheme = Swap32IfLE(rfbVncAuth);
-		WriteExact((char *)&authScheme, sizeof(authScheme));
-	}
-
-	// Read actual authentication scheme.
+	// Read the authentication scheme.
+	CARD32 authScheme;
 	ReadExact((char *)&authScheme, sizeof(authScheme));
-    authScheme = Swap32IfLE(authScheme);
-	
+	authScheme = Swap32IfLE(authScheme);
+
     switch (authScheme) {
-		
+
     case rfbConnFailed:
-		ReadExact((char *)&reasonLen, sizeof(reasonLen));
-		reasonLen = Swap32IfLE(reasonLen);
-		
-		CheckBufferSize(reasonLen+1);
-		ReadString(m_netbuf, reasonLen);
-		
+		{
+			CARD32 reasonLen;
+			ReadExact((char *)&reasonLen, sizeof(reasonLen));
+			reasonLen = Swap32IfLE(reasonLen);
+
+			CheckBufferSize(reasonLen + 1);
+			ReadString(m_netbuf, reasonLen);
+		}
 		vnclog.Print(0, _T("RFB connection failed, reason: %s\n"), m_netbuf);
 		throw WarningException(m_netbuf);
         break;
-		
+
     case rfbNoAuth:
 		vnclog.Print(0, _T("No authentication needed\n"));
 		break;
-		
+
     case rfbVncAuth:
-		{
-            if ((m_majorVersion == 3) && (m_minorVersion < 3)) {
-                /* if server is 3.2 we can't use the new authentication */
-                vnclog.Print(0, _T("Can't use IDEA authentication\n"));
-
-                MessageBox(NULL, 
-                    _T("Sorry - this server uses an older authentication scheme\n\r")
-                    _T("which is no longer supported."), 
-                    _T("Protocol Version error"), 
-                    MB_OK | MB_ICONSTOP | MB_SETFOREGROUND | MB_TOPMOST);
-
-                throw WarningException("Can't use IDEA authentication any more!");
-            }
-
-			ReadExact((char *)challenge, CHALLENGESIZE);
-			
-			char passwd[256];
-			// Was the password already specified in a config file?
-			if (strlen((const char *) m_encPasswd)>0) {
-				char *pw = vncDecryptPasswd(m_encPasswd);
-				strcpy(passwd, pw);
-				free(pw);
-			} else {
-				AuthDialog ad;
-				ad.DoDialog();	
-#ifndef UNDER_CE
-				strcpy(passwd, ad.m_passwd);
-#else
-				int origlen = _tcslen(ad.m_passwd);
-				int newlen = WideCharToMultiByte(
-					CP_ACP,    // code page
-					0,         // performance and mapping flags
-					ad.m_passwd, // address of wide-character string
-					origlen,   // number of characters in string
-					passwd,    // address of buffer for new string
-					255,       // size of buffer
-					NULL, NULL );
-				
-				passwd[newlen]= '\0';
-#endif
-				if (strlen(passwd) == 0) {
-					vnclog.Print(0, _T("Password had zero length\n"));
-					throw AuthException("Empty password");
-				}
-				if (strlen(passwd) > 8) {
-					passwd[8] = '\0';
-				}
-				vncEncryptPasswd(m_encPasswd, passwd);
-			}				
-	
-			vncEncryptBytes(challenge, passwd);
-
-			/* Lose the plain-text password from memory */
-			for (int i=0; i< (int) strlen(passwd); i++) {
-				passwd[i] = '\0';
-			}
-			
-			WriteExact((char *) challenge, CHALLENGESIZE);
-			ReadExact((char *) &authResult, 4);
-			
-			authResult = Swap32IfLE(authResult);
-			
-			switch (authResult) {
-			case rfbVncAuthOK:
-				vnclog.Print(0, _T("VNC authentication succeeded\n"));
-				break;
-			case rfbVncAuthFailed:
-				vnclog.Print(0, _T("VNC authentication failed!\n"));
-				throw AuthException("VNC authentication failed!");
-			case rfbVncAuthTooMany:
-				vnclog.Print(0, _T("VNC authentication failed - too many tries!\n"));
-				throw WarningException(
-					"VNC authentication failed - too many tries!");
-			default:
-				vnclog.Print(0, _T("Unknown VNC authentication result: %d\n"),
-					(int)authResult);
-				throw ErrorException("Unknown VNC authentication result!");
-			}
-			break;
+		// Only for protocol version 3.130:
+		if (m_minorVersion >= 130) {
+			// Read the list of supported authentication types.
+			ReadAuthenticationCaps();
+			// Choose the authentication scheme.
+			authScheme = Swap32IfLE(rfbVncAuth);
+			WriteExact((char *)&authScheme, sizeof(authScheme));
 		}
+		// Perform the standard VNC authentication.
+		{
+			char errorMsg[256];
+			bool tryAgain;
+			if (!AuthenticateVNC(errorMsg, 256, &tryAgain)) {
+				vnclog.Print(0, _T("%s\n"), errorMsg);
+				if (tryAgain) {
+					throw AuthException(errorMsg);
+				} else {
+					throw ErrorException(errorMsg);
+				}
+			} else {
+				vnclog.Print(0, _T("VNC authentication succeeded\n"));
+			}
+		}
+		break;
 		
 	default:
 		vnclog.Print(0, _T("Unknown authentication scheme from RFB server: %d\n"),
 			(int)authScheme);
 		throw ErrorException("Unknown authentication scheme!");
     }
+}
+
+bool ClientConnection::AuthenticateVNC(char *errBuf, int errBufSize, bool *again)
+{
+    CARD8 challenge[CHALLENGESIZE];
+	ReadExact((char *)challenge, CHALLENGESIZE);
+
+	char passwd[MAXPWLEN + 1];
+	// Was the password already specified in a config file?
+	if (strlen((const char *) m_encPasswd) > 0) {
+		char *pw = vncDecryptPasswd(m_encPasswd);
+		strcpy(passwd, pw);
+		free(pw);
+	} else {
+		AuthDialog ad;
+		ad.DoDialog();	
+#ifndef UNDER_CE
+		strcpy(passwd, ad.m_passwd);
+#else
+		int origlen = _tcslen(ad.m_passwd);
+		int newlen = WideCharToMultiByte(
+			CP_ACP,    // code page
+			0,         // performance and mapping flags
+			ad.m_passwd, // address of wide-character string
+			origlen,   // number of characters in string
+			passwd,    // address of buffer for new string
+			255,       // size of buffer
+			NULL, NULL);
+
+		passwd[newlen]= '\0';
+#endif
+		if (strlen(passwd) == 0) {
+			_snprintf(errBuf, errBufSize, "Empty password");
+			*again = true;
+			return false;
+		}
+		if (strlen(passwd) > 8) {
+			passwd[8] = '\0';
+		}
+		vncEncryptPasswd(m_encPasswd, passwd);
+	}				
+
+	vncEncryptBytes(challenge, passwd);
+
+	/* Lose the plain-text password from memory */
+	memset(passwd, 0, strlen(passwd));
+
+	WriteExact((char *) challenge, CHALLENGESIZE);
+
+	CARD32 authResult;
+	ReadExact((char *) &authResult, 4);
+	authResult = Swap32IfLE(authResult);
+
+	switch (authResult) {
+	case rfbVncAuthOK:
+		return true;
+	case rfbVncAuthFailed:
+		_snprintf(errBuf, errBufSize, "VNC authentication failed");
+		*again = true;
+		break;
+	case rfbVncAuthTooMany:
+		_snprintf(errBuf, errBufSize, "VNC authentication failed - too many tries");
+		*again = false;
+		break;
+	default:
+		_snprintf(errBuf, errBufSize, "Unknown VNC authentication result: %u",
+				  (unsigned int)authResult);
+		*again = false;
+		break;
+	}
+	return false;
 }
 
 void ClientConnection::SendClientInit()
@@ -897,21 +907,35 @@ void ClientConnection::ReadServerInit()
 }
 
 //
-// In the protocol version 3.130, the server informs us about tunneling and
-// authentication methods supported. Here we read this information.
+// In the protocol version 3.130, the server informs us about tunneling
+// methods supported. Here we read this information.
 //
 
-void ClientConnection::ReadHandshakingCaps()
+void ClientConnection::ReadTunnelingCaps()
 {
-	// Read the counts of list items following
-	rfbHandshakingCapsMsg init_caps;
-	ReadExact((char *)&init_caps, sz_rfbHandshakingCapsMsg);
-	init_caps.nTunnelTypes = Swap16IfLE(init_caps.nTunnelTypes);
-	init_caps.nAuthenticationTypes = Swap16IfLE(init_caps.nAuthenticationTypes);
+	// Read the count of list items following
+	rfbTunnelingCapsMsg tunneling_caps;
+	ReadExact((char *)&tunneling_caps, sz_rfbTunnelingCapsMsg);
+	tunneling_caps.nTunnelTypes = Swap16IfLE(tunneling_caps.nTunnelTypes);
 
-	// Read the lists of tunneling and authentication methods
-	ReadCapabilityList(&m_tunnelCaps, init_caps.nTunnelTypes);
-	ReadCapabilityList(&m_authCaps, init_caps.nAuthenticationTypes);
+	// Read the capability list itself
+	ReadCapabilityList(&m_tunnelCaps, tunneling_caps.nTunnelTypes);
+}
+
+//
+// In the protocol version 3.130, the server informs us about authentication
+// methods supported. Here we read this information.
+//
+
+void ClientConnection::ReadAuthenticationCaps()
+{
+	// Read the count of list items following
+	rfbAuthenticationCapsMsg auth_caps;
+	ReadExact((char *)&auth_caps, sz_rfbAuthenticationCapsMsg);
+	auth_caps.nAuthenticationTypes = Swap16IfLE(auth_caps.nAuthenticationTypes);
+
+	// Read the capability list itself
+	ReadCapabilityList(&m_authCaps, auth_caps.nAuthenticationTypes);
 }
 
 //

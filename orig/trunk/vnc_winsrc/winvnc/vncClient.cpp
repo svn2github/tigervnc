@@ -90,10 +90,10 @@ public:
 
 	// Sub-Init routines
 	virtual BOOL InitVersion();
-	virtual BOOL InitHandshakingCaps();
+	virtual BOOL InitTunnelingCaps();
 	virtual BOOL InitTunneling();
+	virtual BOOL InitAuthenticationCaps();
 	virtual BOOL InitAuthenticate();
-	virtual BOOL InitAuthenticateVNC();
 	virtual BOOL SendInteractionCaps();
 
 	// The main thread function
@@ -169,18 +169,11 @@ vncClientThread::InitVersion()
 }
 
 BOOL
-vncClientThread::InitHandshakingCaps()
+vncClientThread::InitTunnelingCaps()
 {
-	rfbHandshakingCapsMsg init_caps;
-	init_caps.nTunnelTypes = Swap16IfLE(0);
-	init_caps.nAuthenticationTypes = Swap16IfLE(1);
-	if (!m_socket->SendExact((char *)&init_caps, sz_rfbHandshakingCapsMsg))
-		return FALSE;
-
-	// Inform the client that we do support the standard VNC authentication.
-	rfbCapabilityInfo cap;
-	SetCapInfo(&cap, rfbVncAuth, rfbStandardVendor);
-	return m_socket->SendExact((char *)&cap, sz_rfbCapabilityInfo);
+	rfbTunnelingCapsMsg tunnel_caps;
+	tunnel_caps.nTunnelTypes = Swap16IfLE(0);
+	return m_socket->SendExact((char *)&tunnel_caps, sz_rfbTunnelingCapsMsg);
 }
 
 BOOL
@@ -200,20 +193,21 @@ vncClientThread::InitTunneling()
 }
 
 BOOL
-vncClientThread::InitAuthenticate()
+vncClientThread::InitAuthenticationCaps()
 {
-	// Read client's preferred authentication type (protocol 3.130)
-	CARD32 auth_type;
-	if (!m_socket->ReadExact((char *)&auth_type, sizeof(auth_type)))
+	rfbAuthenticationCapsMsg auth_caps;
+	auth_caps.nAuthenticationTypes = Swap16IfLE(1);
+	if (!m_socket->SendExact((char *)&auth_caps, sz_rfbAuthenticationCapsMsg))
 		return FALSE;
-	auth_type = Swap32IfLE(auth_type);
 
-	// Currently, we always fallback to the standard VNC authentication.
-	return InitAuthenticateVNC();
+	// Inform the client that we do support the standard VNC authentication.
+	rfbCapabilityInfo cap;
+	SetCapInfo(&cap, rfbVncAuth, rfbStandardVendor);
+	return m_socket->SendExact((char *)&cap, sz_rfbCapabilityInfo);
 }
 
 BOOL
-vncClientThread::InitAuthenticateVNC()
+vncClientThread::InitAuthenticate()
 {
 	// Retrieve local passwords
 	char password[MAXPWLEN];
@@ -343,6 +337,25 @@ vncClientThread::InitAuthenticateVNC()
 		CARD32 auth_val = Swap32IfLE(rfbVncAuth);
 		if (!m_socket->SendExact((char *)&auth_val, sizeof(auth_val)))
 			return FALSE;
+
+		// In the protocol version 3.130:
+		if (m_client->m_protocol_minor_version >= 130) {
+
+			// Advertise our authentication capabilities
+			if (!InitAuthenticationCaps())
+				return FALSE;
+			vnclog.Print(LL_INTINFO, VNCLOG("sent auth capability list\n"));
+
+			// Read the actual authentication type from the client
+			CARD32 auth_type;
+			if (!m_socket->ReadExact((char *)&auth_type, sizeof(auth_type)))
+				return FALSE;
+			auth_type = Swap32IfLE(auth_type);
+			if (auth_type != rfbVncAuth) {
+				vnclog.Print(LL_CONNERR, VNCLOG("unknown authentication scheme requested\n"));
+				return FALSE;
+			}
+		}
 
 		BOOL auth_ok = FALSE;
 		{
@@ -558,13 +571,13 @@ vncClientThread::run(void *arg)
 	}
 	vnclog.Print(LL_INTINFO, VNCLOG("negotiated protocol version\n"));
 
-	// ADVERTISE OUR TUNNELING AND AUTHENTICATION CAPABILITIES (protocol 3.130)
+	// ADVERTISE OUR TUNNELING CAPABILITIES (protocol 3.130)
 	if (m_client->m_protocol_minor_version >= 130) {
-		if (!InitHandshakingCaps()) {
+		if (!InitTunnelingCaps()) {
 			m_server->RemoveClient(m_client->GetClientId());
 			return;
 		}
-		vnclog.Print(LL_INTINFO, VNCLOG("sent handshaking capability list\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("sent tunneling capability list\n"));
 	}
 
 	// INITIALISE TUNNELING (protocol 3.130)
@@ -577,16 +590,9 @@ vncClientThread::run(void *arg)
 	}
 
 	// AUTHENTICATE LINK
-	if (m_client->m_protocol_minor_version >= 130) {
-		if (!InitAuthenticate()) {
-			m_server->RemoveClient(m_client->GetClientId());
-			return;
-		}
-	} else {
-		if (!InitAuthenticateVNC()) {
-			m_server->RemoveClient(m_client->GetClientId());
-			return;
-		}
+	if (!InitAuthenticate()) {
+		m_server->RemoveClient(m_client->GetClientId());
+		return;
 	}
 
 	// Authenticated OK - remove from blacklist and remove timeout

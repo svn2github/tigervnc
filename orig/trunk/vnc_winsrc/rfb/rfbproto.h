@@ -189,33 +189,55 @@ typedef char rfbProtocolVersionMsg[13];	/* allow extra byte for null */
 
 
 /*-----------------------------------------------------------------------------
- * Negotiation of Handshaking Capabilities
+ * Negotiation of Tunneling Capabilities (protocol version 3.130)
  *
- * Once the protocol version has been decided, the server then sends two lists
- * of supported protocol extensions. First list tells the client what tunneling
- * methods can be used, the second list provides information about supported
- * authentication schemes. Each list is an array of rfbCapabilityInfo
- * structures. Before sending the lists, the server sends two 16-bit
- * words with number of elements in each one.
+ * Once the protocol version has been decided, the server then sends a list
+ * of supported tunneling methods, as an array of rfbCapabilityInfo structures,
+ * in the order of preference.  "Tunneling" refers to any additional layer of
+ * data transformation, e.g. encryption or external compression.
  */
 
-typedef struct _rfbHandshakingCapsMsg {
+typedef struct _rfbTunnelingCapsMsg {
     CARD16 nTunnelTypes;
-    CARD16 nAuthenticationTypes;
     /* followed by nTunnelTypes * rfbCapabilityInfo structures */
-    /* followed by nAuthenticationTypes * rfbCapabilityInfo structures */
-} rfbHandshakingCapsMsg;
+} rfbTunnelingCapsMsg;
 
-#define sz_rfbHandshakingCapsMsg 4
+#define sz_rfbTunnelingCapsMsg 2
 
 
 /*-----------------------------------------------------------------------------
- * Authentication (protocol versions 3.0 - 3.3).
+ * Negotiation of Authentication Capabilities (protocol version 3.130)
  *
- * Once the protocol version has been decided, the server then sends a 32-bit
- * word indicating whether any authentication is needed on the connection.
- * The value of this word determines the authentication scheme in use.  For
- * version 3.0 of the protocol this may have one of the following values:
+ * After receiving the tunneling type from the viewer, and establishing
+ * tunneling, the server sends a list of supported authentication schemes, as
+ * an array of rfbCapabilityInfo structures, in the order of preference.  Note
+ * that the standard VNC authentication should be included in this list if it
+ * is allowed by the server.  This means the client should not assume that
+ * classic VNC authentication scheme is always supported.
+ */
+
+typedef struct _rfbAuthenticationCapsMsg {
+    CARD16 nAuthenticationTypes;
+    /* followed by nAuthenticationTypes * rfbCapabilityInfo structures */
+} rfbAuthenticationCapsMsg;
+
+#define sz_rfbAuthenticationCapsMsg 2
+
+
+/*-----------------------------------------------------------------------------
+ * VNC Authentication
+ *
+ * Once the protocol version has been decided, and if that version is 3.0-3.3,
+ * the server then sends a 32-bit word indicating whether any authentication
+ * is needed on the connection. The value of this word determines the
+ * authentication scheme in use.  For versions 3.0 of the protocol this may
+ * have one of the values (0, 1, or 2) defined below.
+ *
+ * In the protocol version 3.130, the word with same possible values is sent by
+ * the server right after the tunneling was established.  Note that the meaning
+ * of the rfbVncAuth value is different in the protocol version 3.130 -- it
+ * tells the client that the list of authentication capabilities follows, and
+ * does not mean that the authentication type is the standard VNC scheme.
  */
 
 #define rfbConnFailed 0

@@ -42,7 +42,6 @@ HtmlHelp.h and HtmlHelp.lib. Copy both files to the following folders:
     vnc_winsrc/winvnc/
 
 Compilation has been checked under MS Visual C++ 6.0. Workspace files
-(*.dsw) for this environment are included in the distribution. It is
-also possible to build TightVNC using "free" Borland C++ 5.5 compiler,
-please read BUILDING-bcc32.txt for details.
+(*.dsw) for this environment are included in the distribution. Building
+with Borland C++ 5.5 compiler is not supported any more, sorry.
 

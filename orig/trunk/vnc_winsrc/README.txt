@@ -29,9 +29,8 @@ There are two programs here in the two subdirectories:
 	winvnc - this is the VNC server for Win32. It allows an NT desktop
 	       to be accessed remotely using a VNC viewer.
 
-The executables can be built using Borland C++ 5.5, Microsoft Visual C++
-6.0, or Microsoft Visual Studio 7. See BUILDING.txt files for more details
-on compilation.
+The executables can be built using Microsoft Visual C++ 6.0.
+See BUILDING.txt files for more details on compilation.
 
 
 ACKNOWLEDGEMENTS

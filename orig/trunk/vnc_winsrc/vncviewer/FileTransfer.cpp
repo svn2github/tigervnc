@@ -5,6 +5,10 @@
 #include "vncviewer.h"
 #include "FileTransfer.h"
 
+const char FileTransfer::uploadText[] = ">>>";
+const char FileTransfer::downloadText[] = "<<<";
+const char FileTransfer::noactionText[] = "<--->";
+
 int 
 CompareFTItemInfo(const void *F, const void *S)
 {
@@ -108,7 +112,7 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 				switch (HIWORD (wParam))
 				{
 					case EN_SETFOCUS:
-						SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), "<<<>>>");
+						SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
 						EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), FALSE);
 						return TRUE;
 				}
@@ -117,7 +121,7 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 				switch (HIWORD (wParam))
 				{
 					case EN_SETFOCUS:
-						SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), "<<<>>>");
+						SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
 						EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), FALSE);
 						return TRUE;
 				}
@@ -135,7 +139,7 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 				EndDialog(hwnd, TRUE);
 				return TRUE;
 			case IDC_CLIENTUP:
-				SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), "<<<>>>");
+				SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
 				EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), FALSE);
 				if (strcmp(_this->m_ClientPathTmp, "") == 0) return TRUE;
 				for (i=(strlen(_this->m_ClientPathTmp)-2); i>=0; i--) {
@@ -148,7 +152,7 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 				_this->ShowClientItems(_this->m_ClientPathTmp);
 				return TRUE;
 			case IDC_SERVERUP:
-				SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), "<<<>>>");
+				SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
 				EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), FALSE);
 				if (strcmp(_this->m_ServerPathTmp, "") == 0) return TRUE;
 				for (i=(strlen(_this->m_ServerPathTmp)-2); i>=0; i--) {
@@ -161,17 +165,17 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 				_this->SendFileListRequestMessage(_this->m_ServerPathTmp);
 				return TRUE;
 			case IDC_CLIENTRELOAD:
-				SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), "<<<>>>");
+				SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
 				EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), FALSE);
 				_this->ShowClientItems(_this->m_ClientPath);
 				return TRUE;
 			case IDC_SERVERRELOAD:
-				SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), "<<<>>>");
+				SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
 				EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), FALSE);
 				_this->SendFileListRequestMessage(_this->m_ServerPathTmp);
 				return TRUE;
 			case IDC_FTCOPY:
-				SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), "<<<>>>");
+				SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
 				EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), FALSE);
 				if (_this->m_bFTCOPY == FALSE) {
 					_this->m_TransferEnable = TRUE;
@@ -197,18 +201,18 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 				}
 				return TRUE;
 			case IDC_FTCANCEL:
-				SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), "<<<>>>");
+				SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
 				EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), FALSE);
 				_this->m_TransferEnable = FALSE;
 				EnableWindow(GetDlgItem(hwnd, IDC_FTCANCEL), FALSE);
 				return TRUE;
 			case IDC_CLIENTBROWSE_BUT:
-				SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), "<<<>>>");
+				SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
 				EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), FALSE);
 				_this->CreateFTBrowseDialog(FALSE);
 				return TRUE;
 			case IDC_SERVERBROWSE_BUT:
-				SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), "<<<>>>");
+				SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
 				EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), FALSE);
 				_this->CreateFTBrowseDialog(TRUE);
 				return TRUE;
@@ -223,7 +227,7 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 			switch (((LPNMHDR) lParam)->code)
 			{
 				case NM_SETFOCUS:
-					SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), ">>>");
+					SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), uploadText);
 					EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), TRUE);
 					_this->m_bFTCOPY = FALSE;
 					return TRUE;
@@ -240,7 +244,7 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 			switch (((LPNMHDR) lParam)->code)
 			{
 				case NM_SETFOCUS:
-					SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), "<<<");
+					SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), downloadText);
 					EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), TRUE);
 					_this->m_bFTCOPY = TRUE;
 					return TRUE;

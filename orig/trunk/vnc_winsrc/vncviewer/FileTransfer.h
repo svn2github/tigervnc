@@ -21,6 +21,10 @@ typedef struct tagFTITEMINFO
 
 class FileTransfer  
 {
+	static const char uploadText[];
+	static const char downloadText[];
+	static const char noactionText[];
+
 public:
 	FileTransfer(ClientConnection * pCC, VNCviewerApp * pApp);
 	void FTInsertColumn(HWND hwnd, char *iText, int iOrder, int xWidth);

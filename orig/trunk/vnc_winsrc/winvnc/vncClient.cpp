@@ -1252,7 +1252,7 @@ vncClientThread::run(void *arg)
 					}
  					FindClose(FLRhandle);	
 				}
-				if (ftii.GetNumEntries != 0) {
+				if (ftii.GetNumEntries() != 0) {
 					int dsSize = ftii.GetNumEntries() * 8;
 					int msgLen = sz_rfbFileListDataMsg + dsSize + ftii.GetSummaryNamesLength() + ftii.GetNumEntries();
 					char *pAllMessage = new char [msgLen];

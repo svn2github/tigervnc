@@ -1,3 +1,4 @@
+//  Copyright (C) 2004 HorizonWimba, Inc. All Rights Reserved.
 //  Copyright (C) 2003 Constantin Kaplinsky. All Rights Reserved.
 //  Copyright (C) 2002 RealVNC Ltd. All Rights Reserved.
 //  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
@@ -36,12 +37,6 @@
 #include "vncService.h"
 #include "vncConnDialog.h"
 #include <lmcons.h>
-#include <wininet.h>
-#include <shlobj.h>
-
-#ifdef HORIZONLIVE
-#include "vncAcceptReverseDlg.h"
-#endif
 
 // Header
 
@@ -60,114 +55,7 @@ const UINT MENU_KILL_ALL_CLIENTS_MSG = RegisterWindowMessage("WinVNC.KillAllClie
 
 const UINT fileTransferDownloadMessage = RegisterWindowMessage("VNCServer.1.3.FileTransferDownloadMessage");
 
-#ifdef HORIZONLIVE
-const char *MENU_CLASS_NAME = "AppShare Tray Icon";
-#else
 const char *MENU_CLASS_NAME = "WinVNC Tray Icon";
-#endif
-
-bool g_restore_ActiveDesktop = false;
-
-static void
-KillActiveDesktop()
-{
-  vnclog.Print(LL_INTERR, VNCLOG("KillActiveDesktop\n"));
-
-  // Contact Active Desktop if possible
-  HRESULT result;
-  IActiveDesktop* active_desktop = 0;
-  result = CoCreateInstance(CLSID_ActiveDesktop, NULL, CLSCTX_INPROC_SERVER,
-    IID_IActiveDesktop, (void**)&active_desktop);
-  if (result != S_OK) {
-    vnclog.Print(LL_INTERR, VNCLOG("unable to access Active Desktop object:%x\n"), result);
-    return;
-  }
-
-  // Get Active Desktop options
-  COMPONENTSOPT options;
-  options.dwSize = sizeof(options);
-  result = active_desktop->GetDesktopItemOptions(&options, 0);
-  if (result != S_OK) {
-    vnclog.Print(LL_INTERR, VNCLOG("unable to fetch Active Desktop options:%x\n"), result);
-    active_desktop->Release();
-    return;
-  }
-
-  // Disable if currently active
-  g_restore_ActiveDesktop = (options.fActiveDesktop != 0);
-  if (options.fActiveDesktop) {
-    vnclog.Print(LL_INTINFO, VNCLOG("attempting to disable Active Desktop\n"));
-    options.fActiveDesktop = FALSE;
-    result = active_desktop->SetDesktopItemOptions(&options, 0);
-    if (result != S_OK) {
-      vnclog.Print(LL_INTERR, VNCLOG("unable to disable Active Desktop:%x\n"), result);
-      active_desktop->Release();
-      return;
-    }
-  } else {
-    vnclog.Print(LL_INTINFO, VNCLOG("Active Desktop not enabled - ignoring\n"));
-  }
-
-  active_desktop->ApplyChanges(AD_APPLY_REFRESH);
-  active_desktop->Release();
-}
-
-static void
-KillWallpaper()
-{
-	KillActiveDesktop();
-
-	// Tell all applications that there is no wallpaper
-	// Note that this doesn't change the wallpaper registry setting!
-	SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, "", SPIF_SENDCHANGE);
-}
-
-static void
-RestoreActiveDesktop()
-{
-  // Contact Active Desktop if possible
-  HRESULT result;
-  IActiveDesktop* active_desktop = 0;
-  result = CoCreateInstance(CLSID_ActiveDesktop, NULL, CLSCTX_INPROC_SERVER,
-    IID_IActiveDesktop, (void**)&active_desktop);
-  if (result != S_OK) {
-    vnclog.Print(LL_INTERR, VNCLOG("unable to access Active Desktop object:%x\n"), result);
-    return;
-  }
-
-  // Get Active Desktop options
-  COMPONENTSOPT options;
-  options.dwSize = sizeof(options);
-  result = active_desktop->GetDesktopItemOptions(&options, 0);
-  if (result != S_OK) {
-    vnclog.Print(LL_INTERR, VNCLOG("unable to fetch Active Desktop options:%x\n"), result);
-    active_desktop->Release();
-    return;
-  }
-
-  // Re-enable if previously disabled
-  if (g_restore_ActiveDesktop) {
-    g_restore_ActiveDesktop = false;
-    vnclog.Print(LL_INTINFO, VNCLOG("attempting to re-enable Active Desktop\n"));
-    options.fActiveDesktop = TRUE;
-    result = active_desktop->SetDesktopItemOptions(&options, 0);
-    if (result != S_OK) {
-      vnclog.Print(LL_INTERR, VNCLOG("unable to re-enable Active Desktop:%x\n"), result);
-      active_desktop->Release();
-      return;
-    }
-  }
-
-  active_desktop->ApplyChanges(AD_APPLY_REFRESH);
-  active_desktop->Release();
-}
-
-static void
-RestoreWallpaper()
-{
-	RestoreActiveDesktop();
-	SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, NULL, SPIF_SENDCHANGE);
-}
 
 // Implementation
 
@@ -226,22 +114,13 @@ vncMenu::vncMenu(vncServer *server)
 	server->AddNotify(m_hwnd);
 
 	// Load the icons for the tray
-#ifdef HORIZONLIVE
-	m_winvnc_normal_icon = LoadIcon(hAppInstance, MAKEINTRESOURCE(IDI_LIVESHARE_NOCON));
-	m_flash_icon = LoadIcon(hAppInstance, MAKEINTRESOURCE(IDI_LIVESHARE_CON));
-#else
 	m_winvnc_normal_icon = LoadIcon(hAppInstance, MAKEINTRESOURCE(IDI_WINVNC));
 	m_winvnc_disabled_icon = LoadIcon(hAppInstance, MAKEINTRESOURCE(IDI_DISABLED));
 	m_flash_icon = LoadIcon(hAppInstance, MAKEINTRESOURCE(IDI_FLASH));
-#endif
 	m_winvnc_icon = m_winvnc_normal_icon;
 
 	// Load the popup menu
-#ifdef HORIZONLIVE
-	m_hmenu = LoadMenu(hAppInstance, MAKEINTRESOURCE(IDR_LSHTRAYMENU));
-#else
 	m_hmenu = LoadMenu(hAppInstance, MAKEINTRESOURCE(IDR_TRAYMENU));
-#endif
 
 	// Initialise the properties dialog object
 	if (!m_properties.Init(m_server))
@@ -339,21 +218,6 @@ vncMenu::SendTrayMsg(DWORD msg, BOOL flash)
 	m_nid.uFlags = NIF_ICON | NIF_MESSAGE;
 	m_nid.uCallbackMessage = WM_TRAYNOTIFY;
 
-	
-	// Try to add the server's IP addresses to the tip string, if possible
-#ifdef HORIZONLIVE
-	// Use resource string as tip if there is one
-	if (LoadString(hAppInstance, IDI_LIVESHARE, m_nid.szTip, sizeof(m_nid.szTip)))
-	    m_nid.uFlags |= NIF_TIP;
-	
-	
-	strncat(m_nid.szTip, " : ", (sizeof(m_nid.szTip)-1)-strlen(m_nid.szTip));
-	if (m_server->AuthClientCount() != 0)                                                      
-		strncat(m_nid.szTip, "Connected", (sizeof(m_nid.szTip)-1)-strlen(m_nid.szTip));
-	else                                                                                   
-    	strncat(m_nid.szTip, "Not Connected", (sizeof(m_nid.szTip)-1)-strlen(m_nid.szTip));    
-#else	                                                                                               
-
 	// Use resource string as tip if there is one
 	if (LoadString(hAppInstance, IDI_WINVNC, m_nid.szTip, sizeof(m_nid.szTip)))
 	    m_nid.uFlags |= NIF_TIP;
@@ -366,6 +230,7 @@ vncMenu::SendTrayMsg(DWORD msg, BOOL flash)
 		unsigned long tiplen = strlen(m_nid.szTip);
 		char *tipptr = ((char *)&m_nid.szTip) + tiplen;
 
+		// Try to add the server's IP addresses to the tip string, if possible
 		GetIPAddrString(tipptr, sizeof(m_nid.szTip) - tiplen);
 	 		if (m_server->ClientsDisabled())
 				strncat(m_nid.szTip, " (Not listening)", (sizeof(m_nid.szTip)-1)-strlen(m_nid.szTip));
@@ -375,13 +240,12 @@ vncMenu::SendTrayMsg(DWORD msg, BOOL flash)
 		strncat(m_nid.szTip, "Not listening", (sizeof(m_nid.szTip)-1)-strlen(m_nid.szTip));
 	    }
 	}
-#endif	
-	
+
 	// Send the message
 	if (Shell_NotifyIcon(msg, &m_nid))
 	{
 		// Set the enabled/disabled state of the menu items
-		vnclog.Print(LL_INTINFO, VNCLOG("tray icon added ok\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("tray icon updated ok\n"));
 
 		EnableMenuItem(m_hmenu, ID_PROPERTIES,
 			m_properties.AllowProperties() ? MF_ENABLED : MF_GRAYED);
@@ -465,13 +329,13 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 			_this->FlashTrayIcon(_this->m_server->AuthClientCount() != 0);
 			break;
 		
-
 		case ID_PROPERTIES:
 			// Show the properties dialog, unless it is already displayed
 			vnclog.Print(LL_INTINFO, VNCLOG("show user properties requested\n"));
 			_this->m_properties.Show(TRUE, TRUE);
 			_this->FlashTrayIcon(_this->m_server->AuthClientCount() != 0);
 			break;
+			
 		case ID_CONTROL_PANEL:		
 			_this->CPanel->showDialog();
 			break;
@@ -706,31 +570,11 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 		}
 		if (iMsg == MENU_ADD_CLIENT_MSG)
 		{
+			// handle add client mesage instigated by '-connect' flag
+			// and/or call to vncService::PostAddNewClient() 
+			
 			// Add Client message.  This message includes an IP address and
 			// a port numbrt of a listening client, to which we should connect.
-
-#ifdef HORIZONLIVE
-
-			char key[_MAX_PATH];
-			char name[16];
-
-			struct in_addr address;
-			address.S_un.S_addr = lParam;
-			strcpy(key, inet_ntoa(address));
-			strcat(key, "::");
-
-			// Get the port number
-			unsigned short nport = (unsigned short)wParam;
-			strcat(key, itoa(nport, name, 10));
-			vncAcceptReverseDlg *newdlg = new vncAcceptReverseDlg(_this, key);
- 			if (!newdlg->DoDialog())
-				return 0;
-			if (lParam)
-				_this->m_server->SetLiveShareKey(key);
-			PostMessage(hwnd, WM_COMMAND, MAKELONG(ID_PROPERTIES, 0), 0);
-			return 0;
-
-#else
 
 			// If there is no IP address then show the connection dialog
 			if (!lParam) {
@@ -769,8 +613,6 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 			// Free the duplicate name
 			free(nameDup);
 			return 0;
-
-#endif
 		}
 		if (iMsg == MENU_KILL_ALL_CLIENTS_MSG)
 		{

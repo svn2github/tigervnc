@@ -133,6 +133,14 @@ SOURCE=.\res\nocursor.cur
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\tightvnc.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\tightvnc48.bmp
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\toolbar1.bmp
 # End Source File
 # Begin Source File

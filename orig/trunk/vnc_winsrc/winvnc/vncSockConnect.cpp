@@ -73,14 +73,14 @@ void *vncSockConnectThread::run_undetached(void * arg)
 	vnclog.Print(LL_STATE, VNCLOG("started socket connection thread\n"));
 
 	// Go into a loop, listening for connections on the given socket
-	while (!m_shutdown)
-	{
+	for (;;) {
 		// Accept an incoming connection
 		VSocket *new_socket = m_socket->Accept();
-		if (new_socket == NULL)
+		if (new_socket == NULL || m_shutdown)
 			break;
 
-		vnclog.Print(LL_CLIENTS, VNCLOG("accepted connection from %s\n"), new_socket->GetPeerName());
+		vnclog.Print(LL_CLIENTS, VNCLOG("accepted connection from %s\n"),
+					 new_socket->GetPeerName());
 
 		// Successful accept - start the client unauthenticated
 		m_server->AddClient(new_socket, FALSE, FALSE);

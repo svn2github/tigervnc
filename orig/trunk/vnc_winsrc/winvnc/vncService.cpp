@@ -491,32 +491,44 @@ vncService::ShowProperties()
 
 	return TRUE;
 }
+
+// Static routine to find a window by its title substring (case-insensitive).
+// Window titles and search substrings will be truncated at length 255.
+
 HWND
-vncService::GetSharedWindow(char * titlewindow)
+vncService::FindWindowByTitle(char *substr)
 {
-	TCHAR title[80];
-	DWORD style;
-	HWND hWindowShared = GetForegroundWindow();
-	while (hWindowShared != NULL) {
-		GetWindowText(hWindowShared, title, 80);
-		for (int i = 0; i < strlen(title); i++) {
+	char l_substr[256];
+	strncpy(l_substr, substr, 255);
+	l_substr[255] = 0;
+	int i;
+	for (i = 0; i < strlen(substr); i++) {
+		l_substr[i] = tolower(l_substr[i]);
+	}
+
+	char title[256];
+	HWND hWindow = GetForegroundWindow();
+	while (hWindow != NULL) {
+		int len = GetWindowText(hWindow, title, 256);
+		for (i = 0; i < len; i++) {
 			title[i] = tolower(title[i]);
 		}
-		style = GetWindowLong(hWindowShared, GWL_STYLE);
-		if ((strstr(title, titlewindow) != NULL) && 
-			((style & WS_VISIBLE) == WS_VISIBLE)) {
-			SendMessage(hWindowShared, WM_SYSCOMMAND, SC_RESTORE, 0);	
-			SetForegroundWindow(hWindowShared);
+		DWORD style = GetWindowLong(hWindow, GWL_STYLE);
+		if ((style & WS_VISIBLE) != 0 && strstr(title, l_substr) != NULL) {
+			if (IsIconic(hWindow))
+				SendMessage(hWindow, WM_SYSCOMMAND, SC_RESTORE, 0);
+			SetForegroundWindow(hWindow);
 			break;
 		}
-			hWindowShared = GetNextWindow(hWindowShared, GW_HWNDNEXT);				
+		hWindow = GetNextWindow(hWindow, GW_HWNDNEXT);
 	}
-	if (hWindowShared == NULL) {
-		MessageBox(NULL, "The window with this title is not found.",
-					szAppName, MB_ICONEXCLAMATION | MB_OK);
+	if (hWindow == NULL) {
+		MessageBox(NULL, "Unable to find a window with the specified title.",
+				   szAppName, MB_ICONEXCLAMATION | MB_OK);
 	}
-	return hWindowShared;
+	return hWindow;
 }
+
 BOOL
 vncService::SharedWindow(HWND hwndwindow)
 {

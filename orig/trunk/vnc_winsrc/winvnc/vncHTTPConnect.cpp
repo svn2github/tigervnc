@@ -44,8 +44,8 @@ const char HTTP_FMT_INDEX[] =
 "  <HEAD><TITLE>TightVNC desktop [%.256s]</TITLE></HEAD>\n"
 "  <BODY>\n"
 "    <APPLET CODE=VncViewer.class ARCHIVE=VncViewer.jar WIDTH=%d HEIGHT=%d>\n"
-"      <PARAM NAME=PORT VALUE=%d>\n"
-"      <PARAM NAME=ENCODING VALUE=Tight>\n"
+"      <PARAM NAME=\"PORT\" VALUE=\"%d\">\n"
+"%.1024s"
 "    </APPLET><BR>\n"
 "    <A HREF=\"http://www.tightvnc.com/\">www.TightVNC.com</A>\n"
 "  </BODY>\n"
@@ -57,6 +57,15 @@ const char HTTP_MSG_NOSOCKCONN [] =
 "  <BODY>\n"
 "    <H1>Connections Disabled</H1>\n"
 "    The requested desktop is not configured to accept incoming connections.\n"
+"  </BODY>\n"
+"</HTML>\n";
+
+const char HTTP_MSG_BADPARAMS [] =
+"<HTML>\n"
+"  <HEAD><TITLE>TightVNC desktop</TITLE></HEAD>\n"
+"  <BODY>\n"
+"    <H1>Bad Parameters</H1>\n"
+"    The sequence of applet parameters specified within the URL is invalid.\n"
 "  </BODY>\n"
 "</HTML>\n";
 
@@ -105,6 +114,8 @@ public:
 
 	// Routines to handle HTTP requests
 	virtual void DoHTTP(VSocket *socket);
+	virtual BOOL ParseParams(const char *request, char *result, int max_bytes);
+	BOOL ValidateString(char *str);
 	virtual char *ReadLine(VSocket *socket, char delimiter, int max);
 
 protected:
@@ -184,11 +195,13 @@ void vncHTTPConnectThread::DoHTTP(VSocket *socket)
 	}
 
 	// Switch, dependent upon the filename:
-	if (strcmp(filename, "/") == 0)
+	if (filename[1] == '\0' || filename[1] == '?')
 	{
-		char indexpage[1024];
+		char indexpage[2048];
 
 		vnclog.Print(LL_CLIENTS, VNCLOG("sending main page\n"));
+		if (filename[1] == '?')
+			vnclog.Print(LL_INTWARN, VNCLOG("applet parameters specified\n"));
 
 		// Send the OK notification message to the client
 		if (!socket->SendExact(HTTP_MSG_OK, strlen(HTTP_MSG_OK)))
@@ -218,11 +231,19 @@ void vncHTTPConnectThread::DoHTTP(VSocket *socket)
 				strcpy(desktopname, "WinVNC");
 			}
 
+			// Parse the applet parameters if specified within URL
+			char params[1024] = "";
+			if (filename[1] == '?') {
+				if (!ParseParams(&filename[2], params, 1024)) {
+					socket->SendExact(HTTP_MSG_BADPARAMS,
+									  strlen(HTTP_MSG_BADPARAMS));
+					return;
+				}
+			}
+
 			// Send the java applet page
 			sprintf(indexpage, HTTP_FMT_INDEX,
-				desktopname, width, height+32,
-				m_server->GetPort()
-				);
+					desktopname, width, height+32, m_server->GetPort(), params);
 		}
 		else
 		{
@@ -292,6 +313,91 @@ void vncHTTPConnectThread::DoHTTP(VSocket *socket)
 	// Send the NoSuchFile notification message to the client
 	if (!socket->SendExact(HTTP_MSG_NOSUCHFILE, strlen(HTTP_MSG_NOSUCHFILE)))
 		return;
+}
+
+//
+// Parse the request tail after the '?' character, and format a sequence
+// of <param> tags for the index HTML page with embedded applet.
+//
+
+BOOL vncHTTPConnectThread::ParseParams(const char *request,
+									   char *result, int max_bytes)
+{
+	char param_request[128];
+	char param_formatted[196];
+
+	result[0] = '\0';
+	int cur_bytes = 0;
+
+	const char *tail = request;
+	for (;;) {
+		// Copy individual "name=value" string into a buffer
+		char *delim_ptr = strchr(tail, '&');
+		if (delim_ptr == NULL) {
+			if (strlen(tail) >= sizeof(param_request)) {
+				return FALSE;
+			}
+			strcpy(param_request, tail);
+		} else {
+			int len = delim_ptr - tail;
+			if (len >= sizeof(param_request)) {
+				return FALSE;
+			}
+			memcpy(param_request, tail, len);
+			param_request[len] = '\0';
+		}
+
+		// Split the request into parameter name and value
+		char *value_str = strchr(&param_request[1], '=');
+		if (value_str == NULL) {
+			return FALSE;
+		}
+		*value_str++ = '\0';
+		if (strlen(value_str) == 0) {
+			return FALSE;
+		}
+
+		// Validate both parameter name and value
+		if (!ValidateString(param_request) || !ValidateString(value_str)) {
+			return FALSE;
+		}
+
+		// Prepare HTML-formatted representation of the name=value pair
+		int len = sprintf(param_formatted,
+						  "      <PARAM NAME=\"%s\" VALUE=\"%s\">\n",
+						  param_request, value_str);
+		if (cur_bytes + len + 1 > max_bytes) {
+			return FALSE;
+		}
+		strcat(result, param_formatted);
+		cur_bytes += len;
+
+		// Go to the next parameter
+		if (delim_ptr == NULL) {
+			break;
+		}
+		tail = delim_ptr + 1;
+	}
+	return TRUE;
+}
+
+//
+// Check if the string consists only of alphanumeric characters, '+' signs,
+// underscores, and dots. Replace all '+' signs with spaces.
+//
+
+BOOL vncHTTPConnectThread::ValidateString(char *str)
+{
+	for (char *ptr = str; *ptr != '\0'; ptr++) {
+		if (!isalnum(*ptr) && *ptr != '_' && *ptr != '.') {
+			if (*ptr == '+') {
+				*ptr = ' ';
+			} else {
+				return FALSE;
+			}
+		}
+	}
+	return TRUE;
 }
 
 char *vncHTTPConnectThread::ReadLine(VSocket *socket, char delimiter, int max)

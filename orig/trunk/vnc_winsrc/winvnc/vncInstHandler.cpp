@@ -34,7 +34,7 @@
 
 // Name of the mutex
 #ifdef HORIZONLIVE
-const char mutexname [] = "HorizonLive_Instance_Mutex";
+const char mutexname [] = "LiveShareHost_Instance_Mutex";
 #else
 const char mutexname [] = "WinVNC_Win32_Instance_Mutex";
 #endif

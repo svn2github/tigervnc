@@ -36,6 +36,7 @@ class OptionsFrame extends Frame
   static String[] names = {
     "Encoding",
     "Compression level",
+    "JPEG image quality",
     "Cursor shape updates",
     "Use CopyRect",
     "8-bit colors",
@@ -47,6 +48,7 @@ class OptionsFrame extends Frame
   static String[][] values = {
     { "Raw", "RRE", "CoRRE", "Hextile", "Zlib", "Tight" },
     { "Default", "1", "2", "3", "4", "5", "6", "7", "8", "9" },
+    { "JPEG off", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" },
     { "Enable", "Ignore", "Disable" },
     { "Yes", "No" },
     { "Yes", "No" },
@@ -58,12 +60,13 @@ class OptionsFrame extends Frame
   final int
     encodingIndex        = 0,
     compressLevelIndex   = 1,
-    cursorUpdatesIndex   = 2,
-    useCopyRectIndex     = 3,
-    eightBitColorsIndex  = 4,
-    mouseButtonIndex     = 5,
-    viewOnlyIndex        = 6,
-    shareDesktopIndex    = 7;
+    jpegQualityIndex     = 2,
+    cursorUpdatesIndex   = 3,
+    useCopyRectIndex     = 4,
+    eightBitColorsIndex  = 5,
+    mouseButtonIndex     = 6,
+    viewOnlyIndex        = 7,
+    shareDesktopIndex    = 8;
 
   Label[] labels = new Label[names.length];
   Choice[] choices = new Choice[names.length];
@@ -79,6 +82,7 @@ class OptionsFrame extends Frame
   int nEncodings;
 
   int compressLevel;
+  int jpegQuality;
 
   boolean eightBitColors;
 
@@ -137,6 +141,7 @@ class OptionsFrame extends Frame
 
     choices[encodingIndex].select("Tight");
     choices[compressLevelIndex].select("Default");
+    choices[jpegQualityIndex].select("6");
     choices[cursorUpdatesIndex].select("Enable");
     choices[useCopyRectIndex].select("Yes");
     choices[eightBitColorsIndex].select("No");
@@ -183,10 +188,11 @@ class OptionsFrame extends Frame
 
 
   //
-  // setEncodings looks at the encoding, compression level, cursor
-  // shape updates and copyRect choices and sets the encodings array
-  // appropriately. It also calls the VncViewer's setEncodings method
-  // to send a message to the RFB server if necessary.
+  // setEncodings looks at the encoding, compression level, JPEG
+  // quality level, cursor shape updates and copyRect choices and sets
+  // the encodings array appropriately. It also calls the VncViewer's
+  // setEncodings method to send a message to the RFB server if
+  // necessary.
   //
 
   void setEncodings() {
@@ -229,6 +235,8 @@ class OptionsFrame extends Frame
       encodings[nEncodings++] = RfbProto.EncodingRRE;
     }
 
+    // Handle compression level setting.
+
     if (enableCompressLevel) {
       labels[compressLevelIndex].setEnabled(true);
       choices[compressLevelIndex].setEnabled(true);
@@ -242,10 +250,36 @@ class OptionsFrame extends Frame
       if (compressLevel >= 1 && compressLevel <= 9) {
 	encodings[nEncodings++] =
 	  RfbProto.EncodingCompressLevel0 + compressLevel;
+      } else {
+	compressLevel = -1;
       }
     } else {
       labels[compressLevelIndex].setEnabled(false);
       choices[compressLevelIndex].setEnabled(false);
+    }
+
+    // Handle JPEG quality setting.
+
+    if (preferredEncoding == RfbProto.EncodingTight) {
+      labels[jpegQualityIndex].setEnabled(true);
+      choices[jpegQualityIndex].setEnabled(true);
+      try {
+	jpegQuality =
+	  Integer.parseInt(choices[jpegQualityIndex].getSelectedItem());
+      }
+      catch (NumberFormatException e) {
+	jpegQuality = -1;
+      }
+      if (jpegQuality >= 0 && jpegQuality <= 9) {
+	encodings[nEncodings++] =
+	  RfbProto.EncodingQualityLevel0 + jpegQuality;
+	System.out.println("JPEG " + jpegQuality);
+      } else {
+	jpegQuality = -1;
+      }
+    } else {
+      labels[jpegQualityIndex].setEnabled(false);
+      choices[jpegQualityIndex].setEnabled(false);
     }
 
     // Request cursor shape updates if necessary.
@@ -310,6 +344,7 @@ class OptionsFrame extends Frame
 
     if (source == choices[encodingIndex] ||
         source == choices[compressLevelIndex] ||
+        source == choices[jpegQualityIndex] ||
         source == choices[cursorUpdatesIndex] ||
         source == choices[useCopyRectIndex]) {
 

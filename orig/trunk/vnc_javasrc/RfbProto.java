@@ -42,11 +42,20 @@ class RfbProto {
     FramebufferUpdateRequest = 3, KeyboardEvent = 4, PointerEvent = 5,
     ClientCutText = 6;
 
-  final static int EncodingRaw = 0, EncodingCopyRect = 1,
-    EncodingRRE = 2, EncodingCoRRE = 4, EncodingHextile = 5,
-    EncodingZlib = 6, EncodingTight = 7, EncodingCompressLevel0 = 0xFFFFFF00,
-    EncodingXCursor = 0xFFFFFF10, EncodingRichCursor = 0xFFFFFF11,
-    EncodingLastRect = 0xFFFFFF20, EncodingNewFBSize = 0xFFFFFF21;
+  final static int
+    EncodingRaw            = 0,
+    EncodingCopyRect       = 1,
+    EncodingRRE            = 2,
+    EncodingCoRRE          = 4,
+    EncodingHextile        = 5,
+    EncodingZlib           = 6,
+    EncodingTight          = 7,
+    EncodingCompressLevel0 = 0xFFFFFF00,
+    EncodingQualityLevel0  = 0xFFFFFFE0,
+    EncodingXCursor        = 0xFFFFFF10,
+    EncodingRichCursor     = 0xFFFFFF11,
+    EncodingLastRect       = 0xFFFFFF20,
+    EncodingNewFBSize      = 0xFFFFFF21;
 
   final int HextileRaw			= (1 << 0);
   final int HextileBackgroundSpecified	= (1 << 1);
@@ -56,7 +65,8 @@ class RfbProto {
 
   final static int TightExplicitFilter  = 0x04;
   final static int TightFill            = 0x08;
-  final static int TightMaxSubencoding  = 0x08;
+  final static int TightJpeg            = 0x09;
+  final static int TightMaxSubencoding  = 0x09;
   final static int TightFilterCopy      = 0x00;
   final static int TightFilterPalette   = 0x01;
   final static int TightFilterGradient  = 0x02;

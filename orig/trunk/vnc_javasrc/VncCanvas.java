@@ -41,10 +41,15 @@ class VncCanvas extends Canvas
   Color[] colors;
   int bytesPixel;
 
+  Graphics memGraphics;
+  Image memImage;
+
   Image rawPixelsImage;
   MemoryImageSource pixelsSource;
   byte[] pixels8;
   int[] pixels24;
+
+  Image jpegImage;		///// DEBUG!
 
   byte[] zlibBuf;
   int zlibBufLen = 0;
@@ -102,6 +107,9 @@ class VncCanvas extends Canvas
   }
 
   void updateFramebufferSize() {
+
+    memImage = viewer.createImage(rfb.framebufferWidth, rfb.framebufferHeight);
+    memGraphics = memImage.getGraphics();
 
     if (bytesPixel == 1) {
       pixels24 = null;
@@ -162,7 +170,7 @@ class VncCanvas extends Canvas
   }
 
   public void paint(Graphics g) {
-    g.drawImage(rawPixelsImage, 0, 0, this);
+    g.drawImage(memImage, 0, 0, this);
     if (showSoftCursor) {
       int x0 = cursorX - hotX, y0 = cursorY - hotY;
       Rectangle r = new Rectangle(x0, y0, cursorWidth, cursorHeight);
@@ -217,15 +225,22 @@ class VncCanvas extends Canvas
 
 	  case RfbProto.EncodingRaw:
 	  {
-	    drawRawRect(rfb.updateRectX, rfb.updateRectY,
-			rfb.updateRectW, rfb.updateRectH);
+	    handleRawRect(rfb.updateRectX, rfb.updateRectY,
+			  rfb.updateRectW, rfb.updateRectH);
 	    break;
 	  }
 
 	  case RfbProto.EncodingCopyRect:
 	  {
 	    rfb.readCopyRect();
-	    handleCopyRect();
+
+	    int sx = rfb.copyRectSrcX, sy = rfb.copyRectSrcY;
+	    int rx = rfb.updateRectX, ry = rfb.updateRectY;
+	    int rw = rfb.updateRectW, rh = rfb.updateRectH;
+
+	    memGraphics.copyArea(sx, sy, rw, rh, rx - sx, ry - sy);
+
+	    scheduleRepaint(rx, ry, rw, rh);
 	    break;
 	  }
 
@@ -234,35 +249,41 @@ class VncCanvas extends Canvas
 	    int rx = rfb.updateRectX, ry = rfb.updateRectY;
 	    int rw = rfb.updateRectW, rh = rfb.updateRectH;
 	    int nSubrects = rfb.is.readInt();
-	    int pixel, x, y, w, h;
+	    int x, y, w, h;
+	    Color pixel;
 
 	    if (bytesPixel == 1) {
-	      fillLargeArea(rx, ry, rw, rh, (byte)rfb.is.readUnsignedByte());
+	      memGraphics.setColor(colors[rfb.is.readUnsignedByte()]);
+	      memGraphics.fillRect(rx, ry, rw, rh);
 
 	      for (int j = 0; j < nSubrects; j++) {
-		pixel = rfb.is.readUnsignedByte();
+		pixel = colors[rfb.is.readUnsignedByte()];
 		x = rx + rfb.is.readUnsignedShort();
 		y = ry + rfb.is.readUnsignedShort();
 		w = rfb.is.readUnsignedShort();
 		h = rfb.is.readUnsignedShort();
 
-		fillSmallArea(x, y, w, h, (byte)pixel);
+		memGraphics.setColor(pixel);
+		memGraphics.fillRect(x, y, w, h);
 	      }
 	    } else {		// 24-bit color
-	      fillLargeArea(rx, ry, rw, rh, rfb.is.readInt());
+	      pixel = new Color(0xFF000000 | rfb.is.readInt());
+	      memGraphics.setColor(pixel);
+	      memGraphics.fillRect(rx, ry, rw, rh);
 
 	      for (int j = 0; j < nSubrects; j++) {
-		pixel = rfb.is.readInt();
+		pixel = new Color(0xFF000000 | rfb.is.readInt());
 		x = rx + rfb.is.readUnsignedShort();
 		y = ry + rfb.is.readUnsignedShort();
 		w = rfb.is.readUnsignedShort();
 		h = rfb.is.readUnsignedShort();
 
-		fillSmallArea(x, y, w, h, pixel);
+		memGraphics.setColor(pixel);
+		memGraphics.fillRect(x, y, w, h);
 	      }
 	    }
 
-	    handleUpdatedPixels(rx, ry, rw, rh);
+	    scheduleRepaint(rx, ry, rw, rh);
 	    break;
 	  }
 
@@ -271,35 +292,41 @@ class VncCanvas extends Canvas
 	    int rx = rfb.updateRectX, ry = rfb.updateRectY;
 	    int rw = rfb.updateRectW, rh = rfb.updateRectH;
 	    int nSubrects = rfb.is.readInt();
-	    int pixel, x, y, w, h;
+	    int x, y, w, h;
+	    Color pixel;
 
 	    if (bytesPixel == 1) {
-	      fillLargeArea(rx, ry, rw, rh, (byte)rfb.is.readUnsignedByte());
+	      memGraphics.setColor(colors[rfb.is.readUnsignedByte()]);
+	      memGraphics.fillRect(rx, ry, rw, rh);
 
 	      for (int j = 0; j < nSubrects; j++) {
-		pixel = rfb.is.readUnsignedByte();
+		pixel = colors[rfb.is.readUnsignedByte()];
 		x = rx + rfb.is.readUnsignedByte();
 		y = ry + rfb.is.readUnsignedByte();
 		w = rfb.is.readUnsignedByte();
 		h = rfb.is.readUnsignedByte();
 
-		fillSmallArea(x, y, w, h, (byte)pixel);
+		memGraphics.setColor(pixel);
+		memGraphics.fillRect(x, y, w, h);
 	      }
 	    } else {		// 24-bit color
-	      fillLargeArea(rx, ry, rw, rh, rfb.is.readInt());
+	      pixel = new Color(0xFF000000 | rfb.is.readInt());
+	      memGraphics.setColor(pixel);
+	      memGraphics.fillRect(rx, ry, rw, rh);
 
 	      for (int j = 0; j < nSubrects; j++) {
-		pixel = rfb.is.readInt();
+		pixel = new Color(0xFF000000 | rfb.is.readInt());
 		x = rx + rfb.is.readUnsignedByte();
 		y = ry + rfb.is.readUnsignedByte();
 		w = rfb.is.readUnsignedByte();
 		h = rfb.is.readUnsignedByte();
 
-		fillSmallArea(x, y, w, h, pixel);
+		memGraphics.setColor(pixel);
+		memGraphics.fillRect(x, y, w, h);
 	      }
 	    }
 
-	    handleUpdatedPixels(rx, ry, rw, rh);
+	    scheduleRepaint(rx, ry, rw, rh);
 	    break;
 	  }
 
@@ -307,7 +334,7 @@ class VncCanvas extends Canvas
 	  {
 	    int rx = rfb.updateRectX, ry = rfb.updateRectY;
 	    int rw = rfb.updateRectW, rh = rfb.updateRectH;
-	    int bg = 0, fg = 0, sx, sy, sw, sh;
+	    Color bg = new Color(0), fg = new Color(0);
 
 	    for (int ty = ry; ty < ry + rh; ty += 16) {
 
@@ -323,6 +350,7 @@ class VncCanvas extends Canvas
 
 		int subencoding = rfb.is.readUnsignedByte();
 
+		// Is it a raw-encoded sub-rectangle?
 		if ((subencoding & rfb.HextileRaw) != 0) {
 		  if (bytesPixel == 1) {
 		    for (int j = ty; j < ty + th; j++) {
@@ -342,73 +370,98 @@ class VncCanvas extends Canvas
 		      }
 		    }
 		  }
+		  handleUpdatedPixels(tx, ty, tw, th);
 		  continue;
 		}
 
-		if (bytesPixel == 1) {
-		  if ((subencoding & rfb.HextileBackgroundSpecified) != 0)
-		    bg = rfb.is.readUnsignedByte();
-
-		  fillLargeArea(tx, ty, tw, th, (byte)bg);
-
-		  if ((subencoding & rfb.HextileForegroundSpecified) != 0)
-		    fg = rfb.is.readUnsignedByte();
-		} else {
-		  if ((subencoding & rfb.HextileBackgroundSpecified) != 0)
-		    bg = rfb.is.readInt();
-
-		  fillLargeArea(tx, ty, tw, th, bg);
-
-		  if ((subencoding & rfb.HextileForegroundSpecified) != 0)
-		    fg = rfb.is.readInt();
-		}
-
-		// FIXME: Too many tests for bytesPixel?
-
-		if ((subencoding & rfb.HextileAnySubrects) != 0) {
-
-		  int nSubrects = rfb.is.readUnsignedByte();
-
-		  if ((subencoding & rfb.HextileSubrectsColoured) != 0) {
-
-		    for (int j = 0; j < nSubrects; j++) {
-		      fg = (bytesPixel == 1) ?
-			rfb.is.readUnsignedByte() : rfb.is.readInt();
-		      int b1 = rfb.is.readUnsignedByte();
-		      int b2 = rfb.is.readUnsignedByte();
-		      sx = tx + (b1 >> 4);
-		      sy = ty + (b1 & 0xf);
-		      sw = (b2 >> 4) + 1;
-		      sh = (b2 & 0xf) + 1;
-
-		      if (bytesPixel == 1) {
-			fillSmallArea(sx, sy, sw, sh, (byte)fg);
-		      } else {
-			fillSmallArea(sx, sy, sw, sh, fg);
-		      }
-		    }
-
+		// Read and draw the background if specified.
+		if ((subencoding & rfb.HextileBackgroundSpecified) != 0) {
+		  if (bytesPixel == 1) {
+		    bg = colors[rfb.is.readUnsignedByte()];
 		  } else {
-
-		    for (int j = 0; j < nSubrects; j++) {
-		      int b1 = rfb.is.readUnsignedByte();
-		      int b2 = rfb.is.readUnsignedByte();
-		      sx = tx + (b1 >> 4);
-		      sy = ty + (b1 & 0xf);
-		      sw = (b2 >> 4) + 1;
-		      sh = (b2 & 0xf) + 1;
-
-		      if (bytesPixel == 1) {
-			fillSmallArea(sx, sy, sw, sh, (byte)fg);
-		      } else {
-			fillSmallArea(sx, sy, sw, sh, fg);
-		      }
-		    }
-
+		    bg = new Color(0xFF000000 | rfb.is.readInt());
 		  }
 		}
+		memGraphics.setColor(bg);
+		memGraphics.fillRect(tx, ty, tw, th);
+
+		// Read the foreground color if specified.
+		if ((subencoding & rfb.HextileForegroundSpecified) != 0) {
+		  if (bytesPixel == 1) {
+		    fg = colors[rfb.is.readUnsignedByte()];
+		  } else {
+		    fg = new Color(0xFF000000 | rfb.is.readInt());
+		  }
+		}
+
+		// Done with this tile if there is no sub-rectangles.
+		if ((subencoding & rfb.HextileAnySubrects) == 0)
+		  continue;
+
+		int nSubrects = rfb.is.readUnsignedByte();
+
+		int b1, b2, sx, sy, sw, sh;
+		if (bytesPixel == 1) {
+
+		  // BGR233 (8-bit color) version.
+		  if ((subencoding & rfb.HextileSubrectsColoured) != 0) {
+		    for (int j = 0; j < nSubrects; j++) {
+		      fg = colors[rfb.is.readUnsignedByte()];
+		      b1 = rfb.is.readUnsignedByte();
+		      b2 = rfb.is.readUnsignedByte();
+		      sx = tx + (b1 >> 4);
+		      sy = ty + (b1 & 0xf);
+		      sw = (b2 >> 4) + 1;
+		      sh = (b2 & 0xf) + 1;
+		      memGraphics.setColor(fg);
+		      memGraphics.fillRect(sx, sy, sw, sh);
+		    }
+		  } else {
+		    memGraphics.setColor(fg);
+		    for (int j = 0; j < nSubrects; j++) {
+		      b1 = rfb.is.readUnsignedByte();
+		      b2 = rfb.is.readUnsignedByte();
+		      sx = tx + (b1 >> 4);
+		      sy = ty + (b1 & 0xf);
+		      sw = (b2 >> 4) + 1;
+		      sh = (b2 & 0xf) + 1;
+		      memGraphics.fillRect(sx, sy, sw, sh);
+		    }
+		  }
+
+		} else {
+
+		  // Full-color (24-bit) version.
+		  if ((subencoding & rfb.HextileSubrectsColoured) != 0) {
+		    for (int j = 0; j < nSubrects; j++) {
+		      fg = new Color(0xFF000000 | rfb.is.readInt());
+		      b1 = rfb.is.readUnsignedByte();
+		      b2 = rfb.is.readUnsignedByte();
+		      sx = tx + (b1 >> 4);
+		      sy = ty + (b1 & 0xf);
+		      sw = (b2 >> 4) + 1;
+		      sh = (b2 & 0xf) + 1;
+		      memGraphics.setColor(fg);
+		      memGraphics.fillRect(sx, sy, sw, sh);
+		    }
+		  } else {
+		    memGraphics.setColor(fg);
+		    for (int j = 0; j < nSubrects; j++) {
+		      b1 = rfb.is.readUnsignedByte();
+		      b2 = rfb.is.readUnsignedByte();
+		      sx = tx + (b1 >> 4);
+		      sy = ty + (b1 & 0xf);
+		      sw = (b2 >> 4) + 1;
+		      sh = (b2 & 0xf) + 1;
+		      memGraphics.fillRect(sx, sy, sw, sh);
+		    }
+		  }
+
+		}
+
 	      }
-	      handleUpdatedPixels(rx, ty, rw, th);
+	      // Finished with a row of tiles, now let's show it.
+	      scheduleRepaint(rx, ty, rw, th);
 	    }
 	    break;
 	  }
@@ -429,16 +482,16 @@ class VncCanvas extends Canvas
             }
             zlibInflater.setInput(zlibBuf, 0, nBytes);
 
-            drawZlibRect(rfb.updateRectX, rfb.updateRectY,
-			 rfb.updateRectW, rfb.updateRectH);
+            handleZlibRect(rfb.updateRectX, rfb.updateRectY,
+			   rfb.updateRectW, rfb.updateRectH);
 
 	    break;
 	  }
 
 	  case RfbProto.EncodingTight:
 	  {
-	    drawTightRect(rfb.updateRectX, rfb.updateRectY,
-			  rfb.updateRectW, rfb.updateRectH);
+	    handleTightRect(rfb.updateRectX, rfb.updateRectY,
+			    rfb.updateRectW, rfb.updateRectH);
 
 	    break;
 	  }
@@ -476,7 +529,7 @@ class VncCanvas extends Canvas
   // Handle a raw rectangle.
   //
 
-  void drawRawRect(int x, int y, int w, int h) throws IOException {
+  void handleRawRect(int x, int y, int w, int h) throws IOException {
 
     if (bytesPixel == 1) {
       for (int dy = y; dy < y + h; dy++) {
@@ -498,89 +551,7 @@ class VncCanvas extends Canvas
     }
 
     handleUpdatedPixels(x, y, w, h);
-  }
-
-
-  //
-  // Handle CopyRect rectangle (fast version).
-  //
-
-  void handleCopyRect() throws IOException {
-
-    int sx = rfb.copyRectSrcX, sy = rfb.copyRectSrcY;
-    int rx = rfb.updateRectX, ry = rfb.updateRectY;
-    int rw = rfb.updateRectW, rh = rfb.updateRectH;
-
-    int y0, y1, delta;
-    if (sy > ry) {
-      y0 = 0; y1 = rh; delta = 1;
-    } else if (sy < ry) {
-      y0 = rh - 1; y1 = -1; delta = -1;
-    } else {
-      handleCopyRectSlow();
-      return;
-    }
-
-    Object array = pixels8;
-    if (bytesPixel != 1)
-      array = pixels24;
-
-    for (int dy = y0; dy != y1; dy += delta) {
-      System.arraycopy(array, (sy + dy) * rfb.framebufferWidth + sx,
-                       array, (ry + dy) * rfb.framebufferWidth + rx, rw);
-    }
-
-    handleUpdatedPixels(rx, ry, rw, rh);
-  }
-
-
-  //
-  // Handle CopyRect rectangle (slow version, but scanlines may overlap).
-  //
-
-  void handleCopyRectSlow() throws IOException {
-
-    int sx = rfb.copyRectSrcX, sy = rfb.copyRectSrcY;
-    int rx = rfb.updateRectX, ry = rfb.updateRectY;
-    int rw = rfb.updateRectW, rh = rfb.updateRectH;
-
-    int dx, dy;
-
-    if (bytesPixel == 1) {
-      if (sy * rfb.framebufferWidth + sx > ry * rfb.framebufferWidth + rx) {
-	for (dy = 0; dy < rh; dy++) {
-	  for (dx = 0; dx < rw; dx++) {
-	    pixels8[(ry + dy) * rfb.framebufferWidth + (rx + dx)] =
-	      pixels8[(sy + dy) * rfb.framebufferWidth + (sx + dx)];
-	  }
-	}
-      } else {
-	for (dy = rh - 1; dy >= 0; dy--) {
-	  for (dx = rw - 1; dx >= 0; dx--) {
-	    pixels8[(ry + dy) * rfb.framebufferWidth + (rx + dx)] =
-	      pixels8[(sy + dy) * rfb.framebufferWidth + (sx + dx)];
-	  }
-	}
-      }
-    } else {
-      if (sy * rfb.framebufferWidth + sx > ry * rfb.framebufferWidth + rx) {
-	for (dy = 0; dy < rh; dy++) {
-	  for (dx = 0; dx < rw; dx++) {
-	    pixels24[(ry + dy) * rfb.framebufferWidth + (rx + dx)] =
-	      pixels24[(sy + dy) * rfb.framebufferWidth + (sx + dx)];
-	  }
-	}
-      } else {
-	for (dy = rh - 1; dy >= 0; dy--) {
-	  for (dx = rw - 1; dx >= 0; dx--) {
-	    pixels24[(ry + dy) * rfb.framebufferWidth + (rx + dx)] =
-	      pixels24[(sy + dy) * rfb.framebufferWidth + (sx + dx)];
-	  }
-	}
-      }
-    }
-
-    handleUpdatedPixels(rx, ry, rw, rh);
+    scheduleRepaint(x, y, w, h);
   }
 
 
@@ -588,7 +559,7 @@ class VncCanvas extends Canvas
   // Handle a Zlib-encoded rectangle.
   //
 
-  void drawZlibRect(int x, int y, int w, int h)
+  void handleZlibRect(int x, int y, int w, int h)
     throws IOException {
 
     try {
@@ -616,6 +587,7 @@ class VncCanvas extends Canvas
     }
 
     handleUpdatedPixels(x, y, w, h);
+    scheduleRepaint(x, y, w, h);
   }
 
 
@@ -623,7 +595,7 @@ class VncCanvas extends Canvas
   // Handle a tight rectangle.
   //
 
-  void drawTightRect(int x, int y, int w, int h) throws IOException {
+  void handleTightRect(int x, int y, int w, int h) throws IOException {
 
     int comp_ctl = rfb.is.readUnsignedByte();
 
@@ -643,18 +615,29 @@ class VncCanvas extends Canvas
     // Handle solid-color rectangles.
     if (comp_ctl == rfb.TightFill) {
       if (bytesPixel == 1) {
-	fillLargeArea(x, y, w, h, (byte)rfb.is.readUnsignedByte());
+	memGraphics.setColor(colors[rfb.is.readUnsignedByte()]);
       } else {
 	byte[] buf = new byte[3];
 	rfb.is.readFully(buf);
-	int bg = ((buf[0] & 0xFF) << 16 |
-		  (buf[1] & 0xFF) << 8 |
-		  (buf[2] & 0xFF));
-	fillLargeArea(x, y, w, h, bg);
+	Color bg = new Color(0xFF000000 | (buf[0] & 0xFF) << 16 |
+			     (buf[1] & 0xFF) << 8 | (buf[2] & 0xFF));
+	memGraphics.setColor(bg);
       }
-      handleUpdatedPixels(x, y, w, h);
+      memGraphics.fillRect(x, y, w, h);
+      scheduleRepaint(x, y, w, h);
       return;
     }
+
+    ///// DEBUG!
+    if (comp_ctl == rfb.TightJpeg) {
+      byte[] jpegData = new byte[rfb.readCompactLen()];
+      rfb.is.readFully(jpegData);
+      jpegImage = Toolkit.getDefaultToolkit().createImage(jpegData);
+      memGraphics.drawImage(jpegImage, x, y, this);
+      repaint(0, x, y, w, h);
+      return;
+    }
+    ///// DEBUG!
 
     // Read filter id and parameters.
     int numColors = 0, rowSize = w;
@@ -703,9 +686,9 @@ class VncCanvas extends Canvas
 	if (numColors == 2) {
 	  // Two colors.
 	  if (bytesPixel == 1) {
-	    drawMonoData(x, y, w, h, indexedData, palette8);
+	    decodeMonoData(x, y, w, h, indexedData, palette8);
 	  } else {
-	    drawMonoData(x, y, w, h, indexedData, palette24);
+	    decodeMonoData(x, y, w, h, indexedData, palette24);
 	  }
 	} else {
 	  // 3..255 colors (assuming bytesPixel == 4).
@@ -762,9 +745,9 @@ class VncCanvas extends Canvas
 	  if (numColors == 2) {
 	    // Two colors.
 	    if (bytesPixel == 1) {
-	      drawMonoData(x, y, w, h, indexedData, palette8);
+	      decodeMonoData(x, y, w, h, indexedData, palette8);
 	    } else {
-	      drawMonoData(x, y, w, h, indexedData, palette24);
+	      decodeMonoData(x, y, w, h, indexedData, palette24);
 	    }
 	  } else {
 	    // More than two colors (assuming bytesPixel == 4).
@@ -809,14 +792,14 @@ class VncCanvas extends Canvas
     }
 
     handleUpdatedPixels(x, y, w, h);
+    scheduleRepaint(x, y, w, h);
   }
 
   //
   // Decode 1bpp-encoded bi-color rectangle (8-bit and 24-bit versions).
   //
 
-  void drawMonoData(int x, int y, int w, int h,
-		    byte[] src, byte[] palette)
+  void decodeMonoData(int x, int y, int w, int h, byte[] src, byte[] palette)
     throws IOException {
 
     int dx, dy, n;
@@ -837,8 +820,7 @@ class VncCanvas extends Canvas
     }
   }
 
-  void drawMonoData(int x, int y, int w, int h,
-		    byte[] src, int[] palette)
+  void decodeMonoData(int x, int y, int w, int h, byte[] src, int[] palette)
     throws IOException {
 
     int dx, dy, n;
@@ -911,81 +893,24 @@ class VncCanvas extends Canvas
   // Display newly updated area of pixels.
   //
 
-  synchronized void
+  void
   handleUpdatedPixels(int x, int y, int w, int h) {
 
+    // Draw updated pixels of the off-screen image.
     pixelsSource.newPixels(x, y, w, h);
+    memGraphics.setClip(x, y, w, h);
+    memGraphics.drawImage(rawPixelsImage, 0, 0, this);
+    memGraphics.setClip(0, 0, rfb.framebufferWidth, rfb.framebufferHeight);
+  }
 
+  //
+  // Tell JVM to repaint specified desktop area.
+  //
+
+  void
+  scheduleRepaint(int x, int y, int w, int h) {
     // Request repaint delayed by 20 milliseconds.
     repaint(20, x, y, w, h);
-  }
-
-
-  //
-  // Emulate fillRect operation on the array of pixels.
-  // Here are two versions -- for 8-bit and 24-bit color.
-  // These versions are optimized for very small rectangles.
-  //
-
-  void fillSmallArea(int x, int y, int w, int h, byte pixel) {
-
-    int offset = y * rfb.framebufferWidth + x;
-    for (int dy = 0; dy < h; dy++) {
-      for (int dx = 0; dx < w; dx++) {
-	pixels8[offset++] = pixel;
-      }
-      offset += (rfb.framebufferWidth - w);
-    }
-  }
-
-  void fillSmallArea(int x, int y, int w, int h, int pixel) {
-
-    int offset = y * rfb.framebufferWidth + x;
-    for (int dy = 0; dy < h; dy++) {
-      for (int dx = 0; dx < w; dx++) {
-	pixels24[offset++] = pixel;
-      }
-      offset += (rfb.framebufferWidth - w);
-    }
-  }
-
-
-  //
-  // Emulate fillRect operation on the array of pixels.
-  // Here are two versions -- for 8-bit and 24-bit color.
-  // These versions are optimized for rectangles that are large enough.
-  //
-
-  void fillLargeArea(int x, int y, int w, int h, byte pixel) {
-    if (h * w == 0)
-      return;
-
-    int offset = y * rfb.framebufferWidth + x;
-    for (int i = 0; i < w; i++) {
-      pixels8[offset+i] = pixel;
-    }
-
-    for (int rows = h - 1; rows > 0; rows--) {
-      System.arraycopy(pixels8, offset,
-                       pixels8, offset + rfb.framebufferWidth, w);
-      offset += rfb.framebufferWidth;
-    }
-  }
-
-  void fillLargeArea(int x, int y, int w, int h, int pixel) {
-    if (h * w == 0)
-      return;
-
-    int offset = y * rfb.framebufferWidth + x;
-    for (int i = 0; i < w; i++) {
-      pixels24[offset+i] = pixel;
-    }
-
-    for (int rows = h - 1; rows > 0; rows--) {
-      System.arraycopy(pixels24, offset,
-                       pixels24, offset + rfb.framebufferWidth, w);
-      offset += rfb.framebufferWidth;
-    }
   }
 
 

@@ -2091,91 +2091,40 @@ vncDesktop::CheckUpdates()
 		m_server->UpdatePalette();
 	}
 
-	// TRIGGER THE UPDATE
+	// EXAMINE THE SHARED AREA / WINDOW
 
 	RECT rect = m_server->GetSharedRect();
 	RECT new_rect;
 	
-	bool update_full_region = false ;
-	
-	if (m_server->WindowShared()) {
 #ifdef HORIZONLIVE 
-		//
-		// make sure the window still exists
-		//
-		
-		HWND hwnd = m_server->GetWindowShared() ;
-		
-		//
-		// window is closed, 
-		// or we can't get the bounding rect
-		//
-		if ( 
-			IsWindow( hwnd ) == FALSE
-			|| GetWindowRect( hwnd, &new_rect ) == FALSE 
-		)
-		{
-			// override remote inputs
-			if ( m_remote_event_gp.isPeriodExpired() )
-				m_remote_event_gp.restart() ;
-		
-			if ( wasWindowOpen == true ) 
-			{
-				// send the window closed message to the viewer
-				sendWindowClosedMessage() ;
-
-				// remember the window was closed
-				wasWindowOpen = false ;
-
-				// prompt the host to pick a new window
-				horizonMenu::GetInstance()->ShowPropertiesDialog() ;
-			}
-
+	if ( m_server->WindowShared() )
+	{
+		// invalid window
+		if ( checkInvalidSharedWindow( new_rect ) == true )
 			return TRUE ;
-		}
-		else
-		{
-			if ( wasWindowOpen == false )
-				update_full_region = true ;
-		
-			// remember window was open
-			wasWindowOpen = true ;
-		}
-
-		// the window is minimized
-		if ( IsIconic( m_server->GetWindowShared() ) == TRUE )
-		{
-			// override remote inputs
-			if ( m_remote_event_gp.isPeriodExpired() )
-				m_remote_event_gp.restart() ;
-
-			if ( wasWindowIconic == false )
-			{
-				sendWindowIconicMessage() ;
-
-				// remember the window was closed
-				wasWindowIconic = true ;
-			}
-						
+	}
+	else if ( m_server->ScreenAreaShared() )
+	{
+		// invalid screen area
+		if ( checkInvalidSharedArea( new_rect ) == true )
 			return TRUE ;
-		}
-		else
-		{
-			if ( wasWindowIconic == true )
-				update_full_region = true ;
-
-			// remember window was not iconic
-			wasWindowIconic = false ;
-		}
+	}
+	else
+	{
+		// use the desktop
+		if ( ::CopyRect( &new_rect, &m_bmrect ) == FALSE )
+			return TRUE ;
+	}
 #else
+	if (m_server->WindowShared()) {
 		HWND hwnd = m_server->GetWindowShared();
 		GetWindowRect(hwnd, &new_rect);
-#endif
 	} else if (m_server->ScreenAreaShared()) {
 		new_rect = m_server->GetScreenAreaRect();
 	} else {
 		new_rect = m_bmrect;
 	}
+
 	if ((m_server->WindowShared() || m_server->GetApplication()) &&
 		m_server->GetWindowShared() == NULL) {
 		// Disconnect clients if the shared window has dissapeared.
@@ -2188,45 +2137,20 @@ vncDesktop::CheckUpdates()
 		m_server->KillAuthClients();
 		return FALSE;
 	}
+
 	// intersect the shared rect with the desktop rect
 	IntersectRect(&new_rect, &new_rect, &m_bmrect);
 
-#ifdef HORIZONLIVE 
-	if ( IsRectEmpty( &new_rect ) )
-	{
-		// override remote inputs
-		if ( m_remote_event_gp.isPeriodExpired() )
-			m_remote_event_gp.restart() ;
-
-		if ( wasWindowOnScreen == true )
-		{
-			// send the window off-screen message to the viewer
-			sendWindowOffScreenMessage() ;
-			
-			// remember window was off-screen
-			wasWindowOnScreen = false ;
-		}
-		return TRUE ;
-	}
-	else
-	{
-		if ( wasWindowOnScreen == false ) 
-			update_full_region = true ;
-	
-		// remember window was on-screen
-		wasWindowOnScreen = true ;
-	}
-#else
 	// Disconnect clients if the shared window is empty (dissapeared).
 	// FIXME: Make this behavior configurable.
 	if (new_rect.right - new_rect.left == 0 ||
-		 new_rect.bottom - new_rect.top == 0) {
+		new_rect.bottom - new_rect.top == 0) {
 		vnclog.Print(LL_CONNERR, VNCLOG("shared window empty - disconnecting clients\n"));
 		m_server->KillAuthClients();
 		return FALSE;
 	}
 #endif
-
+		
 	// Update screen size if required
 	if (!EqualRect(&new_rect, &rect)) {
 		m_server->SetSharedRect(new_rect);
@@ -2241,12 +2165,14 @@ vncDesktop::CheckUpdates()
 		m_server->SetNewFBSize(sendnewfb);
 		m_changed_rgn.Clear();
 		return TRUE;
-	}
+	}		
+
+	// DETERMINE THE CHANGED RECTS
 
 	// If we have clients full region requests
-	if (update_full_region == true || m_server->FullRgnRequested()) {
+	if (m_server->FullRgnRequested()) {
 		// Capture screen to main buffer
-		CaptureScreen(rect, m_mainbuff);
+		CaptureScreen(rect, m_mainbuff);	
 		// If we have a video driver - reset counter
 		if ( m_videodriver != NULL &&
 			 m_videodriver->driver )
@@ -2341,7 +2267,8 @@ vncDesktop::CheckUpdates()
 		m_changed_rgn.Clear();
 	}
 
-	// Trigger an update to be sent
+	// TRIGGER THE UPDATE
+
 	if (m_server->FullRgnRequested() || m_server->IncrRgnRequested())
 		m_server->TriggerUpdate();
 
@@ -2889,8 +2816,77 @@ vncDesktop::sendWindowOffScreenMessage( void )
 		"The shared window is off-screen.\n"
 		"Please wait for the next update." 
 	;
- 
+
 	return displayMessageInViewer( message, strlen( message ) ) ;
+}
+
+bool
+vncDesktop::restoreSharedArea( void )
+{
+	// get shared area rect
+	RECT rect ;
+
+	if ( m_server->WindowShared() ) 
+	{
+		WINDOWPLACEMENT wndpl ;
+		wndpl.length = sizeof( WINDOWPLACEMENT ) ;
+		
+		if ( ::GetWindowPlacement( m_server->GetWindowShared(), &wndpl ) == FALSE )
+			return false ;
+
+		// rect is the intersection of the restored window and the desktop
+		::IntersectRect( &rect, &wndpl.rcNormalPosition, &m_bmrect ) ;
+
+		if ( ::IsRectEmpty( &rect ) == TRUE )
+			return false ;
+	}
+	else if ( m_server->ScreenAreaShared() )
+	{
+		rect = m_server->GetScreenAreaRect() ;
+	}
+	else
+	{
+		rect = m_bmrect ;
+	}
+	
+	// load the bitmap into the device context
+	HBITMAP oldbitmap = ( HBITMAP )( ::SelectObject( m_hmemdc, m_membitmap ) ) ;
+	if ( oldbitmap == NULL ) return false ;
+	
+	// copy the on-screen data in to our device context
+	::BitBlt(
+		m_hmemdc, 
+		rect.left, rect.top,
+		rect.right - rect.left, 
+		rect.bottom - rect.top,
+		m_hrootdc, 
+		rect.left, rect.top,
+		SRCCOPY
+	) ;
+	
+	// restore the old bitmap
+	::SelectObject( m_hmemdc, oldbitmap ) ;
+	
+	// copy the on-screen data in rect to the main buffer
+	CopyToBuffer( rect, m_mainbuff ) ;
+	CopyToBuffer( rect, m_backbuff ) ;
+	
+	// update the shared-area size
+	m_server->SetSharedRect( rect ) ;
+
+	// tell the clients that rect has changed
+//	m_server->UpdateRect( rect ) ;
+
+	// tell the clients there's a new frame-buffer size
+	m_server->SetNewFBSize( TRUE ) ;
+
+	// send the message to the clients
+	m_server->TriggerUpdate() ;	
+
+	// clear the changed regions
+	m_changed_rgn.Clear() ;
+
+	return true ;
 }
 
 bool 
@@ -2921,7 +2917,7 @@ vncDesktop::displayMessageInViewer(
 
 	// get the extent of the text
 	SIZE text_extent ;
-	rv = GetTextExtentPoint32( m_hmemdc, message, message_length, &text_extent ) ;
+	rv = ::GetTextExtentPoint32( m_hmemdc, message, message_length, &text_extent ) ;
 
 	if ( rv == FALSE )
 		return false ;
@@ -2945,23 +2941,18 @@ vncDesktop::displayMessageInViewer(
 	rect.bottom = ( text_extent.cy + margin ) + margin ;
 
 	// normalize the rect to the screen
-	IntersectRect( &rect, &rect, &m_bmrect ) ;
-
-	// set the new shared area size
-	m_server->SetSharedRect( rect ) ;
-		
-	// tell server to update frame buffer
-	m_server->SetNewFBSize( TRUE ) ;
+	::IntersectRect( &rect, &rect, &m_bmrect ) ;
 
 	//
 	// capture the current screen
 	//
 
 	// load the bitmap into the device context
-	HBITMAP oldbitmap = ( HBITMAP )( SelectObject( m_hmemdc, m_membitmap ) ) ;
+	HBITMAP oldbitmap = ( HBITMAP )( ::SelectObject( m_hmemdc, m_membitmap ) ) ;
 	if ( oldbitmap == NULL ) return false ;
 
-	rv = BitBlt(
+/*
+	rv = ::BitBlt(
 		m_hmemdc, 
 		rect.left, rect.top,
 		rect.right - rect.left, 
@@ -2970,9 +2961,10 @@ vncDesktop::displayMessageInViewer(
 		rect.left, rect.top,
 		SRCCOPY
 	) ;
-	
+
 	if ( rv == FALSE )
 		return false ;
+*/
 
 	//
 	// determine the text's rectangle
@@ -3007,10 +2999,10 @@ vncDesktop::displayMessageInViewer(
 	}
 
 	// select the background brush
-	SelectObject( m_hmemdc, GetStockObject( GRAY_BRUSH ) ) ;
+	::SelectObject( m_hmemdc, GetStockObject( GRAY_BRUSH ) ) ;
 
 	// fill the shared area with the background brush
-	rv = Rectangle( 
+	rv = ::Rectangle( 
 		m_hmemdc,
 		fill_rect.left, fill_rect.top,
 		fill_rect.right, fill_rect.bottom
@@ -3024,9 +3016,9 @@ vncDesktop::displayMessageInViewer(
 	//
 
 	// make text background transparent
-	SetBkMode( m_hmemdc, TRANSPARENT ) ;
+	::SetBkMode( m_hmemdc, TRANSPARENT ) ;
 
-	int height = DrawText(
+	int height = ::DrawText(
 		m_hmemdc,
 		message, 
 		message_length,
@@ -3038,25 +3030,12 @@ vncDesktop::displayMessageInViewer(
 	// return device context to previous state
 	//
 	
-	SelectObject( m_hmemdc, oldbitmap ) ;
+	::SelectObject( m_hmemdc, oldbitmap ) ;
 
 	//
 	// do the vnc update dance
 	//
 	
-	// copy the rect data in to the real buffer
-	CopyToBuffer( rect, m_mainbuff ) ;
-
-	// create a region with the rect
-	vncRegion message_region ;
-	message_region.Clear() ;
-	
-	// get the new pixels for the shared rect
-	GetChangedRegion( message_region, rect );
-
-	// tell the clients about the updated region
-	m_server->UpdateRegion( message_region ) ;
-
 	// warp cursor to bottom-right corner of shared-area
 	POINT p;
 	p.x = m_bmrect.right ;
@@ -3064,13 +3043,165 @@ vncDesktop::displayMessageInViewer(
 	m_server->setFakeCursorPos(p);
 	m_server->provideFakeCursorPos(TRUE);
 	
-	// send the update to the clients
+	// copy the rect data in to the main buffer
+	CopyToBuffer( rect, m_mainbuff ) ;
+	CopyToBuffer( rect, m_backbuff ) ;
+
+	// set the new shared area size
+	m_server->SetSharedRect( rect ) ;
+		
+	// tell server to update frame buffer
+	m_server->SetNewFBSize( TRUE ) ;
+
+	// send the message to the clients
 	m_server->TriggerUpdate() ;
 
 	// done faking cursor position
 	m_server->provideFakeCursorPos(FALSE);
 
+	// clear the changed regions
+	m_changed_rgn.Clear() ;
+
 	return true ;
 }
 
-#endif
+bool 
+vncDesktop::checkInvalidSharedWindow( RECT &new_rect )
+{
+	// assume the window is open and restored, to start 
+	static bool wasWindowOpen = true ;
+	static bool wasWindowIconic = false ;
+
+	// get shared window handle
+	HWND hwnd = m_server->GetWindowShared() ;
+
+	// check window state
+
+	// window is closed, or we can't get the bounding rect
+	if ( ::IsWindow( hwnd ) == FALSE )
+	{
+		// override remote inputs
+		if ( m_remote_event_gp.isPeriodExpired() )
+			m_remote_event_gp.restart() ;
+	
+		// send the message if the window was open and not minimized
+		if ( wasWindowOpen == true ) 
+		{		
+			// send the window closed message to the viewer
+			sendWindowClosedMessage() ;
+
+			// remember the window was closed
+			wasWindowOpen = false ;
+
+			// prompt the host to pick a new window
+			horizonMenu::GetInstance()->ShowPropertiesDialog() ;
+		}
+
+		// make sure message is appearing
+		m_server->TriggerUpdate() ;
+
+		return true ;
+	}
+
+	// window is minimized
+	if ( ::IsIconic( m_server->GetWindowShared() ) == TRUE )
+	{
+		// override remote inputs
+		if ( m_remote_event_gp.isPeriodExpired() )
+			m_remote_event_gp.restart() ;
+
+		// send the message if the window was open and not minimized
+		if ( wasWindowIconic == false )
+		{
+			sendWindowIconicMessage() ;
+
+			// remember the window was closed
+			wasWindowIconic = true ;
+		}
+		
+		// make sure message is appearing
+		m_server->TriggerUpdate() ;
+					
+		return true ;
+	}
+
+	// make sure the rect is on screen
+	RECT rect ;
+
+	// get the window bounds
+	::GetWindowRect( hwnd, &rect ) ;
+
+	// intersect with the desktop rect
+	::IntersectRect( &rect, &rect, &m_bmrect ) ;
+
+	if ( ::IsRectEmpty( &rect ) )
+		return true ;
+
+	// window is okay
+	
+	// reset the message if necessary
+	if ( wasWindowIconic == true || wasWindowOpen == false )
+	{
+		// reset window state flags
+		wasWindowIconic = false ;
+		wasWindowOpen = true ;
+
+		// get rid of message
+		restoreSharedArea() ;
+
+		return true ;
+	}
+
+	// return the window bounds
+	::GetWindowRect( hwnd, &new_rect ) ;
+
+	return false ;
+}
+
+bool
+vncDesktop::checkInvalidSharedArea( RECT& new_rect ) 
+{
+	static bool wasWindowOnScreen = true ;
+
+	RECT rect = m_server->GetScreenAreaRect() ;
+
+	// intersect with the desktop rect
+	::IntersectRect( &rect, &rect, &m_bmrect ) ;
+
+	// check that it's not empty
+	if ( ::IsRectEmpty( &rect ) )
+	{
+		// override remote inputs
+		if ( m_remote_event_gp.isPeriodExpired() )
+			m_remote_event_gp.restart() ;
+
+		if ( wasWindowOnScreen == true )
+		{
+			// send the window off-screen message to the viewer
+			sendWindowOffScreenMessage() ;
+			
+			// remember window was off-screen
+			wasWindowOnScreen = false ;
+		}
+		
+		// make sure message is appearing
+		m_server->TriggerUpdate() ;
+		
+		return true ;
+	}
+	else if ( wasWindowOnScreen == false ) 
+	{
+		restoreSharedArea() ;
+	
+		// remember window was on screen
+		wasWindowOnScreen = true ;
+		
+		return true ;
+	}
+	
+	// return the new rect
+	::CopyRect( &new_rect, &rect ) ;
+
+	return false ;
+}
+#endif // HORIZONLIVE

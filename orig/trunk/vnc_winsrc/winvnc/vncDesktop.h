@@ -272,12 +272,17 @@ protected:
 	GracePeriod m_remote_event_gp;
 
 #ifdef HORIZONLIVE
+	bool checkInvalidSharedWindow( RECT& new_rect ) ;
+	bool checkInvalidSharedArea( RECT& new_rect ) ;
+
 	bool sendWindowClosedMessage( void ) ;
 	bool sendWindowIconicMessage( void ) ;
 	bool sendWindowOffScreenMessage( void ) ;
 
 	bool displayMessageInViewer( const char* message, int message_length, 
 		bool clear_area = true ) ;
+	
+	bool restoreSharedArea( void ) ;
 
 	bool wasWindowOpen ;
 	bool wasWindowIconic ;

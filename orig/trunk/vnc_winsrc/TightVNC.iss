@@ -3,8 +3,8 @@
 
 [Setup]
 AppName=TightVNC
-AppVerName=TightVNC 1.2.1
-AppVersion=1.2.1
+AppVerName=TightVNC 1.2.2
+AppVersion=1.2.2
 AppPublisher=Const Kaplinsky
 AppPublisherURL=http://www.tightvnc.com
 AppSupportURL=http://www.tightvnc.com
@@ -14,12 +14,13 @@ DefaultGroupName=TightVNC
 AlwaysCreateUninstallIcon=no
 LicenseFile=LICENCE.txt
 
-WindowVisible=No
+WindowVisible=no
+DisableStartupPrompt=yes
 CompressLevel=9
 BackColor=clBlack
 BackColor2=clBlue
 
-; uncomment the following line if you want your installation to run on NT 3.51 too.
+; Uncomment the following line if you want your installation to run on NT 3.51 too.
 ; MinVersion=4,3.51
 
 [Files]

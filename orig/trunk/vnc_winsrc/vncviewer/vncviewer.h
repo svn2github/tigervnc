@@ -29,7 +29,7 @@
 
 #pragma once
 
-#include "res\resource.h"
+#include "res/resource.h"
 #include "VNCviewerApp.h"
 #include "Log.h"
 #include "VNCHelp.h"

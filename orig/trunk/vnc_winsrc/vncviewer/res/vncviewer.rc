@@ -46,7 +46,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 
 IDB_VNCBITMAP           BITMAP  DISCARDABLE     "tightvnc.bmp"
-IDB_VNC32               BITMAP  DISCARDABLE     "tightvnc48.BMP"
+IDB_VNC32               BITMAP  DISCARDABLE     "tightvnc48.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //

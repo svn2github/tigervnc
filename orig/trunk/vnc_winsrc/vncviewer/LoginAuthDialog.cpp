@@ -47,8 +47,8 @@ LoginAuthDialog::LoginAuthDialog(char *title)
 		m_title[0] = '\0';
 	}
 
-	m_username[0] = __T('\0');
-	m_passwd[0] = __T('\0');
+	m_username[0] = TEXT('\0');
+	m_passwd[0] = TEXT('\0');
 }
 
 LoginAuthDialog::~LoginAuthDialog()

@@ -401,7 +401,7 @@ void ClientConnection::CreateDisplay()
 
 	m_hwndscroll = CreateWindow("ScrollClass",
 			      NULL,
-			      WS_CHILD | WS_CLIPSIBLINGS,
+			      WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
 			      CW_USEDEFAULT,
 			      CW_USEDEFAULT,
 			      CW_USEDEFAULT,       // x-size

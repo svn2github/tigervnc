@@ -78,6 +78,7 @@ private:
 	static LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
 	static LRESULT CALLBACK WndProc1(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
 	static LRESULT CALLBACK Proc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
+	static LRESULT CALLBACK ScrollProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
 	void DoBlit();
 	VNCviewerApp *m_pApp;
 	ConnectingDialog *m_connDlg;
@@ -90,7 +91,7 @@ private:
 	SOCKET m_sock;
 	bool m_serverInitiated;
 	HWND m_hwnd, m_hbands, m_hwnd1, 
-		 m_hToolbar, m_hhscroll, m_hvscroll;
+		 m_hToolbar, m_hwndscroll;
 		
 	void Init(VNCviewerApp *pApp);
 	void InitCapabilities();
@@ -344,14 +345,11 @@ private:
 
 	// Window may be scrollable - these control the scroll position
 	int m_hScrollPos, m_hScrollMax, m_vScrollPos, m_vScrollMax;
-	// The current window size
-	int m_winwidth, m_winheight;
-	int m_winwidth1, m_winheight1;
+
 	// The size of the current client area
 	int m_cliwidth, m_cliheight;
 	// The size of a window needed to hold entire screen without scrollbars
 	int m_fullwinwidth, m_fullwinheight;
-	int m_fullwinwidth1, m_fullwinheight1;
 	// The size of the CE CommandBar
 	int m_barheight;
 

@@ -18,12 +18,13 @@
 //
 
 import java.awt.*;
+import java.awt.event.*;
 
 //
 // The panel which implements the user authentication scheme
 //
 
-class authenticationPanel extends Panel {
+class authenticationPanel extends Panel implements ActionListener {
 
   Label title, retry, prompt;
   TextField password;
@@ -71,6 +72,7 @@ class authenticationPanel extends Panel {
 
     gridbag.setConstraints(password,gbc);
     add(password);
+    password.addActionListener(this);
 
     gbc.ipady = 10;
     gbc.gridwidth = GridBagConstraints.REMAINDER;
@@ -79,23 +81,11 @@ class authenticationPanel extends Panel {
     gbc.ipadx = 40;
     gridbag.setConstraints(ok,gbc);
     add(ok);
-
-    password.requestFocus();
+    ok.addActionListener(this);
   }
 
   //
-  // Override Component.setVisible() to get the focus set properly.
-  //
-
-  public void setVisible(boolean f) {
-    if (f) {
-      password.requestFocus();
-    }
-    super.setVisible(f);
-  }
-
-  //
-  // Get reference to password text field object.
+  // Get reference to the password text field object.
   //
 
   public TextField getPasswordField() {
@@ -103,16 +93,14 @@ class authenticationPanel extends Panel {
   }
 
   //
-  // action() is called when a button is pressed or return is pressed in the
-  // password text field.
+  // This method is called when a button is pressed or return is
+  // pressed in the password text field.
   //
 
-  public synchronized boolean action(Event evt, Object arg){
-    if ((evt.target == password) || (evt.target == ok)) {
+  public synchronized void actionPerformed(ActionEvent evt) {
+    if (evt.getSource() == password || evt.getSource() == ok) {
       notify();
-      return true;
     }
-    return false;
   }
 
   //

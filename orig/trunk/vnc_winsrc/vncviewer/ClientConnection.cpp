@@ -584,10 +584,10 @@ void ClientConnection::ReadServerInit()
 		m_si.framebufferWidth, m_si.framebufferHeight, m_si.format.depth );
 	SetWindowText(m_hwnd, m_desktopName);	
 
-	SizeWindow();
+	SizeWindow(true);
 }
 
-void ClientConnection::SizeWindow()
+void ClientConnection::SizeWindow(bool centered)
 {
 	// Find how large the desktop work area is
 	RECT workrect;
@@ -603,21 +603,33 @@ void ClientConnection::SizeWindow()
 	RECT fullwinrect;
 	SetRect(&fullwinrect, 0, 0, m_si.framebufferWidth * m_opts.m_scale_num / m_opts.m_scale_den, 
 								m_si.framebufferHeight* m_opts.m_scale_num / m_opts.m_scale_den);
-	AdjustWindowRectEx(&fullwinrect, 
-			   GetWindowLong(m_hwnd, GWL_STYLE) & ~WS_VSCROLL & ~WS_HSCROLL, 
-			   FALSE, GetWindowLong(m_hwnd, GWL_EXSTYLE));
+	AdjustWindowRectEx(&fullwinrect,
+					   GetWindowLong(m_hwnd, GWL_STYLE) & ~WS_VSCROLL & ~WS_HSCROLL,
+					   FALSE, GetWindowLong(m_hwnd, GWL_EXSTYLE));
 	m_fullwinwidth = fullwinrect.right - fullwinrect.left;
 	m_fullwinheight = fullwinrect.bottom - fullwinrect.top;
 
+	// Make the window size limited by the desktop size
 	m_winwidth  = min(m_fullwinwidth,  workwidth);
 	m_winheight = min(m_fullwinheight, workheight);
-	SetWindowPos(m_hwnd, HWND_TOP,
-		workrect.left + (workwidth-m_winwidth) / 2,
-		workrect.top + (workheight-m_winheight) / 2,
-		m_winwidth, m_winheight, SWP_SHOWWINDOW);
 
+	int x = workrect.left + (workwidth - m_winwidth) / 2;
+	int y = workrect.top + (workheight - m_winheight) / 2;
+	if (!centered) {
+		// Try to preserve current position if possible
+		RECT tmprect;
+		if (GetWindowRect(m_hwnd, &tmprect)) {
+			x = tmprect.left;
+			y = tmprect.top;
+			if (x + m_winwidth > workrect.right)
+				x = workrect.right - m_winwidth;
+			if (y + m_winheight > workrect.bottom)
+				y = workrect.bottom - m_winheight;
+		}
+	}
+
+	SetWindowPos(m_hwnd, HWND_TOP, x, y, m_winwidth, m_winheight, SWP_SHOWWINDOW);
 	SetForegroundWindow(m_hwnd);
-
 }
 
 // We keep a local copy of the whole screen.  This is not strictly necessary
@@ -625,14 +637,20 @@ void ClientConnection::SizeWindow()
 
 void ClientConnection::CreateLocalFramebuffer() {
 	omni_mutex_lock l(m_bitmapdcMutex);
-	
+
+	// Remove old bitmap object if it already exists
+	bool bitmapExisted = false;
+	if (m_hBitmap != NULL) {
+		DeleteObject(m_hBitmap);
+		bitmapExisted = true;
+	}
+
 	// We create a bitmap which has the same pixel characteristics as
 	// the local display, in the hope that blitting will be faster.
 	
 	TempDC hdc(m_hwnd);
-	m_hBitmap = ::CreateCompatibleBitmap(hdc, 
-		m_si.framebufferWidth, 
-		m_si.framebufferHeight);
+	m_hBitmap = ::CreateCompatibleBitmap(hdc, m_si.framebufferWidth,
+										 m_si.framebufferHeight);
 	
 	if (m_hBitmap == NULL)
 		throw WarningException("Error creating local image of screen.");
@@ -647,15 +665,17 @@ void ClientConnection::CreateLocalFramebuffer() {
 	COLORREF bgcol = RGB(0xcc, 0xcc, 0xcc);
 	FillSolidRect(&rect, bgcol);
 	
-	COLORREF oldbgcol  = SetBkColor(  m_hBitmapDC, bgcol);
-	COLORREF oldtxtcol = SetTextColor(m_hBitmapDC, RGB(0,0,64));
-	rect.right = m_si.framebufferWidth / 2;
-	rect.bottom = m_si.framebufferHeight / 2;
+	if (!bitmapExisted) {
+		COLORREF oldbgcol  = SetBkColor(m_hBitmapDC, bgcol);
+		COLORREF oldtxtcol = SetTextColor(m_hBitmapDC, RGB(0,0,64));
+		rect.right = m_si.framebufferWidth / 2;
+		rect.bottom = m_si.framebufferHeight / 2;
 	
-	DrawText (m_hBitmapDC, _T("Please wait - initial screen loading"), -1, &rect,
-		DT_SINGLELINE | DT_CENTER | DT_VCENTER);
-	SetBkColor(  m_hBitmapDC, oldbgcol);
-	SetTextColor(m_hBitmapDC, oldtxtcol);
+		DrawText (m_hBitmapDC, _T("Please wait - initial screen loading"), -1, &rect,
+				  DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+		SetBkColor(m_hBitmapDC, oldbgcol);
+		SetTextColor(m_hBitmapDC, oldtxtcol);
+	}
 	
 	InvalidateRect(m_hwnd, NULL, FALSE);
 }
@@ -803,8 +823,9 @@ void ClientConnection::SetFormatAndEncodings()
 											 m_opts.m_jpegQualityLevel );
 	}
 
-	// Notify the server that we support LastRect markers
+	// Notify the server that we support LastRect and NewFBSize encodings
 	encs[se->nEncodings++] = Swap32IfLE(rfbEncodingLastRect);
+	encs[se->nEncodings++] = Swap32IfLE(rfbEncodingNewFBSize);
 
 	len = sz_rfbSetEncodingsMsg + se->nEncodings * 4;
 
@@ -849,8 +870,6 @@ ClientConnection::~ClientConnection()
 	DeleteDC(m_hBitmapDC);
 	if (m_hBitmap != NULL)
 		DeleteObject(m_hBitmap);
-	if (m_hBitmapDC != NULL)
-		DeleteObject(m_hBitmapDC);
 	if (m_hPalette != NULL)
 		DeleteObject(m_hPalette);
 	
@@ -1254,21 +1273,23 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 				_this->SaveConnection();
 				return 0;
 			case IDC_OPTIONBUTTON: 
+				{
+					int prev_scale_num = _this->m_opts.m_scale_num;
+					int prev_scale_den = _this->m_opts.m_scale_den;
 
-				if (_this->m_opts.DoDialog(true)) {
-					_this->m_pendingFormatChange = true;
+					if (_this->m_opts.DoDialog(true)) {
+						_this->m_pendingFormatChange = true;
 
-					// This isn't always needed
-					_this->SizeWindow();
-					InvalidateRect(hwnd, NULL, TRUE);
-					//_this->UpdateScrollbars();
-					//UpdateWindow(hwnd);
-
-					// Make the window correspond to the requested state
-
-					_this->RealiseFullScreenMode();	
-				};	
-
+						if (prev_scale_num != _this->m_opts.m_scale_num ||
+							prev_scale_den != _this->m_opts.m_scale_den) {
+							// Resize the window if scaling factors were changed
+							_this->SizeWindow(false);
+							InvalidateRect(hwnd, NULL, TRUE);
+							// Make the window correspond to the requested state
+							_this->RealiseFullScreenMode(true);
+						}
+					}
+				}
 				return 0;
 			case IDD_APP_ABOUT:
 				ShowAboutBox();
@@ -1800,7 +1821,7 @@ void* ClientConnection::run_undetached(void* arg) {
 
 		SendFullFramebufferUpdateRequest();
 
-		RealiseFullScreenMode();
+		RealiseFullScreenMode(false);
 
 		m_running = true;
 		UpdateWindow(m_hwnd);
@@ -1946,14 +1967,18 @@ void ClientConnection::ReadScreenUpdate() {
 		ReadExact((char *) &surh, sz_rfbFramebufferUpdateRectHeader);
 
 		surh.encoding = Swap32IfLE(surh.encoding);
-		if (surh.encoding == rfbEncodingLastRect)
-			break;
-
 		surh.r.x = Swap16IfLE(surh.r.x);
 		surh.r.y = Swap16IfLE(surh.r.y);
 		surh.r.w = Swap16IfLE(surh.r.w);
 		surh.r.h = Swap16IfLE(surh.r.h);
-		
+
+		if (surh.encoding == rfbEncodingLastRect)
+			break;
+		if (surh.encoding == rfbEncodingNewFBSize) {
+			ReadNewFBSize(&surh);
+			break;
+		}
+
 		if ( surh.encoding == rfbEncodingXCursor ||
 			 surh.encoding == rfbEncodingRichCursor ) {
 			ReadCursorShape(&surh);
@@ -2236,5 +2261,21 @@ void ClientConnection::InvalidateScreenRect(const RECT *pRect) {
 		rect.bottom = pRect->bottom - m_vScrollPos;
 	}
 	InvalidateRect(m_hwnd, &rect, FALSE);
+}
+
+//
+// Processing NewFBSize pseudo-rectangle. Create new framebuffer of
+// the size specified in pfburh->r.w and pfburh->r.h, and change the
+// window size correspondingly.
+//
+
+void ClientConnection::ReadNewFBSize(rfbFramebufferUpdateRectHeader *pfburh)
+{
+	m_si.framebufferWidth = pfburh->r.w;
+	m_si.framebufferHeight = pfburh->r.h;
+
+	CreateLocalFramebuffer();
+	SizeWindow(false);
+	RealiseFullScreenMode(true);
 }
 

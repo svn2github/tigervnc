@@ -110,10 +110,10 @@ private:
 	void SendPointerEvent(int x, int y, int buttonMask);
     void ProcessKeyEvent(int virtkey, DWORD keyData);
 	void SendKeyEvent(CARD32 key, bool down);
-	
+
 	void ReadScreenUpdate();
 	void Update(RECT *pRect);
-	void SizeWindow();
+	void SizeWindow(bool centered);
 	bool ScrollScreen(int dx, int dy);
 	void UpdateScrollbars();
 
@@ -128,6 +128,8 @@ private:
 	void HandleHextileEncoding16(int x, int y, int w, int h);
 	void HandleHextileEncoding32(int x, int y, int w, int h);
 	void ReadZlibRect(rfbFramebufferUpdateRectHeader *pfburh);
+
+	void ReadNewFBSize(rfbFramebufferUpdateRectHeader *pfburh);
 
 	// ClientConnectionTight.cpp
 	void ReadTightRect(rfbFramebufferUpdateRectHeader *pfburh);
@@ -190,7 +192,7 @@ private:
 	// ClientConnectionFullScreen.cpp
 	void SetFullScreenMode(bool enable);
 	bool InFullScreenMode();
-	void RealiseFullScreenMode();
+	void RealiseFullScreenMode(bool suppressPrompt);
 	bool BumpScroll(int x, int y);
 
 	// ClientConnectionClipboard.cpp

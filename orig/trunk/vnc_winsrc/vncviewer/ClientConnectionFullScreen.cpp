@@ -44,30 +44,33 @@ bool ClientConnection::InFullScreenMode()
 void ClientConnection::SetFullScreenMode(bool enable)
 {	
 	m_opts.m_FullScreen = enable;
-	RealiseFullScreenMode();
+	RealiseFullScreenMode(false);
 }
 
 // If the options have been changed other than by calling 
 // SetFullScreenMode, you need to call this to make it happen.
-void ClientConnection::RealiseFullScreenMode()
+void ClientConnection::RealiseFullScreenMode(bool suppressPrompt)
 {
 	LONG style = GetWindowLong(m_hwnd, GWL_STYLE);
 	if (m_opts.m_FullScreen) {
 
-		// A bit crude here - we can skip the prompt on a registry setting.
-		// We'll do this properly later.
 		HKEY hRegKey;
-		DWORD skipprompt = 0;
-		if ( RegCreateKey(HKEY_CURRENT_USER, SETTINGS_KEY_NAME, &hRegKey)  != ERROR_SUCCESS ) {
-	        hRegKey = NULL;
-		} else {
-			DWORD skippromptsize = sizeof(skipprompt);
-			DWORD valtype;	
-			if ( RegQueryValueEx( hRegKey,  "SkipFullScreenPrompt", NULL, &valtype, 
-				(LPBYTE) &skipprompt, &skippromptsize) != ERROR_SUCCESS) {
-				skipprompt = 0;
+		DWORD skipprompt = (DWORD)suppressPrompt;
+
+		if (!suppressPrompt) {
+			// A bit crude here - we can skip the prompt on a registry setting.
+			// We'll do this properly later.
+			if ( RegCreateKey(HKEY_CURRENT_USER, SETTINGS_KEY_NAME, &hRegKey)  != ERROR_SUCCESS ) {
+		        hRegKey = NULL;
+			} else {
+				DWORD skippromptsize = sizeof(skipprompt);
+				DWORD valtype;	
+				if ( RegQueryValueEx( hRegKey,  "SkipFullScreenPrompt", NULL, &valtype, 
+					(LPBYTE) &skipprompt, &skippromptsize) != ERROR_SUCCESS) {
+					skipprompt = 0;
+				}
+				RegCloseKey(hRegKey);
 			}
-			RegCloseKey(hRegKey);
 		}
 
 		if (!skipprompt)

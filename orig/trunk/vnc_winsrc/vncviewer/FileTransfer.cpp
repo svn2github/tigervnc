@@ -1,4 +1,4 @@
-//  Copyright (C) 2003-2004 Dennis Syrovatsky. All Rights Reserved.
+//  Copyright (C) 2003-2005 Dennis Syrovatsky. All Rights Reserved.
 //
 //  This file is part of the VNC system.
 //
@@ -393,11 +393,6 @@ FileTransfer::closeUndoneTransfer()
 	m_fileLastRqstFailedMsgs.free();
 	m_fileListRequestQueue.free();
 
-	if (m_pFileTransferDlg->m_bEndFTDlgOnYes) {
-		m_pFileTransferDlg->m_bEndFTDlgOnYes = false;
-		m_pFileTransferDlg->endFileTransferDialog();
-	}
-	
 	if (m_bSendWMCloseOnYes) PostMessage(m_pCC->m_hwnd1, WM_CLOSE, (WPARAM) 0, (LPARAM) 0);
 }
 
@@ -463,7 +458,7 @@ FileTransfer::checkDeleteQueue()
 		} else {
 			if (m_bFTDlgStatus) m_pFileTransferDlg->m_pStatusBox->setStatusText("Delete Operation Completed Successfully");
 		}
-		onEndTransfer();
+		if (!m_bFileTransfer) onEndTransfer();
 	}
 }
 
@@ -528,7 +523,7 @@ FileTransfer::checkRenameQueue()
 		} else {
 			if (m_bFTDlgStatus) m_pFileTransferDlg->m_pStatusBox->setStatusText("Rename Operation Completed Successfully");
 		}
-		onEndTransfer();
+		if (!m_bFileTransfer) onEndTransfer();
 	}
 }
 
@@ -809,7 +804,7 @@ FileTransfer::createFileInfo(unsigned int numFiles, FileInfo *fi,
 	int size = 0;
 	for (unsigned int i = 0; i < numFiles; i++) {
 		size = Swap32IfLE(pSDInfo[i].size);
-		if (size < 0) {
+		if (size == -1) {
 			fi->add((pFilenames + pos), size, Swap32IfLE(pSDInfo[i].data), FT_ATTR_FOLDER);
 		} else {
 			fi->add((pFilenames + pos), size, Swap32IfLE(pSDInfo[i].data), FT_ATTR_FILE);

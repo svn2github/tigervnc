@@ -188,6 +188,8 @@ FileTransferDialog::closeFileTransferDialog()
 void
 FileTransferDialog::endFileTransferDialog()
 {
+	m_pFileTransfer->setFTDlgStatus(false);
+
 	if (m_pLocalLV != NULL) {
 		m_pLocalLV->deleteAllItems();
 		delete m_pLocalLV;
@@ -222,7 +224,6 @@ FileTransferDialog::endFileTransferDialog()
 	EndDialog(m_hwndFileTransfer, TRUE);
 	m_bDlgShown = false;
 	m_bEndFTDlgOnYes = false;
-	m_pFileTransfer->setFTDlgStatus(false);
 }
 
 BOOL CALLBACK 
@@ -235,7 +236,7 @@ FileTransferDialog::fileTransferDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 		SetWindowLong(hwnd, GWL_USERDATA, (LONG) lParam);
 		SetForegroundWindow(hwnd);
 		CentreWindow(hwnd);
-		return FALSE;
+		return TRUE;
 	case WM_HELP:	
 		help.Popup(lParam);
 		return FALSE;
@@ -365,7 +366,6 @@ FileTransferDialog::fileTransferDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 		_this->closeFileTransferDialog();
 		return FALSE;
 	}
-//	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 	return FALSE;
 }
 

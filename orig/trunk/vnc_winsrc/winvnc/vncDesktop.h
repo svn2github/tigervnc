@@ -46,6 +46,7 @@ class vncDesktop;
 #include "translate.h"
 #include <omnithread.h>
 #include "VideoDriver.h"
+#include "GracePeriod.h"
 
 #ifdef HORIZONLIVE
 #include "PollCycleControl.h"
@@ -268,6 +269,8 @@ protected:
 	static const int m_pollingOrder[32];
 	static int		m_pollingStep;
 	
+	GracePeriod m_remote_event_gp;
+
 #ifdef HORIZONLIVE
 	bool sendWindowClosedMessage( void ) ;
 	bool sendWindowIconicMessage( void ) ;

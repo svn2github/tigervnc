@@ -42,10 +42,7 @@
 #include "vncDesktop.h"
 #include "vncService.h"
 
-#ifdef HORIZONLIVE
-#include <string>
-using std::string ;
-#else
+#ifndef HORIZONLIVE
 #include <fstream.h>
 #endif
 
@@ -103,6 +100,9 @@ vncDesktopThread::Init(vncDesktop *desktop, vncServer *server)
 	// Save the server pointer
 	m_server = server;
 	m_desktop = desktop;
+
+	// set the remote event grace period
+	m_desktop->m_remote_event_gp.setPeriod( m_server->DisableTime() );
 
 	m_returnset = FALSE;
 	m_returnsig = new omni_condition(&m_returnLock);
@@ -166,11 +166,6 @@ vncDesktopThread::run_undetached(void *arg)
 	// to handle clipboard messages
 	m_desktop->SetClipboardActive(TRUE);
 
-	SYSTEMTIME systime;
-	FILETIME ftime;
-	ULARGE_INTEGER now, droptime;
-	droptime.QuadPart = 0;
-
 	MSG msg;
 	while (TRUE)
 	{
@@ -211,20 +206,10 @@ vncDesktopThread::run_undetached(void *arg)
 			if (vncService::IsWin95()) {
 				m_server->SetKeyboardCounter(-1);
 				if (m_server->KeyboardCounter() < 0) {
-					GetSystemTime(&systime);
-					SystemTimeToFileTime(&systime, &ftime);
-					droptime.LowPart = ftime.dwLowDateTime; 
-					droptime.HighPart = ftime.dwHighDateTime;
-					droptime.QuadPart /= 10000000;	// convert into seconds
-					m_server->BlockRemoteInput(true);
+					m_desktop->m_remote_event_gp.restart();
 				}
 			} else {
-				GetSystemTime(&systime);
-				SystemTimeToFileTime(&systime, &ftime);
-				droptime.LowPart = ftime.dwLowDateTime; 
-				droptime.HighPart = ftime.dwHighDateTime;
-				droptime.QuadPart /= 10000000;	// convert into seconds
-				m_server->BlockRemoteInput(true);
+				m_desktop->m_remote_event_gp.restart();
 			}
 		}
 		else if (msg.message == RFB_LOCAL_MOUSE)
@@ -236,21 +221,15 @@ vncDesktopThread::run_undetached(void *arg)
 				} else {
 					m_server->SetMouseCounter(-1, msg.pt, false);
 				}
-				if (m_server->MouseCounter() < 0 && droptime.QuadPart == 0) {
-					GetSystemTime(&systime);
-					SystemTimeToFileTime(&systime, &ftime);
-					droptime.LowPart = ftime.dwLowDateTime; 
-					droptime.HighPart = ftime.dwHighDateTime;
-					droptime.QuadPart /= 10000000;	// convert into seconds
-					m_server->BlockRemoteInput(true);
+				if ( 
+					m_server->MouseCounter() < 0
+					&& m_desktop->m_remote_event_gp.getStartTime() == 0
+				) 
+				{
+					m_desktop->m_remote_event_gp.restart();
 				}
 			} else {
-				GetSystemTime(&systime);
-				SystemTimeToFileTime(&systime, &ftime);
-				droptime.LowPart = ftime.dwLowDateTime; 
-				droptime.HighPart = ftime.dwHighDateTime;
-				droptime.QuadPart /= 10000000;	// convert into seconds
-				m_server->BlockRemoteInput(true);
+				m_desktop->m_remote_event_gp.restart();
 			}
 		}
 		else if (msg.message == WM_QUIT)
@@ -270,25 +249,23 @@ vncDesktopThread::run_undetached(void *arg)
 			// Process any other messages normally
 			DispatchMessage(&msg);
 		}
-
-		// Check timer to unblock remote input events if necessary
-		// FIXME: rewrite this stuff to eliminate code duplication (ses above).
-		// FIXME: Use time() instead of GetSystemTime().
+		
 		// FIXME: It's not necessary to do this on receiving _each_ message.
-		if (m_server->LocalInputPriority() && droptime.QuadPart != 0) {
-			GetSystemTime(&systime);
-			SystemTimeToFileTime(&systime, &ftime);
-			now.LowPart = ftime.dwLowDateTime;
-			now.HighPart = ftime.dwHighDateTime;
-			now.QuadPart /= 10000000;	// convert into seconds
-
-			if (now.QuadPart - m_server->DisableTime() >= droptime.QuadPart) {
+		// Check timer to unblock remote input events if necessary
+		if ( m_server->LocalInputPriority() )
+		{
+			if ( m_desktop->m_remote_event_gp.isPeriodExpired() == true )
+			{
 				m_server->BlockRemoteInput(false);
-				droptime.QuadPart = 0;
 				m_server->SetKeyboardCounter(0);
 				m_server->SetMouseCounter(0, msg.pt, false);
 			}
-		}
+			else
+			{
+				// default to blocking remote input
+				m_server->BlockRemoteInput(true);
+			}
+		}	
 	}
 
 	m_desktop->SetClipboardActive(FALSE);
@@ -2119,6 +2096,8 @@ vncDesktop::CheckUpdates()
 	RECT rect = m_server->GetSharedRect();
 	RECT new_rect;
 	
+	bool update_full_region = false ;
+	
 	if (m_server->WindowShared()) {
 #ifdef HORIZONLIVE 
 		//
@@ -2136,6 +2115,10 @@ vncDesktop::CheckUpdates()
 			|| GetWindowRect( hwnd, &new_rect ) == FALSE 
 		)
 		{
+			// override remote inputs
+			if ( m_remote_event_gp.isPeriodExpired() )
+				m_remote_event_gp.restart() ;
+		
 			if ( wasWindowOpen == true ) 
 			{
 				// send the window closed message to the viewer
@@ -2147,17 +2130,25 @@ vncDesktop::CheckUpdates()
 				// prompt the host to pick a new window
 				horizonMenu::GetInstance()->ShowPropertiesDialog() ;
 			}
-					
-			// a new shared-area has been selected
+
 			return TRUE ;
 		}
-
-		// remember window was open
-		wasWindowOpen = true ;
+		else
+		{
+			if ( wasWindowOpen == false )
+				update_full_region = true ;
+		
+			// remember window was open
+			wasWindowOpen = true ;
+		}
 
 		// the window is minimized
 		if ( IsIconic( m_server->GetWindowShared() ) == TRUE )
 		{
+			// override remote inputs
+			if ( m_remote_event_gp.isPeriodExpired() )
+				m_remote_event_gp.restart() ;
+
 			if ( wasWindowIconic == false )
 			{
 				sendWindowIconicMessage() ;
@@ -2168,9 +2159,14 @@ vncDesktop::CheckUpdates()
 						
 			return TRUE ;
 		}
+		else
+		{
+			if ( wasWindowIconic == true )
+				update_full_region = true ;
 
-		// remember window was not iconic
-		wasWindowIconic = false ;
+			// remember window was not iconic
+			wasWindowIconic = false ;
+		}
 #else
 		HWND hwnd = m_server->GetWindowShared();
 		GetWindowRect(hwnd, &new_rect);
@@ -2198,6 +2194,10 @@ vncDesktop::CheckUpdates()
 #ifdef HORIZONLIVE 
 	if ( IsRectEmpty( &new_rect ) )
 	{
+		// override remote inputs
+		if ( m_remote_event_gp.isPeriodExpired() )
+			m_remote_event_gp.restart() ;
+
 		if ( wasWindowOnScreen == true )
 		{
 			// send the window off-screen message to the viewer
@@ -2208,9 +2208,14 @@ vncDesktop::CheckUpdates()
 		}
 		return TRUE ;
 	}
+	else
+	{
+		if ( wasWindowOnScreen == false ) 
+			update_full_region = true ;
 	
-	// remember window was on-screen
-	wasWindowOnScreen = true ;
+		// remember window was on-screen
+		wasWindowOnScreen = true ;
+	}
 #else
 	// Disconnect clients if the shared window is empty (dissapeared).
 	// FIXME: Make this behavior configurable.
@@ -2239,7 +2244,7 @@ vncDesktop::CheckUpdates()
 	}
 
 	// If we have clients full region requests
-	if (m_server->FullRgnRequested()) {
+	if (update_full_region == true || m_server->FullRgnRequested()) {
 		// Capture screen to main buffer
 		CaptureScreen(rect, m_mainbuff);
 		// If we have a video driver - reset counter
@@ -2898,9 +2903,6 @@ vncDesktop::displayMessageInViewer(
 	BOOL rv ;
 	int margin = 16;
 
-	// get the shared rect
-	RECT rect = m_server->GetSharedRect() ;
-
 	//
 	// determine if text will fit in shared aread
 	//
@@ -2928,22 +2930,28 @@ vncDesktop::displayMessageInViewer(
 	text_extent.cx = text_extent.cx / message_lines ;
 	text_extent.cy = text_extent.cy * message_lines ;
 
-	// calculate diff of text extant and shared-area
-	int diff_x = ( rect.right - rect.left ) - (text_extent.cx + margin);
-	int diff_y = ( rect.bottom - rect.top ) - (text_extent.cy + margin);
+	//
+	// create rect we're going to use
+	//
 
-	// inflate the share-area rect, if necessary
-	if ( diff_x < 0 || diff_y < 0 )
-	{
-		// grow the rect
-		InflateRect( &rect, diff_x, diff_y ) ;
+	RECT rect ;
 
-		// set the new shared area size
-		m_server->SetSharedRect( rect ) ;
+	// horizontal coordinates
+	rect.left = 0 ;
+	rect.right = ( text_extent.cx + margin ) + margin ;
+	
+	// vertical coordinates
+	rect.top = 0 ;
+	rect.bottom = ( text_extent.cy + margin ) + margin ;
+
+	// normalize the rect to the screen
+	IntersectRect( &rect, &rect, &m_bmrect ) ;
+
+	// set the new shared area size
+	m_server->SetSharedRect( rect ) ;
 		
-		// tell server to update frame buffer
-		m_server->SetNewFBSize( TRUE ) ;
-	}
+	// tell server to update frame buffer
+	m_server->SetNewFBSize( TRUE ) ;
 
 	//
 	// capture the current screen
@@ -3049,10 +3057,10 @@ vncDesktop::displayMessageInViewer(
 	// tell the clients about the updated region
 	m_server->UpdateRegion( message_region ) ;
 
-	// warp cursor to origin
+	// warp cursor to bottom-right corner of shared-area
 	POINT p;
-	p.x = 0;
-	p.y = 0;
+	p.x = m_bmrect.right ;
+	p.y = m_bmrect.bottom ;
 	m_server->setFakeCursorPos(p);
 	m_server->provideFakeCursorPos(TRUE);
 	

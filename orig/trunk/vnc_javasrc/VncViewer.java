@@ -69,6 +69,7 @@ public class VncViewer extends java.applet.Applet
   String host;
   int port;
   String passwordParam;
+  String encPasswordParam;
   boolean showControls;
   boolean showOfflineDesktop;
   int deferScreenUpdates;
@@ -234,9 +235,31 @@ public class VncViewer extends java.applet.Applet
 
   void connectAndAuthenticate() throws Exception {
 
-    // The simplest case -- don't ask user a password, get it from the
-    // "PASSWORD" parameter instead. Authentication failures would be
-    // fatal.
+    // If "ENCPASSWORD" parameter is set, decrypt the password into
+    // the passwordParam string.
+
+    if (encPasswordParam != null) {
+      // ENCPASSWORD is hexascii-encoded. Decode.
+      byte[] pw = {0, 0, 0, 0, 0, 0, 0, 0};
+      int len = encPasswordParam.length() / 2;
+      if (len > 8)
+	len = 8;
+      for (int i = 0; i < len; i++) {
+	String hex = encPasswordParam.substring(i*2, i*2+2);
+	Integer x = new Integer(Integer.parseInt(hex, 16));
+	pw[i] = x.byteValue();
+      }
+
+      // Decrypt the password.
+      byte[] key = {23, 82, 107, 6, 35, 78, 88, 7};
+      DesCipher des = new DesCipher(key);
+      des.decrypt(pw, 0, pw, 0);
+      passwordParam = new String(pw);
+    }
+
+    // If a password parameter ("PASSWORD" or "ENCPASSWORD") is set,
+    // don't ask user a password, get one from passwordParam instead.
+    // Authentication failures would be fatal.
 
     if (passwordParam != null) {
       if (inSeparateFrame) {
@@ -251,8 +274,9 @@ public class VncViewer extends java.applet.Applet
       return;
     }
 
-    // There is no "PASSWORD" parameter -- ask user for a password,
-    // try to authenticate, retry on authentication failures.
+    // There is no "PASSWORD" or "ENCPASSWORD" parameters -- ask user
+    // for a password, try to authenticate, retry on authentication
+    // failures.
 
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.gridwidth = GridBagConstraints.REMAINDER;
@@ -329,6 +353,12 @@ public class VncViewer extends java.applet.Applet
 
       if (pw.length() > 8)
 	pw = pw.substring(0, 8); // Truncate to 8 chars
+
+      // vncEncryptBytes in the UNIX libvncauth truncates password
+      // after the first zero byte. We do to.
+      int firstZero = pw.indexOf(0);
+      if (firstZero != -1)
+	pw = pw.substring(0, firstZero);
 
       byte[] key = {0, 0, 0, 0, 0, 0, 0, 0};
       System.arraycopy(pw.getBytes(), 0, key, 0, pw.length());
@@ -439,7 +469,9 @@ public class VncViewer extends java.applet.Applet
 	inSeparateFrame = true;
     }
 
-    passwordParam = readParameter("PASSWORD", false);
+    encPasswordParam = readParameter("ENCPASSWORD", false);
+    if (encPasswordParam == null)
+      passwordParam = readParameter("PASSWORD", false);
 
     // "Show Controls" set to "No" disables button panel.
     showControls = true;

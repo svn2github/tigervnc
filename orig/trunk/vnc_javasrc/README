@@ -70,6 +70,18 @@ is the full list of parameters supported in TightVNC Java viewer:
     doing. It's extremely dangerous from the security point of view. When
     this parameter is set, the viewer won't ever ask for a password.
 
+--> "ENCPASSWORD"
+
+    Value: encrypted session password in hex-ascii.
+    Default: none, ask user.
+
+    The same as the "PASSWORD" parameter but DES-encrypted using a fixed key.
+    Its value should be represented in hex-ascii e.g. "494015f9a35e8b22".
+    This parameter has higher priority over the "PASSWORD" parameter. DO NOT
+    EVER USE THIS PARAMETER, unless you really know what you are doing. It's
+    extremely dangerous from the security point of view, and encryption does
+    not actually help here sinse the decryption key is known.
+
 --> "Encoding"
 
     Values: "Raw", "RRE", "CoRRE", "Hextile", "Zlib", "Tight".

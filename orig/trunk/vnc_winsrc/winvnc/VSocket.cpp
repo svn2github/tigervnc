@@ -256,7 +256,7 @@ VSocket::Bind(const VCard port, const VBool localOnly,
 ////////////////////////////
 
 VBool
-VSocket::Connect(const VString address, const VCard port)
+VSocket::Connect(VStringConst address, const VCard port)
 {
   // Check the socket
   if (sock < 0)
@@ -451,7 +451,7 @@ VSocket::GetSockName()
 ////////////////////////////
 
 VCard32
-VSocket::Resolve(const VString address)
+VSocket::Resolve(VStringConst address)
 {
   VCard32 addr;
 

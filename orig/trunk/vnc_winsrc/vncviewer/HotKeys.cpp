@@ -69,9 +69,9 @@ HotKeys::HotKeys()
 	m_hAccel = CreateAcceleratorTable((LPACCEL)accel, numKeys);
 }
 
-bool HotKeys::TransAccel(MSG msg)
+bool HotKeys::TranslateAccel(MSG *pmsg)
 {
-	return (TranslateAccelerator(m_hwnd, m_hAccel, &msg) != 0);
+	return (TranslateAccelerator(m_hwnd, m_hAccel, pmsg) != 0);
 }
 
 HotKeys::~HotKeys()

@@ -65,13 +65,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 	MSG msg;
 
 	try {
-		while ( GetMessage(&msg, NULL, 0, 0) ) {
-			if(!hotkeys.TransAccel(msg) &&
-					!help.TransMess( (DWORD)&msg)) {
+		while (GetMessage(&msg, NULL, 0, 0)) {
+			if (!hotkeys.TranslateAccel(&msg) && !help.TranslateMsg(&msg)) {
 				TranslateMessage(&msg);
 				DispatchMessage(&msg);
 			}
-		} 
+		}
 	} catch (WarningException &e) {
 		e.Report();
 	} catch (QuietException &e) {

@@ -31,7 +31,7 @@ class HotKeys
 public:
 	HotKeys();
 	void SetWindow(HWND hwnd) { m_hwnd = hwnd; }
-	bool TransAccel(MSG msg);
+	bool TranslateAccel(MSG *pmsg);
 	virtual ~HotKeys();	
 };
 

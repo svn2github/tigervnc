@@ -1,30 +1,37 @@
-// VNCHelp.cpp: implementation of the VNCHelp class.
+// Copyright (C) 2003 TightVNC Development Team. All Rights Reserved.
 //
-//////////////////////////////////////////////////////////////////////
+//  TightVNC is free software; you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation; either version 2 of the License, or
+//  (at your option) any later version.
+//
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with this program; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
+//  USA.
+//
+// TightVNC homepage on the Web: http://www.tightvnc.com/
 
+// VNCHelp.cpp: implementation of the VNCHelp class.
 
 #include "stdhdrs.h"
 #include "Htmlhelp.h"
 #include "vncviewer.h"
 #include "VNCHelp.h"
 
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
-
 VNCHelp::VNCHelp()
 {
-	dwCookie = NULL;
-	HtmlHelp(
-         NULL,
-         NULL,
-         HH_INITIALIZE,
-         (DWORD)&dwCookie) ; // Cookie returned by Hhctrl.ocx.
+	m_dwCookie = NULL;
+	HtmlHelp(NULL, NULL, HH_INITIALIZE, (DWORD)&m_dwCookie);
 }
 
 void VNCHelp::Popup(LPARAM lParam) 
 {
-	
 	LPHELPINFO hlp = (LPHELPINFO) lParam;
 	HH_POPUP popup;
 
@@ -78,28 +85,19 @@ void VNCHelp::Popup(LPARAM lParam)
 		}
 
 		HtmlHelp((HWND)hlp->hItemHandle,
-					NULL,
-					HH_DISPLAY_TEXT_POPUP,
-					(DWORD)&popup) ;
+				 NULL,
+				 HH_DISPLAY_TEXT_POPUP,
+				 (DWORD)&popup);
 	}
 }
-BOOL VNCHelp::TransMess( DWORD mess) 
+
+BOOL VNCHelp::TranslateMsg(MSG *pmsg)
 {
-	if (HtmlHelp (
-                 NULL,
-                 NULL,
-                 HH_PRETRANSLATEMESSAGE,
-                 mess)) {
-		return TRUE;
-	} else {
-		return FALSE;
-	}
+	return (HtmlHelp(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD)pmsg) != 0);
 }
+
 VNCHelp::~VNCHelp()
 {
-	HtmlHelp(
-         NULL,
-         NULL,
-         HH_UNINITIALIZE,
-         (DWORD)dwCookie) ; // Pass in cookie.
+	HtmlHelp(NULL, NULL, HH_UNINITIALIZE, (DWORD)m_dwCookie);
 }
+

@@ -463,7 +463,10 @@ FileTransfer::ShowClientItems(char *path)
 				DriveName[0] = DrivesString[i];
 				switch (GetDriveType(DriveName))
 				{
+					case DRIVE_REMOVABLE:
 					case DRIVE_FIXED:
+					case DRIVE_REMOTE:
+					case DRIVE_CDROM:
 					{
 						char txt[16];
 						strcpy(txt, m_FTClientItemInfo.folderText);
@@ -484,40 +487,41 @@ FileTransfer::ShowClientItems(char *path)
 		int n = 0;
 		WIN32_FIND_DATA m_FindFileData;
 		strcat(path, "\\*");
+		SetErrorMode(SEM_FAILCRITICALERRORS);
 		m_handle = FindFirstFile(path, &m_FindFileData);
-		while(1) {
-			if (m_handle != INVALID_HANDLE_VALUE) {
-				if (n == 0) {
-					m_FTClientItemInfo.Free();
-					n = 1;
-				}
-				char buffer[16];
-				if ((strcmp(m_FindFileData.cFileName, ".") != 0) &&
-			       (strcmp(m_FindFileData.cFileName, "..") != 0)) {
-					if (!(m_FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
-						sprintf(buffer, "%d", m_FindFileData.nFileSizeLow);
-					} else {
-						strcpy(buffer, m_FTClientItemInfo.folderText);
-					}
-					m_FTClientItemInfo.Add(m_FindFileData.cFileName, buffer);
-				}
-			} else {
-				BlockingFileTransferDialog(TRUE);
-				path[strlen(path) - 2] = '\0';
-				if (GetLastError() != ERROR_SUCCESS) {
-					strcpy(m_ClientPathTmp, m_ClientPath);
-					FindClose(m_handle);
-					return;
-				}
-				strcpy(m_ClientPath, m_ClientPathTmp);
-				SetWindowText(m_hwndFTClientPath, m_ClientPath);
+		DWORD LastError = GetLastError();
+		SetErrorMode(0);
+		if (m_handle == INVALID_HANDLE_VALUE) {
+			if (LastError != ERROR_SUCCESS && LastError != ERROR_FILE_NOT_FOUND) {
+				strcpy(m_ClientPathTmp, m_ClientPath);
 				FindClose(m_handle);
+				BlockingFileTransferDialog(TRUE);
 				return;
+			}
+			path[strlen(path) - 2] = '\0';
+			strcpy(m_ClientPath, m_ClientPathTmp);
+			SetWindowText(m_hwndFTClientPath, m_ClientPath);
+			FindClose(m_handle);
+			ListView_DeleteAllItems(m_hwndFTClientList);
+			BlockingFileTransferDialog(TRUE);
+			return;
+		}
+		ListView_DeleteAllItems(m_hwndFTClientList);
+		m_FTClientItemInfo.Free();
+		char buffer[16];
+		while(1) {
+			if ((strcmp(m_FindFileData.cFileName, ".") != 0) &&
+		       (strcmp(m_FindFileData.cFileName, "..") != 0)) {
+				if (!(m_FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+					sprintf(buffer, "%d", m_FindFileData.nFileSizeLow);
+				} else {
+					strcpy(buffer, m_FTClientItemInfo.folderText);
+				}
+				m_FTClientItemInfo.Add(m_FindFileData.cFileName, buffer);
 			}
 			if (!FindNextFile(m_handle, &m_FindFileData)) break;
 		}
 		FindClose(m_handle);
-		ListView_DeleteAllItems(m_hwndFTClientList); 
 		m_FTClientItemInfo.Sort();
 		ShowListViewItems(m_hwndFTClientList, &m_FTClientItemInfo);
 		path[strlen(path) - 2] = '\0';
@@ -551,15 +555,20 @@ FileTransfer::FTBrowseDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 				TVItem.mask = TVIF_CHILDREN | TVIF_TEXT | TVIF_HANDLE;
 				for (int i=0; i<LengthDriveString; i++) {
 					drive[0] = DrivesString[i];
-					if (GetDriveType(drive) == DRIVE_FIXED) {
-						TVItem.pszText = drive;
-						TVItem.cChildren = 1;
-						tvins.item = TVItem;
-						tvins.hParent = TreeView_InsertItem(GetDlgItem(hwnd, IDC_FTBROWSETREE), &tvins);
-						tvins.item = TVItem;
-						TreeView_InsertItem(GetDlgItem(hwnd, IDC_FTBROWSETREE), &tvins);
-						tvins.hParent = NULL;
-					}
+					switch (GetDriveType(drive))
+						case DRIVE_REMOVABLE:
+						case DRIVE_FIXED:
+						case DRIVE_REMOTE:
+						case DRIVE_CDROM:
+						{
+							TVItem.pszText = drive;
+							TVItem.cChildren = 1;
+							tvins.item = TVItem;
+							tvins.hParent = TreeView_InsertItem(GetDlgItem(hwnd, IDC_FTBROWSETREE), &tvins);
+							tvins.item = TVItem;
+							TreeView_InsertItem(GetDlgItem(hwnd, IDC_FTBROWSETREE), &tvins);
+							tvins.hParent = NULL;
+						}
 					i += 3;
 				}
 			}
@@ -710,7 +719,9 @@ FileTransfer::ShowTreeViewItems(HWND hwnd, LPNMTREEVIEW m_lParam)
 	while (TreeView_GetChild(GetDlgItem(hwnd, IDC_FTBROWSETREE), m_lParam->itemNew.hItem) != NULL) {
 		TreeView_DeleteItem(GetDlgItem(hwnd, IDC_FTBROWSETREE), TreeView_GetChild(GetDlgItem(hwnd, IDC_FTBROWSETREE), m_lParam->itemNew.hItem));
 	}
+	SetErrorMode(SEM_FAILCRITICALERRORS);
 	m_handle = FindFirstFile(path, &m_FindFileData);
+	SetErrorMode(0);
 	if (m_handle == INVALID_HANDLE_VALUE) return;
 	while(1) {
 		if ((strcmp(m_FindFileData.cFileName, ".") != 0) && 

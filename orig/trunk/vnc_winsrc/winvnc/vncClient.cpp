@@ -1174,11 +1174,16 @@ vncClientThread::run(void *arg)
 						drive[p] = szDrivesList[i];
 						if (szDrivesList[i] == '\0') {
 							p = -1;
-							if (GetDriveType((LPCTSTR) drive) == DRIVE_FIXED) {
-								drive[strlen(drive) - 1] = '\0';
-								strcpy(fixeddrive[szDrivesNum], drive);
-								szDrivesNum += 1;
-							}
+							switch (GetDriveType((LPCTSTR) drive))
+								case DRIVE_REMOVABLE:
+								case DRIVE_FIXED:
+								case DRIVE_REMOTE:
+								case DRIVE_CDROM:
+								{
+									drive[strlen(drive) - 1] = '\0';
+									strcpy(fixeddrive[szDrivesNum], drive);
+									szDrivesNum += 1;
+								}
 							if (szDrivesList[i+1] == '\0') break;
 						}
 					}
@@ -1196,7 +1201,10 @@ vncClientThread::run(void *arg)
 					HANDLE FLRhandle;
  					int NumFiles = 0;
  					WIN32_FIND_DATA FindFileData;
+					SetErrorMode(SEM_FAILCRITICALERRORS);
  					FLRhandle = FindFirstFile(path, &FindFileData);
+					DWORD LastError = GetLastError();
+					SetErrorMode(0);
 					if (FLRhandle != INVALID_HANDLE_VALUE) {
 						do {
 							if (strcmp(FindFileData.cFileName, ".") != 0 &&
@@ -1206,7 +1214,8 @@ vncClientThread::run(void *arg)
 						} while (FindNextFile(FLRhandle, &FindFileData));
 					} else {
 						NumFiles = 0;
-						if (GetLastError() != ERROR_SUCCESS) pFLD->attr = Swap16IfLE(0x0002);
+						if (LastError != ERROR_SUCCESS && LastError != ERROR_FILE_NOT_FOUND) 
+							pFLD->attr = Swap16IfLE(0x0002);
  					}
  					FindClose(FLRhandle);	
 					if(NumFiles == 0) {

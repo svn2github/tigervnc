@@ -64,7 +64,7 @@ horizonSharedArea::Init()
 	SetPrefFullScreen( m_server->FullScreen() ) ;
 	SetPrefWindowShared( m_server->WindowShared() ) ;
 	SetPrefScreenAreaShared( m_server->ScreenAreaShared() ) ;
-	SetPrefBlackRgn( m_server->GetBlackRgn() ) ;
+	SetPrefBlackRgn( m_server->GetApplication() ) ;
 	
 	//
 	//  configure select window picture
@@ -227,12 +227,13 @@ horizonSharedArea::ApplySharedControls()
 	HWND hBlackRgn = GetDlgItem( m_hwnd, IDC_CHECK_BLACK_RGN ) ;
 	if ( SendMessage( hBlackRgn, BM_GETCHECK, 0, 0) == BST_CHECKED ) 
 	{
-		m_server->SetBlackRgn( TRUE ) ;
+		m_server->SetApplication( TRUE ) ;
 		m_server->SetNewFBSize( TRUE ) ;
 	} 
 	else 
 	{
-		m_server->SetBlackRgn( FALSE ) ;
+		// SetNewFBSize() should probably be called here under some circumstances
+		m_server->SetApplication( FALSE ) ;
 	}
 
 	//

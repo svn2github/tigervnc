@@ -53,7 +53,7 @@ horizonDefaults::InitializeApplication( void )
 	server->FullScreen( FALSE ) ;
 	server->WindowShared( TRUE ) ;
 	server->ScreenAreaShared( FALSE ) ;
-	server->SetBlackRgn( FALSE ) ;
+	server->SetApplication( FALSE ) ;
 
 	//
 	// connection defaults

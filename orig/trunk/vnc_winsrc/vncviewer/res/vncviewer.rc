@@ -13,6 +13,59 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
+// Russian resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_RUS)
+#ifdef _WIN32
+LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
+#pragma code_page(1251)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_BITMAP1             BITMAP  DISCARDABLE     "toolbar.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_DIALOG1 DIALOG DISCARDABLE  0, 0, 186, 95
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,129,7,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,129,24,50,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_DIALOG1, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 88
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // Russian resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
 // English (U.S.) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
@@ -20,6 +73,14 @@
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
 #endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_VNCBITMAP           BITMAP  DISCARDABLE     "tightvnc.bmp"
+IDB_VNC32               BITMAP  DISCARDABLE     "tightvnc48.BMP"
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
@@ -42,25 +103,25 @@ VS_VERSION_INFO VERSIONINFO
 BEGIN
     BLOCK "StringFileInfo"
     BEGIN
-        BLOCK "080904b0"
-        BEGIN
-            VALUE "Comments", "by Quentin Stafford-Fraser\0"
-            VALUE "CompanyName", "AT&T Laboratories Cambridge\0"
-            VALUE "FileDescription", "vncviewer\0"
-            VALUE "FileVersion", "3, 3, 3, 9\0"
-            VALUE "InternalName", "vncviewer\0"
-            VALUE "LegalCopyright", "Copyright   1999\0"
-            VALUE "LegalTrademarks", "\0"
-            VALUE "OriginalFilename", "vncviewer.exe\0"
-            VALUE "PrivateBuild", "\0"
-            VALUE "ProductName", "AT&T vncviewer\0"
-            VALUE "ProductVersion", "3, 3, 3, 9\0"
-            VALUE "SpecialBuild", "\0"
-        END
         BLOCK "040904b0"
         BEGIN
             VALUE "Comments", "Based on TridiaVNC by Tridia Corporation\0"
             VALUE "CompanyName", "Constantin Kaplinsky\0"
+            VALUE "FileDescription", "vncviewer\0"
+            VALUE "FileVersion", "1, 2, 4, 0\0"
+            VALUE "InternalName", "vncviewer\0"
+            VALUE "LegalCopyright", "Copyright   1999-2002 [many holders]\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "vncviewer.exe\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "TightVNC Win32 Viewer\0"
+            VALUE "ProductVersion", "1, 2, 4, 0\0"
+            VALUE "SpecialBuild", "\0"
+        END
+        BLOCK "080904b0"
+        BEGIN
+            VALUE "Comments", "by Quentin Stafford-Fraser\0"
+            VALUE "CompanyName", "AT&T Laboratories Cambridge\0"
             VALUE "FileDescription", "vncviewer\0"
             VALUE "FileVersion", "1, 2, 6, 0\0"
             VALUE "InternalName", "vncviewer\0"
@@ -75,7 +136,7 @@ BEGIN
     END
     BLOCK "VarFileInfo"
     BEGIN
-        VALUE "Translation", 0x409, 1200
+        VALUE "Translation", 0x409, 1200, 0x809, 1200
     END
 END
 
@@ -154,39 +215,20 @@ BEGIN
     CONTROL         108,IDC_STATIC,"Static",SS_BITMAP,7,7,32,30
 END
 
-IDD_OPTIONDIALOG DIALOGEX 0, 0, 312, 194
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Connection Options..."
+IDD_OPTIONDIALOG DIALOG DISCARDABLE  0, 0, 301, 170
+STYLE DS_MODALFRAME | WS_POPUP
 FONT 8, "MS Sans Serif"
 BEGIN
-    CONTROL         "Tight",IDC_TIGHTRADIO,"Button",BS_AUTORADIOBUTTON | 
-                    WS_GROUP | WS_TABSTOP,15,19,32,10
-    CONTROL         "ZlibHex (mix)",IDC_ZLIBHEXRADIO,"Button",
-                    BS_AUTORADIOBUTTON,66,19,56,10
-    CONTROL         "Hextile",IDC_HEXTILERADIO,"Button",BS_AUTORADIOBUTTON,
-                    15,31,37,10
-    CONTROL         "Zlib (pure)",IDC_ZLIBRADIO,"Button",BS_AUTORADIOBUTTON,
-                    66,31,47,10
-    CONTROL         "CoRRE",IDC_CORRERADIO,"Button",BS_AUTORADIOBUTTON,15,43,
-                    40,10
-    CONTROL         "RRE",IDC_RRERADIO,"Button",BS_AUTORADIOBUTTON,66,43,31,
-                    10
-    CONTROL         "Raw",IDC_RAWRADIO,"Button",BS_AUTORADIOBUTTON,15,55,31,
-                    10
     CONTROL         "Allow CopyRect encoding",ID_SESSION_SET_CRECT,"Button",
-                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,15,68,97,10
-    CONTROL         "Custom compression level:",IDC_ALLOW_COMPRESSLEVEL,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,81,99,10
-    EDITTEXT        IDC_COMPRESSLEVEL,30,92,15,12,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "Allow JPEG compression:",IDC_ALLOW_JPEG,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,15,107,96,10
-    EDITTEXT        IDC_QUALITYLEVEL,30,119,15,12,ES_AUTOHSCROLL | ES_NUMBER
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,15,34,97,10
+    CHECKBOX        "",IDC_ALLOW_COMPRESSLEVEL,15,46,10,8
+    CHECKBOX        "",IDC_ALLOW_JPEG,15,78,10,8
     CONTROL         "Request shared session",IDC_SHARED,"Button",
-                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,15,152,91,10
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,15,128,91,10
     CONTROL         "Deiconify on Bell",IDC_BELLDEICONIFY,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,15,163,85,8
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,140,85,8
     CONTROL         "Disable clipboard transfer",IDC_DISABLECLIPBOARD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,15,173,95,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,151,95,10
     CONTROL         "Emulate 3 Buttons (with 2-button click)",
                     IDC_EMULATECHECK,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
                     WS_TABSTOP,148,18,137,10
@@ -207,36 +249,39 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,148,125,96,10
     CONTROL         "Full-screen mode",IDC_FULLSCREEN,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,148,137,69,8
-    CONTROL         "Scale by",IDC_SCALING,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,148,148,43,10
-    EDITTEXT        IDC_SCALE_NUM,195,147,15,12,ES_AUTOHSCROLL | ES_NUMBER
-    EDITTEXT        IDC_SCALE_DEN,221,147,14,12,ES_AUTOHSCROLL | ES_NUMBER
-    LTEXT           "level (1=fast, 9=best)",IDC_STATIC,49,95,81,9,NOT 
+    CHECKBOX        "Scale by",IDC_SCALING,148,148,43,10
+    LTEXT           "level (1=fast, 9=best)",IDC_STATIC,35,57,70,8,NOT 
                     WS_GROUP
-    LTEXT           "quality (0=poor, 9=best)",IDC_STATIC,49,121,81,9
-    CTEXT           "/",IDC_STATIC,211,150,8,8,0,WS_EX_TRANSPARENT
-    LTEXT           "(experimental)",IDC_STATIC,241,150,44,8
-    GROUPBOX        "Preferred encoding",IDC_STATIC,7,7,123,131
-    GROUPBOX        "Misc",IDC_STATIC,7,143,123,44
-    GROUPBOX        "Mouse",IDC_STATIC,139,7,166,37
-    GROUPBOX        "Mouse cursor",IDC_STATIC,139,49,166,48
-    GROUPBOX        "Display",IDC_STATIC,139,102,166,60
-    DEFPUSHBUTTON   "OK",IDOK,197,173,50,14,WS_GROUP
-    PUSHBUTTON      "Cancel",IDCANCEL,255,173,50,14
-    CONTROL         "crect",IDC_CRECTRADIO,"Button",BS_AUTORADIOBUTTON | NOT 
-                    WS_VISIBLE,66,55,32,10
-    CONTROL         "enc3",IDC_RBSRADIO,"Button",BS_AUTORADIOBUTTON | NOT 
-                    WS_VISIBLE,98,55,32,10
+    LTEXT           "quality (0=poor, 9=best)",IDC_STATIC,32,89,75,8
+    LTEXT           "(experimental)",IDC_STATIC,250,148,44,8
+    GROUPBOX        "Preferred encoding",IDC_STATIC,7,7,123,107
+    GROUPBOX        "Misc",IDC_STATIC,7,119,123,44
+    GROUPBOX        "Mouse",IDC_STATIC,139,7,153,37
+    GROUPBOX        "Mouse cursor",IDC_STATIC,139,49,154,48
+    GROUPBOX        "Display",IDC_STATIC,139,102,155,60
+    LTEXT           "Custom compression level:",IDC_STATIC,27,46,85,8
+    LTEXT           "Allow JPEG compression:",IDC_STATIC,27,79,85,10
+    COMBOBOX        IDC_ENCODING,68,17,56,79,CBS_DROPDOWNLIST | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Use encoding",IDC_STATIC,15,20,45,12
+    CONTROL         "Slider1",IDC_QUALITYLEVEL,"msctls_trackbar32",
+                    TBS_AUTOTICKS | WS_TABSTOP,23,97,92,11
+    CONTROL         "Slider2",IDC_COMPRESSLEVEL,"msctls_trackbar32",
+                    TBS_AUTOTICKS | WS_TABSTOP,23,65,92,11
+    COMBOBOX        IDC_SCALE_EDIT,195,145,37,66,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "%",IDC_STATIC,237,149,10,7
 END
 
-IDD_SESSION_DLG DIALOG DISCARDABLE  0, 0, 245, 63
+IDD_SESSION_DLG DIALOG DISCARDABLE  0, 0, 262, 92
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Connection details"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     COMBOBOX        IDC_HOSTNAME_EDIT,51,7,134,66,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    DEFPUSHBUTTON   "OK",IDOK,193,7,45,14
+    DEFPUSHBUTTON   "OK",IDC_OK,193,7,45,14
     PUSHBUTTON      "Cancel",IDCANCEL,193,24,45,14
     PUSHBUTTON      "Options...",IDC_OPTIONBUTTON,193,42,45,14
     LTEXT           "VNC server:",IDC_STATIC,7,9,39,8
@@ -245,6 +290,14 @@ BEGIN
                     IDC_STATIC,51,26,134,17
     CTEXT           "(default is to use display 0 or port 5900)",IDC_STATIC,
                     51,44,134,12
+    GROUPBOX        "Connection options",IDC_STATIC,50,20,125,60
+    CONTROL         "      Local network ",IDC_LOC_NET_RADIO,"Button",
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,55,35,80,10
+    CONTROL         "      Modem            ",IDC_MODEM_RADIO,"Button",
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,55,50,80,10
+    CONTROL         "      Default        ",IDC_CUSTOM_RADIO,"Button",
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,55,65,80,10
+    PUSHBUTTON      "Listening mode",IDC_LIST_MODE,195,65,55,15
 END
 
 IDD_SERVINFO_DLG DIALOG DISCARDABLE  0, 0, 224, 170
@@ -257,9 +310,9 @@ BEGIN
                     ES_AUTOHSCROLL | ES_READONLY
 END
 
-IDD_APP_ABOUT DIALOG DISCARDABLE  0, 0, 332, 122
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "About VNCviewer"
+IDD_APP_ABOUT DIALOG DISCARDABLE  0, 0, 334, 122
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About VNC Viewer"
 FONT 8, "MS Sans Serif"
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,135,100,50,14
@@ -270,6 +323,51 @@ BEGIN
                     IDC_STATIC,135,66,190,28
     LTEXT           "Based on VNC Viewer 3.3.3r3 by Quentin Stafford-Fraser\nCopyright (C) 1999 AT&&T Laboratories Cambridge\nhttp://www.uk.research.att.com/vnc/",
                     IDC_STATIC,135,36,190,29
+END
+
+IDD_GENERAL_OPTION DIALOG DISCARDABLE  0, 0, 294, 161
+STYLE DS_MODALFRAME | WS_POPUP | WS_DISABLED
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "message at start of a full screen mode",
+                    IDC_CHECK_MESSAGE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    17,17,157,10
+    CONTROL         "Include toolbar at creation of the window of connection",
+                    IDC_CHECK_TOOLBAR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    17,29,189,10
+    EDITTEXT        IDC_EDIT_AMOUNT_LIST,126,40,38,15,ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    PUSHBUTTON      "Clear the list of connections",IDC_BUTTON_CLEAR_LIST,
+                    183,40,97,15
+    LTEXT           "Amount of connections in the list",IDC_STATIC,17,43,108,
+                    9
+    CHECKBOX        "Log to file",IDC_CHECK_LOG_FILE,28,75,45,11
+    EDITTEXT        IDC_EDIT_LOG_FILE,95,90,96,15,ES_AUTOHSCROLL
+    GROUPBOX        "Interface options",IDC_STATIC,7,7,279,54
+    GROUPBOX        "Logging",IDC_STATIC,7,62,280,51
+    LTEXT           "Name log file (full path):",IDC_STATIC,17,92,77,12
+    EDITTEXT        IDC_EDIT_LOG_LEVEL,236,90,23,14,ES_AUTOHSCROLL
+    LTEXT           "Log level:",IDC_STATIC,199,92,37,14
+    CONTROL         "Spin1",IDC_SPIN1,"msctls_updown32",UDS_ALIGNRIGHT | 
+                    UDS_ARROWKEYS,165,41,11,13
+    CONTROL         "Spin2",IDC_SPIN2,"msctls_updown32",UDS_ALIGNRIGHT | 
+                    UDS_ARROWKEYS,261,90,11,14
+    GROUPBOX        "Local cursor",IDC_STATIC,7,114,280,39
+    CONTROL         "Dotcursor",IDC_DOTCURSOR_RADIO,"Button",
+                    BS_AUTORADIOBUTTON,30,131,70,10
+    CONTROL         "Nocursor",IDC_NOCURSOR_RADIO,"Button",
+                    BS_AUTORADIOBUTTON,129,129,69,15
+    CONTROL         "Normalcursor",IDC_NORMALCURSOR_RADIO,"Button",
+                    BS_AUTORADIOBUTTON,211,130,66,13
+END
+
+IDD_HELP DIALOG DISCARDABLE  0, 0, 186, 95
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "VNC Help"
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_EDIT_HELP,1,1,184,92,ES_MULTILINE | ES_AUTOVSCROLL | 
+                    ES_NOHIDESEL | ES_READONLY | WS_VSCROLL
 END
 
 
@@ -293,25 +391,21 @@ BEGIN
     IDD_OPTIONDIALOG, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 305
+        RIGHTMARGIN, 294
         VERTGUIDE, 15
         VERTGUIDE, 130
         VERTGUIDE, 139
         VERTGUIDE, 148
         TOPMARGIN, 7
-        BOTTOMMARGIN, 187
+        BOTTOMMARGIN, 163
     END
 
     IDD_SESSION_DLG, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 238
-        VERTGUIDE, 26
-        VERTGUIDE, 51
-        VERTGUIDE, 185
-        VERTGUIDE, 193
+        RIGHTMARGIN, 255
         TOPMARGIN, 7
-        BOTTOMMARGIN, 56
+        BOTTOMMARGIN, 85
         HORZGUIDE, 17
     END
 
@@ -326,10 +420,27 @@ BEGIN
     IDD_APP_ABOUT, DIALOG
     BEGIN
         LEFTMARGIN, 19
-        RIGHTMARGIN, 325
+        RIGHTMARGIN, 327
         VERTGUIDE, 135
         TOPMARGIN, 7
         BOTTOMMARGIN, 114
+    END
+
+    IDD_GENERAL_OPTION, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 287
+        VERTGUIDE, 17
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 154
+        HORZGUIDE, 69
+        HORZGUIDE, 136
+    END
+
+    IDD_HELP, DIALOG
+    BEGIN
+        RIGHTMARGIN, 185
+        BOTTOMMARGIN, 93
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -347,14 +458,15 @@ BEGIN
     0
 END
 
+IDD_OPTIONDIALOG DLGINIT
+BEGIN
+    IDC_ENCODING, 0x403, 1, 0
+"\000" 
+    IDC_SCALE_EDIT, 0x403, 1, 0
+"\000" 
+    0
+END
 
-/////////////////////////////////////////////////////////////////////////////
-//
-// Bitmap
-//
-
-IDB_VNCBITMAP           BITMAP  DISCARDABLE     "tightvnc.bmp"
-IDB_VNC32               BITMAP  DISCARDABLE     "tightvnc48.BMP"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -371,11 +483,74 @@ BEGIN
     ID_CLOSEDAEMON          "Stop listening for incoming connections"
     ID_SHOWWINDOW           "Display a connection window"
     ID_NEWCONN              "Make a manual connection"
+    IDS_HELP                "vncviewer [/8bit] [/shared] [/noshared] [/swapmouse] [/belldeiconify] [/listen] [/fullscreen] [/viewonly] [/emulate3] [/scale a/b] [/config configfile] [/encoding cname] [/compresslevel n] [/quality n]   [/nocursorshape] [/noremotecursor] server[:display]              For full details see documentation. kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDC_OPTIONBUTTON        "Set the options to be used for new connections"
+    IDC_8BITCHECK           "Restrict pixels to 8-bit (for slow networks)"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDC_LOC_NET_RADIO       "Local network connection options"
+    IDC_MODEM_RADIO         "Modem connection options"
+    IDC_CUSTOM_RADIO        "Default connection options"
+    IDC_OK                  "Set connection with the given parameters and closing of the dialog box"
+    IDC_LIST_MODE           "Start listening mode"
+    IDC_CHECK_MESSAGE       "message at start of a full screen mode"
+    IDC_CHECK_TOOLBAR       "Include toolbar at creation of the window of connection"
+    IDC_EDIT_AMOUNT_LIST    "Amount of connections in the list"
+    IDC_BUTTON_CLEAR_LIST   "Clear the list of connections"
+    IDC_CHECK_LOG_FILE      "Log to file"
+    IDC_EDIT_LOG_FILE       "Name log file (full path):"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDC_HOSTNAME_EDIT       "VNC server should be of the form host:display or host::port"
+    IDC_BELLDEICONIFY       "Deiconify on Bell"
+    IDC_VIEWONLY            "View only (inputs ignored)"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDCANCEL                "Canceling dialog"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDC_EDIT_LOG_LEVEL      "Log level:"
+    IDC_SHARED              "Request shared session"
+    IDC_ENCODING            "1"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDC_EMULATECHECK        "Emulate 3 Buttons (with 2-button click)"
+    IDC_FULLSCREEN          "Full-screen mode"
+    IDC_DISABLECLIPBOARD    "Disable clipboard transfer"
+    IDC_SCALING             "Scaling"
+    IDC_SCALE_NUM           "Factor of process of scaling"
+    IDC_SCALE_DEN           "Devider of process of scaling"
+    IDC_CSHAPE_DISABLE_RADIO "Let remote server deal with mouse cursor"
+    IDC_QUALITYLEVEL        "quality (0=poor, 9=best)"
+    IDC_COMPRESSLEVEL       "level (1=fast, 9=best)"
+    IDC_CSHAPE_ENABLE_RADIO "Track remote cursor locally"
+    IDC_CSHAPE_IGNORE_RADIO "Don't show remote cursor"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_SESSION_SET_CRECT    "Allow CopyRect encoding"
+    IDC_ALLOW_COMPRESSLEVEL "Custom compression level:"
+    IDC_ALLOW_JPEG          "Allow JPEG compression:"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_SESSION_SWAPMOUSE    "Swap mouse buttons 2 and 3"
 END
 
 #endif    // English (U.S.) resources

@@ -52,10 +52,19 @@ public:
 	// Save and load a set of options from a config file
 	void Save(char *fname);
 	void Load(char *fname);
-
+	void VNCOptions::LoadOpt(char subkey[256],char keyname[256]);
+	int VNCOptions::read(HKEY hkey,char *name,int retrn);
+	void VNCOptions::save(HKEY hkey,char *name, int value);
+	
+	void VNCOptions::delkey(char subkey[256],char keyname[256]);
+	 void VNCOptions::SaveOpt(char subkey[256],char keyname[256]);
 	// process options
 	bool	m_listening;
 	int		m_listenPort;
+	TCHAR	m_display[256];
+	bool	m_toolbar;
+	bool	m_skipprompt;
+	int		m_listServer;
 	bool	m_connectionSpecified;
 	bool	m_configSpecified;
 	TCHAR   m_configFilename[_MAX_PATH];
@@ -113,7 +122,9 @@ public:
 	void SetFromCommandLine(LPTSTR szCmdLine);
 
 
-	static BOOL CALLBACK OptDlgProc(  HWND hwndDlg,  UINT uMsg, 
+	static BOOL CALLBACK DlgProc1(  HWND hwndDlg,  UINT uMsg, 
+		WPARAM wParam, LPARAM lParam );
+	static BOOL CALLBACK DlgProc2(  HWND hwndDlg,  UINT uMsg, 
 		WPARAM wParam, LPARAM lParam );
 
 	// Register() makes this viewer the app invoked for .vnc files

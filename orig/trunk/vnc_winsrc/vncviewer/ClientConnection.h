@@ -72,17 +72,22 @@ public:
 	class SocketExc {};
 	class ProtocolExc {};
 	class Fatal {};
-
+	
+	
 private:
 	static LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
+	static LRESULT CALLBACK WndProc1(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
+	static LRESULT CALLBACK Proc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
 	void DoBlit();
 	VNCviewerApp *m_pApp;
 	int m_port;
     TCHAR m_host[MAX_HOST_NAME_LEN];
+	TCHAR m_display[256];
 	SOCKET m_sock;
 	bool m_serverInitiated;
-	HWND m_hwnd, m_hbands;
-
+	HWND  m_hwnd,m_hbands, m_hwnd1;
+	HWND	hToolBar;
+	
 	void Init(VNCviewerApp *pApp);
 	void CreateDisplay();
 	void GetConnectDetails();
@@ -295,6 +300,7 @@ private:
 
 	// RFB settings
 	VNCOptions m_opts;
+	
 	TCHAR *m_desktopName;
 	unsigned char m_encPasswd[8];
 	rfbServerInitMsg m_si;
@@ -311,10 +317,12 @@ private:
 	int m_hScrollPos, m_hScrollMax, m_vScrollPos, m_vScrollMax;
 	// The current window size
 	int m_winwidth, m_winheight;
+	int m_winwidth1, m_winheight1;
 	// The size of the current client area
 	int m_cliwidth, m_cliheight;
 	// The size of a window needed to hold entire screen without scrollbars
 	int m_fullwinwidth, m_fullwinheight;
+	int m_fullwinwidth1, m_fullwinheight1;
 	// The size of the CE CommandBar
 	int m_barheight;
 

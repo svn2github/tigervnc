@@ -211,8 +211,10 @@ LRESULT CALLBACK Daemon::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lPa
 			break;
 		case IDC_OPTIONBUTTON:
 			pApp->m_options.DoDialog();
+			pApp->m_options.SaveOpt(".listen","Software\\ORL\\VNCviewer\\MRU1");
 			break;
 		case ID_CLOSEDAEMON:
+			DestroyAcceleratorTable(hAccel);
 			PostQuitMessage(0);
 			break;
 		case IDD_APP_ABOUT:
@@ -227,7 +229,7 @@ LRESULT CALLBACK Daemon::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lPa
 				// double click: execute first menu item
 				::SendMessage(_this->m_nid.hWnd, WM_COMMAND, 
 					GetMenuItemID(hSubMenu, 0), 0);
-			} else if (lParam==WM_RBUTTONUP || lParam==WM_LBUTTONUP) {
+			} else if (lParam==WM_RBUTTONUP) {
 				if (hSubMenu == NULL) { 
 					vnclog.Print(2, _T("No systray submenu\n"));
 					return 0;
@@ -252,6 +254,7 @@ LRESULT CALLBACK Daemon::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lPa
 		_this->CheckTrayIcon();
 		return 0;
 	case WM_DESTROY:
+		
 		PostQuitMessage(0);
 		return 0;
 	}
@@ -261,6 +264,7 @@ LRESULT CALLBACK Daemon::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lPa
 
 Daemon::~Daemon()
 {
+	
 	KillTimer(m_hwnd, m_timer);
 	RemoveTrayIcon();
 	DestroyMenu(m_hmenu);

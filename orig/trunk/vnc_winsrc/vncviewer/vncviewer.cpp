@@ -36,7 +36,11 @@
 
 // All logging is done via the log object
 Log vnclog;
+HWND hwndd;
 
+HACCEL hAccel;
+HACCEL hAccel1;
+ACCEL Accel[7];
 #ifdef UNDER_CE
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdLine, int iCmdShow)
 #else
@@ -62,8 +66,42 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 
 	MSG msg;
 	
+
+	Accel[0].fVirt=FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
+	Accel[0].key=0x4f;
+	Accel[0].cmd=IDC_OPTIONBUTTON;
+
+	Accel[1].fVirt=FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
+	Accel[1].key=0x49;
+	Accel[1].cmd=ID_CONN_ABOUT;
+
+	Accel[2].fVirt=FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
+	Accel[2].key=0x46;
+	Accel[2].cmd=ID_FULLSCREEN;
+
+	Accel[3].fVirt=FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
+	Accel[3].key=0x52;
+	Accel[3].cmd=ID_REQUEST_REFRESH;
+
+	Accel[4].fVirt=FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
+	Accel[4].key=0x4e;
+	Accel[4].cmd=ID_NEWCONN;
+
+	Accel[5].fVirt=FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
+	Accel[5].key=0x53;
+	Accel[5].cmd=ID_CONN_SAVE_AS;
+
+	Accel[6].fVirt=FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
+	Accel[6].key=0x54;
+	Accel[6].cmd=ID_TOOLBAR;
+
+
+   hAccel=CreateAcceleratorTable((LPACCEL)Accel,7);
+   
 	try {
 		while ( GetMessage(&msg, NULL, 0,0) ) {
+			if(!hAccel||!TranslateAccelerator(hwndd,hAccel,&msg)){
+				TranslateMessage(&msg);}
 			DispatchMessage(&msg);
 		} 
 	} catch (WarningException &e) {
@@ -115,6 +153,8 @@ void CentreWindow(HWND hwnd)
 // Takes initial string, addresses of results and size of host buffer in wchars.
 // If the display info passed in is longer than the size of the host buffer, it
 // is assumed to be invalid, so false is returned.
+// If the function returns true, then it also replaces the display[]
+// string with its canonical representation.
 bool ParseDisplay(LPTSTR display, LPTSTR phost, int hostlen, int *pport) 
 {
     if (hostlen < (int)_tcslen(display))
@@ -141,6 +181,17 @@ bool ParseDisplay(LPTSTR display, LPTSTR phost, int hostlen, int *pport)
 		}
 	}
     *pport = tmp_port;
+
+	// FIXME: We should not overwrite display[] here, buffer overflow
+	// is possible.
+	if (tmp_port == 5900) {
+		_tcscpy(display, phost);
+	} else if (tmp_port > 5900 && tmp_port <= 5999) {
+		_stprintf(display, TEXT("%s:%d"), phost, tmp_port - 5900);
+	} else {
+		_stprintf(display, TEXT("%s::%d"), phost, tmp_port);
+	}
+
     return true;
 }
 

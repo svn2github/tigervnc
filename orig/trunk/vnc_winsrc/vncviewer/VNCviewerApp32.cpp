@@ -49,24 +49,14 @@ VNCviewerApp32::VNCviewerApp32(HINSTANCE hInstance, PSTR szCmdLine) :
 
 	// Start listening daemons if requested
 	
-	if (m_options.m_listening) {
+	if ((m_options.m_listening)&&(FindWindow("VNCviewer Daemon",0)==NULL)) {
 		vnclog.Print(3, _T("In listening mode - staring daemons\n"));
-		
-		try {
-			m_pflasher = new Flasher(FLASH_PORT_OFFSET);
-			m_pdaemon = new Daemon(m_options.m_listenPort);
-		} catch (WarningException &e) {
-			char msg[1024];
-			sprintf(msg, "Error creating listening daemon:\n\r(%s)\n\r%s",
-				e.m_info, "Perhaps another VNCviewer is already running?");
-			MessageBox(NULL, msg, "VNCviewer error", MB_OK | MB_ICONSTOP);
-			exit(1);
-		}
-		
-	} 
+		ListenMode();
+	}else{
+		m_options.m_listening=false;
+	}
 
 	RegisterSounds();
-	
 }
 
 	
@@ -173,7 +163,20 @@ void VNCviewerApp32::NewConnection(SOCKET sock) {
 	}
 
 }
+void VNCviewerApp32::ListenMode(){
 
+		try {
+			m_pflasher = new Flasher(FLASH_PORT_OFFSET);
+			m_pdaemon = new Daemon(INCOMING_PORT_OFFSET);
+		} catch (WarningException &e) {
+			char msg[1024];
+			sprintf(msg, "Error creating listening daemon:\n\r(%s)\n\r%s",
+				e.m_info, "Perhaps another VNCviewer is already running?");
+			MessageBox(NULL, msg, "VNCviewer error", MB_OK | MB_ICONSTOP);
+			exit(1);
+		}
+		
+}
 // Register the Bell sound event
 
 const char* BELL_APPL_KEY_NAME  = "AppEvents\\Schemes\\Apps\\VNCviewer";
@@ -217,7 +220,6 @@ void VNCviewerApp32::RegisterSounds() {
 	} 
 	
 }
-
 
 VNCviewerApp32::~VNCviewerApp32() {
 	// We don't need to clean up pcc if the thread has been joined.

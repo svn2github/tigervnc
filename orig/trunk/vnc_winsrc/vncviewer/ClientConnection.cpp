@@ -47,7 +47,7 @@
 #include "SessionDialog.h"
 #include "AuthDialog.h"
 #include "AboutBox.h"
-
+#include "commctrl.h"
 #include "Exception.h"
 extern "C" {
 	#include "vncauth.h"
@@ -139,7 +139,8 @@ void ClientConnection::Init(VNCviewerApp *pApp)
 
 	// We take the initial conn options from the application defaults
 	m_opts = m_pApp->m_options;
-
+	
+	
 	m_sock = INVALID_SOCKET;
 	m_bKillThread = false;
 	m_threadStarted = true;
@@ -178,9 +179,13 @@ void ClientConnection::Init(VNCviewerApp *pApp)
 void ClientConnection::Run()
 {
 	// Get the host name and port if we haven't got it
-	if (m_port == -1) 
-		GetConnectDetails();
 
+	if (m_port == -1) {
+		GetConnectDetails();
+	}else{
+		if(m_pApp->m_options.m_listening)
+	m_opts.LoadOpt(m_opts.m_display,"Software\\ORL\\VNCviewer\\MRU1");
+	}
 	// Connect if we're not already connected
 	if (m_sock == INVALID_SOCKET) 
 		Connect();
@@ -212,41 +217,52 @@ void ClientConnection::Run()
 void ClientConnection::CreateDisplay() 
 {
 	// Create the window
-	WNDCLASS wndclass;
+	
+	WNDCLASS wndclass1;
+	//wndclass1.cbSize = sizeof(WNDCLASSEX);
+	wndclass1.style			= 0;
+	wndclass1.lpfnWndProc	= ClientConnection::Proc;
+	wndclass1.cbClsExtra		= 0;
+	wndclass1.cbWndExtra		= 0;
+	wndclass1.hInstance		= m_pApp->m_instance;
+	wndclass1.hIcon			= (HICON)LoadIcon(m_pApp->m_instance, MAKEINTRESOURCE(IDI_MAINICON));
+	wndclass1.hCursor		= LoadCursor(NULL,IDC_ARROW);
+	wndclass1.hbrBackground	= (HBRUSH) GetStockObject(NULL_BRUSH);
+    wndclass1.lpszMenuName	= (LPCTSTR)NULL;
+	wndclass1.lpszClassName	= VWR_WND_CLASS_NAME;
 
+	RegisterClass(&wndclass1);
+
+WNDCLASS wndclass;
+	//wndclass.cbSize = sizeof(WNDCLASSEX); 
 	wndclass.style			= 0;
-	wndclass.lpfnWndProc	= ClientConnection::WndProc;
+	wndclass.lpfnWndProc	= ClientConnection::Proc;
 	wndclass.cbClsExtra		= 0;
 	wndclass.cbWndExtra		= 0;
 	wndclass.hInstance		= m_pApp->m_instance;
-	wndclass.hIcon			= LoadIcon(m_pApp->m_instance, MAKEINTRESOURCE(IDI_MAINICON));
-	switch (m_opts.m_localCursor) {
+	wndclass.hIcon			= (HICON)LoadIcon(NULL, IDI_APPLICATION);;
+	switch (m_pApp->m_options.m_localCursor) {
 	case NOCURSOR:
 		wndclass.hCursor		= LoadCursor(m_pApp->m_instance, MAKEINTRESOURCE(IDC_NOCURSOR));
 		break;
 	case NORMALCURSOR:
-		wndclass.hCursor		= LoadCursor(NULL, IDC_ARROW);
+		wndclass.hCursor		=LoadCursor(NULL,IDC_ARROW);
 		break;
 	case DOTCURSOR:
 	default:
 		wndclass.hCursor		= LoadCursor(m_pApp->m_instance, MAKEINTRESOURCE(IDC_DOTCURSOR));
 	}
 	wndclass.hbrBackground	= (HBRUSH) GetStockObject(BLACK_BRUSH);
-    wndclass.lpszMenuName	= (const TCHAR *) NULL;
-	wndclass.lpszClassName	= VWR_WND_CLASS_NAME;
+    wndclass.lpszMenuName	= (LPCTSTR)NULL;
+	wndclass.lpszClassName	= "ChildClass";
 
 	RegisterClass(&wndclass);
-
-#ifdef _WIN32_WCE
-	const DWORD winstyle = WS_VSCROLL | WS_HSCROLL | WS_CAPTION | WS_SYSMENU;
-#else
-	const DWORD winstyle = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | 
-	  WS_MINIMIZEBOX | WS_THICKFRAME | WS_VSCROLL | WS_HSCROLL;
-#endif
-
-	m_hwnd = CreateWindow(VWR_WND_CLASS_NAME,
+	
+	m_hwnd1 = CreateWindow(VWR_WND_CLASS_NAME,
 			      _T("VNCviewer"),
-			      winstyle,
+			      WS_BORDER|WS_CAPTION|WS_SYSMENU|WS_SIZEBOX|
+				  WS_MINIMIZEBOX|WS_MAXIMIZEBOX
+				  |WS_CLIPCHILDREN,
 			      CW_USEDEFAULT,
 			      CW_USEDEFAULT,
 			      CW_USEDEFAULT,       // x-size
@@ -255,13 +271,12 @@ void ClientConnection::CreateDisplay()
 			      NULL,                // Menu handle
 			      m_pApp->m_instance,
 			      NULL);
-
-	ShowWindow(m_hwnd, SW_HIDE);
-
-	// record which client created this window
-	SetWindowLong(m_hwnd, GWL_USERDATA, (LONG) this);
-
-
+	SetWindowLong(m_hwnd1, GWL_USERDATA, (LONG) this);
+	SetWindowLong(m_hwnd1, GWL_WNDPROC	, (LONG)ClientConnection::WndProc1);
+	hwndd=m_hwnd1;
+	
+	ShowWindow(m_hwnd1, SW_HIDE);
+	
 	// Create a memory DC which we'll use for drawing to
 	// the local framebuffer
 	m_hBitmapDC = CreateCompatibleDC(NULL);
@@ -290,51 +305,139 @@ void ClientConnection::CreateDisplay()
 	}
 
 	// Add stuff to System menu
-	HMENU hsysmenu = GetSystemMenu(m_hwnd, FALSE);
+	HMENU hsysmenu = GetSystemMenu(m_hwnd1, FALSE);
 	if (!m_opts.m_restricted) {
-		AppendMenu(hsysmenu, MF_STRING, IDC_OPTIONBUTTON,	_T("Connection &options..."));
-		AppendMenu(hsysmenu, MF_STRING, ID_CONN_ABOUT,		_T("Connection &info"));
-		AppendMenu(hsysmenu, MF_STRING, ID_REQUEST_REFRESH,	_T("Request screen &refresh"));
+		AppendMenu(hsysmenu, MF_STRING, IDC_OPTIONBUTTON,	_T("Connection &options...	Ctrl-Alt-Shift-O"));
+		AppendMenu(hsysmenu, MF_STRING, ID_CONN_ABOUT,		_T("Connection &info	Ctrl-Alt-Shift-I"));
+		AppendMenu(hsysmenu, MF_STRING, ID_REQUEST_REFRESH,	_T("Request screen &refresh	Ctrl-Alt-Shift-R"));
 
 		AppendMenu(hsysmenu, MF_SEPARATOR, NULL, NULL);
-		AppendMenu(hsysmenu, MF_STRING, ID_FULLSCREEN,		_T("&Full screen"));
+		AppendMenu(hsysmenu, MF_STRING, ID_FULLSCREEN,		_T("&Full screen	Ctrl-Alt-Shift-F"));
+		AppendMenu(hsysmenu, MF_STRING, ID_TOOLBAR,	    	_T("&Tool Bar	Ctrl-Alt-Shift-T"));
 		AppendMenu(hsysmenu, MF_SEPARATOR, NULL, NULL);
  		AppendMenu(hsysmenu, MF_STRING, ID_CONN_CTLALTDEL,	_T("Send Ctl-Alt-Del"));
-		AppendMenu(hsysmenu, MF_STRING, ID_CONN_CTLDOWN,	_T("Ctrl Down"));
-		AppendMenu(hsysmenu, MF_STRING, ID_CONN_CTLUP,		_T("Ctrl Up"));
-		AppendMenu(hsysmenu, MF_STRING, ID_CONN_ALTDOWN,	_T("Alt Down"));
-		AppendMenu(hsysmenu, MF_STRING, ID_CONN_ALTUP,		_T("Alt Up"));
+		AppendMenu(hsysmenu, MF_STRING, ID_CONN_CTLDOWN,	_T("Key Ctrl"));
+		AppendMenu(hsysmenu, MF_STRING, ID_CONN_ALTDOWN,	_T("Key Alt"));
+		
 		AppendMenu(hsysmenu, MF_SEPARATOR, NULL, NULL);
-		AppendMenu(hsysmenu, MF_STRING, ID_NEWCONN,			_T("Ne&w connection..."));
+		AppendMenu(hsysmenu, MF_STRING, ID_NEWCONN,			_T("&New connection...	Ctrl-Alt-Shift-N"));
 		AppendMenu(hsysmenu, MF_STRING | (m_serverInitiated ? MF_GRAYED : 0), 
-			ID_CONN_SAVE_AS,	_T("Save connection info &as..."));
+			ID_CONN_SAVE_AS,	                            _T("&Save connection info as...	Ctrl-Alt-Shift-S"));
 	}
     AppendMenu(hsysmenu, MF_SEPARATOR, NULL, NULL);
-	AppendMenu(hsysmenu, MF_STRING, IDD_APP_ABOUT,		_T("&About VNCviewer..."));
+	AppendMenu(hsysmenu, MF_STRING, IDD_APP_ABOUT,		    _T("&About VNCviewer..."));
 	if (m_opts.m_listening) {
 		AppendMenu(hsysmenu, MF_SEPARATOR, NULL, NULL);
 		AppendMenu(hsysmenu, MF_STRING, ID_CLOSEDAEMON, _T("Close listening &daemon"));
 	}
-	DrawMenuBar(m_hwnd);
+	DrawMenuBar(m_hwnd1);
 
-	// Set up clipboard watching
-#ifndef _WIN32_WCE
+static TBBUTTON but[15];
+	but[0].fsStyle=TBSTYLE_SEP;
+
+	but[1].iBitmap=0;
+	but[1].idCommand=IDC_OPTIONBUTTON;
+	but[1].fsState=TBSTATE_ENABLED;
+	but[1].fsStyle=TBSTYLE_BUTTON;
+
+	but[2].iBitmap=9;
+	but[2].idCommand=ID_CONN_ABOUT;
+	but[2].fsState=TBSTATE_ENABLED;
+	but[2].fsStyle=TBSTYLE_BUTTON;
+
+	but[3].fsStyle=TBSTYLE_SEP;
+
+	but[4].iBitmap=3;
+	but[4].idCommand=ID_FULLSCREEN;
+	but[4].fsState=TBSTATE_ENABLED;
+	but[4].fsStyle=TBSTYLE_BUTTON;
+
+	but[5].iBitmap=1;
+	but[5].idCommand=ID_REQUEST_REFRESH;
+	but[5].fsState=TBSTATE_ENABLED;
+	but[5].fsStyle=TBSTYLE_BUTTON;
+
+	but[6].fsStyle=TBSTYLE_SEP;
+
+	but[7].iBitmap=8;
+	but[7].idCommand=ID_CONN_CTLALTDEL;
+	but[7].fsState=TBSTATE_ENABLED;
+	but[7].fsStyle=TBSTYLE_BUTTON;
+
+	but[8].iBitmap=4;
+	but[8].idCommand=ID_CONN_CTLDOWN;
+	but[8].fsState=TBSTATE_ENABLED;
+	but[8].fsStyle=TBSTYLE_CHECK;
+
+	but[9].iBitmap=5;
+	but[9].idCommand=ID_CONN_ALTDOWN;
+	but[9].fsState=TBSTATE_ENABLED;
+	but[9].fsStyle=TBSTYLE_CHECK;
+
+	but[10].fsStyle=TBSTYLE_SEP;
+
+	but[11].iBitmap=10;
+	but[11].idCommand=ID_NEWCONN;
+	but[11].fsState=TBSTATE_ENABLED;
+	but[11].fsStyle=TBSTYLE_BUTTON	;
+
+	but[12].iBitmap=2;
+	but[12].idCommand=ID_CONN_SAVE_AS;
+	but[12].fsState=TBSTATE_ENABLED;
+	but[12].fsStyle=TBSTYLE_BUTTON;
+
+	but[13].fsStyle=TBSTYLE_SEP;
+
+	but[14].iBitmap=11;
+	but[14].idCommand=ID_DISCONNECT;
+	but[14].fsState=TBSTATE_ENABLED;
+	but[14].fsStyle=TBSTYLE_BUTTON;
+
+	hToolBar=CreateToolbarEx(m_hwnd1,WS_CHILD|WS_MAXIMIZE|WS_DLGFRAME|TBSTYLE_TOOLTIPS ,
+		ID_TOOLBAR,13,m_pApp->m_instance,
+		IDB_BITMAP1,but,15,0,0,0,0,sizeof(TBBUTTON));
+
+	m_hwnd = CreateWindow("ChildClass",
+			      NULL,
+			       WS_VSCROLL|WS_HSCROLL | WS_CHILD,
+			      CW_USEDEFAULT,
+			      CW_USEDEFAULT,
+			      CW_USEDEFAULT,       // x-size
+			      CW_USEDEFAULT,	   // y-size
+			      m_hwnd1,             // Parent handle
+			      NULL,                // Menu handle
+			      m_pApp->m_instance,
+			       NULL);
+
+    ShowWindow(m_hwnd, SW_HIDE);
+		
+	SetWindowLong(m_hwnd, GWL_USERDATA, (LONG) this);
+	SetWindowLong(m_hwnd, GWL_WNDPROC	, (LONG)ClientConnection::WndProc);
+	
+	if(pApp->m_options.m_toolbar)CheckMenuItem(GetSystemMenu(m_hwnd1, FALSE),
+					ID_TOOLBAR, MF_BYCOMMAND|MF_CHECKED);
+	
+	// record which client created this window
+	
+	#ifndef _WIN32_WCE
 	// We want to know when the clipboard changes, so
 	// insert ourselves in the viewer chain. But doing
 	// this will cause us to be notified immediately of
 	// the current state.
 	// We don't want to send that.
 	m_initialClipboardSeen = false;
-	m_hwndNextViewer = SetClipboardViewer(m_hwnd); 	
+	m_hwndNextViewer = SetClipboardViewer(m_hwnd);
 #endif
 }
 
 void ClientConnection::GetConnectDetails()
 {
+	
 	if (m_opts.m_configSpecified) {
 		LoadConnection(m_opts.m_configFilename);
 	} else {
 		SessionDialog sessdlg(&m_opts);
+		
 		if (!sessdlg.DoDialog()) {
 			throw QuietException("User Cancelled");
 		}
@@ -349,7 +452,15 @@ void ClientConnection::GetConnectDetails()
 	m_pApp->m_options.m_port = -1;
 	m_pApp->m_options.m_connectionSpecified = false;
 	m_pApp->m_options.m_configSpecified = false;
-
+#ifndef _WIN32_WCE
+	// We want to know when the clipboard changes, so
+	// insert ourselves in the viewer chain. But doing
+	// this will cause us to be notified immediately of
+	// the current state.
+	// We don't want to send that.
+	m_initialClipboardSeen = false;
+	m_hwndNextViewer = SetClipboardViewer(m_hwnd); 	
+#endif
 }
 
 void ClientConnection::Connect()
@@ -593,12 +704,12 @@ void ClientConnection::ReadServerInit()
     ReadString(m_desktopName, m_si.nameLength);
 #endif
     
-	SetWindowText(m_hwnd, m_desktopName);	
+	SetWindowText(m_hwnd1, m_desktopName);	
 
 	vnclog.Print(0, _T("Desktop name \"%s\"\n"),m_desktopName);
 	vnclog.Print(1, _T("Geometry %d x %d depth %d\n"),
 		m_si.framebufferWidth, m_si.framebufferHeight, m_si.format.depth );
-	SetWindowText(m_hwnd, m_desktopName);	
+	SetWindowText(m_hwnd1, m_desktopName);	
 
 	SizeWindow(true);
 }
@@ -610,46 +721,54 @@ void ClientConnection::SizeWindow(bool centered)
 	SystemParametersInfo(SPI_GETWORKAREA, 0, &workrect, 0);
 	int workwidth = workrect.right -  workrect.left;
 	int workheight = workrect.bottom - workrect.top;
-	vnclog.Print(2, _T("Screen work area is %d x %d\n"), workwidth, workheight);
-
-	// Size the window.
-	// Let's find out how big a window would be needed to display the
-	// whole desktop (assuming no scrollbars).
+	vnclog.Print(2, _T("Screen work area is %d x %d\n"),
+				 workwidth, workheight);
 
 	RECT fullwinrect;
-	SetRect(&fullwinrect, 0, 0, m_si.framebufferWidth * m_opts.m_scale_num / m_opts.m_scale_den, 
-								m_si.framebufferHeight* m_opts.m_scale_num / m_opts.m_scale_den);
-	AdjustWindowRectEx(&fullwinrect,
-					   GetWindowLong(m_hwnd, GWL_STYLE) & ~WS_VSCROLL & ~WS_HSCROLL,
-					   FALSE, GetWindowLong(m_hwnd, GWL_EXSTYLE));
+	if (m_opts.m_scaling) {
+		SetRect(&fullwinrect, 0, 0,
+				m_si.framebufferWidth * m_opts.m_scale_num / m_opts.m_scale_den,
+				m_si.framebufferHeight * m_opts.m_scale_num / m_opts.m_scale_den);
+	} else {
+		SetRect(&fullwinrect, 0, 0,
+				m_si.framebufferWidth, m_si.framebufferHeight);
+	}
+
 	m_fullwinwidth = fullwinrect.right - fullwinrect.left;
 	m_fullwinheight = fullwinrect.bottom - fullwinrect.top;
-
-	// Make the window size limited by the desktop size
 	m_winwidth  = min(m_fullwinwidth,  workwidth);
 	m_winheight = min(m_fullwinheight, workheight);
 
-	int x = workrect.left + (workwidth - m_winwidth) / 2;
-	int y = workrect.top + (workheight - m_winheight) / 2;
-	if (!centered) {
-		// Try to preserve current position if possible
-		RECT tmprect;
-		if (GetWindowRect(m_hwnd, &tmprect)) {
-			x = tmprect.left;
-			y = tmprect.top;
-			if (x + m_winwidth > workrect.right)
-				x = workrect.right - m_winwidth;
-			if (y + m_winheight > workrect.bottom)
-				y = workrect.bottom - m_winheight;
-		}
+	AdjustWindowRectEx(&fullwinrect, 
+			   GetWindowLong(m_hwnd, GWL_STYLE )& ~WS_HSCROLL & ~WS_VSCROLL, 
+			   FALSE, GetWindowLong(m_hwnd, GWL_EXSTYLE));
+	AdjustWindowRectEx(&fullwinrect, 
+			   GetWindowLong(m_hwnd1, GWL_STYLE), 
+			   FALSE, GetWindowLong(m_hwnd1, GWL_EXSTYLE));
+
+	m_fullwinwidth1 = fullwinrect.right - fullwinrect.left;
+	m_fullwinheight1 = fullwinrect.bottom - fullwinrect.top;
+	m_winwidth1 = min(m_fullwinwidth1,  workwidth);
+	m_winheight1 = min(m_fullwinheight1, workheight);
+
+	if (GetMenuState(GetSystemMenu(m_hwnd1, FALSE),
+					 ID_TOOLBAR, MF_BYCOMMAND) == MF_CHECKED) {
+		RECT rtb;
+		GetWindowRect(hToolBar, &rtb);
+		SetWindowPos(m_hwnd1, HWND_TOP,
+					 (workwidth - m_winwidth1) / 2,
+					 (workheight - min(m_winheight1+rtb.bottom-rtb.top-4, workheight)) / 2,
+					 m_winwidth1,
+					 min(m_winheight1+rtb.bottom-rtb.top-4, workheight),
+					 SWP_SHOWWINDOW);
+	} else {
+		SetWindowPos(m_hwnd1, HWND_TOP, 0, 0,
+					 (workwidth - m_winwidth1) / 2,
+					 (workheight - m_winheight1) / 2,
+					 SWP_SHOWWINDOW);
 	}
-
-	SetWindowPos(m_hwnd, HWND_TOP, x, y, m_winwidth, m_winheight, SWP_SHOWWINDOW);
-	SetForegroundWindow(m_hwnd);
+	SetForegroundWindow(m_hwnd1);
 }
-
-// We keep a local copy of the whole screen.  This is not strictly necessary
-// for VNC, but makes scrolling & deiconifying much smoother.
 
 void ClientConnection::CreateLocalFramebuffer() {
 	omni_mutex_lock l(m_bitmapdcMutex);
@@ -874,8 +993,8 @@ void ClientConnection::CopyOptions(ClientConnection *source)
 
 ClientConnection::~ClientConnection()
 {
-	if (m_hwnd != 0)
-		DestroyWindow(m_hwnd);
+	if (m_hwnd1 != 0)
+		DestroyWindow(m_hwnd1);
 
 	if (m_sock != INVALID_SOCKET) {
 		shutdown(m_sock, SD_BOTH);
@@ -918,7 +1037,346 @@ bool ClientConnection::ScrollScreen(int dx, int dy)
 }
 
 // Process windows messages
+LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg, 
+					   WPARAM wParam, LPARAM lParam) {
+	
+	// This is a static method, so we don't know which instantiation we're 
+	// dealing with.  But we've stored a 'pseudo-this' in the window data.
+	ClientConnection *_this = (ClientConnection *) GetWindowLong(hwnd, GWL_USERDATA);
+		
 
+
+	
+switch (iMsg) {
+
+	case WM_NOTIFY:{
+
+			LPTOOLTIPTEXT TTStr;
+			TTStr=(LPTOOLTIPTEXT)lParam;
+
+			if(TTStr->hdr.code!=TTN_NEEDTEXT) return 0;
+
+			switch (TTStr->hdr.idFrom){
+			case ID_CONN_ABOUT:
+			TTStr->lpszText="Connection info";
+			return 0;
+			case IDC_OPTIONBUTTON:
+			TTStr->lpszText="Connection options";
+			return 0;
+			case ID_FULLSCREEN:
+			TTStr->lpszText="Full screen";
+			return 0;
+			case ID_CONN_CTLALTDEL:
+			TTStr->lpszText="Send Ctrl-Alt-Del";
+			return 0;
+			case ID_CONN_CTLDOWN:
+			TTStr->lpszText="Key Ctrl";
+			return 0;
+      		case ID_CONN_ALTDOWN:
+			TTStr->lpszText="Key Alt";
+			return 0;
+			case ID_NEWCONN:
+			TTStr->lpszText="New connection";
+			return 0;
+			case ID_REQUEST_REFRESH:
+			TTStr->lpszText="Request screen refresh";
+			return 0;
+			case ID_DISCONNECT:
+			TTStr->lpszText="Disconnect";
+			return 0;
+			case ID_CONN_SAVE_AS:
+			TTStr->lpszText="Save connection info as...";
+			return 0;
+				   }
+			return 0;
+				}
+	case WM_SETFOCUS:
+		hwndd=hwnd;
+		return 0;
+	case WM_COMMAND:
+	case WM_SYSCOMMAND:
+		
+			switch (LOWORD(wParam)) {
+			case SC_MINIMIZE:
+				_this->SetDormant(true);
+				break;
+			case SC_RESTORE:
+				_this->SetDormant(false);
+				break;
+            case ID_NEWCONN:
+				_this->m_pApp->NewConnection();
+				return 0;
+			case ID_DISCONNECT:
+			SendMessage(hwnd,WM_CLOSE,0,0);
+				return 0;
+			case ID_TOOLBAR:
+				RECT win;
+				GetClientRect(hwnd,&win);
+				
+				if(GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
+					ID_TOOLBAR,MF_BYCOMMAND)==MF_CHECKED){
+					CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
+						ID_TOOLBAR, MF_BYCOMMAND|MF_UNCHECKED);
+					if ((win.bottom-win.top)>_this->m_fullwinheight)
+					{
+						SetWindowPos(hwnd,HWND_TOP,0,0,
+						_this->m_winwidth1,_this->m_winheight1,
+						SWP_NOMOVE|SWP_SHOWWINDOW);
+					}
+				}else{
+					CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
+						ID_TOOLBAR, MF_BYCOMMAND|MF_CHECKED);
+				}
+				SendMessage(hwnd,WM_SIZE,0,0);
+			
+				
+				
+				return 0;
+            case ID_CONN_SAVE_AS:
+				_this->SaveConnection();
+				return 0;
+			case IDC_OPTIONBUTTON: 
+				{
+					int prev_scale_num = _this->m_opts.m_scale_num;
+					int prev_scale_den = _this->m_opts.m_scale_den;
+
+					if (_this->m_opts.DoDialog(true)) {
+						_this->m_pendingFormatChange = true;
+
+						if (prev_scale_num != _this->m_opts.m_scale_num ||
+							prev_scale_den != _this->m_opts.m_scale_den) {
+							// Resize the window if scaling factors were changed
+							_this->SizeWindow(false);
+							InvalidateRect(hwnd, NULL, TRUE);
+							// Make the window correspond to the requested state
+							_this->RealiseFullScreenMode(true);
+						}
+					}
+				}
+				if (_this->m_serverInitiated) {
+					_this->m_opts.SaveOpt(".listen",
+										  "Software\\ORL\\VNCviewer\\MRU1");
+				}
+				return 0;
+			case IDD_APP_ABOUT:
+				ShowAboutBox();
+				return 0;
+			case ID_CONN_ABOUT:
+				_this->ShowConnInfo();
+				return 0;
+			case ID_FULLSCREEN:
+				
+				
+				// Toggle full screen mode
+				_this->SetFullScreenMode(!_this->InFullScreenMode());
+				
+				return 0;
+			case ID_REQUEST_REFRESH: 
+				// Request a full-screen update
+				_this->SendFullFramebufferUpdateRequest();
+				return 0;
+
+			case ID_CONN_CTLALTDEL:
+				_this->SendKeyEvent(XK_Control_L, true);
+				_this->SendKeyEvent(XK_Alt_L,     true);
+				_this->SendKeyEvent(XK_Delete,    true);
+				_this->SendKeyEvent(XK_Delete,    false);
+				_this->SendKeyEvent(XK_Alt_L,     false);
+				_this->SendKeyEvent(XK_Control_L, false);
+				return 0;
+            case ID_CONN_CTLDOWN:
+				if(GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
+						ID_CONN_CTLDOWN,MF_BYCOMMAND)==MF_CHECKED)
+				{
+				_this->SendKeyEvent(XK_Control_L, false);
+				CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
+						ID_CONN_CTLDOWN, MF_BYCOMMAND|MF_UNCHECKED);
+				SendMessage(_this->hToolBar,TB_SETSTATE,(WPARAM)ID_CONN_CTLDOWN,
+						(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
+				}else{
+				CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
+						ID_CONN_CTLDOWN, MF_BYCOMMAND|MF_CHECKED);
+				SendMessage(_this->hToolBar,TB_SETSTATE,(WPARAM)ID_CONN_CTLDOWN,
+						(LPARAM)MAKELONG(TBSTATE_CHECKED|TBSTATE_ENABLED,0));
+				_this->SendKeyEvent(XK_Control_L, true);
+				}
+				return 0;
+			case ID_CONN_ALTDOWN:
+				if(GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
+						ID_CONN_ALTDOWN,MF_BYCOMMAND)==MF_CHECKED){
+                _this->SendKeyEvent(XK_Alt_L, false);
+				CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
+					ID_CONN_ALTDOWN, MF_BYCOMMAND|MF_UNCHECKED);
+				SendMessage(_this->hToolBar,TB_SETSTATE,(WPARAM)ID_CONN_ALTDOWN,
+					(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
+				}else{
+				CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
+					ID_CONN_ALTDOWN, MF_BYCOMMAND|MF_CHECKED);
+				SendMessage(_this->hToolBar,TB_SETSTATE,(WPARAM)ID_CONN_ALTDOWN,
+					(LPARAM)MAKELONG(TBSTATE_CHECKED|TBSTATE_ENABLED,0));
+                _this->SendKeyEvent(XK_Alt_L, true);
+					}
+                return 0;
+			case ID_CLOSEDAEMON:
+				if (MessageBox(NULL, _T("Are you sure you want to exit?"), 
+						_T("Closing VNCviewer"), 
+						MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2) == IDYES)
+						DestroyAcceleratorTable(hAccel);
+					PostQuitMessage(0);
+				return 0;
+			}
+			
+		
+		break;
+		case WM_GETMINMAXINFO:
+			RECT workrect;
+			RECT rtb;
+			MINMAXINFO win;
+			SystemParametersInfo(SPI_GETWORKAREA, 0, &workrect, 0);
+			GetWindowRect(_this->hToolBar,&rtb);
+			win =*(LPMINMAXINFO) lParam;
+			if(_this->InFullScreenMode()){
+			win.ptMaxSize.x=_this->m_fullwinwidth+8;
+			win.ptMaxSize.y=_this->m_fullwinheight+8;
+			win.ptMaxTrackSize.x=_this->m_fullwinwidth+8;
+			win.ptMaxTrackSize.y=_this->m_fullwinheight+8;
+			}else{
+				if(GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
+					ID_TOOLBAR,MF_BYCOMMAND)==MF_CHECKED){
+				win.ptMaxSize.x=_this->m_winwidth1;
+				win.ptMaxSize.y=min((_this->m_winheight1+rtb.bottom-rtb.top-4),
+					(workrect.bottom -  workrect.top));
+				win.ptMaxTrackSize.x=_this->m_winwidth1;
+				win.ptMaxTrackSize.y=min((_this->m_winheight1+rtb.bottom-rtb.top-4),
+					(workrect.bottom -  workrect.top));
+				}else{
+				win.ptMaxSize.x=_this->m_winwidth1;
+				win.ptMaxSize.y=_this->m_winheight1;
+				win.ptMaxTrackSize.x=_this->m_winwidth1;
+				win.ptMaxTrackSize.y=_this->m_winheight1;
+				}
+			}
+			*(LPMINMAXINFO) lParam=win;
+			return 0;
+		case WM_SIZE:
+			
+			RECT rwn;
+			GetClientRect(hwnd,&rwn);
+			if(GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
+					ID_TOOLBAR,MF_BYCOMMAND)==MF_CHECKED)
+			{
+			GetWindowRect(_this->hToolBar,&rtb);
+			SetWindowPos(_this->m_hwnd,HWND_TOP,0,rtb.bottom-rtb.top-4,
+			rwn.right,rwn.bottom-(rtb.bottom-rtb.top)+4,SWP_SHOWWINDOW);
+			SetWindowPos(_this->hToolBar,HWND_TOP,0,0,
+			rwn.right-rwn.left,rtb.bottom-rtb.top,SWP_SHOWWINDOW);
+			
+			}else{
+			SetWindowPos(_this->m_hwnd,HWND_TOP,0,0,
+			rwn.right,rwn.bottom,SWP_SHOWWINDOW);
+			}
+			return 0;
+			case WM_CLOSE:
+		{
+			if(!_this->m_serverInitiated){
+				TCHAR  valname[3];
+				int dwbuflen=255;
+				int i,j;
+				int k=pApp->m_options.m_listServer;
+				TCHAR list[80];
+				HKEY m_hRegKey;
+				TCHAR  buf[256];
+				DWORD dispos;
+				TCHAR  buf1[256];
+				itoa(k,list,10);
+				RegCreateKeyEx(HKEY_CURRENT_USER,
+						"Software\\ORL\\VNCviewer\\MRU1", 0, NULL, 
+						REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, 
+						NULL, &m_hRegKey, &dispos);
+				_tcscpy(buf1,_this->m_opts.m_display);
+				_this->m_opts.SaveOpt(_this->m_opts.m_display,
+					"Software\\ORL\\VNCviewer\\MRU1");
+
+				for ( i = 0; i <k; i++) {
+				j=i;
+			    itoa(i,valname,10);
+				dwbuflen=255;
+				if((RegQueryValueEx( m_hRegKey,(LPTSTR)valname , 
+						NULL, NULL, 
+						(LPBYTE) buf,(LPDWORD) &dwbuflen)!=ERROR_SUCCESS)||(
+				_tcscmp(buf,_this->m_opts.m_display)==NULL)){
+				RegSetValueEx( m_hRegKey,valname , 
+						NULL,REG_SZ , 
+						(CONST BYTE *)buf1, (_tcslen(buf1)+1) );
+					 break;
+				 }
+				RegSetValueEx(m_hRegKey,valname , 
+						NULL,REG_SZ , 
+						(CONST BYTE *)buf1, (_tcslen(buf1)+1) ); 
+				_tcscpy(buf1,buf);
+				  }
+
+				if(j==k){
+				dwbuflen=255;
+				 _tcscpy(valname,list);
+				 _tcscpy(buf,"");
+				RegQueryValueEx( m_hRegKey,(LPTSTR)valname , 
+						NULL, NULL, 
+						(LPBYTE) buf,(LPDWORD) &dwbuflen);
+				 _this->m_opts.delkey(buf,"Software\\ORL\\VNCviewer\\MRU1");
+				 }
+				RegCloseKey(m_hRegKey);
+				}
+				// Close the worker thread as well
+				_this->KillThread();
+			
+				DestroyWindow(hwnd);
+				return 0;
+		}
+
+	case WM_DESTROY:
+		{
+			
+#ifndef UNDER_CE
+			// Remove us from the clipboard viewer chain
+			BOOL res = ChangeClipboardChain( hwnd, _this->m_hwndNextViewer);
+#endif
+			if (_this->m_waitingOnEmulateTimer)
+			  {
+			    KillTimer(hwnd, _this->m_emulate3ButtonsTimer);
+			    _this->m_waitingOnEmulateTimer = false;
+			  }
+  			
+			_this->m_hwnd1 = 0;
+			// We are currently in the main thread.
+			// The worker thread should be about to finish if
+			// it hasn't already. Wait for it.
+			try {
+				void *p;
+				_this->join(&p);  // After joining, _this is no longer valid
+			} catch (omni_thread_invalid& e) {
+				// The thread probably hasn't been started yet,
+			}
+			
+			return 0;
+		}
+		
+		}
+	
+
+
+	return DefWindowProc(hwnd, iMsg, wParam, lParam);
+}	
+	// We know about an unused variable here.
+
+
+	// We know about an unused variable here.
+LRESULT CALLBACK ClientConnection::Proc(HWND hwnd, UINT iMsg,
+										WPARAM wParam, LPARAM lParam)
+{
+	return DefWindowProc(hwnd, iMsg, wParam, lParam);
+
+}
 LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg, 
 					   WPARAM wParam, LPARAM lParam) {
 	
@@ -927,17 +1385,15 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 	ClientConnection *_this = (ClientConnection *) GetWindowLong(hwnd, GWL_USERDATA);
 
 	switch (iMsg) {
-
-	case WM_CREATE:
-		return 0;
-
 	case WM_REGIONUPDATED:
 		_this->DoBlit();
 		_this->SendAppropriateFramebufferUpdateRequest();
+		
 		return 0;
 
 	case WM_PAINT:
 		_this->DoBlit();
+		
 		return 0;
 
 	case WM_TIMER:
@@ -947,7 +1403,7 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 					    _this->m_emulateButtonPressedX,
 					    _this->m_emulateButtonPressedY,
 					    _this->m_emulateKeyFlags);
-	      KillTimer(_this->m_hwnd, _this->m_emulate3ButtonsTimer);
+	      KillTimer(hwnd, _this->m_emulate3ButtonsTimer);
 	      _this->m_waitingOnEmulateTimer = false;
 	    }
 	  return 0;
@@ -963,8 +1419,9 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 		{
 			if (!_this->m_running)
 				return 0;
-			if (GetFocus() != hwnd)
+			if (GetFocus() != hwnd && GetFocus() != _this->m_hwnd1)
 				return 0;
+			SetFocus(hwnd);
 
 			POINT coords;
 			coords.x = LOWORD(lParam);
@@ -1001,6 +1458,33 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 	case WM_SYSKEYDOWN:
 	case WM_SYSKEYUP:
 		{
+			bool down = (((DWORD) lParam & 0x80000000l) == 0);
+			if ((int) wParam==0x11){
+				if (!down){
+				CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
+						ID_CONN_CTLDOWN, MF_BYCOMMAND|MF_UNCHECKED);
+				SendMessage(_this->hToolBar,TB_SETSTATE,(WPARAM)ID_CONN_CTLDOWN,
+						(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
+				}else{
+				CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
+						ID_CONN_CTLDOWN, MF_BYCOMMAND|MF_CHECKED);
+				SendMessage(_this->hToolBar,TB_SETSTATE,(WPARAM)ID_CONN_CTLDOWN,
+						(LPARAM)MAKELONG(TBSTATE_CHECKED|TBSTATE_ENABLED,0));
+				}
+			}
+			if ((int) wParam==0x12){
+				if (!down){
+				CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
+					ID_CONN_ALTDOWN, MF_BYCOMMAND|MF_UNCHECKED);
+				SendMessage(_this->hToolBar,TB_SETSTATE,(WPARAM)ID_CONN_ALTDOWN,
+					(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
+				}else{
+				CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
+					ID_CONN_ALTDOWN, MF_BYCOMMAND|MF_CHECKED);
+				SendMessage(_this->hToolBar,TB_SETSTATE,(WPARAM)ID_CONN_ALTDOWN,
+					(LPARAM)MAKELONG(TBSTATE_CHECKED|TBSTATE_ENABLED,0));
+				}
+			}
 			if (!_this->m_running) return 0;
 			if ( _this->m_opts.m_ViewOnly) return 0;
             _this->ProcessKeyEvent((int) wParam, (DWORD) lParam);
@@ -1063,41 +1547,7 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 			_this->SendKeyEvent(XK_Shift_R,   false);
 			return 0;
 		}
-	case WM_CLOSE:
-		{
 
-			// Close the worker thread as well
-			_this->KillThread();
-			DestroyWindow(hwnd);
-			return 0;
-		}
-
-	case WM_DESTROY:
-		{
-#ifndef UNDER_CE
-			// Remove us from the clipboard viewer chain
-			BOOL res = ChangeClipboardChain( hwnd, _this->m_hwndNextViewer);
-#endif
-			if (_this->m_waitingOnEmulateTimer)
-			  {
-			    KillTimer(_this->m_hwnd, _this->m_emulate3ButtonsTimer);
-			    _this->m_waitingOnEmulateTimer = false;
-			  }
-  			
-			_this->m_hwnd = 0;
-			// We are currently in the main thread.
-			// The worker thread should be about to finish if
-			// it hasn't already. Wait for it.
-			try {
-				void *p;
-				_this->join(&p);  // After joining, _this is no longer valid
-			} catch (omni_thread_invalid& e) {
-				// The thread probably hasn't been started yet,
-			}
-			
-			return 0;
-		}
-		
 	case WM_WINDOWPOSCHANGED:
 	case WM_SIZE:
 		{
@@ -1114,8 +1564,8 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 
 			#ifndef UNDER_CE
 			if (_this->InFullScreenMode() ||
-				_this->m_winwidth  >= _this->m_fullwinwidth  &&
-				_this->m_winheight >= _this->m_fullwinheight ) {
+				(rect.right - rect.left)  >= _this->m_fullwinwidth  &&
+				(rect.bottom - rect.top) >= _this->m_fullwinheight ) {
 				ShowScrollBar(hwnd, SB_HORZ, FALSE);
 				ShowScrollBar(hwnd, SB_VERT, FALSE);
 			} else {
@@ -1148,7 +1598,7 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 			_this->m_hScrollPos = newhpos;
 			_this->m_vScrollPos = newvpos;
            	_this->UpdateScrollbars();
-
+			
 			return 0;
 		}
 
@@ -1230,7 +1680,7 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 		}
         break;
 
-#ifndef UNDER_CE
+#ifndef UNDER_CE 
 	case WM_SIZING:
 		{
 			// Don't allow sizing larger than framebuffer
@@ -1267,91 +1717,12 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 	case WM_SETCURSOR:
 		{
 			// if we have the focus, let the cursor change as normal
-			if (GetFocus() == hwnd) 
+			if (GetFocus() ==hwnd) 
 				break;
 
 			// if not, set to default system cursor
 			SetCursor( LoadCursor(NULL, IDC_ARROW));
 			return 0;
-		}
-
-	case WM_SYSCOMMAND:
-		{
-			switch (LOWORD(wParam)) {
-			case SC_MINIMIZE:
-				_this->SetDormant(true);
-				break;
-			case SC_RESTORE:
-				_this->SetDormant(false);
-				break;
-            case ID_NEWCONN:
-				_this->m_pApp->NewConnection();
-				return 0;
-            case ID_CONN_SAVE_AS:
-				_this->SaveConnection();
-				return 0;
-			case IDC_OPTIONBUTTON: 
-				{
-					int prev_scale_num = _this->m_opts.m_scale_num;
-					int prev_scale_den = _this->m_opts.m_scale_den;
-
-					if (_this->m_opts.DoDialog(true)) {
-						_this->m_pendingFormatChange = true;
-
-						if (prev_scale_num != _this->m_opts.m_scale_num ||
-							prev_scale_den != _this->m_opts.m_scale_den) {
-							// Resize the window if scaling factors were changed
-							_this->SizeWindow(false);
-							InvalidateRect(hwnd, NULL, TRUE);
-							// Make the window correspond to the requested state
-							_this->RealiseFullScreenMode(true);
-						}
-					}
-				}
-				return 0;
-			case IDD_APP_ABOUT:
-				ShowAboutBox();
-				return 0;
-			case ID_CONN_ABOUT:
-				_this->ShowConnInfo();
-				return 0;
-			case ID_FULLSCREEN: 
-				// Toggle full screen mode
-				_this->SetFullScreenMode(!_this->InFullScreenMode());
-				return 0;
-			case ID_REQUEST_REFRESH: 
-				// Request a full-screen update
-				_this->SendFullFramebufferUpdateRequest();
-				return 0;
-
-			case ID_CONN_CTLALTDEL:
-				_this->SendKeyEvent(XK_Control_L, true);
-				_this->SendKeyEvent(XK_Alt_L,     true);
-				_this->SendKeyEvent(XK_Delete,    true);
-				_this->SendKeyEvent(XK_Delete,    false);
-				_this->SendKeyEvent(XK_Alt_L,     false);
-				_this->SendKeyEvent(XK_Control_L, false);
-				return 0;
-            case ID_CONN_CTLDOWN:
-                _this->SendKeyEvent(XK_Control_L, true);
-                return 0;
-            case ID_CONN_CTLUP:
-				_this->SendKeyEvent(XK_Control_L, false);
-				return 0;
-			case ID_CONN_ALTDOWN:
-                _this->SendKeyEvent(XK_Alt_L, true);
-				return 0;
-			case ID_CONN_ALTUP:
-                _this->SendKeyEvent(XK_Alt_L, false);
-                return 0;
-			case ID_CLOSEDAEMON:
-				if (MessageBox(NULL, _T("Are you sure you want to exit?"), 
-						_T("Closing VNCviewer"), 
-						MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2) == IDYES)
-					PostQuitMessage(0);
-				return 0;
-			}
-			break;
 		}
 
 	case WM_DRAWCLIPBOARD:
@@ -1373,16 +1744,21 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 			return 0;
 
 		}
+	
 #endif
-	}
+		case WM_DESTROY:
+
+		
+		return 0;
+}
 
 	return DefWindowProc(hwnd, iMsg, wParam, lParam);
 	
 	// We know about an unused variable here.
-#pragma warning(disable : 4101)
+
 }
 
-#pragma warning(default : 4101)
+
 
 // ProcessPointerEvent handles the delicate case of emulating 3 buttons
 // on a two button mouse, then passes events off to SubProcessPointerEvent.
@@ -1473,7 +1849,7 @@ ClientConnection::ProcessPointerEvent(int x, int y, DWORD keyflags, UINT msg)
 		  if (!m_emulate3ButtonsTimer)
 		    {
 		      vnclog.Print(0, _T("Failed to create timer for emulating 3 buttons"));
-		      PostMessage(m_hwnd, WM_CLOSE, 0, 0);
+		      PostMessage(m_hwnd1, WM_CLOSE, 0, 0);
 		      return;
 		    }
 		  
@@ -1537,7 +1913,7 @@ ClientConnection::SubProcessPointerEvent(int x, int y, DWORD keyflags)
 		}
 	} catch (Exception &e) {
 		e.Report();
-		PostMessage(m_hwnd, WM_CLOSE, 0, 0);
+		PostMessage(m_hwnd1, WM_CLOSE, 0, 0);
 	}
 }
 
@@ -1658,7 +2034,7 @@ inline void ClientConnection::ProcessKeyEvent(int virtkey, DWORD keyData)
 		}
 	} catch (Exception &e) {
 		e.Report();
-		PostMessage(m_hwnd, WM_CLOSE, 0, 0);
+		PostMessage(m_hwnd1, WM_CLOSE, 0, 0);
 	}
 
 }
@@ -1842,7 +2218,7 @@ void* ClientConnection::run_undetached(void* arg) {
 		RealiseFullScreenMode(false);
 
 		m_running = true;
-		UpdateWindow(m_hwnd);
+		UpdateWindow(m_hwnd1);
 		
 		while (!m_bKillThread) {
 			
@@ -1902,14 +2278,14 @@ void* ClientConnection::run_undetached(void* arg) {
 
 	} catch (WarningException &e) {
 		m_running = false;
-		PostMessage(m_hwnd, WM_CLOSE, 0, 0);
+		PostMessage(m_hwnd1, WM_CLOSE, 0, 0);
 		if (!m_bKillThread) {
 			e.Report();
 		}
 	} catch (QuietException &e) {
 		m_running = false;
 		e.Report();
-		PostMessage(m_hwnd, WM_CLOSE, 0, 0);
+		PostMessage(m_hwnd1, WM_CLOSE, 0, 0);
 	} 
 	return this;
 }
@@ -2098,9 +2474,9 @@ void ClientConnection::ReadBell() {
 	}
 	#endif
 	if (m_opts.m_DeiconifyOnBell) {
-		if (IsIconic(m_hwnd)) {
+		if (IsIconic(m_hwnd1)) {
 			SetDormant(false);
-			ShowWindow(m_hwnd, SW_SHOWNORMAL);
+			ShowWindow(m_hwnd1, SW_SHOWNORMAL);
 		}
 	}
 	vnclog.Print(6, _T("Bell!\n"));

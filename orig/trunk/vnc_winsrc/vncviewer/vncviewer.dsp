@@ -80,7 +80,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 ole32.lib oleaut32.lib winmm.lib omnithread.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib uuid.lib wsock32.lib /nologo /subsystem:windows /map /debug /machine:I386 /pdbtype:sept /libpath:"./omnithread/Debug"
+# ADD LINK32 ole32.lib oleaut32.lib winmm.lib omnithread.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib uuid.lib wsock32.lib comctl32.lib  Htmlhelp.lib /nologo /subsystem:windows /map /debug /machine:I386 /pdbtype:sept /libpath:"./omnithread/Debug"
 
 !ELSEIF  "$(CFG)" == "vncviewer - Win32 Profile"
 
@@ -138,6 +138,10 @@ SOURCE=.\res\tightvnc.bmp
 # Begin Source File
 
 SOURCE=.\res\tightvnc48.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\toolbar.bmp
 # End Source File
 # Begin Source File
 
@@ -306,10 +310,32 @@ SOURCE=.\Log.h
 # Begin Source File
 
 SOURCE=.\MRU.cpp
+
+!IF  "$(CFG)" == "vncviewer - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "vncviewer - Win32 Debug"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "vncviewer - Win32 Profile"
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
 SOURCE=.\MRU.h
+
+!IF  "$(CFG)" == "vncviewer - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "vncviewer - Win32 Debug"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "vncviewer - Win32 Profile"
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 

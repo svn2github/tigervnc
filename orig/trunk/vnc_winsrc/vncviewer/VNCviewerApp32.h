@@ -30,17 +30,17 @@
 class VNCviewerApp32 : public VNCviewerApp {
 public:
 	VNCviewerApp32(HINSTANCE hInstance, PSTR szCmdLine);
-
+	void ListenMode();
 	void NewConnection();
 	void NewConnection(TCHAR *host, int port);
 	void NewConnection(SOCKET sock);
 	void NewConnection(TCHAR *configFile);
-
+	Flasher *m_pflasher;
+	Daemon  *m_pdaemon;
 	~VNCviewerApp32();
 private:
 	// Set up registry for program's sounds
 	void RegisterSounds();
-	Flasher *m_pflasher;
-	Daemon  *m_pdaemon;
+	
 };
 

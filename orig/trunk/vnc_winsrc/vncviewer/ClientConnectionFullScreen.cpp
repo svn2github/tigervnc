@@ -51,50 +51,36 @@ void ClientConnection::SetFullScreenMode(bool enable)
 // SetFullScreenMode, you need to call this to make it happen.
 void ClientConnection::RealiseFullScreenMode(bool suppressPrompt)
 {
-	LONG style = GetWindowLong(m_hwnd, GWL_STYLE);
+	LONG style = GetWindowLong(m_hwnd1, GWL_STYLE);
 	if (m_opts.m_FullScreen) {
 
-		HKEY hRegKey;
-		DWORD skipprompt = (DWORD)suppressPrompt;
-
-		if (!suppressPrompt) {
-			// A bit crude here - we can skip the prompt on a registry setting.
-			// We'll do this properly later.
-			if ( RegCreateKey(HKEY_CURRENT_USER, SETTINGS_KEY_NAME, &hRegKey)  != ERROR_SUCCESS ) {
-		        hRegKey = NULL;
-			} else {
-				DWORD skippromptsize = sizeof(skipprompt);
-				DWORD valtype;	
-				if ( RegQueryValueEx( hRegKey,  "SkipFullScreenPrompt", NULL, &valtype, 
-					(LPBYTE) &skipprompt, &skippromptsize) != ERROR_SUCCESS) {
-					skipprompt = 0;
-				}
-				RegCloseKey(hRegKey);
-			}
-		}
-
-		if (!skipprompt)
+		if (!suppressPrompt && pApp->m_options.m_skipprompt)
 			MessageBox(m_hwnd, 
 				_T("To exit from full-screen mode, use Ctrl-Esc Esc and then\r\n"
 				"right-click on the vncviewer taskbar icon to see the menu."),
 				_T("VNCviewer full-screen mode"),
 				MB_OK | MB_ICONINFORMATION | MB_TOPMOST | MB_SETFOREGROUND);
-
-		ShowWindow(m_hwnd, SW_MAXIMIZE);
-		style = GetWindowLong(m_hwnd, GWL_STYLE);
-		style &= ~(WS_DLGFRAME | WS_THICKFRAME);
-		SetWindowLong(m_hwnd, GWL_STYLE, style);
+		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_TOOLBAR,MF_BYCOMMAND|MF_GRAYED);
+		ShowWindow(m_hwnd1, SW_MAXIMIZE);
+		style = GetWindowLong(m_hwnd1, GWL_STYLE);
+		style &= ~(WS_DLGFRAME );
+		
+		SetWindowLong(m_hwnd1, GWL_STYLE, style);
 		int cx = GetSystemMetrics(SM_CXSCREEN);
 		int cy = GetSystemMetrics(SM_CYSCREEN);
-		SetWindowPos(m_hwnd, HWND_TOPMOST, -1, -1, cx+3, cy+3, SWP_FRAMECHANGED);
-		CheckMenuItem(GetSystemMenu(m_hwnd, FALSE), ID_FULLSCREEN, MF_BYCOMMAND|MF_CHECKED);
-
+		SetWindowPos(m_hwnd1, HWND_TOPMOST, -1, -1, cx+3, cy+3, SWP_FRAMECHANGED);
+		CheckMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_FULLSCREEN, MF_BYCOMMAND|MF_CHECKED);
+		
 	} else {
-		style |= WS_DLGFRAME | WS_THICKFRAME;
-		SetWindowLong(m_hwnd, GWL_STYLE, style);
-		SetWindowPos(m_hwnd, HWND_NOTOPMOST, 0,0,100,100, SWP_NOMOVE | SWP_NOSIZE);
-		ShowWindow(m_hwnd, SW_NORMAL);
-		CheckMenuItem(GetSystemMenu(m_hwnd, FALSE), ID_FULLSCREEN, MF_BYCOMMAND|MF_UNCHECKED);
+
+		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_TOOLBAR,MF_BYCOMMAND|MF_ENABLED);
+		style |= WS_DLGFRAME ;
+		
+		SetWindowLong(m_hwnd1, GWL_STYLE, style);
+		SetWindowPos(m_hwnd1, HWND_NOTOPMOST, 0,0,100,100, SWP_NOMOVE | SWP_NOSIZE);
+		ShowWindow(m_hwnd1, SW_NORMAL);
+		CheckMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_FULLSCREEN, MF_BYCOMMAND|MF_UNCHECKED);
+
 	}
 }
 

@@ -106,8 +106,9 @@ void VNCviewerApp::DeregisterConnection(ClientConnection *pConn) {
 
 			// No clients left? then we should finish, unless we're in
 			// listening mode.
-			if ((m_clilist[0] == NULL) && (!pApp->m_options.m_listening))
-				PostQuitMessage(0);
+			if ((m_clilist[0] == NULL) && (!pApp->m_options.m_listening)){
+				DestroyAcceleratorTable(hAccel);
+				PostQuitMessage(0);}
 
 			return;
 		}

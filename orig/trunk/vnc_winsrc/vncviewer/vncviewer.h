@@ -49,7 +49,11 @@ void CentreWindow(HWND hwnd);
 // Convert "host:display" into host and port
 // Returns true if valid.
 bool ParseDisplay(LPTSTR display, LPTSTR phost, int hostlen, int *port);
+extern HWND hwndd;
 
+extern HACCEL hAccel;
+
+extern ACCEL Accel[7];
 // Macro DIALOG_MAKEINTRESOURCE is used to allow both normal windows dialogs
 // and the selectable aspect ratio dialogs under WinCE (PalmPC vs HPC).
 #ifndef UNDER_CE

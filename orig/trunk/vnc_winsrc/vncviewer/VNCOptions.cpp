@@ -30,7 +30,9 @@
 #include "vncviewer.h"
 #include "VNCOptions.h"
 #include "Exception.h"
-
+#include "Htmlhelp.h"
+#include "commctrl.h"
+#include "AboutBox.h"
 VNCOptions::VNCOptions()
 {
 	for (int i = rfbEncodingRaw; i<= LASTENCODING; i++)
@@ -40,6 +42,9 @@ VNCOptions::VNCOptions()
 
 	m_ViewOnly = false;
 	m_FullScreen = false;
+	m_toolbar = true;
+	m_listServer=32;
+	m_skipprompt=true;
 	m_Use8Bit = false;
 	m_PreferredEncoding = rfbEncodingTight;
 	m_SwapMouse = false;
@@ -51,8 +56,8 @@ VNCOptions::VNCOptions()
 	m_DisableClipboard = false;
 	m_localCursor = DOTCURSOR;
 	m_scaling = false;
-	m_scale_num = 1;
-	m_scale_den = 1;
+	m_scale_num = 100;
+	m_scale_den = 100;
 	
 	m_host[0] = '\0';
 	m_port = -1;
@@ -63,7 +68,7 @@ VNCOptions::VNCOptions()
 	m_logLevel = 0;
 	m_logToConsole = false;
 	m_logToFile = false;
-	m_logFilename[0] = '\0';
+	strcpy(m_logFilename ,"vncviewer.log");
 	
 	m_delay=0;
 	m_connectionSpecified = false;
@@ -79,6 +84,57 @@ VNCOptions::VNCOptions()
 	m_jpegQualityLevel = 6;
 	m_requestShapeUpdates = true;
 	m_ignoreShapeUpdates = false;
+		HKEY hRegKey;
+		
+		if ( RegOpenKey(HKEY_CURRENT_USER, SETTINGS_KEY_NAME, &hRegKey)  != ERROR_SUCCESS ) {
+	        hRegKey = NULL;
+		} else {
+			TCHAR buffer[80];
+			DWORD buffersize = sizeof(buffer);
+			DWORD valtype;
+			
+			if ( RegQueryValueEx( hRegKey,  "SkipFullScreenPrompt", NULL, &valtype, 
+				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
+			if (atoi(buffer)==0){
+					m_skipprompt=false;
+				}	
+			}
+			buffersize=80;
+			if ( RegQueryValueEx( hRegKey,  "NoToolbar", NULL, &valtype, 
+				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
+				if (atoi(buffer)==0){
+					m_toolbar=false;
+				}
+			}
+			buffersize=80;
+			if ( RegQueryValueEx( hRegKey,  "LogToFile", NULL, &valtype, 
+				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
+				if (atoi(buffer)==1){
+					m_logToFile=true;
+				}
+			}
+			buffersize=80;
+			if ( RegQueryValueEx( hRegKey,  "ListServer", NULL, &valtype, 
+				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
+					m_listServer=atoi(buffer);
+			}
+			buffersize=80;
+			if ( RegQueryValueEx( hRegKey,  "Localcursor", NULL, &valtype, 
+				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
+					m_localCursor=atoi(buffer);
+			}
+			buffersize=80;
+			if ( RegQueryValueEx( hRegKey,  "LogLevel", NULL, &valtype, 
+				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
+					m_logLevel=atoi(buffer);
+			}
+			buffersize=_MAX_PATH;
+			if (RegQueryValueEx( hRegKey,  "LogFileName", NULL, &valtype, 
+				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS){
+					strcpy(m_logFilename,buffer);
+			}
+			RegCloseKey(hRegKey);
+		}
 
 #ifdef UNDER_CE
 	m_palmpc = false;
@@ -116,7 +172,8 @@ VNCOptions& VNCOptions::operator=(VNCOptions& s)
 	m_scale_num			= s.m_scale_num;
 	m_scale_den			= s.m_scale_den;
 	m_localCursor		= s.m_localCursor;
-	
+	m_toolbar		= s.m_toolbar;
+	strcpy(m_display, s.m_display);
 	strcpy(m_host, s.m_host);
 	m_port				= s.m_port;
 	
@@ -189,8 +246,19 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 	// We assume no quoting here.
 	// Copy the command line - we don't know what might happen to the original
 	int cmdlinelen = _tcslen(szCmdLine);
+	
+
 	if (cmdlinelen == 0) return;
 	
+	
+	TCHAR CommLine[256] ;
+	int f=0;
+	_tcscpy(CommLine, szCmdLine);
+
+	if (_tcsstr( CommLine, "/listen") !=NULL){
+		LoadOpt(".listen","Software\\ORL\\VNCviewer\\MRU1");
+		f=1;
+	}
 	TCHAR *cmd = new TCHAR[cmdlinelen + 1];
 	_tcscpy(cmd, szCmdLine);
 	
@@ -230,14 +298,19 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 		}
 	}
 	i++;
-
+	for (int j = 0; j < i; j++) {
+	TCHAR phost[256];
+	if (ParseDisplay(args[j], phost, 255, &m_port)&&(f==0)&&
+		(_tcsstr( args[j], "/") ==NULL))
+	LoadOpt(args[j],"Software\\ORL\\VNCviewer\\MRU1");
+	}
 	bool hostGiven = false, portGiven = false;
 	// take in order.
-	for (int j = 0; j < i; j++) {
+	for ( j = 0; j < i; j++) {
 		if ( SwitchMatch(args[j], _T("help")) ||
 			SwitchMatch(args[j], _T("?")) ||
 			SwitchMatch(args[j], _T("h"))) {
-			ShowUsage();
+			ShowHelpBox();
 			PostQuitMessage(1);
 		} else if ( SwitchMatch(args[j], _T("listen"))) {
 			m_listening = true;
@@ -254,6 +327,8 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 			m_ViewOnly = true;
 		} else if ( SwitchMatch(args[j], _T("fullscreen"))) {
 			m_FullScreen = true;
+		} else if ( SwitchMatch(args[j], _T("notoolbar"))) {
+			m_toolbar = false;
 		} else if ( SwitchMatch(args[j], _T("8bit"))) {
 			m_Use8Bit = true;
 		} else if ( SwitchMatch(args[j], _T("shared"))) {
@@ -266,8 +341,8 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 			m_localCursor = NOCURSOR;
 		} else if ( SwitchMatch(args[j], _T("dotcursor"))) {
 			m_localCursor = DOTCURSOR;
-		} else if ( SwitchMatch(args[j], _T("normalcursor"))) {
-			m_localCursor = NORMALCURSOR;
+		} else if ( SwitchMatch(args[j], _T("normalcursor"))) {			
+			m_localCursor= NORMALCURSOR;
 		} else if ( SwitchMatch(args[j], _T("belldeiconify") )) {
 			m_DeiconifyOnBell = true;
 		} else if ( SwitchMatch(args[j], _T("emulate3") )) {
@@ -286,14 +361,14 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 				ArgError(_T("No scaling factor specified"));
 				continue;
 			}
-			int numscales = _stscanf(args[j], _T("%d/%d"), &m_scale_num, &m_scale_den);
+			int numscales = _stscanf(args[j], _T("%d"), &m_scale_num);
 			if (numscales < 1) {
 				ArgError(_T("Invalid scaling specified"));
 				continue;
 			}
-			if (numscales == 1) 
-				m_scale_den = 1; // needed if you're overriding a previous setting
-
+			 
+				m_scale_den = 100; // needed if you're overriding a previous setting
+			m_scaling=true;
 		} else if ( SwitchMatch(args[j], _T("emulate3timeout") )) {
 			if (++j == i) {
 				ArgError(_T("No timeout specified"));
@@ -432,6 +507,7 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 				PostQuitMessage(1);
 			} else {
 				_tcscpy(m_host, phost);
+				_tcscpy(m_display, args[j]);
 				m_connectionSpecified = true;
 			}
 		}
@@ -603,11 +679,46 @@ void VNCOptions::ShowUsage(LPTSTR info) {
 int VNCOptions::DoDialog(bool running)
 {
 	m_running = running;
- 	return DialogBoxParam(pApp->m_instance, DIALOG_MAKEINTRESOURCE(IDD_OPTIONDIALOG), 
-		NULL, (DLGPROC) OptDlgProc, (LONG) this);
+	static PROPSHEETPAGE pPage[2];
+    static PROPSHEETHEADER pHeader;
+    static HPROPSHEETPAGE  hPage[2];
+
+	               pPage[0].dwSize=sizeof(PROPSHEETPAGE);
+				   pPage[0].hInstance = pApp->m_instance;
+				   pPage[0].dwFlags=PSP_USETITLE;
+                   pPage[0].pszTemplate =DIALOG_MAKEINTRESOURCE(IDD_OPTIONDIALOG);
+				   pPage[0].pfnDlgProc=DlgProc1;
+				   pPage[0].pszTitle="Connection options";
+				   pPage[0].lParam=(LONG)this;
+
+                   hPage[0] = CreatePropertySheetPage(&pPage[0]);
+
+				   pPage[1].dwSize=sizeof(PROPSHEETPAGE);
+				   pPage[1].hInstance = pApp->m_instance;
+				   pPage[1].dwFlags=PSP_USETITLE;
+                   pPage[1].pszTemplate =DIALOG_MAKEINTRESOURCE(IDD_GENERAL_OPTION);
+				   pPage[1].pfnDlgProc=DlgProc2;
+				   pPage[1].pszTitle="General options";
+				   pPage[1].lParam=(LONG)this;
+
+
+				    hPage[1] = CreatePropertySheetPage(&pPage[1]);
+
+					pHeader.dwSize=sizeof(PROPSHEETHEADER);
+				  pHeader.hInstance  =  pApp->m_instance;
+				  pHeader.dwFlags=PSH_NOAPPLYNOW;
+                  pHeader.hwndParent=NULL;
+				  pHeader.pszCaption="Options";
+				  pHeader.nPages=sizeof(pPage) / sizeof(PROPSHEETPAGE);
+				  pHeader.phpage     = (HPROPSHEETPAGE FAR  *)&hPage[0];
+                  
+				  
+
+				return PropertySheet(&pHeader);
+ 	
 }
 
-BOOL CALLBACK VNCOptions::OptDlgProc(  HWND hwnd,  UINT uMsg,  
+BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,  
 									 WPARAM wParam, LPARAM lParam ) {
 	// This is a static method, so we don't know which instantiation we're 
 	// dealing with. But we can get a pseudo-this from the parameter to 
@@ -617,18 +728,48 @@ BOOL CALLBACK VNCOptions::OptDlgProc(  HWND hwnd,  UINT uMsg,
 	
 	switch (uMsg) {
 		
-	case WM_INITDIALOG:
-		{
-			SetWindowLong(hwnd, GWL_USERDATA, lParam);
-			_this = (VNCOptions *) lParam;
-			// Initialise the controls
-			for (int i = rfbEncodingRaw; i <= LASTENCODING; i++) {
-				HWND hPref = GetDlgItem(hwnd, IDC_RAWRADIO + (i-rfbEncodingRaw));
-				SendMessage(hPref, BM_SETCHECK, 
-					(i== _this->m_PreferredEncoding), 0);
-				EnableWindow(hPref, _this->m_UseEnc[i]);
-			}
+	case WM_INITDIALOG:{
+		
 			
+			PROPSHEETPAGE pPag=*(LPPROPSHEETPAGE)lParam;
+			VNCOptions *_this = (VNCOptions *) pPag.lParam;
+			SetWindowLong(hwnd, GWL_USERDATA, (LONG)_this);
+			// Initialise the controls
+			HWND hListBox = GetDlgItem(hwnd, IDC_ENCODING);
+			TCHAR list[20];
+			strcpy(list,"Raw");
+			SendMessage(hListBox, CB_INSERTSTRING,(WPARAM)0,(LPARAM)(int FAR*)list);
+			strcpy(list,"RRE");
+			SendMessage(hListBox, CB_INSERTSTRING,(WPARAM)1,(LPARAM)(int FAR*)list);
+			strcpy(list,"CoRRE");
+			SendMessage(hListBox, CB_INSERTSTRING,(WPARAM)2,(LPARAM)(int FAR*)list);
+			strcpy(list,"Hextile");
+			SendMessage(hListBox, CB_INSERTSTRING,(WPARAM)3,(LPARAM)(int FAR*)list);
+			strcpy(list,"Zlib (pure)");
+			SendMessage(hListBox, CB_INSERTSTRING,(WPARAM)4,(LPARAM)(int FAR*)list);
+			strcpy(list,"Tight");
+			SendMessage(hListBox, CB_INSERTSTRING,(WPARAM)5,(LPARAM)(int FAR*)list);
+			strcpy(list,"ZlibHex (mix)");
+			SendMessage(hListBox, CB_INSERTSTRING,(WPARAM)6,(LPARAM)(int FAR*)list);
+			int i;
+			/*if(_this->m_PreferredEncoding==2)i=1;
+			if(_this->m_PreferredEncoding>=4)i=_this->m_PreferredEncoding-2;*/
+			switch (_this->m_PreferredEncoding)
+			{case 0:
+				i=0;
+				break;
+			case 2:
+				i=1;
+				break;
+			case 4:
+			case 5:
+			case 6:
+			case 7:
+			case 8:
+				i=_this->m_PreferredEncoding-2;
+				break;
+			}
+			SendMessage(hListBox, CB_SETCURSEL,i,0);
 			HWND hCopyRect = GetDlgItem(hwnd, ID_SESSION_SET_CRECT);
 			SendMessage(hCopyRect, BM_SETCHECK, _this->m_UseEnc[rfbEncodingCopyRect], 0);
 			
@@ -656,10 +797,26 @@ BOOL CALLBACK VNCOptions::OptDlgProc(  HWND hwnd,  UINT uMsg,
 
 			HWND hScaling = GetDlgItem(hwnd, IDC_SCALING);
 			SendMessage(hScaling, BM_SETCHECK, _this->m_scaling, 0);
+			HWND hScalEdit = GetDlgItem(hwnd, IDC_SCALE_EDIT);
+			strcpy(list,"25");
+			SendMessage(hScalEdit, CB_INSERTSTRING,(WPARAM)0,(LPARAM)(int FAR*)list);
+			strcpy(list,"50");
+			SendMessage(hScalEdit, CB_INSERTSTRING,(WPARAM)1,(LPARAM)(int FAR*)list);
+			strcpy(list,"75");
+			SendMessage(hScalEdit, CB_INSERTSTRING,(WPARAM)2,(LPARAM)(int FAR*)list);
+			strcpy(list,"100");
+			SendMessage(hScalEdit, CB_INSERTSTRING,(WPARAM)3,(LPARAM)(int FAR*)list);
+			strcpy(list,"150");
+			SendMessage(hScalEdit, CB_INSERTSTRING,(WPARAM)4,(LPARAM)(int FAR*)list);
+			strcpy(list,"200");
+			SendMessage(hScalEdit, CB_INSERTSTRING,(WPARAM)5,(LPARAM)(int FAR*)list);
+			strcpy(list,"400");
+			SendMessage(hScalEdit, CB_INSERTSTRING,(WPARAM)6,(LPARAM)(int FAR*)list);
+			
+			SetDlgItemInt( hwnd, IDC_SCALE_EDIT,(( _this->m_scale_num*100) / _this->m_scale_den), FALSE);
 
-			SetDlgItemInt( hwnd, IDC_SCALE_NUM, _this->m_scale_num, FALSE);
-			SetDlgItemInt( hwnd, IDC_SCALE_DEN, _this->m_scale_den, FALSE);
-
+			EnableWindow(hScalEdit,_this->m_scaling);
+			
 #ifndef UNDER_CE
 			HWND hFullScreen = GetDlgItem(hwnd, IDC_FULLSCREEN);
 			SendMessage(hFullScreen, BM_SETCHECK, _this->m_FullScreen, 0);
@@ -667,16 +824,34 @@ BOOL CALLBACK VNCOptions::OptDlgProc(  HWND hwnd,  UINT uMsg,
  			HWND hEmulate = GetDlgItem(hwnd, IDC_EMULATECHECK);
  			SendMessage(hEmulate, BM_SETCHECK, _this->m_Emul3Buttons, 0);
 #endif
-
+			
 			HWND hAllowCompressLevel = GetDlgItem(hwnd, IDC_ALLOW_COMPRESSLEVEL);
-			SendMessage(hAllowCompressLevel, BM_SETCHECK, _this->m_useCompressLevel, 0);
+			SendMessage(hAllowCompressLevel, BM_SETCHECK,_this->m_useCompressLevel, 0);
 
 			HWND hAllowJpeg = GetDlgItem(hwnd, IDC_ALLOW_JPEG);
 			SendMessage(hAllowJpeg, BM_SETCHECK, _this->m_enableJpegCompression, 0);
+	
+			EnableWindow( hAllowCompressLevel, ((_this->m_PreferredEncoding==rfbEncodingTight)||
+				(_this->m_PreferredEncoding==rfbEncodingZlib)||
+			(_this->m_PreferredEncoding==rfbEncodingZlibHex)));
+			
+			EnableWindow( hAllowJpeg, (_this->m_PreferredEncoding==rfbEncodingTight));
 
-			SetDlgItemInt( hwnd, IDC_COMPRESSLEVEL, _this->m_compressLevel, FALSE);
-			SetDlgItemInt( hwnd, IDC_QUALITYLEVEL, _this->m_jpegQualityLevel, FALSE);
+			HWND hCompressLevel = GetDlgItem(hwnd, IDC_COMPRESSLEVEL);
+			SendMessage(hCompressLevel,TBM_SETRANGE ,TRUE,(LPARAM) MAKELONG(0, 9)); 
+			SendMessage(hCompressLevel,TBM_SETPOS ,TRUE, _this->m_compressLevel);
 
+			EnableWindow(hCompressLevel, (((_this->m_PreferredEncoding==rfbEncodingTight)||
+				(_this->m_PreferredEncoding==rfbEncodingZlib)||
+			(_this->m_PreferredEncoding==rfbEncodingZlibHex))&&_this->m_useCompressLevel));
+
+			HWND hJpeg = GetDlgItem(hwnd, IDC_QUALITYLEVEL);
+			SendMessage(hJpeg,TBM_SETRANGE ,TRUE,(LPARAM) MAKELONG(0, 9));
+			SendMessage(hJpeg,TBM_SETPOS ,TRUE, _this->m_jpegQualityLevel);
+
+			EnableWindow(hJpeg, ((_this->m_PreferredEncoding==rfbEncodingTight)&&
+				_this->m_enableJpegCompression));
+		
 			HWND hRemoteCursor;
 			if (_this->m_requestShapeUpdates && !_this->m_ignoreShapeUpdates) {
 				hRemoteCursor = GetDlgItem(hwnd, IDC_CSHAPE_ENABLE_RADIO);
@@ -687,18 +862,158 @@ BOOL CALLBACK VNCOptions::OptDlgProc(  HWND hwnd,  UINT uMsg,
 			}
 			SendMessage(hRemoteCursor, BM_SETCHECK,	true, 0);
 
-			CentreWindow(hwnd);
+			CentreWindow(GetParent(hwnd));
 			
-			return TRUE;
-		}
-	case WM_COMMAND:
+			return TRUE;}
+		
+	case WM_COMMAND:{
 		switch (LOWORD(wParam)) {
-		case IDOK:
+
+		case IDC_SCALING:
+			switch (HIWORD(wParam)) {
+			case BN_CLICKED:
+				HWND hScaling = GetDlgItem(hwnd, IDC_SCALING);
+				HWND hScalEdit = GetDlgItem(hwnd, IDC_SCALE_EDIT);
+				
+
+				if (SendMessage(hScaling,BM_GETCHECK,0,0)==0){
+					EnableWindow(hScalEdit,TRUE);
+					SendMessage(hScaling,BM_SETCHECK,TRUE,0);
+				}else{
+					EnableWindow(hScalEdit,FALSE);
+					SendMessage(hScaling,BM_SETCHECK,FALSE,0);
+				}
+				return 0;
+			}
+			return 0;
+		case IDC_ALLOW_COMPRESSLEVEL:
+			switch (HIWORD(wParam)) {
+			case BN_CLICKED:
+				HWND hAllowCompressLevel = GetDlgItem(hwnd, IDC_ALLOW_COMPRESSLEVEL);
+				HWND hCompressLevel = GetDlgItem(hwnd, IDC_COMPRESSLEVEL);
+				
+				if (SendMessage(hAllowCompressLevel,BM_GETCHECK,0,0)==0){
+					EnableWindow( hCompressLevel,TRUE);
+					SendMessage(hAllowCompressLevel,BM_SETCHECK,TRUE,0);
+				}else{
+					EnableWindow( hCompressLevel,FALSE);
+					SendMessage(hAllowCompressLevel,BM_SETCHECK,FALSE,0);
+				}
+				return 0;
+			}
+			return 0;
+		case IDC_ALLOW_JPEG:
+			switch (HIWORD(wParam)) {
+			case BN_CLICKED:
+				HWND hAllowJpeg = GetDlgItem(hwnd, IDC_ALLOW_JPEG);
+				HWND hJpeg = GetDlgItem(hwnd, IDC_QUALITYLEVEL);
+				
+				if (SendMessage(hAllowJpeg,BM_GETCHECK,0,0)==0){
+					EnableWindow( hJpeg,TRUE);
+					SendMessage(hAllowJpeg,BM_SETCHECK,TRUE,0);
+				}else{
+					EnableWindow( hJpeg,FALSE);
+					SendMessage(hAllowJpeg,BM_SETCHECK,FALSE,0);
+				}
+				return 0;
+			}
+			return 0;
+			case IDC_ENCODING:{
+				switch (HIWORD(wParam))
+				{ case CBN_SELCHANGE:
+					{ 
+						HWND hAllowCompressLevel = GetDlgItem(hwnd, IDC_ALLOW_COMPRESSLEVEL);
+						HWND hCompressLevel = GetDlgItem(hwnd, IDC_COMPRESSLEVEL);
+						HWND hAllowJpeg = GetDlgItem(hwnd, IDC_ALLOW_JPEG);
+						HWND hJpeg = GetDlgItem(hwnd, IDC_QUALITYLEVEL);
+						HWND hListBox = GetDlgItem(hwnd, IDC_ENCODING);
+						int i=SendMessage(hListBox,CB_GETCURSEL,0,0);
+						if (i==5){
+							EnableWindow( hJpeg,
+							(SendMessage(hAllowJpeg,BM_GETCHECK,0,0)==1));
+							EnableWindow(hAllowJpeg,TRUE);
+							EnableWindow( hCompressLevel,
+							(SendMessage(hAllowCompressLevel,BM_GETCHECK,0,0)==1));
+							EnableWindow(hAllowCompressLevel,TRUE);
+								}
+						if ((i==6)||(i==4)){
+							EnableWindow( hCompressLevel,
+							(SendMessage(hAllowCompressLevel,BM_GETCHECK,0,0)==1));
+							EnableWindow(hAllowCompressLevel,TRUE);
+							EnableWindow( hJpeg,FALSE);
+							EnableWindow(hAllowJpeg,FALSE);
+								}
+						if ((i>=0)&&(i<=3)){
+							EnableWindow( hCompressLevel,FALSE);
+							EnableWindow(hAllowCompressLevel,FALSE);
+							EnableWindow( hJpeg,FALSE);
+							EnableWindow(hAllowJpeg,FALSE);
+							}
+						return 0;}
+					return 0;}
+				return 0;}
+			return 0;}
+		return 0;}
+		case WM_HELP:
+	
+		HELPINFO hlp;
+		HH_POPUP popup;
+
+		hlp=*(LPHELPINFO) lParam;
+
+		popup.cbStruct=sizeof(hlp);
+		popup.hinst=pApp->m_instance;
+		popup.idString=(UINT)hlp.iCtrlId;
+		popup.rcMargins.top=-1;
+		popup.rcMargins.left=-1;
+		popup.rcMargins.top=-1;
+		popup.rcMargins.bottom=-1;
+		popup.rcMargins.right=-1;
+		popup.pszFont="MS Sans Serif,8,,";
+		popup.clrForeground =-1;
+		popup.clrBackground=-1;
+		popup.pt.x=-1;
+		popup.pt.y=-1;
+
+		HtmlHelp(
+         (HWND)hlp.hItemHandle,
+         NULL,
+         HH_DISPLAY_TEXT_POPUP,
+         (DWORD)&popup) ;
+
+			return 0;
+		case WM_NOTIFY:{
+			
+		
+			LPNMHDR pn=(LPNMHDR)lParam;
+			switch(pn->code)
 			{
-				for (int i = rfbEncodingRaw; i <= LASTENCODING; i++) {
-					HWND hPref = GetDlgItem(hwnd, IDC_RAWRADIO+i-rfbEncodingRaw);
-					if (SendMessage(hPref, BM_GETCHECK, 0, 0) == BST_CHECKED)
-						_this->m_PreferredEncoding = i;
+			
+			case PSN_APPLY:
+			{
+				HWND hListBox = GetDlgItem(hwnd, IDC_ENCODING);
+				int i=SendMessage(hListBox,CB_GETCURSEL,0,0);
+				switch (i)
+					{case 0:
+						_this->m_PreferredEncoding=0;
+						break;
+					case 1:
+						_this->m_PreferredEncoding=2;
+						break;
+					case 2:
+					case 3:
+					case 4:
+					case 5:
+					case 6:
+						_this->m_PreferredEncoding=i+2;
+						break;
+					}
+				HWND hScalEdit = GetDlgItem(hwnd, IDC_SCALE_EDIT);
+				int error;
+				i=GetDlgItemInt(hwnd, IDC_SCALE_EDIT,&error,FALSE);
+				if (i > 0){
+				_this->m_scale_num=i;
+				_this->m_scale_den=100;
 				}
 				
 				HWND hCopyRect = GetDlgItem(hwnd, ID_SESSION_SET_CRECT);
@@ -734,16 +1049,7 @@ BOOL CALLBACK VNCOptions::OptDlgProc(  HWND hwnd,  UINT uMsg,
 				_this->m_scaling = 
 					(SendMessage(hScaling, BM_GETCHECK, 0, 0) == BST_CHECKED);
 
-				if (_this->m_scaling) {
-					_this->m_scale_num = GetDlgItemInt( hwnd, IDC_SCALE_NUM, NULL, TRUE);
-					_this->m_scale_den = GetDlgItemInt( hwnd, IDC_SCALE_DEN, NULL, TRUE);
-					_this->FixScaling();
-					if (_this->m_scale_num == 1 && _this->m_scale_den == 1)
-						_this->m_scaling = false;
-				} else {
-					_this->m_scale_num = 1;
-					_this->m_scale_den = 1;
-				}
+				
 
 #ifndef UNDER_CE
 				HWND hFullScreen = GetDlgItem(hwnd, IDC_FULLSCREEN);
@@ -758,18 +1064,17 @@ BOOL CALLBACK VNCOptions::OptDlgProc(  HWND hwnd,  UINT uMsg,
 				HWND hAllowCompressLevel = GetDlgItem(hwnd, IDC_ALLOW_COMPRESSLEVEL);
 				_this->m_useCompressLevel = 
 					(SendMessage(hAllowCompressLevel, BM_GETCHECK, 0, 0) == BST_CHECKED);
-
-				_this->m_compressLevel = GetDlgItemInt( hwnd, IDC_COMPRESSLEVEL, NULL, TRUE);
-				if ( _this->m_compressLevel < 0 ) { _this->m_compressLevel = 0; }
-				if ( _this->m_compressLevel > 9 ) { _this->m_compressLevel = 9; }
+				HWND hCompressLevel = GetDlgItem(hwnd, IDC_COMPRESSLEVEL);
+				_this->m_compressLevel = SendMessage(hCompressLevel,TBM_GETPOS ,0,0);
+				
+				
 
 				HWND hAllowJpeg = GetDlgItem(hwnd, IDC_ALLOW_JPEG);
 				_this->m_enableJpegCompression = 
 					(SendMessage(hAllowJpeg, BM_GETCHECK, 0, 0) == BST_CHECKED);
-
-				_this->m_jpegQualityLevel = GetDlgItemInt( hwnd, IDC_QUALITYLEVEL, NULL, TRUE);
-				if ( _this->m_jpegQualityLevel < 0 ) { _this->m_jpegQualityLevel = 0; }
-				if ( _this->m_jpegQualityLevel > 9 ) { _this->m_jpegQualityLevel = 9; }
+				HWND hJpeg = GetDlgItem(hwnd, IDC_QUALITYLEVEL);
+				_this->m_jpegQualityLevel = SendMessage(hJpeg,TBM_GETPOS ,0,0);
+				
 
 				_this->m_requestShapeUpdates = false;
 				_this->m_ignoreShapeUpdates = false;
@@ -782,21 +1087,404 @@ BOOL CALLBACK VNCOptions::OptDlgProc(  HWND hwnd,  UINT uMsg,
 						_this->m_requestShapeUpdates = true;
 						_this->m_ignoreShapeUpdates = true;
 					}
-				}
-
-				EndDialog(hwnd, TRUE);
 				
-				return TRUE;
+
+				
+				
+				return 0;
+				}
+				
 			}
-		case IDCANCEL:
-			EndDialog(hwnd, FALSE);
-			return TRUE;
-		}
-		break;
-        case WM_DESTROY:
-			EndDialog(hwnd, FALSE);
-			return TRUE;
+				return 0;
+			}
+				
 	}
+	}
+
 	return 0;
 }
+BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,  
+									 WPARAM wParam, LPARAM lParam ) {
+	
+	
+	VNCOptions *_this = (VNCOptions *) GetWindowLong(hwnd, GWL_USERDATA);
+	
+	switch (uMsg) {
+		
+	case WM_INITDIALOG:{
+		
+			
+			PROPSHEETPAGE pPag=*(LPPROPSHEETPAGE)lParam;
+			VNCOptions *_this = (VNCOptions *) pPag.lParam;
+			SetWindowLong(hwnd, GWL_USERDATA, (LONG)_this);
+		
+			// Initialise the controls
+			bool cursor;
+			if (pApp->m_options.m_localCursor==DOTCURSOR){
+				cursor=true;
+			}else{
+				cursor=false;
+			}
+			HWND hDotCursor = GetDlgItem(hwnd, IDC_DOTCURSOR_RADIO);
+			SendMessage(hDotCursor, BM_SETCHECK,cursor, 0);
 
+			if (pApp->m_options.m_localCursor==NOCURSOR){
+				cursor=true;
+			}else{
+				cursor=false;
+			}
+			HWND hNoCursor = GetDlgItem(hwnd, IDC_NOCURSOR_RADIO);
+			SendMessage(hNoCursor, BM_SETCHECK,cursor, 0);
+
+			if (pApp->m_options.m_localCursor==NORMALCURSOR){
+				cursor=true;
+			}else{
+				cursor=false;
+			}
+			HWND hNormalCursor = GetDlgItem(hwnd, IDC_NORMALCURSOR_RADIO);
+			SendMessage(hNormalCursor, BM_SETCHECK,cursor, 0);
+
+			HWND hMessage = GetDlgItem(hwnd, IDC_CHECK_MESSAGE);
+ 			SendMessage(hMessage, BM_SETCHECK, pApp->m_options.m_skipprompt, 0);
+
+			HWND hToolbar = GetDlgItem(hwnd, IDC_CHECK_TOOLBAR);
+ 			SendMessage(hToolbar, BM_SETCHECK, pApp->m_options.m_toolbar, 0);
+
+			HWND hEditList = GetDlgItem(hwnd, IDC_EDIT_AMOUNT_LIST);
+			SetDlgItemInt( hwnd,IDC_EDIT_AMOUNT_LIST,pApp->m_options.m_listServer,FALSE);
+
+			HWND hSpin1 = GetDlgItem(hwnd, IDC_SPIN1);
+			SendMessage(hSpin1,UDM_SETBUDDY,(WPARAM) (HWND)hEditList,0);
+
+			HWND hChec = GetDlgItem(hwnd, IDC_CHECK_LOG_FILE);
+			HWND hEditFile = GetDlgItem(hwnd, IDC_EDIT_LOG_FILE);
+			HWND hEditLevel = GetDlgItem(hwnd, IDC_EDIT_LOG_LEVEL);
+
+			HWND hSpin2 = GetDlgItem(hwnd, IDC_SPIN2);
+			SendMessage(hSpin2,UDM_SETBUDDY,(WPARAM) (HWND)hEditLevel,0);
+
+			SendMessage(hChec,BM_SETCHECK,pApp->m_options.m_logToFile,0);
+			if (SendMessage(hChec,BM_GETCHECK,0,0)==0){
+					EnableWindow(hEditFile,FALSE);
+					EnableWindow(hEditLevel,FALSE);	
+				}else{
+					EnableWindow(hEditFile,TRUE);
+					EnableWindow(hEditLevel,TRUE);	
+				}
+
+			SetDlgItemInt( hwnd,IDC_EDIT_LOG_LEVEL,pApp->m_options.m_logLevel,FALSE);
+			SetDlgItemText( hwnd,IDC_EDIT_LOG_FILE,pApp->m_options.m_logFilename);
+			return 0;}
+		case WM_HELP:
+	
+		HELPINFO hlp;
+		HH_POPUP popup;
+
+		hlp=*(LPHELPINFO) lParam;
+
+		popup.cbStruct=sizeof(hlp);
+		popup.hinst=pApp->m_instance;
+		popup.idString=(UINT)hlp.iCtrlId;
+		popup.rcMargins.top=-1;
+		popup.rcMargins.left=-1;
+		popup.rcMargins.top=-1;
+		popup.rcMargins.bottom=-1;
+		popup.rcMargins.right=-1;
+		popup.pszFont="MS Sans Serif,8,,";
+		popup.clrForeground =-1;
+		popup.clrBackground=-1;
+		popup.pt.x=-1;
+		popup.pt.y=-1;
+
+		HtmlHelp(
+         (HWND)hlp.hItemHandle,
+         NULL,
+         HH_DISPLAY_TEXT_POPUP,
+         (DWORD)&popup) ;
+
+			return 0;
+	case WM_COMMAND:{
+		switch (LOWORD(wParam)) {
+		case IDC_BUTTON_CLEAR_LIST:{
+			HKEY hRegKey;
+			TCHAR value[80];
+			TCHAR data[80];
+			DWORD valuesize=80;
+			DWORD datasize=80;
+			DWORD index=0;
+
+			RegOpenKey(HKEY_CURRENT_USER,
+				"Software\\ORL\\VNCviewer\\MRU1", &hRegKey);
+
+			while (RegEnumValue(hRegKey,index,value,&valuesize,
+				NULL,NULL,(LPBYTE)data,&datasize)==ERROR_SUCCESS){
+				pApp->m_options.delkey(data,"Software\\ORL\\VNCviewer\\MRU1");
+				RegDeleteValue(hRegKey,value);
+				valuesize=80;
+				datasize=80;
+			}
+
+			RegCloseKey(hRegKey);
+			return 0;
+								   }
+		case IDC_CHECK_LOG_FILE:
+			switch (HIWORD(wParam)) {
+			case BN_CLICKED:
+				HWND hChec = GetDlgItem(hwnd, IDC_CHECK_LOG_FILE);
+				HWND hEditFile = GetDlgItem(hwnd, IDC_EDIT_LOG_FILE);
+				HWND hEditLevel = GetDlgItem(hwnd, IDC_EDIT_LOG_LEVEL);
+
+				if (SendMessage(hChec,BM_GETCHECK,0,0)==0){
+					EnableWindow(hEditFile,TRUE);
+					EnableWindow(hEditLevel,TRUE);
+					SendMessage(hChec,BM_SETCHECK,TRUE,0);
+				}else{
+					EnableWindow(hEditFile,FALSE);
+					EnableWindow(hEditLevel,FALSE);
+					SendMessage(hChec,BM_SETCHECK,FALSE,0);
+				}
+				return 0;
+			}
+			return 0;	
+		}
+		return 0;
+	}
+		
+		case WM_NOTIFY:{
+			
+		
+			LPNMHDR pn=(LPNMHDR)lParam;
+			switch(pn->code)
+			{
+			case UDN_DELTAPOS:{
+				NMUPDOWN lpnmud = *(LPNMUPDOWN) lParam;
+				NMHDR hdr=lpnmud.hdr;
+				HWND hCtrl=(HWND)SendMessage(hdr.hwndFrom,UDM_GETBUDDY,0,0);
+				long  ctrl=GetDlgCtrlID(hCtrl);
+				int h=GetDlgItemInt( hwnd,ctrl, NULL, TRUE);
+				if (lpnmud.iDelta>0){
+					h=h-1;
+					if (h<1)h=1;
+				}else{
+					h=h+1;	
+				}
+				SetDlgItemInt( hwnd,ctrl,h, FALSE);
+				
+				return 0;}
+			case PSN_APPLY:
+			{
+				HWND hDotCursor = GetDlgItem(hwnd, IDC_DOTCURSOR_RADIO);
+				HWND hNoCursor = GetDlgItem(hwnd, IDC_NOCURSOR_RADIO);
+				HWND hNormalCursor = GetDlgItem(hwnd, IDC_NORMALCURSOR_RADIO);
+				if (SendMessage(hDotCursor, BM_GETCHECK, 0, 0) == BST_CHECKED){
+					pApp->m_options.m_localCursor=DOTCURSOR;	
+				}
+				if (SendMessage(hNoCursor, BM_GETCHECK, 0, 0) == BST_CHECKED){
+					pApp->m_options.m_localCursor=NOCURSOR;	
+				}
+				if (SendMessage(hNormalCursor, BM_GETCHECK, 0, 0) == BST_CHECKED){
+					pApp->m_options.m_localCursor=NORMALCURSOR;	
+				}
+				char buf[80];
+				HKEY hRegKey;
+				int er;
+				int mg=0;
+				int tb=0;
+				int ch=0;
+				HWND hMessage = GetDlgItem(hwnd, IDC_CHECK_MESSAGE);
+				HWND hToolbar = GetDlgItem(hwnd, IDC_CHECK_TOOLBAR);
+				HWND hChec = GetDlgItem(hwnd, IDC_CHECK_LOG_FILE);
+
+				if (SendMessage(hChec,BM_GETCHECK,0,0)==0){
+				pApp->m_options.m_logToFile=false;
+				ch=0;
+				}else{
+				pApp->m_options.m_logToFile=true;
+				pApp->m_options.m_logLevel=GetDlgItemInt(hwnd,
+					IDC_EDIT_LOG_LEVEL,&er,FALSE);
+				GetDlgItemText(hwnd,IDC_EDIT_LOG_FILE,
+					buf,80);
+				strcpy(pApp->m_options.m_logFilename,buf);
+
+				vnclog.SetLevel(pApp->m_options.m_logLevel);
+				vnclog.SetFile(pApp->m_options.m_logFilename);
+				ch=1;
+				}
+				if (SendMessage(hMessage,BM_GETCHECK,0,0)==0){
+				pApp->m_options.m_skipprompt=false;
+				mg=0;
+				}else{
+				pApp->m_options.m_skipprompt=true;
+				mg=1;
+				}
+				if (SendMessage(hToolbar,BM_GETCHECK,0,0)==0){
+				pApp->m_options.m_toolbar=false;
+				tb=0;
+				}else{
+				pApp->m_options.m_toolbar=true;
+				tb=1;
+				}
+				pApp->m_options.m_listServer=GetDlgItemInt(hwnd,
+					IDC_EDIT_AMOUNT_LIST,&er,FALSE);
+				
+				RegCreateKey(HKEY_CURRENT_USER,
+					SETTINGS_KEY_NAME, &hRegKey);
+
+				sprintf(buf, "%d", pApp->m_options.m_localCursor); 
+				RegSetValueEx( hRegKey,"Localcursor" , 
+					NULL,REG_SZ , 
+					(CONST BYTE *)buf, (_tcslen(buf)+1) );
+
+				sprintf(buf, "%d", pApp->m_options.m_listServer); 
+				RegSetValueEx( hRegKey,"ListServer" , 
+					NULL,REG_SZ , 
+					(CONST BYTE *)buf, (_tcslen(buf)+1) );
+				
+				sprintf(buf, "%d", pApp->m_options.m_logLevel); 
+				RegSetValueEx( hRegKey,"LogLevel" , 
+					NULL,REG_SZ , 
+					(CONST BYTE *)buf, (_tcslen(buf)+1) );
+				
+				strcpy(buf,pApp->m_options.m_logFilename);
+				RegSetValueEx( hRegKey,"LogFileName" , 
+					NULL,REG_SZ , 
+					(CONST BYTE *)buf, (_tcslen(buf)+1) );
+				sprintf(buf, "%d",ch); 
+				RegSetValueEx( hRegKey,"LogToFile" , 
+					NULL,REG_SZ , 
+					(CONST BYTE *)buf, (_tcslen(buf)+1) );
+				sprintf(buf, "%d",tb); 
+				RegSetValueEx( hRegKey,"NoToolbar" , 
+					NULL,REG_SZ , 
+					(CONST BYTE *)buf, (_tcslen(buf)+1) );
+				sprintf(buf, "%d",mg); 
+				RegSetValueEx( hRegKey,"SkipFullScreenPrompt" , 
+					NULL,REG_SZ , 
+					(CONST BYTE *)buf, (_tcslen(buf)+1) );
+				
+				RegCloseKey(hRegKey);
+
+				return 0;
+			}
+			}
+			return 0;
+					   }
+	}
+return 0;
+}
+void VNCOptions::LoadOpt(char subkey[256],char keyname[256])
+{
+
+	HKEY RegKey;
+	TCHAR key[80];
+	_tcscpy(key,keyname);
+	_tcscat(key,"\\");
+	_tcscat(key,subkey);
+	 RegOpenKeyEx(HKEY_CURRENT_USER, key, 0,  
+		 KEY_ALL_ACCESS,  &RegKey);
+	for (int i = rfbEncodingRaw; i<= LASTENCODING; i++) {
+		char buf[128];
+		sprintf(buf, "use_encoding_%d", i);
+		m_UseEnc[i] =   read(RegKey,buf, m_UseEnc[i] ) != 0;
+	}
+	m_PreferredEncoding =	read(RegKey,"preferred_encoding",m_PreferredEncoding    );
+	m_restricted =			read(RegKey,"restricted",        m_restricted           ) != 0 ;
+	m_ViewOnly =			read(RegKey,"viewonly",	         m_ViewOnly             ) != 0;
+	m_FullScreen =			read(RegKey,"fullscreen",        m_FullScreen           ) != 0;
+	m_Use8Bit =				read(RegKey,"8bit",	             m_Use8Bit              ) != 0;
+	m_Shared =				read(RegKey,"shared",            m_Shared               ) != 0;
+	m_SwapMouse =			read(RegKey,"swapmouse",         m_SwapMouse	        ) != 0;
+	m_DeiconifyOnBell =		read(RegKey,"belldeiconify",     m_DeiconifyOnBell      ) != 0;
+	m_Emul3Buttons =		read(RegKey,"emulate3",	         m_Emul3Buttons         ) != 0;
+	m_Emul3Timeout =		read(RegKey,"emulate3timeout",   m_Emul3Timeout         );
+	m_Emul3Fuzz =			read(RegKey,"emulate3fuzz",	     m_Emul3Fuzz            );
+	m_DisableClipboard =	read(RegKey,"disableclipboard",  m_DisableClipboard     ) != 0;
+	m_scale_den =			read(RegKey,"scale_den",         m_scale_den	        );
+	m_scale_num =			read(RegKey,"scale_num",         m_scale_num	        );
+	m_requestShapeUpdates =	read(RegKey,"cursorshape",       m_requestShapeUpdates	) != 0;
+	m_ignoreShapeUpdates =	read(RegKey,"noremotecursor",    m_ignoreShapeUpdates   ) != 0;
+	m_compressLevel =		read(RegKey,"compresslevel",    	m_compressLevel		);
+	m_useCompressLevel =	read(RegKey,"usecompresslevel",    m_useCompressLevel  ) != 0;
+	m_scaling =				read(RegKey,"scaling",						  m_scaling  ) != 0;	
+		
+	m_enableJpegCompression =	read(RegKey,"enablejpeglevel",    m_enableJpegCompression   ) != 0;
+	m_jpegQualityLevel =	read(RegKey,"quality",		m_jpegQualityLevel	);
+	
+	
+		
+		RegCloseKey(RegKey);
+}
+int VNCOptions::read(HKEY hkey,char *name,int retrn)
+{
+	DWORD buflen=6;
+	TCHAR buf[5];
+	if(RegQueryValueEx(hkey ,(LPTSTR)name , 
+            NULL, NULL, 
+            (LPBYTE) buf,(LPDWORD) &buflen)!=ERROR_SUCCESS)
+	{	return retrn;}
+	else
+     
+	{return atoi(buf);}
+}
+ void VNCOptions::SaveOpt(char subkey[256],char keyname[256])
+{
+	DWORD dispos;
+	HKEY RegKey;
+	TCHAR key[80];
+	_tcscpy(key,keyname);
+	_tcscat(key,"\\");
+	_tcscat(key,subkey);
+	RegCreateKeyEx(HKEY_CURRENT_USER, key, 0, NULL, 
+		REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &RegKey, &dispos);
+for (int i = rfbEncodingRaw; i<= LASTENCODING; i++) {
+		char buf[128];
+		sprintf(buf, "use_encoding_%d", i);
+		save(RegKey,buf, m_UseEnc[i] );
+	}
+	save(RegKey,"preferred_encoding",	m_PreferredEncoding);
+	save(RegKey,"restricted",			m_restricted		);
+	save(RegKey,"viewonly",				m_ViewOnly			);
+	save(RegKey,"fullscreen",			m_FullScreen		);
+	save(RegKey,"scaling",				m_scaling		);
+	save(RegKey,"8bit",					m_Use8Bit			);
+	save(RegKey,"shared",				m_Shared			);
+	save(RegKey,"swapmouse",			m_SwapMouse		);
+	save(RegKey,"belldeiconify",		m_DeiconifyOnBell	);
+	save(RegKey,"emulate3",				m_Emul3Buttons		);
+	save(RegKey,"emulate3timeout",		m_Emul3Timeout		);
+	save(RegKey,"emulate3fuzz",			m_Emul3Fuzz		);
+	save(RegKey,"disableclipboard",		m_DisableClipboard );
+	save(RegKey,"scale_den",			m_scale_den		);
+	save(RegKey,"scale_num",			m_scale_num		);
+	save(RegKey,"cursorshape",			m_requestShapeUpdates );
+	save(RegKey,"noremotecursor",		m_ignoreShapeUpdates );
+	
+	save(RegKey,"usecompresslevel",	m_useCompressLevel	);
+	save(RegKey,"compresslevel",	m_compressLevel	);
+	
+	save(RegKey,"quality",			m_jpegQualityLevel	);
+	save(RegKey,"enablejpeglevel",	m_enableJpegCompression	);
+	
+
+	RegCloseKey(RegKey);
+}
+
+void VNCOptions::delkey(char subkey[256],char keyname[256])
+{
+		
+	TCHAR key[80];
+	_tcscpy(key,keyname);
+	_tcscat(key,"\\");
+	_tcscat(key,subkey);
+	RegDeleteKey (HKEY_CURRENT_USER,key);
+}
+void VNCOptions::save(HKEY hkey,char *name, int value) 
+{
+	char buf[4];
+	sprintf(buf, "%d", value); 
+	
+
+	RegSetValueEx( hkey,name , 
+            NULL,REG_SZ , 
+            (CONST BYTE *)buf, (_tcslen(buf)+1) );
+}

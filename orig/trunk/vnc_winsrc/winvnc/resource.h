@@ -23,6 +23,8 @@
 #define IDI_FLASH                       134
 #define IDD_OUTGOING_CONN               135
 #define IDD_ACCEPT_CONN                 136
+#define IDD_ADVPROPERTIES               137
+#define IDI_DISABLED                    138
 #define IDC_CONNECT_BORDER              1003
 #define IDC_CONNECT_SOCK                1004
 #define IDC_CONNECT_CORBA               1005
@@ -58,20 +60,38 @@
 #define IDC_STATIC_TEXT                 1034
 #define IDC_ACCEPT_TIMEOUT              1035
 #define IDC_TRADEMARK                   1036
+#define IDACCEPT_NOPASS                 1036
+#define IDADVANCED                      1037
+#define IDQUERYACCEPT                   1038
+#define IDQUERY                         1039
+#define IDC_QUERY_BORDER                1040
+#define IDQUERYTIMEOUT_LABEL            1041
+#define IDQUERYTIMEOUT                  1042
+#define IDREQUIREAUTH                   1043
+#define IDQUERYALLOWNOPASS              1044
+#define IDONLYLOOPBACK                  1045
+#define IDLOGLOTS                       1047
+#define IDALLOWLOOPBACK                 1048
+#define IDLOG                           1050
+#define IDPRIORITY                      1051
+#define IDPRIORITY0                     1052
+#define IDPRIORITY2                     1053
+#define IDPRIORITY1                     1054
 #define ID_PROPERTIES                   40001
 #define ID_CLOSE                        40002
 #define ID_KILLCLIENTS                  40003
 #define ID_ABOUT                        40004
 #define ID_OUTGOING_CONN                40005
 #define ID_DEFAULT_PROPERTIES           40006
+#define ID_DISABLE_CONN                 40007
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        137
-#define _APS_NEXT_COMMAND_VALUE         40007
-#define _APS_NEXT_CONTROL_VALUE         1037
+#define _APS_NEXT_RESOURCE_VALUE        139
+#define _APS_NEXT_COMMAND_VALUE         40008
+#define _APS_NEXT_CONTROL_VALUE         1053
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

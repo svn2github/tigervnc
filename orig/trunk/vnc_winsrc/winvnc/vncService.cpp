@@ -451,7 +451,7 @@ vncService::PostAddNewClient(unsigned long ipaddress)
 #define VNCSERVICENAME        "winvnc"
 
 // Displayed service name
-#define VNCSERVICEDISPLAYNAME "TridiaVNC Server"
+#define VNCSERVICEDISPLAYNAME "VNC Server"
 
 // List of other required services ("dependency 1\0dependency 2\0\0")
 // *** These need filling in properly

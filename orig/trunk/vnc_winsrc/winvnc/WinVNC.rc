@@ -66,6 +66,7 @@ BEGIN
     CONTROL         "Disable Local Keyboard && Pointer",
                     IDC_DISABLE_LOCAL_INPUTS,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,10,100,145,15
+    PUSHBUTTON      "Ad&vanced",IDADVANCED,165,85,51,15
 END
 
 IDD_ABOUT DIALOG DISCARDABLE  0, 0, 336, 108
@@ -102,22 +103,65 @@ BEGIN
 END
 
 IDD_ACCEPT_CONN DIALOG DISCARDABLE  0, 0, 186, 95
-STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION
+STYLE DS_SYSMODAL | DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | 
+    WS_VISIBLE | WS_CAPTION
 CAPTION "Accept WinVNC Connection?"
 FONT 8, "MS Sans Serif"
 BEGIN
-    PUSHBUTTON      "&Accept",IDACCEPT,7,74,53,14
-    DEFPUSHBUTTON   "&Reject",IDREJECT,130,74,49,14
+    DEFPUSHBUTTON   "&Accept",IDACCEPT,7,74,53,14
+    PUSHBUTTON      "&Reject",IDREJECT,130,74,49,14
     CTEXT           "WinVNC has received an incoming connection from",
-                    IDC_STATIC_TEXT1,7,7,172,17,SS_CENTERIMAGE
-    CTEXT           "<unknown host>",IDC_ACCEPT_IP,7,30,172,16,
+                    IDC_STATIC_TEXT1,7,2,172,17,SS_CENTERIMAGE
+    CTEXT           "<unknown host>",IDC_ACCEPT_IP,7,21,172,16,
                     SS_CENTERIMAGE
     CTEXT           "Do you wish to Accept or Reject the connection?",
-                    IDC_STATIC_TEXT,7,50,172,15,SS_CENTERIMAGE
-    CTEXT           "AutoRespond:",IDC_ACCEPT_TIMEOUT,60,74,70,14,
+                    IDC_STATIC_TEXT,7,38,172,15,SS_CENTERIMAGE
+    CTEXT           "AutoReject:",IDC_ACCEPT_TIMEOUT,60,52,70,14,
                     SS_CENTERIMAGE
+    DEFPUSHBUTTON   "Accept without     &Password",IDACCEPT_NOPASS,71,69,48,
+                    23,BS_CENTER | BS_VCENTER | BS_MULTILINE
 END
 
+IDD_ADVPROPERTIES DIALOG DISCARDABLE  0, 0, 280, 200
+STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_3DLOOK | DS_CENTER | 
+    WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Advanced Properties"
+FONT 8, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "&Cancel",IDCANCEL,208,25,67,15
+    DEFPUSHBUTTON   "&OK",IDOK,208,5,67,15
+    GROUPBOX        "Query Settings",IDC_QUERY_BORDER,5,5,195,92
+    CONTROL         "AutoAccept (instead of Refuse) if query times out",
+                    IDQUERYACCEPT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,
+                    36,179,15
+    PUSHBUTTON      "&Apply",IDC_APPLY,208,45,67,15
+    CONTROL         "Query console on incoming connections",IDQUERY,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,17,179,15
+    LTEXT           "Query Timeout",IDQUERYTIMEOUT_LABEL,31,76,62,14,
+                    SS_CENTERIMAGE
+    EDITTEXT        IDQUERYTIMEOUT,98,75,40,15,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Require authentication",IDREQUIREAUTH,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,177,121,15
+    CONTROL         "Allow option to Accept without Password",
+                    IDQUERYALLOWNOPASS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    10,56,179,15
+    CONTROL         "Allow ONLY loopback",IDONLYLOOPBACK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,175,133,100,15
+    CONTROL         "Log extensive degug info",IDLOGLOTS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,175,177,100,15
+    CONTROL         "Allow loopback connections",IDALLOWLOOPBACK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,155,114,120,15
+    CONTROL         "Log info to Winvnc.log",IDLOG,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,155,157,120,15
+    GROUPBOX        "Connection Priority",IDPRIORITY,5,103,133,69
+    CONTROL         "Disconnect existing connections",IDPRIORITY0,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,10,115,121,15
+    CONTROL         "Refuse concurrent connetions",IDPRIORITY2,"Button",
+                    BS_AUTORADIOBUTTON,10,152,121,15
+    CONTROL         "Automatic shared sessions",IDPRIORITY1,"Button",
+                    BS_AUTORADIOBUTTON,10,133,121,15
+END
+ 
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -130,6 +174,7 @@ BEGIN
     IDD_PROPERTIES, DIALOG
     BEGIN
         LEFTMARGIN, 5
+        RIGHTMARGIN, 216
         VERTGUIDE, 10
         VERTGUIDE, 19
         VERTGUIDE, 75
@@ -215,6 +260,39 @@ BEGIN
         HORZGUIDE, 65
         HORZGUIDE, 74
     END
+
+    IDD_ADVPROPERTIES, DIALOG
+    BEGIN
+        LEFTMARGIN, 5
+        RIGHTMARGIN, 275
+        VERTGUIDE, 10
+        VERTGUIDE, 21
+        VERTGUIDE, 75
+        VERTGUIDE, 131
+        VERTGUIDE, 138
+        VERTGUIDE, 155
+        VERTGUIDE, 160
+        VERTGUIDE, 175
+        VERTGUIDE, 189
+        TOPMARGIN, 5
+        BOTTOMMARGIN, 193
+        HORZGUIDE, 16
+        HORZGUIDE, 20
+        HORZGUIDE, 25
+        HORZGUIDE, 31
+        HORZGUIDE, 40
+        HORZGUIDE, 45
+        HORZGUIDE, 50
+        HORZGUIDE, 60
+        HORZGUIDE, 65
+        HORZGUIDE, 70
+        HORZGUIDE, 89
+        HORZGUIDE, 97
+        HORZGUIDE, 103
+        HORZGUIDE, 114
+        HORZGUIDE, 120
+        HORZGUIDE, 172
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -247,7 +325,7 @@ BEGIN
             VALUE "FileDescription", "VNC Server for  Win32\0"
             VALUE "FileVersion", "1, 4, 0, 0\0"
             VALUE "InternalName", "WinVNC\0"
-            VALUE "LegalCopyright", "Copyright © 2000 Tridia Corporation\0"
+            VALUE "LegalCopyright", "Copyright   2000 Tridia Corporation\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "WinVNC.exe\0"
             VALUE "PrivateBuild", "\0"
@@ -262,7 +340,7 @@ BEGIN
             VALUE "FileDescription", "VNC server for Win32\0"
             VALUE "FileVersion", "1, 4, 0, 0\0"
             VALUE "InternalName", "WinVNC\0"
-            VALUE "LegalCopyright", "Copyright AT&T Research Labs Cambridge© 1998-2000\0"
+            VALUE "LegalCopyright", "Copyright AT&T Research Labs Cambridge  1998-2000\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "WinVNC.exe\0"
             VALUE "PrivateBuild", "\0"
@@ -289,6 +367,7 @@ END
 // remains consistent on all systems.
 IDI_WINVNC              ICON    DISCARDABLE     "res\\WinVNC.ico"
 IDI_FLASH               ICON    DISCARDABLE     "res\\icon1.ico"
+IDI_DISABLED            ICON    DISCARDABLE     "res\\ico00001.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -303,6 +382,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Add &New Client",             ID_OUTGOING_CONN
         MENUITEM "&Kill All Clients",           ID_KILLCLIENTS
+        MENUITEM "Disable New Clients",         ID_DISABLE_CONN
         MENUITEM SEPARATOR
         MENUITEM "&About WinVNC",               ID_ABOUT
         MENUITEM SEPARATOR

@@ -49,9 +49,11 @@ public:
     
     // Change the log level
     void SetLevel(int level);
+    int  GetLevel();
 
     // Change the logging mode
     void SetMode(int mode);
+    int  GetMode();
 
     // Change or set the logging filename.  This enables ToFile mode if
     // not already enabled.
@@ -66,6 +68,7 @@ private:
     void CloseFile();
     bool m_tofile, m_todebug, m_toconsole;
     int m_level;
+    int m_mode;
     HANDLE hlogfile;
 	LPSTR m_filename;
 	bool m_append;

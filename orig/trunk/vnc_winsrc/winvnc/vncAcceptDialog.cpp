@@ -35,11 +35,13 @@
 // Constructor
 
 vncAcceptDialog::vncAcceptDialog(UINT timeoutSecs,
-								 bool acceptOnTimeout,
+								 BOOL acceptOnTimeout,
+								 BOOL allowNoPass,
 								 const char *ipAddress)
 {
 	m_timeoutSecs = timeoutSecs;
 	m_acceptOnTimeout = acceptOnTimeout;
+	m_allowNoPass = allowNoPass;
 	m_ipAddress = strdup(ipAddress);
 }
 
@@ -53,12 +55,21 @@ vncAcceptDialog::~vncAcceptDialog()
 
 // Routine called to activate the dialog and, once it's done, delete it
 
-BOOL vncAcceptDialog::DoDialog()
+int vncAcceptDialog::DoDialog()
 {
 	int retVal = DialogBoxParam(hAppInstance, MAKEINTRESOURCE(IDD_ACCEPT_CONN), 
 		NULL, (DLGPROC) vncAcceptDlgProc, (LONG) this);
 	delete this;
-	return retVal == IDACCEPT;
+	switch (retVal)
+	{
+		case IDACCEPT:
+			return 1;
+		case IDACCEPT_NOPASS:
+			return 2;
+		case IDREJECT:
+			return 0;
+	}
+	return 0;
 }
 
 // Callback function - handles messages sent to the dialog box
@@ -84,14 +95,34 @@ BOOL CALLBACK vncAcceptDialog::vncAcceptDlgProc(HWND hwnd,
             SetWindowLong(hwnd, GWL_USERDATA, lParam);
             vncAcceptDialog *_this = (vncAcceptDialog *) lParam;
 
+			// Disable the "Accept without password" button if needed
+			HWND hNoPass = GetDlgItem(hwnd, IDACCEPT_NOPASS);
+			EnableWindow(hNoPass, _this->m_allowNoPass);
+
 			// Set the IP-address string
 			SetDlgItemText(hwnd, IDC_ACCEPT_IP, _this->m_ipAddress);
 			if (SetTimer(hwnd, 1, 1000, NULL) == 0)
+			{
+				if (_this->m_acceptOnTimeout)
+					EndDialog(hwnd, IDACCEPT);
+				else
 				EndDialog(hwnd, IDREJECT);
+			}
 			_this->m_timeoutCount = _this->m_timeoutSecs;
+			// Update the displayed count
+			char temp[256];
+			if (_this->m_acceptOnTimeout)
+				sprintf(temp, "AutoAccept:%u", (_this->m_timeoutCount));
+			else
+				sprintf(temp, "AutoReject:%u", (_this->m_timeoutCount));
+			SetDlgItemText(hwnd, IDC_ACCEPT_TIMEOUT, temp);
+
+			SetForegroundWindow(hwnd);
 
 			MessageBeep(MB_OK);
             
+			SetForegroundWindow(hwnd);
+
             // Return false to prevent accept button from gaining
 			// focus.
 			return FALSE;
@@ -110,11 +141,10 @@ BOOL CALLBACK vncAcceptDialog::vncAcceptDlgProc(HWND hwnd,
 
 		// Update the displayed count
 		char temp[256];
-		if ( _this->m_acceptOnTimeout ) {
-			sprintf(temp, "Auto-ACCEPT:%u", (_this->m_timeoutCount));
-		} else {
-			sprintf(temp, "Auto-REJECT:%u", (_this->m_timeoutCount));
-		}
+		if ( _this->m_acceptOnTimeout )
+			sprintf(temp, "AutoAccept: %u", (_this->m_timeoutCount));
+		else
+			sprintf(temp, "AutoReject: %u", (_this->m_timeoutCount));
 		SetDlgItemText(hwnd, IDC_ACCEPT_TIMEOUT, temp);
 		break;
 
@@ -126,6 +156,10 @@ BOOL CALLBACK vncAcceptDialog::vncAcceptDlgProc(HWND hwnd,
 		case IDACCEPT:
 		case IDOK:
 			EndDialog(hwnd, IDACCEPT);
+			return TRUE;
+
+		case IDACCEPT_NOPASS:
+			EndDialog(hwnd, IDACCEPT_NOPASS);
 			return TRUE;
 
 		case IDREJECT:

@@ -69,6 +69,8 @@ vncServer::vncServer()
 	}
 	m_querysetting = 2;
 	m_querytimeout = 10;
+	m_queryaccept = FALSE;
+	m_queryallownopass = FALSE;
 
 	// Autolock settings
 	m_lock_on_exit = 0;
@@ -99,6 +101,7 @@ vncServer::vncServer()
 
 	// Signal set when a client quits
 	m_clientquitsig = new omni_condition(&m_clientsLock);
+	m_clients_disabled = FALSE;
 }
 
 vncServer::~vncServer()
@@ -165,6 +168,18 @@ vncServer::~vncServer()
 }
 
 // Client handling functions
+void
+vncServer::DisableClients(BOOL state)
+{
+	m_clients_disabled = state;
+}
+
+BOOL
+vncServer::ClientsDisabled()
+{
+	return m_clients_disabled;
+}
+
 vncClientId
 vncServer::AddClient(VSocket *socket, BOOL auth, BOOL shared)
 {
@@ -1160,6 +1175,9 @@ MatchStringToTemplate(const char *str, UINT len,
 
 vncServer::AcceptQueryReject
 vncServer::VerifyHost(const char *hostname) {
+	if (ClientsDisabled())
+		return vncServer::aqrReject;
+
 	omni_mutex_lock l(m_clientsLock);
 
 	// -=- Is the specified host blacklisted?
@@ -1214,7 +1232,7 @@ vncServer::VerifyHost(const char *hostname) {
 	// Has an AuthHosts filter been specified?
 	if (m_auth_hosts == 0) {
 		vnclog.Print(LL_INTWARN, VNCLOG("verify succeeded - null filter\n"));
-		return vncServer::aqrAccept;
+		return AdjustVerification(vncServer::aqrAccept);
 	}
 
 	// Has a hostname been specified?
@@ -1292,8 +1310,17 @@ vncServer::VerifyHost(const char *hostname) {
 		authHostsPos++;
 	}
 
+	return AdjustVerification(verifiedHost);
+}
+
+
+vncServer::AcceptQueryReject
+vncServer::AdjustVerification(vncServer::AcceptQueryReject host)
+{
+	vncServer::AcceptQueryReject verifiedHost = host;
+
 	// Based on the server's QuerySetting, adjust the verification result
-	switch (verifiedHost) {
+	switch (host) {
 	case vncServer::aqrAccept:
 		if (QuerySetting() >= 3)
 			verifiedHost = vncServer::aqrQuery;

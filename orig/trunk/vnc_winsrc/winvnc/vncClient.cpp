@@ -146,6 +146,9 @@ vncClientThread::InitVersion()
 BOOL
 vncClientThread::InitAuthenticate()
 {
+	// store to enable Accept without Password on query
+	BOOL auth_failed = FALSE;
+	
 	// Retrieve the local password
 	char password[MAXPWLEN];
 	m_server->GetPassword(password);
@@ -154,6 +157,27 @@ vncClientThread::InitAuthenticate()
 	// Verify the peer host name against the AuthHosts string
 	vncServer::AcceptQueryReject verified = m_server->VerifyHost(m_socket->GetPeerName());
 	
+	// If necessary, query the connection with a timed dialog
+	if (verified == vncServer::aqrQuery) {
+		vncAcceptDialog *acceptDlg;
+		int res;
+		acceptDlg = new vncAcceptDialog(m_server->QueryTimeout(),
+										m_server->QueryAccept(), m_server->QueryAllowNoPass(),
+										m_socket->GetPeerName());
+		if (acceptDlg)
+			res = acceptDlg->DoDialog();
+		if ((acceptDlg == 0) || !res)
+		{
+			log.Print(LL_CLIENTS, VNCLOG("user rejected client in accept dialog\n"));
+			return FALSE;
+		}
+		if (auth_failed && (res != 2))  // must accept with no password if pwd failed!
+		{
+			log.Print(LL_CLIENTS, VNCLOG("user rejected client (failed auth) in accept dialog\n"));
+			return FALSE;
+		}
+	}
+
 	if (verified == vncServer::aqrReject) {
 		CARD32 auth_val = Swap32IfLE(rfbConnFailed);
 		char *errmsg = "Your connection has been rejected.";
@@ -188,6 +212,7 @@ vncClientThread::InitAuthenticate()
 	}
 
 	// By default we filter out local loop connections, because they're pointless
+	// (would like to allow this if "Allow No Password" is pressed on query)
 	if (!m_server->LoopbackOk())
 	{
 		char *localname = strdup(m_socket->GetSockName());
@@ -270,7 +295,7 @@ vncClientThread::InitAuthenticate()
 
 		// Did the authentication work?
 		CARD32 authmsg;
-		if (!auth_ok)
+		if (!auth_ok && !m_server->QueryAllowNoPass())
 		{
 			vnclog.Print(LL_CONNERR, VNCLOG("authentication failed\n"));
 
@@ -280,6 +305,8 @@ vncClientThread::InitAuthenticate()
 		}
 		else
 		{
+			if (!auth_ok)
+				auth_failed = TRUE;
 			// Tell the client we're ok
 			authmsg = Swap32IfLE(rfbVncAuthOK);
 			if (!m_socket->SendExact((char *)&authmsg, sizeof(authmsg)))

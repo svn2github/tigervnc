@@ -116,8 +116,10 @@ vncMenu::vncMenu(vncServer *server)
 	}
 
 	// Load the icons for the tray
-	m_winvnc_icon = LoadIcon(hAppInstance, MAKEINTRESOURCE(IDI_WINVNC));
+	m_winvnc_normal_icon = LoadIcon(hAppInstance, MAKEINTRESOURCE(IDI_WINVNC));
+	m_winvnc_disabled_icon = LoadIcon(hAppInstance, MAKEINTRESOURCE(IDI_DISABLED));
 	m_flash_icon = LoadIcon(hAppInstance, MAKEINTRESOURCE(IDI_FLASH));
+	m_winvnc_icon = m_winvnc_normal_icon;
 
 	// Load the popup menu
 	m_hmenu = LoadMenu(hAppInstance, MAKEINTRESOURCE(IDR_TRAYMENU));
@@ -225,6 +227,8 @@ vncMenu::SendTrayMsg(DWORD msg, BOOL flash)
 		char *tipptr = ((char *)&m_nid.szTip) + tiplen;
 
 		GetIPAddrString(tipptr, sizeof(m_nid.szTip) - tiplen);
+	 		if (m_server->ClientsDisabled())
+				strncat(m_nid.szTip, " (Not listening)", (sizeof(m_nid.szTip)-1)-strlen(m_nid.szTip));
 	    }
 	    else
 	    {
@@ -241,6 +245,8 @@ vncMenu::SendTrayMsg(DWORD msg, BOOL flash)
 		EnableMenuItem(m_hmenu, ID_PROPERTIES,
 			m_properties.AllowProperties() ? MF_ENABLED : MF_GRAYED);
 		EnableMenuItem(m_hmenu, ID_CLOSE,
+			m_properties.AllowShutdown() ? MF_ENABLED : MF_GRAYED);
+		EnableMenuItem(m_hmenu, ID_DISABLE_CONN,
 			m_properties.AllowShutdown() ? MF_ENABLED : MF_GRAYED);
 	} else {
 		if (!vncService::RunningAsService())
@@ -325,6 +331,25 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 		case ID_KILLCLIENTS:
 			// Disconnect all currently connected clients
 			_this->m_server->KillAuthClients();
+			break;
+
+		case ID_DISABLE_CONN:
+			// Disallow incoming connections (changed to leave existing ones)
+			if (GetMenuState(_this->m_hmenu, ID_DISABLE_CONN, MF_BYCOMMAND) & MF_CHECKED)
+			{
+				//_this->m_server->SockConnect(TRUE);
+				_this->m_server->DisableClients(FALSE);
+				CheckMenuItem(_this->m_hmenu, ID_DISABLE_CONN, MF_UNCHECKED);
+				_this->m_winvnc_icon = _this->m_winvnc_normal_icon;
+			} else
+			{
+				//_this->m_server->SockConnect(FALSE);
+				_this->m_server->DisableClients(TRUE);
+				CheckMenuItem(_this->m_hmenu, ID_DISABLE_CONN, MF_CHECKED);
+				_this->m_winvnc_icon = _this->m_winvnc_disabled_icon;
+			}
+			// Update the icon
+			_this->FlashTrayIcon(_this->m_server->AuthClientCount() != 0);
 			break;
 
 		case ID_ABOUT:

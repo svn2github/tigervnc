@@ -37,7 +37,8 @@ public:
 
 	// Create an outgoing-connection dialog
 	vncAcceptDialog(UINT timeoutSecs,
-					bool acceptOnTimeout,
+					BOOL acceptOnTimeout,
+					BOOL allowNoPass,
 					const char *ipAddress);
 
 	// Destructor
@@ -46,7 +47,9 @@ public:
 	// Once a dialog object is created, either delete it again, or
 	// call DoDialog.  DoDialog will run the dialog and return
 	// TRUE (Accept) or FALSE (Reject).
-	// The function will also return false if the dialog times out.
+	// 1: Accept, 2: Accept w/o Password
+	// The function will also return false (or true, if set to accept at timeout)
+	// if the dialog times out.
 	BOOL DoDialog();
 
 	// Internal stuffs
@@ -66,7 +69,8 @@ private:
 	char *m_ipAddress;
 
 	// Whether to accept or reject on default/timeout
-	bool m_acceptOnTimeout;
+	BOOL m_acceptOnTimeout;
+	BOOL m_allowNoPass;
 
 };
 

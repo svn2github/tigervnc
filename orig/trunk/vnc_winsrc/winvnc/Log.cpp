@@ -30,6 +30,8 @@ Log::Log(int mode, int level, LPSTR filename, bool append)
 
 void Log::SetMode(int mode) {
     
+	m_mode = mode;
+
     if (mode & ToDebug)
         m_todebug = true;
     else
@@ -52,9 +54,16 @@ void Log::SetMode(int mode) {
     }
 }
 
+int Log::GetMode() {
+	return m_mode;
+}
 
 void Log::SetLevel(int level) {
     m_level = level;
+}
+
+int Log::GetLevel() {
+	return m_level;
 }
 
 void Log::SetFile(LPSTR filename, bool append) 

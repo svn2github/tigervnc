@@ -39,6 +39,7 @@
 
 #include "WinVNC.h"
 #include "vncProperties.h"
+#include "vncAdvancedProperties.h"
 #include "vncServer.h"
 #include "vncPasswd.h"
 
@@ -69,6 +70,7 @@ vncProperties::vncProperties()
 	m_allowshutdown = TRUE;
 	m_dlgvisible = FALSE;
 	m_usersettings = TRUE;
+	m_inadvanced = FALSE;
 }
 
 vncProperties::~vncProperties()
@@ -81,6 +83,8 @@ vncProperties::Init(vncServer *server)
 {
 	// Save the server pointer
 	m_server = server;
+	
+	m_inadvanced = FALSE;
 	
 	// Load the settings from the registry
 	Load(TRUE);
@@ -129,6 +133,7 @@ vncProperties::Show(BOOL show, BOOL usersettings)
 {
 	if (show)
 	{
+		m_inadvanced = FALSE;
 		if (!m_allowproperties)
 		{
 			// If the user isn't allowed to override the settings then tell them
@@ -363,6 +368,8 @@ vncProperties::DialogProc(HWND hwnd,
 		}
 
 	case WM_COMMAND:
+		if (_this->m_inadvanced)
+			return FALSE;
 		switch (LOWORD(wParam))
 		{
 
@@ -472,6 +479,24 @@ vncProperties::DialogProc(HWND hwnd,
 			_this->m_dlgvisible = FALSE;
 			return TRUE;
 
+		case IDADVANCED:
+			log.Print(LL_INTINFO, VNCLOG("newdialog (ADVANCED)\n"));
+			{
+				_this->EnableControls(FALSE, hwnd, _this);
+				_this->m_inadvanced = TRUE;
+				vncAdvancedProperties *aprop = new vncAdvancedProperties();
+				if (aprop->Init(_this->m_server))
+				{
+					aprop->Show(TRUE, _this->m_usersettings);
+				}
+				//aprop->DoDialog();
+				SetForegroundWindow(hwnd);
+				_this->m_inadvanced = FALSE;
+				_this->EnableControls(TRUE, hwnd, _this);
+				omni_thread::sleep(0, 200000000);
+			}
+			return TRUE;
+
 		case IDC_CONNECT_SOCK:
 			// The user has clicked on the socket connect tickbox
 			{
@@ -534,6 +559,84 @@ vncProperties::DialogProc(HWND hwnd,
 		break;
 	}
 	return 0;
+}
+
+void
+vncProperties::EnableControls(BOOL state, HWND hwnd, vncProperties *_this)
+{
+	EnableWindow(hwnd, state);
+	//return;
+
+	HWND hOk = GetDlgItem(hwnd, IDOK);
+	EnableWindow(hOk, state);
+	HWND hCancel = GetDlgItem(hwnd, IDCANCEL);
+	EnableWindow(hCancel, state);
+	HWND hApply = GetDlgItem(hwnd, IDC_APPLY);
+	EnableWindow(hApply, state);
+	HWND hAdvanced = GetDlgItem(hwnd, IDADVANCED);
+	EnableWindow(hAdvanced, state);
+
+	HWND hCon = GetDlgItem(hwnd, IDC_CONNECT_BORDER);
+	EnableWindow(hCon, state);
+	HWND hUp = GetDlgItem(hwnd, IDC_UPDATE_BORDER);
+	EnableWindow(hUp, state);
+	HWND hPortLabel = GetDlgItem(hwnd, IDC_PORTNO_LABEL);
+	EnableWindow(hPortLabel, state);
+	HWND hPassLabel = GetDlgItem(hwnd, IDC_PASSWORD_LABEL);
+	EnableWindow(hPassLabel, state);
+	
+	HWND hConnectSock = GetDlgItem(hwnd, IDC_CONNECT_SOCK);
+	EnableWindow(hConnectSock, state);
+	HWND hConnectCorba = GetDlgItem(hwnd, IDC_CONNECT_CORBA);
+#if(defined(_CORBA))
+	EnableWindow(hConnectCorba, state && TRUE);
+#else
+	EnableWindow(hConnectCorba, FALSE);
+#endif
+
+	HWND hPortNoAuto = GetDlgItem(hwnd, IDC_PORTNO_AUTO);
+	EnableWindow(hPortNoAuto, state && (SendMessage(hConnectSock, BM_GETCHECK, 0, 0) == BST_CHECKED));
+			
+	HWND hPortNo = GetDlgItem(hwnd, IDC_PORTNO);
+	EnableWindow(hPortNo, state && 
+		((SendMessage(hConnectSock, BM_GETCHECK, 0, 0) == BST_CHECKED) && 
+		 !(SendMessage(hPortNoAuto, BM_GETCHECK, 0, 0) == BST_CHECKED))
+		 );
+
+	HWND hPassword = GetDlgItem(hwnd, IDC_PASSWORD);
+	EnableWindow(hPassword, state && (SendMessage(hConnectSock, BM_GETCHECK, 0, 0) == BST_CHECKED));
+
+	// Remote input settings
+	HWND hEnableRemoteInputs = GetDlgItem(hwnd, IDC_DISABLE_INPUTS);
+	EnableWindow(hEnableRemoteInputs, state);
+
+	// Local input settings
+	HWND hDisableLocalInputs = GetDlgItem(hwnd, IDC_DISABLE_LOCAL_INPUTS);
+	EnableWindow(hDisableLocalInputs, state);
+
+	// Set the polling options
+	HWND hPollFullScreen = GetDlgItem(hwnd, IDC_POLL_FULLSCREEN);
+	EnableWindow(hPollFullScreen, state);
+
+	HWND hPollForeground = GetDlgItem(hwnd, IDC_POLL_FOREGROUND);
+	EnableWindow(hPollForeground, state);
+
+	HWND hPollUnderCursor = GetDlgItem(hwnd, IDC_POLL_UNDER_CURSOR);
+	EnableWindow(hPollUnderCursor, state);
+
+	HWND hPollConsoleOnly = GetDlgItem(hwnd, IDC_CONSOLE_ONLY);
+	EnableWindow(hPollConsoleOnly,
+		state && 
+		((SendMessage(hPollUnderCursor, BM_GETCHECK, 0, 0) == BST_CHECKED) || 
+		 (SendMessage(hPollForeground, BM_GETCHECK, 0, 0) == BST_CHECKED))
+		);
+
+	HWND hPollOnEventOnly = GetDlgItem(hwnd, IDC_ONEVENT_ONLY);
+	EnableWindow(hPollOnEventOnly,
+		state && 
+		((SendMessage(hPollUnderCursor, BM_GETCHECK, 0, 0) == BST_CHECKED) || 
+		 (SendMessage(hPollForeground, BM_GETCHECK, 0, 0) == BST_CHECKED))
+		);
 }
 
 // Functions to load & save the settings
@@ -718,6 +821,7 @@ vncProperties::Load(BOOL usersettings)
 	m_pref_QuerySetting=2;
 	m_pref_QueryTimeout=30;
 	m_pref_QueryAccept=FALSE;
+	m_pref_QueryAllowNoPass=FALSE;
 	m_pref_EnableRemoteInputs=TRUE;
 	m_pref_DisableLocalInputs=FALSE;
 	m_pref_LockSettings=-1;
@@ -799,6 +903,7 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	m_pref_QuerySetting=LoadInt(appkey, "QuerySetting", m_pref_QuerySetting);
 	m_pref_QueryTimeout=LoadInt(appkey, "QueryTimeout", m_pref_QueryTimeout);
 	m_pref_QueryAccept=LoadInt(appkey, "QueryAccept", m_pref_QueryAccept);
+	m_pref_QueryAllowNoPass=LoadInt(appkey, "QueryAllowNoPass", m_pref_QueryAllowNoPass);
 
 	// Load the password
 	LoadPassword(appkey, m_pref_passwd);
@@ -828,6 +933,7 @@ vncProperties::ApplyUserPrefs()
 	m_server->SetQuerySetting(m_pref_QuerySetting);
 	m_server->SetQueryTimeout(m_pref_QueryTimeout);
 	m_server->SetQueryAccept(m_pref_QueryAccept);
+	m_server->SetQueryAllowNoPass(m_pref_QueryAllowNoPass);
 
 	// Is the listening socket closing?
 	if (!m_pref_SockConnect)

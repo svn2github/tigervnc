@@ -75,6 +75,8 @@ public:
 	~vncServer();
 
 	// Client handling functions
+	virtual void DisableClients(BOOL state);
+	virtual BOOL ClientsDisabled();
 	virtual vncClientId AddClient(VSocket *socket, BOOL auth, BOOL shared);
 	virtual vncClientId AddClient(VSocket *socket,
 		BOOL auth, BOOL shared, BOOL teleport, int capability,
@@ -212,6 +214,7 @@ public:
 	virtual char *AuthHosts();
 	enum AcceptQueryReject {aqrAccept, aqrQuery, aqrReject};
 	virtual AcceptQueryReject VerifyHost(const char *hostname);
+	virtual AcceptQueryReject AdjustVerification(AcceptQueryReject host);
 
 	// Blacklisting of machines which fail connection attempts too often
 	// Such machines will fail VerifyHost for a short period
@@ -224,7 +227,9 @@ public:
 	virtual void SetQueryTimeout(const UINT setting) {m_querytimeout = setting;};
 	virtual UINT QueryTimeout() {return m_querytimeout;};
 	virtual void SetQueryAccept(const bool setting) {m_queryaccept = setting;};
-	virtual bool QueryAccept() {return m_queryaccept;};
+	virtual BOOL QueryAccept() {return m_queryaccept;};
+	virtual void SetQueryAllowNoPass(const BOOL setting) {m_queryallownopass = setting;};
+	virtual BOOL QueryAllowNoPass() {return m_queryallownopass;};
 
 	// Whether or not to allow connections from the local machine
 	virtual void SetLoopbackOk(BOOL ok) {m_loopback_allowed = ok;};
@@ -261,7 +266,9 @@ protected:
 	BOOL				m_beepDisconnect;
 	UINT				m_querysetting;
 	UINT				m_querytimeout;
-	bool				m_queryaccept;
+	BOOL				m_queryaccept;
+	BOOL				m_queryallownopass;
+	BOOL				m_clients_disabled;
 
 	// Polling preferences
 	BOOL				m_poll_fullscreen;

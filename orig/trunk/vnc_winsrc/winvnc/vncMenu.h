@@ -83,6 +83,8 @@ protected:
 
 	// The icon handles
 	HICON			m_winvnc_icon;
+	HICON			m_winvnc_normal_icon;
+	HICON			m_winvnc_disabled_icon;
 	HICON			m_flash_icon;
 };
 

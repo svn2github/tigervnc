@@ -510,9 +510,8 @@ vncClientThread::run(void *arg)
 		ClearKeyState(VK_SCROLL);
 	}
 /// !!!!
-	vncKeymap *m_keymap = new vncKeymap(m_client);
-	m_server->SetKeyboardCounter(0);
-
+	vncKeymap *m_keymap = new vncKeymap(m_client->m_server);
+	
 	// MAIN LOOP
 
 	BOOL connected = TRUE;
@@ -1554,11 +1553,6 @@ vncClient::SetNewFBSize(BOOL sendnewfb)
 }
 
 
-void
-vncClient::SetInputCounter()
-{
-	m_server->SetKeyboardCounter(1);
-}
 
 void
 vncClient::UpdateLocalFormat()

@@ -106,7 +106,6 @@ public:
 	virtual const char *GetClientName();
 	virtual vncClientId GetClientId() {return m_id;};
 
-	void SetInputCounter();
 	BOOL SetNewFBSize(BOOL sendnewfb);
 	BOOL IncrRgnRequested(){return !m_incr_rgn.IsEmpty();};
 	BOOL FullRgnRequested(){return !m_full_rgn.IsEmpty();};

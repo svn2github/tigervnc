@@ -32,18 +32,18 @@
 
 #include "stdhdrs.h"
 #include "rfb.h"
-#include "vncClient.h"
+#include "vncServer.h"
 
 class vncKeymap {
 public:
-	vncKeymap(vncClient *client);
+	vncKeymap(vncServer *server);
 	~vncKeymap();
 
 	// Simulate a specified X keysym locally
 	void DoXkeysym(CARD32 keysym, BOOL keydown);
 	void ClearShiftKeys();
 protected:
-	vncClient 		*m_client;
+	vncServer 		*m_server;
  private:
 	void	KeybdEvent(BYTE keycode, DWORD flags);
 	void	SetShiftState(BYTE key, BOOL down);

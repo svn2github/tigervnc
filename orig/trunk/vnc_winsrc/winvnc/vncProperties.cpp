@@ -798,7 +798,7 @@ vncProperties::DialogProc(HWND hwnd,
 				EnableWindow(hPollOnEventOnly, !otherenabled && enabled);
 
 				HWND hPollingTimer = GetDlgItem(hwnd, IDC_POLL_TIMER);
-				EnableWindow(hPollingTimer,enabled || (SendMessage(hPollForeground, BM_GETCHECK, 0, 0) == BST_CHECKED) ||
+				EnableWindow(hPollingTimer,otherenabled || (SendMessage(hPollForeground, BM_GETCHECK, 0, 0) == BST_CHECKED) ||
 					(SendMessage(hPollUnderCursor, BM_GETCHECK, 0, 0) == BST_CHECKED));
 			}
 			return TRUE;

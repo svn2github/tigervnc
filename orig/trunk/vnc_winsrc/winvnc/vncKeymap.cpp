@@ -143,9 +143,9 @@ const vncKeymapping keymap[] = {
     {VK_SCROLL,		XK_Scroll_Lock}
 };
 
-vncKeymap::vncKeymap(vncClient * client)
+vncKeymap::vncKeymap(vncServer * server)
 {
-m_client = client;
+m_server = server;
 }
 
 vncKeymap::~vncKeymap()
@@ -156,7 +156,7 @@ void
 vncKeymap::KeybdEvent(BYTE keycode, DWORD flags)
 {
 	// Send the desired keyboard event
-	m_client->SetInputCounter();
+	m_server->SetKeyboardCounter(1);
 	keybd_event(keycode, MapVirtualKey(keycode, 0), flags, 0);
 }
 

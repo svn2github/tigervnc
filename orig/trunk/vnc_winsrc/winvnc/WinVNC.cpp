@@ -270,9 +270,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 					if (portp != NULL) {
 						*portp++ = '\0';
 						if (*portp == ':') {
-							connectPort = atoi(++portp);
+							connectPort = atoi(++portp);	// host::port
 						} else {
-							connectPort += atoi(portp);
+							connectPort += atoi(portp);		// host:display
 						}
 					}
 				}

@@ -703,20 +703,21 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 #ifdef HORIZONLIVE
 
 			char key[_MAX_PATH];
-			char name[10];
+			char name[16];
 
 			struct in_addr address;
 			address.S_un.S_addr = lParam;
 			strcpy(key, inet_ntoa(address));
-			strcat(key,":");
+			strcat(key, "::");
 
 			// Get the port number
 			unsigned short nport = (unsigned short)wParam;
-			strcat(key,itoa(nport,name,10));
+			strcat(key, itoa(nport, name, 10));
 			vncAcceptReverseDlg *newdlg = new vncAcceptReverseDlg(_this, key);
  			if (!newdlg->DoDialog())
 				return 0;
-			_this->m_server->SetLiveShareKey(key);
+			if (lParam)
+				_this->m_server->SetLiveShareKey(key);
 			PostMessage(hwnd, WM_COMMAND, MAKELONG(ID_PROPERTIES, 0), 0);
 			return 0;
 
@@ -741,14 +742,11 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 
 			// Get the port number
 			unsigned short nport = (unsigned short)wParam;
-			if (nport == 0)
-				nport = INCOMING_PORT_OFFSET;
 
 			// Attempt to create a new socket
 			VSocket *tmpsock;
 			tmpsock = new VSocket;
 			if (tmpsock) {
-
 				// Connect out to the specified host on the VNCviewer listen port
 				tmpsock->Create();
 				if (tmpsock->Connect(nameDup, nport)) {

@@ -746,13 +746,17 @@ BOOL CALLBACK vncProperties::SharedDlgProc(HWND hwnd, UINT uMsg,
 					char *portp;
 					int port;
 					strcpy(hostemp, _this->m_pref_LiveShareKey);
-					// Calculate the Display and Port offset.
+
+					// Calculate the port number
 					port = INCOMING_PORT_OFFSET;
 					portp = strchr(hostemp, ':');
-					if (portp)
-					{
+					if (portp != NULL) {
 						*portp++ = '\0';
-						port += atoi(portp);
+						if (*portp == ':') {
+							port = atoi(++portp);	// host::port
+						} else {
+							port += atoi(portp);	// host:display
+						}
 					}
 					
 					// Attempt to create a new socket

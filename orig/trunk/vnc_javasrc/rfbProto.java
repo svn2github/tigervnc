@@ -42,10 +42,10 @@ class myInputStream extends FilterInputStream {
 class rfbProto {
 
   final String versionMsg = "RFB 003.003\n";
-  final int ConnFailed = 0, NoAuth = 1, VncAuth = 2;
-  final int VncAuthOK = 0, VncAuthFailed = 1, VncAuthTooMany = 2;
+  final static int ConnFailed = 0, NoAuth = 1, VncAuth = 2;
+  final static int VncAuthOK = 0, VncAuthFailed = 1, VncAuthTooMany = 2;
 
-  final int FramebufferUpdate = 0, SetColourMapEntries = 1, Bell = 2,
+  final static int FramebufferUpdate = 0, SetColourMapEntries = 1, Bell = 2,
     ServerCutText = 3;
 
   final int SetPixelFormat = 0, FixColourMapEntries = 1, SetEncodings = 2,

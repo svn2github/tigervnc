@@ -190,12 +190,12 @@ public class vncviewer extends java.applet.Applet
 
       switch (rfb.readAuthScheme()) {
 
-      case rfb.NoAuth:
+      case rfbProto.NoAuth:
 	System.out.println("No authentication needed");
 	authenticationDone = true;
 	break;
 
-      case rfb.VncAuth:
+      case rfbProto.VncAuth:
 	byte[] challenge = new byte[16];
 	rfb.is.readFully(challenge);
 
@@ -224,15 +224,15 @@ public class vncviewer extends java.applet.Applet
 	int authResult = rfb.is.readInt();
 
 	switch (authResult) {
-	case rfb.VncAuthOK:
+	case rfbProto.VncAuthOK:
 	  System.out.println("VNC authentication succeeded");
 	  authenticationDone = true;
 	  break;
-	case rfb.VncAuthFailed:
+	case rfbProto.VncAuthFailed:
 	  System.out.println("VNC authentication failed");
 	  authenticator.retry();
 	  break;
-	case rfb.VncAuthTooMany:
+	case rfbProto.VncAuthTooMany:
 	  throw new IOException("VNC authentication failed - " +
 				"too many tries");
 	default:

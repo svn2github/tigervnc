@@ -110,7 +110,7 @@ class vncCanvas extends Canvas
       int msgType = rfb.readServerMessageType();
 
       switch (msgType) {
-      case rfb.FramebufferUpdate:
+      case rfbProto.FramebufferUpdate:
 	rfb.readFramebufferUpdate();
 
 	for (int i = 0; i < rfb.updateNRects; i++) {
@@ -132,14 +132,14 @@ class vncCanvas extends Canvas
 
 	  switch (rfb.updateRectEncoding) {
 
-	  case rfb.EncodingRaw:
+	  case rfbProto.EncodingRaw:
 	  {
 	    drawRawRect(rfb.updateRectX, rfb.updateRectY,
 			rfb.updateRectW, rfb.updateRectH);
 	    break;
 	  }
 
-	  case rfb.EncodingCopyRect:
+	  case rfbProto.EncodingCopyRect:
 	  {
 	    rfb.readCopyRect();
 
@@ -176,7 +176,7 @@ class vncCanvas extends Canvas
 	    break;
 	  }
 
-	  case rfb.EncodingRRE:
+	  case rfbProto.EncodingRRE:
 	  {
 	    int rx = rfb.updateRectX, ry = rfb.updateRectY;
 	    int rw = rfb.updateRectW, rh = rfb.updateRectH;
@@ -205,7 +205,7 @@ class vncCanvas extends Canvas
 	    break;
 	  }
 
-	  case rfb.EncodingCoRRE:
+	  case rfbProto.EncodingCoRRE:
 	  {
 	    int rx = rfb.updateRectX, ry = rfb.updateRectY;
 	    int rw = rfb.updateRectW, rh = rfb.updateRectH;
@@ -236,7 +236,7 @@ class vncCanvas extends Canvas
 	    break;
 	  }
 
-	  case rfb.EncodingHextile:
+	  case rfbProto.EncodingHextile:
 	  {
 	    int rx = rfb.updateRectX, ry = rfb.updateRectY;
 	    int rw = rfb.updateRectW, rh = rfb.updateRectH;
@@ -317,7 +317,7 @@ class vncCanvas extends Canvas
 	    break;
 	  }
 
-	  case rfb.EncodingZlib:
+	  case rfbProto.EncodingZlib:
 	  {
 	    int nBytes = rfb.is.readInt();
 
@@ -340,7 +340,7 @@ class vncCanvas extends Canvas
 	    break;
 	  }
 
-	  case rfb.EncodingTight:
+	  case rfbProto.EncodingTight:
 	  {
 	    drawTightRect( rfb.updateRectX, rfb.updateRectY,
 			   rfb.updateRectW, rfb.updateRectH );
@@ -359,14 +359,14 @@ class vncCanvas extends Canvas
 					  rfb.framebufferHeight, true);
 	break;
 
-      case rfb.SetColourMapEntries:
+      case rfbProto.SetColourMapEntries:
 	throw new IOException("Can't handle SetColourMapEntries message");
 
-      case rfb.Bell:
+      case rfbProto.Bell:
 	System.out.print((char)7);
 	break;
 
-      case rfb.ServerCutText:
+      case rfbProto.ServerCutText:
 	String s = rfb.readServerCutText();
 	v.clipboard.setCutText(s);
 	break;

@@ -1184,9 +1184,10 @@ vncDesktop::ResetDisplayToNormal()
 	}
 #endif
 		
-		if (oldvalue != NULL) 
-			RegCloseKey(oldvalue);
-	
+	if (oldvalue != NULL) {
+		RegCloseKey(oldvalue);
+		RegCloseKey(HKEY_CURRENT_USER);
+	}
 }
 
 

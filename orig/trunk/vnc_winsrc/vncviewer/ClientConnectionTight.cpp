@@ -232,6 +232,8 @@ void ClientConnection::ReadTightRect(rfbFramebufferUpdateRectHeader *pfburh)
       zs->avail_out = beforeBufferSize - extraBytes;
 
       err = inflate(zs, Z_SYNC_FLUSH);
+      if (err == Z_BUF_ERROR)   // Input exhausted -- no problem.
+        break;
       if (err != Z_OK && err != Z_STREAM_END) {
         if (zs->msg != NULL) {
           log.Print(0, _T("zlib inflate() error: %s.\n"), zs->msg);

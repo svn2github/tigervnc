@@ -149,6 +149,7 @@ class vncCanvas extends Canvas
 	    int nSubrects = rfb.is.readInt();
 	    int bg = rfb.is.read();
 	    int pixel, x, y, w, h;
+
 	    fillLargeArea(rx, ry, rw, rh, (byte)bg);
 
 	    for (int j = 0; j < nSubrects; j++) {
@@ -173,7 +174,7 @@ class vncCanvas extends Canvas
 	    int bg = rfb.is.read();
 	    int pixel, x, y, w, h;
 
-	    fillSmallArea(rx, ry, rw, rh, (byte)bg);
+	    fillLargeArea(rx, ry, rw, rh, (byte)bg);
 
 	    for (int j = 0; j < nSubrects; j++) {
 	      pixel = rfb.is.read();
@@ -371,7 +372,7 @@ class vncCanvas extends Canvas
 
 
   //
-  // Handle CopyRect rectangle (slow version, scanlines may overlap).
+  // Handle CopyRect rectangle (slow version, but scanlines may overlap).
   //
 
   void handleCopyRectSlow() throws IOException {

@@ -103,6 +103,7 @@ FileTransfer::CreateFileTransferDialog()
 	m_TransferInfo.Free();
 
 	ShowClientItems(m_ClientPathTmp);
+	CheckClientLV();
 	SendFileListRequestMessage(m_ServerPathTmp, 0, FT_FLR_DEST_MAIN);
 }
 
@@ -1113,9 +1114,6 @@ FileTransfer::ShowServerItems()
 			strcpy(m_ServerPath, m_ServerPathTmp);
 			SetWindowText(m_hwndFTServerPath, m_ServerPath);
 			ListView_DeleteAllItems(m_hwndFTServerList); 
-			delete [] pftSD;
-			delete [] pFilenames;
-			return;
 		} else {
 			m_FTServerItemInfo.Free();
 			ListView_DeleteAllItems(m_hwndFTServerList); 
@@ -1124,8 +1122,8 @@ FileTransfer::ShowServerItems()
 			CreateItemInfoList(&m_FTServerItemInfo, pftSD, fld.numFiles, pFilenames, fld.dataSize);
 			m_FTServerItemInfo.Sort();
 			ShowListViewItems(m_hwndFTServerList, &m_FTServerItemInfo);
-			CheckServerLV();
 		}
+		CheckServerLV();
 	} else {
 		while (TreeView_GetChild(GetDlgItem(m_hwndFTBrowse, IDC_FTBROWSETREE), m_hTreeItem) != NULL) {
 			TreeView_DeleteItem(GetDlgItem(m_hwndFTBrowse, IDC_FTBROWSETREE), TreeView_GetChild(GetDlgItem(m_hwndFTBrowse, IDC_FTBROWSETREE), m_hTreeItem));
@@ -1914,7 +1912,12 @@ FileTransfer::CheckClientLV()
 	char buf[8];
 	GetWindowText(GetDlgItem(m_hwndFileTransfer, IDC_FTCOPY), buf, 8);
 	int selCount = ListView_GetSelectedCount(m_hwndFTClientList);
-	if (selCount == 0) {
+	if (strlen(m_ClientPath) != 0) {
+		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_CLIENTCREATEDIR), TRUE);
+	} else {
+		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_CLIENTCREATEDIR), FALSE);
+	}
+	if (selCount <= 0) {
 		if (strcmp(buf, noactionText) != 0) {
 			SetWindowText(GetDlgItem(m_hwndFileTransfer, IDC_FTCOPY), noactionText);
 			EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCOPY), FALSE);
@@ -1939,7 +1942,12 @@ FileTransfer::CheckServerLV()
 	char buf[8];
 	GetWindowText(GetDlgItem(m_hwndFileTransfer, IDC_FTCOPY), buf, 8);
 	int selCount = ListView_GetSelectedCount(m_hwndFTServerList);
-	if (selCount == 0) {
+	if (strlen(m_ServerPath) != 0) {
+		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_SERVERCREATEDIR), TRUE);
+	} else {
+		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_SERVERCREATEDIR), FALSE);
+	}
+	if (selCount <= 0) {
 		if (strcmp(buf, noactionText) != 0) {
 			SetWindowText(GetDlgItem(m_hwndFileTransfer, IDC_FTCOPY), noactionText);
 			EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCOPY), FALSE);

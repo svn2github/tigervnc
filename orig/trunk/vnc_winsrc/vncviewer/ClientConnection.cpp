@@ -185,10 +185,12 @@ void ClientConnection::Init(VNCviewerApp *pApp)
 void ClientConnection::InitCapabilities()
 {
 	// Supported authentication methods
+	m_authCaps.Add(rfbAuthNone, rfbStandardVendor, sig_rfbAuthNone,
+				   "No authentication");
 	m_authCaps.Add(rfbAuthVNC, rfbStandardVendor, sig_rfbAuthVNC,
 				   "Standard VNC password authentication");
 	m_authCaps.Add(rfbAuthUnixLogin, rfbTightVncVendor, sig_rfbAuthUnixLogin,
-				   "Login-style Unix authentication");
+				   "Unix login-style authentication");
 	m_authCaps.Add(rfbAuthExternal, rfbTightVncVendor, sig_rfbAuthExternal,
 				   "External authentication, preliminary version");
 

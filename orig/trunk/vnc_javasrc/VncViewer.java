@@ -374,6 +374,22 @@ public class VncViewer extends java.applet.Applet
   }
 
   //
+  // moveFocusToDesktop() - move keyboard focus either to the
+  // VncCanvas or to the AuthPanel. Used by the ButtonPanel to return
+  // the keyboard focus to a more important component.
+  //
+
+  void moveFocusToDesktop() {
+    if (vncContainer != null) {
+      if (vc != null && vncContainer.isAncestorOf(vc)) {
+	vc.requestFocus();
+      } else if (vncContainer.isAncestorOf(authenticator)) {
+	authenticator.setPasswordFocus();
+      }
+    }
+  }
+
+  //
   // disconnect() - close connection to server.
   //
 

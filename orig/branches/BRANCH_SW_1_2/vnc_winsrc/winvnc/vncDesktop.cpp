@@ -205,7 +205,8 @@ vncDesktopThread::run_undetached(void *arg)
 			}
 
 			// Check for moved windows
-			m_desktop->CalcCopyRects();
+			if (!m_server->OneSharedAppli())
+				m_desktop->CalcCopyRects();
 
 			// Flush the cached region data to all clients
 			m_server->UpdateRegion(rgncache);
@@ -228,14 +229,24 @@ vncDesktopThread::run_undetached(void *arg)
 		{
 			// An area of the screen has changed
 			RECT rect;
+			if (m_server->OneSharedAppli())
+			{
+			RECT coord = m_server->getSharedRect();
+			rect.left =	(SHORT) LOWORD(msg.wParam)-coord.left;
+			rect.top = (SHORT) HIWORD(msg.wParam)-coord.top;
+			rect.right = (SHORT) LOWORD(msg.lParam)-coord.left;
+			rect.bottom = (SHORT) HIWORD(msg.lParam)-coord.top;
+			} else {
 			rect.left =	(SHORT) LOWORD(msg.wParam);
 			rect.top = (SHORT) HIWORD(msg.wParam);
 			rect.right = (SHORT) LOWORD(msg.lParam);
 			rect.bottom = (SHORT) HIWORD(msg.lParam);
-			if ((rect.left < 0) || (rect.top < 0) ||
-				(rect.right > m_desktop->m_bmrect.right) || (rect.bottom > m_desktop->m_bmrect.bottom))
-				vnclog.Print(50, VNCLOG("update:%d,%dx%d,%d\n"),
-					rect.left, rect.top, rect.right, rect.bottom);
+			}
+
+			//if ((rect.left < 0) || (rect.top < 0) ||
+			//	(rect.right > m_desktop->m_bmrect.right) || (rect.bottom > m_desktop->m_bmrect.bottom))
+			//	vnclog.Print(50, VNCLOG("update:%d,%dx%d,%d\n"),
+			//		rect.left, rect.top, rect.right, rect.bottom);
 
 			rgncache.AddRect(rect);
 //			m_server->UpdateRect(rect);
@@ -296,6 +307,7 @@ vncDesktop::vncDesktop()
 	m_formatmunged = FALSE;
 
 	m_clipboard_active = FALSE;
+	
 }
 
 vncDesktop::~vncDesktop()
@@ -882,10 +894,35 @@ vncDesktop::ResetDisplayToNormal()
 }
 
 
+
 BOOL
 vncDesktop::InitBitmap()
 {
-	// Get the device context for the whole screen and find it's size
+		  // if we only share one window
+	 if (m_server->OneSharedAppli()) {
+
+	if (m_server->WindowShared())
+	{
+		m_hrootdc = ::GetWindowDC(m_server->GetWindowShared());
+		if (m_hrootdc == NULL)
+			return FALSE;
+  // to get position of our window
+		if (!GetWindowRect(m_server->GetWindowShared(),&m_bmrect))
+		return FALSE;
+		m_server->SetMatchSizeFields(m_bmrect.left,m_bmrect.top,m_bmrect.right,m_bmrect.bottom);
+	}else{ 
+		m_bmrect=m_server->getSharedRect();
+		m_hrootdc = ::GetDC(NULL);
+		if (m_hrootdc == NULL)
+		return FALSE;
+	}
+		
+		vnclog.Print(LL_INTINFO, VNCLOG("bitmap dimensions are %d x %d\n"), (m_bmrect.right -
+		m_bmrect.left), (m_bmrect.bottom - m_bmrect.top));
+
+	 } else {// we share the desktop...
+
+// Get the device context for the whole screen and find it's size
 	m_hrootdc = ::GetDC(NULL);
 	if (m_hrootdc == NULL)
 		return FALSE;
@@ -894,6 +931,7 @@ vncDesktop::InitBitmap()
 	m_bmrect.right = GetDeviceCaps(m_hrootdc, HORZRES);
 	m_bmrect.bottom = GetDeviceCaps(m_hrootdc, VERTRES);
 	vnclog.Print(LL_INTINFO, VNCLOG("bitmap dimensions are %d x %d\n"), m_bmrect.right, m_bmrect.bottom);
+	 }
 
 	// Create a compatible memory DC
 	m_hmemdc = CreateCompatibleDC(m_hrootdc);
@@ -927,8 +965,14 @@ vncDesktop::InitBitmap()
 	}
 
 	// Create the bitmap to be compatible with the ROOT DC!!!
-	m_membitmap = CreateCompatibleBitmap(m_hrootdc, m_bmrect.right, m_bmrect.bottom);
-	if (m_membitmap == NULL) {
+
+		 if (m_server->OneSharedAppli()) {
+			 m_membitmap = CreateCompatibleBitmap(m_hrootdc, (m_bmrect.right - m_bmrect.left),
+			 (m_bmrect.bottom - m_bmrect.top));
+		 } else 
+			 m_membitmap = CreateCompatibleBitmap(m_hrootdc, m_bmrect.right, m_bmrect.bottom);
+	
+		 if (m_membitmap == NULL) {
 		vnclog.Print(LL_INTERR, VNCLOG("failed to create memory bitmap(%d)\n"), GetLastError());
 		return FALSE;
 	}
@@ -1039,6 +1083,12 @@ vncDesktop::SetPixFormat()
 	m_scrinfo.framebufferHeight = (CARD16) (m_bmrect.bottom - m_bmrect.top);	// Swap endian before actually sending
 	m_scrinfo.format.bitsPerPixel = (CARD8) m_bminfo.bmi.bmiHeader.biBitCount;
 	m_scrinfo.format.depth        = (CARD8) m_bminfo.bmi.bmiHeader.biBitCount;
+
+	if (m_server->OneSharedAppli())
+	{
+		if (m_scrinfo.format.bitsPerPixel == 8) m_scrinfo.framebufferWidth = (CARD16) ((m_bmrect.right+3 - m_bmrect.left)/4*4);
+		if (m_scrinfo.format.bitsPerPixel == 16) m_scrinfo.framebufferWidth = (CARD16) ((m_bmrect.right+1 - m_bmrect.left)/2*2);
+	}	
 
 	// Calculate the number of bytes per row
 	m_bytesPerRow = m_scrinfo.framebufferWidth * m_scrinfo.format.bitsPerPixel / 8;
@@ -1353,10 +1403,22 @@ vncDesktop::CaptureScreen(RECT &rect, BYTE *scrBuff, UINT scrBuffSize)
 		return;
 
 	// Capture screen into bitmap
-	BOOL blitok = BitBlt(m_hmemdc, rect.left, rect.top,
+BOOL blitok;
+
+		if (m_server->OneSharedAppli() && !m_server->WindowShared())
+		{
+		RECT coord = m_server->getSharedRect();
+		BOOL blitok = BitBlt(m_hmemdc, rect.left, rect.top,
 		(rect.right-rect.left),
 		(rect.bottom-rect.top),
-		m_hrootdc, rect.left, rect.top, SRCCOPY);
+		m_hrootdc, rect.left+coord.left, rect.top+coord.top, SRCCOPY);
+		}
+		else
+			BOOL blitok = BitBlt(m_hmemdc, rect.left, rect.top,
+			(rect.right-rect.left),
+			(rect.bottom-rect.top),
+			m_hrootdc, rect.left, rect.top, SRCCOPY);
+
 
 	// Select the old bitmap back into the memory DC
 	SelectObject(m_hmemdc, oldbitmap);
@@ -1389,8 +1451,20 @@ vncDesktop::CaptureMouse(BYTE *scrBuff, UINT scrBuffSize)
 	// Translate position for hotspot
 	if (GetIconInfo(m_hcursor, &IconInfo))
 	{
+		RECT coord = m_server->getSharedRect();
 		CursorPos.x -= ((int) IconInfo.xHotspot);
+		
+		// here, cursor position is relative to the screen
+		// we put them relative to the window !
+		if (m_server->OneSharedAppli())
+		   CursorPos.x = CursorPos.x - coord.left;
+		
 		CursorPos.y -= ((int) IconInfo.yHotspot);
+
+		// we have to do the same thing for y than for x !
+		if (m_server->OneSharedAppli())
+			CursorPos.y = CursorPos.y - coord.top;
+
 		if (IconInfo.hbmMask != NULL)
 			DeleteObject(IconInfo.hbmMask);
 		if (IconInfo.hbmColor != NULL)

@@ -750,6 +750,17 @@ vncClientThread::run(void *arg)
 					msg.pe.x = Swap16IfLE(msg.pe.x);
 					msg.pe.y = Swap16IfLE(msg.pe.y);
 
+				     // if we share only one window...
+			     if (m_server->OneSharedAppli())
+				 {
+					
+					RECT coord = m_server->getSharedRect();
+					
+					// to put position relative to screen
+					msg.pe.x = msg.pe.x + coord.left;
+					msg.pe.y = msg.pe.y + coord.top;
+				 }
+
 					// Work out the flags for this event
 					DWORD flags = MOUSEEVENTF_ABSOLUTE;
 					if (msg.pe.x != m_client->m_ptrevent.x ||
@@ -783,8 +794,13 @@ vncClientThread::run(void *arg)
 					}
 
 					// Generate coordinate values
-					unsigned long x = (msg.pe.x *  65535) / (m_client->m_fullscreen.right);
-					unsigned long y = (msg.pe.y * 65535) / (m_client->m_fullscreen.bottom);
+			
+					HWND bureau = GetDesktopWindow();
+					RECT coord;
+					GetWindowRect(bureau,&coord);
+
+					unsigned long x = (msg.pe.x *  65535) / (coord.right - coord.left);
+					unsigned long y = (msg.pe.y * 65535) / (coord.bottom - coord.top);
 
 					// Do the pointer event
 					::mouse_event(flags, (DWORD) x, (DWORD) y, 0, 0);
@@ -993,7 +1009,19 @@ vncClient::PollWindow(HWND hwnd)
 
 		// Get the rectangle
 		if (GetWindowRect(hwnd, &rect))
+		{
+			if (m_server->OneSharedAppli())
+			{
+
+				RECT trect = m_server->getSharedRect();
+				rect.left-=trect.left;
+				rect.top-=trect.top;
+				rect.right-=trect.left;
+				rect.bottom-=trect.top;
+			}
 			m_changed_rgn.AddRect(rect);
+		}
+
 	}
 }
 

@@ -26,7 +26,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // Dialog
 //
 
-IDD_PROPERTIES DIALOG DISCARDABLE  0, 0, 221, 204
+IDD_PROPERTIES DIALOG DISCARDABLE  0, 0, 221, 234
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_POPUP | 
     WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "Property Page"
@@ -45,7 +45,7 @@ BEGIN
                     SS_CENTERIMAGE
     EDITTEXT        IDC_PORTNO,75,30,40,15,ES_AUTOHSCROLL | ES_NUMBER
     EDITTEXT        IDC_PASSWORD,75,50,80,15,ES_PASSWORD | ES_AUTOHSCROLL
-    GROUPBOX        "Update Handling",IDC_UPDATE_BORDER,5,125,211,72
+    GROUPBOX        "Update Handling",IDC_UPDATE_BORDER,5,125,211,65
     CONTROL         "Poll Full Screen",IDC_POLL_FULLSCREEN,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,134,105,15
     CONTROL         "Poll Console Windows Only",IDC_CONSOLE_ONLY,"Button",
@@ -67,6 +67,15 @@ BEGIN
                     IDC_DISABLE_LOCAL_INPUTS,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,10,100,145,15
     PUSHBUTTON      "Ad&vanced",IDADVANCED,165,85,51,15
+    CONTROL         "One shared",IDC_ONESHARED_APPLI,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,160,216,53,10
+    EDITTEXT        IDC_NAME_APPLI,81,199,135,14,ES_AUTOHSCROLL
+    CONTROL         IDI_WINVNC,IDC_BMPCURSOR,"Static",SS_BITMAP,54,197,21,17
+    CONTROL         "Window",IDC_WINDOW,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP | WS_TABSTOP,10,202,42,8
+    CONTROL         "Screen Area",IDC_SCREEN,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,10,215,55,10
+    GROUPBOX        "Share",IDC_PARTAGE_BORDER,5,190,211,36
 END
 
 IDD_ABOUT DIALOG DISCARDABLE  0, 0, 326, 122
@@ -185,7 +194,7 @@ BEGIN
         VERTGUIDE, 165
         VERTGUIDE, 180
         TOPMARGIN, 5
-        BOTTOMMARGIN, 197
+        BOTTOMMARGIN, 227
         HORZGUIDE, 15
         HORZGUIDE, 20
         HORZGUIDE, 25
@@ -393,6 +402,16 @@ IDR_DESCIPHER_CLASS     JAVACLASS DISCARDABLE   "res\\DesCipher.class"
 //
 
 IDB_VNCLOGO             BITMAP  DISCARDABLE     "res\\tightvnc.bmp"
+IDB_BITMAP1             BITMAP  DISCARDABLE     "res\\bitmap1.bmp"
+IDB_BITMAP2             BITMAP  DISCARDABLE     "res\\bitmap2.bmp"
+IDB_BITMAP3             BITMAP  DISCARDABLE     "res\\bitmap3.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Cursor
+//
+
+IDC_CURSOR1             CURSOR  DISCARDABLE     "res\\cursor1.cur"
 
 /////////////////////////////////////////////////////////////////////////////
 //

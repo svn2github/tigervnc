@@ -41,6 +41,7 @@ class vncProperties;
 // Includes
 #include "stdhdrs.h"
 #include "vncServer.h"
+#include "MatchWindow.h"
 
 // The vncProperties class itself
 class vncProperties
@@ -103,6 +104,7 @@ protected:
 
 	// Making the loaded user prefs active
 	void ApplyUserPrefs();
+	void SetWindowCaption(HWND hWnd);
 	
 	BOOL m_returncode_valid;
 	BOOL m_dlgvisible;
@@ -129,6 +131,17 @@ protected:
 	BOOL m_pref_PollFullScreen;
 	BOOL m_pref_PollConsoleOnly;
 	BOOL m_pref_PollOnEventOnly;
+    BOOL m_pref_SharedOneAppliOnly;
+	BOOL m_pref_WindowShared;
+	HWND hNameAppli;
+
+private:
+static  void DrawFrameAroundWindow(HWND hWnd);
+static  LRESULT CALLBACK BmpWndProc(HWND, UINT, WPARAM, LPARAM);
+	LONG m_OldBmpWndProc;
+	BOOL m_bCaptured;
+	HWND m_KeepHandle;
+	CMatchWindow* m_pMatchWindow;
 };
 
 #endif // _WINVNC_VNCPROPERTIES

@@ -67,10 +67,17 @@ vncProperties::vncProperties()
 	m_dlgvisible = FALSE;
 	m_usersettings = TRUE;
 	m_inadvanced = FALSE;
+	m_bCaptured= FALSE;
+	m_KeepHandle = NULL;
+	m_pMatchWindow = NULL;
+
 }
 
 vncProperties::~vncProperties()
 {
+	if (m_pMatchWindow!=NULL)
+		delete m_pMatchWindow;
+
 }
 
 // Initialisation
@@ -119,7 +126,7 @@ vncProperties::Init(vncServer *server)
 				}
 			}
 	}
-
+			
 	return TRUE;
 }
 
@@ -264,6 +271,53 @@ vncProperties::DialogProc(HWND hwnd,
 				SetWindowText(hwnd, "WinVNC: Default Local System Properties");
 			}
 
+			
+			HWND bmp_hWnd=GetDlgItem(hwnd,IDC_BMPCURSOR);
+			_this->m_OldBmpWndProc=GetWindowLong(bmp_hWnd,GWL_WNDPROC);
+			SetWindowLong(bmp_hWnd,GWL_WNDPROC,(LONG)BmpWndProc);
+			SetWindowLong(bmp_hWnd, GWL_USERDATA, (LONG)_this);
+		    HBITMAP hNewImage,hOldImage;
+
+			_this->hNameAppli = GetDlgItem(hwnd, IDC_NAME_APPLI);
+
+		if (_this->m_pref_SharedOneAppliOnly)
+				{
+					if(_this->m_pref_WindowShared)
+					{
+						EnableWindow(bmp_hWnd,TRUE);
+						hNewImage=LoadBitmap(hAppInstance,MAKEINTRESOURCE(IDB_BITMAP1));
+						hOldImage=(HBITMAP)::SendMessage(bmp_hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
+						DeleteObject(hOldImage);	
+						_this->SetWindowCaption(_this->m_server->GetWindowShared());
+					}else {
+				       	EnableWindow(bmp_hWnd,FALSE);
+					    hNewImage=LoadBitmap(hAppInstance,MAKEINTRESOURCE(IDB_BITMAP3));
+						hOldImage=(HBITMAP)::SendMessage(bmp_hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
+  						DeleteObject(hOldImage);
+						::SetWindowText(_this->hNameAppli,"Screen Shared");                                                                                                  
+
+						if (_this->m_pMatchWindow == NULL) 
+						{
+							_this->m_pMatchWindow=new CMatchWindow(_this->m_server,10,10,150,150);
+							_this->m_pMatchWindow->CanModify(TRUE);
+						}
+						
+							_this->m_pMatchWindow->Show();}}
+				else {
+						
+						HWND ShWnd=GetDlgItem(hwnd,IDC_WINDOW);
+						EnableWindow(ShWnd,FALSE);
+						HWND ShWnds=GetDlgItem(hwnd,IDC_SCREEN);
+						EnableWindow(ShWnds,FALSE);							
+						EnableWindow(bmp_hWnd,FALSE);
+					    hNewImage=LoadBitmap(hAppInstance,MAKEINTRESOURCE(IDB_BITMAP3));
+						hOldImage=(HBITMAP)::SendMessage(bmp_hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
+						DeleteObject(hOldImage);
+						if (_this->m_pMatchWindow!=NULL) 
+							_this->m_pMatchWindow->Hide();
+							
+				}
+
 			// Initialise the properties controls
 			HWND hConnectSock = GetDlgItem(hwnd, IDC_CONNECT_SOCK);
 			SendMessage(hConnectSock,
@@ -356,6 +410,24 @@ vncProperties::DialogProc(HWND hwnd,
 				_this->m_server->PollUnderCursor() || _this->m_server->PollForeground()
 				);
 
+			HWND hOneSharedAppli = GetDlgItem(hwnd, IDC_ONESHARED_APPLI);
+            SendMessage(hOneSharedAppli,    
+			    BM_SETCHECK,
+                _this->m_server->OneSharedAppli(),   0);
+
+                      
+           EnableWindow(_this->hNameAppli,(_this->m_server->OneSharedAppli() && _this->m_pref_WindowShared));
+
+			HWND hWindowCaption = GetDlgItem(hwnd, IDC_WINDOW);
+			SendMessage(hWindowCaption,
+				BM_SETCHECK, 
+				_this->m_pref_WindowShared,0);
+
+			HWND hScreenCaption = GetDlgItem(hwnd, IDC_SCREEN);
+			SendMessage(hScreenCaption,
+				BM_SETCHECK, 
+				!(_this->m_pref_WindowShared),0);
+
 			SetForegroundWindow(hwnd);
 
 			_this->m_dlgvisible = TRUE;
@@ -447,6 +519,31 @@ vncProperties::DialogProc(HWND hwnd,
 				_this->m_server->PollOnEventOnly(
 					SendMessage(hPollOnEventOnly, BM_GETCHECK, 0, 0) == BST_CHECKED
 					);
+
+				// Handle the share one window stuff
+			    HWND hOneSharedAppli = GetDlgItem(hwnd, IDC_ONESHARED_APPLI);
+			    _this->m_server->OneSharedAppli(
+					SendMessage(hOneSharedAppli, BM_GETCHECK, 0, 0) == BST_CHECKED
+					);
+				
+    
+				HWND hWindowCapture = GetDlgItem(hwnd, IDC_WINDOW);
+			    _this->m_server->WindowShared(
+					SendMessage(hWindowCapture, BM_GETCHECK, 0, 0) == BST_CHECKED
+					);
+
+				if(!_this->m_pref_WindowShared)
+				{
+					 int left,right,top,bottom;
+						::SetWindowText(_this->hNameAppli,"Screen Shared");
+	                if (_this->m_pMatchWindow!=NULL) 
+					{
+					_this->m_pMatchWindow->GetPosition(left,top,right,bottom);
+                    _this->m_pMatchWindow->m_pServer->SetMatchSizeFields(left,top,right,bottom);
+				}
+				}else
+					_this->SetWindowCaption(_this->m_server->GetWindowShared());
+
 
 				// And to the registry
 				_this->Save();
@@ -550,7 +647,112 @@ vncProperties::DialogProc(HWND hwnd,
 			}
 			return TRUE;
 
-		}
+		case IDC_ONESHARED_APPLI:
+			{	
+				HWND hOneSharedAppli = GetDlgItem(hwnd,IDC_ONESHARED_APPLI);
+
+				BOOL partage = (SendMessage(hOneSharedAppli,BM_GETCHECK,0, 0) == BST_CHECKED);
+
+				 _this->hNameAppli = GetDlgItem(hwnd, IDC_NAME_APPLI);
+				EnableWindow(_this->hNameAppli,(partage && _this->m_pref_WindowShared));
+				
+				HWND bmp_hWnd=GetDlgItem(hwnd,IDC_BMPCURSOR);
+			    HBITMAP hNewImage,hOldImage;
+	
+				
+				if (!(partage)){
+					HWND ShWnd=GetDlgItem(hwnd,IDC_WINDOW);
+					EnableWindow(ShWnd,FALSE);
+					HWND ShWnds=GetDlgItem(hwnd,IDC_SCREEN);
+					EnableWindow(ShWnds,FALSE);
+					HWND Shnwnd = GetDlgItem(hwnd, IDC_NAME_APPLI);
+					EnableWindow(Shnwnd,FALSE);
+					if (_this->m_pMatchWindow!=NULL) 
+					_this->m_pMatchWindow->Hide();
+					EnableWindow(bmp_hWnd,FALSE);
+					hNewImage=LoadBitmap(hAppInstance,MAKEINTRESOURCE(IDB_BITMAP3));
+					hOldImage=(HBITMAP)::SendMessage(bmp_hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
+					DeleteObject(hOldImage);}
+				else {
+					   HWND ShWnd=GetDlgItem(hwnd,IDC_WINDOW);
+					   EnableWindow(ShWnd,TRUE);
+					   HWND ShWnds=GetDlgItem(hwnd,IDC_SCREEN);
+					   EnableWindow(ShWnds,TRUE);
+					   
+					if ( _this->m_pref_WindowShared ) {
+				       EnableWindow(bmp_hWnd,TRUE);
+				       hNewImage=LoadBitmap(hAppInstance,MAKEINTRESOURCE(IDB_BITMAP1));
+					   hOldImage=(HBITMAP)::SendMessage(bmp_hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
+					   DeleteObject(hOldImage);	
+					   HWND Shnwnd = GetDlgItem(hwnd, IDC_NAME_APPLI);
+	      			   EnableWindow(Shnwnd,TRUE);
+	     			   _this->SetWindowCaption(_this->m_server->GetWindowShared());
+					}else {
+						EnableWindow(bmp_hWnd,FALSE);
+					    hNewImage=LoadBitmap(hAppInstance,MAKEINTRESOURCE(IDB_BITMAP3));
+						hOldImage=(HBITMAP)::SendMessage(bmp_hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
+						DeleteObject(hOldImage);
+						HWND Shnwnd = GetDlgItem(hwnd, IDC_NAME_APPLI);
+						EnableWindow(Shnwnd,FALSE);
+						if (_this->m_pMatchWindow == NULL) 
+						{
+							_this->m_pMatchWindow=new CMatchWindow(_this->m_server,10,10,150,150);
+							_this->m_pMatchWindow->CanModify(TRUE);
+						}
+						_this->m_pMatchWindow->Show();}}
+			
+						
+				}
+			return TRUE;
+
+		case IDC_WINDOW:
+			{
+				HWND bmp_hWnd=GetDlgItem(hwnd,IDC_BMPCURSOR);
+			    HBITMAP hNewImage,hOldImage;
+				_this->m_pref_WindowShared = TRUE;
+		       EnableWindow(bmp_hWnd,TRUE);
+		       hNewImage=LoadBitmap(hAppInstance,MAKEINTRESOURCE(IDB_BITMAP1));
+			   hOldImage=(HBITMAP)::SendMessage(bmp_hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
+			   DeleteObject(hOldImage);	
+		       if (_this->m_pMatchWindow!=NULL) 
+			   _this->m_pMatchWindow->Hide();
+    		   _this->SetWindowCaption(_this->m_server->GetWindowShared());
+
+			EnableWindow(GetDlgItem(hwnd,IDC_NAME_APPLI),TRUE);
+			
+			}
+			return TRUE;
+
+		case IDC_SCREEN:
+			{
+			
+			if (_this->m_pMatchWindow == NULL) 
+			{
+				_this->m_pMatchWindow=new CMatchWindow(_this->m_server,10,10,150,150);
+				_this->m_pMatchWindow->CanModify(TRUE);
+			}
+
+				HWND bmp_hWnd=GetDlgItem(hwnd,IDC_BMPCURSOR);
+			    HBITMAP hNewImage,hOldImage;
+			     	::SetWindowText(_this->hNameAppli,"Screen Shared");
+				_this->m_pref_WindowShared = FALSE;
+							EnableWindow(bmp_hWnd,FALSE);
+						    hNewImage=LoadBitmap(hAppInstance,MAKEINTRESOURCE(IDB_BITMAP3));
+							hOldImage=(HBITMAP)::SendMessage(bmp_hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
+							DeleteObject(hOldImage);
+						    if (_this->m_pMatchWindow!=NULL) 
+							_this->m_pMatchWindow->Show();
+			
+			EnableWindow(GetDlgItem(hwnd,IDC_NAME_APPLI),FALSE);
+					
+					
+			
+			}
+		
+			return TRUE;
+
+	}		
+	
 
 		break;
 	}
@@ -831,6 +1033,8 @@ vncProperties::Load(BOOL usersettings)
 	m_pref_RemoveWallpaper=TRUE;
 	m_allowshutdown = TRUE;
 	m_allowproperties = TRUE;
+	m_pref_SharedOneAppliOnly = FALSE;
+	m_pref_WindowShared = TRUE;
 
 	// Load the local prefs for this user
 	if (hkDefault != NULL)
@@ -924,6 +1128,8 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	m_pref_PollFullScreen=LoadInt(appkey, "PollFullScreen", m_pref_PollFullScreen);
 	m_pref_PollConsoleOnly=LoadInt(appkey, "OnlyPollConsole", m_pref_PollConsoleOnly);
 	m_pref_PollOnEventOnly=LoadInt(appkey, "OnlyPollOnEvent", m_pref_PollOnEventOnly);
+	m_pref_SharedOneAppliOnly=LoadInt(appkey, "SharedOneAppliOnly",m_pref_SharedOneAppliOnly);
+	m_pref_WindowShared=LoadInt(appkey, "WindowShared",m_pref_WindowShared);
 }
 
 void
@@ -976,6 +1182,8 @@ vncProperties::ApplyUserPrefs()
 	m_server->PollFullScreen(m_pref_PollFullScreen);
 	m_server->PollConsoleOnly(m_pref_PollConsoleOnly);
 	m_server->PollOnEventOnly(m_pref_PollOnEventOnly);
+	m_server->OneSharedAppli(m_pref_SharedOneAppliOnly);
+	m_server->WindowShared(m_pref_WindowShared);
 }
 
 void
@@ -1086,4 +1294,137 @@ vncProperties::SaveUserPrefs(HKEY appkey)
 
 	SaveInt(appkey, "OnlyPollConsole", m_server->PollConsoleOnly());
 	SaveInt(appkey, "OnlyPollOnEvent", m_server->PollOnEventOnly());
+	SaveInt(appkey, "SharedOneAppliOnly", m_server->OneSharedAppli());
+	SaveInt(appkey, "WindowShared", m_pref_WindowShared);
 }
+
+
+LRESULT CALLBACK vncProperties::BmpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{	HBITMAP hNewImage,hOldImage;
+	HCURSOR hNewCursor,hOldCursor;
+	vncProperties* pDialog=(vncProperties*) GetWindowLong(hWnd,GWL_USERDATA);
+
+	switch (message)
+	{
+		case WM_SETCURSOR :
+			if (HIWORD(lParam)==WM_LBUTTONDOWN)
+			{
+					SetCapture(hWnd);
+					hNewImage=LoadBitmap(hAppInstance,MAKEINTRESOURCE(IDB_BITMAP2));
+					hOldImage=(HBITMAP)::SendMessage(hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
+					DeleteObject(hOldImage);
+					hNewCursor=(HCURSOR)LoadImage(hAppInstance,MAKEINTRESOURCE(IDC_CURSOR1),IMAGE_CURSOR,32,32,LR_DEFAULTCOLOR);
+ 					hOldCursor=SetCursor(hNewCursor);
+					DestroyCursor(hOldCursor);
+					pDialog->m_bCaptured=TRUE;
+			}
+			break;
+		case WM_LBUTTONUP:
+			ReleaseCapture();
+			if (pDialog->m_KeepHandle!=NULL)
+			{
+				// We need to remove frame
+				DrawFrameAroundWindow(pDialog->m_KeepHandle);
+				pDialog->m_server->SetWindowShared(pDialog->m_KeepHandle);
+				// No more need
+				pDialog->m_KeepHandle=NULL;
+			}
+			hNewImage=LoadBitmap(hAppInstance,MAKEINTRESOURCE(IDB_BITMAP1));
+			hOldImage=(HBITMAP)::SendMessage(hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
+			DeleteObject(hOldImage);
+			hNewCursor=LoadCursor(hAppInstance,MAKEINTRESOURCE(IDC_ARROW));
+			hOldCursor=SetCursor(hNewCursor);
+			DestroyCursor(hOldCursor);
+			pDialog->m_bCaptured=FALSE;
+			break;
+		case WM_MOUSEMOVE:
+			if (pDialog->m_bCaptured)
+			{
+				HWND hParent=::GetParent(hWnd);
+
+				POINTS pnt;
+				POINT pnt1;
+				pnt=MAKEPOINTS(lParam);
+				pnt1.x=pnt.x;
+				pnt1.y=pnt.y;
+				ClientToScreen(hWnd,&pnt1);
+				HWND hMouseWnd=::WindowFromPoint(pnt1);
+				if (pDialog->m_KeepHandle!=hMouseWnd)
+				{
+					// New Windows Handle
+					// Was KeepHndle A Real Window ?
+					if (pDialog->m_KeepHandle!=NULL)
+					{
+						// We need to remove frame
+                        vncProperties::DrawFrameAroundWindow(pDialog->m_KeepHandle);
+					}
+					pDialog->m_KeepHandle=hMouseWnd;
+
+					if (!IsChild(hParent,hMouseWnd) && (hMouseWnd!=hParent))
+					{
+						 pDialog->SetWindowCaption(hMouseWnd);
+                         vncProperties::DrawFrameAroundWindow(hMouseWnd);
+					}
+					else
+					{	// My Window
+						pDialog->m_KeepHandle=NULL;
+						pDialog->SetWindowCaption(NULL);
+
+					}
+				}
+			}
+			break;
+		case WM_PAINT:
+		case STM_SETIMAGE:
+			return CallWindowProc( (WNDPROC) pDialog->m_OldBmpWndProc,  hWnd, message, wParam, lParam);
+		default:
+			return DefWindowProc( hWnd, message, wParam, lParam);
+   }
+   return 0;
+}
+
+
+void vncProperties::DrawFrameAroundWindow(HWND hWnd)
+{
+
+	HDC hWindowDc=::GetWindowDC(hWnd);
+	HBRUSH hBrush=CreateSolidBrush(RGB(0,0,0));
+
+        HRGN Rgn=CreateRectRgn(0,0,1,1);
+        int iRectResult=GetWindowRgn(hWnd,Rgn);
+        if (iRectResult==ERROR || iRectResult==NULLREGION || Rgn==NULL)
+        {
+            RECT rect;
+            GetWindowRect(hWnd,&rect);
+	    OffsetRect(&rect,-rect.left,-rect.top);
+	    Rgn=CreateRectRgn(rect.left,rect.top,rect.right,rect.bottom);
+        }
+
+
+	SetROP2(hWindowDc,R2_MERGEPENNOT);
+	FrameRgn(hWindowDc,Rgn,hBrush,3,3);
+
+	::DeleteObject(Rgn);
+	::DeleteObject(hBrush);
+    ::ReleaseDC(hWnd,hWindowDc);
+}
+
+void vncProperties::SetWindowCaption(HWND hWnd)
+{
+	char strWindowText[255];
+	if (hWnd==NULL)
+	{
+	memcpy(strWindowText,"NO WINDOW",9);
+	}
+	else
+	{
+		GetWindowText(hWnd,strWindowText,sizeof(strWindowText));
+		if (strWindowText[0]==0)
+		{
+			int bytes=sprintf(strWindowText,"0x%x ",hWnd);
+			GetClassName(hWnd,strWindowText+bytes,sizeof(strWindowText)-bytes);
+		}
+	}
+	::SetWindowText(hNameAppli,strWindowText);
+}
+

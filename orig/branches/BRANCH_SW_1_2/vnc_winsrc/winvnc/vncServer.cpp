@@ -99,6 +99,11 @@ vncServer::vncServer()
 	// Signal set when a client quits
 	m_clientquitsig = new omni_condition(&m_clientsLock);
 	m_clients_disabled = FALSE;
+	
+	// one window shared stuff
+	m_shared_oneapplionly = FALSE;
+    m_WindowShared= TRUE;
+	m_hwndShared = NULL;
 }
 
 vncServer::~vncServer()
@@ -1425,4 +1430,19 @@ vncServer::RemAuthHostsBlacklist(const char *machine) {
 		previous = current;
 		current = current->_next;
 	}
+}
+
+void
+vncServer::SetWindowShared(HWND hWnd)
+{
+ m_hwndShared=hWnd;
+}
+
+void 
+vncServer::SetMatchSizeFields(int left,int top,int right,int bottom)
+{
+	m_shared_rect.left=left;
+	m_shared_rect.top=top;
+	m_shared_rect.bottom=bottom;
+	m_shared_rect.right=right;
 }

@@ -247,6 +247,16 @@ public:
 	virtual void EnableRemoveWallpaper(const BOOL enable) {m_remove_wallpaper = enable;};
 	virtual BOOL RemoveWallpaperEnabled() {return m_remove_wallpaper;};
 
+    // handling to share only one window
+    virtual void OneSharedAppli(BOOL enable) { m_shared_oneapplionly = enable; };
+    virtual BOOL OneSharedAppli() { return m_shared_oneapplionly; };
+	virtual void WindowShared(BOOL enable) { m_WindowShared = enable; };
+    virtual BOOL WindowShared() { return m_WindowShared; };
+    virtual void SetMatchSizeFields(int left,int top,int right,int bottom);
+	virtual void SetWindowShared(HWND hWnd);
+    virtual HWND GetWindowShared() { return m_hwndShared; };
+	virtual RECT getSharedRect () { return m_shared_rect; };
+
 	// Internal stuffs
 protected:
 	// Connection servers
@@ -258,6 +268,7 @@ protected:
 	vncDesktop			*m_desktop;
 
 	// General preferences
+	RECT			    m_shared_rect;
 	UINT				m_port;
 	BOOL				m_autoportselect;
 	char				m_password[MAXPWLEN];
@@ -289,6 +300,11 @@ protected:
 
 	BOOL				m_poll_oneventonly;
 	BOOL				m_poll_consoleonly;
+
+    // shared preferences
+     BOOL    m_shared_oneapplionly;
+     HWND    m_hwndShared; // to keep the window 
+	 BOOL	 m_WindowShared;
 
 	// Name of this desktop
 	char				*m_name;

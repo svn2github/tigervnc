@@ -66,8 +66,6 @@ class ButtonPanel extends Panel implements ActionListener {
     clipboardButton.setEnabled(true);
     ctrlAltDelButton.setEnabled(true);
     refreshButton.setEnabled(true);
-
-    viewer.moveFocusToDesktop();
   }
 
   public void actionPerformed(ActionEvent evt) {

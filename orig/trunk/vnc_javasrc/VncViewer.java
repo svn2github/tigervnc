@@ -161,6 +161,7 @@ public class VncViewer extends java.applet.Applet
       if (options.showControls)
         buttonPanel.enableButtons();
 
+      moveFocusToDesktop();
       vc.processNormalProtocol();
 
     } catch (Exception e) {
@@ -177,17 +178,35 @@ public class VncViewer extends java.applet.Applet
 
   void connectAndAuthenticate() throws IOException {
 
-    if (password == null) {
-      GridBagConstraints gbc = new GridBagConstraints();
-      gbc.gridwidth = GridBagConstraints.REMAINDER;
-      gbc.anchor = GridBagConstraints.NORTHWEST;
-      gbc.weightx = 1.0;
-      gbc.weighty = 1.0;
-      gbc.ipadx = 100;
-      gbc.ipady = 50;
-      gridbag.setConstraints(authenticator, gbc);
-      vncContainer.add(authenticator);
+    // The simplest case -- don't ask user a password, get it from the
+    // "PASSWORD" parameter instead. Authentication failures would be
+    // fatal.
+
+    if (password != null) {
+      if (inSeparateFrame) {
+	vncFrame.pack();
+	vncFrame.show();
+      } else {
+	validate();
+      }
+      if (!tryAuthenticate(password)) {
+	throw new IOException("VNC authentication failed");
+      }
+      return;
     }
+
+    // There is no "PASSWORD" parameter -- ask user for a password,
+    // try to authenticate, retry on authentication failures.
+
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.gridwidth = GridBagConstraints.REMAINDER;
+    gbc.anchor = GridBagConstraints.NORTHWEST;
+    gbc.weightx = 1.0;
+    gbc.weighty = 1.0;
+    gbc.ipadx = 100;
+    gbc.ipady = 50;
+    gridbag.setConstraints(authenticator, gbc);
+    vncContainer.add(authenticator);
 
     if (inSeparateFrame) {
       vncFrame.pack();
@@ -201,91 +220,93 @@ public class VncViewer extends java.applet.Applet
       // requestFocus() does not work. Currently, I don't know how to
       // solve this problem.
       //   -- const
-      if (password == null)
-	authenticator.moveFocusToPasswordField();
+      authenticator.moveFocusToPasswordField();
     }
 
-    boolean authenticationDone = false;
-
-    while (!authenticationDone) {
-
-      if (password == null) {
-        synchronized(authenticator) {
-          try {
-            authenticator.wait();
-          } catch (InterruptedException e) {
-          }
-        }
+    while (true) {
+      // Wait for user entering a password.
+      synchronized(authenticator) {
+	try {
+	  authenticator.wait();
+	} catch (InterruptedException e) {
+	}
       }
 
-      rfb = new RfbProto(host, port, this);
-
-      rfb.readVersionMsg();
-
-      System.out.println("RFB server supports protocol version " +
-			 rfb.serverMajor + "." + rfb.serverMinor);
-
-      rfb.writeVersionMsg();
-
-      switch (rfb.readAuthScheme()) {
-
-      case RfbProto.NoAuth:
-	System.out.println("No authentication needed");
-	authenticationDone = true;
+      // Try to authenticate with a given password.
+      if (tryAuthenticate(authenticator.password.getText()))
 	break;
 
-      case RfbProto.VncAuth:
-	byte[] challenge = new byte[16];
-	rfb.is.readFully(challenge);
-
-	String pw;
-	if (password == null)
-          pw = authenticator.password.getText();
-	else
-          pw = password;
-
-	if (pw.length() > 8)
-          pw = pw.substring(0, 8); // Truncate to 8 chars
-
-	if (pw.length() == 0 && password == null) {
-	  authenticator.retry();
-	  break;
-	}
-
-	byte[] key = {0, 0, 0, 0, 0, 0, 0, 0};
-        System.arraycopy(pw.getBytes(), 0, key, 0, pw.length());
-
-	DesCipher des = new DesCipher(key);
-
-	des.encrypt(challenge, 0, challenge, 0);
-	des.encrypt(challenge, 8, challenge, 8);
-
-	rfb.os.write(challenge);
-
-	int authResult = rfb.is.readInt();
-
-	switch (authResult) {
-	case RfbProto.VncAuthOK:
-	  System.out.println("VNC authentication succeeded");
-	  authenticationDone = true;
-	  break;
-	case RfbProto.VncAuthFailed:
-	  System.out.println("VNC authentication failed");
-	  authenticator.retry();
-	  break;
-	case RfbProto.VncAuthTooMany:
-	  throw new IOException("VNC authentication failed - " +
-				"too many tries");
-	default:
-	  throw new IOException("Unknown VNC authentication result " +
-				authResult);
-	}
-	break;
-      }
+      // Retry on authentication failure.
+      authenticator.retry();
     }
 
-    if (password == null)
-      vncContainer.remove(authenticator);
+    vncContainer.remove(authenticator);
+  }
+
+
+  //
+  // Try to authenticate with a given password.
+  //
+
+  boolean tryAuthenticate(String pw) throws IOException {
+
+    rfb = new RfbProto(host, port, this);
+
+    rfb.readVersionMsg();
+
+    System.out.println("RFB server supports protocol version " +
+		       rfb.serverMajor + "." + rfb.serverMinor);
+
+    rfb.writeVersionMsg();
+
+    int authScheme = rfb.readAuthScheme();
+
+    switch (authScheme) {
+
+    case RfbProto.NoAuth:
+      System.out.println("No authentication needed");
+      return true;
+
+    case RfbProto.VncAuth:
+      byte[] challenge = new byte[16];
+      rfb.is.readFully(challenge);
+
+      if (pw.length() > 8)
+	pw = pw.substring(0, 8); // Truncate to 8 chars
+
+      byte[] key = {0, 0, 0, 0, 0, 0, 0, 0};
+      System.arraycopy(pw.getBytes(), 0, key, 0, pw.length());
+
+      DesCipher des = new DesCipher(key);
+
+      des.encrypt(challenge, 0, challenge, 0);
+      des.encrypt(challenge, 8, challenge, 8);
+
+      rfb.os.write(challenge);
+
+      int authResult = rfb.is.readInt();
+
+      switch (authResult) {
+      case RfbProto.VncAuthOK:
+	System.out.println("VNC authentication succeeded");
+	return true;
+      case RfbProto.VncAuthFailed:
+	System.out.println("VNC authentication failed");
+	break;
+      case RfbProto.VncAuthTooMany:
+	throw new IOException("VNC authentication failed - " +
+			      "too many tries");
+      default:
+	throw new IOException("Unknown VNC authentication result " +
+			      authResult);
+      }
+      break;
+
+    default:
+      throw new IOException("Unknown VNC authentication scheme " +
+			    authScheme);
+    }
+    return false;
   }
 
 
@@ -399,8 +420,7 @@ public class VncViewer extends java.applet.Applet
 
   //
   // moveFocusToDesktop() - move keyboard focus either to the
-  // VncCanvas or to the AuthPanel. Used by the ButtonPanel to return
-  // the keyboard focus to a more important component.
+  // VncCanvas or to the AuthPanel.
   //
 
   void moveFocusToDesktop() {
@@ -424,13 +444,19 @@ public class VncViewer extends java.applet.Applet
 
     if (inAnApplet) {
       vncContainer.removeAll();
-      rfb.close();
-      rfb = null;
+      if (rfb != null) {
+	rfb.close();
+	rfb = null;
+      }
       Label errLabel = new Label("Disconnected");
       errLabel.setFont(new Font("Helvetica", Font.PLAIN, 12));
       vncContainer.setLayout(new FlowLayout(FlowLayout.LEFT, 30, 30));
       vncContainer.add(errLabel);
-      vncContainer.validate();
+      if (inSeparateFrame) {
+	vncFrame.pack();
+      } else {
+	validate();
+      }
       rfbThread.stop();
     } else {
       System.exit(0);
@@ -446,14 +472,39 @@ public class VncViewer extends java.applet.Applet
 
     if (inAnApplet) {
       vncContainer.removeAll();
+      if (rfb != null) {
+	rfb.close();
+	rfb = null;
+      }
       Label errLabel = new Label(str);
       errLabel.setFont(new Font("Helvetica", Font.PLAIN, 12));
       vncContainer.setLayout(new FlowLayout(FlowLayout.LEFT, 30, 30));
       vncContainer.add(errLabel);
-      vncContainer.validate();
+      if (inSeparateFrame) {
+	vncFrame.pack();
+      } else {
+	validate();
+      }
       Thread.currentThread().stop();
     } else {
       System.exit(1);
+    }
+  }
+
+
+  //
+  // This method is called before the applet is destroyed.
+  //
+
+  public void destroy() {
+    vncContainer.removeAll();
+    options.dispose();
+    clipboard.dispose();
+    if (rfb != null) {
+      rfb.close();
+    }
+    if (inSeparateFrame) {
+      vncFrame.dispose();
     }
   }
 
@@ -467,6 +518,9 @@ public class VncViewer extends java.applet.Applet
       disconnect();
 
     vncFrame.dispose();
+    if (!inAnApplet) {
+      System.exit(0);
+    }
   }
 
   //

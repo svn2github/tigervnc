@@ -749,13 +749,13 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDC_CONNECT_SOCK        "Accept socket connections"
+    IDC_CONNECT_SOCK        "This option controls whether it is possible to connect to this computer with a VNC Viewer. Clearing the checkbox will ensure that remote connections won't be accepted."
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDC_DISPLAYNO           "display:"
-    IDC_PASSWORD            "Primary password:"
+    IDC_PASSWORD            "Users authenticated with the primary password are given full control over the server's desktop. Note that only first 8 characters of passwords are used in the standard VNC authentication."
     IDC_POLL_FULLSCREEN     "Poll full screen"
     IDC_CONSOLE_ONLY        "Poll console windows only"
     IDC_POLL_FOREGROUND     "Poll foreground window"
@@ -764,7 +764,7 @@ BEGIN
     IDC_REMOTE_DISABLE      "Disable remote keyboard and pointer on local activity"
     IDC_PORTHTTP            "HTTP port:"
     IDC_PORTRFB             "main port:"
-    IDC_PASSWORD_VIEWONLY   "View-only password:"
+    IDC_PASSWORD_VIEWONLY   "Users authenticated with view-only password are allowed to view the server's desktop, but cannot control it with their mouse and keyboard. Note that only first 8 characters of passwords are used in the standard VNC authentication."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -773,14 +773,14 @@ BEGIN
     IDC_POLL_TIMER          "Polling cycle:"
     IDC_ACTION_REFUSE       "Refuse"
     IDC_ACTION_ACCEPT       "Accept"
-    IDC_REMOVE_WALLPAPER    "Remove desktop wallpaper on client connections"
+    IDC_REMOVE_WALLPAPER    "Do not show the desktop wallpaper while at least one viewer is connected to this server. This both saves bandwidth and decreases CPU utilization on the server, resulting in better responsiveness of the remote desktop."
     IDC_LOCKSETTING_NOTHING "Do nothing"
     IDC_LOCKSETTING_LOCK    "Lock workstation"
     IDC_LOCKSETTING_LOGOFF  "Logoff workstation"
     IDC_DONT_SET_HOOKS      "Don't use VNCHooks.DLL while polling full screen"
     IDC_ENABLE_FILE_TRANSFERS 
-                            "Enable file transfers between server and clients"
-    IDC_TAB                 "tab control"
+                            "When this option is set, remote viewers will be allowed to transfer any files between their local computers and this server."
+    IDC_TAB                 "Here you can choose a group of configuration settings to edit."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -795,7 +795,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDC_DISABLE_INPUTS      "Disable remote keyboard and pointer (all clients view only"
-    IDC_APPLY               "&Apply"
+    IDC_APPLY               "Apply the changes but do not close the dialog box."
     IDC_PORTNO_AUTO         "auto"
     IDC_DISABLE_LOCAL_INPUTS 
                             "Disable local keyboard and pointer during client sessions"
@@ -815,8 +815,8 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDOK                    "&OK"
-    IDCANCEL                "&Cancel"
+    IDOK                    "Apply the changes and close the dialog box."
+    IDCANCEL                "Cancel any input and close the dialog box."
 END
 
 STRINGTABLE DISCARDABLE 

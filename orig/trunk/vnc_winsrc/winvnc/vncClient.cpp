@@ -224,6 +224,7 @@ vncClientThread::InitAuthenticate()
 #endif
 
 	// By default we filter out local loop connections, because they're pointless
+#ifndef HORIZONLIVE
 	if (!m_server->LoopbackOk())
 	{
 		char *localname = strdup(m_socket->GetSockName());
@@ -246,6 +247,7 @@ vncClientThread::InitAuthenticate()
 			}
 		}
 	}
+#endif
 
 	// Verify the peer host name against the AuthHosts string
 	vncServer::AcceptQueryReject verified;

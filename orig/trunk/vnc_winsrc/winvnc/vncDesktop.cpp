@@ -2120,8 +2120,8 @@ vncDesktop::GetChangedRegion(vncRegion &rgn, RECT &rect)
 	int bytesPerRowRect = (rect.right-rect.left)*bytesPerPixel;
 
 	// Scan down the rectangle
-	unsigned char *o_topleft_ptr = m_backbuff + (rect.top * m_bytesPerRow) + (rect.left * bytesPerPixel)+bytesPerPixel;
-	unsigned char *n_topleft_ptr = m_mainbuff + (rect.top * m_bytesPerRow) + (rect.left * bytesPerPixel)+bytesPerPixel;
+	unsigned char *o_topleft_ptr = m_backbuff + (rect.top * m_bytesPerRow) + (rect.left * bytesPerPixel);
+	unsigned char *n_topleft_ptr = m_mainbuff + (rect.top * m_bytesPerRow) + (rect.left * bytesPerPixel);
 
 	for (y = rect.top; y<rect.bottom; y++)
 	{

@@ -287,7 +287,7 @@ FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "&OK",IDACCEPT,17,31,47,17
     PUSHBUTTON      "&Cancel",IDREJECT,113,31,48,17,0,WS_EX_TRANSPARENT
-    CTEXT           "Would you like to share your computer now via LiveShare ?",
+    CTEXT           "Would you like to share your computer desktop via LiveShare now?",
                     IDC_STATIC_TEXT2,8,2,163,17
 END
 

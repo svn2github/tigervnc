@@ -24,12 +24,6 @@
 #include "WinVNC.h"
 #include "VNCHelp.h"
 
-VNCHelp::VNCHelp()
-{
-	m_dwCookie = NULL;
-	HtmlHelp(NULL, NULL, HH_INITIALIZE, (DWORD)&m_dwCookie);
-}
-
 void VNCHelp::Popup(LPARAM lParam) 
 {
 	LPHELPINFO hlp = (LPHELPINFO) lParam;
@@ -85,15 +79,5 @@ void VNCHelp::Popup(LPARAM lParam)
 				 HH_DISPLAY_TEXT_POPUP,
 				 (DWORD)&popup);
 	}
-}
-
-BOOL VNCHelp::TranslateMsg(MSG *pmsg)
-{
-	return (HtmlHelp(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD)pmsg) != 0);
-}
-
-VNCHelp::~VNCHelp()
-{
-	HtmlHelp(NULL, NULL, HH_UNINITIALIZE, (DWORD)m_dwCookie);
 }
 

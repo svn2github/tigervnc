@@ -86,8 +86,8 @@ protected:
 	BOOL				m_inadvanced;
 
 	// Password handling
-	void LoadPassword(HKEY k, char *buffer);
-	void SavePassword(HKEY k, char *buffer);
+	void LoadPassword(HKEY k, char *buffer, const char *entry_name);
+	void SavePassword(HKEY k, const char *buffer, const char *entry_name);
 
 	// String handling
 	char * LoadString(HKEY k, LPCSTR valname);
@@ -116,6 +116,7 @@ protected:
 	BOOL m_pref_BeepConnect;
 	BOOL m_pref_BeepDisconnect;
 	char m_pref_passwd[MAXPWLEN];
+	char m_pref_passwd_viewonly[MAXPWLEN];
 	BOOL m_pref_CORBAConn;
 	UINT m_pref_QuerySetting;
 	UINT m_pref_QueryTimeout;

@@ -34,16 +34,18 @@ FONT 8, "MS Sans Serif"
 BEGIN
     GROUPBOX        "Incoming Connections",IDC_STATIC,6,5,139,138
     CONTROL         "Accept socket connections",IDC_CONNECT_SOCK,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,13,16,128,12
-    LTEXT           "Password:",IDC_PASSWORD_LABEL,20,30,44,12,
-                    SS_CENTERIMAGE | NOT WS_GROUP
-    EDITTEXT        IDC_PASSWORD,69,30,68,12,ES_PASSWORD | ES_AUTOHSCROLL
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,13,16,128,12
+    LTEXT           "Password (full control):",IDC_PASSWORD_LABEL,20,30,75,
+                    12,SS_CENTERIMAGE | NOT WS_GROUP
+    EDITTEXT        IDC_PASSWORD,98,30,39,12,ES_PASSWORD | ES_AUTOHSCROLL
+    LTEXT           "Password (view only):",IDC_PASSWORD_VIEWONLY_LABEL,20,
+                    46,75,12,SS_CENTERIMAGE | NOT WS_GROUP
+    EDITTEXT        IDC_PASSWORD_VIEWONLY,98,46,39,12,ES_PASSWORD | 
+                    ES_AUTOHSCROLL
     CONTROL         "Enable built-in Java viewer",IDC_CONNECT_HTTP,"Button",
-                    BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,20,46,121,12
-    CONTROL         "Allow applet parameters in URLs",IDC_URLPARAMS,"Button",
-                    BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,20,61,121,12
-    LTEXT           "Display or port numbers to use:",IDC_STATIC,20,79,121,
-                    12,NOT WS_GROUP
+                    BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,20,62,121,12
+    LTEXT           "Display or port numbers to use:",IDC_STATIC,20,80,121,
+                    11,NOT WS_GROUP
     CONTROL         "auto",IDC_PORTNO_AUTO,"Button",BS_AUTORADIOBUTTON | 
                     WS_GROUP | WS_TABSTOP,20,94,33,12
     CONTROL         "display:",IDC_SPECDISPLAY,"Button",BS_AUTORADIOBUTTON | 
@@ -58,7 +60,8 @@ BEGIN
     CTEXT           "(HTTP)",IDC_STATIC,109,126,27,10,SS_CENTERIMAGE
     GROUPBOX        "Input Handling",IDC_STATIC,152,5,157,74
     CONTROL         "Disable remote keyboard and pointer",IDC_DISABLE_INPUTS,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,160,16,146,12
+                    "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,160,16,
+                    146,12
     CONTROL         "Disable local keyboard and pointer",
                     IDC_DISABLE_LOCAL_INPUTS,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,160,31,146,12
@@ -72,7 +75,7 @@ BEGIN
                     NOT WS_GROUP
     GROUPBOX        "Update Handling",IDC_STATIC,152,82,224,61
     CONTROL         "Poll foreground window",IDC_POLL_FOREGROUND,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,159,95,105,13
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,159,95,105,13
     CONTROL         "Poll window under cursor",IDC_POLL_UNDER_CURSOR,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,159,110,105,13
     CONTROL         "Poll full screen",IDC_POLL_FULLSCREEN,"Button",
@@ -83,7 +86,12 @@ BEGIN
     CONTROL         "Poll on event received only",IDC_ONEVENT_ONLY,"Button",
                     BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,266,110,108,
                     13
-    DEFPUSHBUTTON   "&OK",IDOK,317,8,58,14
+    LTEXT           "Polling cycle:",IDC_STATIC,264,126,49,10,SS_CENTERIMAGE | 
+                    NOT WS_GROUP
+    EDITTEXT        IDC_POLL_TIMER,317,125,27,12,ES_AUTOHSCROLL
+    LTEXT           "ms",IDC_STATIC,351,126,16,10,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
+    DEFPUSHBUTTON   "&OK",IDOK,317,8,58,14,WS_GROUP
     PUSHBUTTON      "&Apply",IDC_APPLY,317,26,58,14
     PUSHBUTTON      "&Cancel",IDCANCEL,317,44,58,14
     PUSHBUTTON      "Ad&vanced...",IDADVANCED,317,65,58,14
@@ -95,10 +103,7 @@ BEGIN
     CONTROL         "Rectangular area",IDC_SCREEN,"Button",
                     BS_AUTORADIOBUTTON | WS_TABSTOP,13,189,100,13
     CONTROL         139,IDC_BMPCURSOR,"Static",SS_BITMAP,69,171,21,17
-    EDITTEXT        IDC_NAME_APPLI,102,173,265,13,ES_AUTOHSCROLL
-    EDITTEXT        IDC_POLL_TIMER,317,125,27,12,ES_AUTOHSCROLL
-    LTEXT           "Polling cycle:",IDC_STATIC,264,126,49,10,SS_CENTERIMAGE
-    LTEXT           "ms",IDC_STATIC,351,126,16,10,SS_CENTERIMAGE
+    EDITTEXT        IDC_NAME_APPLI,102,173,265,12,ES_AUTOHSCROLL
 END
 
 IDD_ABOUT DIALOG DISCARDABLE  0, 0, 326, 130
@@ -285,6 +290,7 @@ BEGIN
     BEGIN
         LEFTMARGIN, 5
         RIGHTMARGIN, 376
+        VERTGUIDE, 20
         VERTGUIDE, 141
         VERTGUIDE, 264
         VERTGUIDE, 306
@@ -293,6 +299,7 @@ BEGIN
         TOPMARGIN, 5
         BOTTOMMARGIN, 208
         HORZGUIDE, 131
+        HORZGUIDE, 179
     END
 
     IDD_ABOUT, DIALOG

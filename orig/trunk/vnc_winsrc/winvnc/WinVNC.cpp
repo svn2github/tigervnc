@@ -140,6 +140,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 			i+=strlen(winvncRemoveService);
 			continue;
 		}
+		if (strncmp(&szCmdLine[i], winvncReload, strlen(winvncReload)) == 0)
+		{
+			// Reload Properties from the registry
+			vncService::PostReloadMessage();
+			i+=strlen(winvncReload);
+			continue;
+		}
 		if (strncmp(&szCmdLine[i], winvncShowProperties, strlen(winvncShowProperties)) == 0)
 		{
 			// Show the Properties dialog of an existing instance of WinVNC

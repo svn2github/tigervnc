@@ -48,6 +48,7 @@ const UINT MENU_PROPERTIES_SHOW = RegisterWindowMessage("WinVNC.Properties.User.
 const UINT MENU_DEFAULT_PROPERTIES_SHOW = RegisterWindowMessage("WinVNC.Properties.Default.Show");
 const UINT MENU_ABOUTBOX_SHOW = RegisterWindowMessage("WinVNC.AboutBox.Show");
 const UINT MENU_SERVICEHELPER_MSG = RegisterWindowMessage("WinVNC.ServiceHelper.Message");
+const UINT MENU_RELOAD_MSG = RegisterWindowMessage("WinVNC.Reload.Message");
 const UINT MENU_ADD_CLIENT_MSG = RegisterWindowMessage("WinVNC.AddClient.Message");
 const char *MENU_CLASS_NAME = "WinVNC Tray Icon";
 
@@ -556,6 +557,18 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 
 			// - Trigger a check of the current user
 			PostMessage(hwnd, WM_USERCHANGED, 0, 0);
+			return 0;
+		}
+		if (iMsg == MENU_RELOAD_MSG)
+		{
+			// Reload the preferences
+			_this->m_properties.Load(TRUE);
+
+			// Redraw the tray icon and set it's state
+			_this->DelTrayIcon();
+			_this->AddTrayIcon();
+			_this->FlashTrayIcon(_this->m_server->AuthClientCount() != 0);
+
 			return 0;
 		}
 		if (iMsg == MENU_ADD_CLIENT_MSG)

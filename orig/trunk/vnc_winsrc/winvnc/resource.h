@@ -51,7 +51,9 @@
 #define IDC_REMOTE_DISABLE              1016
 #define IDC_PORTHTTP                    1017
 #define IDC_PORTRFB                     1018
-#define IDC_URLPARAMS                   1019
+#define IDC_PASSWORD_VIEWONLY_LABEL     1019
+#define IDC_PASSWORD_VIEWONLY           1020
+#define IDC_URLPARAMS                   1021
 #define IDC_DISABLE_INPUTS              1024
 #define IDC_APPLY                       1025
 #define IDC_PORTNO_AUTO                 1026

@@ -154,6 +154,9 @@ vncClientThread::InitAuthenticate()
 	m_server->GetPassword(password);
 	vncPasswd::ToText plain(password);
 
+	m_server->GetPasswordViewOnly(password);
+	vncPasswd::ToText plain_viewonly(password);
+
 	// Verify the peer host name against the AuthHosts string
 	vncServer::AcceptQueryReject verified;
 	if (m_auth) {
@@ -283,7 +286,10 @@ vncClientThread::InitAuthenticate()
 		{
 			// Now create a 16-byte challenge
 			char challenge[16];
+			char challenge_viewonly[16];
+
 			vncRandomBytes((BYTE *)&challenge);
+			memcpy(challenge_viewonly, challenge, 16);
 
 			// Send the challenge to the client
 			if (!m_socket->SendExact(challenge, sizeof(challenge)))
@@ -291,19 +297,22 @@ vncClientThread::InitAuthenticate()
 
 			// Read the response
 			char response[16];
-			if (!m_socket->ReadExact(response, sizeof(response)))\
+			if (!m_socket->ReadExact(response, sizeof(response)))
 				return FALSE;
 
 			// Encrypt the challenge bytes
 			vncEncryptBytes((BYTE *)&challenge, plain);
 
 			// Compare them to the response
-			for (int i=0; i<sizeof(challenge); i++)
-			{
-				if (challenge[i] != response[i])
-				{
-					auth_ok = FALSE;
-					break;
+			if (memcmp(challenge, response, sizeof(response)) != 0) {
+				auth_ok = FALSE;
+			}
+			if (!auth_ok) {
+				vncEncryptBytes((BYTE *)&challenge_viewonly, plain_viewonly);
+				if (memcmp(challenge_viewonly, response, sizeof(response)) == 0) {
+					m_client->m_pointerenabled = FALSE;
+					m_client->m_keyboardenabled = FALSE;
+					auth_ok = TRUE;
 				}
 			}
 		}

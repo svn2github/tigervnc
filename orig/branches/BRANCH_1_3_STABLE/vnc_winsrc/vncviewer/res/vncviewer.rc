@@ -696,40 +696,41 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDC_FTCANCEL            "Cansel button"
-    IDC_EXIT                "Close button"
-    IDC_FTPROGRESS          "Progress bar"
+    IDC_FTCANCEL            "Cansel file transfer in progress."
+    IDC_EXIT                "Close the file transfer dialog box."
+    IDC_FTPROGRESS          "Progress for current file transfer operation."
     IDC_LOAD                "Load connection info from a file, assuming it was saved earlier by choosing ""Save connection info as..."" in the viewer's system menu."
-    IDC_SERVERRELOAD        "Server reload button"
+    IDC_SERVERRELOAD        "Reload server-side file list."
     IDC_CONN_PROF           "Choosing a connection profile allows you to select connection  options suitable for a particular network environment."
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDC_FTCOPY              "Copy button"
+    IDC_FTCOPY              "Use this button to transfer files. Choose one file at the left to upload it to the remote server, or choose one file at the right to download it. Arrows on this button shows the direction for file transfers."
     IDC_SMALLDOTCURSOR_RADIO "Show local cursor position as a smaller dot."
-    IDC_LOCAL_COMP_LABEL    "Local computer"
-    IDC_TVNC_SERV_LABEL     "TightVNC Server"
+    IDC_LOCAL_COMP_LABEL    "The left side of the dialog represents files and directories on this computer."
+    IDC_TVNC_SERV_LABEL     "The right side of the dialog represents files and directories on the remote server."
+    IDC_FTSTATUS            "Status of the current (or previous) file transfer operation."
     IDC_LISTEN_PORT         "TCP port number to listen for incoming connections from VNC servers. The default port number is 5500."
-    IDC_SERVERUP            "Server up button"
+    IDC_SERVERUP            "Up one level in remote filesystem."
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDC_CLIENTRELOAD        "Client reload button"
-    IDC_CLIENTUP            "Client up button"
+    IDC_CLIENTRELOAD        "Reload local file list."
+    IDC_CLIENTUP            "Up one level in local filesystem."
     IDC_LOG_BROWSE          "Choose a location for the log file."
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDC_NORMALCURSOR_RADIO  "Show local cursor position as an arrow cursor."
-    IDC_CLIENTPATH          "Client path edit"
-    IDC_CLIENTBROWSE_BUT    "Client browse button"
-    IDC_SERVERPATH          "Server path edit"
-    IDC_SERVERBROWSE_BUT    "Server browse button"
-    IDC_FTCLIENTLIST        "Client list"
-    IDC_FTSERVERLIST        "Server list"
+    IDC_CLIENTPATH          "Local path."
+    IDC_CLIENTBROWSE_BUT    "Browse directories on local computer."
+    IDC_SERVERPATH          "Path on the remote server."
+    IDC_SERVERBROWSE_BUT    "Browse directories on remote server."
+    IDC_FTCLIENTLIST        "Files and directories on local computer."
+    IDC_FTSERVERLIST        "Files and directories on remote server."
 END
 
 STRINGTABLE DISCARDABLE 

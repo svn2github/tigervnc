@@ -18,6 +18,12 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 //  USA.
 //
+// For the latest source code, please check:
+//
+// http://www.DevelopVNC.org/
+//
+// or send email to: feedback@developvnc.org.
+//
 // If the source code for the VNC system is not available from the place 
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
 // the authors on vnc@uk.research.att.com for information on obtaining it.
@@ -489,7 +495,7 @@ void ClientConnection::Authenticate()
 #endif
 				if (strlen(passwd) == 0) {
 					log.Print(0, _T("Password had zero length\n"));
-					throw WarningException("Empty password");
+					throw AuthException("Empty password");
 				}
 				if (strlen(passwd) > 8) {
 					passwd[8] = '\0';
@@ -515,7 +521,7 @@ void ClientConnection::Authenticate()
 				break;
 			case rfbVncAuthFailed:
 				log.Print(0, _T("VNC authentication failed!"));
-				throw WarningException("VNC authentication failed!");
+				throw AuthException("VNC authentication failed!");
 			case rfbVncAuthTooMany:
 				throw WarningException(
 					"VNC authentication failed - too many tries!");
@@ -780,6 +786,11 @@ void ClientConnection::KillThread()
 	}
 }
 
+// Get the RFB options from another connection.
+void ClientConnection::CopyOptions(ClientConnection *source)
+{
+	this->m_opts = source->m_opts;
+}
 
 ClientConnection::~ClientConnection()
 {

@@ -2275,6 +2275,7 @@ void ClientConnection::ReadNewFBSize(rfbFramebufferUpdateRectHeader *pfburh)
 	m_si.framebufferHeight = pfburh->r.h;
 
 	CreateLocalFramebuffer();
+
 	SizeWindow(false);
 	RealiseFullScreenMode(true);
 }

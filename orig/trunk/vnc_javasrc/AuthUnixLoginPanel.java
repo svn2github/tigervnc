@@ -1,4 +1,5 @@
 //
+//  Copyright (C) 2004 Constantin Kaplinsky.  All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge.  All Rights Reserved.
 //
 //  This is free software; you can redistribute it and/or modify
@@ -21,14 +22,14 @@ import java.awt.*;
 import java.awt.event.*;
 
 //
-// The panel which implements the user authentication scheme
+// The panel which implements Unix login-stype authentication
 //
 
-class AuthPanel extends Panel implements ActionListener {
+class AuthUnixLoginPanel extends Panel implements ActionListener {
 
-  String passwordParam;
-
-  Label titleLabel, retryLabel, promptLabel;
+  Label titleLabel, retryLabel;
+  Label passwordPromptLabel, usernamePromptLabel;
+  TextField usernameField;
   TextField passwordField;
   Button okButton;
 
@@ -36,16 +37,17 @@ class AuthPanel extends Panel implements ActionListener {
   // Constructor.
   //
 
-  public AuthPanel(VncViewer viewer)
+  public AuthUnixLoginPanel()
   {
-    readParameters(viewer);
-    if (!isInteractionNecessary())
-      return;
-
-    titleLabel = new Label("VNC Authentication",Label.CENTER);
+    titleLabel = new Label("Unix Login Authentication", Label.CENTER);
     titleLabel.setFont(new Font("Helvetica", Font.BOLD, 18));
 
-    promptLabel = new Label("Password:",Label.CENTER);
+    usernamePromptLabel = new Label("Login:", Label.CENTER);
+    passwordPromptLabel = new Label("Password:", Label.CENTER);
+
+    usernameField = new TextField(10);
+    usernameField.setForeground(Color.black);
+    usernameField.setBackground(Color.white);
 
     passwordField = new TextField(10);
     passwordField.setForeground(Color.black);
@@ -72,68 +74,36 @@ class AuthPanel extends Panel implements ActionListener {
 
     gbc.fill = GridBagConstraints.NONE;
     gbc.gridwidth = 1;
-    gridbag.setConstraints(promptLabel,gbc);
-    add(promptLabel);
+    gridbag.setConstraints(usernamePromptLabel, gbc);
+    add(usernamePromptLabel);
 
-    gridbag.setConstraints(passwordField,gbc);
+    gbc.ipadx = 10;
+    gridbag.setConstraints(usernameField, gbc);
+    add(usernameField);
+    usernameField.addActionListener(this);
+
+    gbc.ipadx = 0;
+    gridbag.setConstraints(passwordPromptLabel, gbc);
+    add(passwordPromptLabel);
+
+    gbc.ipadx = 10;
+    gridbag.setConstraints(passwordField, gbc);
     add(passwordField);
     passwordField.addActionListener(this);
 
     gbc.ipady = 10;
+    gbc.ipadx = 40;
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbc.fill = GridBagConstraints.BOTH;
     gbc.insets = new Insets(0,20,0,0);
-    gbc.ipadx = 40;
     gridbag.setConstraints(okButton,gbc);
     add(okButton);
     okButton.addActionListener(this);
   }
 
   //
-  // Read applet or command-line parameters. If an "ENCPASSWORD"
-  // parameter is set, then decrypt the password into the
-  // passwordParam string. Otherwise, try to read the "PASSWORD"
-  // parameter directly to passwordParam.
-  //
-
-  private void readParameters(VncViewer viewer)
-  {
-    String encPasswordParam = viewer.readParameter("ENCPASSWORD", false);
-    if (encPasswordParam == null) {
-      passwordParam = viewer.readParameter("PASSWORD", false);
-    } else {
-      // ENCPASSWORD is hexascii-encoded. Decode.
-      byte[] pw = {0, 0, 0, 0, 0, 0, 0, 0};
-      int len = encPasswordParam.length() / 2;
-      if (len > 8)
-	len = 8;
-      for (int i = 0; i < len; i++) {
-	String hex = encPasswordParam.substring(i*2, i*2+2);
-	Integer x = new Integer(Integer.parseInt(hex, 16));
-	pw[i] = x.byteValue();
-      }
-      // Decrypt the password.
-      byte[] key = {23, 82, 107, 6, 35, 78, 88, 7};
-      DesCipher des = new DesCipher(key);
-      des.decrypt(pw, 0, pw, 0);
-      passwordParam = new String(pw);
-    }
-  }
-
-  //
-  // Check if we should show the GUI and ask user for authentication
-  // data (password). If we already have a password, we don't need to
-  // ask user. In that case, authentication failures would be fatal.
-  //
-
-  public boolean isInteractionNecessary()
-  {
-    return (passwordParam == null);
-  }
-
-  //
-  // Move keyboard focus to the default object, that is, the password
-  // text field.
+  // Move keyboard focus to the default object. It is either the
+  // username text field or the password text field.
   //
   // FIXME: here moveFocusToDefaultField() does not always work
   // under Netscape 4.7x/Java 1.1.5/Linux. It seems like this call
@@ -146,17 +116,25 @@ class AuthPanel extends Panel implements ActionListener {
 
   public void moveFocusToDefaultField()
   {
-    passwordField.requestFocus();
+    if (usernameField.getText().length() == 0) {
+      usernameField.requestFocus();
+    } else {
+      passwordField.requestFocus();
+    }
   }
 
   //
   // This method is called when a button is pressed or return is
-  // pressed in the password text field.
+  // pressed in a text field.
   //
 
   public synchronized void actionPerformed(ActionEvent evt)
   {
-    if (evt.getSource() == passwordField || evt.getSource() == okButton) {
+    if (evt.getSource() == usernameField) {
+      passwordField.requestFocus();
+    } else if (evt.getSource() == passwordField ||
+	       evt.getSource() == okButton) {
+      usernameField.setEnabled(false);
       passwordField.setEnabled(false);
       notify();
     }
@@ -169,50 +147,32 @@ class AuthPanel extends Panel implements ActionListener {
 
   public synchronized boolean tryAuthenticate(RfbProto rfb) throws Exception
   {
-    String pw = passwordParam;
-    if (pw == null) {
-      try {
-	// Wait for user entering a password.
-	wait();
-      } catch (InterruptedException e) { }
-      pw = passwordField.getText();
-    }
+    try {
+      // Wait for user entering a password.
+      wait();
+    } catch (InterruptedException e) { }
 
-    byte[] challenge = new byte[16];
-    rfb.is.readFully(challenge);
+    String login = usernameField.getText();
+    String passwd = passwordField.getText();
 
-    if (pw.length() > 8)
-      pw = pw.substring(0, 8);	// Truncate to 8 chars
-
-    // vncEncryptBytes in the UNIX libvncauth truncates password
-    // after the first zero byte. We do to.
-    int firstZero = pw.indexOf(0);
-    if (firstZero != -1)
-      pw = pw.substring(0, firstZero);
-
-    byte[] key = {0, 0, 0, 0, 0, 0, 0, 0};
-    System.arraycopy(pw.getBytes(), 0, key, 0, pw.length());
-
-    DesCipher des = new DesCipher(key);
-
-    des.encrypt(challenge, 0, challenge, 0);
-    des.encrypt(challenge, 8, challenge, 8);
-
-    rfb.os.write(challenge);
+    rfb.writeInt(login.length());
+    rfb.writeInt(passwd.length());
+    rfb.os.write(login.getBytes());
+    rfb.os.write(passwd.getBytes());
 
     int authResult = rfb.is.readInt();
 
     switch (authResult) {
     case RfbProto.VncAuthOK:
-      System.out.println("VNC authentication succeeded");
+      System.out.println("Authentication succeeded");
       return true;
     case RfbProto.VncAuthFailed:
-      System.out.println("VNC authentication failed");
+      System.out.println("Authentication failed");
       break;
     case RfbProto.VncAuthTooMany:
-      throw new Exception("VNC authentication failed - too many tries");
+      throw new Exception("Authentication failed - too many tries");
     default:
-      throw new Exception("Unknown VNC authentication result " + authResult);
+      throw new Exception("Unknown authentication result " + authResult);
     }
 
     return false;
@@ -225,6 +185,7 @@ class AuthPanel extends Panel implements ActionListener {
   public void retry()
   {
     retryLabel.setText("Sorry. Try again.");
+    usernameField.setEnabled(true);
     passwordField.setEnabled(true);
     passwordField.setText("");
     moveFocusToDefaultField();

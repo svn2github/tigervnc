@@ -63,6 +63,7 @@ public class VncViewer extends java.applet.Applet
   ButtonPanel buttonPanel;
   Label connStatusLabel;
   AuthPanel authenticator;
+  AuthUnixLoginPanel authenticatorUnixLogin;
   VncCanvas vc;
   OptionsFrame options;
   ClipboardFrame clipboard;
@@ -115,6 +116,7 @@ public class VncViewer extends java.applet.Applet
     options = new OptionsFrame(this);
     clipboard = new ClipboardFrame(this);
     authenticator = new AuthPanel(this);
+    authenticatorUnixLogin = new AuthUnixLoginPanel();
     if (RecordingFrame.checkSecurity())
       rec = new RecordingFrame(this);
 
@@ -281,10 +283,8 @@ public class VncViewer extends java.applet.Applet
     }
 
     while (!tryAuthenticate()) {
-      if (!authenticator.isInteractionNecessary()) {
-	throw new Exception("VNC authentication failed");
-      }
       authenticator.retry();
+      authenticatorUnixLogin.retry();
     }
   }
 
@@ -339,7 +339,8 @@ public class VncViewer extends java.applet.Applet
     case RfbProto.AuthVNC:
       showConnectionStatus("Performing standard VNC authentication");
       if (authenticator.isInteractionNecessary()) {
-	showAuthPanel();
+	showAuthPanel(authenticator);
+	authenticator.moveFocusToDefaultField();
       }
       success = authenticator.tryAuthenticate(rfb);
       if (authenticator.isInteractionNecessary()) {
@@ -347,8 +348,15 @@ public class VncViewer extends java.applet.Applet
       } else {
 	// Don't retry non-interactive authentication.
 	if (!success)
-	  throw new Exception("Authentication failed");
+	  throw new Exception("VNC authentication failed");
       }
+      break;
+    case RfbProto.AuthUnixLogin:
+      showConnectionStatus("Performing Unix login-style authentication");
+      showAuthPanel(authenticatorUnixLogin);
+      authenticatorUnixLogin.moveFocusToDefaultField();
+      success = authenticatorUnixLogin.tryAuthenticate(rfb);
+      vncContainer.remove(authenticatorUnixLogin);
       break;
     default:
       throw new Exception("Unknown authentication scheme " + authType);
@@ -408,7 +416,7 @@ public class VncViewer extends java.applet.Applet
   // Show an authentication panel.
   //
 
-  void showAuthPanel()
+  void showAuthPanel(Panel authPanel)
   {
     showConnectionStatus(null);
 
@@ -419,21 +427,13 @@ public class VncViewer extends java.applet.Applet
     gbc.weighty = 1.0;
     gbc.ipadx = 100;
     gbc.ipady = 50;
-    gridbag.setConstraints(authenticator, gbc);
-    vncContainer.add(authenticator);
+    gridbag.setConstraints(authPanel, gbc);
+    vncContainer.add(authPanel);
 
     if (inSeparateFrame) {
       vncFrame.pack();
     } else {
       validate();
-      // FIXME: here moveFocusToDefaultField() does not always work
-      // under Netscape 4.7x/Java 1.1.5/Linux. It seems like this call
-      // is being executed before the password field of the
-      // authenticator is fully drawn and activated, therefore
-      // requestFocus() does not work. Currently, I don't know how to
-      // solve this problem.
-      //   -- const
-      authenticator.moveFocusToDefaultField();
     }
   }
 
@@ -677,6 +677,8 @@ public class VncViewer extends java.applet.Applet
 	vc.requestFocus();
       } else if (vncContainer.isAncestorOf(authenticator)) {
 	authenticator.moveFocusToDefaultField();
+      } else if (vncContainer.isAncestorOf(authenticatorUnixLogin)) {
+	authenticatorUnixLogin.moveFocusToDefaultField();
       }
     }
   }
@@ -835,8 +837,11 @@ public class VncViewer extends java.applet.Applet
   //
 
   public void windowActivated(WindowEvent evt) {
-    if (vncFrame.isAncestorOf(authenticator))
+    if (vncFrame.isAncestorOf(authenticator)) {
       authenticator.moveFocusToDefaultField();
+    } else if (vncContainer.isAncestorOf(authenticatorUnixLogin)) {
+      authenticatorUnixLogin.moveFocusToDefaultField();
+    }
   }
 
   //

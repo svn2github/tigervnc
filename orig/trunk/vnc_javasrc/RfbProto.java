@@ -51,17 +51,19 @@ class RfbProto {
 
   // Supported tunneling types
   final static int
-    NoTunneling     = 0;
+    NoTunneling = 0;
   final static String
-    SigNoTunneling  = "NOTUNNEL";
+    SigNoTunneling = "NOTUNNEL";
 
   // Supported authentication types
   final static int
-    AuthNone        = 1,
-    AuthVNC         = 2;
+    AuthNone      = 1,
+    AuthVNC       = 2,
+    AuthUnixLogin = 129;
   final static String
-    SigAuthNone     = "NOAUTH__",
-    SigAuthVNC      = "VNCAUTH_";
+    SigAuthNone      = "NOAUTH__",
+    SigAuthVNC       = "VNCAUTH_",
+    SigAuthUnixLogin = "ULGNAUTH";
 
   // VNC authentication results
   final static int
@@ -376,8 +378,12 @@ class RfbProto {
     encodingCaps  = new CapsContainer();
 
     // Supported authentication methods
+    authCaps.add(AuthNone, StandardVendor, SigAuthNone,
+		 "No authentication");
     authCaps.add(AuthVNC, StandardVendor, SigAuthVNC,
 		 "Standard VNC password authentication");
+    authCaps.add(AuthUnixLogin, TightVncVendor, SigAuthUnixLogin,
+		 "Login-style Unix authentication");
 
     // Supported encoding types
     encodingCaps.add(EncodingCopyRect, StandardVendor,
@@ -436,7 +442,9 @@ class RfbProto {
     readCapabilityList(authCaps, nAuthTypes);
     for (int i = 0; i < authCaps.numEnabled(); i++) {
       int authType = authCaps.getByOrder(i);
-      if (authType == AuthNone || authType == AuthVNC) {
+      if (authType == AuthNone ||
+	  authType == AuthVNC  ||
+	  authType == AuthUnixLogin) {
 	writeInt(authType);
 	return authType;
       }

@@ -3,17 +3,20 @@
 
 [Setup]
 AppName=TightVNC
-AppVerName=TightVNC 1.2.6
-AppVersion=1.2.6
+AppVerName=TightVNC 1.3dev1
+AppVersion=1.3dev1
 AppPublisher=Constantin Kaplinsky
 AppPublisherURL=http://www.tightvnc.com
 AppSupportURL=http://www.tightvnc.com
 AppUpdatesURL=http://www.tightvnc.com
-DefaultDirName={pf}\TightVNC
-DefaultGroupName=TightVNC
+DefaultDirName={pf}\TightVNC-unstable
+UsePreviousAppDir=no
+DefaultGroupName=TightVNC (unstable)
+UsePreviousGroup=no
 AlwaysCreateUninstallIcon=no
-InfoBeforeFile=InstInfo.txt
+InfoBeforeFile=InstInfo-unstable.txt
 LicenseFile=LICENCE.txt
+Uninstallable=no
 
 WindowVisible=no
 DisableStartupPrompt=yes

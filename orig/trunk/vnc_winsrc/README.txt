@@ -1,6 +1,9 @@
 
-TightVNC 1.2.6 Source Distribution for Windows platforms
-========================================================
+TightVNC 1.3dev1 Source Distribution for Windows platforms
+==========================================================
+
+IMPORTANT NOTE: this is a development version and may be unstable.
+It's not recommended for production use.
 
 This distribution is based on the standard VNC source and includes new
 TightVNC-specific features and fixes, such as additional low-bandwidth

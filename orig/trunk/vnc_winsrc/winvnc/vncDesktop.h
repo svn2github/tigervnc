@@ -229,7 +229,7 @@ protected:
 
 	BOOL			m_formatmunged;
 	RECT			m_qtrscreen;
-	UINT			m_pollingcycle;
+	UINT			m_polling_phase;
 
 	DEVMODE			*lpDevMode; // *** used for res changes - Jeremy Peaks
 	long			origPelsWidth; // *** To set the original resolution

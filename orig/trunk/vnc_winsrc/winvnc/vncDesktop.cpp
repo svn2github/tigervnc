@@ -171,10 +171,10 @@ vncDesktopThread::run_undetached(void *arg)
 	}
 	
 	IntersectRect(&rect, &rect, &m_desktop->m_bmrect);
-	m_server->setSharedRect(rect);
+	m_server->SetSharedRect(rect);
 	m_desktop->m_qtrscreen.right = (rect.right-rect.left)/2;
 	m_desktop->m_qtrscreen.bottom = (rect.bottom - rect.top) /2;
-	m_desktop->m_pollingcycle = 0;
+	m_desktop->m_polling_phase = 0;
 	
 	// START PROCESSING DESKTOP MESSAGES
 
@@ -266,9 +266,11 @@ vncDesktopThread::run_undetached(void *arg)
 			}
 
 			// Check polling timer
-			if(m_server->PollingTimerChanged())
-			{
-				m_desktop->m_timerid = SetTimer(m_desktop->m_hwnd, m_desktop->m_timerid, m_server->GetPollingTimer(), NULL);
+			if (m_server->PollingTimerChanged()) {
+				m_desktop->m_timerid = SetTimer(m_desktop->m_hwnd,
+												m_desktop->m_timerid,
+												m_server->GetPollingCycle(),
+												NULL);
 				m_server->PollingTimerChanged(false);
 			}
 
@@ -286,11 +288,11 @@ vncDesktopThread::run_undetached(void *arg)
 				new_rect = m_desktop->m_bmrect;
 			}
 			
-			old_rect = m_server->getSharedRect();
+			old_rect = m_server->GetSharedRect();
 			IntersectRect(&new_rect, &new_rect, &m_desktop->m_bmrect);
 			
 			if (!EqualRect(&new_rect, &old_rect)) {
-				m_server->setSharedRect(new_rect);
+				m_server->SetSharedRect(new_rect);
 				bool sendnewfb = false;
 
 				if ( old_rect.right - old_rect.left != new_rect.right - new_rect.left ||
@@ -305,17 +307,18 @@ vncDesktopThread::run_undetached(void *arg)
 				m_desktop->m_changed_rgn.Clear();
 				continue;
 			}
-		
+
 			// If we have clients full region requests
 			if (m_server->FullRgnRequested()) {
 				// Capture screen to main buffer
 				m_desktop->CaptureScreen(old_rect, m_desktop->m_mainbuff, true);
 				// If we have a video driver - reset counter
-				if (m_desktop->m_videodriver != NULL)
+				if (m_desktop->m_videodriver != NULL) {
 					if (m_desktop->m_videodriver->driver)
 						m_desktop->m_videodriver->oldaantal = m_desktop->m_videodriver->bufdata.buffer->counter;
+				}
 			}
-			
+
 			if (m_server->IncrRgnRequested()) {
 				// Use videodriver if we have 
 				if (m_desktop->m_videodriver != NULL) {
@@ -324,17 +327,17 @@ vncDesktopThread::run_undetached(void *arg)
 				} else {
 					// Polling section
 					//If polling timer 
-					if ( m_server->GetPollingFlag() || (m_desktop->m_pollingcycle !=0))	{
+					if (m_server->GetPollingFlag() || m_desktop->m_polling_phase != 0) {
 						m_server->SetPollingFlag(false);
 
 						// Request update for all parts of screen
-						if( m_desktop->m_pollingcycle !=3)
+						if (m_desktop->m_polling_phase != 3)
 							m_desktop->RequestUpdate();
 
 						RECT rect;
-						rect.left = (m_desktop->m_pollingcycle % 2) * m_desktop->m_qtrscreen.right+old_rect.left;
+						rect.left = (m_desktop->m_polling_phase % 2) * m_desktop->m_qtrscreen.right+old_rect.left;
 						rect.right = rect.left + m_desktop->m_qtrscreen.right;
-						rect.top = (m_desktop->m_pollingcycle / 2) * m_desktop->m_qtrscreen.bottom+old_rect.top;
+						rect.top = (m_desktop->m_polling_phase / 2) * m_desktop->m_qtrscreen.bottom+old_rect.top;
 						rect.bottom = rect.top + m_desktop->m_qtrscreen.bottom;
 						
 						if (m_server->PollFullScreen())	{
@@ -358,7 +361,7 @@ vncDesktopThread::run_undetached(void *arg)
 								}
 							}
 						}
-						m_desktop->m_pollingcycle = (m_desktop->m_pollingcycle + 1) % 4;
+						m_desktop->m_polling_phase = (m_desktop->m_polling_phase + 1) % 4;
 					}
 				}
 
@@ -367,7 +370,7 @@ vncDesktopThread::run_undetached(void *arg)
 					m_desktop->CalcCopyRects();
 
 				if (m_desktop->m_copyrect_set) {
-					//Send copyrect to all clients
+					// Send copyrect to all clients
 					m_server->CopyRect(m_desktop->m_copyrect_rect, m_desktop->m_copyrect_src);
 					m_desktop->m_copyrect_set = false;
 
@@ -672,7 +675,7 @@ vncDesktop::Startup()
 	// an "idle" event, which is necessary if Polling Mode is being used,
 	// to cause TriggerUpdate to be called.
 	if (m_videodriver == NULL) {
-		m_timerid = SetTimer(m_hwnd, 1, m_server->GetPollingTimer(), NULL);
+		m_timerid = SetTimer(m_hwnd, 1, m_server->GetPollingCycle(), NULL);
 	} else {
 		m_timerid = SetTimer(m_hwnd, 1, 50, NULL);
 	}
@@ -1789,7 +1792,7 @@ vncDesktop::CaptureMouse(BYTE *scrBuff, UINT scrBuffSize)
 	
 	// Clip the bounding rect to the screen
 	RECT screen;
-	screen = m_server->getSharedRect();
+	screen = m_server->GetSharedRect();
 	// Copy the mouse cursor into the screen buffer, if any of it is visible
 	if (IntersectRect(&m_cursorpos, &m_cursorpos, &screen))
 		CopyToBuffer(m_cursorpos, scrBuff);
@@ -2074,10 +2077,9 @@ DesktopWndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		_this->m_server->UpdatePalette();
 		return 0;
 	case WM_TIMER:
-		if ( wParam == _this->m_timerid )
-			_this->m_server->SetPollingFlag(true);	
+		if (wParam == _this->m_timerid)
+			_this->m_server->SetPollingFlag(true);
 		return 0;
-
 
 		// CLIPBOARD MESSAGES
 
@@ -2303,7 +2305,7 @@ vncDesktop::CopyRect(RECT &dest, POINT &source)
 {
 	// Clip the destination to the screen
 	RECT destrect;
-	if (!IntersectRect(&destrect, &dest, &m_server->getSharedRect()))
+	if (!IntersectRect(&destrect, &dest, &m_server->GetSharedRect()))
 		return;
 	
 	// Adjust the source correspondingly
@@ -2331,7 +2333,7 @@ vncDesktop::CopyRect(RECT &dest, POINT &source)
 
 	// Clip the source to the screen
 	RECT srcrect2;
-	if (!IntersectRect(&srcrect2, &srcrect, &m_server->getSharedRect()))
+	if (!IntersectRect(&srcrect2, &srcrect, &m_server->GetSharedRect()))
 		return;
 
 	// Correct the destination rectangle

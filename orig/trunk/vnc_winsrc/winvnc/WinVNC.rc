@@ -125,7 +125,7 @@ BEGIN
                     BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,115,14,65,15
     CONTROL         "Poll On Event Received Only",IDC_ONEVENT_ONLY,"Button",
                     BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,115,35,65,15
-    EDITTEXT        IDC_POLL_TIMER,115,55,22,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_POLLING_CYCLE,115,55,22,12,ES_AUTOHSCROLL
     CONTROL         "Polling cycle, ms",IDC_POLCYCLMS_LABEL,"Static",
                     SS_LEFTNOWORDWRAP | WS_GROUP,142,58,56,11
     CONTROL         "Don't use VNCHooks.DLL while polling full screen",
@@ -259,7 +259,7 @@ BEGIN
                     13
     LTEXT           "Polling cycle:",IDC_STATIC_PCYCLE,111,38,49,10,
                     SS_CENTERIMAGE | NOT WS_GROUP
-    EDITTEXT        IDC_POLL_TIMER,163,37,27,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_POLLING_CYCLE,163,37,27,12,ES_AUTOHSCROLL
     LTEXT           "ms",IDC_STATIC_MS,197,38,19,10,SS_CENTERIMAGE | NOT 
                     WS_GROUP
     CONTROL         "Don't use VNCHooks.DLL while polling full screen",
@@ -794,7 +794,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDC_SPECPORT            "ports"
-    IDC_POLL_TIMER          "Polling cycle:"
+    IDC_POLLING_CYCLE       "Polling cycle:"
     IDC_ACTION_REFUSE       "Refuse"
     IDC_ACTION_ACCEPT       "Accept"
     IDC_REMOVE_WALLPAPER    "Do not show the desktop wallpaper while at least one viewer is connected to this server. This both saves bandwidth and decreases CPU utilization on the server, resulting in better responsiveness of the remote desktop."

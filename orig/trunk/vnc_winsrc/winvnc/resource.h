@@ -107,7 +107,7 @@
 #define IDC_SECONDS_LABEL               1066
 #define IDC_SPECDISPLAY                 1071
 #define IDC_SPECPORT                    1072
-#define IDC_POLL_TIMER                  1073
+#define IDC_POLLING_CYCLE               1073
 #define IDC_ACTION_REFUSE               1074
 #define IDC_ACTION_ACCEPT               1075
 #define IDC_REMOVE_WALLPAPER            1076

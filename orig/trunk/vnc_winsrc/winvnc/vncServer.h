@@ -261,41 +261,40 @@ public:
 	virtual void EnableFileTransfers(const BOOL enable) {m_enable_file_transfers = enable;}
 	virtual BOOL FileTransfersEnabled() {return m_enable_file_transfers;}
 
-    // handling to share only one window                                                    
-    virtual void WindowShared(BOOL enable) { m_WindowShared = enable; };                    
-    virtual BOOL WindowShared() { return m_WindowShared; };                                 
-    virtual void SetMatchSizeFields(int left,int top,int right,int bottom);                 
-	virtual RECT GetScreenAreaRect() { return m_screenarea_rect;};
-	virtual void SetWindowShared(HWND hWnd);                                             
-    virtual HWND GetWindowShared() { return m_hwndShared; };                                
-	virtual RECT getSharedRect () { return m_shared_rect; };
-	virtual void setSharedRect (RECT rect) { m_shared_rect = rect; };
-	virtual BOOL FullScreen() { return m_full_screen; };                                    
-	virtual void FullScreen(BOOL enable) { m_full_screen = enable; };                    
-	virtual BOOL ScreenAreaShared() { return m_screen_area; };                           
-	virtual void ScreenAreaShared(BOOL enable) { m_screen_area = enable; };              
+    // Patrial desktop sharing
+    virtual void WindowShared(BOOL enable) { m_WindowShared = enable; }
+    virtual BOOL WindowShared() { return m_WindowShared; }
+    virtual void SetMatchSizeFields(int left, int top, int right, int bottom);
+	virtual RECT GetScreenAreaRect() { return m_screenarea_rect; }
+	virtual void SetWindowShared(HWND hWnd);
+    virtual HWND GetWindowShared() { return m_hwndShared; }
+	virtual RECT GetSharedRect () { return m_shared_rect; }
+	virtual void SetSharedRect (RECT rect) { m_shared_rect = rect; }
+	virtual BOOL FullScreen() { return m_full_screen; }
+	virtual void FullScreen(BOOL enable) { m_full_screen = enable; }
+	virtual BOOL ScreenAreaShared() { return m_screen_area; }
+	virtual void ScreenAreaShared(BOOL enable) { m_screen_area = enable; }
 	virtual void SetNewFBSize(BOOL sendnewfb);
 	virtual BOOL FullRgnRequested();
 	virtual BOOL IncrRgnRequested();
 	virtual	void UpdateLocalFormat();
-
 	                                                                                     
-	// blocking remote input stuff                                                       
-	virtual void LocalInputPriority(BOOL enable);               
-	virtual BOOL LocalInputPriority() {return m_local_input_priority;};                            
-	virtual void SetKeyboardCounter(int count);                                          
-	virtual int KeyboardCounter(){ return m_remote_keyboard;};                           
+	// Blocking remote input
+	virtual void LocalInputPriority(BOOL enable);
+	virtual BOOL LocalInputPriority() { return m_local_input_priority; }
+	virtual void SetKeyboardCounter(int count);
+	virtual int KeyboardCounter() { return m_remote_keyboard; }
 	virtual void SetMouseCounter(int count, POINT &cursor_pos, BOOL mousemove);
-	virtual int MouseCounter(){ return m_remote_mouse;};                                 
-	virtual UINT DisableTime() {return m_disable_time;};
-	virtual void SetDisableTime(UINT disabletime) {m_disable_time = disabletime;};                                             
-	virtual void SetPollingFlag(BOOL enable) { m_polling_flag = enable;};
-	virtual BOOL GetPollingFlag() { return m_polling_flag;};
-	virtual UINT GetPollingTimer() {return m_polling_timer;};
-	virtual void SetPollingTimer(UINT pollingtimer);                                             
-	virtual BOOL PollingTimerChanged(){ return m_polling_timer_changed;};                                             
-	virtual void PollingTimerChanged(BOOL change){ m_polling_timer_changed = change;};
-	
+	virtual int MouseCounter() { return m_remote_mouse; }
+	virtual UINT DisableTime() { return m_disable_time; }
+	virtual void SetDisableTime(UINT disabletime) { m_disable_time = disabletime; }
+	virtual void SetPollingFlag(BOOL enable) { m_polling_flag = enable; }
+	virtual BOOL GetPollingFlag() { return m_polling_flag; }
+	virtual UINT GetPollingCycle() { return m_polling_cycle; }
+	virtual void SetPollingCycle(UINT msec);
+	virtual BOOL PollingTimerChanged() { return m_polling_timer_changed; }
+	virtual void PollingTimerChanged(BOOL change) { m_polling_timer_changed = change; }
+
 	// Internal stuffs
 protected:
 	// Connection servers
@@ -355,7 +354,7 @@ protected:
 	BOOL				m_WindowShared;                      
 	BOOL				m_full_screen;                       
 	BOOL				m_screen_area;                       
-	                                                                     
+
 	// local event priority stuff                                        
 	BOOL				m_local_input_priority;                    
 	INT					m_remote_mouse;              
@@ -363,10 +362,8 @@ protected:
 	POINT				m_cursor_pos;
 
 	BOOL				m_polling_flag;
-	UINT				m_polling_timer;
+	UINT				m_polling_cycle;
 	BOOL				m_polling_timer_changed;
-
-	                                                                     
 
 	// Name of this desktop
 	char				*m_name;

@@ -73,7 +73,7 @@ void VNCHelp::Popup(LPARAM lParam)
 		case IDC_STATIC_PCYCLE:
 		case IDC_STATIC_MS:
 		case IDC_POLCYCLMS_LABEL:
-			popup.idString = IDC_POLL_TIMER;
+			popup.idString = IDC_POLLING_CYCLE;
 			break;
 		case IDC_LIVESHARE_LABEL:
 			popup.idString = IDC_LIVESHARE;

@@ -113,10 +113,10 @@ vncServer::vncServer()
 	m_disable_time = 3;
 	RECT temp;
 	GetWindowRect(GetDesktopWindow(), &temp);
-	setSharedRect(temp);
-	m_polling_flag = false;
-	m_polling_timer = 300;
-	m_polling_timer_changed = false;
+	SetSharedRect(temp);
+	SetPollingFlag(false);
+	SetPollingCycle(300);
+	PollingTimerChanged(false);
 	m_cursor_pos.x = 0;
 	m_cursor_pos.y = 0;
 
@@ -127,9 +127,7 @@ vncServer::vncServer()
 	m_remote_mouse = 1;
 	m_remote_keyboard = 1;
 	strcpy(m_LiveShareKey," ");
-
 #endif
-
 }
 
 vncServer::~vncServer()
@@ -1603,12 +1601,10 @@ vncServer::UpdateLocalFormat()
 }
 
 void 
-vncServer::SetPollingTimer(UINT pollingtimer)
+vncServer::SetPollingCycle(UINT msec)
 {
-	if ( m_polling_timer != pollingtimer && pollingtimer>10)
-	{
-		m_polling_timer = pollingtimer;
-		m_polling_timer_changed = true;
+	if (m_polling_cycle != msec && msec > 10) {
+		m_polling_cycle = msec;
+		PollingTimerChanged(true);
 	}
-	return;
 }

@@ -812,7 +812,7 @@ vncClientThread::run(void *arg)
 
 	// Endian swaps
 	RECT SharedRect;
-	SharedRect = m_server->getSharedRect();
+	SharedRect = m_server->GetSharedRect();
 	server_ini.framebufferWidth = Swap16IfLE(SharedRect.right- SharedRect.left);
 	server_ini.framebufferHeight = Swap16IfLE(SharedRect.bottom - SharedRect.top);
 	server_ini.format.redMax = Swap16IfLE(server_ini.format.redMax);
@@ -1071,7 +1071,7 @@ vncClientThread::run(void *arg)
 
 				{	omni_mutex_lock l(m_client->m_regionLock);
 				
-				SharedRect = m_server->getSharedRect();
+				SharedRect = m_server->GetSharedRect();
 				// Get the specified rectangle as the region to send updates for.
 				update.left = Swap16IfLE(msg.fur.x)+ SharedRect.left;
 				update.top = Swap16IfLE(msg.fur.y)+ SharedRect.top;
@@ -1149,7 +1149,7 @@ vncClientThread::run(void *arg)
 					RECT coord;
 					{	omni_mutex_lock l(m_client->m_regionLock);
 
-					coord = m_server->getSharedRect();
+					coord = m_server->GetSharedRect();
 					}
 					
 					
@@ -1621,7 +1621,7 @@ vncClient::vncClient()
 
 	m_copyrect_set = FALSE;
 
-	m_pollingcycle = 0;
+	m_polling_phase = 0;
 	m_remoteevent = FALSE;
 
 	m_bDownloadStarted = FALSE;
@@ -1778,7 +1778,7 @@ vncClient::UpdateMouse()
 		if (!m_mousemoved && !m_cursor_update_sent)	{
 			omni_mutex_lock l(m_regionLock);
 
-			if (IntersectRect(&m_oldmousepos, &m_oldmousepos, &m_server->getSharedRect()))
+			if (IntersectRect(&m_oldmousepos, &m_oldmousepos, &m_server->GetSharedRect()))
 				m_changed_rgn.AddRect(m_oldmousepos);
 
 			m_mousemoved = TRUE;
@@ -1799,7 +1799,7 @@ vncClient::UpdateRect(RECT &rect)
 	
 	omni_mutex_lock l(m_regionLock);
 		
-	if (IntersectRect(&rect, &rect, &m_server->getSharedRect()))
+	if (IntersectRect(&rect, &rect, &m_server->GetSharedRect()))
 		m_changed_rgn.AddRect(rect);
 }
 
@@ -1814,7 +1814,7 @@ vncClient::UpdateRegion(vncRegion &region)
 		
 		// Merge the two
 		vncRegion dummy;
-		dummy.AddRect(m_server->getSharedRect());
+		dummy.AddRect(m_server->GetSharedRect());
 		region.Intersect(dummy);
 
 		m_changed_rgn.Combine(region);
@@ -1835,7 +1835,7 @@ vncClient::CopyRect(RECT &dest, POINT &source)
 
 		// Clip the destination to the screen
 		RECT destrect;
-		if (!IntersectRect(&destrect, &dest, &m_server->getSharedRect()))
+		if (!IntersectRect(&destrect, &dest, &m_server->GetSharedRect()))
 			return;
 
 		// Adjust the source correspondingly
@@ -1866,7 +1866,7 @@ vncClient::CopyRect(RECT &dest, POINT &source)
 
 		// Clip the source to the screen
 		RECT srcrect2;
-		if (!IntersectRect(&srcrect2, &srcrect, &m_server->getSharedRect()))
+		if (!IntersectRect(&srcrect2, &srcrect, &m_server->GetSharedRect()))
 			return;
 
 		// Correct the destination rectangle
@@ -1974,7 +1974,7 @@ vncClient::SendUpdate()
 			cursor_pos.x = 0;
 			cursor_pos.y = 0;
 		}
-		RECT shared_rect = m_server->getSharedRect();
+		RECT shared_rect = m_server->GetSharedRect();
 		cursor_pos.x -= shared_rect.left;
 		cursor_pos.y -= shared_rect.top;
 		if (cursor_pos.x < 0) {
@@ -2019,7 +2019,7 @@ vncClient::SendUpdate()
 				}
 				if (m_mousemoved) {
 					m_oldmousepos = m_buffer->GrabMouse();
-					if (IntersectRect(&m_oldmousepos, &m_oldmousepos, &m_server->getSharedRect())) 
+					if (IntersectRect(&m_oldmousepos, &m_oldmousepos, &m_server->GetSharedRect())) 
 						toBeSent.AddRect(m_oldmousepos);
 					m_mousemoved = FALSE;
 				}
@@ -2131,7 +2131,7 @@ vncClient::SendRectangle(RECT &rect)
 {
 	RECT SharedRect;
 	{	omni_mutex_lock l(m_regionLock);
-	SharedRect = m_server->getSharedRect();
+	SharedRect = m_server->GetSharedRect();
 	}
 	IntersectRect(&rect, &rect, &SharedRect);
 	// Get the buffer to encode the rectangle
@@ -2280,9 +2280,9 @@ vncClient::SetNewFBSize(BOOL sendnewfb)
 	rfbFramebufferUpdateRectHeader hdr;
 	RECT SharedRect;
 	
-	SharedRect = m_server->getSharedRect();
+	SharedRect = m_server->GetSharedRect();
 	
-	m_pollingcycle = 0;
+	m_polling_phase = 0;
 	m_full_rgn.Clear();
 	m_incr_rgn.Clear();
 	m_full_rgn.AddRect(SharedRect);

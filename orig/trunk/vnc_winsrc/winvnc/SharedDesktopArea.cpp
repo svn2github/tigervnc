@@ -64,7 +64,7 @@ void SharedDesktopArea::Init()
 
 		if (m_pMatchWindow == NULL) {
 			RECT temp;
-			temp = m_server->getSharedRect();
+			temp = m_server->GetSharedRect();
 			m_pMatchWindow = new CMatchWindow(m_server,temp.left+5,temp.top+5,temp.right,temp.bottom);
 			m_pMatchWindow->CanModify(TRUE);
 		}
@@ -168,7 +168,7 @@ void SharedDesktopArea::SharedScreen()
 {
 	if (m_pMatchWindow == NULL) {
 		RECT temp;
-		temp = m_server->getSharedRect();
+		temp = m_server->GetSharedRect();
 		m_pMatchWindow = new CMatchWindow(m_server,temp.left+5,temp.top+5,temp.right,temp.bottom);
 		m_pMatchWindow->CanModify(TRUE);
 	}

@@ -188,7 +188,7 @@ protected:
 
 	// Information used in polling mode!
 	RECT			m_qtrscreen;
-	UINT			m_pollingcycle;
+	UINT			m_polling_phase;
 	BOOL			m_remoteevent;
 
 	BOOL			m_use_NewFBSize;

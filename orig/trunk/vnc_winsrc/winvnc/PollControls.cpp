@@ -15,7 +15,7 @@ PollControls::PollControls(HWND hwnd, vncServer *server)
 	SetChecked(IDC_CONSOLE_ONLY, m_server->PollConsoleOnly());
 	SetChecked(IDC_ONEVENT_ONLY, m_server->PollOnEventOnly());
 	SetChecked(IDC_DONT_SET_HOOKS, m_server->DontSetHooks());
-	SetDlgItemInt(m_hwnd, IDC_POLL_TIMER, m_server->GetPollingTimer(), FALSE);
+	SetDlgItemInt(m_hwnd, IDC_POLLING_CYCLE, m_server->GetPollingCycle(), FALSE);
 
 	Validate();
 }
@@ -33,7 +33,7 @@ void PollControls::Validate()
 	Enable(IDC_CONSOLE_ONLY,      !full_polling && window_polling);
 	Enable(IDC_ONEVENT_ONLY,      !full_polling && window_polling);
 
-	Enable(IDC_POLL_TIMER,        full_polling || window_polling);
+	Enable(IDC_POLLING_CYCLE,     full_polling || window_polling);
 	Enable(IDC_STATIC_PCYCLE,     full_polling || window_polling);
 	Enable(IDC_STATIC_MS,         full_polling || window_polling);
 
@@ -52,8 +52,8 @@ void PollControls::Apply()
 	m_server->DontSetHooks(IsChecked(IDC_DONT_SET_HOOKS));
 
 	BOOL success;
-	UINT pollingTimer = GetDlgItemInt(m_hwnd, IDC_POLL_TIMER, &success, TRUE);
+	UINT pollingCycle = GetDlgItemInt(m_hwnd, IDC_POLLING_CYCLE, &success, TRUE);
 	if (success)
-		m_server->SetPollingTimer(pollingTimer);
+		m_server->SetPollingCycle(pollingCycle);
 }
 

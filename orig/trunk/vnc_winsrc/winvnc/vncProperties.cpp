@@ -1424,7 +1424,7 @@ vncProperties::ApplyUserPrefs()
 	m_server->DisableLocalInputs(m_pref_DisableLocalInputs);
 	
 	m_server->SetDisableTime(m_pref_PriorityTime);
-	m_server->SetPollingTimer(m_pref_PollingCycle);
+	m_server->SetPollingCycle(m_pref_PollingCycle);
 
 #endif
 	// Enable/disable external authentication
@@ -1597,7 +1597,7 @@ vncProperties::SaveUserPrefs(HKEY appkey)
 
 	SaveInt(appkey, "OnlyPollConsole", m_server->PollConsoleOnly());
 	SaveInt(appkey, "OnlyPollOnEvent", m_server->PollOnEventOnly());
-	SaveInt(appkey, "PollingCycle", m_server->GetPollingTimer());
+	SaveInt(appkey, "PollingCycle", m_server->GetPollingCycle());
 
 	SaveInt(appkey, "DontSetHooks", m_server->DontSetHooks());
 

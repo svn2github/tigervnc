@@ -1,0 +1,13 @@
+If you're installing TightVNC remotely, working in an active VNC session:
+
+ * Remote upgrade requires rebooting the computer. If you want to be able to
+   access your computer after the reboot, please make sure you're running
+   current TightVNC version as a service, not in the application mode.
+
+ * There is a number of things that can prevent the machine to reboot correctly,
+   and that can cause losing the control over the computer. In other words, there
+   is NO WARRANTY that the remote upgrade procedure is absolutely reliable.
+
+ * If you're running WinVNC service from some another VNC distribution, this
+   installation procedure won't replace it with the TightVNC service. This is a
+   limitation that may be solved in future versions.

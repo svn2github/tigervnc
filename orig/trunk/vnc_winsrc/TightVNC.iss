@@ -12,6 +12,7 @@ AppUpdatesURL=http://www.tightvnc.com
 DefaultDirName={pf}\TightVNC
 DefaultGroupName=TightVNC
 AlwaysCreateUninstallIcon=no
+InfoBeforeFile=InstInfo.txt
 LicenseFile=LICENCE.txt
 
 WindowVisible=no
@@ -26,10 +27,10 @@ ChangesAssociations=yes
 ; MinVersion=4,3.51
 
 [Files]
-Source: "WinVNC.exe"; DestDir: "{app}"; CopyMode: alwaysoverwrite
-Source: "README.txt"; DestDir: "{app}"; CopyMode: alwaysoverwrite
-Source: "VNCHooks.dll"; DestDir: "{app}"; CopyMode: alwaysoverwrite
+Source: "WinVNC.exe"; DestDir: "{app}"; CopyMode: alwaysoverwrite; Flags: restartreplace
+Source: "VNCHooks.dll"; DestDir: "{app}"; CopyMode: alwaysoverwrite; Flags: restartreplace
 Source: "vncviewer.exe"; DestDir: "{app}"; CopyMode: alwaysoverwrite
+Source: "README.txt"; DestDir: "{app}"; CopyMode: alwaysoverwrite; Flags: isreadme
 Source: "WhatsNew.txt"; DestDir: "{app}"; CopyMode: alwaysoverwrite
 Source: "ChangeLog.txt"; DestDir: "{app}"; CopyMode: alwaysoverwrite
 Source: "LICENCE.txt"; DestDir: "{app}"; CopyMode: alwaysoverwrite
@@ -49,7 +50,7 @@ Name: "{group}\Administration\Run Service Helper";    FileName: "{app}\WinVNC.ex
 Name: "{group}\Administration\Show Default Settings"; FileName: "{app}\WinVNC.exe";    Parameters: "-defaultsettings"; WorkingDir: "{app}"
 
 [Tasks]
-Name: associate; Description: "&Associate .vnc files with TightVNC Viewer"; GroupDescription: "File associations:"
+Name: associate; Description: "&Associate .vnc files with TightVNC Viewer"; GroupDescription: "File Associations:"
 
 [Registry]
 Root: HKCR; Subkey: ".vnc"; ValueType: string; ValueName: ""; ValueData: "VncViewer.Config"; Flags: uninsdeletevalue; Tasks: associate

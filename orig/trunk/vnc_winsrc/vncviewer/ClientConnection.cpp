@@ -386,9 +386,9 @@ void ClientConnection::NegotiateProtocolVersion()
 
     try {
 		ReadExact(pv, sz_rfbProtocolVersionMsg);
-	} catch (Exception &c) {
-		vnclog.Print(0, _T("Error reading protocol version: %s\n"), c);
-		throw QuietException(c.m_info);
+	} catch (Exception &e) {
+		vnclog.Print(0, _T("Error reading protocol version: %s\n"), e.m_info);
+		throw QuietException(e.m_info);
 	}
 
     pv[sz_rfbProtocolVersionMsg] = 0;
@@ -1772,8 +1772,8 @@ void* ClientConnection::run_undetached(void* arg) {
 			  omni_mutex_lock l(m_readMutex);  // we need this if we're not using ReadExact
 			  int bytes = recv(m_sock, (char *) &msgType, 1, MSG_PEEK);
 			  if (bytes == 0) {
-			    vnclog.Print(0, _T("Socket closed\n") );
-			    throw QuietException(_T("SocketClosed"));
+			    vnclog.Print(0, _T("Connection closed\n") );
+			    throw WarningException(_T("Connection closed"));
 			  }
 			  if (bytes < 0) {
 			    vnclog.Print(3, _T("Socket error reading message: %d\n"), WSAGetLastError() );
@@ -1820,8 +1820,11 @@ void* ClientConnection::run_undetached(void* arg) {
         
         vnclog.Print(4, _T("Update-processing thread finishing\n") );
 
-	} catch (WarningException) {
+	} catch (WarningException &e) {
 		PostMessage(m_hwnd, WM_CLOSE, 0, 0);
+		if (!m_bKillThread) {
+			e.Report();
+		}
 	} catch (QuietException &e) {
 		e.Report();
 		PostMessage(m_hwnd, WM_CLOSE, 0, 0);

@@ -42,6 +42,7 @@ class ClientConnection;
 class FileTransfer  
 {
 private:
+	static const char delimeter[];
 	static const char uploadText[];
 	static const char downloadText[];
 	static const char noactionText[];
@@ -81,6 +82,7 @@ public:
 	void CloseUndoneFileTransfers();
 	void UploadFilePortion();
 	void DownloadFilePortion();
+	BOOL IsTransferEnable() { return m_bTransferEnable; };
 	ClientConnection * m_clientconn;
 	VNCviewerApp * m_pApp; 
 	
@@ -91,6 +93,7 @@ private:
 	DWORD m_dwFileSize;
 	DWORD m_dwFileBlockSize;
 	DWORD m_dwModTime;
+	DWORD m_dwNumItemsSel;
 
 	unsigned int FiletimeToTime70(FILETIME ftime);
 	void Time70ToFiletime(unsigned int time70, FILETIME *pftime);
@@ -106,6 +109,10 @@ private:
 	void ClientCreateDir();
 	void ServerCreateDir();
 	void SetDefaultBlockSize() { m_dwFileBlockSize = 8192; };
+
+	void SetStatusText(LPCSTR format,...);
+	void ClearStatusText() { SetWindowText(m_hwndFTStatus, ""); };
+	void MakeStatusText(char *prefix, char *path1, char *path2, char *name);
 	
 	void FileTransferUpload();
 	void CheckUploadQueue();

@@ -2200,6 +2200,19 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 		return 0;	
 	case WM_CLOSE:		
 		// Close the worker thread as well
+		if (_this->m_fileTransferDialogShown) {
+			if (_this->m_pFileTransfer->IsTransferEnable()) {
+				if (MessageBox(hwnd, 
+					_T("File Transfer is active. Are you sure you want to disconnect? This will result in active file transfer operation being discontinued."),
+					_T("Closing Active File Transfer"),
+					MB_YESNO | MB_ICONQUESTION) == IDYES) {
+					_this->m_pFileTransfer->CloseUndoneFileTransfers();
+				} else {
+					return 1;
+				}
+			}
+
+		}
 		_this->KillThread();
 		DestroyWindow(hwnd);
 		return 0;					  

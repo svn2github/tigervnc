@@ -302,6 +302,9 @@ void ConnectionsAccess::MatchEdit(HWND hwnd, DWORD idedit)
 	GetDlgItemText(hwnd, idedit, buffer, 5);
 	if (!MatchPatternComponent(buffer)) {
 		SetDlgItemText(hwnd, idedit, IPComponent[num_comp]);
+		int poscursor = strlen(IPComponent[num_comp]);
+		SendMessage(GetDlgItem(hwnd, idedit), EM_SETSEL,
+					poscursor, poscursor);
 		MessageBox(hwnd,
 				"Element of pattern should be an unsigned\n"
 				"number from the range 0..255, or *.",

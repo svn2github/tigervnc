@@ -104,6 +104,9 @@ class ButtonPanel extends Panel implements ActionListener {
   //
 
   public void actionPerformed(ActionEvent evt) {
+
+    viewer.moveFocusToDesktop();
+
     if (evt.getSource() == disconnectButton) {
       viewer.disconnect();
 
@@ -137,7 +140,6 @@ class ButtonPanel extends Panel implements ActionListener {
         e.printStackTrace();
       }
     }
-    viewer.moveFocusToDesktop();
   }
 }
 

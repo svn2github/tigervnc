@@ -65,13 +65,9 @@ public:
 	BOOL CheckBuffer();
 
 	// SCREEN SCANNING
-	void Clear(RECT &rect);
-	void GetChangedRegion(vncRegion &rgn, RECT &rect);											
 	UINT GetNumCodedRects(RECT &rect);
 
 	// SCREEN CAPTURE
-	void GrabRect(RECT &rect, BOOL full_rgn);
-	void CopyRect(RECT &dest, POINT &source);
 	RECT GrabMouse();
 	BOOL SetClientFormat(rfbPixelFormat &format);
 
@@ -91,16 +87,15 @@ public:
 	BOOL IsCursorUpdatePending();
 	BOOL SendCursorShape(VSocket *outConn);
 	BOOL SendEmptyCursorShape(VSocket *outConn);
+	void UpdateLocalFormat();
 
 // Implementation
 protected:
 
 	// Routine to verify the mainbuff handle hasn't changed
-	inline BOOL FastCheckMainbuffer();
+	//inline BOOL FastCheckMainbuffer();
 	
 	BYTE		*m_mainbuff;
-	BOOL		m_freemainbuff;
-	BYTE		*m_backbuff;
 	UINT		m_mainsize;
 
 	BYTE		*m_clientbuff;

@@ -112,6 +112,9 @@ vncServer::vncServer()
 	GetWindowRect(GetDesktopWindow(), &temp);
 	setSharedRect(temp);
 	m_polling_flag = false;
+	m_polling_timer = 300;
+	m_polling_timer_changed = false;
+
 #ifdef HORIZONLIVE
 	m_full_screen = FALSE;
 	m_WindowShared= TRUE;
@@ -1534,4 +1537,75 @@ vncServer::SetMouseCounter(int count)
 		if (count == 0)
 			m_remote_mouse = 0;
 	}
+}
+
+void 
+vncServer::SetNewFBSize(BOOL sendnewfb)
+{
+	vncClientList::iterator i;
+	omni_mutex_lock l(m_clientsLock);
+
+	// Post new framebuffer size update to all the connected clients
+	for (i = m_authClients.begin(); i != m_authClients.end(); i++)
+	{
+		// Post the update
+		GetClient(*i)->SetNewFBSize( sendnewfb);
+	}
+}
+
+
+BOOL 
+vncServer::FullRgnRequested()
+{
+	vncClientList::iterator i;
+	omni_mutex_lock l(m_clientsLock);
+
+	// Iterate over the authorised clients
+	for (i = m_authClients.begin(); i != m_authClients.end(); i++)
+	{
+		if (GetClient(*i)->FullRgnRequested())
+			return TRUE;
+	}
+	return FALSE;
+}
+
+BOOL 
+vncServer::IncrRgnRequested()
+{
+	vncClientList::iterator i;
+	omni_mutex_lock l(m_clientsLock);
+
+	// Iterate over the authorised clients
+	for (i = m_authClients.begin(); i != m_authClients.end(); i++)
+	{
+		if (GetClient(*i)->IncrRgnRequested())
+			return TRUE;
+	}
+	return FALSE;
+}
+
+void 
+vncServer::UpdateLocalFormat()
+{
+	vncClientList::iterator i;
+	omni_mutex_lock l(m_clientsLock);
+
+	// Iterate over the authorised clients
+	for (i = m_authClients.begin(); i != m_authClients.end(); i++)
+	{
+		GetClient(*i)->UpdateLocalFormat();
+			
+	}
+	return;
+}
+
+void 
+vncServer::SetPollingTimer(UINT pollingtimer)
+{
+	if ( m_polling_timer != pollingtimer && pollingtimer>10)
+	{
+		m_polling_timer = pollingtimer;
+		m_polling_timer_changed = true;
+	}
+	return;
 }

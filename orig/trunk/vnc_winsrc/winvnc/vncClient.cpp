@@ -479,13 +479,7 @@ vncClientThread::run(void *arg)
 	server_ini.format.greenMax = Swap16IfLE(server_ini.format.greenMax);
 	server_ini.format.blueMax = Swap16IfLE(server_ini.format.blueMax);
 
-	// Create the quarter-screen rectangle
-	m_client->m_qtrscreen.left = 0;
-	m_client->m_qtrscreen.top = 0;
-	m_client->m_qtrscreen.right = (SharedRect.right - SharedRect.left)/2;
-	m_client->m_qtrscreen.bottom = (SharedRect.bottom - SharedRect.top)/2;
-
-	
+		
 	server_ini.nameLength = Swap32IfLE(strlen(desktopname));
 	if (!m_socket->SendExact((char *)&server_ini, sizeof(server_ini)))
 	{
@@ -1060,42 +1054,6 @@ vncClient::SetBuffer(vncBuffer *buffer)
 	m_buffer = buffer;
 }
 
-// Update handling functions
-void
-vncClient::PollWindow(HWND hwnd)
-{
-	BOOL poll = TRUE;
-
-	// Are we set to low-load polling?
-	if (m_server->PollOnEventOnly())
-	{
-		// Yes, so only poll if the remote user has done something
-		if (!m_remoteevent)
-			poll = FALSE;
-	}
-
-	// Does the client want us to poll only console windows?
-	if (m_server->PollConsoleOnly())
-	{
-		char classname[20];
-
-		// Yes, so check that this is a console window...
-		if (GetClassName(hwnd, classname, sizeof(classname)))
-			if ((strcmp(classname, "tty") != 0) &&
-				(strcmp(classname, "ConsoleWindowClass") != 0))
-				poll = FALSE;
-	}
-
-	// Are we still wanting to poll this window?
-	if (poll)
-	{
-		RECT rect;
-
-		// Get the rectangle
-		if (GetWindowRect(hwnd, &rect))
-			m_changed_rgn.AddRect(rect);
-	}
-}
 
 void
 vncClient::TriggerUpdate()
@@ -1105,79 +1063,10 @@ vncClient::TriggerUpdate()
 	if (!m_protocol_ready)
 		return;
 
-	RECT old_rect, new_rect;
-
-	if (m_server->WindowShared()) {
-		GetWindowRect(m_server->GetWindowShared(), &new_rect);
-	} else if (m_server->ScreenAreaShared()) {
-		new_rect = m_server->GetScreenAreaRect();
-	} else {
-		new_rect = m_fullscreen;
-	}
 	
-	old_rect = m_server->getSharedRect();
-	IntersectRect(&new_rect, &new_rect, &m_fullscreen);
-	
-	if (!EqualRect(&new_rect, &old_rect)) {
-		m_server->setSharedRect(new_rect);
-		m_full_rgn.Clear();
-		m_incr_rgn.Clear();
-		m_qtrscreen.right = (new_rect.right-new_rect.left)/2;
-		m_qtrscreen.bottom = (new_rect.bottom - new_rect.top) /2;
-		m_pollingcycle = 0;
-	
-		if ( old_rect.right - old_rect.left != new_rect.right - new_rect.left ||
-			 old_rect.bottom - old_rect.top != new_rect.bottom - new_rect.top ) {
-			SendNewFBSize(); 
-			m_full_rgn.AddRect(new_rect);
-		} else if (m_server->ScreenAreaShared()) {
-					m_full_rgn.AddRect(new_rect);
-		}
-	}
-
 	if (m_updatewanted)
 	{
-		// Handle the three polling modes
-		if ( m_server->GetPollingFlag() || m_pollingcycle !=0)
-		{
-			m_server->SetPollingFlag(false);
-		if (m_server->PollFullScreen())
-		{
-			RECT rect, SharedRect;
-			{	omni_mutex_lock l(m_regionLock);
-				SharedRect = m_server->getSharedRect();
-				rect.left = (m_pollingcycle % 2) * m_qtrscreen.right+SharedRect.left;
-				rect.right = rect.left + m_qtrscreen.right;
-				rect.top = (m_pollingcycle / 2) * m_qtrscreen.bottom+SharedRect.top;
-				rect.bottom = rect.top + m_qtrscreen.bottom;
-//				IntersectRect(&rect, &rect, &SharedRect);
-				m_changed_rgn.AddRect(rect);
-				m_pollingcycle = (m_pollingcycle + 1) % 4;
-						
-			}
-		} else {
-			if (m_server->PollForeground())
-			{
-				// Get the window rectangle for the currently selected window
-				HWND hwnd = GetForegroundWindow();
-				if (hwnd != NULL)
-					PollWindow(hwnd);
-			}
-			
-			if (m_server->PollUnderCursor())
-			{
-				// Find the mouse position
-				POINT mousepos;
-				if (GetCursorPos(&mousepos))
-				{
-					// Find the window under the mouse
-					HWND hwnd = WindowFromPoint(mousepos);
-					if (hwnd != NULL)
-						PollWindow(hwnd);
-				}
-			}
-		}}
-
+		
 		// Check if cursor shape update has to be sent
 		m_cursor_update_pending = m_buffer->IsCursorUpdatePending();
 
@@ -1379,76 +1268,6 @@ vncClient::SendRFBMsg(CARD8 type, BYTE *buffer, int buflen)
 	return TRUE;
 }
 
-// Check for each rect in the list, which rects actually need sending
-inline void
-vncClient::CheckRects(vncRegion &rgn, rectlist &rects)
-{
-	rectlist::iterator i;
-
-	for (i = rects.begin(); i != rects.end(); i++)
-	{
-		// Get the buffer to check for changes in the rect
-		m_buffer->GetChangedRegion(rgn, *i);
-//		RECT rect = *i;
-//		vnclog.Print(LL_CONNERR, VNCLOG("RECT to check : %hd %hd %hd %hd \n"), rect.left, rect.top, rect.right, rect.bottom );
-
-	}
-}
-
-// For each rectangle in the list, just copy the foreground buffer to the background,
-// to avoid false updates in the future.
-inline void
-vncClient::ClearRects(vncRegion &rgn, rectlist &rects)
-{
-	rectlist::iterator i;
-
-	for (i = rects.begin(); i != rects.end(); i++)
-	{
-		m_buffer->Clear(*i);
-		rgn.AddRect(*i);
-	}
-}
-
-// Grab the given rectangles using the smallest no of bands possible
-inline void
-vncClient::GrabRegion(vncRegion &rgn, BOOL full_rgn)
-{
-	rectlist::iterator i;
-	rectlist rects;
-	RECT grabRect;
-
-	// Get the rectangles
-	if (!rgn.Rectangles(rects))
-		return;
-
-	// Clear the DIB rectangle
-	SetRectEmpty(&grabRect);
-
-	// Sort the rectangles in order of height
-	rects.sort();
-
-	for (i = rects.begin(); i != rects.end(); i++)
-	{
-		RECT current = *i;
-
-		// Check that this rectangle is part of this capture region
-		if (current.top > grabRect.bottom)
-		{
-			// If the existing rect is non-null the capture it
-			if (!IsRectEmpty(&grabRect))
-				m_buffer->GrabRect(grabRect, full_rgn);
-
-			grabRect = current;
-		} else {
-			// Enlarge the region to be captured
-			UnionRect(&grabRect, &current, &grabRect);
-		}
-	}
-
-	// If there are still some rects to be done then do them
-	if (!IsRectEmpty(&grabRect))
-		m_buffer->GrabRect(grabRect, full_rgn);
-}
 
 BOOL
 vncClient::SendUpdate()
@@ -1485,50 +1304,21 @@ vncClient::SendUpdate()
 		}
 	}
 
-	// If there is nothing to send then exit
-	if (m_changed_rgn.IsEmpty() &&
-		m_full_rgn.IsEmpty() &&
-		!m_copyrect_set &&
-		!m_cursor_update_pending &&
-		!m_cursor_pos_changed)
-		return FALSE;
-
-
-//	// Handle the CopyRect region, if any
-//	if (m_copyrect_set)
-//		m_buffer->CopyRect(m_copyrect_rect, m_copyrect_src);
-
-	// *** Currently, we only check for changes when there isn't a CopyRect to do
-	
-		// Get the region to definitely be sent
-		toBeSent.Clear();
-	
-		if (!m_full_rgn.IsEmpty())
-		{
-			m_incr_rgn.Clear();
-			m_copyrect_set = false;
-			GrabRegion(m_full_rgn,true);
-			toBeSent.Combine(m_full_rgn);	
-			m_changed_rgn.Subtract(m_full_rgn);
-			m_full_rgn.Clear();
-						
-		} else	if(!m_incr_rgn.IsEmpty())
-		{
-		toBeDone.Clear();
-		toBeDone.Combine(m_incr_rgn);
-		m_changed_rgn.AddRect(m_oldmousepos);
-		toBeDone.Intersect(m_changed_rgn);
-		
-		if( !toBeDone.IsEmpty() )
-		{
-			GrabRegion(toBeDone,false);
-			rectlist rectsToScan;
-			if (toBeDone.Rectangles(rectsToScan))
-				CheckRects(toBeSent, rectsToScan);
-			
-		}
-		m_changed_rgn.Subtract(m_incr_rgn);
-	
+	toBeSent.Clear();
+	if (!m_full_rgn.IsEmpty())
+	{
+		m_incr_rgn.Clear();
+		m_copyrect_set = false;
+		toBeSent.Combine(m_full_rgn);	
+		m_changed_rgn.Clear();
+		m_full_rgn.Clear();
+	}
+	else if(!m_incr_rgn.IsEmpty())
+	{
+		// get region for sent from vncdesktop
+		toBeSent.Combine(m_changed_rgn);
+		// mouse stuff will be moved to vncdesktop ( or removed?)
+		/*
 		if (!m_cursor_update_sent && !m_cursor_update_pending) {
 			if (!m_mousemoved) {
 				vncRegion tmpMouseRgn;
@@ -1543,20 +1333,18 @@ vncClient::SendUpdate()
 				// Grab the mouse
 				m_oldmousepos = m_buffer->GrabMouse();
 				if (IntersectRect(&m_oldmousepos, &m_oldmousepos, &m_server->getSharedRect()))
-					m_buffer->GetChangedRegion(toBeSent, m_oldmousepos);
+					toBeSent.AddRect(m_oldmousepos);
 				m_mousemoved = FALSE;
 			}
 		}
-
+		// end of mouse stuff block
+		*/
 		
-		if (!toBeSent.IsEmpty())
-			m_incr_rgn.Clear();
-
-		//m_changed_rgn.Clear();
+		//m_incr_rgn.Clear();
+		m_changed_rgn.Clear();
+		
 	}
 
-			
-	
 	// Get the list of changed rectangles!
 	int numrects = 0;
 	if (toBeSent.Rectangles(toBeSentList))
@@ -1587,7 +1375,9 @@ vncClient::SendUpdate()
 		if (m_copyrect_set)
 			numrects++;
 		// If there are no rectangles then return
-		if (numrects == 0)
+		if (numrects != 0)
+			m_incr_rgn.Clear();
+		else
 			return FALSE;
 	}
 
@@ -1644,8 +1434,6 @@ vncClient::SendRectangles(rectlist &rects)
 	while(!rects.empty())
 	{
 		rect = rects.front();
-		vnclog.Print(LL_CONNERR, VNCLOG("RECT to check : %hd %hd %hd %hd \n"), rect.left, rect.top, rect.right, rect.bottom);
-	
 		if (!SendRectangle(rect))
 			return FALSE;
 		rects.pop_front();
@@ -1687,7 +1475,7 @@ vncClient::SendCopyRect(RECT &dest, POINT &source)
 	rfbCopyRect copyrectbody;
 	copyrectbody.srcX = Swap16IfLE(source.x);
 	copyrectbody.srcY = Swap16IfLE(source.y);
-
+	
 	// Now send the message;
 	if (!m_socket->SendQueued((char *)&copyrecthdr, sizeof(copyrecthdr)))
 		return FALSE;
@@ -1805,14 +1593,20 @@ vncClient::SendCursorPosUpdate()
 // Send NewFBSize pseudo-rectangle to notify the client about
 // framebuffer size change
 BOOL
-vncClient::SendNewFBSize()
+vncClient::SetNewFBSize(BOOL sendnewfb)
 {
 	rfbFramebufferUpdateRectHeader hdr;
 	RECT SharedRect;
 	
 	SharedRect = m_server->getSharedRect();
+	
+	m_pollingcycle = 0;
+	m_full_rgn.Clear();
+	m_incr_rgn.Clear();
+	m_full_rgn.AddRect(SharedRect);
+	
 		
-	if (m_use_NewFBSize) {
+	if (m_use_NewFBSize && sendnewfb) {
 		hdr.r.x = 0;
 		hdr.r.y = 0;
 		hdr.r.w = Swap16IfLE(SharedRect.right - SharedRect.left);
@@ -1838,6 +1632,12 @@ void
 vncClient::SetInputCounter()
 {
 	m_server->SetKeyboardCounter(1);
+}
+
+void
+vncClient::UpdateLocalFormat()
+{
+	m_buffer->UpdateLocalFormat();
 }
 
 

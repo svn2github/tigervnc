@@ -93,6 +93,7 @@
 #define IDC_SECONDS_LABEL               1066
 #define IDC_SPECDISPLAY                 1071
 #define IDC_SPECPORT                    1072
+#define IDC_POLL_TIMER                  1073
 #define IDC_ACTION_REFUSE               1074
 #define IDC_ACTION_ACCEPT               1075
 #define ID_PROPERTIES                   40001
@@ -109,7 +110,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        147
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1082
+#define _APS_NEXT_CONTROL_VALUE         1076
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

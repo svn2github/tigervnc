@@ -416,6 +416,10 @@ vncProperties::DialogProc(HWND hwnd,
 			EnableWindow(hPollOnEventOnly,
 				_this->m_server->PollUnderCursor() || _this->m_server->PollForeground()
 				);
+
+			HWND hPollingTimer = GetDlgItem(hwnd, IDC_POLL_TIMER);
+			SetDlgItemInt(hwnd, IDC_POLL_TIMER, _this->m_server->GetPollingTimer(), FALSE);
+
 #endif
 	
 			if (_this->m_pref_FullScreen) {
@@ -588,6 +592,12 @@ vncProperties::DialogProc(HWND hwnd,
 				UINT disabletime = GetDlgItemInt(hwnd, IDC_DISABLE_TIME, &success, TRUE);
 				if (success)
 					_this->m_server->SetDisableTime(disabletime);
+
+				UINT pollingtimer = GetDlgItemInt(hwnd, IDC_POLL_TIMER, &success, TRUE);
+				if (success)
+					_this->m_server->SetPollingTimer(pollingtimer);
+
+								
 #else
 				_this->m_server->SetLiveShareKey(_this->m_pref_LiveShareKey);
 

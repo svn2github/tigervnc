@@ -107,25 +107,26 @@ public:
 	virtual vncClientId GetClientId() {return m_id;};
 
 	void SetInputCounter();
+	BOOL SetNewFBSize(BOOL sendnewfb);
+	BOOL IncrRgnRequested(){return !m_incr_rgn.IsEmpty();};
+	BOOL FullRgnRequested(){return !m_full_rgn.IsEmpty();};
+	void UpdateLocalFormat();
+
 
 
 	// Update routines
 protected:
 	BOOL SendUpdate();
 	BOOL SendRFBMsg(CARD8 type, BYTE *buffer, int buflen);
-	void CheckRects(vncRegion &rgn, rectlist &rects);
-	void ClearRects(vncRegion &rgn, rectlist &rects);
-	void GrabRegion(vncRegion &rgn, BOOL full_rgn);
 	BOOL SendRectangles(rectlist &rects);
 	BOOL SendRectangle(RECT &rect);
 	BOOL SendCopyRect(RECT &dest, POINT &source);
 	BOOL SendCursorShapeUpdate();
 	BOOL SendCursorPosUpdate();
 	BOOL SendLastRect();
-	BOOL SendNewFBSize();
 	BOOL SendPalette();
 
-	void PollWindow(HWND hwnd);
+
 
 	// Internal stuffs
 protected:

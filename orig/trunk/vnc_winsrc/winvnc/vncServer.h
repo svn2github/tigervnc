@@ -267,6 +267,11 @@ public:
 	virtual void FullScreen(BOOL enable) { m_full_screen = enable; };                    
 	virtual BOOL ScreenAreaShared() { return m_screen_area; };                           
 	virtual void ScreenAreaShared(BOOL enable) { m_screen_area = enable; };              
+	virtual void SetNewFBSize(BOOL sendnewfb);
+	virtual BOOL FullRgnRequested();
+	virtual BOOL IncrRgnRequested();
+	virtual	void UpdateLocalFormat();
+
 	                                                                                     
 	// blocking remote input stuff                                                       
 	virtual void LocalInputPriority(BOOL enable);               
@@ -279,6 +284,10 @@ public:
 	virtual void SetDisableTime(UINT disabletime) {m_disable_time = disabletime;};                                             
 	virtual void SetPollingFlag(BOOL enable) { m_polling_flag = enable;};
 	virtual BOOL GetPollingFlag() { return m_polling_flag;};
+	virtual UINT GetPollingTimer() {return m_polling_timer;};
+	virtual void SetPollingTimer(UINT pollingtimer);                                             
+	virtual BOOL PollingTimerChanged(){ return m_polling_timer_changed;};                                             
+	virtual void PollingTimerChanged(BOOL change){ m_polling_timer_changed = change;};
 	
 	// Internal stuffs
 protected:
@@ -341,6 +350,8 @@ protected:
 	INT					m_remote_mouse;              
 	INT					m_remote_keyboard;           
 	BOOL				m_polling_flag;
+	UINT				m_polling_timer;
+	BOOL				m_polling_timer_changed;
 	                                                                     
 
 	// Name of this desktop

@@ -88,7 +88,7 @@ public:
 		rfbPixelFormat		cli_pf,
 		const RECT			&rect
 		);
-	void CaptureScreen(RECT &UpdateArea, BYTE *scrBuff, UINT scrBuffSize, BYTE *invBuff);
+	void CaptureScreen(RECT &UpdateArea, BYTE *scrBuff, BYTE *invBuff);
 	rectlist ChangedAreas(
 		RECT				&ChangedArea,
 		rectlist			&existingRects,
@@ -110,7 +110,7 @@ public:
 
 	// Method to obtain the DIBsection buffer if fast blits are enabled
 	// If they're disabled, it'll return NULL
-	inline VOID *OptimisedBlitBuffer() {return m_DIBbits;};
+	inline BYTE *MainBuffer() {return m_mainbuff;};
 
 	BOOL	m_initialClipBoardSeen;
 
@@ -142,17 +142,24 @@ protected:
 	BOOL InitHooks();
 	BOOL SetPalette();
 
-	void CopyToBuffer(RECT &rect, BYTE *scrBuff, UINT scrBuffSize);
+	void CopyToBuffer(RECT &rect, BYTE *scrBuff);
 	void CalcCopyRects();
 
 	// Routine to attempt enabling optimised DIBsection blits
-	void EnableOptimisedBlits();
+	BOOL CreateBuffers();
 
 	// Convert a bit mask eg. 00111000 to max=7, shift=3
 	static void MaskToMaxAndShift(DWORD mask, CARD16 &max, CARD8 &shift);
 	
 	// Enabling & disabling clipboard handling
 	void SetClipboardActive(BOOL active) {m_clipboard_active = active;};
+
+	void PollWindow(HWND hwnd);
+	void CheckRects(vncRegion &rgn, rectlist &rects);
+	void GetChangedRegion(vncRegion &rgn, RECT &rect);											
+	void GrabRegion(vncRegion &rgn);
+
+
 
 	// DATA
 
@@ -202,7 +209,14 @@ protected:
 
 	// Extra vars used for the DIBsection optimisation
 	VOID			*m_DIBbits;
+	BYTE			*m_mainbuff;
+	BYTE			*m_backbuff;
+	BOOL			m_freemainbuff;
+
 	BOOL			m_formatmunged;
+	vncRegion		m_changed_rgn;
+	RECT			m_qtrscreen;
+	UINT			m_pollingcycle;
 
 	DEVMODE			*lpDevMode; // *** used for res changes - Jeremy Peaks
 	long			origPelsWidth; // *** To set the original resolution

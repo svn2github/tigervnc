@@ -22,7 +22,8 @@ VNCHelp::VNCHelp()
          (DWORD)&dwCookie) ; // Cookie returned by Hhctrl.ocx.
 }
 
-void VNCHelp::Popup(LPARAM lParam) {
+void VNCHelp::Popup(LPARAM lParam) 
+{
 	
 	LPHELPINFO hlp = (LPHELPINFO) lParam;
 	HH_POPUP popup;
@@ -45,14 +46,15 @@ void VNCHelp::Popup(LPARAM lParam) {
 					(DWORD)&popup) ;
 	}
 }
-BOOL VNCHelp::TransMess( DWORD mess) {
+BOOL VNCHelp::TransMess( DWORD mess) 
+{
 	if (HtmlHelp (
                  NULL,
                  NULL,
                  HH_PRETRANSLATEMESSAGE,
                  mess)) {
 		return TRUE;
-	}else{
+	} else {
 		return FALSE;
 	}
 }

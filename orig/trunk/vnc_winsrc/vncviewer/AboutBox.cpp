@@ -31,10 +31,10 @@
 // Process the About dialog.
 
 static LRESULT CALLBACK AboutDlgProc(HWND hwnd, UINT iMsg, 
-										   WPARAM wParam, LPARAM lParam) {
+									WPARAM wParam, LPARAM lParam) 
+{
 	switch (iMsg) {
-	case WM_INITDIALOG:
-		{
+	case WM_INITDIALOG: {
 			CentreWindow(hwnd);
 			return TRUE;
 		}
@@ -52,21 +52,21 @@ static LRESULT CALLBACK AboutDlgProc(HWND hwnd, UINT iMsg,
 void ShowAboutBox()
 {
 	int res = DialogBox(pApp->m_instance, 
- 		DIALOG_MAKEINTRESOURCE(IDD_APP_ABOUT),
-		NULL, (DLGPROC) AboutDlgProc);
+ 						DIALOG_MAKEINTRESOURCE(IDD_APP_ABOUT),
+						NULL, (DLGPROC) AboutDlgProc);
 }
 
 static LRESULT CALLBACK HelpDlgProc(HWND hwnd, UINT iMsg, 
-										   WPARAM wParam, LPARAM lParam) {
+									WPARAM wParam, LPARAM lParam) 
+{
 	switch (iMsg) {
-	case WM_INITDIALOG:
-		{	TCHAR buf [2048];
-			LoadString(pApp->m_instance,IDS_HELP,buf,sizeof(buf));
-			SetDlgItemText(hwnd,IDC_EDIT_HELP,buf);
-			
-			CentreWindow(hwnd);
-			return TRUE;
-		}
+	case WM_INITDIALOG: {
+		TCHAR buf [2048];
+		LoadString(pApp->m_instance,IDS_HELP,buf,sizeof(buf));
+		SetDlgItemText(hwnd,IDC_EDIT_HELP,buf);
+		CentreWindow(hwnd);
+		return TRUE;
+	}
 	case WM_CLOSE:
 		EndDialog(hwnd, TRUE);
 		return TRUE;
@@ -80,8 +80,8 @@ static LRESULT CALLBACK HelpDlgProc(HWND hwnd, UINT iMsg,
 void ShowHelpBox()
 {
 	int res = DialogBox(pApp->m_instance, 
- 		DIALOG_MAKEINTRESOURCE(IDD_HELP),
-		NULL, (DLGPROC) HelpDlgProc);
+ 						DIALOG_MAKEINTRESOURCE(IDD_HELP),
+						NULL, (DLGPROC) HelpDlgProc);
 	
 }
 

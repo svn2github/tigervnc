@@ -87,46 +87,46 @@ VNCOptions::VNCOptions()
 
 	HKEY hRegKey;
 		
-	if ( RegOpenKey(HKEY_CURRENT_USER, SETTINGS_KEY_NAME, &hRegKey)  != 
-		ERROR_SUCCESS ) {
+	if ( RegOpenKey(HKEY_CURRENT_USER,
+					SETTINGS_KEY_NAME, &hRegKey) != ERROR_SUCCESS ) {
 		hRegKey = NULL;
 	} else {
 		DWORD buffer;
 		DWORD buffersize = sizeof(buffer);
 		DWORD valtype;
-		if ( RegQueryValueEx( hRegKey,  "SkipFullScreenPrompt", NULL, &valtype, 
-				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {			
-			m_skipprompt=buffer == 1;				
+		if ( RegQueryValueEx( hRegKey, "SkipFullScreenPrompt", NULL, &valtype, 
+				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {			
+			m_skipprompt = buffer == 1;				
 		}		
-		if ( RegQueryValueEx( hRegKey,  "NoToolbar", NULL, &valtype, 
-				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
-			m_toolbar=buffer == 1;
+		if ( RegQueryValueEx( hRegKey, "NoToolbar", NULL, &valtype, 
+				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
+			m_toolbar = buffer == 1;
 		}
-		if ( RegQueryValueEx( hRegKey,  "LogToFile", NULL, &valtype, 
-				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
-				m_logToFile=buffer == 1;
+		if ( RegQueryValueEx( hRegKey, "LogToFile", NULL, &valtype, 
+				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
+				m_logToFile = buffer == 1;
 		}
-		if ( RegQueryValueEx( hRegKey,  "ListServer", NULL, &valtype, 
-				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
-			m_listServer=buffer;
+		if ( RegQueryValueEx( hRegKey, "ListServer", NULL, &valtype, 
+				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
+			m_listServer = buffer;
 		}
-		if ( RegQueryValueEx( hRegKey,  "Localcursor", NULL, &valtype, 
-				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
-			m_localCursor=buffer;
+		if ( RegQueryValueEx( hRegKey, "Localcursor", NULL, &valtype, 
+				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
+			m_localCursor = buffer;
 		}
-		if ( RegQueryValueEx( hRegKey,  "LogLevel", NULL, &valtype, 
-				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
-			m_logLevel=buffer;
+		if ( RegQueryValueEx( hRegKey, "LogLevel", NULL, &valtype, 
+				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
+			m_logLevel = buffer;
 		}
-		if ( RegQueryValueEx( hRegKey,  "listenPort", NULL, &valtype, 
-				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
-			m_listenPort=buffer;
+		if ( RegQueryValueEx( hRegKey, "listenPort", NULL, &valtype, 
+				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
+			m_listenPort = buffer;
 		}
 		TCHAR buf[80];
 		buffersize=_MAX_PATH;
-		if (RegQueryValueEx( hRegKey,  "LogFileName", NULL, &valtype, 
-				(LPBYTE) &buf, &buffersize) == ERROR_SUCCESS){
-			strcpy(m_logFilename,buf);
+		if (RegQueryValueEx( hRegKey, "LogFileName", NULL, &valtype, 
+				(LPBYTE) &buf, &buffersize) == ERROR_SUCCESS) {
+			strcpy(m_logFilename, buf);
 		}
 		RegCloseKey(hRegKey);
 	}
@@ -167,7 +167,7 @@ VNCOptions& VNCOptions::operator=(VNCOptions& s)
 	m_scale_num			= s.m_scale_num;
 	m_scale_den			= s.m_scale_den;
 	m_localCursor		= s.m_localCursor;
-	m_toolbar		= s.m_toolbar;
+	m_toolbar			= s.m_toolbar;
 	strcpy(m_display, s.m_display);
 	strcpy(m_host, s.m_host);
 	m_port				= s.m_port;
@@ -219,7 +219,7 @@ static void ArgError(LPTSTR msg) {
 
 // Greatest common denominator, by Euclid
 int gcd(int a, int b) {
-	if (a < b) return gcd(b,a);
+	if (a < b) return gcd(b, a);
 	if (b == 0) return a;
 	return gcd(b, a % b);
 }
@@ -242,17 +242,15 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 	// Copy the command line - we don't know what might happen to the original
 	int cmdlinelen = _tcslen(szCmdLine);
 	
-
 	if (cmdlinelen == 0) return;
-	
-	
+		
 	TCHAR CommLine[256] ;
-	int f=0;
+	int f = 0;
 	_tcscpy(CommLine, szCmdLine);
 
-	if (_tcsstr( CommLine, "/listen") !=NULL){
-		LoadOpt(".listen","Software\\ORL\\VNCviewer\\MRU1");
-		f=1;
+	if (_tcsstr( CommLine, "/listen") != NULL) {
+		LoadOpt(".listen", "Software\\ORL\\VNCviewer\\MRU1");
+		f = 1;
 	}
 	TCHAR *cmd = new TCHAR[cmdlinelen + 1];
 	_tcscpy(cmd, szCmdLine);
@@ -295,9 +293,9 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 	i++;
 	for (int j = 0; j < i; j++) {
 	TCHAR phost[256];
-	if (ParseDisplay(args[j], phost, 255, &m_port)&&(f==0)&&
-		(_tcsstr( args[j], "/") ==NULL))
-	LoadOpt(args[j],"Software\\ORL\\VNCviewer\\MRU1");
+	if (ParseDisplay(args[j], phost, 255, &m_port) && (f == 0) &&
+		(_tcsstr( args[j], "/") == NULL))
+	LoadOpt(args[j], "Software\\ORL\\VNCviewer\\MRU1");
 	}
 	bool hostGiven = false, portGiven = false;
 	// take in order.
@@ -361,9 +359,8 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 				ArgError(_T("Invalid scaling specified"));
 				continue;
 			}
-			 
 				m_scale_den = 100; // needed if you're overriding a previous setting
-			m_scaling=true;
+				m_scaling=true;
 		} else if ( SwitchMatch(args[j], _T("emulate3timeout") )) {
 			if (++j == i) {
 				ArgError(_T("No timeout specified"));
@@ -675,8 +672,7 @@ int VNCOptions::DoDialog(bool running)
 {
 	m_running = running;
 	return DialogBoxParam(pApp->m_instance, DIALOG_MAKEINTRESOURCE(IDD_PARENT), 
-		NULL, (DLGPROC) DlgProc, (LONG) this);
- 	
+							NULL, (DLGPROC) DlgProc, (LONG) this); 	
 }
 BOOL CALLBACK VNCOptions::DlgProc(HWND hwndDlg, UINT uMsg,
 										WPARAM wParam, LPARAM lParam)
@@ -697,34 +693,38 @@ BOOL CALLBACK VNCOptions::DlgProc(HWND hwndDlg, UINT uMsg,
 			RECT rc;
 			TCITEM item;
 			
-			_this->m_hTab=GetDlgItem(hwndDlg,IDC_TAB);
+			_this->m_hTab=GetDlgItem(hwndDlg, IDC_TAB);
 			
 			item.pszText="Connection options";
 			item.mask = TCIF_TEXT | TCIF_IMAGE; 
 			item.iImage = -1;
 					
-			TabCtrl_InsertItem(_this->m_hTab,0,&item);
+			TabCtrl_InsertItem(_this->m_hTab, 0, &item);
 
-			item.pszText="General Options";
+			item.pszText = "General Options";
 
-			TabCtrl_InsertItem(_this->m_hTab,1,&item);
+			TabCtrl_InsertItem(_this->m_hTab, 1, &item);
 
-			GetClientRect(hwndDlg,&rc);
+			GetClientRect(hwndDlg, &rc);
 			
-			_this->m_hPageConnection=CreateDialogParam(pApp->m_instance,
-				MAKEINTRESOURCE(IDD_OPTIONDIALOG), hwndDlg,
-				(DLGPROC)_this->DlgProc1,(LONG) _this);
+			_this->m_hPageConnection = CreateDialogParam(pApp->m_instance,
+														MAKEINTRESOURCE(IDD_OPTIONDIALOG),
+														hwndDlg,
+														(DLGPROC)_this->DlgProc1,
+														(LONG) _this);
 
-			_this->m_hPageGeneral=CreateDialogParam(pApp->m_instance, 
-				MAKEINTRESOURCE(IDD_GENERAL_OPTION), hwndDlg,
-				(DLGPROC)_this->DlgProc2,(LONG)_this);
+			_this->m_hPageGeneral = CreateDialogParam(pApp->m_instance, 
+													MAKEINTRESOURCE(IDD_GENERAL_OPTION),
+													hwndDlg,
+													(DLGPROC)_this->DlgProc2,
+													(LONG)_this);
 
-			SetWindowPos(_this->m_hPageGeneral,HWND_TOP,rc.left+4,rc.top+24,
-				rc.right-rc.left-20,
-				rc.bottom-rc.top-75,SWP_HIDEWINDOW);  
-			SetWindowPos(_this->m_hPageConnection,HWND_TOP,rc.left+4,rc.top+24,
-				rc.right-rc.left-20,
-				rc.bottom-rc.top-75,SWP_SHOWWINDOW);
+			SetWindowPos(_this->m_hPageGeneral, HWND_TOP, rc.left+4, rc.top+24,
+						rc.right-rc.left-20,
+						rc.bottom-rc.top-75, SWP_HIDEWINDOW);  
+			SetWindowPos(_this->m_hPageConnection, HWND_TOP, rc.left+4, rc.top+24,
+						rc.right-rc.left-20,
+						rc.bottom-rc.top-75, SWP_SHOWWINDOW);
 					
 			return TRUE;
 		}
@@ -735,8 +735,8 @@ BOOL CALLBACK VNCOptions::DlgProc(HWND hwndDlg, UINT uMsg,
 			switch (LOWORD(wParam))	{
 			case IDOK:{ 
 				
-				SendMessage(_this->m_hPageConnection,WM_COMMAND,IDC_OK,0);
-				SendMessage(_this->m_hPageGeneral,WM_COMMAND,IDC_OK,0);
+				SendMessage(_this->m_hPageConnection, WM_COMMAND, IDC_OK, 0);
+				SendMessage(_this->m_hPageGeneral, WM_COMMAND, IDC_OK, 0);
 									
 				EndDialog(hwndDlg, TRUE);
 					
@@ -749,18 +749,18 @@ BOOL CALLBACK VNCOptions::DlgProc(HWND hwndDlg, UINT uMsg,
 			return 0;
 		
 		case WM_NOTIFY: {
-			LPNMHDR pn=(LPNMHDR)lParam;
+			LPNMHDR pn = (LPNMHDR)lParam;
 			switch (pn->code) {		
 			case TCN_SELCHANGE:
 				switch (pn->idFrom) {
 				case IDC_TAB:
-					int i=TabCtrl_GetCurFocus(_this->m_hTab);
+					int i = TabCtrl_GetCurFocus(_this->m_hTab);
 					switch (i) {
 					case 0:
-						ShowWindow(_this->m_hPageConnection,SW_SHOW);						
+						ShowWindow(_this->m_hPageConnection, SW_SHOW);						
 						return 0;
 					case 1:
-						ShowWindow(_this->m_hPageGeneral,SW_SHOW);						
+						ShowWindow(_this->m_hPageGeneral, SW_SHOW);						
 						return 0;						
 					}
 					return 0;
@@ -769,14 +769,14 @@ BOOL CALLBACK VNCOptions::DlgProc(HWND hwndDlg, UINT uMsg,
 			case TCN_SELCHANGING:
 				switch (pn->idFrom) {
 				case IDC_TAB:
-					int i=TabCtrl_GetCurFocus(_this->m_hTab);
-					switch (i){
+					int i = TabCtrl_GetCurFocus(_this->m_hTab);
+					switch (i) {
 						case 0:
-							ShowWindow(_this->m_hPageConnection,SW_HIDE);
+							ShowWindow(_this->m_hPageConnection, SW_HIDE);
 							SetFocus(_this->m_hPageConnection);
 						break;
 						case 1:
-							ShowWindow(_this->m_hPageGeneral,SW_HIDE);
+							ShowWindow(_this->m_hPageGeneral, SW_HIDE);
 							SetFocus(_this->m_hPageGeneral);
 						break;
 					}
@@ -800,151 +800,146 @@ BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,
 	
 	switch (uMsg) {
 		
-	case WM_INITDIALOG:{
-		
+	case WM_INITDIALOG: {			
+		SetWindowLong(hwnd, GWL_USERDATA, lParam);
+           VNCOptions *_this = (VNCOptions *) lParam;
+		// Initialise the controls
+		HWND hListBox = GetDlgItem(hwnd, IDC_ENCODING);
+		TCHAR list[20];
+		strcpy(list, "Raw");
+		SendMessage(hListBox, CB_INSERTSTRING, (WPARAM)0, (LPARAM)(int FAR*)list);
+		strcpy(list, "RRE");
+		SendMessage(hListBox, CB_INSERTSTRING, (WPARAM)1, (LPARAM)(int FAR*)list);
+		strcpy(list, "CoRRE");
+		SendMessage(hListBox, CB_INSERTSTRING, (WPARAM)2, (LPARAM)(int FAR*)list);
+		strcpy(list, "Hextile");
+		SendMessage(hListBox, CB_INSERTSTRING, (WPARAM)3, (LPARAM)(int FAR*)list);
+		strcpy(list, "Zlib (pure)");
+		SendMessage(hListBox, CB_INSERTSTRING, (WPARAM)4, (LPARAM)(int FAR*)list);
+		strcpy(list, "Tight");
+		SendMessage(hListBox, CB_INSERTSTRING, (WPARAM)5, (LPARAM)(int FAR*)list);
+		strcpy(list, "ZlibHex (mix)");
+		SendMessage(hListBox, CB_INSERTSTRING, (WPARAM)6, (LPARAM)(int FAR*)list);
+		int i;
+		switch (_this->m_PreferredEncoding) {
+		case 0:
+			i = 0;
+			break;
+		case 2:
+			i = 1;
+			break;
+		case 4:
+		case 5:
+		case 6:
+		case 7:
+		case 8:
+			i = _this->m_PreferredEncoding - 2;
+			break;
+		}
+		SendMessage(hListBox, CB_SETCURSEL, i, 0);
+		HWND hCopyRect = GetDlgItem(hwnd, ID_SESSION_SET_CRECT);
+		SendMessage(hCopyRect, BM_SETCHECK, _this->m_UseEnc[rfbEncodingCopyRect], 0);
 			
-			SetWindowLong(hwnd, GWL_USERDATA, lParam);
-            VNCOptions *_this = (VNCOptions *) lParam;
-			// Initialise the controls
-			HWND hListBox = GetDlgItem(hwnd, IDC_ENCODING);
-			TCHAR list[20];
-			strcpy(list,"Raw");
-			SendMessage(hListBox, CB_INSERTSTRING,(WPARAM)0,(LPARAM)(int FAR*)list);
-			strcpy(list,"RRE");
-			SendMessage(hListBox, CB_INSERTSTRING,(WPARAM)1,(LPARAM)(int FAR*)list);
-			strcpy(list,"CoRRE");
-			SendMessage(hListBox, CB_INSERTSTRING,(WPARAM)2,(LPARAM)(int FAR*)list);
-			strcpy(list,"Hextile");
-			SendMessage(hListBox, CB_INSERTSTRING,(WPARAM)3,(LPARAM)(int FAR*)list);
-			strcpy(list,"Zlib (pure)");
-			SendMessage(hListBox, CB_INSERTSTRING,(WPARAM)4,(LPARAM)(int FAR*)list);
-			strcpy(list,"Tight");
-			SendMessage(hListBox, CB_INSERTSTRING,(WPARAM)5,(LPARAM)(int FAR*)list);
-			strcpy(list,"ZlibHex (mix)");
-			SendMessage(hListBox, CB_INSERTSTRING,(WPARAM)6,(LPARAM)(int FAR*)list);
-			int i;
-			switch (_this->m_PreferredEncoding)
-			{case 0:
-				i=0;
-				break;
-			case 2:
-				i=1;
-				break;
-			case 4:
-			case 5:
-			case 6:
-			case 7:
-			case 8:
-				i=_this->m_PreferredEncoding-2;
-				break;
-			}
-			SendMessage(hListBox, CB_SETCURSEL,i,0);
-			HWND hCopyRect = GetDlgItem(hwnd, ID_SESSION_SET_CRECT);
-			SendMessage(hCopyRect, BM_SETCHECK, _this->m_UseEnc[rfbEncodingCopyRect], 0);
+		HWND hSwap = GetDlgItem(hwnd, ID_SESSION_SWAPMOUSE);
+		SendMessage(hSwap, BM_SETCHECK, _this->m_SwapMouse, 0);
 			
-			HWND hSwap = GetDlgItem(hwnd, ID_SESSION_SWAPMOUSE);
-			SendMessage(hSwap, BM_SETCHECK, _this->m_SwapMouse, 0);
-			
-			HWND hDeiconify = GetDlgItem(hwnd, IDC_BELLDEICONIFY);
-			SendMessage(hDeiconify, BM_SETCHECK, _this->m_DeiconifyOnBell, 0);
+		HWND hDeiconify = GetDlgItem(hwnd, IDC_BELLDEICONIFY);
+		SendMessage(hDeiconify, BM_SETCHECK, _this->m_DeiconifyOnBell, 0);
 
 #ifndef UNDER_CE
-			HWND hDisableClip = GetDlgItem(hwnd, IDC_DISABLECLIPBOARD);
-			SendMessage(hDisableClip, BM_SETCHECK, _this->m_DisableClipboard, 0);
+		HWND hDisableClip = GetDlgItem(hwnd, IDC_DISABLECLIPBOARD);
+		SendMessage(hDisableClip, BM_SETCHECK, _this->m_DisableClipboard, 0);
 #endif			
 			
-			HWND h8bit = GetDlgItem(hwnd, IDC_8BITCHECK);
-			SendMessage(h8bit, BM_SETCHECK, _this->m_Use8Bit, 0);
+		HWND h8bit = GetDlgItem(hwnd, IDC_8BITCHECK);
+		SendMessage(h8bit, BM_SETCHECK, _this->m_Use8Bit, 0);
 			
-			HWND hShared = GetDlgItem(hwnd, IDC_SHARED);
-			SendMessage(hShared, BM_SETCHECK, _this->m_Shared, 0);
-			EnableWindow(hShared, !_this->m_running);
+		HWND hShared = GetDlgItem(hwnd, IDC_SHARED);
+		SendMessage(hShared, BM_SETCHECK, _this->m_Shared, 0);
+		EnableWindow(hShared, !_this->m_running);
 			 
-			HWND hViewOnly = GetDlgItem(hwnd, IDC_VIEWONLY);
-			SendMessage(hViewOnly, BM_SETCHECK, _this->m_ViewOnly, 0);
+		HWND hViewOnly = GetDlgItem(hwnd, IDC_VIEWONLY);
+		SendMessage(hViewOnly, BM_SETCHECK, _this->m_ViewOnly, 0);
 
 
-			HWND hScaling = GetDlgItem(hwnd, IDC_SCALING);
-			SendMessage(hScaling, BM_SETCHECK, _this->m_scaling, 0);
-			HWND hScalEdit = GetDlgItem(hwnd, IDC_SCALE_EDIT);
-			strcpy(list,"25");
-			SendMessage(hScalEdit, CB_INSERTSTRING,(WPARAM)0,(LPARAM)(int FAR*)list);
-			strcpy(list,"50");
-			SendMessage(hScalEdit, CB_INSERTSTRING,(WPARAM)1,(LPARAM)(int FAR*)list);
-			strcpy(list,"75");
-			SendMessage(hScalEdit, CB_INSERTSTRING,(WPARAM)2,(LPARAM)(int FAR*)list);
-			strcpy(list,"90");
-			SendMessage(hScalEdit, CB_INSERTSTRING,(WPARAM)3,(LPARAM)(int FAR*)list);
-			strcpy(list,"100");
-			SendMessage(hScalEdit, CB_INSERTSTRING,(WPARAM)4,(LPARAM)(int FAR*)list);
-			strcpy(list,"125");
-			SendMessage(hScalEdit, CB_INSERTSTRING,(WPARAM)5,(LPARAM)(int FAR*)list);
-			strcpy(list,"150");
-			SendMessage(hScalEdit, CB_INSERTSTRING,(WPARAM)6,(LPARAM)(int FAR*)list);
+		HWND hScaling = GetDlgItem(hwnd, IDC_SCALING);
+		SendMessage(hScaling, BM_SETCHECK, _this->m_scaling, 0);
+		HWND hScalEdit = GetDlgItem(hwnd, IDC_SCALE_EDIT);
+		strcpy(list, "25");
+		SendMessage(hScalEdit, CB_INSERTSTRING, (WPARAM)0, (LPARAM)(int FAR*)list);
+		strcpy(list, "50");
+		SendMessage(hScalEdit, CB_INSERTSTRING, (WPARAM)1, (LPARAM)(int FAR*)list);
+		strcpy(list, "75");
+		SendMessage(hScalEdit, CB_INSERTSTRING, (WPARAM)2, (LPARAM)(int FAR*)list);
+		strcpy(list, "90");
+		SendMessage(hScalEdit, CB_INSERTSTRING, (WPARAM)3, (LPARAM)(int FAR*)list);
+		strcpy(list, "100"); 
+		SendMessage(hScalEdit, CB_INSERTSTRING, (WPARAM)4, (LPARAM)(int FAR*)list);
+		strcpy(list, "125");
+		SendMessage(hScalEdit, CB_INSERTSTRING, (WPARAM)5, (LPARAM)(int FAR*)list);
+		strcpy(list, "150");
+		SendMessage(hScalEdit, CB_INSERTSTRING, (WPARAM)6, (LPARAM)(int FAR*)list);
 			
-			SetDlgItemInt( hwnd, IDC_SCALE_EDIT,(( _this->m_scale_num*100) / _this->m_scale_den), FALSE);
+		SetDlgItemInt(hwnd, IDC_SCALE_EDIT, (( _this->m_scale_num*100) / _this->m_scale_den), FALSE);
 
-			EnableWindow(hScalEdit,_this->m_scaling);
+		EnableWindow(hScalEdit, _this->m_scaling);
 			
 #ifndef UNDER_CE
-			HWND hFullScreen = GetDlgItem(hwnd, IDC_FULLSCREEN);
-			SendMessage(hFullScreen, BM_SETCHECK, _this->m_FullScreen, 0);
+		HWND hFullScreen = GetDlgItem(hwnd, IDC_FULLSCREEN);
+		SendMessage(hFullScreen, BM_SETCHECK, _this->m_FullScreen, 0);
 
- 			HWND hEmulate = GetDlgItem(hwnd, IDC_EMULATECHECK);
- 			SendMessage(hEmulate, BM_SETCHECK, _this->m_Emul3Buttons, 0);
+ 		HWND hEmulate = GetDlgItem(hwnd, IDC_EMULATECHECK);
+ 		SendMessage(hEmulate, BM_SETCHECK, _this->m_Emul3Buttons, 0);
 #endif
 			
-			HWND hAllowCompressLevel = GetDlgItem(hwnd, IDC_ALLOW_COMPRESSLEVEL);
-			SendMessage(hAllowCompressLevel, BM_SETCHECK,_this->m_useCompressLevel, 0);
+		HWND hAllowCompressLevel = GetDlgItem(hwnd, IDC_ALLOW_COMPRESSLEVEL);
+		SendMessage(hAllowCompressLevel, BM_SETCHECK, _this->m_useCompressLevel, 0);
 
-			HWND hAllowJpeg = GetDlgItem(hwnd, IDC_ALLOW_JPEG);
-			SendMessage(hAllowJpeg, BM_SETCHECK, _this->m_enableJpegCompression, 0);
+		HWND hAllowJpeg = GetDlgItem(hwnd, IDC_ALLOW_JPEG);
+		SendMessage(hAllowJpeg, BM_SETCHECK, _this->m_enableJpegCompression, 0);
 	
-			EnableWindow( hAllowCompressLevel, ((_this->m_PreferredEncoding==rfbEncodingTight)||
-				(_this->m_PreferredEncoding==rfbEncodingZlib)||
-			(_this->m_PreferredEncoding==rfbEncodingZlibHex)));
+		EnableWindow(hAllowCompressLevel, ((_this->m_PreferredEncoding == rfbEncodingTight) ||
+				(_this->m_PreferredEncoding == rfbEncodingZlib) ||
+		(_this->m_PreferredEncoding == rfbEncodingZlibHex)));
 			
-			EnableWindow( hAllowJpeg, (_this->m_PreferredEncoding==rfbEncodingTight));
+		EnableWindow(hAllowJpeg, (_this->m_PreferredEncoding == rfbEncodingTight));
 
-			HWND hCompressLevel = GetDlgItem(hwnd, IDC_COMPRESSLEVEL);
-			SendMessage(hCompressLevel,TBM_SETRANGE ,TRUE,(LPARAM) MAKELONG(1, 9)); 
-			SendMessage(hCompressLevel,TBM_SETPOS ,TRUE, _this->m_compressLevel);
+		HWND hCompressLevel = GetDlgItem(hwnd, IDC_COMPRESSLEVEL);
+		SendMessage(hCompressLevel, TBM_SETRANGE, TRUE, (LPARAM) MAKELONG(1, 9)); 
+		SendMessage(hCompressLevel, TBM_SETPOS, TRUE, _this->m_compressLevel);
 
-			SetDlgItemInt(hwnd, IDC_STATIC_LEVEL,_this->m_compressLevel,FALSE);
+		SetDlgItemInt(hwnd, IDC_STATIC_LEVEL, _this->m_compressLevel, FALSE);
 
-			EnableWindow(hCompressLevel, (((_this->m_PreferredEncoding==rfbEncodingTight)||
-				(_this->m_PreferredEncoding==rfbEncodingZlib)||
-			(_this->m_PreferredEncoding==rfbEncodingZlibHex))&&_this->m_useCompressLevel));
+		EnableWindow(hCompressLevel, (((_this->m_PreferredEncoding == rfbEncodingTight)||
+			(_this->m_PreferredEncoding == rfbEncodingZlib) ||
+			(_this->m_PreferredEncoding == rfbEncodingZlibHex)) && _this->m_useCompressLevel));
 
-			HWND hJpeg = GetDlgItem(hwnd, IDC_QUALITYLEVEL);
-			SendMessage(hJpeg,TBM_SETRANGE ,TRUE,(LPARAM) MAKELONG(1, 9));
-			SendMessage(hJpeg,TBM_SETPOS ,TRUE, _this->m_jpegQualityLevel);
+		HWND hJpeg = GetDlgItem(hwnd, IDC_QUALITYLEVEL);
+		SendMessage(hJpeg, TBM_SETRANGE, TRUE, (LPARAM) MAKELONG(1, 9));
+		SendMessage(hJpeg, TBM_SETPOS, TRUE, _this->m_jpegQualityLevel);
 
-			SetDlgItemInt(hwnd, IDC_STATIC_QUALITY,_this->m_jpegQualityLevel,FALSE);
+		SetDlgItemInt(hwnd, IDC_STATIC_QUALITY, _this->m_jpegQualityLevel, FALSE);
 
-			EnableWindow(hJpeg, ((_this->m_PreferredEncoding==rfbEncodingTight)&&
-				_this->m_enableJpegCompression));
+		EnableWindow(hJpeg, ((_this->m_PreferredEncoding == rfbEncodingTight) &&
+			_this->m_enableJpegCompression));
 		
-			HWND hRemoteCursor;
-			if (_this->m_requestShapeUpdates && !_this->m_ignoreShapeUpdates) {
-				hRemoteCursor = GetDlgItem(hwnd, IDC_CSHAPE_ENABLE_RADIO);
-			} else if (_this->m_requestShapeUpdates) {
-				hRemoteCursor = GetDlgItem(hwnd, IDC_CSHAPE_IGNORE_RADIO);
-			} else {
-				hRemoteCursor = GetDlgItem(hwnd, IDC_CSHAPE_DISABLE_RADIO);
-			}
-			SendMessage(hRemoteCursor, BM_SETCHECK,	true, 0);
-
-			
-			
+		HWND hRemoteCursor;
+		if (_this->m_requestShapeUpdates && !_this->m_ignoreShapeUpdates) {
+			hRemoteCursor = GetDlgItem(hwnd, IDC_CSHAPE_ENABLE_RADIO);
+		} else if (_this->m_requestShapeUpdates) {
+			hRemoteCursor = GetDlgItem(hwnd, IDC_CSHAPE_IGNORE_RADIO);
+		} else {
+			hRemoteCursor = GetDlgItem(hwnd, IDC_CSHAPE_DISABLE_RADIO);
+		}
+		SendMessage(hRemoteCursor, BM_SETCHECK,	true, 0);			
 		return TRUE;
 	}
-	case WM_COMMAND:{
+	case WM_COMMAND: {
 		switch (LOWORD(wParam)) {
 		case IDC_SCALE_EDIT:
 			switch (HIWORD(wParam)) {
 			case CBN_EDITCHANGE:
-				Lim(hwnd,IDC_SCALE_EDIT,25,150);
+				Lim(hwnd, IDC_SCALE_EDIT, 25, 150);
 				return 0;
 			}
 			return 0;
@@ -953,12 +948,12 @@ BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,
 			case BN_CLICKED:
 				HWND hScaling = GetDlgItem(hwnd, IDC_SCALING);
 				HWND hScalEdit = GetDlgItem(hwnd, IDC_SCALE_EDIT);
-				if (SendMessage(hScaling,BM_GETCHECK,0,0)==0){
-					EnableWindow(hScalEdit,TRUE);
-					SendMessage(hScaling,BM_SETCHECK,TRUE,0);
-				}else{
-					EnableWindow(hScalEdit,FALSE);
-					SendMessage(hScaling,BM_SETCHECK,FALSE,0);
+				if (SendMessage(hScaling, BM_GETCHECK,0,0) == 0) {
+					EnableWindow(hScalEdit, TRUE);
+					SendMessage(hScaling, BM_SETCHECK, TRUE, 0);
+				} else {
+					EnableWindow(hScalEdit, FALSE);
+					SendMessage(hScaling, BM_SETCHECK, FALSE, 0);
 				}
 				return 0;
 			}
@@ -969,12 +964,12 @@ BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,
 				HWND hAllowCompressLevel = GetDlgItem(hwnd, IDC_ALLOW_COMPRESSLEVEL);
 				HWND hCompressLevel = GetDlgItem(hwnd, IDC_COMPRESSLEVEL);
 				
-				if (SendMessage(hAllowCompressLevel,BM_GETCHECK,0,0)==0){
-					EnableWindow( hCompressLevel,TRUE);
-					SendMessage(hAllowCompressLevel,BM_SETCHECK,TRUE,0);
-				}else{
-					EnableWindow( hCompressLevel,FALSE);
-					SendMessage(hAllowCompressLevel,BM_SETCHECK,FALSE,0);
+				if (SendMessage(hAllowCompressLevel, BM_GETCHECK, 0, 0) == 0) {
+					EnableWindow( hCompressLevel, TRUE);
+					SendMessage(hAllowCompressLevel, BM_SETCHECK, TRUE, 0);
+				} else {
+					EnableWindow( hCompressLevel, FALSE);
+					SendMessage(hAllowCompressLevel, BM_SETCHECK, FALSE, 0);
 				}
 				return 0;
 			}
@@ -985,40 +980,40 @@ BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,
 				HWND hAllowJpeg = GetDlgItem(hwnd, IDC_ALLOW_JPEG);
 				HWND hJpeg = GetDlgItem(hwnd, IDC_QUALITYLEVEL);
 				
-				if (SendMessage(hAllowJpeg,BM_GETCHECK,0,0)==0){
-					EnableWindow( hJpeg,TRUE);
-					SendMessage(hAllowJpeg,BM_SETCHECK,TRUE,0);
-				}else{
-					EnableWindow( hJpeg,FALSE);
-					SendMessage(hAllowJpeg,BM_SETCHECK,FALSE,0);
+				if (SendMessage(hAllowJpeg, BM_GETCHECK, 0, 0) == 0) {
+					EnableWindow( hJpeg, TRUE);
+					SendMessage(hAllowJpeg, BM_SETCHECK, TRUE, 0);
+				} else {
+					EnableWindow( hJpeg, FALSE);
+					SendMessage(hAllowJpeg, BM_SETCHECK, FALSE, 0);
 				}
 				return 0;
 			}
 			return 0;
-		case IDC_OK:{			
+		case IDC_OK: {			
 			HWND hListBox = GetDlgItem(hwnd, IDC_ENCODING);
-			int i=SendMessage(hListBox,CB_GETCURSEL,0,0);
-			switch (i){
+			int i = SendMessage(hListBox, CB_GETCURSEL, 0, 0);
+			switch (i) {
 				case 0:
-					_this->m_PreferredEncoding=0;
+					_this->m_PreferredEncoding = 0;
 					break;
 				case 1:
-					_this->m_PreferredEncoding=2;
+					_this->m_PreferredEncoding = 2;
 					break;
 				case 2:
 				case 3:
 				case 4:
 				case 5:
 				case 6:
-					_this->m_PreferredEncoding=i+2;
+					_this->m_PreferredEncoding = i + 2;
 					break;
 			}
 			HWND hScalEdit = GetDlgItem(hwnd, IDC_SCALE_EDIT);
 			int error;
-			i=GetDlgItemInt(hwnd, IDC_SCALE_EDIT,&error,FALSE);
-			if (i > 0){
-				_this->m_scale_num=i;
-				_this->m_scale_den=100;
+			i = GetDlgItemInt(hwnd, IDC_SCALE_EDIT, &error, FALSE);
+			if (i > 0) {
+				_this->m_scale_num = i;
+				_this->m_scale_den = 100;
 			}
 				
 			HWND hCopyRect = GetDlgItem(hwnd, ID_SESSION_SET_CRECT);
@@ -1070,7 +1065,7 @@ BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,
 			_this->m_useCompressLevel = 
 				(SendMessage(hAllowCompressLevel, BM_GETCHECK, 0, 0) == BST_CHECKED);
 			HWND hCompressLevel = GetDlgItem(hwnd, IDC_COMPRESSLEVEL);
-			_this->m_compressLevel = SendMessage(hCompressLevel,TBM_GETPOS ,0,0);
+			_this->m_compressLevel = SendMessage(hCompressLevel,TBM_GETPOS , 0, 0);
 				
 				
 
@@ -1078,7 +1073,7 @@ BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,
 			_this->m_enableJpegCompression = 
 				(SendMessage(hAllowJpeg, BM_GETCHECK, 0, 0) == BST_CHECKED);
 			HWND hJpeg = GetDlgItem(hwnd, IDC_QUALITYLEVEL);
-			_this->m_jpegQualityLevel = SendMessage(hJpeg,TBM_GETPOS ,0,0);
+			_this->m_jpegQualityLevel = SendMessage(hJpeg,TBM_GETPOS , 0, 0);
 				
 
 			_this->m_requestShapeUpdates = false;
@@ -1103,27 +1098,27 @@ BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,
 				HWND hAllowJpeg = GetDlgItem(hwnd, IDC_ALLOW_JPEG);
 				HWND hJpeg = GetDlgItem(hwnd, IDC_QUALITYLEVEL);
 				HWND hListBox = GetDlgItem(hwnd, IDC_ENCODING);
-				int i=SendMessage(hListBox,CB_GETCURSEL,0,0);
-				if (i==5){
+				int i = SendMessage(hListBox ,CB_GETCURSEL, 0, 0);
+				if (i == 5) {
 					EnableWindow( hJpeg,
-					(SendMessage(hAllowJpeg,BM_GETCHECK,0,0)==1));
-					EnableWindow(hAllowJpeg,TRUE);
+								(SendMessage(hAllowJpeg, BM_GETCHECK, 0, 0) == 1));
+					EnableWindow(hAllowJpeg, TRUE);
 					EnableWindow( hCompressLevel,
-					(SendMessage(hAllowCompressLevel,BM_GETCHECK,0,0)==1));
-					EnableWindow(hAllowCompressLevel,TRUE);
+								(SendMessage(hAllowCompressLevel, BM_GETCHECK,0,0) == 1));
+					EnableWindow(hAllowCompressLevel, TRUE);
 				}
-				if ((i==6)||(i==4)){
+				if ((i == 6) || (i == 4)) {
 					EnableWindow( hCompressLevel,
-					(SendMessage(hAllowCompressLevel,BM_GETCHECK,0,0)==1));
-					EnableWindow(hAllowCompressLevel,TRUE);
-					EnableWindow( hJpeg,FALSE);
-					EnableWindow(hAllowJpeg,FALSE);
+					(SendMessage(hAllowCompressLevel, BM_GETCHECK, 0, 0) == 1));
+					EnableWindow(hAllowCompressLevel, TRUE);
+					EnableWindow( hJpeg, FALSE);
+					EnableWindow(hAllowJpeg, FALSE);
 				}
-				if ((i>=0)&&(i<=3)){
-					EnableWindow( hCompressLevel,FALSE);
-					EnableWindow(hAllowCompressLevel,FALSE);
-					EnableWindow( hJpeg,FALSE);
-					EnableWindow(hAllowJpeg,FALSE);
+				if ((i >= 0) && (i <= 3)) {
+					EnableWindow( hCompressLevel, FALSE);
+					EnableWindow(hAllowCompressLevel, FALSE);
+					EnableWindow( hJpeg, FALSE);
+					EnableWindow(hAllowJpeg, FALSE);
 				}
 				return 0;
 			}
@@ -1139,13 +1134,13 @@ BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,
 		
 		HWND hCompressLevel = GetDlgItem(hwnd, IDC_COMPRESSLEVEL);
 		HWND hJpeg = GetDlgItem(hwnd, IDC_QUALITYLEVEL);
-		if (HWND(lParam)==hCompressLevel) {
-			dwPos = SendMessage(hCompressLevel,TBM_GETPOS ,0,0);
-			SetDlgItemInt(hwnd, IDC_STATIC_LEVEL,dwPos,FALSE);
+		if (HWND(lParam) == hCompressLevel) {
+			dwPos = SendMessage(hCompressLevel, TBM_GETPOS, 0, 0);
+			SetDlgItemInt(hwnd, IDC_STATIC_LEVEL, dwPos,FALSE);
 		}
-		if (HWND(lParam)==hJpeg) {
-			dwPos = SendMessage(hJpeg,TBM_GETPOS ,0,0);
-			SetDlgItemInt(hwnd, IDC_STATIC_QUALITY,dwPos,FALSE);
+		if (HWND(lParam) == hJpeg) {
+			dwPos = SendMessage(hJpeg, TBM_GETPOS, 0, 0);
+			SetDlgItemInt(hwnd, IDC_STATIC_QUALITY, dwPos, FALSE);
 		}
 		return 0;
 	}
@@ -1156,42 +1151,41 @@ BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,
 	return 0;
 }
 BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,  
-									 WPARAM wParam, LPARAM lParam ) {
-	
-	
+									 WPARAM wParam, LPARAM lParam ) 
+{	
 	VNCOptions *_this = (VNCOptions *) GetWindowLong(hwnd, GWL_USERDATA);
 	
 	switch (uMsg) {
 		
-	case WM_INITDIALOG:{
+	case WM_INITDIALOG: {
 					
 		SetWindowLong(hwnd, GWL_USERDATA, lParam);
         VNCOptions *_this = (VNCOptions *) lParam;
 		// Initialise the controls
 		bool cursor;
-		if (pApp->m_options.m_localCursor==DOTCURSOR){
-			cursor=true;
-		}else{
-			cursor=false;
+		if (pApp->m_options.m_localCursor == DOTCURSOR) {
+			cursor = true;
+		} else {
+			cursor = false;
 		}
 		HWND hDotCursor = GetDlgItem(hwnd, IDC_DOTCURSOR_RADIO);
-		SendMessage(hDotCursor, BM_SETCHECK,cursor, 0);
+		SendMessage(hDotCursor, BM_SETCHECK, cursor, 0);
 
-		if (pApp->m_options.m_localCursor==NOCURSOR){
-			cursor=true;
-		}else{
-			cursor=false;
+		if (pApp->m_options.m_localCursor == NOCURSOR) {
+			cursor = true;
+		} else {
+			cursor = false;
 		}
 		HWND hNoCursor = GetDlgItem(hwnd, IDC_NOCURSOR_RADIO);
-		SendMessage(hNoCursor, BM_SETCHECK,cursor, 0);
+		SendMessage(hNoCursor, BM_SETCHECK, cursor, 0);
 
-		if (pApp->m_options.m_localCursor==NORMALCURSOR){
-			cursor=true;
-		}else{
-			cursor=false;
+		if (pApp->m_options.m_localCursor == NORMALCURSOR) {
+			cursor = true;
+		} else {
+			cursor = false;
 		}
 		HWND hNormalCursor = GetDlgItem(hwnd, IDC_NORMALCURSOR_RADIO);
-		SendMessage(hNormalCursor, BM_SETCHECK,cursor, 0);
+		SendMessage(hNormalCursor, BM_SETCHECK, cursor, 0);
 
 		HWND hMessage = GetDlgItem(hwnd, IDC_CHECK_MESSAGE);
  		SendMessage(hMessage, BM_SETCHECK, !pApp->m_options.m_skipprompt, 0);
@@ -1200,66 +1194,63 @@ BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,
  		SendMessage(hToolbar, BM_SETCHECK, pApp->m_options.m_toolbar, 0);
 
 		HWND hEditList = GetDlgItem(hwnd, IDC_EDIT_AMOUNT_LIST);
-		SetDlgItemInt( hwnd,IDC_EDIT_AMOUNT_LIST,pApp->m_options.m_listServer,FALSE);
+		SetDlgItemInt( hwnd, IDC_EDIT_AMOUNT_LIST, pApp->m_options.m_listServer, FALSE);
 
 		HWND hSpin1 = GetDlgItem(hwnd, IDC_SPIN1);
-		SendMessage(hSpin1,UDM_SETBUDDY,(WPARAM) (HWND)hEditList,0);
+		SendMessage(hSpin1, UDM_SETBUDDY, (WPARAM) (HWND)hEditList, 0);
 
 		HWND hChec = GetDlgItem(hwnd, IDC_CHECK_LOG_FILE);
 		HWND hEditFile = GetDlgItem(hwnd, IDC_EDIT_LOG_FILE);
 		HWND hEditLevel = GetDlgItem(hwnd, IDC_EDIT_LOG_LEVEL);
 
 		HWND hSpin2 = GetDlgItem(hwnd, IDC_SPIN2);
-		SendMessage(hSpin2,UDM_SETBUDDY,(WPARAM) (HWND)hEditLevel,0);
+		SendMessage(hSpin2, UDM_SETBUDDY, (WPARAM) (HWND)hEditLevel, 0);
 		
 		HWND hListenPort = GetDlgItem(hwnd, IDC_LISTEN_PORT);
-		SetDlgItemInt( hwnd,IDC_LISTEN_PORT,pApp->m_options.m_listenPort,FALSE);
+		SetDlgItemInt( hwnd, IDC_LISTEN_PORT, pApp->m_options.m_listenPort, FALSE);
 
 		HWND hSpin3 = GetDlgItem(hwnd, IDC_SPIN3);
-		SendMessage(hSpin3,UDM_SETBUDDY,(WPARAM) (HWND)hListenPort,0);
+		SendMessage(hSpin3, UDM_SETBUDDY, (WPARAM) (HWND)hListenPort, 0);
 
-		SendMessage(hChec,BM_SETCHECK,pApp->m_options.m_logToFile,0);
-		if (SendMessage(hChec,BM_GETCHECK,0,0)==0){
-			EnableWindow(hEditFile,FALSE);
-			EnableWindow(hEditLevel,FALSE);	
-		}else{
-			EnableWindow(hEditFile,TRUE);
-			EnableWindow(hEditLevel,TRUE);	
+		SendMessage(hChec, BM_SETCHECK, pApp->m_options.m_logToFile, 0);
+		if (SendMessage(hChec, BM_GETCHECK, 0, 0) == 0) {
+			EnableWindow(hEditFile, FALSE);
+			EnableWindow(hEditLevel, FALSE);	
+		} else {
+			EnableWindow(hEditFile, TRUE);
+			EnableWindow(hEditLevel, TRUE);	
 		}
-
-		SetDlgItemInt( hwnd,IDC_EDIT_LOG_LEVEL,pApp->m_options.m_logLevel,FALSE);
-		SetDlgItemText( hwnd,IDC_EDIT_LOG_FILE,pApp->m_options.m_logFilename);
+		SetDlgItemInt( hwnd, IDC_EDIT_LOG_LEVEL, pApp->m_options.m_logLevel, FALSE);
+		SetDlgItemText( hwnd, IDC_EDIT_LOG_FILE, pApp->m_options.m_logFilename);
 		return TRUE;
 	}
 	case WM_HELP:
-
 		help.Popup(lParam);
-
 		return 0;
-	case WM_COMMAND:{
+	case WM_COMMAND: {
 		switch (LOWORD(wParam)) {
 		case IDC_LISTEN_PORT:
 			switch (HIWORD(wParam)) {
 			case EN_CHANGE:
-				Lim(hwnd,IDC_LISTEN_PORT,1,6553);				
+				Lim(hwnd, IDC_LISTEN_PORT, 1, 6553);				
 				return 0;
 			}
 			return 0;
 		case IDC_EDIT_AMOUNT_LIST:
 			switch (HIWORD(wParam)) {
 			case EN_CHANGE:
-				Lim(hwnd,IDC_EDIT_AMOUNT_LIST,1,64);				
+				Lim(hwnd, IDC_EDIT_AMOUNT_LIST, 1, 64);				
 				return 0;
 			}
 			return 0;
 		case IDC_EDIT_LOG_LEVEL:
 			switch (HIWORD(wParam)) {
 			case EN_CHANGE:
-				Lim(hwnd,IDC_EDIT_LOG_LEVEL,1,12);				
+				Lim(hwnd, IDC_EDIT_LOG_LEVEL, 1, 12);				
 				return 0;
 			}
 			return 0;
-		case IDC_BUTTON_CLEAR_LIST:{
+		case IDC_BUTTON_CLEAR_LIST: {
 			HKEY hRegKey;
 			TCHAR value[80];
 			TCHAR data[80];
@@ -1270,12 +1261,12 @@ BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,
 			RegOpenKey(HKEY_CURRENT_USER,
 				"Software\\ORL\\VNCviewer\\MRU1", &hRegKey);
 
-			while (RegEnumValue(hRegKey,index,value,&valuesize,
-				NULL,NULL,(LPBYTE)data,&datasize)==ERROR_SUCCESS){
-				pApp->m_options.delkey(data,"Software\\ORL\\VNCviewer\\MRU1");
-				RegDeleteValue(hRegKey,value);
-				valuesize=80;
-				datasize=80;
+			while (RegEnumValue(hRegKey, index, value, &valuesize,
+				NULL, NULL, (LPBYTE)data, &datasize) == ERROR_SUCCESS){
+				pApp->m_options.delkey(data, "Software\\ORL\\VNCviewer\\MRU1");
+				RegDeleteValue(hRegKey, value);
+				valuesize = 80;
+				datasize = 80;
 			}
 
 			RegCloseKey(hRegKey);
@@ -1286,14 +1277,14 @@ BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,
 			HWND hDotCursor = GetDlgItem(hwnd, IDC_DOTCURSOR_RADIO);
 			HWND hNoCursor = GetDlgItem(hwnd, IDC_NOCURSOR_RADIO);
 			HWND hNormalCursor = GetDlgItem(hwnd, IDC_NORMALCURSOR_RADIO);
-			if (SendMessage(hDotCursor, BM_GETCHECK, 0, 0) == BST_CHECKED){
-				pApp->m_options.m_localCursor=DOTCURSOR;	
+			if (SendMessage(hDotCursor, BM_GETCHECK, 0, 0) == BST_CHECKED) {
+				pApp->m_options.m_localCursor = DOTCURSOR;	
 			}
-			if (SendMessage(hNoCursor, BM_GETCHECK, 0, 0) == BST_CHECKED){
-				pApp->m_options.m_localCursor=NOCURSOR;	
+			if (SendMessage(hNoCursor, BM_GETCHECK, 0, 0) == BST_CHECKED) {
+				pApp->m_options.m_localCursor = NOCURSOR;	
 			}
-			if (SendMessage(hNormalCursor, BM_GETCHECK, 0, 0) == BST_CHECKED){
-				pApp->m_options.m_localCursor=NORMALCURSOR;	
+			if (SendMessage(hNormalCursor, BM_GETCHECK, 0, 0) == BST_CHECKED) {
+				pApp->m_options.m_localCursor = NORMALCURSOR;	
 			}
 			char buf[80];
 			DWORD buffer;
@@ -1303,77 +1294,77 @@ BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,
 			HWND hChec = GetDlgItem(hwnd, IDC_CHECK_LOG_FILE);
 			RegCreateKey(HKEY_CURRENT_USER,
 				SETTINGS_KEY_NAME, &hRegKey);
-			if (SendMessage(hChec,BM_GETCHECK,0,0)==0){
-				pApp->m_options.m_logToFile=false;
+			if (SendMessage(hChec, BM_GETCHECK, 0, 0) == 0) {
+				pApp->m_options.m_logToFile = false;
 				buffer = 0;
-			}else{
-				pApp->m_options.m_logToFile=true;
+			} else {
+				pApp->m_options.m_logToFile = true;
 				buffer = 1;
-				pApp->m_options.m_logLevel=GetDlgItemInt(hwnd,
-					IDC_EDIT_LOG_LEVEL,NULL,FALSE);
-				GetDlgItemText(hwnd,IDC_EDIT_LOG_FILE,
-					buf,80);
-				strcpy(pApp->m_options.m_logFilename,buf);
+				pApp->m_options.m_logLevel = GetDlgItemInt(hwnd,
+					IDC_EDIT_LOG_LEVEL, NULL, FALSE);
+				GetDlgItemText(hwnd, IDC_EDIT_LOG_FILE,
+					buf, 80); 
+				strcpy(pApp->m_options.m_logFilename, buf);
 
 				vnclog.SetLevel(pApp->m_options.m_logLevel);
 				vnclog.SetFile(pApp->m_options.m_logFilename);
 			}
-			RegSetValueEx( hRegKey,"LogToFile" , 
-				NULL,REG_DWORD , 
+			RegSetValueEx( hRegKey, "LogToFile" , 
+				NULL, REG_DWORD, 
 				(CONST BYTE *)&buffer,
-				4 );
-			if (SendMessage(hMessage,BM_GETCHECK,0,0)==0){
-				pApp->m_options.m_skipprompt=true;
+				4);
+			if (SendMessage(hMessage, BM_GETCHECK, 0, 0) == 0) {
+				pApp->m_options.m_skipprompt = true;
 				buffer = 1;
-			}else{
-				pApp->m_options.m_skipprompt=false;
+			} else {
+				pApp->m_options.m_skipprompt = false;
 				buffer = 0;
 			}
-			RegSetValueEx( hRegKey,"SkipFullScreenPrompt" , 
-					NULL,REG_DWORD , 
+			RegSetValueEx( hRegKey, "SkipFullScreenPrompt", 
+					NULL,REG_DWORD, 
 					(CONST BYTE *)&buffer,
-					4 );
-			if (SendMessage(hToolbar,BM_GETCHECK,0,0)==0){
-				pApp->m_options.m_toolbar=false;
+					4);
+			if (SendMessage(hToolbar, BM_GETCHECK, 0, 0) == 0) {
+				pApp->m_options.m_toolbar = false;
 				buffer = 0;
-			}else{
-				pApp->m_options.m_toolbar=true;
+			} else {
+				pApp->m_options.m_toolbar = true;
 				buffer = 1;
 			}
-			RegSetValueEx( hRegKey,"NoToolbar" , 
-					NULL,REG_DWORD , 
+			RegSetValueEx( hRegKey, "NoToolbar", 
+					NULL, REG_DWORD, 
 					(CONST BYTE *)&buffer,
-					4 );
-			pApp->m_options.m_listServer=GetDlgItemInt(hwnd,
-				IDC_EDIT_AMOUNT_LIST,NULL,FALSE);
+					4);
+			pApp->m_options.m_listServer = GetDlgItemInt(hwnd,
+				IDC_EDIT_AMOUNT_LIST, NULL, FALSE);
  
-			RegSetValueEx( hRegKey,"Localcursor" , 
-				NULL,REG_DWORD , 
+			RegSetValueEx( hRegKey, "Localcursor", 
+				NULL, REG_DWORD, 
 				(CONST BYTE *)&pApp->m_options.m_localCursor,
-				4 );
+				4);
  
-			RegSetValueEx( hRegKey,"ListServer" , 
-				NULL,REG_DWORD , 
+			RegSetValueEx( hRegKey, "ListServer", 
+				NULL, REG_DWORD, 
 				(CONST BYTE *)&pApp->m_options.m_listServer,
-				4 );
+				4);
 				 
-			RegSetValueEx( hRegKey,"LogLevel" , 
-				NULL,REG_DWORD , 
+			RegSetValueEx( hRegKey, "LogLevel", 
+				NULL, REG_DWORD, 
 				(CONST BYTE *)&pApp->m_options.m_logLevel,
-				4 );
+				4);
 				
-			strcpy(buf,pApp->m_options.m_logFilename);
-			RegSetValueEx( hRegKey,"LogFileName" , 
-					NULL,REG_SZ , 
-					(CONST BYTE *)buf, (_tcslen(buf)+1) );
+			strcpy(buf, pApp->m_options.m_logFilename);
+			RegSetValueEx( hRegKey, "LogFileName", 
+					NULL, REG_SZ , 
+					(CONST BYTE *)buf, (_tcslen(buf)+1));
 
-			pApp->m_options.m_listenPort=GetDlgItemInt(hwnd,
-				IDC_LISTEN_PORT,NULL,FALSE);
+			pApp->m_options.m_listenPort = GetDlgItemInt(hwnd,
+											IDC_LISTEN_PORT, NULL, FALSE);
  
-			RegSetValueEx( hRegKey,"listenPort" , 
-				NULL,REG_DWORD , 
+			RegSetValueEx( hRegKey, "listenPort", 
+				NULL, REG_DWORD, 
 				(CONST BYTE *)&pApp->m_options.m_listenPort,
-				4 );
+				4);
 				
 			RegCloseKey(hRegKey);
 			return 0;
@@ -1385,35 +1376,35 @@ BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,
 				HWND hEditFile = GetDlgItem(hwnd, IDC_EDIT_LOG_FILE);
 				HWND hEditLevel = GetDlgItem(hwnd, IDC_EDIT_LOG_LEVEL);
 
-				if (SendMessage(hChec,BM_GETCHECK,0,0)==0){
-					EnableWindow(hEditFile,TRUE);
-					EnableWindow(hEditLevel,TRUE);
-					SendMessage(hChec,BM_SETCHECK,TRUE,0);
-				}else{
-					EnableWindow(hEditFile,FALSE);
-					EnableWindow(hEditLevel,FALSE);
-					SendMessage(hChec,BM_SETCHECK,FALSE,0);
-				}
+				if (SendMessage(hChec, BM_GETCHECK, 0, 0) == 0){
+					EnableWindow(hEditFile, TRUE);
+					EnableWindow(hEditLevel, TRUE);
+					SendMessage(hChec, BM_SETCHECK, TRUE, 0);
+				} else {
+					EnableWindow(hEditFile, FALSE);
+					EnableWindow(hEditLevel, FALSE);
+					SendMessage(hChec, BM_SETCHECK, FALSE, 0);
+				} 
 				return 0;
 			}
 			}
 			return 0;
 		}		
-		case WM_NOTIFY:{		
-			LPNMHDR pn=(LPNMHDR)lParam;
-			switch(pn->code){
-			case UDN_DELTAPOS:{
+		case WM_NOTIFY: {		
+			LPNMHDR pn = (LPNMHDR)lParam;
+			switch (pn->code) {
+			case UDN_DELTAPOS: {
 				NMUPDOWN lpnmud = *(LPNMUPDOWN) lParam;
-				NMHDR hdr=lpnmud.hdr;
-				HWND hCtrl=(HWND)SendMessage(hdr.hwndFrom,UDM_GETBUDDY,0,0);
-				long  ctrl=GetDlgCtrlID(hCtrl);
-				int h=GetDlgItemInt( hwnd,ctrl, NULL, TRUE);
-				if (lpnmud.iDelta>0){
-					h=h-1;
-				}else{
-					h=h+1;	
+				NMHDR hdr = lpnmud.hdr;
+				HWND hCtrl = (HWND)SendMessage(hdr.hwndFrom, UDM_GETBUDDY, 0, 0);
+				long ctrl = GetDlgCtrlID(hCtrl);
+				int h = GetDlgItemInt( hwnd, ctrl, NULL, TRUE);
+				if (lpnmud.iDelta > 0) {
+					h = h - 1;
+				} else {
+					h = h + 1;	
 				}
-				SetDlgItemInt( hwnd,ctrl,h, FALSE);				
+				SetDlgItemInt( hwnd, ctrl, h, FALSE);				
 				return 0;
 			}			
 			}
@@ -1425,7 +1416,7 @@ BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,
 void VNCOptions::Lim(HWND hwnd,int control,DWORD min, DWORD max)
 {
 	int buf;
-	buf=GetDlgItemInt(hwnd,control,
+	buf=GetDlgItemInt(hwnd, control,
 					NULL, FALSE);
 	if (buf > max) {
 		buf = max;
@@ -1433,7 +1424,7 @@ void VNCOptions::Lim(HWND hwnd,int control,DWORD min, DWORD max)
 	if (buf < min) {
 		buf = min;
 	}
-	SetDlgItemInt(hwnd,control,
+	SetDlgItemInt(hwnd, control,
 					buf, FALSE);
 	
 }
@@ -1441,107 +1432,107 @@ void VNCOptions::LoadOpt(char subkey[256],char keyname[256])
 {
 	HKEY RegKey;
 	TCHAR key[80];
-	_tcscpy(key,keyname);
-	_tcscat(key,"\\");
-	_tcscat(key,subkey);
+	_tcscpy(key, keyname);
+	_tcscat(key, "\\");
+	_tcscat(key, subkey);
 	 RegOpenKeyEx(HKEY_CURRENT_USER, key, 0,  
 		 KEY_ALL_ACCESS,  &RegKey);
-	for (int i = rfbEncodingRaw; i<= LASTENCODING; i++) {
+	for (int i = rfbEncodingRaw; i <= LASTENCODING; i++) {
 		char buf[128];
 		sprintf(buf, "use_encoding_%d", i);
-		m_UseEnc[i] =   read(RegKey,buf, m_UseEnc[i] ) != 0;
+		m_UseEnc[i] =   read(RegKey, buf, m_UseEnc[i] ) != 0;
 	}
-	m_PreferredEncoding =	read(RegKey,"preferred_encoding",m_PreferredEncoding    );
-	m_restricted =			read(RegKey,"restricted",        m_restricted           ) != 0 ;
-	m_ViewOnly =			read(RegKey,"viewonly",	         m_ViewOnly             ) != 0;
-	m_FullScreen =			read(RegKey,"fullscreen",        m_FullScreen           ) != 0;
-	m_Use8Bit =				read(RegKey,"8bit",	             m_Use8Bit              ) != 0;
-	m_Shared =				read(RegKey,"shared",            m_Shared               ) != 0;
-	m_SwapMouse =			read(RegKey,"swapmouse",         m_SwapMouse	        ) != 0;
-	m_DeiconifyOnBell =		read(RegKey,"belldeiconify",     m_DeiconifyOnBell      ) != 0;
-	m_Emul3Buttons =		read(RegKey,"emulate3",	         m_Emul3Buttons         ) != 0;
-	m_Emul3Timeout =		read(RegKey,"emulate3timeout",   m_Emul3Timeout         );
-	m_Emul3Fuzz =			read(RegKey,"emulate3fuzz",	     m_Emul3Fuzz            );
-	m_DisableClipboard =	read(RegKey,"disableclipboard",  m_DisableClipboard     ) != 0;
-	m_scale_den =			read(RegKey,"scale_den",         m_scale_den	        );
-	m_scale_num =			read(RegKey,"scale_num",         m_scale_num	        );
-	m_requestShapeUpdates =	read(RegKey,"cursorshape",       m_requestShapeUpdates	) != 0;
-	m_ignoreShapeUpdates =	read(RegKey,"noremotecursor",    m_ignoreShapeUpdates   ) != 0;
-	m_compressLevel =		read(RegKey,"compresslevel",    	m_compressLevel		);
-	m_useCompressLevel =	read(RegKey,"usecompresslevel",    m_useCompressLevel  ) != 0;
-	m_scaling =				read(RegKey,"scaling",						  m_scaling  ) != 0;	
+	m_PreferredEncoding =	read(RegKey, "preferred_encoding",m_PreferredEncoding    );
+	m_restricted =			read(RegKey, "restricted",        m_restricted           ) != 0;
+	m_ViewOnly =			read(RegKey, "viewonly",	      m_ViewOnly             ) != 0;
+	m_FullScreen =			read(RegKey, "fullscreen",        m_FullScreen           ) != 0;
+	m_Use8Bit =				read(RegKey, "8bit",	          m_Use8Bit              ) != 0;
+	m_Shared =				read(RegKey, "shared",            m_Shared               ) != 0;
+	m_SwapMouse =			read(RegKey, "swapmouse",         m_SwapMouse	         ) != 0;
+	m_DeiconifyOnBell =		read(RegKey, "belldeiconify",     m_DeiconifyOnBell      ) != 0;
+	m_Emul3Buttons =		read(RegKey, "emulate3",	      m_Emul3Buttons         ) != 0;
+	m_Emul3Timeout =		read(RegKey, "emulate3timeout",   m_Emul3Timeout         );
+	m_Emul3Fuzz =			read(RegKey, "emulate3fuzz",	  m_Emul3Fuzz            );
+	m_DisableClipboard =	read(RegKey, "disableclipboard",  m_DisableClipboard     ) != 0;
+	m_scale_den =			read(RegKey, "scale_den",         m_scale_den	         );
+	m_scale_num =			read(RegKey, "scale_num",         m_scale_num	         );
+	m_requestShapeUpdates =	read(RegKey, "cursorshape",       m_requestShapeUpdates	 ) != 0;
+	m_ignoreShapeUpdates =	read(RegKey, "noremotecursor",    m_ignoreShapeUpdates   ) != 0;
+	m_compressLevel =		read(RegKey, "compresslevel",     m_compressLevel        );
+	m_useCompressLevel =	read(RegKey, "usecompresslevel",  m_useCompressLevel     ) != 0;
+	m_scaling =				read(RegKey, "scaling",						  m_scaling  ) != 0;	
 		
-	m_enableJpegCompression =	read(RegKey,"enablejpeglevel",    m_enableJpegCompression   ) != 0;
-	m_jpegQualityLevel =	read(RegKey,"quality",		m_jpegQualityLevel	);
+	m_enableJpegCompression =	read(RegKey, "enablejpeglevel", m_enableJpegCompression) != 0;
+	m_jpegQualityLevel =	read(RegKey,"quality", m_jpegQualityLevel);
 			
 	RegCloseKey(RegKey);
 }
-int VNCOptions::read(HKEY hkey,char *name,int retrn)
+int VNCOptions::read(HKEY hkey, char *name, int retrn)
 {
-	DWORD buflen=4;
-	DWORD buf=0;
+	DWORD buflen = 4;
+	DWORD buf = 0;
 	if(RegQueryValueEx(hkey ,(LPTSTR)name , 
             NULL, NULL, 
-            (LPBYTE) &buf,(LPDWORD) &buflen)!=ERROR_SUCCESS){
+            (LPBYTE) &buf, (LPDWORD) &buflen) != ERROR_SUCCESS) {
 		return retrn;
-	}else{
+	} else {
 		return buf;
 	}
 }
- void VNCOptions::SaveOpt(char subkey[256],char keyname[256])
+ void VNCOptions::SaveOpt(char subkey[256], char keyname[256])
 {
 	DWORD dispos;
 	HKEY RegKey;
 	TCHAR key[80];
-	_tcscpy(key,keyname);
-	_tcscat(key,"\\");
-	_tcscat(key,subkey);
+	_tcscpy(key, keyname);
+	_tcscat(key, "\\");
+	_tcscat(key, subkey);
 	RegCreateKeyEx(HKEY_CURRENT_USER, key, 0, NULL, 
 		REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &RegKey, &dispos);
-	for (int i = rfbEncodingRaw; i<= LASTENCODING; i++) {
+	for (int i = rfbEncodingRaw; i <= LASTENCODING; i++) {
 		char buf[128];
 		sprintf(buf, "use_encoding_%d", i);
-		save(RegKey,buf, m_UseEnc[i] );
+		save(RegKey, buf, m_UseEnc[i] );
 	}
-	save(RegKey,"preferred_encoding",	m_PreferredEncoding);
-	save(RegKey,"restricted",			m_restricted		);
-	save(RegKey,"viewonly",				m_ViewOnly			);
-	save(RegKey,"fullscreen",			m_FullScreen		);
-	save(RegKey,"scaling",				m_scaling		);
-	save(RegKey,"8bit",					m_Use8Bit			);
-	save(RegKey,"shared",				m_Shared			);
-	save(RegKey,"swapmouse",			m_SwapMouse		);
-	save(RegKey,"belldeiconify",		m_DeiconifyOnBell	);
-	save(RegKey,"emulate3",				m_Emul3Buttons		);
-	save(RegKey,"emulate3timeout",		m_Emul3Timeout		);
-	save(RegKey,"emulate3fuzz",			m_Emul3Fuzz		);
-	save(RegKey,"disableclipboard",		m_DisableClipboard );
-	save(RegKey,"scale_den",			m_scale_den		);
-	save(RegKey,"scale_num",			m_scale_num		);
-	save(RegKey,"cursorshape",			m_requestShapeUpdates );
-	save(RegKey,"noremotecursor",		m_ignoreShapeUpdates );
+	save(RegKey, "preferred_encoding",	m_PreferredEncoding);
+	save(RegKey, "restricted",			m_restricted		);
+	save(RegKey, "viewonly",			m_ViewOnly			);
+	save(RegKey, "fullscreen",			m_FullScreen		);
+	save(RegKey, "scaling",				m_scaling			);
+	save(RegKey, "8bit",				m_Use8Bit			);
+	save(RegKey, "shared",				m_Shared			);
+	save(RegKey, "swapmouse",			m_SwapMouse			);
+	save(RegKey, "belldeiconify",		m_DeiconifyOnBell	);
+	save(RegKey, "emulate3",			m_Emul3Buttons		);
+	save(RegKey, "emulate3timeout",		m_Emul3Timeout		);
+	save(RegKey, "emulate3fuzz",		m_Emul3Fuzz			);
+	save(RegKey, "disableclipboard",	m_DisableClipboard  );
+	save(RegKey, "scale_den",			m_scale_den			);
+	save(RegKey, "scale_num",			m_scale_num			);
+	save(RegKey, "cursorshape",			m_requestShapeUpdates );
+	save(RegKey, "noremotecursor",		m_ignoreShapeUpdates );
 	
-	save(RegKey,"usecompresslevel",	m_useCompressLevel	);
-	save(RegKey,"compresslevel",	m_compressLevel	);
+	save(RegKey, "usecompresslevel",	m_useCompressLevel	);
+	save(RegKey, "compresslevel",	m_compressLevel			);
 	
-	save(RegKey,"quality",			m_jpegQualityLevel	);
-	save(RegKey,"enablejpeglevel",	m_enableJpegCompression	);
+	save(RegKey, "quality",			m_jpegQualityLevel		);
+	save(RegKey, "enablejpeglevel",	m_enableJpegCompression	);
 	
 	RegCloseKey(RegKey);
 }
 
-void VNCOptions::delkey(char subkey[256],char keyname[256])
+void VNCOptions::delkey(char subkey[256], char keyname[256])
 {
 		
 	TCHAR key[80];
-	_tcscpy(key,keyname);
-	_tcscat(key,"\\");
-	_tcscat(key,subkey);
-	RegDeleteKey (HKEY_CURRENT_USER,key);
+	_tcscpy(key, keyname);
+	_tcscat(key, "\\");
+	_tcscat(key, subkey);
+	RegDeleteKey (HKEY_CURRENT_USER, key);
 }
-void VNCOptions::save(HKEY hkey,char *name, int value) 
+void VNCOptions::save(HKEY hkey, char *name, int value) 
 {
-	RegSetValueEx( hkey,name , 
-            NULL,REG_DWORD , 
-            (CONST BYTE *)&value, 4 );
+	RegSetValueEx( hkey, name, 
+            NULL, REG_DWORD, 
+            (CONST BYTE *)&value, 4);
 }

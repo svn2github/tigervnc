@@ -27,7 +27,6 @@
 #include "stdhdrs.h"
 #include "vncviewer.h"
 #include "ClientConnection.h"
-#include "SessionDialog.h"
 #include "Exception.h"
 #include "vncauth.h"
 
@@ -107,6 +106,7 @@ int ClientConnection::LoadConnection(char *fname, bool sess)
 {
 	if (sess) {
 		char tname[_MAX_FNAME + _MAX_EXT];
+
 		ofnInit();
 		
 		ofn.hwndOwner = 0;
@@ -114,11 +114,10 @@ int ClientConnection::LoadConnection(char *fname, bool sess)
 		ofn.lpstrFileTitle = tname;
 		ofn.Flags = OFN_HIDEREADONLY;
 
-		if (GetOpenFileName(&ofn)==0) {
+		if (GetOpenFileName(&ofn) == 0) {
 			return -1;
 		}
 	}
-
 	if (GetPrivateProfileString("connection", "host", "", m_host, MAX_HOST_NAME_LEN, fname) == 0) {
 		MessageBox(m_hwnd, "Error reading host name from file", "Config file error", MB_ICONERROR | MB_OK);
 		return -1;

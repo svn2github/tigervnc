@@ -57,7 +57,7 @@ public:
 	void VNCOptions::save(HKEY hkey,char *name, int value);
 	
 	void VNCOptions::delkey(char subkey[256],char keyname[256]);
-	 void VNCOptions::SaveOpt(char subkey[256],char keyname[256]);
+	void VNCOptions::SaveOpt(char subkey[256],char keyname[256]);
 	// process options
 	bool	m_listening;
 	int		m_listenPort;

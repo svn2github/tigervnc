@@ -251,9 +251,10 @@ void ClientConnection::Run()
 
 	if (m_port == -1) {
 		GetConnectDetails();
-	}else{
-		if(m_pApp->m_options.m_listening)
+	} else {
+		if (m_pApp->m_options.m_listening) {
 			m_opts.LoadOpt(m_opts.m_display,"Software\\ORL\\VNCviewer\\MRU1");
+		}
 	}
 	// Connect if we're not already connected
 	if (m_sock == INVALID_SOCKET) 
@@ -522,11 +523,12 @@ void ClientConnection::CreateDisplay()
     ShowWindow(m_hwnd, SW_HIDE);
 		
 	SetWindowLong(m_hwnd, GWL_USERDATA, (LONG) this);
-	SetWindowLong(m_hwnd, GWL_WNDPROC	, (LONG)ClientConnection::WndProc);
+	SetWindowLong(m_hwnd, GWL_WNDPROC, (LONG)ClientConnection::WndProc);
 	
-	if(pApp->m_options.m_toolbar)
+	if(pApp->m_options.m_toolbar) {
 		CheckMenuItem(GetSystemMenu(m_hwnd1, FALSE),
 					ID_TOOLBAR, MF_BYCOMMAND|MF_CHECKED);
+	}
 	
 	// record which client created this window
 	
@@ -548,11 +550,9 @@ void ClientConnection::GetConnectDetails()
 		LoadConnection(m_opts.m_configFilename, false);
 	} else {
 		SessionDialog sessdlg(&m_opts, this);
-		
 		if (!sessdlg.DoDialog()) {
 			throw QuietException("User Cancelled");
-		}
-		
+		}		
 	}
 	// This is a bit of a hack: 
 	// The config file may set various things in the app-level defaults which 
@@ -1229,7 +1229,8 @@ bool ClientConnection::ScrollScreen(int dx, int dy)
 
 // Process windows messages
 LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg, 
-					   WPARAM wParam, LPARAM lParam) {
+					   WPARAM wParam, LPARAM lParam) 
+{
 	
 	// This is a static method, so we don't know which instantiation we're 
 	// dealing with.  But we've stored a 'pseudo-this' in the window data.
@@ -1302,16 +1303,16 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 					RECT win;
 					GetClientRect(hwnd,&win);
 				
-					if(GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
-									ID_TOOLBAR,MF_BYCOMMAND)==MF_CHECKED){
+					if (GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
+									ID_TOOLBAR,MF_BYCOMMAND) == MF_CHECKED) {
 						CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
 									ID_TOOLBAR, MF_BYCOMMAND|MF_UNCHECKED);
-						if ((win.bottom-win.top)>_this->m_fullwinheight){
-							SetWindowPos(hwnd,HWND_TOP,0,0,
-										_this->m_winwidth1,_this->m_winheight1,
+						if ((win.bottom-win.top) > _this->m_fullwinheight) {
+							SetWindowPos(hwnd,HWND_TOP, 0, 0,
+										_this->m_winwidth1, _this->m_winheight1,
 										SWP_NOMOVE|SWP_SHOWWINDOW);
 						}
-					}else{
+					} else {
 						CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
 									ID_TOOLBAR, MF_BYCOMMAND|MF_CHECKED);
 					}
@@ -1337,7 +1338,7 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 						}
 					}
 					if (_this->m_serverInitiated) {
-						_this->m_opts.SaveOpt(".listen","Software\\ORL\\VNCviewer\\MRU1");
+						_this->m_opts.SaveOpt(".listen", "Software\\ORL\\VNCviewer\\MRU1");
 					}
 					return 0;
 				}
@@ -1372,34 +1373,34 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 					_this->SendKeyEvent(XK_Control_L, false);
 					return 0;
 				case ID_CONN_CTLDOWN:
-					if(GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
-							ID_CONN_CTLDOWN,MF_BYCOMMAND)==MF_CHECKED){
+					if (GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
+							ID_CONN_CTLDOWN, MF_BYCOMMAND) == MF_CHECKED) {
 						_this->SendKeyEvent(XK_Control_L, false);
 						CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
 									ID_CONN_CTLDOWN, MF_BYCOMMAND|MF_UNCHECKED);
-						SendMessage(_this->hToolBar,TB_SETSTATE,(WPARAM)ID_CONN_CTLDOWN,
-								(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
-					}else{
+						SendMessage(_this->hToolBar,TB_SETSTATE, (WPARAM)ID_CONN_CTLDOWN,
+								(LPARAM)MAKELONG(TBSTATE_ENABLED, 0));
+					} else {
 						CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
 									ID_CONN_CTLDOWN, MF_BYCOMMAND|MF_CHECKED);
-						SendMessage(_this->hToolBar,TB_SETSTATE,(WPARAM)ID_CONN_CTLDOWN,
-								(LPARAM)MAKELONG(TBSTATE_CHECKED|TBSTATE_ENABLED,0));
+						SendMessage(_this->hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_CTLDOWN,
+								(LPARAM)MAKELONG(TBSTATE_CHECKED|TBSTATE_ENABLED, 0));
 						_this->SendKeyEvent(XK_Control_L, true);
 					}
 					return 0;
 				case ID_CONN_ALTDOWN:
 					if(GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
-								ID_CONN_ALTDOWN,MF_BYCOMMAND)==MF_CHECKED){
+								ID_CONN_ALTDOWN,MF_BYCOMMAND) == MF_CHECKED) {
 						_this->SendKeyEvent(XK_Alt_L, false);
 						CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
 								  ID_CONN_ALTDOWN, MF_BYCOMMAND|MF_UNCHECKED);
-						SendMessage(_this->hToolBar,TB_SETSTATE,(WPARAM)ID_CONN_ALTDOWN,
+						SendMessage(_this->hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_ALTDOWN,
 								(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
-					}else{
+					} else {
 						CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
 								  ID_CONN_ALTDOWN, MF_BYCOMMAND|MF_CHECKED);
-						SendMessage(_this->hToolBar,TB_SETSTATE,(WPARAM)ID_CONN_ALTDOWN,
-								(LPARAM)MAKELONG(TBSTATE_CHECKED|TBSTATE_ENABLED,0));
+						SendMessage(_this->hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_ALTDOWN,
+								(LPARAM)MAKELONG(TBSTATE_CHECKED|TBSTATE_ENABLED, 0));
 						_this->SendKeyEvent(XK_Alt_L, true);
 					}
 					return 0;
@@ -1416,11 +1417,11 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 		case WM_KILLFOCUS:
 			CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
 								  ID_CONN_ALTDOWN, MF_BYCOMMAND|MF_UNCHECKED);
-			SendMessage(_this->hToolBar,TB_SETSTATE,(WPARAM)ID_CONN_ALTDOWN,
-								(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
+			SendMessage(_this->hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_ALTDOWN,
+								(LPARAM)MAKELONG(TBSTATE_ENABLED, 0));
 			CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
 									ID_CONN_CTLDOWN, MF_BYCOMMAND|MF_UNCHECKED);
-			SendMessage(_this->hToolBar,TB_SETSTATE,(WPARAM)ID_CONN_CTLDOWN,
+			SendMessage(_this->hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_CTLDOWN,
 								(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
 			_this->SendKeyEvent(XK_Alt_L,     false);
 			_this->SendKeyEvent(XK_Control_L, false);
@@ -1437,42 +1438,42 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 			SystemParametersInfo(SPI_GETWORKAREA, 0, &workrect, 0);
 			GetWindowRect(_this->hToolBar,&rtb);
 			win =*(LPMINMAXINFO) lParam;
-			if(_this->InFullScreenMode()){
-				win.ptMaxSize.x=_this->m_fullwinwidth+8;
-				win.ptMaxSize.y=_this->m_fullwinheight+8;
-				win.ptMaxTrackSize.x=_this->m_fullwinwidth+8;
-				win.ptMaxTrackSize.y=_this->m_fullwinheight+8;
-			}else{
-				if(GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
-							ID_TOOLBAR,MF_BYCOMMAND)==MF_CHECKED){
-					win.ptMaxSize.x=_this->m_winwidth1;
-					win.ptMaxSize.y=min((_this->m_winheight1+rtb.bottom-rtb.top-4),
+			if (_this->InFullScreenMode()) {
+				win.ptMaxSize.x = _this->m_fullwinwidth+8;
+				win.ptMaxSize.y = _this->m_fullwinheight+8;
+				win.ptMaxTrackSize.x = _this->m_fullwinwidth+8;
+				win.ptMaxTrackSize.y = _this->m_fullwinheight+8;
+			} else {
+				if (GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
+							ID_TOOLBAR,MF_BYCOMMAND) == MF_CHECKED) {
+					win.ptMaxSize.x = _this->m_winwidth1;
+					win.ptMaxSize.y = min((_this->m_winheight1+rtb.bottom-rtb.top-4),
 						(workrect.bottom -  workrect.top));
-					win.ptMaxTrackSize.x=_this->m_winwidth1;
-					win.ptMaxTrackSize.y=min((_this->m_winheight1+rtb.bottom-rtb.top-4),
+					win.ptMaxTrackSize.x = _this->m_winwidth1;
+					win.ptMaxTrackSize.y = min((_this->m_winheight1+rtb.bottom-rtb.top-4),
 						(workrect.bottom -  workrect.top));
-				}else{
-					win.ptMaxSize.x=_this->m_winwidth1;
-					win.ptMaxSize.y=_this->m_winheight1;
-					win.ptMaxTrackSize.x=_this->m_winwidth1;
-					win.ptMaxTrackSize.y=_this->m_winheight1;
+				} else {
+					win.ptMaxSize.x = _this->m_winwidth1;
+					win.ptMaxSize.y = _this->m_winheight1;
+					win.ptMaxTrackSize.x = _this->m_winwidth1;
+					win.ptMaxTrackSize.y = _this->m_winheight1;
 				}
 			}
-			*(LPMINMAXINFO) lParam=win;
+			*(LPMINMAXINFO) lParam = win;
 			return 0;
 		case WM_SIZE:
 			RECT rwn;
-			GetClientRect(hwnd,&rwn);
-			if(GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
-						ID_TOOLBAR,MF_BYCOMMAND)==MF_CHECKED){
-				GetWindowRect(_this->hToolBar,&rtb);
-				SetWindowPos(_this->m_hwnd,HWND_TOP,0,rtb.bottom-rtb.top-4,
-							rwn.right,rwn.bottom-(rtb.bottom-rtb.top)+4,SWP_SHOWWINDOW);
+			GetClientRect(hwnd, &rwn);
+			if (GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
+						ID_TOOLBAR, MF_BYCOMMAND) == MF_CHECKED) {
+				GetWindowRect(_this->hToolBar, &rtb);
+				SetWindowPos(_this->m_hwnd, HWND_TOP, 0, rtb.bottom - rtb.top - 4,
+							rwn.right, rwn.bottom - (rtb.bottom - rtb.top) + 4, SWP_SHOWWINDOW);
 				SetWindowPos(_this->hToolBar,HWND_TOP,0,0,
-							rwn.right-rwn.left,rtb.bottom-rtb.top,SWP_SHOWWINDOW);
-			}else{
-				SetWindowPos(_this->m_hwnd,HWND_TOP,0,0,
-				rwn.right,rwn.bottom,SWP_SHOWWINDOW);
+							rwn.right - rwn.left, rtb.bottom - rtb.top, SWP_SHOWWINDOW);
+			} else {
+				SetWindowPos(_this->m_hwnd, HWND_TOP, 0, 0,
+				rwn.right, rwn.bottom, SWP_SHOWWINDOW);
 			}
 			return 0;
 		case WM_CLOSE:{
@@ -1487,42 +1488,41 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 				DWORD dispos;
 				TCHAR  buf1[256];
 
-				itoa(k,list,10);
+				itoa(k, list, 10);
 				RegCreateKeyEx(HKEY_CURRENT_USER,
 						"Software\\ORL\\VNCviewer\\MRU1", 0, NULL, 
 						REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, 
 						NULL, &m_hRegKey, &dispos);
-				_tcscpy(buf1,_this->m_opts.m_display);
+				_tcscpy(buf1, _this->m_opts.m_display);
 				_this->m_opts.SaveOpt(_this->m_opts.m_display,
 									"Software\\ORL\\VNCviewer\\MRU1");
 
-				for ( i = 0; i <k; i++) {
-					j=i;
-					itoa(i,valname,10);
+				for ( i = 0; i < k; i++) {
+					j = i;
+					itoa(i, valname, 10);
 					dwbuflen=255;
-					if((RegQueryValueEx( m_hRegKey,(LPTSTR)valname , 
+					if ((RegQueryValueEx( m_hRegKey, (LPTSTR)valname , 
 									NULL, NULL, 
-									(LPBYTE) buf,(LPDWORD) &dwbuflen)!=ERROR_SUCCESS)||
-									(_tcscmp(buf,_this->m_opts.m_display)==NULL)){
-						RegSetValueEx( m_hRegKey,valname , 
-									NULL,REG_SZ , 
-									(CONST BYTE *)buf1, (_tcslen(buf1)+1) );
+									(LPBYTE) buf, (LPDWORD) &dwbuflen) != ERROR_SUCCESS) ||
+									(_tcscmp(buf, _this->m_opts.m_display) == NULL)) {
+						RegSetValueEx( m_hRegKey, valname, 
+									NULL, REG_SZ, 
+									(CONST BYTE *)buf1, (_tcslen(buf1)+1));
 						break;
 					}
-					RegSetValueEx(m_hRegKey,valname , 
-								NULL,REG_SZ , 
-								(CONST BYTE *)buf1, (_tcslen(buf1)+1) ); 
+					RegSetValueEx(m_hRegKey, valname , 
+								NULL, REG_SZ , 
+								(CONST BYTE *)buf1, (_tcslen(buf1)+1)); 
 					_tcscpy(buf1,buf);
 				}
-
-				if(j==k){
-					dwbuflen=255;
-					_tcscpy(valname,list);
-					_tcscpy(buf,"");
-					RegQueryValueEx( m_hRegKey,(LPTSTR)valname , 
+				if (j == k) {
+					dwbuflen = 255;
+					_tcscpy(valname, list);
+					_tcscpy(buf, "");
+					RegQueryValueEx( m_hRegKey, (LPTSTR)valname, 
 							NULL, NULL, 
-							(LPBYTE) buf,(LPDWORD) &dwbuflen);
-					_this->m_opts.delkey(buf,"Software\\ORL\\VNCviewer\\MRU1");
+							(LPBYTE)buf, (LPDWORD)&dwbuflen);
+					_this->m_opts.delkey(buf, "Software\\ORL\\VNCviewer\\MRU1");
 				}
 				RegCloseKey(m_hRegKey);
 			}
@@ -1530,9 +1530,8 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 			_this->KillThread();
 			DestroyWindow(hwnd);
 			return 0;
-			}
-
-		case WM_DESTROY:{			
+		}
+		case WM_DESTROY: {			
 #ifndef UNDER_CE
 			// Remove us from the clipboard viewer chain
 			BOOL res = ChangeClipboardChain( hwnd, _this->m_hwndNextViewer);
@@ -1563,12 +1562,11 @@ LRESULT CALLBACK ClientConnection::Proc(HWND hwnd, UINT iMsg,
 										WPARAM wParam, LPARAM lParam)
 {
 	return DefWindowProc(hwnd, iMsg, wParam, lParam);
-
 }
 
 LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg, 
-					   WPARAM wParam, LPARAM lParam) {
-	
+					   WPARAM wParam, LPARAM lParam) 
+{	
 	// This is a static method, so we don't know which instantiation we're 
 	// dealing with.  But we've stored a 'pseudo-this' in the window data.
 	ClientConnection *_this = (ClientConnection *) GetWindowLong(hwnd, GWL_USERDATA);
@@ -1648,30 +1646,30 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 	case WM_SYSKEYUP:
 		{
 			bool down = (((DWORD) lParam & 0x80000000l) == 0);
-			if ((int) wParam==0x11){
-				if (!down){
+			if ((int) wParam == 0x11) {
+				if (!down) {
 				CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
 						ID_CONN_CTLDOWN, MF_BYCOMMAND|MF_UNCHECKED);
-				SendMessage(_this->hToolBar,TB_SETSTATE,(WPARAM)ID_CONN_CTLDOWN,
-						(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
-				}else{
+				SendMessage(_this->hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_CTLDOWN,
+						(LPARAM)MAKELONG(TBSTATE_ENABLED, 0));
+				} else {
 				CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
 						ID_CONN_CTLDOWN, MF_BYCOMMAND|MF_CHECKED);
-				SendMessage(_this->hToolBar,TB_SETSTATE,(WPARAM)ID_CONN_CTLDOWN,
+				SendMessage(_this->hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_CTLDOWN,
 						(LPARAM)MAKELONG(TBSTATE_CHECKED|TBSTATE_ENABLED,0));
 				}
 			}
-			if ((int) wParam==0x12){
-				if (!down){
+			if ((int) wParam == 0x12){
+				if (!down) {
 				CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
 					ID_CONN_ALTDOWN, MF_BYCOMMAND|MF_UNCHECKED);
-				SendMessage(_this->hToolBar,TB_SETSTATE,(WPARAM)ID_CONN_ALTDOWN,
-					(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
-				}else{
-				CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
-					ID_CONN_ALTDOWN, MF_BYCOMMAND|MF_CHECKED);
-				SendMessage(_this->hToolBar,TB_SETSTATE,(WPARAM)ID_CONN_ALTDOWN,
-					(LPARAM)MAKELONG(TBSTATE_CHECKED|TBSTATE_ENABLED,0));
+				SendMessage(_this->hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_ALTDOWN,
+					(LPARAM)MAKELONG(TBSTATE_ENABLED, 0));
+				} else {
+					CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
+								ID_CONN_ALTDOWN, MF_BYCOMMAND|MF_CHECKED);
+					SendMessage(_this->hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_ALTDOWN,
+								(LPARAM)MAKELONG(TBSTATE_CHECKED|TBSTATE_ENABLED, 0));
 				}
 			}
 			if (!_this->m_running) return 0;
@@ -1679,7 +1677,6 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
             _this->ProcessKeyEvent((int) wParam, (DWORD) lParam);
 			return 0;
 		}
-
 	case WM_CHAR:
 	case WM_SYSCHAR:
 #ifdef UNDER_CE
@@ -1704,7 +1701,6 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 	case WM_DEADCHAR:
 	case WM_SYSDEADCHAR:
 	  return 0;
-
 	case WM_SETFOCUS:
 		if (_this->InFullScreenMode())
 			SetWindowPos(hwnd, HWND_TOPMOST, 0,0,100,100, SWP_NOMOVE | SWP_NOSIZE);
@@ -1728,12 +1724,6 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 				SetWindowPos(hwnd, hwndafter, 0,0,100,100, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 			}
 			vnclog.Print(6, _T("Losing focus - cancelling modifiers\n"));
-			_this->SendKeyEvent(XK_Alt_L,     false);
-			_this->SendKeyEvent(XK_Control_L, false);
-			_this->SendKeyEvent(XK_Shift_L,   false);
-			_this->SendKeyEvent(XK_Alt_R,     false);
-			_this->SendKeyEvent(XK_Control_R, false);
-			_this->SendKeyEvent(XK_Shift_R,   false);
 			return 0;
 		}
 

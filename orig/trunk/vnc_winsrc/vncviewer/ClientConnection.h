@@ -93,9 +93,8 @@ private:
 
 	SOCKET m_sock;
 	bool m_serverInitiated;
-	HWND  m_hwnd,m_hbands, m_hwnd1;
-	HWND	hToolBar;
-	
+	HWND  m_hwnd, m_hbands, m_hwnd1, hToolBar;
+		
 	void Init(VNCviewerApp *pApp);
 	void InitCapabilities();
 	void CreateDisplay();

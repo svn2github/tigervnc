@@ -39,7 +39,7 @@ Log vnclog;
 VNCHelp help;
 HWND hwndd;
 HACCEL hAccel;
-ACCEL Accel[7];
+ACCEL Accel[8];
 #ifdef UNDER_CE
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdLine, int iCmdShow)
 #else
@@ -65,43 +65,43 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 
 	MSG msg;
 	
-	Accel[0].fVirt=FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
-	Accel[0].key=0x4f;
-	Accel[0].cmd=IDC_OPTIONBUTTON;
+	Accel[0].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
+	Accel[0].key = 0x4f;
+	Accel[0].cmd = IDC_OPTIONBUTTON;
 
-	Accel[1].fVirt=FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
-	Accel[1].key=0x49;
-	Accel[1].cmd=ID_CONN_ABOUT;
+	Accel[1].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
+	Accel[1].key = 0x49;
+	Accel[1].cmd = ID_CONN_ABOUT;
 
-	Accel[2].fVirt=FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
-	Accel[2].key=0x46;
-	Accel[2].cmd=ID_FULLSCREEN;
+	Accel[2].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
+	Accel[2].key = 0x46;
+	Accel[2].cmd = ID_FULLSCREEN;
 
-	Accel[3].fVirt=FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
-	Accel[3].key=0x52;
-	Accel[3].cmd=ID_REQUEST_REFRESH;
+	Accel[3].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
+	Accel[3].key = 0x52;
+	Accel[3].cmd = ID_REQUEST_REFRESH;
 
-	Accel[4].fVirt=FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
-	Accel[4].key=0x4e;
-	Accel[4].cmd=ID_NEWCONN;
+	Accel[4].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
+	Accel[4].key = 0x4e;
+	Accel[4].cmd = ID_NEWCONN;
 
-	Accel[5].fVirt=FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
-	Accel[5].key=0x53;
-	Accel[5].cmd=ID_CONN_SAVE_AS;
+	Accel[5].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
+	Accel[5].key = 0x53;
+	Accel[5].cmd = ID_CONN_SAVE_AS;
 
-	Accel[6].fVirt=FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
-	Accel[6].key=0x54;
-	Accel[6].cmd=ID_TOOLBAR;
+	Accel[6].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
+	Accel[6].key = 0x54;
+	Accel[6].cmd = ID_TOOLBAR;
 
-	Accel[7].fVirt=FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
-	Accel[7].key=0x45;
-	Accel[7].cmd=IDD_FILETRANSFER;
+	Accel[7].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
+	Accel[7].key = 0x45;
+	Accel[7].cmd = IDD_FILETRANSFER;
 
-	hAccel=CreateAcceleratorTable((LPACCEL)Accel,8);
+	hAccel = CreateAcceleratorTable((LPACCEL)Accel, 8);
    
 	try {
-		while ( GetMessage(&msg, NULL, 0,0) ) {
-			if(!TranslateAccelerator(hwndd,hAccel,&msg)&&
+		while ( GetMessage(&msg, NULL, 0, 0) ) {
+			if(!TranslateAccelerator(hwndd, hAccel, &msg)&&
 					!help.TransMess( (DWORD)&msg)){
 				TranslateMessage(&msg);
 				DispatchMessage(&msg);
@@ -188,11 +188,11 @@ bool ParseDisplay(LPTSTR display, LPTSTR phost, int hostlen, int *pport)
 	// FIXME: We should not overwrite display[] here, buffer overflow
 	// is possible.
 	
-	FormatDisplay(tmp_port,display,phost);
+	FormatDisplay(tmp_port, display, phost);
     return true;
 }
 
-void FormatDisplay(int port,LPTSTR display, LPTSTR host)
+void FormatDisplay(int port, LPTSTR display, LPTSTR host)
 {
 	if (port == 5900) {
 		_tcscpy(display, host);

@@ -252,7 +252,7 @@ LRESULT CALLBACK Flasher::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 			return 0;
 		}
 	case WM_DESTROY:
-		
+		DestroyAcceleratorTable(hAccel);
 		PostQuitMessage(0);
 		return 0;
 	}

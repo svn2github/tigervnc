@@ -40,6 +40,25 @@ class RecordingFrame extends Frame
   VncViewer viewer;
 
   //
+  // Check if current security manager allows to create a
+  // RecordingFrame object.
+  //
+
+  public static boolean checkSecurity() {
+    SecurityManager security = System.getSecurityManager();
+    if (security != null) {
+      try {
+	security.checkPropertyAccess("user.dir");
+	security.checkPropertyAccess("file.separator");
+      } catch (SecurityException e) {
+	System.out.println("SecurityManager restricts session recording.");
+	return false;
+      }
+    }
+    return true;
+  }
+
+  //
   // Constructor.
   //
 
@@ -168,16 +187,17 @@ class RecordingFrame extends Frame
 
   //
   // Find next name of a file which does not exist yet.
-  // FIXME: Check SecurityManager.
   //
 
   protected String nextNewFilename(String fname) {
     String newName = fname;
     File f;
-    do {
-      newName = nextFilename(newName);
-      f = new File(newName);
-    } while (f.exists());
+    try {
+      do {
+	newName = nextFilename(newName);
+	f = new File(newName);
+      } while (f.exists());
+    } catch (SecurityException e) { }
 
     return newName;
   }

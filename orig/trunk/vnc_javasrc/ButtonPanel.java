@@ -48,13 +48,15 @@ class ButtonPanel extends Panel implements ActionListener {
     optionsButton = new Button("Options");
     add(optionsButton);
     optionsButton.addActionListener(this);
-    recordButton = new Button("Record");
-    add(recordButton);
-    recordButton.addActionListener(this);
     clipboardButton = new Button("Clipboard");
     clipboardButton.setEnabled(false);
     add(clipboardButton);
     clipboardButton.addActionListener(this);
+    if (viewer.rec != null) {
+      recordButton = new Button("Record");
+      add(recordButton);
+      recordButton.addActionListener(this);
+    }
     ctrlAltDelButton = new Button("Send Ctrl-Alt-Del");
     ctrlAltDelButton.setEnabled(false);
     add(ctrlAltDelButton);

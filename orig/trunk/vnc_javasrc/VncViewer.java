@@ -64,8 +64,8 @@ public class VncViewer extends java.applet.Applet
   AuthPanel authenticator;
   VncCanvas vc;
   OptionsFrame options;
-  RecordingFrame rec;
   ClipboardFrame clipboard;
+  RecordingFrame rec;
 
   // Control session recording.
   Object recordingSync;
@@ -108,9 +108,10 @@ public class VncViewer extends java.applet.Applet
     recordingSync = new Object();
 
     options = new OptionsFrame(this);
-    rec = new RecordingFrame(this);
     clipboard = new ClipboardFrame(this);
     authenticator = new AuthPanel();
+    if (RecordingFrame.checkSecurity())
+      rec = new RecordingFrame(this);
 
     sessionFileName = null;
     recordingActive = false;
@@ -654,15 +655,19 @@ public class VncViewer extends java.applet.Applet
   // disconnect() - close connection to server.
   //
 
-  public void disconnect() {
+  boolean disconnectRequested = false;
+
+  synchronized public void disconnect() {
+    disconnectRequested = true;
     if (rfb != null) {
       rfb.close();
       rfb = null;
     }
     System.out.println("Disconnect");
     options.dispose();
-    rec.dispose();
     clipboard.dispose();
+    if (rec != null)
+      rec.dispose();
 
     if (inAnApplet) {
       vncContainer.removeAll();
@@ -685,12 +690,19 @@ public class VncViewer extends java.applet.Applet
   // fatalError() - print out a fatal error message.
   //
 
-  public void fatalError(String str) {
+  synchronized public void fatalError(String str) {
     if (rfb != null) {
       rfb.close();
       rfb = null;
     }
     System.out.println(str);
+
+    if (disconnectRequested) {
+      // Not necessary to show error message if the error was caused
+      // by I/O problems after the disconnect() method call.
+      disconnectRequested = false;
+      return;
+    }
 
     if (inAnApplet) {
       vncContainer.removeAll();
@@ -717,14 +729,13 @@ public class VncViewer extends java.applet.Applet
   public void destroy() {
     vncContainer.removeAll();
     options.dispose();
-    rec.dispose();
     clipboard.dispose();
-    if (rfb != null) {
+    if (rec != null)
+      rec.dispose();
+    if (rfb != null)
       rfb.close();
-    }
-    if (inSeparateFrame) {
+    if (inSeparateFrame)
       vncFrame.dispose();
-    }
   }
 
 

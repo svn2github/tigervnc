@@ -17,6 +17,12 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 //  USA.
 //
+// For the latest source code, please check:
+//
+// http://www.DevelopVNC.org/
+//
+// or send email to: feedback@developvnc.org.
+//
 // If the source code for the VNC system is not available from the place 
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
 // the authors on vnc@uk.research.att.com for information on obtaining it.
@@ -680,7 +686,7 @@ vncProperties::Load(BOOL usersettings)
 	else
 		m_server->SetLoopbackOk(LoadInt(hkLocal, "AllowLoopback", false));
 	m_server->SetAuthRequired(LoadInt(hkLocal, "AuthRequired", true));
-	m_server->SetConnectPriority(LoadInt(hkLocal, "ConnectPriority", 0));
+	m_server->SetConnectPriority(LoadInt(hkLocal, "ConnectPriority", 2));
 	if (!m_server->LoopbackOnly())
 	{
 		char *authhosts = LoadString(hkLocal, "AuthHosts");
@@ -706,7 +712,7 @@ vncProperties::Load(BOOL usersettings)
 	    memcpy(m_pref_passwd, crypt, MAXPWLEN);
 	}
 	m_pref_QuerySetting=2;
-	m_pref_QueryTimeout=10;
+	m_pref_QueryTimeout=30;
 	m_pref_EnableRemoteInputs=TRUE;
 	m_pref_DisableLocalInputs=FALSE;
 	m_pref_LockSettings=-1;

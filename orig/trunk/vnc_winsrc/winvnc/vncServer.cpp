@@ -46,7 +46,6 @@ vncServer::vncServer()
 	// Initialise some important stuffs...
 	m_socketConn = NULL;
 	m_corbaConn = NULL;
-	m_httpConn = NULL;
 	m_desktop = NULL;
 	m_name = NULL;
 	m_port = DISPLAY_TO_PORT(0);
@@ -106,12 +105,6 @@ vncServer::~vncServer()
 	{
 		delete m_corbaConn;
 		m_corbaConn = NULL;
-	}
-
-	if (m_httpConn != NULL)
-	{
-		delete m_httpConn;
-		m_httpConn = NULL;
 	}
 
 	// Remove any active clients!
@@ -930,22 +923,6 @@ vncServer::SockConnect(BOOL On)
 				}
 			}
 
-			// Now let's start the HTTP connection stuff
-			if (m_httpConn == NULL)
-			{
-				m_httpConn = new vncHTTPConnect;
-				if (m_httpConn != NULL)
-				{
-					// Start up the HTTP server
-					if (!m_httpConn->Init(this,
-					    PORT_TO_DISPLAY(m_port) + HTTP_PORT_OFFSET))
-					{
-						delete m_httpConn;
-						m_httpConn = NULL;
-						return FALSE;
-					}
-				}
-			}
 		}
 	}
 	else
@@ -964,13 +941,6 @@ vncServer::SockConnect(BOOL On)
 			m_socketConn = NULL;
 		}
 
-		// Is there an HTTP socket active?
-		if (m_httpConn != NULL)
-		{
-			// Close the socket
-			delete m_httpConn;
-			m_httpConn = NULL;
-		}
 	}
 
 	return TRUE;

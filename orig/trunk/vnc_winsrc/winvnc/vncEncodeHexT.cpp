@@ -1,3 +1,4 @@
+//  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
 //  This file is part of the VNC system.
@@ -16,6 +17,12 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 //  USA.
+//
+// For the latest source code, please check:
+//
+// http://www.DevelopVNC.org/
+//
+// or send email to: feedback@developvnc.org.
 //
 // If the source code for the VNC system is not available from the place 
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
@@ -50,6 +57,13 @@ vncEncodeHexT::Init()
 	vncEncoder::Init();
 }
 
+void
+vncEncodeHexT::LogStats()
+{
+	log.Print(LL_INTINFO, VNCLOG("Hextile encoder stats: dataSize=%d, rectangleOverhead=%d, encodedSize=%d, transmittedSize=%d, efficiency=%.3f\n\n"),
+				dataSize, rectangleOverhead, encodedSize, transmittedSize, ((((float)dataSize-transmittedSize)*100)/dataSize));
+}
+
 UINT
 vncEncodeHexT::RequiredBuffSize(UINT width, UINT height)
 {
@@ -80,6 +94,7 @@ vncEncodeHexT::EncodeRect(BYTE *source, BYTE *dest, const RECT &rect)
 {
 	const rectW = rect.right - rect.left;
 	const rectH = rect.bottom - rect.top;
+	int encodedResult;
 
 	// Create the rectangle header
 	rfbFramebufferUpdateRectHeader *surh=(rfbFramebufferUpdateRectHeader *)dest;
@@ -93,21 +108,30 @@ vncEncodeHexT::EncodeRect(BYTE *source, BYTE *dest, const RECT &rect)
 	surh->r.h = Swap16IfLE(surh->r.h);
 	surh->encoding = Swap32IfLE(rfbEncodingHextile);
 
+	rectangleOverhead += sz_rfbFramebufferUpdateRectHeader;
+	dataSize += ( rectW * rectH * m_remoteformat.bitsPerPixel) / 8;
+
 	// Do the encoding
     switch (m_remoteformat.bitsPerPixel)
 	{
 	case 8:
-		return sz_rfbFramebufferUpdateRectHeader +
-			EncodeHextiles8(source, dest + sz_rfbFramebufferUpdateRectHeader,
-				rect.left, rect.top, rectW, rectH);
+		encodedResult = EncodeHextiles8(source, dest + sz_rfbFramebufferUpdateRectHeader,
+									rect.left, rect.top, rectW, rectH);
+		encodedSize += encodedResult;
+		transmittedSize += sz_rfbFramebufferUpdateRectHeader + encodedResult;
+		return sz_rfbFramebufferUpdateRectHeader + encodedResult;
     case 16:
-		return sz_rfbFramebufferUpdateRectHeader +
-			EncodeHextiles16(source, dest + sz_rfbFramebufferUpdateRectHeader,
-				rect.left, rect.top, rectW, rectH);
+		encodedResult = EncodeHextiles16(source, dest + sz_rfbFramebufferUpdateRectHeader,
+									rect.left, rect.top, rectW, rectH);
+		encodedSize += encodedResult;
+		transmittedSize += sz_rfbFramebufferUpdateRectHeader + encodedResult;
+		return sz_rfbFramebufferUpdateRectHeader + encodedResult;
     case 32:
-		return sz_rfbFramebufferUpdateRectHeader +
-			EncodeHextiles32(source, dest + sz_rfbFramebufferUpdateRectHeader,
-				rect.left, rect.top, rectW, rectH);
+		encodedResult = EncodeHextiles32(source, dest + sz_rfbFramebufferUpdateRectHeader,
+									rect.left, rect.top, rectW, rectH);
+		encodedSize += encodedResult;
+		transmittedSize += sz_rfbFramebufferUpdateRectHeader + encodedResult;
+		return sz_rfbFramebufferUpdateRectHeader + encodedResult;
     }
 
 	return vncEncoder::EncodeRect(source, dest, rect);
@@ -215,10 +239,7 @@ vncEncodeHexT::EncodeHextiles##bpp(BYTE *source, BYTE *dest,				\
 				destoffset = rectoffset;									\
 				dest[destoffset++] = rfbHextileRaw;							\
 																			\
-				Translate(source, (BYTE *) &clientPixelData, hexrect);		\
-																			\
-				memcpy(dest + destoffset, (char *)clientPixelData,			\
-			       w * h * (bpp/8));										\
+				Translate(source, (BYTE *) (dest + destoffset), hexrect);	\
 																			\
 				destoffset += w * h * (bpp/8);								\
 		    }																\

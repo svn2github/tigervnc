@@ -65,6 +65,7 @@ static LRESULT CALLBACK HelpDlgProc(HWND hwnd, UINT iMsg,
 			TCHAR buf [2048];
 			LoadString(pApp->m_instance, IDS_HELP, buf, sizeof(buf));
 			SetDlgItemText(hwnd, IDC_EDIT_HELP, buf);
+			SetWindowText(hwnd, (LPTSTR)lParam);
 			CentreWindow(hwnd);
 			return TRUE;
 		}
@@ -77,12 +78,13 @@ static LRESULT CALLBACK HelpDlgProc(HWND hwnd, UINT iMsg,
 		}
 	}
 	return FALSE;
-}	
-void ShowHelpBox()
+}
+
+void ShowHelpBox(LPTSTR title)
 {
-	int res = DialogBox(pApp->m_instance, 
- 						DIALOG_MAKEINTRESOURCE(IDD_HELP),
-						NULL, (DLGPROC) HelpDlgProc);
-	
+	int res = DialogBoxParam(pApp->m_instance, 
+ 							 DIALOG_MAKEINTRESOURCE(IDD_HELP),
+							 NULL, (DLGPROC)HelpDlgProc,
+							 (LPARAM)title);
 }
 

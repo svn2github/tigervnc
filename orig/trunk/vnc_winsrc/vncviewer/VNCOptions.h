@@ -149,7 +149,6 @@ private:
 	void EnableCompress(HWND hwnd, bool enable);
 	void EnableJpeg(HWND hwnd, bool enable);
 	void EnableLog(HWND hwnd, bool enable);
-    void ShowUsage(LPTSTR info = NULL);
 	void FixScaling();
 	// Just for temporary use
 	bool m_running;

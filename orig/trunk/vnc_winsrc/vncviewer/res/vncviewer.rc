@@ -276,14 +276,15 @@ BEGIN
                     UDS_ARROWKEYS,115,153,10,14
 END
 
-IDD_HELP DIALOG DISCARDABLE  0, 0, 224, 170
+IDD_HELP DIALOG DISCARDABLE  0, 0, 295, 207
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "TightVNC Viewer Help"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "&OK",IDOK,87,149,50,14
-    EDITTEXT        IDC_EDIT_HELP,7,7,210,134,ES_MULTILINE | ES_AUTOVSCROLL | 
-                    ES_READONLY | ES_WANTRETURN | WS_VSCROLL
+    DEFPUSHBUTTON   "&OK",IDOK,122,186,50,14
+    EDITTEXT        IDC_EDIT_HELP,7,7,281,172,ES_MULTILINE | ES_AUTOVSCROLL | 
+                    ES_AUTOHSCROLL | ES_READONLY | ES_WANTRETURN | 
+                    WS_VSCROLL | WS_HSCROLL
 END
 
 IDD_PARENT DIALOGEX 0, 0, 316, 225
@@ -427,9 +428,9 @@ BEGIN
     IDD_HELP, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 217
+        RIGHTMARGIN, 288
         TOPMARGIN, 7
-        BOTTOMMARGIN, 163
+        BOTTOMMARGIN, 200
     END
 
     IDD_PARENT, DIALOG
@@ -600,7 +601,7 @@ BEGIN
     ID_CLOSEDAEMON          "Stop listening for incoming connections"
     ID_SHOWWINDOW           "Display a connection window"
     ID_NEWCONN              "Make a manual connection"
-    IDS_HELP                "vncviewer [/8bit] [/shared] [/noshared] [/swapmouse] [/belldeiconify] [/listen] [/fullscreen] [/viewonly] [/emulate3] [/scale a/b] [/config configfile] [/encoding cname] [/compresslevel n] [/quality n] [/nocursorshape] [/noremotecursor] server[:display]\r\n\r\nFor full details see documentation."
+    IDS_HELP                "vncviewer [/8bit] [/shared] [/noshared] [/swapmouse] \r\n      [/belldeiconify] [/listen [<port>]] [/fullscreen] [/restricted] [/viewonly] \r\n      [/emulate3] [/noemulate3] [/emulate3timeout <ms>] [/emulate3fuzz <pixels>] \r\n      [/notoolbar] [/scale <percentage>] [/config <filename>] [/disableclipboard] \r\n      [/encoding <encname>] [/compresslevel <n>] [/quality <n>] \r\n      [/loglevel <n>] [/logfile <filename>] [/register] \r\n      [/nocursor] [/dotcursor] [/smalldotcursor] [/normalcursor] [/help] \r\n      [/nojpeg] [/nocursorshape] [/noremotecursor] [<server>[:<display>]] \r\n\r\nFor full details, see the documentation."
 END
 
 STRINGTABLE DISCARDABLE 

@@ -264,8 +264,8 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 		if ( SwitchMatch(args[j], _T("help")) ||
 			SwitchMatch(args[j], _T("?")) ||
 			SwitchMatch(args[j], _T("h"))) {
-			ShowHelpBox();
-			PostQuitMessage(1);
+			ShowHelpBox(_T("TightVNC Usage Help"));
+			exit(1);
 		} else if ( SwitchMatch(args[j], _T("listen"))) {
 			m_listening = true;
 			if (j+1 < i && args[j+1][0] >= '0' && args[j+1][0] <= '9') {
@@ -399,7 +399,6 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 			_fullpath(m_configFilename, args[j], _MAX_PATH);
 			if (_access(m_configFilename, 04)) {
 				ArgError(_T("Can't open specified config file for reading."));
-				PostQuitMessage(1);
 				continue;
 			} else {
 				Load(m_configFilename);
@@ -454,12 +453,12 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 			}
 		} else if ( SwitchMatch(args[j], _T("register") )) {
 			Register();
-			PostQuitMessage(0);
+			exit(1);
 		} else {
 			TCHAR phost[256];
 			if (!ParseDisplay(args[j], phost, 255, &m_port)) {
-				ShowUsage(_T("Invalid VNC server specified."));
-				PostQuitMessage(1);
+				ShowHelpBox(_T("Error: Invalid VNC server specified."));
+				continue;
 			} else {
 				_tcscpy(m_host, phost);
 				_tcscpy(m_display, args[j]);
@@ -604,33 +603,6 @@ void VNCOptions::Register()
 		RegSetValue(hKey, NULL, REG_SZ, filename, 0);
 		RegCloseKey(hKey);
 	}
-}
-
-void VNCOptions::ShowUsage(LPTSTR info) {
-    TCHAR msg[2048];
-    TCHAR *tmpinf = _T("");
-    if (info != NULL) 
-        tmpinf = info;
-    _stprintf(msg, 
-#ifdef UNDER_CE
-		_T("%s\n\rUsage includes:\n\r")
-			_T("vncviewer [/8bit] [/swapmouse] [/shared] [/belldeiconify] \n\r")
-			_T(" [/hpc | /palm] [/slow] server[:display] \n\r")
-			_T("For full details see documentation."),
-#else
-		_T("%s\n\rUsage includes:\n\r"
-			"  vncviewer [/8bit] [/shared] [/noshared] [/swapmouse] \n\r"
-			"      [/belldeiconify] [/listen [<port>]] [/fullscreen] [/restricted] [/viewonly] \n\r"
-			"      [/emulate3] [/noemulate3] [/emulate3timeout <ms>] [/emulate3fuzz <pixels>] \n\r"
-			"      [/notoolbar] [/scale <percentage>] [/config <filename>] [/disableclipboard] \n\r"
-			"      [/encoding <encname>] [/compresslevel <n>] [/quality <n>] \n\r"
-			"      [/loglevel <n>] [/logfile <filename>] [/register] \n\r"
-			"      [/nocursor] [/dotcursor] [/smalldotcursor] [/normalcursor] [/help] \n\r"
-			"      [/nojpeg] [/nocursorshape] [/noremotecursor] [<server>[:<display>]] \n\r"
-			"For full details, see the documentation."),
-#endif
-        tmpinf);
-    MessageBox(NULL,  msg, _T("VNC error"), MB_OK | MB_ICONSTOP | MB_TOPMOST);
 }
 
 // The dialog box allows you to change the session-specific parameters

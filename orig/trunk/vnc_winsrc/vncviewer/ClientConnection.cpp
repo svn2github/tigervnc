@@ -1862,11 +1862,13 @@ void* ClientConnection::run_undetached(void* arg) {
         vnclog.Print(4, _T("Update-processing thread finishing\n") );
 
 	} catch (WarningException &e) {
+		m_running = false;
 		PostMessage(m_hwnd, WM_CLOSE, 0, 0);
 		if (!m_bKillThread) {
 			e.Report();
 		}
 	} catch (QuietException &e) {
+		m_running = false;
 		e.Report();
 		PostMessage(m_hwnd, WM_CLOSE, 0, 0);
 	} 

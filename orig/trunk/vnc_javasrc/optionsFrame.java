@@ -32,6 +32,7 @@ class optionsFrame extends Frame {
   static String[] names = {
     "Encoding",
     "Compression level",
+    "Cursor shape updates",
     "Use CopyRect",
     "Mouse buttons 2 and 3",
     "Raw pixel drawing",
@@ -42,6 +43,7 @@ class optionsFrame extends Frame {
   static String[][] values = {
     { "Raw", "RRE", "CoRRE", "Hextile", "Zlib", "Tight" },
     { "Default", "1", "2", "3", "4", "5", "6", "7", "8", "9" },
+    { "Enable", "Ignore", "Disable" },
     { "Yes", "No" },
     { "Normal", "Reversed" },
     { "Fast", "Reliable" },
@@ -49,9 +51,15 @@ class optionsFrame extends Frame {
     { "Yes", "No" },
   };
 
-  final int encodingIndex = 0, compressLevelIndex = 1, useCopyRectIndex = 2,
-    mouseButtonIndex = 3, rawPixelDrawingIndex = 4, copyRectFastIndex = 5,
-    shareDesktopIndex = 6;
+  final int
+    encodingIndex        = 0,
+    compressLevelIndex   = 1,
+    cursorUpdatesIndex   = 2,
+    useCopyRectIndex     = 3,
+    mouseButtonIndex     = 4,
+    rawPixelDrawingIndex = 5,
+    copyRectFastIndex    = 6,
+    shareDesktopIndex    = 7;
 
   Label[] labels = new Label[names.length];
   Choice[] choices = new Choice[names.length];
@@ -63,10 +71,13 @@ class optionsFrame extends Frame {
   // The actual data which other classes look at:
   //
 
-  int[] encodings = new int[10];
+  int[] encodings = new int[15];
   int nEncodings;
 
   int compressLevel;
+
+  boolean requestCursorUpdates;
+  boolean ignoreCursorUpdates;
 
   boolean reverseMouseButtons2And3;
 
@@ -120,6 +131,7 @@ class optionsFrame extends Frame {
 
     choices[encodingIndex].select("Hextile");
     choices[compressLevelIndex].select("Default");
+    choices[cursorUpdatesIndex].select("Enable");
     choices[useCopyRectIndex].select("Yes");
     choices[mouseButtonIndex].select("Normal");
     choices[rawPixelDrawingIndex].select("Fast");
@@ -156,10 +168,10 @@ class optionsFrame extends Frame {
   }
 
   //
-  // setEncodings looks at the encoding, compression level and
-  // copyRect choices and sets the encodings array appropriately. It
-  // also calls the vncviewer's setEncodings method to send a message
-  // to the RFB server if necessary.
+  // setEncodings looks at the encoding, compression level, cursor
+  // shape updates and copyRect choices and sets the encodings array
+  // appropriately. It also calls the vncviewer's setEncodings method
+  // to send a message to the RFB server if necessary.
   //
 
   void setEncodings() {
@@ -169,27 +181,20 @@ class optionsFrame extends Frame {
     }
 
     int preferredEncoding = rfbProto.EncodingRaw;
+    boolean enableCompressLevel = false;
 
     if (choices[encodingIndex].getSelectedItem().equals("RRE")) {
       preferredEncoding = rfbProto.EncodingRRE;
-      labels[compressLevelIndex].disable();
-      choices[compressLevelIndex].disable();
     } else if (choices[encodingIndex].getSelectedItem().equals("CoRRE")) {
       preferredEncoding = rfbProto.EncodingCoRRE;
-      labels[compressLevelIndex].disable();
-      choices[compressLevelIndex].disable();
     } else if (choices[encodingIndex].getSelectedItem().equals("Hextile")) {
       preferredEncoding = rfbProto.EncodingHextile;
-      labels[compressLevelIndex].disable();
-      choices[compressLevelIndex].disable();
     } else if (choices[encodingIndex].getSelectedItem().equals("Zlib")) {
       preferredEncoding = rfbProto.EncodingZlib;
-      labels[compressLevelIndex].enable();
-      choices[compressLevelIndex].enable();
+      enableCompressLevel = true;
     } else if (choices[encodingIndex].getSelectedItem().equals("Tight")) {
       preferredEncoding = rfbProto.EncodingTight;
-      labels[compressLevelIndex].enable();
-      choices[compressLevelIndex].enable();
+      enableCompressLevel = true;
     }
 
     encodings[nEncodings++] = preferredEncoding;
@@ -209,20 +214,43 @@ class optionsFrame extends Frame {
       encodings[nEncodings++] = rfbProto.EncodingRRE;
     }
 
-    if (preferredEncoding == rfbProto.EncodingTight ||
-        preferredEncoding == rfbProto.EncodingZlib) {
-      int level;
+    if (enableCompressLevel) {
+      labels[compressLevelIndex].enable();
+      choices[compressLevelIndex].enable();
       try {
-        level =
+        compressLevel =
           Integer.parseInt(choices[compressLevelIndex].getSelectedItem());
       }
       catch (NumberFormatException e) {
-        level = -1;
+        compressLevel = -1;
       }
-      if (level >= 1 && level <= 9) {
-        encodings[nEncodings++] = rfbProto.EncodingCompressLevel0 + level;
+      if (compressLevel >= 1 && compressLevel <= 9) {
+        encodings[nEncodings++] =
+          rfbProto.EncodingCompressLevel0 + compressLevel;
       }
+    } else {
+      labels[compressLevelIndex].disable();
+      choices[compressLevelIndex].disable();
     }
+
+    if (choices[cursorUpdatesIndex].getSelectedItem().equals("Enable")) {
+      requestCursorUpdates = true;
+      ignoreCursorUpdates = false;
+    }
+    else if (choices[cursorUpdatesIndex].getSelectedItem().equals("Ignore")) {
+      requestCursorUpdates = true;
+      ignoreCursorUpdates = true;
+    }
+    else {
+      requestCursorUpdates = false;
+    }
+
+/***** Disabled until these encodings are implemented.
+    if (requestCursorUpdates) {
+      encodings[nEncodings++] = rfbProto.EncodingXCursor;
+      encodings[nEncodings++] = rfbProto.EncodingRichCursor;
+    }
+*****/
 
     v.setEncodings();
   }
@@ -261,6 +289,7 @@ class optionsFrame extends Frame {
 
     } else if ((evt.target == choices[encodingIndex]) ||
 	       (evt.target == choices[compressLevelIndex]) ||
+	       (evt.target == choices[cursorUpdatesIndex]) ||
 	       (evt.target == choices[useCopyRectIndex])) {
 
       setEncodings();

@@ -51,9 +51,10 @@ class rfbProto {
     FramebufferUpdateRequest = 3, KeyEvent = 4, PointerEvent = 5,
     ClientCutText = 6;
 
-  final static int EncodingRaw = 0, EncodingCopyRect = 1, EncodingRRE = 2,
-    EncodingCoRRE = 4, EncodingHextile = 5, EncodingZlib = 6,
-    EncodingTight = 7, EncodingCompressLevel0 = 0xFFFFFF00;
+  final static int EncodingRaw = 0, EncodingCopyRect = 1,
+    EncodingRRE = 2, EncodingCoRRE = 4, EncodingHextile = 5,
+    EncodingZlib = 6, EncodingTight = 7, EncodingCompressLevel0 = 0xFFFFFF00,
+    EncodingXCursor = 0xFFFFFF10, EncodingRichCursor = 0xFFFFFF11;
 
   final int HextileRaw			= (1 << 0);
   final int HextileBackgroundSpecified	= (1 << 1);

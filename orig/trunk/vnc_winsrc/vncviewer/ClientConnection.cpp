@@ -1991,10 +1991,8 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 			SetWindowPos(_this->m_hToolbar, HWND_TOP, 0, 0,
 					rwn.right - rwn.left, rtb.bottom - rtb.top, SWP_SHOWWINDOW);
 		} else {
-			SetWindowPos(_this->m_hwnd, HWND_TOP, (rwn.right -
-				_this->m_fullwinwidth) / 2, (rwn.bottom -
-				_this->m_fullwinheight) / 2,
-					_this->m_fullwinwidth, _this->m_fullwinheight, SWP_SHOWWINDOW);
+			SetWindowPos(_this->m_hwnd, HWND_TOP, rwn.left, rwn.top,
+				rwn.right - rwn.left, rwn.bottom - rwn.top, SWP_SHOWWINDOW);
 		}
 		
 		return 0;

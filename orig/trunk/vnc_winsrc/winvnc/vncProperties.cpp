@@ -360,39 +360,9 @@ vncProperties::DialogProc(HWND hwnd,
 
 			// Set display/ports settings
 			_this->InitPortSettings(hwnd);
-
-			// Remote input settings
-			HWND hEnableRemoteInputs = GetDlgItem(hwnd, IDC_DISABLE_INPUTS);
-			SendMessage(hEnableRemoteInputs,
-				BM_SETCHECK,
-				!(_this->m_server->RemoteInputsEnabled()),
-				0);
-
-			// Local input settings
-			HWND hDisableLocalInputs = GetDlgItem(hwnd, IDC_DISABLE_LOCAL_INPUTS);
-			SendMessage(hDisableLocalInputs,
-				BM_SETCHECK,
-				_this->m_server->LocalInputsDisabled(),
-				0);
-
-			// Local input prioity settings
-			HWND hRemoteDisable = GetDlgItem(hwnd, IDC_REMOTE_DISABLE);
-			SendMessage(hRemoteDisable,
-				BM_SETCHECK,
-				_this->m_server->LocalInputPriority(),
-				0);
-
-			HWND hDisableTime = GetDlgItem(hwnd, IDC_DISABLE_TIME);
-			SetDlgItemInt(hwnd, IDC_DISABLE_TIME, _this->m_server->DisableTime(), FALSE);
 			
-			if ( !_this->m_server->RemoteInputsEnabled() ||
-				 _this->m_server->LocalInputsDisabled() ) {
-				EnableWindow(hRemoteDisable, FALSE);
-				EnableWindow(hDisableTime, FALSE);
-			}
+			_this->m_inputhandcontr = new InputHandlingControls(hwnd, _this->m_server);
 			
-			if (!_this->m_server->LocalInputPriority())
-				EnableWindow(hDisableTime, FALSE);
 
 			// Remove the wallpaper
 			HWND hRemoveWallpaper = GetDlgItem(hwnd, IDC_REMOVE_WALLPAPER);
@@ -562,18 +532,8 @@ vncProperties::DialogProc(HWND hwnd,
 				if (LOWORD(wParam) == IDC_APPLY)
 					_this->InitPortSettings(hwnd);
 
-				// Remote input stuff
-				HWND hEnableRemoteInputs = GetDlgItem(hwnd, IDC_DISABLE_INPUTS);
-				_this->m_server->EnableRemoteInputs(
-					SendMessage(hEnableRemoteInputs, BM_GETCHECK, 0, 0) != BST_CHECKED
-					);
-
-				// Local input stuff
-				HWND hDisableLocalInputs = GetDlgItem(hwnd, IDC_DISABLE_LOCAL_INPUTS);
-				_this->m_server->DisableLocalInputs(
-					SendMessage(hDisableLocalInputs, BM_GETCHECK, 0, 0) == BST_CHECKED
-					);
-
+				_this->m_inputhandcontr->ApplyInputsControlsContents(hwnd);
+				
 				// Wallpaper handling
 				HWND hRemoveWallpaper = GetDlgItem(hwnd, IDC_REMOVE_WALLPAPER);
 				_this->m_server->EnableRemoveWallpaper(
@@ -593,16 +553,7 @@ vncProperties::DialogProc(HWND hwnd,
 
 				// Handle the polling stuff
 				_this->m_pollcontrols->ApplyControlsContents(hwnd);
-
-				HWND hRemoteDisable = GetDlgItem(hwnd, IDC_REMOTE_DISABLE);
-				_this->m_server->LocalInputPriority(
-					SendMessage(hRemoteDisable, BM_GETCHECK, 0, 0) == BST_CHECKED
-				);
-
-				BOOL success;
-				UINT disabletime = GetDlgItemInt(hwnd, IDC_DISABLE_TIME, &success, TRUE);
-				if (success)
-					_this->m_server->SetDisableTime(disabletime);
+				
 #else
 				_this->m_server->SetLiveShareKey(_this->m_pref_LiveShareKey);
 #endif
@@ -695,6 +646,7 @@ vncProperties::DialogProc(HWND hwnd,
 					
 					// Yes, so close the dialog
 					delete _this->m_pollcontrols;
+					delete _this->m_inputhandcontr;
 					vnclog.Print(LL_INTINFO, VNCLOG("enddialog (OK)\n"));
 
 					_this->m_returncode_valid = TRUE;
@@ -708,6 +660,7 @@ vncProperties::DialogProc(HWND hwnd,
 
 		case IDCANCEL:
 			delete _this->m_pollcontrols;
+			delete _this->m_inputhandcontr;
 			vnclog.Print(LL_INTINFO, VNCLOG("enddialog (CANCEL)\n"));
 
 			_this->m_returncode_valid = TRUE;
@@ -828,45 +781,17 @@ vncProperties::DialogProc(HWND hwnd,
 
 		case IDC_DISABLE_INPUTS:
 		case IDC_DISABLE_LOCAL_INPUTS:
-			{
 			
-				HWND hDisableInputs = GetDlgItem(hwnd, IDC_DISABLE_INPUTS);
-				HWND hDisableLocalInputs = GetDlgItem(hwnd, IDC_DISABLE_LOCAL_INPUTS);
-	
-				// Determine whether to enable the modifier options
-				BOOL enabled = (SendMessage(hDisableInputs, BM_GETCHECK, 0, 0) != BST_CHECKED) &&
-				(SendMessage(hDisableLocalInputs, BM_GETCHECK, 0, 0) != BST_CHECKED);
-
-				HWND hRemoteDisable = GetDlgItem(hwnd, IDC_REMOTE_DISABLE);
-				HWND hDisableTime = GetDlgItem(hwnd, IDC_DISABLE_TIME);
+			_this->m_inputhandcontr->EnableInputs(hwnd);
 				
-				BOOL enabl = (SendMessage(hRemoteDisable, BM_GETCHECK, 0, 0) != BST_CHECKED);
-								
-				EnableWindow(hRemoteDisable, enabled);
-				EnableWindow(hDisableTime, enabled & !enabl);
-				
-				if (!enabled)
-					SendMessage(hRemoteDisable, BM_SETCHECK, enabled, 0);
-				
-
-			}
 			return TRUE;
 	
 		case IDC_REMOTE_DISABLE:
-			{
-				HWND hDisableTime = GetDlgItem(hwnd, IDC_DISABLE_TIME);
-				HWND hRemoteDisable = GetDlgItem(hwnd, IDC_REMOTE_DISABLE);
-				BOOL enabled = (SendMessage(hRemoteDisable, BM_GETCHECK, 0, 0) == BST_CHECKED);
-				EnableWindow(hDisableTime, enabled);
-				if (enabled) {
-					SetFocus(hDisableTime);
-					SendMessage(hDisableTime, EM_SETSEL, 0, (LPARAM)-1);
-				}
-			}
+
+			_this->m_inputhandcontr->EnableRemote(hwnd);
+
 			return TRUE;
 	
-				
-
 #else
 		case IDC_LIVESHARE:
 			{

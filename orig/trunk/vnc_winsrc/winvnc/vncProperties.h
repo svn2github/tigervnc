@@ -42,7 +42,8 @@ class vncProperties;
 #include "stdhdrs.h"
 #include "vncServer.h"
 #include "MatchWindow.h"
-#include "PollControls.h" 
+#include "PollControls.h"
+#include "InputHandlingControls.h" 
 
 // The vncProperties class itself
 class vncProperties
@@ -156,6 +157,7 @@ static  LRESULT CALLBACK BmpWndProc(HWND, UINT, WPARAM, LPARAM);
 		HWND m_KeepHandle;
 		CMatchWindow* m_pMatchWindow;
 		PollControls* m_pollcontrols;
+		InputHandlingControls* m_inputhandcontr;
 };
 
 #endif // _WINVNC_VNCPROPERTIES

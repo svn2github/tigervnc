@@ -160,6 +160,10 @@ SOURCE=.\d3des.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\InputHandlingControls.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\Log.cpp
 # End Source File
 # Begin Source File
@@ -409,6 +413,10 @@ SOURCE=.\WinVNC.rc
 # Begin Source File
 
 SOURCE=.\d3des.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\InputHandlingControls.h
 # End Source File
 # Begin Source File
 

@@ -163,20 +163,21 @@ void VNCviewerApp32::NewConnection(SOCKET sock) {
 	}
 
 }
-void VNCviewerApp32::ListenMode(){
 
-		try {
-			m_pflasher = new Flasher(FLASH_PORT_OFFSET);
-			m_pdaemon = new Daemon(INCOMING_PORT_OFFSET);
-		} catch (WarningException &e) {
-			char msg[1024];
-			sprintf(msg, "Error creating listening daemon:\n\r(%s)\n\r%s",
+void VNCviewerApp32::ListenMode() {
+
+	try {
+		m_pflasher = new Flasher(FLASH_PORT_OFFSET);
+		m_pdaemon = new Daemon(m_options.m_listenPort);
+	} catch (WarningException &e) {
+		char msg[1024];
+		sprintf(msg, "Error creating listening daemon:\n\r(%s)\n\r%s",
 				e.m_info, "Perhaps another VNCviewer is already running?");
-			MessageBox(NULL, msg, "VNCviewer error", MB_OK | MB_ICONSTOP);
-			exit(1);
-		}
-		
+		MessageBox(NULL, msg, "VNCviewer error", MB_OK | MB_ICONSTOP);
+		exit(1);
+	}
 }
+
 // Register the Bell sound event
 
 const char* BELL_APPL_KEY_NAME  = "AppEvents\\Schemes\\Apps\\VNCviewer";

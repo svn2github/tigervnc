@@ -119,7 +119,7 @@ class VncCanvas extends Canvas
     paint(g);
   }
 
-  public void paint(Graphics g) {
+  public synchronized void paint(Graphics g) {
     synchronized(memImage) {
       g.drawImage(memImage, 0, 0, null);
     }

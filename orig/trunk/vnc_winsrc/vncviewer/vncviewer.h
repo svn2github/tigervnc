@@ -57,7 +57,6 @@ extern HWND hwndd;
 
 extern HACCEL hAccel;
 
-extern ACCEL Accel[8];
 // Macro DIALOG_MAKEINTRESOURCE is used to allow both normal windows dialogs
 // and the selectable aspect ratio dialogs under WinCE (PalmPC vs HPC).
 #ifndef UNDER_CE

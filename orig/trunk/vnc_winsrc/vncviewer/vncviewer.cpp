@@ -36,10 +36,11 @@
 
 // All logging is done via the log object
 Log vnclog;
+
 VNCHelp help;
 HWND hwndd;
 HACCEL hAccel;
-ACCEL Accel[8];
+
 #ifdef UNDER_CE
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdLine, int iCmdShow)
 #else
@@ -63,42 +64,44 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 		app.NewConnection();
 	}
 
+	ACCEL accel[8];
+
+	accel[0].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
+	accel[0].key = 0x4f;
+	accel[0].cmd = IDC_OPTIONBUTTON;
+
+	accel[1].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
+	accel[1].key = 0x49;
+	accel[1].cmd = ID_CONN_ABOUT;
+
+	accel[2].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
+	accel[2].key = 0x46;
+	accel[2].cmd = ID_FULLSCREEN;
+
+	accel[3].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
+	accel[3].key = 0x52;
+	accel[3].cmd = ID_REQUEST_REFRESH;
+
+	accel[4].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
+	accel[4].key = 0x4e;
+	accel[4].cmd = ID_NEWCONN;
+
+	accel[5].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
+	accel[5].key = 0x53;
+	accel[5].cmd = ID_CONN_SAVE_AS;
+
+	accel[6].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
+	accel[6].key = 0x54;
+	accel[6].cmd = ID_TOOLBAR;
+
+	accel[7].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
+	accel[7].key = 0x45;
+	accel[7].cmd = IDD_FILETRANSFER;
+
+	hAccel = CreateAcceleratorTable((LPACCEL)accel, 8);
+
 	MSG msg;
-	
-	Accel[0].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
-	Accel[0].key = 0x4f;
-	Accel[0].cmd = IDC_OPTIONBUTTON;
 
-	Accel[1].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
-	Accel[1].key = 0x49;
-	Accel[1].cmd = ID_CONN_ABOUT;
-
-	Accel[2].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
-	Accel[2].key = 0x46;
-	Accel[2].cmd = ID_FULLSCREEN;
-
-	Accel[3].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
-	Accel[3].key = 0x52;
-	Accel[3].cmd = ID_REQUEST_REFRESH;
-
-	Accel[4].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
-	Accel[4].key = 0x4e;
-	Accel[4].cmd = ID_NEWCONN;
-
-	Accel[5].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
-	Accel[5].key = 0x53;
-	Accel[5].cmd = ID_CONN_SAVE_AS;
-
-	Accel[6].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
-	Accel[6].key = 0x54;
-	Accel[6].cmd = ID_TOOLBAR;
-
-	Accel[7].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
-	Accel[7].key = 0x45;
-	Accel[7].cmd = IDD_FILETRANSFER;
-
-	hAccel = CreateAcceleratorTable((LPACCEL)Accel, 8);
-   
 	try {
 		while ( GetMessage(&msg, NULL, 0, 0) ) {
 			if(!TranslateAccelerator(hwndd, hAccel, &msg) &&

@@ -401,6 +401,8 @@ IDR_RECFRAME_CLASS      JAVACLASS DISCARDABLE   "res\\RecordingFrame.class"
 IDR_SESSIONREC_CLASS    JAVACLASS DISCARDABLE   "res\\SessionRecorder.class"
 IDR_RELOGINPANEL_CLASS  JAVACLASS DISCARDABLE   "res\\ReloginPanel.class"
 IDR_SOCKFACTORY_CLASS   JAVACLASS DISCARDABLE   "res\\SocketFactory.class"
+IDR_HTTPCONNSOCKFACTORY_CLASS JAVACLASS DISCARDABLE   "res\\HTTPConnectSocketFactory.class"
+IDR_HTTPCONNSOCK_CLASS  JAVACLASS DISCARDABLE   "res\\HTTPConnectSocket.class"
 
 /////////////////////////////////////////////////////////////////////////////
 //

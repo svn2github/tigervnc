@@ -282,10 +282,6 @@ SOURCE=.\d3des.c
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
 
-DEP_CPP_D3DES=\
-	".\d3des.h"\
-	
-
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
 !ENDIF 
@@ -328,10 +324,6 @@ SOURCE=.\MinMax.cpp
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
 
-DEP_CPP_MINMA=\
-	".\MinMax.h"\
-	
-
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
 !ENDIF 
@@ -353,11 +345,6 @@ SOURCE=.\RectList.cpp
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
 
-DEP_CPP_RECTL=\
-	".\RectList.h"\
-	".\stdhdrs.h"\
-	
-
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
 !ENDIF 
@@ -378,10 +365,6 @@ SOURCE=.\stdhdrs.cpp
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Profile"
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
-
-DEP_CPP_STDHD=\
-	".\stdhdrs.h"\
-	
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
@@ -515,16 +498,6 @@ SOURCE=.\translate.cpp
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
 
-DEP_CPP_TRANS=\
-	".\rfb.h"\
-	".\rfbproto.h"\
-	".\stdhdrs.h"\
-	".\tableinitcmtemplate.cpp"\
-	".\tableinittctemplate.cpp"\
-	".\tabletranstemplate.cpp"\
-	".\translate.h"\
-	
-
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
 !ENDIF 
@@ -545,12 +518,6 @@ SOURCE=.\vncAbout.cpp
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Profile"
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
-
-DEP_CPP_VNCAB=\
-	".\stdhdrs.h"\
-	".\vncAbout.h"\
-	".\WinVNC.h"\
-	
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
@@ -615,18 +582,6 @@ SOURCE=.\vncauth.c
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
 
-DEP_CPP_VNCAU=\
-	".\d3des.h"\
-	".\stdhdrs.h"\
-	".\vncauth.h"\
-	
-NODEP_CPP_VNCAU=\
-	".\crypt.h"\
-	".\idea.h"\
-	".\ys\stat.h"\
-	".\ys\types.h"\
-	
-
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
 !ENDIF 
@@ -648,36 +603,6 @@ SOURCE=.\vncBuffer.cpp
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
 
-DEP_CPP_VNCBU=\
-	".\MinMax.h"\
-	".\omnithread\omnithread.h"\
-	".\omnithread\omnithread\nt.h"\
-	".\RectList.h"\
-	".\rfb.h"\
-	".\rfbproto.h"\
-	".\stdhdrs.h"\
-	".\translate.h"\
-	".\vncauth.h"\
-	".\vncBuffer.h"\
-	".\vncClient.h"\
-	".\vncCorbaConnect.h"\
-	".\vncDesktop.h"\
-	".\vncEncodeCoRRE.h"\
-	".\vncEncodeHexT.h"\
-	".\vncEncoder.h"\
-	".\vncEncodeRRE.h"\
-	".\vncHTTPConnect.h"\
-	".\vncKeymap.h"\
-	".\vncRegion.h"\
-	".\vncServer.h"\
-	".\vncSockConnect.h"\
-	".\VSocket.h"\
-	".\VTypes.h"\
-	
-NODEP_CPP_VNCBU=\
-	".\vnccontrol.h"\
-	
-
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
 !ENDIF 
@@ -698,33 +623,6 @@ SOURCE=.\vncClient.cpp
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Profile"
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
-
-DEP_CPP_VNCCL=\
-	".\omnithread\omnithread.h"\
-	".\omnithread\omnithread\nt.h"\
-	".\RectList.h"\
-	".\rfb.h"\
-	".\rfbproto.h"\
-	".\stdhdrs.h"\
-	".\translate.h"\
-	".\vncauth.h"\
-	".\vncBuffer.h"\
-	".\vncClient.h"\
-	".\vncCorbaConnect.h"\
-	".\vncDesktop.h"\
-	".\vncEncoder.h"\
-	".\vncHTTPConnect.h"\
-	".\vncKeymap.h"\
-	".\vncRegion.h"\
-	".\vncServer.h"\
-	".\vncService.h"\
-	".\vncSockConnect.h"\
-	".\VSocket.h"\
-	".\VTypes.h"\
-	
-NODEP_CPP_VNCCL=\
-	".\vnccontrol.h"\
-	
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
@@ -768,35 +666,6 @@ SOURCE=.\vncDesktop.cpp
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
 
-DEP_CPP_VNCDE=\
-	".\omnithread\omnithread.h"\
-	".\omnithread\omnithread\nt.h"\
-	".\RectList.h"\
-	".\rfb.h"\
-	".\rfbproto.h"\
-	".\stdhdrs.h"\
-	".\translate.h"\
-	".\vncauth.h"\
-	".\vncBuffer.h"\
-	".\vncClient.h"\
-	".\vncCorbaConnect.h"\
-	".\vncDesktop.h"\
-	".\vncEncoder.h"\
-	".\VNCHooks\VNCHooks.h"\
-	".\vncHTTPConnect.h"\
-	".\vncKeymap.h"\
-	".\vncRegion.h"\
-	".\vncServer.h"\
-	".\vncService.h"\
-	".\vncSockConnect.h"\
-	".\VSocket.h"\
-	".\VTypes.h"\
-	".\WinVNC.h"\
-	
-NODEP_CPP_VNCDE=\
-	".\vnccontrol.h"\
-	
-
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
 !ENDIF 
@@ -823,34 +692,6 @@ SOURCE=.\vncEncodeCoRRE.cpp
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
 
-DEP_CPP_VNCEN=\
-	".\MinMax.h"\
-	".\omnithread\omnithread.h"\
-	".\omnithread\omnithread\nt.h"\
-	".\RectList.h"\
-	".\rfb.h"\
-	".\rfbproto.h"\
-	".\stdhdrs.h"\
-	".\translate.h"\
-	".\vncauth.h"\
-	".\vncBuffer.h"\
-	".\vncClient.h"\
-	".\vncCorbaConnect.h"\
-	".\vncDesktop.h"\
-	".\vncEncodeCoRRE.h"\
-	".\vncEncoder.h"\
-	".\vncHTTPConnect.h"\
-	".\vncKeymap.h"\
-	".\vncRegion.h"\
-	".\vncServer.h"\
-	".\vncSockConnect.h"\
-	".\VSocket.h"\
-	".\VTypes.h"\
-	
-NODEP_CPP_VNCEN=\
-	".\vnccontrol.h"\
-	
-
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
 !ENDIF 
@@ -871,34 +712,6 @@ SOURCE=.\vncEncodeHexT.cpp
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Profile"
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
-
-DEP_CPP_VNCENC=\
-	".\MinMax.h"\
-	".\omnithread\omnithread.h"\
-	".\omnithread\omnithread\nt.h"\
-	".\RectList.h"\
-	".\rfb.h"\
-	".\rfbproto.h"\
-	".\stdhdrs.h"\
-	".\translate.h"\
-	".\vncauth.h"\
-	".\vncBuffer.h"\
-	".\vncClient.h"\
-	".\vncCorbaConnect.h"\
-	".\vncDesktop.h"\
-	".\vncEncodeHexT.h"\
-	".\vncEncoder.h"\
-	".\vncHTTPConnect.h"\
-	".\vncKeymap.h"\
-	".\vncRegion.h"\
-	".\vncServer.h"\
-	".\vncSockConnect.h"\
-	".\VSocket.h"\
-	".\VTypes.h"\
-	
-NODEP_CPP_VNCENC=\
-	".\vnccontrol.h"\
-	
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
@@ -921,32 +734,6 @@ SOURCE=.\vncEncoder.cpp
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
 
-DEP_CPP_VNCENCO=\
-	".\omnithread\omnithread.h"\
-	".\omnithread\omnithread\nt.h"\
-	".\RectList.h"\
-	".\rfb.h"\
-	".\rfbproto.h"\
-	".\stdhdrs.h"\
-	".\translate.h"\
-	".\vncauth.h"\
-	".\vncBuffer.h"\
-	".\vncClient.h"\
-	".\vncCorbaConnect.h"\
-	".\vncDesktop.h"\
-	".\vncEncoder.h"\
-	".\vncHTTPConnect.h"\
-	".\vncKeymap.h"\
-	".\vncRegion.h"\
-	".\vncServer.h"\
-	".\vncSockConnect.h"\
-	".\VSocket.h"\
-	".\VTypes.h"\
-	
-NODEP_CPP_VNCENCO=\
-	".\vnccontrol.h"\
-	
-
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
 !ENDIF 
@@ -967,33 +754,6 @@ SOURCE=.\vncEncodeRRE.cpp
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Profile"
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
-
-DEP_CPP_VNCENCOD=\
-	".\omnithread\omnithread.h"\
-	".\omnithread\omnithread\nt.h"\
-	".\RectList.h"\
-	".\rfb.h"\
-	".\rfbproto.h"\
-	".\stdhdrs.h"\
-	".\translate.h"\
-	".\vncauth.h"\
-	".\vncBuffer.h"\
-	".\vncClient.h"\
-	".\vncCorbaConnect.h"\
-	".\vncDesktop.h"\
-	".\vncEncoder.h"\
-	".\vncEncodeRRE.h"\
-	".\vncHTTPConnect.h"\
-	".\vncKeymap.h"\
-	".\vncRegion.h"\
-	".\vncServer.h"\
-	".\vncSockConnect.h"\
-	".\VSocket.h"\
-	".\VTypes.h"\
-	
-NODEP_CPP_VNCENCOD=\
-	".\vnccontrol.h"\
-	
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
@@ -1100,11 +860,6 @@ SOURCE=.\vncInstHandler.cpp
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
 
-DEP_CPP_VNCIN=\
-	".\stdhdrs.h"\
-	".\vncInstHandler.h"\
-	
-
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
 !ENDIF 
@@ -1125,15 +880,6 @@ SOURCE=.\vncKeymap.cpp
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Profile"
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
-
-DEP_CPP_VNCKE=\
-	".\keysymdef.h"\
-	".\rfb.h"\
-	".\rfbproto.h"\
-	".\stdhdrs.h"\
-	".\vncKeymap.h"\
-	".\vncService.h"\
-	
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
@@ -1156,37 +902,6 @@ SOURCE=.\vncMenu.cpp
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
 
-DEP_CPP_VNCME=\
-	".\omnithread\omnithread.h"\
-	".\omnithread\omnithread\nt.h"\
-	".\RectList.h"\
-	".\rfb.h"\
-	".\rfbproto.h"\
-	".\stdhdrs.h"\
-	".\translate.h"\
-	".\vncAbout.h"\
-	".\vncauth.h"\
-	".\vncBuffer.h"\
-	".\vncClient.h"\
-	".\vncCorbaConnect.h"\
-	".\vncDesktop.h"\
-	".\vncEncoder.h"\
-	".\vncHTTPConnect.h"\
-	".\vncKeymap.h"\
-	".\vncMenu.h"\
-	".\vncProperties.h"\
-	".\vncRegion.h"\
-	".\vncServer.h"\
-	".\vncService.h"\
-	".\vncSockConnect.h"\
-	".\VSocket.h"\
-	".\VTypes.h"\
-	".\WinVNC.h"\
-	
-NODEP_CPP_VNCME=\
-	".\vnccontrol.h"\
-	
-
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
 !ENDIF 
@@ -1207,34 +922,6 @@ SOURCE=.\vncProperties.cpp
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Profile"
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
-
-DEP_CPP_VNCPR=\
-	".\omnithread\omnithread.h"\
-	".\omnithread\omnithread\nt.h"\
-	".\RectList.h"\
-	".\rfb.h"\
-	".\rfbproto.h"\
-	".\stdhdrs.h"\
-	".\translate.h"\
-	".\vncauth.h"\
-	".\vncBuffer.h"\
-	".\vncClient.h"\
-	".\vncCorbaConnect.h"\
-	".\vncDesktop.h"\
-	".\vncEncoder.h"\
-	".\vncHTTPConnect.h"\
-	".\vncKeymap.h"\
-	".\vncProperties.h"\
-	".\vncRegion.h"\
-	".\vncServer.h"\
-	".\vncSockConnect.h"\
-	".\VSocket.h"\
-	".\VTypes.h"\
-	".\WinVNC.h"\
-	
-NODEP_CPP_VNCPR=\
-	".\vnccontrol.h"\
-	
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
@@ -1257,12 +944,6 @@ SOURCE=.\vncRegion.cpp
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
 
-DEP_CPP_VNCRE=\
-	".\RectList.h"\
-	".\stdhdrs.h"\
-	".\vncRegion.h"\
-	
-
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
 !ENDIF 
@@ -1283,33 +964,6 @@ SOURCE=.\vncServer.cpp
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Profile"
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
-
-DEP_CPP_VNCSE=\
-	".\omnithread\omnithread.h"\
-	".\omnithread\omnithread\nt.h"\
-	".\RectList.h"\
-	".\rfb.h"\
-	".\rfbproto.h"\
-	".\stdhdrs.h"\
-	".\translate.h"\
-	".\vncauth.h"\
-	".\vncBuffer.h"\
-	".\vncClient.h"\
-	".\vncCorbaConnect.h"\
-	".\vncDesktop.h"\
-	".\vncEncoder.h"\
-	".\vncHTTPConnect.h"\
-	".\vncKeymap.h"\
-	".\vncRegion.h"\
-	".\vncServer.h"\
-	".\vncSockConnect.h"\
-	".\VSocket.h"\
-	".\VTypes.h"\
-	".\WinVNC.h"\
-	
-NODEP_CPP_VNCSE=\
-	".\vnccontrol.h"\
-	
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
@@ -1332,38 +986,6 @@ SOURCE=.\vncService.cpp
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
 
-DEP_CPP_VNCSER=\
-	".\omnithread\omnithread.h"\
-	".\omnithread\omnithread\nt.h"\
-	".\RectList.h"\
-	".\rfb.h"\
-	".\rfbproto.h"\
-	".\stdhdrs.h"\
-	".\translate.h"\
-	".\vncAbout.h"\
-	".\vncauth.h"\
-	".\vncBuffer.h"\
-	".\vncClient.h"\
-	".\vncCorbaConnect.h"\
-	".\vncDesktop.h"\
-	".\vncEncoder.h"\
-	".\vncHTTPConnect.h"\
-	".\vncKeymap.h"\
-	".\vncMenu.h"\
-	".\vncProperties.h"\
-	".\vncRegion.h"\
-	".\vncServer.h"\
-	".\vncService.h"\
-	".\vncSockConnect.h"\
-	".\vncTimedMsgBox.h"\
-	".\VSocket.h"\
-	".\VTypes.h"\
-	".\WinVNC.h"\
-	
-NODEP_CPP_VNCSER=\
-	".\vnccontrol.h"\
-	
-
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
 !ENDIF 
@@ -1384,32 +1006,6 @@ SOURCE=.\vncSockConnect.cpp
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Profile"
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
-
-DEP_CPP_VNCSO=\
-	".\omnithread\omnithread.h"\
-	".\omnithread\omnithread\nt.h"\
-	".\RectList.h"\
-	".\rfb.h"\
-	".\rfbproto.h"\
-	".\stdhdrs.h"\
-	".\translate.h"\
-	".\vncauth.h"\
-	".\vncBuffer.h"\
-	".\vncClient.h"\
-	".\vncCorbaConnect.h"\
-	".\vncDesktop.h"\
-	".\vncEncoder.h"\
-	".\vncHTTPConnect.h"\
-	".\vncKeymap.h"\
-	".\vncRegion.h"\
-	".\vncServer.h"\
-	".\vncSockConnect.h"\
-	".\VSocket.h"\
-	".\VTypes.h"\
-	
-NODEP_CPP_VNCSO=\
-	".\vnccontrol.h"\
-	
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
@@ -1432,13 +1028,6 @@ SOURCE=.\vncTimedMsgBox.cpp
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
 
-DEP_CPP_VNCTI=\
-	".\omnithread\omnithread.h"\
-	".\omnithread\omnithread\nt.h"\
-	".\stdhdrs.h"\
-	".\vncTimedMsgBox.h"\
-	
-
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
 !ENDIF 
@@ -1460,15 +1049,6 @@ SOURCE=.\VSocket.cpp
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
 
-DEP_CPP_VSOCK=\
-	".\stdhdrs.h"\
-	".\VSocket.h"\
-	".\VTypes.h"\
-	
-NODEP_CPP_VSOCK=\
-	".\ys\types.h"\
-	
-
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
 !ENDIF 
@@ -1489,38 +1069,6 @@ SOURCE=.\WinVNC.cpp
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Profile"
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
-
-DEP_CPP_WINVN=\
-	".\omnithread\omnithread.h"\
-	".\omnithread\omnithread\nt.h"\
-	".\RectList.h"\
-	".\rfb.h"\
-	".\rfbproto.h"\
-	".\stdhdrs.h"\
-	".\translate.h"\
-	".\vncAbout.h"\
-	".\vncauth.h"\
-	".\vncBuffer.h"\
-	".\vncClient.h"\
-	".\vncCorbaConnect.h"\
-	".\vncDesktop.h"\
-	".\vncEncoder.h"\
-	".\vncHTTPConnect.h"\
-	".\vncInstHandler.h"\
-	".\vncKeymap.h"\
-	".\vncMenu.h"\
-	".\vncProperties.h"\
-	".\vncRegion.h"\
-	".\vncServer.h"\
-	".\vncService.h"\
-	".\vncSockConnect.h"\
-	".\VSocket.h"\
-	".\VTypes.h"\
-	".\WinVNC.h"\
-	
-NODEP_CPP_WINVN=\
-	".\vnccontrol.h"\
-	
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
@@ -1780,6 +1328,14 @@ SOURCE=.\res\ClipboardFrame.class
 # Begin Source File
 
 SOURCE=.\res\DesCipher.class
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\HTTPConnectSocket.class
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\HTTPConnectSocketFactory.class
 # End Source File
 # Begin Source File
 

@@ -2123,19 +2123,10 @@ vncDesktop::GetChangedRegion(vncRegion &rgn, RECT &rect)
 	unsigned char *o_topleft_ptr = m_backbuff + (rect.top * m_bytesPerRow) + (rect.left * bytesPerPixel)+bytesPerPixel;
 	unsigned char *n_topleft_ptr = m_mainbuff + (rect.top * m_bytesPerRow) + (rect.left * bytesPerPixel)+bytesPerPixel;
 
-	bool skip = false;	
 	for (y = rect.top; y<rect.bottom; y++)
 	{
 
 		if ( memcmp(n_topleft_ptr, o_topleft_ptr, bytesPerRowRect) != 0 ) {
-		
-			// If skip return pointer to previous state
-			if ( skip ) {
-				o_topleft_ptr -= 2*m_bytesPerRow;
-				n_topleft_ptr -= 2*m_bytesPerRow;
-				y-=2;
-				skip = false;
-			}
 			ay++;
 			unsigned char * o_row_ptr  = o_topleft_ptr - (rect.left*bytesPerPixel);
 			unsigned char * n_row_ptr  = n_topleft_ptr - (rect.left*bytesPerPixel);
@@ -2165,10 +2156,8 @@ vncDesktop::GetChangedRegion(vncRegion &rgn, RECT &rect)
 			}
 			
 		} else {
-			o_topleft_ptr += 2*m_bytesPerRow;
-			n_topleft_ptr += 2*m_bytesPerRow;
-			y+=1;
-			skip = true;
+			o_topleft_ptr += m_bytesPerRow;
+			n_topleft_ptr += m_bytesPerRow;
 			if (!IsRectEmpty(&new_rect)){
 				rgn.AddRect(new_rect);
 				SetRectEmpty(&new_rect);

@@ -879,7 +879,7 @@ vncClientThread::run(void *arg)
 					// Flag that the mouse moved
 					// FIXME: Is it necessary?
 					m_client->UpdateMouse();
-
+					
 					// Trigger an update
 					m_server->RequestUpdate();
 				}
@@ -1057,11 +1057,9 @@ vncClient::TriggerUpdate()
 	omni_mutex_lock l(m_regionLock);
 	if (!m_protocol_ready)
 		return;
-
-	
+		
 	if (m_updatewanted)
 	{
-		
 		// Check if cursor shape update has to be sent
 		m_cursor_update_pending = m_buffer->IsCursorUpdatePending();
 
@@ -1082,7 +1080,7 @@ vncClient::TriggerUpdate()
 				if (!SendPalette())
 					return;
 			}
-
+			
 			// Now send the update
 			m_updatewanted = !SendUpdate();
 		}
@@ -1104,6 +1102,8 @@ vncClient::UpdateMouse()
 				m_changed_rgn.AddRect(m_oldmousepos);
 
 			m_mousemoved = TRUE;
+			m_updatewanted = TRUE;
+
 		} else if (m_use_PointerPos) {
 			m_cursor_pos_changed = TRUE;
 		}

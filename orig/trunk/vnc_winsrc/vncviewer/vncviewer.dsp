@@ -233,6 +233,14 @@ SOURCE=.\Exception.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\FileTransfer.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\FileTransfer.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\Flasher.cpp
 # End Source File
 # Begin Source File

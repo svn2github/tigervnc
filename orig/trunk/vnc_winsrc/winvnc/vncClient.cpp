@@ -62,7 +62,10 @@
 class vncClientThread : public omni_thread
 {
 public:
-
+	char * ConvertPath(char *path);
+	HANDLE m_hFiletoWrite;
+	char m_FullFilename[255 + 1];
+	
 	// Init
 	virtual BOOL Init(vncClient *client,
 		vncServer *server,
@@ -967,6 +970,183 @@ vncClientThread::run(void *arg)
 				delete [] text;
 			}
 			break;
+		case rfbFileListRequest:
+			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileListRequestMsg-1))
+			{
+				const UINT size = msg.flr.dnamesize;
+				char path[255 + 1];
+				char drive[4];
+				char * pAllMessage = new char[sz_rfbFileListDataMsg + 255];
+				rfbFileListDataMsg *pFLD = (rfbFileListDataMsg *) pAllMessage;
+				char *pFilename = &pAllMessage[sz_rfbFileListDataMsg];
+				pFLD->type = rfbFileListData;
+				pFLD->fnamesize = 0;
+				pFLD->amount = Swap16IfLE(0);
+				pFLD->num = Swap16IfLE(0);
+				pFLD->attr = Swap16IfLE(0);
+				pFLD->size = Swap32IfLE(0);
+				strcpy(pFilename, "");
+				if(size > 255) {
+					m_socket->SendExact(pAllMessage, sz_rfbFileListDataMsg);
+					break;
+				}
+				m_socket->ReadExact(path, size);
+				path[size] = '\0';
+				ConvertPath(path);
+				if (strcmp(path, "") == 0) {
+					TCHAR szDrivesList[256];
+					int szDrivesNum = 0;
+					char fixeddrive [28] [4];
+					if (GetLogicalDriveStrings(256, szDrivesList) == 0) {
+						m_socket->SendExact(pAllMessage, sz_rfbFileListDataMsg);
+						break;
+					}
+					for (int i=0, p=0; i<=255; i++, p++) {
+						drive[p] = szDrivesList[i];
+						if (szDrivesList[i] == '\0') {
+							p = -1;
+							if (GetDriveType((LPCTSTR) drive) == DRIVE_FIXED) {
+								drive[strlen(drive) - 1] = '\0';
+								strcpy(fixeddrive[szDrivesNum], drive);
+								szDrivesNum += 1;
+							}
+							if (szDrivesList[i+1] == '\0') break;
+						}
+					}
+					pFLD->amount = Swap16IfLE(szDrivesNum);
+					for(int ii=0; ii<szDrivesNum; ii++) {
+						pFLD->attr = Swap16IfLE(0x0001);
+						pFLD->size = Swap32IfLE(0);
+						pFLD->fnamesize = strlen(fixeddrive[ii]);
+						pFLD->num = Swap16IfLE(ii);
+						strcpy(pFilename, fixeddrive[ii]);
+						m_socket->SendExact(pAllMessage, sz_rfbFileListDataMsg + strlen(fixeddrive[ii]));
+					}
+				} else {
+					strcat(path, "\\*");
+					HANDLE FLRhandle;
+ 					int NumFiles = 0;
+ 					WIN32_FIND_DATA FindFileData;
+ 					FLRhandle = FindFirstFile(path, &FindFileData);
+					while(1) {
+						if((FLRhandle != INVALID_HANDLE_VALUE) && 
+						   (strcmp(FindFileData.cFileName, ".") != 0) &&
+						   (strcmp(FindFileData.cFileName, "..") != 0)) NumFiles += 1;
+ 						if (!FindNextFile(FLRhandle, &FindFileData)) break;
+ 					}
+ 					FindClose(FLRhandle);	
+					if(NumFiles == 0) {
+						m_socket->SendExact(pAllMessage, sz_rfbFileListDataMsg);
+						break;
+					}
+					pFLD->amount = Swap16IfLE(NumFiles);
+					FLRhandle = FindFirstFile(path, &FindFileData);
+					int i=0;
+					while(1) {
+						if((strcmp(FindFileData.cFileName, ".") != 0) &&
+							(strcmp(FindFileData.cFileName, "..") != 0)) {
+							if ((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {	
+								pFLD->attr = Swap16IfLE(0x0001);
+								pFLD->size = Swap32IfLE(0);
+							} else {
+								pFLD->attr = Swap16IfLE(0x0000);
+								pFLD->size = Swap32IfLE(FindFileData.nFileSizeLow);
+							}
+							pFLD->fnamesize = strlen(FindFileData.cFileName);
+							pFLD->num = Swap16IfLE(i);
+							strcpy(pFilename, FindFileData.cFileName);
+							m_socket->SendExact(pAllMessage, sz_rfbFileListDataMsg + strlen(FindFileData.cFileName));
+							i++;
+						}
+						if (!FindNextFile(FLRhandle, &FindFileData)) break;
+					}
+					FindClose(FLRhandle);
+				}
+				delete [] pAllMessage;
+			}
+			break;
+
+			case rfbFileDownloadRequest:
+			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileDownloadRequestMsg-1))
+			{
+				const UINT size = msg.fdr.fnamesize;
+				WIN32_FIND_DATA FindFileData;
+				HANDLE hFile;
+				BOOL bResult;
+				DWORD filesize = NULL;
+				DWORD dwNumberOfBytesRead = 0;
+				DWORD dwNumberOfAllBytesRead = 0;
+				DWORD sz_rfbFileSize;
+				DWORD sz_rfbBlockSize = 8192;
+				char path_file[255];
+				char *pBuff = new char [sz_rfbFileDownloadDataMsg + sz_rfbBlockSize];
+				rfbFileDownloadDataMsg *pfdd = (rfbFileDownloadDataMsg *)pBuff;
+				char *lpBuff = &pBuff[sz_rfbFileDownloadDataMsg];
+				m_socket->ReadExact(path_file, size);
+				path_file[size] = '\0';
+				ConvertPath(path_file);
+				hFile = FindFirstFile(path_file, &FindFileData);
+				sz_rfbFileSize = FindFileData.nFileSizeLow;
+				FindClose(hFile);
+				int amount = (int) ((sz_rfbFileSize + sz_rfbBlockSize - 1) / sz_rfbBlockSize);
+				if (sz_rfbFileSize <= sz_rfbBlockSize) sz_rfbBlockSize = sz_rfbFileSize;
+				pfdd->type = rfbFileDownloadData;
+				pfdd->amount = Swap16IfLE(amount);
+				pfdd->size = Swap16IfLE(sz_rfbBlockSize);
+				HANDLE hFiletoRead = CreateFile(path_file, GENERIC_READ, FILE_SHARE_READ, NULL,	OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);				// handle to file with attributes to copy  
+				if (hFiletoRead != INVALID_HANDLE_VALUE) {
+					for (int i=0; i<amount; i++) {
+						pfdd->num = Swap16IfLE(i);
+						bResult = ReadFile(hFiletoRead, lpBuff, sz_rfbBlockSize, &dwNumberOfBytesRead, NULL);
+						dwNumberOfAllBytesRead += dwNumberOfBytesRead;
+						m_socket->SendExact(pBuff, sz_rfbFileDownloadDataMsg + dwNumberOfBytesRead);
+						if ((sz_rfbFileSize - dwNumberOfAllBytesRead) < sz_rfbBlockSize) {
+							sz_rfbBlockSize = sz_rfbFileSize - dwNumberOfAllBytesRead;
+							pfdd->size = Swap16IfLE(sz_rfbBlockSize);
+						}
+					}
+				}
+				CloseHandle(hFiletoRead);
+				delete [] pBuff;
+			}
+			break;
+			case rfbFileUploadRequest:
+			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileUploadRequestMsg-1))
+			{
+				m_socket->ReadExact(m_FullFilename, msg.fupr.fnamesize);
+				m_FullFilename[msg.fupr.fnamesize] = '\0';
+				ConvertPath(m_FullFilename);
+				m_hFiletoWrite = CreateFile(m_FullFilename, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+			}				
+			break;
+			case rfbFileUploadData:
+			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileUploadDataMsg-1))
+			{
+				msg.fud.amount = Swap16IfLE(msg.fud.amount);
+				msg.fud.num = Swap16IfLE(msg.fud.num);
+				msg.fud.size = Swap16IfLE(msg.fud.size);
+				
+				DWORD dwNumberOfBytesWritten;
+				char *pBuff = new char [8192];
+				m_socket->ReadExact(pBuff, msg.fud.size);
+				WriteFile(m_hFiletoWrite, pBuff, msg.fud.size, &dwNumberOfBytesWritten, NULL);
+				if (msg.fud.num == msg.fud.amount) {
+					CloseHandle(m_hFiletoWrite);
+				}
+				delete [] pBuff;
+			}
+			break;
+
+			case rfbFileDownloadCancel:
+			break;
+
+			case rfbFileUploadFailed:
+				if(strcmp(m_FullFilename, "") != 0) {
+					CloseHandle(m_hFiletoWrite);
+					DeleteFile(m_FullFilename);
+				}
+			break;
+ 
 
 		default:
 			// Unknown message, so fail!
@@ -1625,4 +1805,26 @@ vncClient::CopyRect(RECT &dest, POINT &source)
 		m_copyrect_src = source;
 		m_copyrect_set = true;
 	}
+}
+
+char * 
+vncClientThread::ConvertPath(char *path)
+{
+	int len = strlen(path);
+	if(len >= 255) return path;
+	if(path[0] == '/') {
+		for(int i = 0; i < (len - 1); i++) {
+			if(path[i+1] == '/') path[i+1] = '\\';
+			path[i] = path[i+1];
+		}
+		path[len-1] = '\0';
+	} else {
+		for(int i = (len - 1); i >= 0; i--) {
+			if(path[i] == '\\') path[i] = '/';
+			path[i+1] = path[i];
+		}
+		path[len + 1] = '\0';
+		path[0] = '/';
+	}
+	return path;
 }

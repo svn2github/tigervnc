@@ -32,6 +32,9 @@
 #define ID_TOOLBAR                      159
 #define ID_DISCONNECT                   160
 #define IDD_DIALOG1                     163
+#define IDD_FTBROWSE_DLG                217
+#define IDD_FILETRANSFER_DLG            219
+#define IDD_FILETRANSFER_ABOUT          233
 #define IDC_HOSTNAME_EDIT               1000
 #define IDC_DPYNUM_EDIT                 1001
 #define IDC_BELLDEICONIFY               1001
@@ -71,6 +74,9 @@
 #define IDC_BUTTON_CLEAR_LIST           1051
 #define IDC_CHECK_LOG_FILE              1052
 #define IDC_EDIT_LOG_FILE               1053
+#define IDC_FTBROWSETREE                1054
+#define IDC_FTBROWSECANCEL              1055
+#define IDC_FTBROWSEOK                  1056
 #define IDC_EDIT_LOG_LEVEL              1057
 #define IDC_SHARED                      1059
 #define IDC_SPIN1                       1060
@@ -85,6 +91,24 @@
 #define IDC_EDIT_HELP                   1076
 #define IDC_STATIC_LEVEL                1078
 #define IDC_STATIC_QUALITY              1079
+#define IDC_UPLOAD                      1080
+#define IDC_DOWNLOAD                    1081
+#define IDC_CLIENTPATH                  1082
+#define IDC_CLIENTBROWSE_BUT            1083
+#define IDC_SERVERPATH                  1084
+#define IDC_SERVERBROWSE_BUT            1085
+#define IDC_FTCLIENTLIST                1086
+#define IDC_FTSERVERLIST                1087
+#define IDC_FTABOUT                     1088
+#define IDC_FTCANCEL                    1089
+#define IDC_EXIT                        1090
+#define IDC_FTPROGRESS                  1091
+#define IDC_FTBROWSEEDIT                1092
+#define IDC_FTSTATUS                    1093
+#define IDC_BUTTON2                     1094
+#define IDC_BUTTON3                     1095
+#define IDC_BUTTON4                     1096
+#define IDC_BUTTON5                     1097
 #define ID_SESSION_SET_CRECT            32777
 #define IDC_ALLOW_COMPRESSLEVEL         32778
 #define IDC_ALLOW_JPEG                  32779
@@ -94,14 +118,15 @@
 #define ID_NEWCONN                      40006
 #define ID_MENUITEM40007                40007
 #define IDS_HELP                        40007
+#define IDD_FILETRANSFER                40010
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        164
-#define _APS_NEXT_COMMAND_VALUE         40010
-#define _APS_NEXT_CONTROL_VALUE         1080
+#define _APS_NEXT_RESOURCE_VALUE        238
+#define _APS_NEXT_COMMAND_VALUE         40011
+#define _APS_NEXT_CONTROL_VALUE         1085
 #define _APS_NEXT_SYMED_VALUE           154
 #endif
 #endif

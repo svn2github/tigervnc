@@ -332,6 +332,11 @@ typedef struct _rfbServerCapabilitiesMsg {
 #define rfbBell 2
 #define rfbServerCutText 3
 
+#define rfbFileListData 130
+#define rfbFileDownloadData 131
+#define rfbFileUploadCancel 132
+#define rfbFileDownloadFailed 133
+
 
 /* client -> server */
 
@@ -342,6 +347,13 @@ typedef struct _rfbServerCapabilitiesMsg {
 #define rfbKeyEvent 4
 #define rfbPointerEvent 5
 #define rfbClientCutText 6
+
+#define rfbFileListRequest 130
+#define rfbFileDownloadRequest 131
+#define rfbFileUploadRequest 132
+#define rfbFileUploadData 133
+#define rfbFileDownloadCancel 134
+#define rfbFileUploadFailed 135
 
 /*****************************************************************************
  *
@@ -801,6 +813,63 @@ typedef struct _rfbServerCutTextMsg {
 
 #define sz_rfbServerCutTextMsg 8
 
+/*-----------------------------------------------------------------------------
+ * FileListData
+ */
+
+typedef struct {
+	CARD8 type;
+	CARD8 fnamesize;
+	CARD16 amount;
+	CARD16 num;
+	CARD16 attr;
+	CARD32 size;
+	/* Followed by Filename[fmamesize] */
+} rfbFileListDataMsg;
+
+#define sz_rfbFileListDataMsg 12
+
+/*-----------------------------------------------------------------------------
+ * FileDownloadData
+ */
+
+typedef struct {
+	CARD8 type;
+	CARD8 unused;
+	CARD16 amount;
+	CARD16 num;
+	CARD16 size;
+	/* Followed by File[size] */
+} rfbFileDownloadDataMsg;
+
+#define sz_rfbFileDownloadDataMsg 8
+
+
+/*-----------------------------------------------------------------------------
+ * FileUploadCancel
+ */
+
+typedef struct {
+	CARD8 type;
+	CARD8 unused;
+	CARD16 reasonlen;
+	/* Followed by reason[reasonsize] */
+} rfbFileUploadCancelMsg;
+
+#define sz_rfbFileUploadCancelMsg 4
+
+/*-----------------------------------------------------------------------------
+ * FileDownloadFailed
+ */
+
+typedef struct {
+	CARD8 type;
+	CARD8 unused;
+	CARD16 reasonlen;
+	/* Followed by reason[reasonsize] */
+} rfbFileDownloadFailedMsg;
+
+#define sz_rfbFileServerCancelMsg 4
 
 /*-----------------------------------------------------------------------------
  * Union of all server->client messages.
@@ -812,6 +881,10 @@ typedef union _rfbServerToClientMsg {
     rfbSetColourMapEntriesMsg scme;
     rfbBellMsg b;
     rfbServerCutTextMsg sct;
+    rfbFileListDataMsg fld;
+    rfbFileDownloadDataMsg fdd;
+    rfbFileUploadCancelMsg fuc;
+    rfbFileDownloadFailedMsg fdf;
 } rfbServerToClientMsg;
 
 
@@ -969,6 +1042,78 @@ typedef struct _rfbClientCutTextMsg {
 
 #define sz_rfbClientCutTextMsg 8
 
+/*-----------------------------------------------------------------------------
+ * FileListRequest
+ */
+
+typedef struct {
+	CARD8 type;
+	CARD8 dnamesize;
+	/* Followed by char Dirname[dnamesize] */
+} rfbFileListRequestMsg;
+
+#define sz_rfbFileListRequestMsg 2
+
+/*-----------------------------------------------------------------------------
+ * FileDownloadRequest
+ */
+
+typedef struct {
+	CARD8 type;
+	CARD8 fnamesize;
+	/* Followed by char Filename[size] */
+} rfbFileDownloadRequestMsg;
+
+#define sz_rfbFileDownloadRequestMsg 2
+
+/*-----------------------------------------------------------------------------
+ * FileUploadRequest
+ */
+
+typedef struct {
+	CARD8 type;
+	CARD8 fnamesize;
+	/* Followed by char Filename[size] */
+} rfbFileUploadRequestMsg;
+
+#define sz_rfbFileUploadRequestMsg 2
+
+
+/*-----------------------------------------------------------------------------
+ * FileUploadData
+ */
+
+typedef struct {
+	CARD8 type;
+	CARD8 unused;
+	CARD16 size;
+	CARD16 amount;
+	CARD16 num;
+	/* Followed by File[size]   */
+} rfbFileUploadDataMsg;
+
+#define sz_rfbFileUploadDataMsg 8
+
+/*-----------------------------------------------------------------------------
+ * FileDownloadCancel
+ */
+
+typedef struct {
+	CARD8 type;
+} rfbFileDownloadCancelMsg;
+
+#define sz_rfbFileDownloadCancelMsg 1
+
+/*-----------------------------------------------------------------------------
+ * FileUploadFailed
+ */
+
+typedef struct {
+	CARD8 type;
+} rfbFileUploadFailedMsg;
+
+#define sz_rfbFileUploadFailedMsg 1
+
 
 
 /*-----------------------------------------------------------------------------
@@ -984,4 +1129,10 @@ typedef union _rfbClientToServerMsg {
     rfbKeyEventMsg ke;
     rfbPointerEventMsg pe;
     rfbClientCutTextMsg cct;
+    rfbFileListRequestMsg flr;
+    rfbFileDownloadRequestMsg fdr;
+    rfbFileUploadRequestMsg fupr;
+    rfbFileUploadDataMsg fud;
+    rfbFileDownloadCancelMsg fdc;
+    rfbFileUploadFailedMsg fcc;
 } rfbClientToServerMsg;

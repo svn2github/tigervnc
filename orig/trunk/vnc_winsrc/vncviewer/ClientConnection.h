@@ -44,6 +44,8 @@ extern "C" {
 #include "libjpeg/jpeglib.h"
 }
 
+#include "FileTransfer.h"
+
 #define SETTINGS_KEY_NAME "Software\\ORL\\VNCviewer\\Settings"
 #define MAX_HOST_NAME_LEN 250
 
@@ -80,6 +82,11 @@ private:
 	static LRESULT CALLBACK Proc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
 	void DoBlit();
 	VNCviewerApp *m_pApp;
+
+	friend class FileTransfer;
+	bool m_FileTransferEnable;
+	FileTransfer *m_pFileTransfer;
+
 	int m_port;
     TCHAR m_host[MAX_HOST_NAME_LEN];
 	TCHAR m_display[256];

@@ -47,6 +47,7 @@
 #include "SessionDialog.h"
 #include "AuthDialog.h"
 #include "AboutBox.h"
+#include "FileTransfer.h"
 #include "commctrl.h"
 #include "Exception.h"
 extern "C" {
@@ -136,6 +137,9 @@ void ClientConnection::Init(VNCviewerApp *pApp)
 	m_hBitmap = NULL;
 	m_hPalette = NULL;
 	m_encPasswd[0] = '\0';
+
+	m_pFileTransfer = new FileTransfer(this, m_pApp);
+	m_FileTransferEnable = false;
 
 	// We take the initial conn options from the application defaults
 	m_opts = m_pApp->m_options;
@@ -333,6 +337,9 @@ void ClientConnection::CreateDisplay()
 		AppendMenu(hsysmenu, MF_STRING | (m_serverInitiated ? MF_GRAYED : 0), 
 			ID_CONN_SAVE_AS,	                            _T("&Save connection info as...	Ctrl-Alt-Shift-S"));
 	}
+    AppendMenu(hsysmenu, MF_SEPARATOR, NULL, NULL);
+	AppendMenu(hsysmenu, MF_STRING, IDD_FILETRANSFER, _T("File Transfer"));
+
     AppendMenu(hsysmenu, MF_SEPARATOR, NULL, NULL);
 	AppendMenu(hsysmenu, MF_STRING, IDD_APP_ABOUT,		    _T("&About VNCviewer..."));
 	if (m_opts.m_listening) {
@@ -1074,6 +1081,7 @@ ClientConnection::~ClientConnection()
 
 	if (m_desktopName != NULL) delete [] m_desktopName;
 	delete [] m_netbuf;
+	delete [] m_pFileTransfer;
 	DeleteDC(m_hBitmapDC);
 	if (m_hBitmap != NULL)
 		DeleteObject(m_hBitmap);
@@ -1219,6 +1227,12 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 				}
 				case IDD_APP_ABOUT:
 					ShowAboutBox();
+					return 0;
+				case IDD_FILETRANSFER:
+					if (!_this->m_FileTransferEnable) {
+						_this->m_FileTransferEnable = true;
+						_this->m_pFileTransfer->CreateFileTransferDialog();
+					}
 					return 0;
 				case ID_CONN_ABOUT:
 					_this->ShowConnInfo();
@@ -2301,6 +2315,17 @@ void* ClientConnection::run_undetached(void* arg) {
 			case rfbServerCutText:
 				ReadServerCutText();
 				break;
+			case rfbFileListData:
+				m_pFileTransfer->ShowServerItems();
+				break;
+			case rfbFileDownloadData:
+				m_pFileTransfer->FileTransferDownload();
+				break;
+			case rfbFileUploadCancel:
+				break;
+			case rfbFileDownloadFailed:
+				break;
+
 			default:
 				vnclog.Print(3, _T("Unknown message type x%02x\n"), msgType );
 				throw WarningException("Unhandled message type received!\n");

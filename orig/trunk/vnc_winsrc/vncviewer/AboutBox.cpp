@@ -34,10 +34,10 @@ static LRESULT CALLBACK AboutDlgProc(HWND hwnd, UINT iMsg,
 									WPARAM wParam, LPARAM lParam) 
 {
 	switch (iMsg) {
-	case WM_INITDIALOG: {
-			CentreWindow(hwnd);
-			return TRUE;
-		}
+	case WM_INITDIALOG: 
+		CentreWindow(hwnd);
+		return TRUE;
+		
 	case WM_CLOSE:
 		EndDialog(hwnd, TRUE);
 		return TRUE;
@@ -60,13 +60,14 @@ static LRESULT CALLBACK HelpDlgProc(HWND hwnd, UINT iMsg,
 									WPARAM wParam, LPARAM lParam) 
 {
 	switch (iMsg) {
-	case WM_INITDIALOG: {
-		TCHAR buf [2048];
-		LoadString(pApp->m_instance,IDS_HELP,buf,sizeof(buf));
-		SetDlgItemText(hwnd,IDC_EDIT_HELP,buf);
-		CentreWindow(hwnd);
-		return TRUE;
-	}
+	case WM_INITDIALOG: 
+		{
+			TCHAR buf [2048];
+			LoadString(pApp->m_instance, IDS_HELP, buf, sizeof(buf));
+			SetDlgItemText(hwnd, IDC_EDIT_HELP, buf);
+			CentreWindow(hwnd);
+			return TRUE;
+		}
 	case WM_CLOSE:
 		EndDialog(hwnd, TRUE);
 		return TRUE;

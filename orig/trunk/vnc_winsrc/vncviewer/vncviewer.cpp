@@ -101,8 +101,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
    
 	try {
 		while ( GetMessage(&msg, NULL, 0, 0) ) {
-			if(!TranslateAccelerator(hwndd, hAccel, &msg)&&
-					!help.TransMess( (DWORD)&msg)){
+			if(!TranslateAccelerator(hwndd, hAccel, &msg) &&
+					!help.TransMess( (DWORD)&msg)) {
 				TranslateMessage(&msg);
 				DispatchMessage(&msg);
 			}

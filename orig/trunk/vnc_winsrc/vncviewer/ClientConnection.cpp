@@ -253,7 +253,8 @@ void ClientConnection::Run()
 		GetConnectDetails();
 	} else {
 		if (m_pApp->m_options.m_listening) {
-			m_opts.LoadOpt(m_opts.m_display,"Software\\ORL\\VNCviewer\\MRU1");
+			m_opts.LoadOpt(m_opts.m_display, 
+							"Software\\ORL\\VNCviewer\\MRU1");
 		}
 	}
 	// Connect if we're not already connected
@@ -315,8 +316,9 @@ void ClientConnection::CreateDisplay()
 	wndclass1.cbClsExtra	= 0;
 	wndclass1.cbWndExtra	= 0;
 	wndclass1.hInstance		= m_pApp->m_instance;
-	wndclass1.hIcon			= (HICON)LoadIcon(m_pApp->m_instance, MAKEINTRESOURCE(IDI_MAINICON));
-	wndclass1.hCursor		= LoadCursor(NULL,IDC_ARROW);
+	wndclass1.hIcon			= (HICON)LoadIcon(m_pApp->m_instance,
+												MAKEINTRESOURCE(IDI_MAINICON));
+	wndclass1.hCursor		= LoadCursor(NULL, IDC_ARROW);
 	wndclass1.hbrBackground	= (HBRUSH) GetStockObject(NULL_BRUSH);
     wndclass1.lpszMenuName	= (LPCTSTR)NULL;
 	wndclass1.lpszClassName	= VWR_WND_CLASS_NAME;
@@ -330,17 +332,19 @@ void ClientConnection::CreateDisplay()
 	wndclass.cbClsExtra		= 0;
 	wndclass.cbWndExtra		= 0;
 	wndclass.hInstance		= m_pApp->m_instance;
-	wndclass.hIcon			= (HICON)LoadIcon(NULL, IDI_APPLICATION);;
+	wndclass.hIcon			= (HICON)LoadIcon(NULL, IDI_APPLICATION);
 	switch (m_pApp->m_options.m_localCursor) {
 	case NOCURSOR:
-		wndclass.hCursor	= LoadCursor(m_pApp->m_instance, MAKEINTRESOURCE(IDC_NOCURSOR));
+		wndclass.hCursor	= LoadCursor(m_pApp->m_instance, 
+										MAKEINTRESOURCE(IDC_NOCURSOR));
 		break;
 	case NORMALCURSOR:
 		wndclass.hCursor	=LoadCursor(NULL,IDC_ARROW);
 		break;
 	case DOTCURSOR:
 	default:
-		wndclass.hCursor	= LoadCursor(m_pApp->m_instance, MAKEINTRESOURCE(IDC_DOTCURSOR));
+		wndclass.hCursor	= LoadCursor(m_pApp->m_instance, 
+										MAKEINTRESOURCE(IDC_DOTCURSOR));
 	}
 	wndclass.hbrBackground	= (HBRUSH) GetStockObject(BLACK_BRUSH);
     wndclass.lpszMenuName	= (LPCTSTR)NULL;
@@ -363,7 +367,7 @@ void ClientConnection::CreateDisplay()
 			      NULL);
 	SetWindowLong(m_hwnd1, GWL_USERDATA, (LONG) this);
 	SetWindowLong(m_hwnd1, GWL_WNDPROC	, (LONG)ClientConnection::WndProc1);
-	hwndd=m_hwnd1;
+	hwndd = m_hwnd1;
 	
 	ShowWindow(m_hwnd1, SW_HIDE);
 	
@@ -504,9 +508,9 @@ void ClientConnection::CreateDisplay()
 	but[15].fsStyle		= TBSTYLE_BUTTON;
 
 	hToolBar=CreateToolbarEx(m_hwnd1,
-		WS_CHILD|WS_MAXIMIZE|WS_DLGFRAME|TBSTYLE_TOOLTIPS ,
-		ID_TOOLBAR,13,m_pApp->m_instance,
-		IDB_BITMAP1,but,16,0,0,0,0,sizeof(TBBUTTON));
+		WS_CHILD|WS_MAXIMIZE|WS_DLGFRAME|TBSTYLE_TOOLTIPS,
+		ID_TOOLBAR, 13, m_pApp->m_instance,
+		IDB_BITMAP1, but, 16, 0, 0, 0, 0, sizeof(TBBUTTON));
 
 	m_hwnd = CreateWindow("ChildClass",
 			      NULL,
@@ -935,9 +939,9 @@ void ClientConnection::SizeWindow(bool centered)
 	m_winwidth1 = min(m_fullwinwidth1,  workwidth);
 	m_winheight1 = min(m_fullwinheight1, workheight);
 
-	DWORD style=SWP_SHOWWINDOW|SWP_NOMOVE;
-	if (centered){
-		style=SWP_SHOWWINDOW;
+	DWORD style = SWP_SHOWWINDOW|SWP_NOMOVE;
+	if (centered) {
+		style = SWP_SHOWWINDOW;
 	}
 	if (GetMenuState(GetSystemMenu(m_hwnd1, FALSE),
 					 ID_TOOLBAR, MF_BYCOMMAND) == MF_CHECKED) {
@@ -945,9 +949,9 @@ void ClientConnection::SizeWindow(bool centered)
 		GetWindowRect(hToolBar, &rtb);
 		SetWindowPos(m_hwnd1, HWND_TOP,
 					 (workwidth - m_winwidth1) / 2,
-					 (workheight - min(m_winheight1+rtb.bottom-rtb.top-4, workheight)) / 2,
+					 (workheight - min(m_winheight1 + rtb.bottom - rtb.top - 4, workheight)) / 2,
 					 m_winwidth1,
-					 min(m_winheight1+rtb.bottom-rtb.top-4, workheight),
+					 min(m_winheight1 + rtb.bottom - rtb.top - 4, workheight),
 					 style);
 	} else {
 		SetWindowPos(m_hwnd1, HWND_TOP, 
@@ -1237,326 +1241,323 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 	ClientConnection *_this = (ClientConnection *) GetWindowLong(hwnd, GWL_USERDATA);
 		
 	switch (iMsg) {
-		case WM_NOTIFY:{
-
-			LPTOOLTIPTEXT TTStr;
-			TTStr=(LPTOOLTIPTEXT)lParam;
-
-			if(TTStr->hdr.code!=TTN_NEEDTEXT) return 0;
-
-			switch (TTStr->hdr.idFrom){
-				case ID_CONN_ABOUT:
-					TTStr->lpszText="Connection info";
-					return 0;
-				case IDC_OPTIONBUTTON:
-					TTStr->lpszText="Connection options";
-					return 0;
-				case ID_FULLSCREEN:
-					TTStr->lpszText="Full screen";
-					return 0;
-				case ID_CONN_CTLALTDEL:
-					TTStr->lpszText="Send Ctrl-Alt-Del";
-					return 0;
-				case ID_CONN_CTLDOWN:
-					TTStr->lpszText="Key Ctrl";
-					return 0;
-      			case ID_CONN_ALTDOWN:
-					TTStr->lpszText="Key Alt";
-					return 0;
-				case ID_NEWCONN:
-					TTStr->lpszText="New connection";
-					return 0;
-				case ID_REQUEST_REFRESH:
-					TTStr->lpszText="Request screen refresh";
-					return 0;
-				case ID_DISCONNECT:
-					TTStr->lpszText="Disconnect";
-					return 0;
-				case ID_CONN_SAVE_AS:
-					TTStr->lpszText="Save connection info as...";
-					return 0;
-				case IDD_FILETRANSFER:
-					TTStr->lpszText="Transfer files...";
-					return 0;
-			}
+	case WM_NOTIFY:
+	{		
+		LPTOOLTIPTEXT TTStr;
+		TTStr = (LPTOOLTIPTEXT)lParam;
+		
+		if(TTStr->hdr.code != TTN_NEEDTEXT) return 0;
+		
+		switch (TTStr->hdr.idFrom) {
+		case ID_CONN_ABOUT:
+			TTStr->lpszText = "Connection info";
+			return 0;
+		case IDC_OPTIONBUTTON:
+			TTStr->lpszText = "Connection options";
+			return 0;
+		case ID_FULLSCREEN:
+			TTStr->lpszText = "Full screen";
+			return 0;
+		case ID_CONN_CTLALTDEL:
+			TTStr->lpszText = "Send Ctrl-Alt-Del";
+			return 0;
+		case ID_CONN_CTLDOWN:
+			TTStr->lpszText = "Key Ctrl";
+			return 0;
+		case ID_CONN_ALTDOWN:
+			TTStr->lpszText = "Key Alt";
+			return 0;
+		case ID_NEWCONN:
+			TTStr->lpszText = "New connection";
+			return 0;
+		case ID_REQUEST_REFRESH:
+			TTStr->lpszText = "Request screen refresh";
+			return 0;
+		case ID_DISCONNECT:
+			TTStr->lpszText = "Disconnect";
+			return 0;
+		case ID_CONN_SAVE_AS:
+			TTStr->lpszText = "Save connection info as...";
+			return 0;
+		case IDD_FILETRANSFER:
+			TTStr->lpszText = "Transfer files...";
 			return 0;
 		}
-		case WM_SETFOCUS:
-			hwndd=hwnd;
-			return 0;
-		case WM_COMMAND:
-		case WM_SYSCOMMAND:
-			switch (LOWORD(wParam)) {
-				case SC_MINIMIZE:
-					_this->SetDormant(true);
-					break;
-				case SC_RESTORE:
-					_this->SetDormant(false);
-					break;
-				case ID_NEWCONN:
-					_this->m_pApp->NewConnection();
-					return 0;
-				case ID_DISCONNECT:
-					SendMessage(hwnd,WM_CLOSE,0,0);
-					return 0;
-				case ID_TOOLBAR:
-					RECT win;
-					GetClientRect(hwnd,&win);
-				
-					if (GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
-									ID_TOOLBAR,MF_BYCOMMAND) == MF_CHECKED) {
-						CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
-									ID_TOOLBAR, MF_BYCOMMAND|MF_UNCHECKED);
-						if ((win.bottom-win.top) > _this->m_fullwinheight) {
-							SetWindowPos(hwnd,HWND_TOP, 0, 0,
-										_this->m_winwidth1, _this->m_winheight1,
-										SWP_NOMOVE|SWP_SHOWWINDOW);
-						}
-					} else {
-						CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
-									ID_TOOLBAR, MF_BYCOMMAND|MF_CHECKED);
-					}
-					SendMessage(hwnd,WM_SIZE,0,0);
-					return 0;
-				case ID_CONN_SAVE_AS:
-					
-					_this->SaveConnection();
-					return 0;
-					
-				case IDC_OPTIONBUTTON:{ 
-					if (SetForegroundWindow(_this->m_opts.m_hParent) != 0) return 0;
-					int prev_scale_num = _this->m_opts.m_scale_num;
-					int prev_scale_den = _this->m_opts.m_scale_den;
-
-					if (_this->m_opts.DoDialog(true)) {
-							_this->m_pendingFormatChange = true;
-
-						if (prev_scale_num != _this->m_opts.m_scale_num ||
-							prev_scale_den != _this->m_opts.m_scale_den) {
-							// Resize the window if scaling factors were changed
-							_this->SizeWindow(false);
-							InvalidateRect(hwnd, NULL, TRUE);
-							// Make the window correspond to the requested state
-							_this->RealiseFullScreenMode(true);
-						}
-					}
-					if (_this->m_serverInitiated) {
-						_this->m_opts.SaveOpt(".listen", "Software\\ORL\\VNCviewer\\MRU1");
-					}
-					return 0;
-				}
-				case IDD_APP_ABOUT:
-					ShowAboutBox();
-					return 0;
-				case IDD_FILETRANSFER:
-					if (_this->m_clientMsgCaps.IsEnabled(rfbFileListRequest)) {
-						if (!_this->m_FileTransferEnable) {
-							_this->m_FileTransferEnable = true;
-							_this->m_pFileTransfer->CreateFileTransferDialog();
-						}
-					}
-					return 0;
-				case ID_CONN_ABOUT:
-					_this->ShowConnInfo();
-					return 0;
-				case ID_FULLSCREEN:
-					// Toggle full screen mode
-					_this->SetFullScreenMode(!_this->InFullScreenMode());
-					return 0;
-				case ID_REQUEST_REFRESH: 
-					// Request a full-screen update
-					_this->SendFullFramebufferUpdateRequest();
-					return 0;
-				case ID_CONN_CTLALTDEL:
-					_this->SendKeyEvent(XK_Control_L, true);
-					_this->SendKeyEvent(XK_Alt_L,     true);
-					_this->SendKeyEvent(XK_Delete,    true);
-					_this->SendKeyEvent(XK_Delete,    false);
-					_this->SendKeyEvent(XK_Alt_L,     false);
-					_this->SendKeyEvent(XK_Control_L, false);
-					return 0;
-				case ID_CONN_CTLDOWN:
-					if (GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
-							ID_CONN_CTLDOWN, MF_BYCOMMAND) == MF_CHECKED) {
-						_this->SendKeyEvent(XK_Control_L, false);
-						CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
-									ID_CONN_CTLDOWN, MF_BYCOMMAND|MF_UNCHECKED);
-						SendMessage(_this->hToolBar,TB_SETSTATE, (WPARAM)ID_CONN_CTLDOWN,
-								(LPARAM)MAKELONG(TBSTATE_ENABLED, 0));
-					} else {
-						CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
-									ID_CONN_CTLDOWN, MF_BYCOMMAND|MF_CHECKED);
-						SendMessage(_this->hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_CTLDOWN,
-								(LPARAM)MAKELONG(TBSTATE_CHECKED|TBSTATE_ENABLED, 0));
-						_this->SendKeyEvent(XK_Control_L, true);
-					}
-					return 0;
-				case ID_CONN_ALTDOWN:
-					if(GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
-								ID_CONN_ALTDOWN,MF_BYCOMMAND) == MF_CHECKED) {
-						_this->SendKeyEvent(XK_Alt_L, false);
-						CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
-								  ID_CONN_ALTDOWN, MF_BYCOMMAND|MF_UNCHECKED);
-						SendMessage(_this->hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_ALTDOWN,
-								(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
-					} else {
-						CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
-								  ID_CONN_ALTDOWN, MF_BYCOMMAND|MF_CHECKED);
-						SendMessage(_this->hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_ALTDOWN,
-								(LPARAM)MAKELONG(TBSTATE_CHECKED|TBSTATE_ENABLED, 0));
-						_this->SendKeyEvent(XK_Alt_L, true);
-					}
-					return 0;
-				case ID_CLOSEDAEMON:
-					if (MessageBox(NULL, _T("Are you sure you want to exit?"), 
-								_T("Closing VNCviewer"), 
-								MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2) == IDYES){
-						DestroyAcceleratorTable(hAccel);
-						PostQuitMessage(0);
-					}
-					return 0;
-				}
+		return 0;
+	}
+	case WM_SETFOCUS:
+		hwndd = hwnd;
+		return 0;
+	case WM_COMMAND:
+	case WM_SYSCOMMAND:
+		switch (LOWORD(wParam)) {
+		case SC_MINIMIZE:
+			_this->SetDormant(true);
 			break;
-		case WM_KILLFOCUS:
-			CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
-								  ID_CONN_ALTDOWN, MF_BYCOMMAND|MF_UNCHECKED);
-			SendMessage(_this->hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_ALTDOWN,
-								(LPARAM)MAKELONG(TBSTATE_ENABLED, 0));
-			CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
-									ID_CONN_CTLDOWN, MF_BYCOMMAND|MF_UNCHECKED);
-			SendMessage(_this->hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_CTLDOWN,
-								(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
+		case SC_RESTORE:
+			_this->SetDormant(false);
+			break;
+		case ID_NEWCONN:
+			_this->m_pApp->NewConnection();
+			return 0;
+		case ID_DISCONNECT:
+			SendMessage(hwnd, WM_CLOSE, 0, 0);
+			return 0;
+		case ID_TOOLBAR:
+			RECT win;
+			GetClientRect(hwnd, &win);
+			
+			if (GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
+				ID_TOOLBAR,MF_BYCOMMAND) == MF_CHECKED) {
+				CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
+					ID_TOOLBAR, MF_BYCOMMAND|MF_UNCHECKED);
+				if ((win.bottom-win.top) > _this->m_fullwinheight) {
+					SetWindowPos(hwnd,HWND_TOP, 0, 0,
+						_this->m_winwidth1, _this->m_winheight1,
+						SWP_NOMOVE|SWP_SHOWWINDOW);
+				}
+			} else {
+				CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
+					ID_TOOLBAR, MF_BYCOMMAND|MF_CHECKED);
+			}
+			SendMessage(hwnd, WM_SIZE, 0, 0);
+			return 0;
+		case ID_CONN_SAVE_AS:			
+			_this->SaveConnection();
+			return 0;			
+		case IDC_OPTIONBUTTON:
+			{
+				if (SetForegroundWindow(_this->m_opts.m_hParent) != 0) return 0;
+				int prev_scale_num = _this->m_opts.m_scale_num;
+				int prev_scale_den = _this->m_opts.m_scale_den;
+				
+				if (_this->m_opts.DoDialog(true)) {
+					_this->m_pendingFormatChange = true;
+					
+					if (prev_scale_num != _this->m_opts.m_scale_num ||
+						prev_scale_den != _this->m_opts.m_scale_den) {
+						// Resize the window if scaling factors were changed
+						_this->SizeWindow(false);
+						InvalidateRect(hwnd, NULL, TRUE);
+						// Make the window correspond to the requested state
+						_this->RealiseFullScreenMode(true);
+					}
+				}
+				if (_this->m_serverInitiated) {
+					_this->m_opts.SaveOpt(".listen", "Software\\ORL\\VNCviewer\\MRU1");
+				}
+				return 0;
+			}
+		case IDD_APP_ABOUT:
+			ShowAboutBox();
+			return 0;
+		case IDD_FILETRANSFER:
+			if (_this->m_clientMsgCaps.IsEnabled(rfbFileListRequest)) {
+				if (!_this->m_FileTransferEnable) {
+					_this->m_FileTransferEnable = true;
+					_this->m_pFileTransfer->CreateFileTransferDialog();
+				}
+			}
+			return 0;
+		case ID_CONN_ABOUT:
+			_this->ShowConnInfo();
+			return 0;
+		case ID_FULLSCREEN:
+			// Toggle full screen mode
+			_this->SetFullScreenMode(!_this->InFullScreenMode());
+			return 0;
+		case ID_REQUEST_REFRESH: 
+			// Request a full-screen update
+			_this->SendFullFramebufferUpdateRequest();
+			return 0;
+		case ID_CONN_CTLALTDEL:
+			_this->SendKeyEvent(XK_Control_L, true);
+			_this->SendKeyEvent(XK_Alt_L,     true);
+			_this->SendKeyEvent(XK_Delete,    true);
+			_this->SendKeyEvent(XK_Delete,    false);
 			_this->SendKeyEvent(XK_Alt_L,     false);
 			_this->SendKeyEvent(XK_Control_L, false);
-			_this->SendKeyEvent(XK_Shift_L,   false);
-			_this->SendKeyEvent(XK_Alt_R,     false);
-			_this->SendKeyEvent(XK_Control_R, false);
-			_this->SendKeyEvent(XK_Shift_R,   false);
 			return 0;
-		case WM_GETMINMAXINFO:
-			RECT workrect;
-			RECT rtb;
-			MINMAXINFO win;
-
-			SystemParametersInfo(SPI_GETWORKAREA, 0, &workrect, 0);
-			GetWindowRect(_this->hToolBar,&rtb);
-			win =*(LPMINMAXINFO) lParam;
-			if (_this->InFullScreenMode()) {
-				win.ptMaxSize.x = _this->m_fullwinwidth+8;
-				win.ptMaxSize.y = _this->m_fullwinheight+8;
-				win.ptMaxTrackSize.x = _this->m_fullwinwidth+8;
-				win.ptMaxTrackSize.y = _this->m_fullwinheight+8;
-			} else {
-				if (GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
-							ID_TOOLBAR,MF_BYCOMMAND) == MF_CHECKED) {
-					win.ptMaxSize.x = _this->m_winwidth1;
-					win.ptMaxSize.y = min((_this->m_winheight1+rtb.bottom-rtb.top-4),
-						(workrect.bottom -  workrect.top));
-					win.ptMaxTrackSize.x = _this->m_winwidth1;
-					win.ptMaxTrackSize.y = min((_this->m_winheight1+rtb.bottom-rtb.top-4),
-						(workrect.bottom -  workrect.top));
-				} else {
-					win.ptMaxSize.x = _this->m_winwidth1;
-					win.ptMaxSize.y = _this->m_winheight1;
-					win.ptMaxTrackSize.x = _this->m_winwidth1;
-					win.ptMaxTrackSize.y = _this->m_winheight1;
-				}
-			}
-			*(LPMINMAXINFO) lParam = win;
-			return 0;
-		case WM_SIZE:
-			RECT rwn;
-			GetClientRect(hwnd, &rwn);
+		case ID_CONN_CTLDOWN:
 			if (GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
-						ID_TOOLBAR, MF_BYCOMMAND) == MF_CHECKED) {
-				GetWindowRect(_this->hToolBar, &rtb);
-				SetWindowPos(_this->m_hwnd, HWND_TOP, 0, rtb.bottom - rtb.top - 4,
-							rwn.right, rwn.bottom - (rtb.bottom - rtb.top) + 4, SWP_SHOWWINDOW);
-				SetWindowPos(_this->hToolBar,HWND_TOP,0,0,
-							rwn.right - rwn.left, rtb.bottom - rtb.top, SWP_SHOWWINDOW);
+				ID_CONN_CTLDOWN, MF_BYCOMMAND) == MF_CHECKED) {
+				_this->SendKeyEvent(XK_Control_L, false);
+				CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
+					ID_CONN_CTLDOWN, MF_BYCOMMAND|MF_UNCHECKED);
+				SendMessage(_this->hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_CTLDOWN,
+					(LPARAM)MAKELONG(TBSTATE_ENABLED, 0));
 			} else {
-				SetWindowPos(_this->m_hwnd, HWND_TOP, 0, 0,
-				rwn.right, rwn.bottom, SWP_SHOWWINDOW);
+				CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
+					ID_CONN_CTLDOWN, MF_BYCOMMAND|MF_CHECKED);
+				SendMessage(_this->hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_CTLDOWN,
+					(LPARAM)MAKELONG(TBSTATE_CHECKED|TBSTATE_ENABLED, 0));
+				_this->SendKeyEvent(XK_Control_L, true);
 			}
 			return 0;
-		case WM_CLOSE:{
-			if(!_this->m_serverInitiated){
-				TCHAR  valname[3];
-				int dwbuflen=255;
-				int i,j;
-				int k=pApp->m_options.m_listServer;
-				TCHAR list[80];
-				HKEY m_hRegKey;
-				TCHAR  buf[256];
-				DWORD dispos;
-				TCHAR  buf1[256];
-
-				itoa(k, list, 10);
-				RegCreateKeyEx(HKEY_CURRENT_USER,
-						"Software\\ORL\\VNCviewer\\MRU1", 0, NULL, 
-						REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, 
-						NULL, &m_hRegKey, &dispos);
-				_tcscpy(buf1, _this->m_opts.m_display);
-				_this->m_opts.SaveOpt(_this->m_opts.m_display,
-									"Software\\ORL\\VNCviewer\\MRU1");
-
-				for ( i = 0; i < k; i++) {
-					j = i;
-					itoa(i, valname, 10);
-					dwbuflen=255;
-					if ((RegQueryValueEx( m_hRegKey, (LPTSTR)valname , 
-									NULL, NULL, 
-									(LPBYTE) buf, (LPDWORD) &dwbuflen) != ERROR_SUCCESS) ||
-									(_tcscmp(buf, _this->m_opts.m_display) == NULL)) {
-						RegSetValueEx( m_hRegKey, valname, 
-									NULL, REG_SZ, 
-									(CONST BYTE *)buf1, (_tcslen(buf1)+1));
-						break;
-					}
-					RegSetValueEx(m_hRegKey, valname , 
-								NULL, REG_SZ , 
-								(CONST BYTE *)buf1, (_tcslen(buf1)+1)); 
-					_tcscpy(buf1,buf);
-				}
-				if (j == k) {
-					dwbuflen = 255;
-					_tcscpy(valname, list);
-					_tcscpy(buf, "");
-					RegQueryValueEx( m_hRegKey, (LPTSTR)valname, 
-							NULL, NULL, 
-							(LPBYTE)buf, (LPDWORD)&dwbuflen);
-					_this->m_opts.delkey(buf, "Software\\ORL\\VNCviewer\\MRU1");
-				}
-				RegCloseKey(m_hRegKey);
+		case ID_CONN_ALTDOWN:
+			if(GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
+				ID_CONN_ALTDOWN,MF_BYCOMMAND) == MF_CHECKED) {
+				_this->SendKeyEvent(XK_Alt_L, false);
+				CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
+					ID_CONN_ALTDOWN, MF_BYCOMMAND|MF_UNCHECKED);
+				SendMessage(_this->hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_ALTDOWN,
+					(LPARAM)MAKELONG(TBSTATE_ENABLED, 0));
+			} else {
+				CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
+					ID_CONN_ALTDOWN, MF_BYCOMMAND|MF_CHECKED);
+				SendMessage(_this->hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_ALTDOWN,
+					(LPARAM)MAKELONG(TBSTATE_CHECKED|TBSTATE_ENABLED, 0));
+				_this->SendKeyEvent(XK_Alt_L, true);
 			}
-			// Close the worker thread as well
-			_this->KillThread();
-			DestroyWindow(hwnd);
+			return 0;
+		case ID_CLOSEDAEMON:
+			if (MessageBox(NULL, _T("Are you sure you want to exit?"), 
+				_T("Closing VNCviewer"), 
+				MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2) == IDYES){
+				DestroyAcceleratorTable(hAccel);
+				PostQuitMessage(0);
+			}
 			return 0;
 		}
-		case WM_DESTROY: {			
+		break;		
+	case WM_KILLFOCUS:
+		CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
+					ID_CONN_ALTDOWN, MF_BYCOMMAND|MF_UNCHECKED);
+		SendMessage(_this->hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_ALTDOWN,
+					(LPARAM)MAKELONG(TBSTATE_ENABLED, 0));
+		CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
+					ID_CONN_CTLDOWN, MF_BYCOMMAND|MF_UNCHECKED);
+		SendMessage(_this->hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_CTLDOWN,
+			(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
+		_this->SendKeyEvent(XK_Alt_L,     false);
+		_this->SendKeyEvent(XK_Control_L, false);
+		_this->SendKeyEvent(XK_Shift_L,   false);
+		_this->SendKeyEvent(XK_Alt_R,     false);
+		_this->SendKeyEvent(XK_Control_R, false);
+		_this->SendKeyEvent(XK_Shift_R,   false);
+		return 0;
+	case WM_GETMINMAXINFO:
+		RECT workrect;
+		RECT rtb;
+		MINMAXINFO win;
+			
+		SystemParametersInfo(SPI_GETWORKAREA, 0, &workrect, 0);
+		GetWindowRect(_this->hToolBar, &rtb);
+		win = *(LPMINMAXINFO) lParam;
+		if (_this->InFullScreenMode()) {
+			win.ptMaxSize.x = _this->m_fullwinwidth + 8;
+			win.ptMaxSize.y = _this->m_fullwinheight + 8;
+			win.ptMaxTrackSize.x = _this->m_fullwinwidth + 8;
+			win.ptMaxTrackSize.y = _this->m_fullwinheight + 8;
+		} else {
+			if (GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
+				ID_TOOLBAR,MF_BYCOMMAND) == MF_CHECKED) {
+				win.ptMaxSize.x = _this->m_winwidth1;
+				win.ptMaxSize.y = min((_this->m_winheight1 + rtb.bottom - rtb.top - 4),
+						(workrect.bottom -  workrect.top));
+				win.ptMaxTrackSize.x = _this->m_winwidth1;
+				win.ptMaxTrackSize.y = min((_this->m_winheight1 + rtb.bottom - rtb.top - 4),
+						(workrect.bottom -  workrect.top));
+			} else {
+				win.ptMaxSize.x = _this->m_winwidth1;
+				win.ptMaxSize.y = _this->m_winheight1;
+				win.ptMaxTrackSize.x = _this->m_winwidth1;
+				win.ptMaxTrackSize.y = _this->m_winheight1;
+			}
+		}
+		*(LPMINMAXINFO) lParam = win;
+		return 0;
+	case WM_SIZE:
+		RECT rwn;
+		GetClientRect(hwnd, &rwn);
+		if (GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
+				ID_TOOLBAR, MF_BYCOMMAND) == MF_CHECKED) {
+			GetWindowRect(_this->hToolBar, &rtb);
+			SetWindowPos(_this->m_hwnd, HWND_TOP, 0, rtb.bottom - rtb.top - 4,
+					rwn.right, rwn.bottom - (rtb.bottom - rtb.top) + 4, SWP_SHOWWINDOW);
+			SetWindowPos(_this->hToolBar, HWND_TOP, 0, 0,
+					rwn.right - rwn.left, rtb.bottom - rtb.top, SWP_SHOWWINDOW);
+		} else {
+			SetWindowPos(_this->m_hwnd, HWND_TOP, 0, 0,
+					rwn.right, rwn.bottom, SWP_SHOWWINDOW);
+		}
+		return 0;
+	case WM_CLOSE:
+		if (!_this->m_serverInitiated) {
+			TCHAR  valname[3];
+			int dwbuflen = 255;
+			int i, j;
+			int k = pApp->m_options.m_listServer;
+			TCHAR list[80];
+			HKEY m_hRegKey;
+			TCHAR  buf[256];
+			DWORD dispos;
+			TCHAR  buf1[256];
+				
+			itoa(k, list, 10);
+			RegCreateKeyEx(HKEY_CURRENT_USER,
+					"Software\\ORL\\VNCviewer\\MRU1", 0, NULL, 
+					REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, 
+					NULL, &m_hRegKey, &dispos);
+			_tcscpy(buf1, _this->m_opts.m_display);
+			_this->m_opts.SaveOpt(_this->m_opts.m_display,
+					"Software\\ORL\\VNCviewer\\MRU1");
+				
+			for ( i = 0; i < k; i++) {
+				j = i;
+				itoa(i, valname, 10);
+				dwbuflen = 255;
+				if ((RegQueryValueEx( m_hRegKey, (LPTSTR)valname, 
+						NULL, NULL, 
+						(LPBYTE) buf, (LPDWORD) &dwbuflen) != ERROR_SUCCESS) ||
+						(_tcscmp(buf, _this->m_opts.m_display) == NULL)) {
+					RegSetValueEx( m_hRegKey, valname, 
+							NULL, REG_SZ, 
+							(CONST BYTE *)buf1, (_tcslen(buf1)+1));
+					break;
+				}
+				RegSetValueEx(m_hRegKey, valname, 
+						NULL, REG_SZ, 
+						(CONST BYTE *)buf1, (_tcslen(buf1)+1)); 
+				_tcscpy(buf1, buf);
+			}
+			if (j == k) {
+				dwbuflen = 255;
+				_tcscpy(valname, list);
+				_tcscpy(buf, "");
+				RegQueryValueEx( m_hRegKey, (LPTSTR)valname, 
+						NULL, NULL, 
+						(LPBYTE)buf, (LPDWORD)&dwbuflen);
+				_this->m_opts.delkey(buf, "Software\\ORL\\VNCviewer\\MRU1");
+			}
+			RegCloseKey(m_hRegKey);
+		}
+		// Close the worker thread as well
+		_this->KillThread();
+		DestroyWindow(hwnd);
+		return 0;					  
+	case WM_DESTROY: 			
 #ifndef UNDER_CE
-			// Remove us from the clipboard viewer chain
-			BOOL res = ChangeClipboardChain( hwnd, _this->m_hwndNextViewer);
+		// Remove us from the clipboard viewer chain
+		BOOL res = ChangeClipboardChain( hwnd, _this->m_hwndNextViewer);
 #endif
-			if (_this->m_waitingOnEmulateTimer)
-			  {
-			    KillTimer(hwnd, _this->m_emulate3ButtonsTimer);
-			    _this->m_waitingOnEmulateTimer = false;
-			  }
-  			
-			_this->m_hwnd1 = 0;
-			// We are currently in the main thread.
-			// The worker thread should be about to finish if
-			// it hasn't already. Wait for it.
-			try {
-				void *p;
-				_this->join(&p);  // After joining, _this is no longer valid
-			} catch (omni_thread_invalid) {
-				// The thread probably hasn't been started yet,
-			}	
-			return 0;
+		if (_this->m_waitingOnEmulateTimer) {
+			
+			KillTimer(hwnd, _this->m_emulate3ButtonsTimer);
+			_this->m_waitingOnEmulateTimer = false;
 		}
+			
+		_this->m_hwnd1 = 0;
+		// We are currently in the main thread.
+		// The worker thread should be about to finish if
+		// it hasn't already. Wait for it.
+		try {
+			void *p;
+			_this->join(&p);  // After joining, _this is no longer valid
+		} catch (omni_thread_invalid) {
+		// The thread probably hasn't been started yet,
+		}	
+		return 0;						 
 	}
 	return DefWindowProc(hwnd, iMsg, wParam, lParam);
 }	
@@ -1577,27 +1578,21 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 	switch (iMsg) {
 	case WM_REGIONUPDATED:
 		_this->DoBlit();
-		_this->SendAppropriateFramebufferUpdateRequest();
-		
+		_this->SendAppropriateFramebufferUpdateRequest();		
 		return 0;
-
 	case WM_PAINT:
-		_this->DoBlit();
-		
+		_this->DoBlit();		
 		return 0;
-
 	case WM_TIMER:
-	  if (wParam == _this->m_emulate3ButtonsTimer)
-	    {
-	      _this->SubProcessPointerEvent( 
-					    _this->m_emulateButtonPressedX,
-					    _this->m_emulateButtonPressedY,
-					    _this->m_emulateKeyFlags);
-	      KillTimer(hwnd, _this->m_emulate3ButtonsTimer);
-	      _this->m_waitingOnEmulateTimer = false;
-	    }
-	  return 0;
- 
+		if (wParam == _this->m_emulate3ButtonsTimer) {
+			_this->SubProcessPointerEvent( 
+										_this->m_emulateButtonPressedX,
+										 _this->m_emulateButtonPressedY,
+										_this->m_emulateKeyFlags);
+			KillTimer(hwnd, _this->m_emulate3ButtonsTimer);
+			 _this->m_waitingOnEmulateTimer = false;
+		}
+		return 0; 
 	case WM_LBUTTONDOWN:
 	case WM_LBUTTONUP:
 	case WM_MBUTTONDOWN:
@@ -1659,10 +1654,10 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 				CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
 						ID_CONN_CTLDOWN, MF_BYCOMMAND|MF_CHECKED);
 				SendMessage(_this->hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_CTLDOWN,
-						(LPARAM)MAKELONG(TBSTATE_CHECKED|TBSTATE_ENABLED,0));
+						(LPARAM)MAKELONG(TBSTATE_CHECKED|TBSTATE_ENABLED, 0));
 				}
 			}
-			if ((int) wParam == 0x12){
+			if ((int) wParam == 0x12) {
 				if (!down) {
 				CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
 					ID_CONN_ALTDOWN, MF_BYCOMMAND|MF_UNCHECKED);
@@ -1899,7 +1894,7 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 	case WM_SETCURSOR:
 		{
 			// if we have the focus, let the cursor change as normal
-			if (GetFocus() ==hwnd) 
+			if (GetFocus() == hwnd) 
 				break;
 
 			// if not, set to default system cursor
@@ -1927,8 +1922,6 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 		}
 	
 #endif
-	case WM_DESTROY:
-		return 0;
 	}
 
 	return DefWindowProc(hwnd, iMsg, wParam, lParam);
@@ -1949,104 +1942,86 @@ ClientConnection::ProcessPointerEvent(int x, int y, DWORD keyflags, UINT msg)
 		// further presses, then we send the button press. 
 		// If a press of the other button, or any release, comes in
 		// before timer has expired, we cancel timer & take different action.
-	  if (m_waitingOnEmulateTimer)
-	    {
-	      if (msg == WM_LBUTTONUP || msg == WM_RBUTTONUP ||
-		  abs(x - m_emulateButtonPressedX) > m_opts.m_Emul3Fuzz ||
-		  abs(y - m_emulateButtonPressedY) > m_opts.m_Emul3Fuzz)
-		{
-		  // if button released or we moved too far then cancel.
-		  // First let the remote know where the button was down
-		  SubProcessPointerEvent(
-					 m_emulateButtonPressedX, 
-					 m_emulateButtonPressedY, 
-					 m_emulateKeyFlags);
-		  // Then tell it where we are now
-		  SubProcessPointerEvent(x, y, keyflags);
+		if (m_waitingOnEmulateTimer) {
+			if (msg == WM_LBUTTONUP || msg == WM_RBUTTONUP ||
+				abs(x - m_emulateButtonPressedX) > m_opts.m_Emul3Fuzz ||
+				abs(y - m_emulateButtonPressedY) > m_opts.m_Emul3Fuzz) {
+				// if button released or we moved too far then cancel.
+				// First let the remote know where the button was down
+				SubProcessPointerEvent(
+					m_emulateButtonPressedX, 
+					m_emulateButtonPressedY, 
+					m_emulateKeyFlags);
+				// Then tell it where we are now
+				SubProcessPointerEvent(x, y, keyflags);
+			} else if (
+				(msg == WM_LBUTTONDOWN && (m_emulateKeyFlags & MK_RBUTTON))
+				|| (msg == WM_RBUTTONDOWN && (m_emulateKeyFlags & MK_LBUTTON)))	{
+				// Triggered an emulate; remove left and right buttons, put
+				// in middle one.
+				DWORD emulatekeys = keyflags & ~(MK_LBUTTON|MK_RBUTTON);
+				emulatekeys |= MK_MBUTTON;
+				SubProcessPointerEvent(x, y, emulatekeys);
+				
+				m_emulatingMiddleButton = true;
+			} else {
+				// handle movement normally & don't kill timer.
+				// just remove the pressed button from the mask.
+				DWORD keymask = m_emulateKeyFlags & (MK_LBUTTON|MK_RBUTTON);
+				DWORD emulatekeys = keyflags & ~keymask;
+				SubProcessPointerEvent(x, y, emulatekeys);
+				return;
+			}
+			
+			// if we reached here, we don't need the timer anymore.
+			KillTimer(m_hwnd, m_emulate3ButtonsTimer);
+			m_waitingOnEmulateTimer = false;
+		} else if (m_emulatingMiddleButton) {
+			if ((keyflags & MK_LBUTTON) == 0 && (keyflags & MK_RBUTTON) == 0)
+			{
+				// We finish emulation only when both buttons come back up.
+				m_emulatingMiddleButton = false;
+				SubProcessPointerEvent(x, y, keyflags);
+			} else {
+				// keep emulating.
+				DWORD emulatekeys = keyflags & ~(MK_LBUTTON|MK_RBUTTON);
+				emulatekeys |= MK_MBUTTON;
+				SubProcessPointerEvent(x, y, emulatekeys);
+			}
+		} else {
+			// Start considering emulation if we've pressed a button
+			// and the other isn't pressed.
+			if ( (msg == WM_LBUTTONDOWN && !(keyflags & MK_RBUTTON))
+				|| (msg == WM_RBUTTONDOWN && !(keyflags & MK_LBUTTON)))	{
+				// Start timer for emulation.
+				m_emulate3ButtonsTimer = 
+					SetTimer(
+					m_hwnd, 
+					IDT_EMULATE3BUTTONSTIMER, 
+					m_opts.m_Emul3Timeout, 
+					NULL);
+				
+				if (!m_emulate3ButtonsTimer) {
+					vnclog.Print(0, _T("Failed to create timer for emulating 3 buttons"));
+					PostMessage(m_hwnd1, WM_CLOSE, 0, 0);
+					return;
+				}
+				
+				m_waitingOnEmulateTimer = true;
+				
+				// Note that we don't send the event here; we're batching it for
+				// later.
+				m_emulateKeyFlags = keyflags;
+				m_emulateButtonPressedX = x;
+				m_emulateButtonPressedY = y;
+			} else {
+				// just send event noramlly
+				SubProcessPointerEvent(x, y, keyflags);
+			}
 		}
-	      else if (
-		       (msg == WM_LBUTTONDOWN && (m_emulateKeyFlags & MK_RBUTTON))
-		       || (msg == WM_RBUTTONDOWN && (m_emulateKeyFlags & MK_LBUTTON)))
-		{
-		  // Triggered an emulate; remove left and right buttons, put
-		  // in middle one.
-		  DWORD emulatekeys = keyflags & ~(MK_LBUTTON|MK_RBUTTON);
-		  emulatekeys |= MK_MBUTTON;
-		  SubProcessPointerEvent(x, y, emulatekeys);
-		  
-		  m_emulatingMiddleButton = true;
-		}
-	      else
-		{
-		  // handle movement normally & don't kill timer.
-		  // just remove the pressed button from the mask.
-		  DWORD keymask = m_emulateKeyFlags & (MK_LBUTTON|MK_RBUTTON);
-		  DWORD emulatekeys = keyflags & ~keymask;
-		  SubProcessPointerEvent(x, y, emulatekeys);
-		  return;
-		}
-	      
-	      // if we reached here, we don't need the timer anymore.
-	      KillTimer(m_hwnd, m_emulate3ButtonsTimer);
-	      m_waitingOnEmulateTimer = false;
-	    }
-	  else if (m_emulatingMiddleButton)
-	    {
-	      if ((keyflags & MK_LBUTTON) == 0 && (keyflags & MK_RBUTTON) == 0)
-		{
-		  // We finish emulation only when both buttons come back up.
-		  m_emulatingMiddleButton = false;
-		  SubProcessPointerEvent(x, y, keyflags);
-		}
-	      else
-		{
-		  // keep emulating.
-		  DWORD emulatekeys = keyflags & ~(MK_LBUTTON|MK_RBUTTON);
-		  emulatekeys |= MK_MBUTTON;
-		  SubProcessPointerEvent(x, y, emulatekeys);
-		}
-	    }
-	  else
-	    {
-	      // Start considering emulation if we've pressed a button
-	      // and the other isn't pressed.
-	      if ( (msg == WM_LBUTTONDOWN && !(keyflags & MK_RBUTTON))
-		   || (msg == WM_RBUTTONDOWN && !(keyflags & MK_LBUTTON)))
-		{
-		  // Start timer for emulation.
-		  m_emulate3ButtonsTimer = 
-		    SetTimer(
-			     m_hwnd, 
-			     IDT_EMULATE3BUTTONSTIMER, 
-			     m_opts.m_Emul3Timeout, 
-			     NULL);
-		  
-		  if (!m_emulate3ButtonsTimer)
-		    {
-		      vnclog.Print(0, _T("Failed to create timer for emulating 3 buttons"));
-		      PostMessage(m_hwnd1, WM_CLOSE, 0, 0);
-		      return;
-		    }
-		  
-		  m_waitingOnEmulateTimer = true;
-		  
-		  // Note that we don't send the event here; we're batching it for
-		  // later.
-		  m_emulateKeyFlags = keyflags;
-		  m_emulateButtonPressedX = x;
-		  m_emulateButtonPressedY = y;
-		}
-	      else
-		{
-		  // just send event noramlly
-		  SubProcessPointerEvent(x, y, keyflags);
-		}
-	    }
- 	}
-	else
-	  {
-	    SubProcessPointerEvent(x, y, keyflags);
-	  }
+	} else {
+		SubProcessPointerEvent(x, y, keyflags);
+	}
 }
 
 // SubProcessPointerEvent takes windows positions and flags and converts 
@@ -2156,7 +2131,7 @@ inline void ClientConnection::ProcessKeyEvent(int virtkey, DWORD keyData)
 
 #ifdef _DEBUG
 #ifdef UNDER_CE
-	char *keyname="";
+	char *keyname = "";
 #else
     char keyname[32];
     if (GetKeyNameText(  keyData,keyname, 31)) {
@@ -2382,7 +2357,7 @@ void ClientConnection::ShowConnInfo()
 
 void* ClientConnection::run_undetached(void* arg) {
 
-	vnclog.Print(9,_T("Update-processing thread started\n"));
+	vnclog.Print(9, _T("Update-processing thread started\n"));
 
 	m_threadStarted = true;
 

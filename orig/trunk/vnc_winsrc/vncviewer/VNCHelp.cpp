@@ -30,15 +30,15 @@ void VNCHelp::Popup(LPARAM lParam)
 
 	if (hlp->iCtrlId != 0) {
 		
-		popup.cbStruct=sizeof(popup);
-		popup.hinst=pApp->m_instance;
-		popup.idString=(UINT)hlp->iCtrlId;
+		popup.cbStruct = sizeof(popup);
+		popup.hinst = pApp->m_instance;
+		popup.idString = (UINT)hlp->iCtrlId;
 		SetRect(&popup.rcMargins, -1, -1, -1, -1);
-		popup.pszFont="MS Sans Serif,8,,";
-		popup.clrForeground =-1;
-		popup.clrBackground=-1;
-		popup.pt.x=-1;
-		popup.pt.y=-1;
+		popup.pszFont = "MS Sans Serif, 8, , ";
+		popup.clrForeground = -1;
+		popup.clrBackground = -1;
+		popup.pt.x = -1;
+		popup.pt.y = -1;
 
 		HtmlHelp((HWND)hlp->hItemHandle,
 					NULL,

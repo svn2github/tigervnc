@@ -15,8 +15,6 @@ public:
 	void VNCHelp::Popup( LPARAM lParam);
 	BOOL VNCHelp::TransMess( DWORD mess);
 	virtual ~VNCHelp();
-
-
 };
 
 #endif 

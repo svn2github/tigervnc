@@ -460,9 +460,9 @@ void ClientConnection::CreateDisplay()
 				   _T("Show &toolbar\tCtrl-Alt-Shift-T"));
 		AppendMenu(hsysmenu, MF_SEPARATOR, NULL, NULL);
 		AppendMenu(hsysmenu, MF_STRING, ID_CONN_CTLALTDEL,
-				   _T("Send Ctl-Alt-&Del"));
+				   _T("Send Ctrl-Alt-&Del"));
 		AppendMenu(hsysmenu, MF_STRING, ID_CONN_CTLESC,
-				   _T("Send Ctl-Esc"));
+				   _T("Send Ctrl-Esc"));
 		AppendMenu(hsysmenu, MF_STRING, ID_CONN_CTLDOWN,
 				   _T("Ctrl key down"));
 		AppendMenu(hsysmenu, MF_STRING, ID_CONN_ALTDOWN,
@@ -483,7 +483,7 @@ void ClientConnection::CreateDisplay()
 	if (m_opts.m_listening) {
 		AppendMenu(hsysmenu, MF_SEPARATOR, NULL, NULL);
 		AppendMenu(hsysmenu, MF_STRING, ID_CLOSEDAEMON,
-				   _T("Close &listening &daemon"));
+				   _T("Close &listening daemon"));
 	}
 	DrawMenuBar(m_hwnd1);
 

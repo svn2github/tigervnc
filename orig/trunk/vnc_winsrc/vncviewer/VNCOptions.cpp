@@ -1396,6 +1396,9 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 					int h = GetDlgItemInt( hwnd, ctrl, NULL, TRUE);
 					if (lpnmud.iDelta > 0) {
 						h = h - 1;
+						if (h == 0) {
+							h = 1;
+						}
 					} else {
 						h = h + 1;	
 					}

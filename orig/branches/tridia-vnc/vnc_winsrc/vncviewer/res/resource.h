@@ -50,6 +50,7 @@
 #define IDC_SCALING                     1030
 #define IDC_SCALE_NUM                   1031
 #define IDC_SCALE_DEN                   1032
+#define IDC_ZLIBLEVEL                   1034
 #define ID_SESSION_SET_CRECT            32777
 #define ID_SESSION_SWAPMOUSE            32785
 #define ID_CLOSEDAEMON                  40001
@@ -63,7 +64,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        155
 #define _APS_NEXT_COMMAND_VALUE         40010
-#define _APS_NEXT_CONTROL_VALUE         1032
+#define _APS_NEXT_CONTROL_VALUE         1035
 #define _APS_NEXT_SYMED_VALUE           154
 #endif
 #endif

@@ -50,6 +50,8 @@ extern const UINT RFB_COPYRECT_UPDATE;
 extern const UINT RFB_MOUSE_UPDATE;
 extern const char szDesktopSink[];
 
+#define MAX_REG_ENTRY_LEN             (80)
+
 // Class definition
 
 class vncDesktop
@@ -116,6 +118,14 @@ protected:
 	// Init routines called by the child thread
 	BOOL InitDesktop();
 	void KillScreenSaver();
+
+	void ChangeResNow();
+	void DisablePattern();
+	void DisableIfRegSystemParameter(char *regName, int spiCommand, int spiParamInt, void* spiParamPtr, int spiUpdate);
+	void SetupDisplayForConnection();
+	BOOL OptimizeDisplayForConnection();
+	void ResetDisplayToNormal();
+
 	BOOL InitBitmap();
 	BOOL InitWindow();
 	BOOL ThunkBitmapInfo();
@@ -181,6 +191,10 @@ protected:
 	// Extra vars used for the DIBsection optimisation
 	VOID			*m_DIBbits;
 	BOOL			m_formatmunged;
+
+	DEVMODE			*lpDevMode; // *** used for res changes - Jeremy Peaks
+	long			origPelsWidth; // *** To set the original resolution
+	long			origPelsHeight; // *** - Jeremy Peaks
 };
 
 #endif // _WINVNC_VNCDESKTOP

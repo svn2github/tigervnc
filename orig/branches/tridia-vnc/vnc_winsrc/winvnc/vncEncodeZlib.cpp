@@ -109,7 +109,7 @@ vncEncodeZlib::NumCodedRects(RECT &rect)
 
 /*****************************************************************************
  *
- * Routines to implement zlib Encoding (LZW compression) by calling
+ * Routines to implement zlib Encoding (LZ+Huffman compression) by calling
  * the included zlib library.
  */
 
@@ -239,8 +239,10 @@ vncEncodeZlib::EncodeOneRect(BYTE *source, BYTE *dest, const RECT &rect)
 		compStream.zfree = Z_NULL;
 		compStream.opaque = Z_NULL;
 
+		log.Print(LL_INTINFO, VNCLOG("calling deflateInit2 with zlib level:%d\n"), m_zliblevel);
+
 		deflateResult = deflateInit2( &compStream,
-			                          Z_BEST_COMPRESSION,
+			                          m_zliblevel,
 					                  Z_DEFLATED,
 					                  MAX_WBITS,
 					                  MAX_MEM_LEVEL,

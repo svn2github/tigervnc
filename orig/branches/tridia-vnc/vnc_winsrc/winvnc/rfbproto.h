@@ -292,14 +292,26 @@ typedef struct {
  *
  *****************************************************************************/
 
-#define rfbEncodingRaw 0
-#define rfbEncodingCopyRect 1
-#define rfbEncodingRRE 2
-#define rfbEncodingCoRRE 4
-#define rfbEncodingHextile 5
-#define rfbEncodingZlib 6
-#define rfbEncodingTight 7
-#define rfbEncodingZlibHex 8
+#define rfbEncodingRaw       0
+#define rfbEncodingCopyRect  1
+#define rfbEncodingRRE       2
+#define rfbEncodingCoRRE     4
+#define rfbEncodingHextile   5
+#define rfbEncodingZlib      6
+#define rfbEncodingTight     7
+#define rfbEncodingZlibHex   8
+
+
+#define rfbEncodingZlibLevel0    0xFFFFFF00
+#define rfbEncodingZlibLevel1    0xFFFFFF01
+#define rfbEncodingZlibLevel2    0xFFFFFF02
+#define rfbEncodingZlibLevel3    0xFFFFFF03
+#define rfbEncodingZlibLevel4    0xFFFFFF04
+#define rfbEncodingZlibLevel5    0xFFFFFF05
+#define rfbEncodingZlibLevel6    0xFFFFFF06
+#define rfbEncodingZlibLevel7    0xFFFFFF07
+#define rfbEncodingZlibLevel8    0xFFFFFF08
+#define rfbEncodingZlibLevel9    0xFFFFFF09
 
 
 
@@ -458,6 +470,21 @@ typedef struct {
 } rfbZlibHeader;
 
 #define sz_rfbZlibHeader 4
+
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * ``Tight'' Encoding.  FIXME: Add more documentation.
+ */
+
+#define rfbTightExplicitFilter         0x04
+#define rfbTightFill                   0x08
+#define rfbTightMaxSubencoding         0x08
+
+/* Filters to improve compression efficiency */
+#define rfbTightFilterCopy             0x00
+#define rfbTightFilterPalette          0x01
+#define rfbTightFilterGradient         0x02
+
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * ZLIBHEX - zlib compressed Hextile Encoding.  Essentially, this is the

@@ -81,6 +81,7 @@ public:
 	// ENCODING
 	BOOL SetEncoding(CARD32 encoding);
 	UINT TranslateRect(const RECT &rect, VSocket *outConn);
+	BOOL SetZlibLevel(CARD32 level);
 
 // Implementation
 protected:
@@ -107,8 +108,11 @@ protected:
 	vncEncoder	   *m_encoder;
 	bool           zlib_encoder_in_use;
 	vncEncoder     *m_hold_zlib_encoder;
+	bool           tight_encoder_in_use;
+	vncEncoder     *m_hold_tight_encoder;
 	bool           zlibhex_encoder_in_use;
 	vncEncoder     *m_hold_zlibhex_encoder;
+	UINT			m_zliblevel;
 };
 
 #endif // _WINVNC_VNCBUFFER

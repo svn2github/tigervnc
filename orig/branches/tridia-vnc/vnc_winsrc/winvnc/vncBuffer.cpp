@@ -41,6 +41,7 @@
 #include "vncEncodeCoRRE.h"
 #include "vncEncodeHexT.h"
 #include "vncEncodeZlib.h"
+#include "vncEncodeTight.h"
 #include "vncEncodeZlibHex.h"
 #include "MinMax.h"
 
@@ -55,8 +56,11 @@ vncBuffer::vncBuffer(vncDesktop *desktop)
 	m_encoder = NULL;
 	zlib_encoder_in_use = false;
 	m_hold_zlib_encoder = NULL;
+	tight_encoder_in_use = false;
+	m_hold_tight_encoder = NULL;
 	zlibhex_encoder_in_use = false;
 	m_hold_zlibhex_encoder = NULL;
+	m_zliblevel = 5;
 
 	m_mainbuff = NULL;
 	m_backbuff = NULL;
@@ -95,6 +99,14 @@ vncBuffer::~vncBuffer()
 			m_hold_zlib_encoder = NULL;
 		}
 	}
+	if (m_hold_tight_encoder != m_encoder)
+	{
+		if (m_hold_tight_encoder != NULL)
+		{
+			delete m_hold_tight_encoder;
+			m_hold_tight_encoder = NULL;
+		}
+	}
 	if (m_hold_zlibhex_encoder != m_encoder)
 	{
 		if (m_hold_zlibhex_encoder != NULL)
@@ -110,7 +122,9 @@ vncBuffer::~vncBuffer()
 		delete m_encoder;
 		m_encoder = NULL;
 		m_hold_zlib_encoder = NULL;
+		m_hold_tight_encoder = NULL;
 		m_hold_zlibhex_encoder = NULL;
+
 	}
 	if (m_clientbuff != NULL)
 	{
@@ -426,11 +440,15 @@ vncBuffer::SetEncoding(CARD32 encoding)
 	// Delete the old encoder
 	if (m_encoder != NULL)
 	{
-		// If a Zlib encoder was in use, save it (with dictionary)
-		// for possible later use on this connection.
+		// If a Zlib-like encoders were in use, save corresponding object
+		// (with dictionaries) for possible later use on this connection.
 		if ( zlib_encoder_in_use )
 		{
 			m_hold_zlib_encoder = m_encoder;
+		}
+		else if ( tight_encoder_in_use )
+		{
+			m_hold_tight_encoder = m_encoder;
 		}
 		else if ( zlibhex_encoder_in_use )
 		{
@@ -446,6 +464,7 @@ vncBuffer::SetEncoding(CARD32 encoding)
 	// Expect to not use the zlib encoder below.  However, this
 	// is overriden if zlib was selected.
 	zlib_encoder_in_use = false;
+	tight_encoder_in_use = false;
 	zlibhex_encoder_in_use = false;
 
 	// Returns FALSE if the desired encoding cannot be used
@@ -512,6 +531,26 @@ vncBuffer::SetEncoding(CARD32 encoding)
 		zlib_encoder_in_use = true;
 		break;
 
+	case rfbEncodingTight:
+
+		log.Print(LL_INTINFO, VNCLOG("Tight encoder requested\n"));
+
+		// Create a Tight encoder, if needed.
+		// If a Tight encoder was used previously, then reuse it here
+		// to maintain zlib dictionaries synchronization with the viewer.
+		if ( m_hold_tight_encoder == NULL )
+		{
+			m_encoder = new vncEncodeTight;
+		}
+		else
+		{
+			m_encoder = m_hold_tight_encoder;
+		}
+		if (m_encoder == NULL)
+			return FALSE;
+		tight_encoder_in_use = true;
+		break;
+
 	case rfbEncodingZlibHex:
 
 		log.Print(LL_INTINFO, VNCLOG("ZlibHex encoder requested\n"));
@@ -545,6 +584,7 @@ vncBuffer::SetEncoding(CARD32 encoding)
 			m_scrinfo.format,
 			m_scrinfo.framebufferWidth,
 			m_scrinfo.framebufferHeight);
+	m_encoder->SetZlibLevel(m_zliblevel);
 	if (m_clientfmtset)
 		if (!m_encoder->SetRemoteFormat(m_clientformat))
 		{
@@ -555,6 +595,20 @@ vncBuffer::SetEncoding(CARD32 encoding)
 
 	// Check that the client buffer is compatible
 	return CheckBuffer();
+}
+
+BOOL
+vncBuffer::SetZlibLevel(CARD32 level)
+{
+	BOOL result = false;
+	if ((level >= 0) && (level <= 9)) {
+		m_zliblevel = level;
+		if (m_encoder != NULL) {
+			m_encoder->SetZlibLevel(m_zliblevel);
+		}
+		result = true;
+	}
+	return result;
 }
 
 void

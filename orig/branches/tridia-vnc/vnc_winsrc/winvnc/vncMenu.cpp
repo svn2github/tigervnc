@@ -393,7 +393,8 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 			// If there are remote connections then we should verify
 			// that the user is happy about killing them.
 
-			if (_this->m_server->AuthClientCount() > 0)
+			if ((!vncService::RunningAsService()) &&
+				(_this->m_server->AuthClientCount() > 0))
 			{
 				if (MessageBox(NULL,
 					"There are remote clients connected to this computer.\n"

@@ -217,6 +217,10 @@ SOURCE=.\ClientConnectionRRE.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\ClientConnectionTight.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\ClientConnectionZlib.cpp
 # End Source File
 # Begin Source File

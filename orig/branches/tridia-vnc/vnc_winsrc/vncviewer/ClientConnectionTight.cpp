@@ -101,7 +101,7 @@ void ClientConnection::ReadTightRect(rfbFramebufferUpdateRectHeader *pfburh)
   }
 
   /* Quit on unsupported subencoding value. */
-  if (comp_ctl >=8) {
+  if (comp_ctl >= rfbTightMaxSubencoding) {
     log.Print(0, _T("Tight encoding: bad subencoding value received.\n"));
     return;
   }
@@ -113,7 +113,7 @@ void ClientConnection::ReadTightRect(rfbFramebufferUpdateRectHeader *pfburh)
 
   /* First, we should identify a filter to use. */
   int bitsPixel;
-  if (comp_ctl >= 4) {
+  if ((comp_ctl & rfbTightExplicitFilter) != 0) {
     CARD8 filter_id;
     ReadExact((char *)&filter_id, 1);
 
@@ -385,11 +385,6 @@ DEFINE_TIGHT_FILTER_COPY(16)
 DEFINE_TIGHT_FILTER_COPY(24)
 DEFINE_TIGHT_FILTER_COPY(32)
 
-// The following filter implementation is not very efficient, and in fact
-// it's currently not used. For now, this filter appies only to 24-bit
-// color samples, see FilterGradient24() below. This version is provided
-// for compatibility with future implementations.
-
 #define DEFINE_TIGHT_FILTER_GRADIENT(bpp)                                     \
                                                                               \
 void ClientConnection::FilterGradient##bpp (int numRows)                      \
@@ -413,12 +408,15 @@ void ClientConnection::FilterGradient##bpp (int numRows)                      \
   shift[2] = m_myFormat.blueShift;                                            \
                                                                               \
   for (y = 0; y < numRows; y++) {                                             \
+                                                                              \
     /* First pixel in a row */                                                \
     for (c = 0; c < 3; c++) {                                                 \
       pix[c] = (CARD16)((src[y*m_tightRectWidth] >> shift[c]) +               \
                         thatRow[c] & max[c]);                                 \
       thisRow[c] = pix[c];                                                    \
     }                                                                         \
+    dst[y*m_tightRectWidth] = COLOR_FROM_PIXEL24_ADDRESS(pix);                \
+                                                                              \
     /* Remaining pixels of a row */                                           \
     for (x = 1; x < m_tightRectWidth; x++) {                                  \
       for (c = 0; c < 3; c++) {                                               \

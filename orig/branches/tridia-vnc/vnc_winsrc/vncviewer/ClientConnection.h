@@ -47,6 +47,11 @@
 
 #define ZLIBHEX_DECOMP_UNINITED (-1)
 
+#define TIGHT_ZLIB_BUFFER_SIZE 4096
+
+class ClientConnection;
+typedef void (ClientConnection:: *tightFilterFunc)(int);
+
 class ClientConnection  : public omni_thread
 {
 public:
@@ -119,6 +124,23 @@ private:
 	void HandleHextileEncoding16(int x, int y, int w, int h);
 	void HandleHextileEncoding32(int x, int y, int w, int h);
 	void ReadZlibRect(rfbFramebufferUpdateRectHeader *pfburh);
+
+	// ClientConnectionTight.cpp
+	void ReadTightRect(rfbFramebufferUpdateRectHeader *pfburh);
+	int InitFilterCopy (int rw, int rh);
+	int InitFilterGradient (int rw, int rh);
+	int InitFilterPalette (int rw, int rh);
+	void FilterCopy8 (int numRows);
+	void FilterCopy16 (int numRows);
+	void FilterCopy24 (int numRows);
+	void FilterCopy32 (int numRows);
+	void FilterGradient8 (int numRows);
+	void FilterGradient16 (int numRows);
+	void FilterGradient24 (int numRows);
+	void FilterGradient32 (int numRows);
+	void FilterPalette (int numRows);
+
+	// ClientConnectionZlibHex.cpp
 	void HandleZlibHexEncoding8(int x, int y, int w, int h);
 	void HandleZlibHexEncoding16(int x, int y, int w, int h);
 	void HandleZlibHexEncoding32(int x, int y, int w, int h);
@@ -206,6 +228,22 @@ private:
 	z_stream m_decompStream;
 	z_stream m_decompStreamRaw;
 	z_stream m_decompStreamEncoded;
+
+	// Valiables used by tight encoding:
+
+	// Separate buffer for tight-compressed data.
+	char m_tightbuf[TIGHT_ZLIB_BUFFER_SIZE];
+
+	// Four independent compression streams for zlib library.
+	z_stream m_tightZlibStream[4];
+	bool m_tightZlibStreamActive[4];
+
+	// Tight filter stuff. Should be initialized by filter initialization code.
+	tightFilterFunc m_tightCurrentFilter;
+	bool m_tightCutZeros;
+	int m_tightRectWidth, m_tightRectColors;
+	COLORREF m_tightPalette[256];
+	CARD8 m_tightPrevRow[2048*3*sizeof(CARD16)];
 
 	// Bitmap for local copy of screen, and DC for writing to it.
 	HBITMAP m_hBitmap;
@@ -313,19 +351,24 @@ public:
 
 // read a pixel from the given address, and return a color value
 #define COLOR_FROM_PIXEL8_ADDRESS(p) (PALETTERGB( \
-                (int) (((*(CARD8 *)p >> rs) & rm) * 255 / rm), \
-                (int) (((*(CARD8 *)p >> gs) & gm) * 255 / gm), \
-                (int) (((*(CARD8 *)p >> bs) & bm) * 255 / bm) ))
+                (int) (((*(CARD8 *)(p) >> rs) & rm) * 255 / rm), \
+                (int) (((*(CARD8 *)(p) >> gs) & gm) * 255 / gm), \
+                (int) (((*(CARD8 *)(p) >> bs) & bm) * 255 / bm) ))
 
 #define COLOR_FROM_PIXEL16_ADDRESS(p) (PALETTERGB( \
-                (int) ((( *(CARD16 *)p >> rs) & rm) * 255 / rm), \
-                (int) ((( *(CARD16 *)p >> gs) & gm) * 255 / gm), \
-                (int) ((( *(CARD16 *)p >> bs) & bm) * 255 / bm) ))
+                (int) ((( *(CARD16 *)(p) >> rs) & rm) * 255 / rm), \
+                (int) ((( *(CARD16 *)(p) >> gs) & gm) * 255 / gm), \
+                (int) ((( *(CARD16 *)(p) >> bs) & bm) * 255 / bm) ))
+
+#define COLOR_FROM_PIXEL24_ADDRESS(p) (PALETTERGB( \
+                (int) (((CARD8 *)(p))[0]), \
+                (int) (((CARD8 *)(p))[1]), \
+                (int) (((CARD8 *)(p))[2]) ))
 
 #define COLOR_FROM_PIXEL32_ADDRESS(p) (PALETTERGB( \
-                (int) ((( *(CARD32 *)p >> rs) & rm) * 255 / rm), \
-                (int) ((( *(CARD32 *)p >> gs) & gm) * 255 / gm), \
-                (int) ((( *(CARD32 *)p >> bs) & bm) * 255 / bm) ))
+                (int) ((( *(CARD32 *)(p) >> rs) & rm) * 255 / rm), \
+                (int) ((( *(CARD32 *)(p) >> gs) & gm) * 255 / gm), \
+                (int) ((( *(CARD32 *)(p) >> bs) & bm) * 255 / bm) ))
 
 // The following may be faster if you already have a pixel value of the appropriate size
 #define COLOR_FROM_PIXEL8(p) (PALETTERGB( \
@@ -350,7 +393,7 @@ public:
 #define SETPIXEL(b,x,y,c) SetPixelV((b),(x),(y),(c))
 #endif
 
-#define SETPIXELS(buffer, bpp, x, y, w, h)												\
+#define SETPIXELS(buffer, bpp, x, y, w, h)										\
 	{																			\
 		CARD##bpp *p = (CARD##bpp *) buffer;									\
         register CARD##bpp pix;													\
@@ -358,6 +401,17 @@ public:
 			for (int j = x; j < x+w; j++) {										\
                     pix = *p;													\
                     SETPIXEL(m_hBitmapDC, j,k, COLOR_FROM_PIXEL##bpp##(pix));	\
+					p++;														\
+			}																	\
+		}																		\
+	}
+
+#define SETPIXELS_NOCONV(buffer, x, y, w, h)									\
+	{																			\
+		CARD32 *p = (CARD32 *) buffer;											\
+		for (int k = y; k < y+h; k++) {											\
+			for (int j = x; j < x+w; j++) {										\
+                    SETPIXEL(m_hBitmapDC, j,k, *p);	                            \
 					p++;														\
 			}																	\
 		}																		\

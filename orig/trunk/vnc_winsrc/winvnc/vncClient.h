@@ -186,9 +186,6 @@ protected:
 	// When the local display is palettized, it sometimes changes...
 	BOOL			m_palettechanged;
 
-	// Information used in polling mode!
-	RECT			m_qtrscreen;
-	UINT			m_polling_phase;
 	BOOL			m_remoteevent;
 
 	BOOL			m_use_NewFBSize;

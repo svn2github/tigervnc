@@ -811,10 +811,10 @@ vncClientThread::run(void *arg)
 	server_ini.format = m_client->m_buffer->GetLocalFormat();
 
 	// Endian swaps
-	RECT SharedRect;
-	SharedRect = m_server->GetSharedRect();
-	server_ini.framebufferWidth = Swap16IfLE(SharedRect.right- SharedRect.left);
-	server_ini.framebufferHeight = Swap16IfLE(SharedRect.bottom - SharedRect.top);
+	RECT sharedRect;
+	sharedRect = m_server->GetSharedRect();
+	server_ini.framebufferWidth = Swap16IfLE(sharedRect.right- sharedRect.left);
+	server_ini.framebufferHeight = Swap16IfLE(sharedRect.bottom - sharedRect.top);
 	server_ini.format.redMax = Swap16IfLE(server_ini.format.redMax);
 	server_ini.format.greenMax = Swap16IfLE(server_ini.format.greenMax);
 	server_ini.format.blueMax = Swap16IfLE(server_ini.format.blueMax);
@@ -1067,14 +1067,14 @@ vncClientThread::run(void *arg)
 			}
 
 			{
-				RECT update, SharedRect;
+				RECT update, sharedRect;
 
 				{	omni_mutex_lock l(m_client->m_regionLock);
 				
-				SharedRect = m_server->GetSharedRect();
+				sharedRect = m_server->GetSharedRect();
 				// Get the specified rectangle as the region to send updates for.
-				update.left = Swap16IfLE(msg.fur.x)+ SharedRect.left;
-				update.top = Swap16IfLE(msg.fur.y)+ SharedRect.top;
+				update.left = Swap16IfLE(msg.fur.x)+ sharedRect.left;
+				update.top = Swap16IfLE(msg.fur.y)+ sharedRect.top;
 				update.right = update.left + Swap16IfLE(msg.fur.w);
 				
 				if (update.right > m_client->m_fullscreen.right )
@@ -1089,7 +1089,7 @@ vncClientThread::run(void *arg)
 					m_client->m_updatewanted = TRUE;
 
 					// Clip the rectangle to the screen
-					if (IntersectRect(&update, &update, &SharedRect))
+					if (IntersectRect(&update, &update, &sharedRect))
 					{
 						// Is this request for an incremental region?
 						if (msg.fur.incremental)
@@ -1621,11 +1621,10 @@ vncClient::vncClient()
 
 	m_copyrect_set = FALSE;
 
-	m_polling_phase = 0;
 	m_remoteevent = FALSE;
 
 	m_bDownloadStarted = FALSE;
-  m_bUploadStarted = FALSE;
+	m_bUploadStarted = FALSE;
 
 	// IMPORTANT: Initially, client is not protocol-ready.
 	m_protocol_ready = FALSE;
@@ -2129,13 +2128,13 @@ vncClient::SendRectangles(rectlist &rects)
 BOOL
 vncClient::SendRectangle(RECT &rect)
 {
-	RECT SharedRect;
+	RECT sharedRect;
 	{	omni_mutex_lock l(m_regionLock);
-	SharedRect = m_server->GetSharedRect();
+		sharedRect = m_server->GetSharedRect();
 	}
-	IntersectRect(&rect, &rect, &SharedRect);
+	IntersectRect(&rect, &rect, &sharedRect);
 	// Get the buffer to encode the rectangle
-		UINT bytes = m_buffer->TranslateRect(rect, m_socket, SharedRect.left, SharedRect.top);
+		UINT bytes = m_buffer->TranslateRect(rect, m_socket, sharedRect.left, sharedRect.top);
 
 	// Send the encoded data
 	return m_socket->SendQueued((char *)(m_buffer->GetClientBuffer()), bytes);
@@ -2278,14 +2277,13 @@ BOOL
 vncClient::SetNewFBSize(BOOL sendnewfb)
 {
 	rfbFramebufferUpdateRectHeader hdr;
-	RECT SharedRect;
-	
-	SharedRect = m_server->GetSharedRect();
-	
-	m_polling_phase = 0;
+	RECT sharedRect;
+
+	sharedRect = m_server->GetSharedRect();
+
 	m_full_rgn.Clear();
 	m_incr_rgn.Clear();
-	m_full_rgn.AddRect(SharedRect);
+	m_full_rgn.AddRect(sharedRect);
 
 	if (!m_use_NewFBSize) {
 		// We cannot send NewFBSize message right now, maybe later
@@ -2294,8 +2292,8 @@ vncClient::SetNewFBSize(BOOL sendnewfb)
 	} else if (sendnewfb) {
 		hdr.r.x = 0;
 		hdr.r.y = 0;
-		hdr.r.w = Swap16IfLE(SharedRect.right - SharedRect.left);
-		hdr.r.h = Swap16IfLE(SharedRect.bottom - SharedRect.top);
+		hdr.r.w = Swap16IfLE(sharedRect.right - sharedRect.left);
+		hdr.r.h = Swap16IfLE(sharedRect.bottom - sharedRect.top);
 		hdr.encoding = Swap32IfLE(rfbEncodingNewFBSize);
 
 		rfbFramebufferUpdateMsg header;

@@ -125,8 +125,11 @@ ClientConnection::ClientConnection(VNCviewerApp *pApp, LPTSTR host, int port)
 
 void ClientConnection::Init(VNCviewerApp *pApp)
 {
-	m_hwnd = 0;
-	m_hwnd1 = 0;
+	m_hwnd = NULL;
+	m_hwnd1 = NULL;
+	m_hhscroll = NULL; 
+	m_hvscroll = NULL;
+	m_hToolbar = NULL;
 	m_desktopName = NULL;
 	m_port = -1;
 	m_serverInitiated = false;
@@ -332,7 +335,7 @@ void ClientConnection::CreateDisplay()
 	wndclass1.hIcon			= (HICON)LoadIcon(m_pApp->m_instance,
 												MAKEINTRESOURCE(IDI_MAINICON));
 	wndclass1.hCursor		= LoadCursor(NULL, IDC_ARROW);
-	wndclass1.hbrBackground	= (HBRUSH) GetStockObject(BLACK_BRUSH);
+	wndclass1.hbrBackground	= (HBRUSH) GetStockObject(LTGRAY_BRUSH);
     wndclass1.lpszMenuName	= (LPCTSTR)NULL;
 	wndclass1.lpszClassName	= VWR_WND_CLASS_NAME;
 
@@ -462,7 +465,7 @@ void ClientConnection::CreateDisplay()
 
 	m_hwnd = CreateWindow("ChildClass",
 			      NULL,
-			       WS_VSCROLL|WS_HSCROLL | WS_CHILD | WS_CLIPSIBLINGS,
+			      WS_BORDER	| WS_CHILD | WS_CLIPSIBLINGS,
 			      CW_USEDEFAULT,
 			      CW_USEDEFAULT,
 			      CW_USEDEFAULT,       // x-size
@@ -579,7 +582,7 @@ HWND ClientConnection::CreateToolbar()
 
 	return CreateToolbarEx(m_hwnd1,
 		WS_CHILD | WS_MAXIMIZE | WS_DLGFRAME | TBSTYLE_TOOLTIPS |
-		WS_CLIPSIBLINGS,
+		WS_CLIPSIBLINGS | TBSTYLE_FLAT,
 		ID_TOOLBAR, 12, m_pApp->m_instance,
 		IDB_BITMAP1, but, numButtons, 0, 0, 0, 0, sizeof(TBBUTTON));
 }
@@ -1494,46 +1497,136 @@ void ClientConnection::SizeWindow(bool centered)
 }
 
 void ClientConnection::PositionChildWindow()
-{
+{	
 	RECT rparent;
-	int x, y;
-
 	GetClientRect(m_hwnd1, &rparent);
 	
 	int parentwidth = rparent.right - rparent.left;
 	int parentheight = rparent.bottom - rparent.top; 
-	
-	if (m_fullwinwidth >= parentwidth) {
-			x = 0;
-		} else {
-			x = (parentwidth - m_fullwinwidth) / 2;
-		}
+	int rtbheight = 0;			
 	if (GetMenuState(GetSystemMenu(m_hwnd1, FALSE),
 				ID_TOOLBAR, MF_BYCOMMAND) == MF_CHECKED) {
 		RECT rtb;
 		GetWindowRect(m_hToolbar, &rtb);
-		int rtbheight = rtb.bottom - rtb.top;
-		if ((parentheight - rtbheight) <= m_fullwinheight) {
-			y = rtbheight - 4;
-		} else {
-			y = (parentheight + rtbheight - m_fullwinheight) / 2;
-		}
-		parentheight = parentheight - rtb.bottom + rtb.top + 4;
+		rtbheight = rtb.bottom - rtb.top - 4;
+		rparent.top = rparent.top + rtbheight;
+		parentheight = parentheight - rtbheight;
 		SetWindowPos(m_hToolbar, HWND_TOP, rparent.left, rparent.top,
 					parentwidth, rtbheight, SWP_SHOWWINDOW);
 	} else {
-		if (m_fullwinheight >= parentheight) {
-			y = 0;
-		} else {
-			y = (parentheight - m_fullwinheight) / 2;
-		}
 		ShowWindow(m_hToolbar, SW_HIDE);
+	}
+
+	#ifndef UNDER_CE
+	bool hscroll = false;
+	bool vscroll = false;
+	if (InFullScreenMode()) {				
+		ShowWindow(m_hhscroll, SW_HIDE);
+		ShowWindow(m_hvscroll, SW_HIDE);
+	} else {
+		if (parentwidth  < m_fullwinwidth) {  
+			hscroll = true;
+			rparent.bottom = rparent.bottom - 15;
+			parentheight = parentheight - 15;
+		} 
+		if (parentheight < m_fullwinheight) {
+			vscroll = true;
+			rparent.right = rparent.right - 15;
+			parentwidth = parentwidth - 15;
+			if ((parentwidth  < m_fullwinwidth) && !vscroll) {  
+				hscroll = true;
+				rparent.bottom = rparent.bottom - 15;
+				parentheight = parentheight - 15;
+			}
+		
+		}
+		if (hscroll) {
+			if (m_hhscroll == NULL) {
+				m_hhscroll =  CreateWindow("scrollbar",  
+									NULL,               
+									SBS_HORZ | WS_CHILD,            
+									rparent.left,                  
+									rparent.bottom,                  
+									parentwidth,      
+									15,      
+									m_hwnd1,               
+									(HMENU)-1,
+									m_pApp->m_instance,              
+									NULL);  
+			} else {
+			SetWindowPos(m_hhscroll, HWND_TOP, rparent.left, rparent.bottom,
+					parentwidth, 15, SWP_SHOWWINDOW);
+			}
+		} else {
+			if (m_hhscroll != NULL)
+				ShowWindow(m_hhscroll, SW_HIDE);
+		}
+		if (vscroll) {
+			if (m_hvscroll == NULL) {
+				m_hvscroll =  CreateWindow("scrollbar",  
+									NULL,               
+									SBS_RIGHTALIGN | SBS_VERT | WS_CHILD,            
+									rparent.right,                  
+									rparent.top,                  
+									15,      
+									parentheight,     
+									m_hwnd1,               
+									(HMENU)-1,
+									m_pApp->m_instance,              
+									NULL);
+			} else {
+			SetWindowPos(m_hvscroll, HWND_TOP, rparent.right, rparent.top,
+					15, parentheight, SWP_SHOWWINDOW);
+			}
+		} else {
+			if (m_hvscroll != NULL)
+				ShowWindow(m_hvscroll, SW_HIDE);
+		}
+	}
+	#endif
+	
+	m_winwidth = parentwidth;
+	m_winheight = parentheight;
+
+	m_cliwidth = min( (int)parentwidth,
+					(int)m_si.framebufferWidth  * m_opts.m_scale_num / m_opts.m_scale_den);
+	m_cliheight = min( (int)parentheight,
+					(int)m_si.framebufferHeight  * m_opts.m_scale_num / m_opts.m_scale_den);
+
+	m_hScrollMax = m_si.framebufferWidth * m_opts.m_scale_num / m_opts.m_scale_den;
+	m_vScrollMax = m_si.framebufferHeight* m_opts.m_scale_num / m_opts.m_scale_den;
+           
+	int newhpos, newvpos;
+	newhpos = max(0, min(m_hScrollPos, 
+								 m_hScrollMax - max(m_cliwidth, 0)));
+	newvpos = max(0, min(m_vScrollPos, 
+				                 m_vScrollMax - max(m_cliheight, 0)));
+	int x, y;
+	if (parentwidth  >= m_fullwinwidth) {
+		x = (parentwidth - m_fullwinwidth) / 2;
+	} else {
+		x = rparent.left;
+	}
+	if (parentheight >= m_fullwinheight) {
+		y = (parentheight - m_fullwinheight) / 2 + rtbheight;
+	} else {
+		y = rparent.top;
 	}
 	
 	SetWindowPos(m_hwnd, HWND_TOP, x, y,
 					min(parentwidth, m_fullwinwidth),
 					min(parentheight, m_fullwinheight),
 					SWP_SHOWWINDOW);
+	RECT clichild;
+	GetClientRect(m_hwnd, &clichild);
+	ScrollWindowEx(m_hwnd, m_hScrollPos-newhpos, m_vScrollPos-newvpos,
+				NULL, &clichild, NULL, NULL,  SW_INVALIDATE);
+					
+			
+	m_hScrollPos = newhpos;
+	m_vScrollPos = newvpos;
+    UpdateScrollbars();
+	UpdateWindow(m_hwnd);
 }
 
 void ClientConnection::CreateLocalFramebuffer() {
@@ -1798,7 +1891,8 @@ bool ClientConnection::ScrollScreen(int dx, int dy)
 		m_vScrollPos += dy;
 		RECT clirect;
 		GetClientRect(m_hwnd, &clirect);
-		ScrollWindowEx(m_hwnd, -dx, -dy, NULL, &clirect, NULL, NULL,  SW_INVALIDATE);
+		ScrollWindowEx(m_hwnd, -dx, -dy,
+				NULL, &clirect, NULL, NULL,  SW_INVALIDATE);
 		UpdateScrollbars();
 		UpdateWindow(m_hwnd);
 		return true;
@@ -2009,9 +2103,51 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 		if ( _this->m_opts.m_ViewOnly) return 0;
 		_this->SwitchOffKey();
 		return 0;
-	case WM_SIZE:
-		_this->PositionChildWindow();
+	case WM_SIZE:		
+		_this->PositionChildWindow();			
 		return 0;
+	case WM_HSCROLL:
+		{				
+			int dx = 0;
+			int pos = HIWORD(wParam);
+			switch (LOWORD(wParam)) {
+			case SB_LINEUP:
+				dx = - 2; break;
+			case SB_LINEDOWN:
+				dx = 2; break;
+			case SB_PAGEUP:
+				dx = _this->m_cliwidth * -1/4; break;
+			case SB_PAGEDOWN:
+				dx = _this->m_cliwidth * 1/4; break;
+			case SB_THUMBPOSITION:
+				dx = pos - _this->m_hScrollPos;
+			case SB_THUMBTRACK:
+				dx = pos - _this->m_hScrollPos;
+			}
+			_this->ScrollScreen(dx,0);
+			return 0;
+		}
+	case WM_VSCROLL:
+		{
+			int dy = 0;
+			int pos = HIWORD(wParam);
+			switch (LOWORD(wParam)) {
+			case SB_LINEUP:
+				dy =  - 2; break;
+			case SB_LINEDOWN:
+				dy = 2; break;
+			case SB_PAGEUP:
+				dy =  _this->m_cliheight * -1/4; break;
+			case SB_PAGEDOWN:
+				dy = _this->m_cliheight * 1/4; break;
+			case SB_THUMBPOSITION:
+				dy = pos - _this->m_vScrollPos;
+			case SB_THUMBTRACK:
+				dy = pos - _this->m_vScrollPos;
+			}
+			_this->ScrollScreen(0,dy);
+			return 0;
+		}
 	case WM_CLOSE:		
 		// Close the worker thread as well
 		_this->KillThread();
@@ -2214,106 +2350,7 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 			}
 			vnclog.Print(6, _T("Losing focus - cancelling modifiers\n"));
 			return 0;
-		}
-
-	case WM_WINDOWPOSCHANGED:
-	case WM_SIZE:
-		{
-			// Calculate window dimensions
-			RECT rect;
-			GetWindowRect(hwnd, &rect);
-			// update these for the record
-			_this->m_winwidth = rect.right - rect.left;
-			_this->m_winheight = rect.bottom - rect.top;
-
-			// If the current window size would be large enough to hold the
-			// whole screen without scrollbars, or if we're full-screen,
-			// we turn them off.  Under CE, the scroll bars are unchangeable.
-
-			#ifndef UNDER_CE
-			if (_this->InFullScreenMode() ||
-				(rect.right - rect.left)  >= _this->m_fullwinwidth  &&
-				(rect.bottom - rect.top) >= _this->m_fullwinheight ) {
-				ShowScrollBar(hwnd, SB_HORZ, FALSE);
-				ShowScrollBar(hwnd, SB_VERT, FALSE);
-			} else {
-				ShowScrollBar(hwnd, SB_HORZ, TRUE);
-				ShowScrollBar(hwnd, SB_VERT, TRUE);
-			}
-			#endif
-
-            // Update these for the record
-			// And consider that in full-screen mode the window
-			// is actually bigger than the remote screen.
-			GetClientRect(hwnd, &rect);
-			_this->m_cliwidth = min( (int)(rect.right - rect.left),
-									 (int)_this->m_si.framebufferWidth  * _this->m_opts.m_scale_num / _this->m_opts.m_scale_den);
-			_this->m_cliheight = min( (int)(rect.bottom - rect.top),
-									 (int)_this->m_si.framebufferHeight  * _this->m_opts.m_scale_num / _this->m_opts.m_scale_den);
-
-			_this->m_hScrollMax = _this->m_si.framebufferWidth * _this->m_opts.m_scale_num / _this->m_opts.m_scale_den;
-			_this->m_vScrollMax = _this->m_si.framebufferHeight* _this->m_opts.m_scale_num / _this->m_opts.m_scale_den;
-            
-			int newhpos, newvpos;
-			newhpos = max(0, min(_this->m_hScrollPos, 
-								 _this->m_hScrollMax - max(_this->m_cliwidth, 0)));
-			newvpos = max(0, min(_this->m_vScrollPos, 
-				                 _this->m_vScrollMax - max(_this->m_cliheight, 0)));
-
-			ScrollWindowEx(hwnd, _this->m_hScrollPos-newhpos, _this->m_vScrollPos-newvpos,
-				NULL, &rect, NULL, NULL,  SW_INVALIDATE);
-			
-			_this->m_hScrollPos = newhpos;
-			_this->m_vScrollPos = newvpos;
-           	_this->UpdateScrollbars();
-			
-			return 0;
-		}
-
-	case WM_HSCROLL:
-		{
-			int dx = 0;
-			int pos = HIWORD(wParam);
-			switch (LOWORD(wParam)) {
-			case SB_LINEUP:
-				dx = -2; break;
-			case SB_LINEDOWN:
-				dx = 2; break;
-			case SB_PAGEUP:
-				dx = _this->m_cliwidth * -1/4; break;
-			case SB_PAGEDOWN:
-				dx = _this->m_cliwidth * 1/4; break;
-			case SB_THUMBPOSITION:
-				dx = pos - _this->m_hScrollPos;
-			case SB_THUMBTRACK:
-				dx = pos - _this->m_hScrollPos;
-			}
-			_this->ScrollScreen(dx,0);
-			return 0;
-		}
-
-	case WM_VSCROLL:
-		{
-			int dy = 0;
-			int pos = HIWORD(wParam);
-			switch (LOWORD(wParam)) {
-			case SB_LINEUP:
-				dy = -2; break;
-			case SB_LINEDOWN:
-				dy = 2; break;
-			case SB_PAGEUP:
-				dy = _this->m_cliheight * -1/4; break;
-			case SB_PAGEDOWN:
-				dy = _this->m_cliheight * 1/4; break;
-			case SB_THUMBPOSITION:
-				dy = pos - _this->m_vScrollPos;
-			case SB_THUMBTRACK:
-				dy = pos - _this->m_vScrollPos;
-			}
-			_this->ScrollScreen(0,dy);
-			return 0;
-		}
-
+		}	
     case WM_QUERYNEWPALETTE:
         {
 			TempDC hDC(hwnd);
@@ -2769,7 +2806,7 @@ inline void ClientConnection::UpdateScrollbars()
 	scri.nPos = m_hScrollPos; 
 	
 	if (setInfo) 
-		SetScrollInfo(m_hwnd, SB_HORZ, &scri, TRUE);
+		SetScrollInfo(m_hhscroll, SB_CTL, &scri, TRUE);
 	
 	scri.cbSize = sizeof(scri);
 	scri.fMask = SIF_ALL;
@@ -2779,7 +2816,7 @@ inline void ClientConnection::UpdateScrollbars()
 	scri.nPos = m_vScrollPos; 
 	
 	if (setInfo) 
-		SetScrollInfo(m_hwnd, SB_VERT, &scri, TRUE);
+		SetScrollInfo(m_hvscroll, SB_CTL, &scri, TRUE);
 }
 
 

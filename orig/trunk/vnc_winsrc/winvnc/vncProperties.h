@@ -69,6 +69,7 @@ public:
 	// TRAY ICON MENU SETTINGS
 	BOOL AllowProperties() {return m_allowproperties;};
 	BOOL AllowShutdown() {return m_allowshutdown;};
+	BOOL AllowEditClients() {return m_alloweditclients;};
 
 	// Implementation
 protected:
@@ -82,6 +83,7 @@ protected:
 	// Tray icon menu settings
 	BOOL				m_allowproperties;
 	BOOL				m_allowshutdown;
+	BOOL				m_alloweditclients;
 
 	BOOL				m_inadvanced;
 

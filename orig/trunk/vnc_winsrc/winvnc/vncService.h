@@ -99,6 +99,10 @@ public:
 	// *** This is a nasty little hack...
 	static BOOL SimulateCtrlAltDel();
 
+	// Routine to lock the workstation.  Returns TRUE if successful.
+	// Main cause of failure will be when locking is not supported
+	static BOOL LockWorkstation();
+
 	// Routine to make any currently running version of WinVNC show its
 	// Properties dialog, to allow the user to make changes to their settings
 	static BOOL ShowProperties();

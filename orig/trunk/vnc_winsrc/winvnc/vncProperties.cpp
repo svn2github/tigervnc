@@ -1,4 +1,5 @@
-//  Copyright (C) 2002 Constantin Kaplinsky. All Rights Reserved.
+//  Copyright (C) 2002-2003 Constantin Kaplinsky. All Rights Reserved.
+//  Copyright (C) 2002 RealVNC Ltd. All Rights Reserved.
 //  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
@@ -63,6 +64,7 @@ const char CANNOT_EDIT_DEFAULT_PREFS [] = "You do not have sufficient priviliges
 // Constructor & Destructor
 vncProperties::vncProperties()
 {
+	m_alloweditclients = TRUE;
 	m_allowproperties = TRUE;
 	m_allowshutdown = TRUE;
 	m_dlgvisible = FALSE;
@@ -311,7 +313,8 @@ vncProperties::DialogProc(HWND hwnd,
 			// to the calling vncProperties object
 			SetWindowLong(hwnd, GWL_USERDATA, lParam);
 			_this = (vncProperties *) lParam;
-			
+			_this->m_dlgvisible = TRUE;
+
 			HWND bmp_hWnd=GetDlgItem(hwnd,IDC_BMPCURSOR);
 			_this->m_OldBmpWndProc=GetWindowLong(bmp_hWnd,GWL_WNDPROC);
 			SetWindowLong(bmp_hWnd,GWL_WNDPROC,(LONG)BmpWndProc);
@@ -390,6 +393,30 @@ vncProperties::DialogProc(HWND hwnd,
 			
 			if (!_this->m_server->LocalInputPriority())
 				EnableWindow(hDisableTime, FALSE);
+
+			// Remove the wallpaper
+			HWND hRemoveWallpaper = GetDlgItem(hwnd, IDC_REMOVE_WALLPAPER);
+			SendMessage(hRemoveWallpaper,
+				BM_SETCHECK,
+				_this->m_server->RemoveWallpaperEnabled(),
+				0);
+
+			// Lock settings
+			HWND hLockSetting;
+			switch (_this->m_server->LockSettings()) {
+			case 1:
+				hLockSetting = GetDlgItem(hwnd, IDC_LOCKSETTING_LOCK);
+				break;
+			case 2:
+				hLockSetting = GetDlgItem(hwnd, IDC_LOCKSETTING_LOGOFF);
+				break;
+			default:
+				hLockSetting = GetDlgItem(hwnd, IDC_LOCKSETTING_NOTHING);
+			};
+			SendMessage(hLockSetting,
+				BM_SETCHECK,
+				TRUE,
+				0);
 
 			// Set the polling options
 			HWND hPollFullScreen = GetDlgItem(hwnd, IDC_POLL_FULLSCREEN);
@@ -502,11 +529,10 @@ vncProperties::DialogProc(HWND hwnd,
 
 			SetForegroundWindow(hwnd);
 
-			_this->m_dlgvisible = TRUE;
-
 #ifdef HORIZONLIVE
 			return TRUE;
 #else
+			// We return FALSE because we set the keyboard focus explicitly.
 			return FALSE;
 #endif
 		}
@@ -591,6 +617,23 @@ vncProperties::DialogProc(HWND hwnd,
 				_this->m_server->DisableLocalInputs(
 					SendMessage(hDisableLocalInputs, BM_GETCHECK, 0, 0) == BST_CHECKED
 					);
+
+				// Wallpaper handling
+				HWND hRemoveWallpaper = GetDlgItem(hwnd, IDC_REMOVE_WALLPAPER);
+				_this->m_server->EnableRemoveWallpaper(
+					SendMessage(hRemoveWallpaper, BM_GETCHECK, 0, 0) == BST_CHECKED
+					);
+
+				// Lock settings handling
+				if (SendMessage(GetDlgItem(hwnd, IDC_LOCKSETTING_LOCK), BM_GETCHECK, 0, 0)
+					== BST_CHECKED) {
+					_this->m_server->SetLockSettings(1);
+				} else if (SendMessage(GetDlgItem(hwnd, IDC_LOCKSETTING_LOGOFF), BM_GETCHECK, 0, 0)
+					== BST_CHECKED) {
+					_this->m_server->SetLockSettings(2);
+				} else {
+					_this->m_server->SetLockSettings(0);
+				}
 
 				// Handle the polling stuff
 				HWND hPollFullScreen = GetDlgItem(hwnd, IDC_POLL_FULLSCREEN);
@@ -1160,6 +1203,11 @@ vncProperties::LoadString(HKEY key, LPCSTR keyname)
 void
 vncProperties::Load(BOOL usersettings)
 {
+	if (m_dlgvisible) {
+		vnclog.Print(LL_INTWARN, VNCLOG("service helper invoked while Properties panel displayed\n"));
+		return;
+	}
+
 	char username[UNLEN+1];
 	HKEY hkLocal, hkLocalUser, hkDefault;
 	DWORD dw;
@@ -1222,6 +1270,7 @@ vncProperties::Load(BOOL usersettings)
 	m_pref_PollOnEventOnly=FALSE;
 	m_allowshutdown = TRUE;
 	m_allowproperties = TRUE;
+	m_alloweditclients = TRUE;
 	m_pref_FullScreen = FALSE;
 	m_pref_WindowShared = TRUE;
 	m_pref_ScreenAreaShared = FALSE;
@@ -1238,6 +1287,7 @@ vncProperties::Load(BOOL usersettings)
 	m_server->SetHttpdEnabled(LoadInt(hkLocal, "EnableHTTPDaemon", true),
 							  LoadInt(hkLocal, "EnableURLParams", false));
 	m_server->SetAuthRequired(LoadInt(hkLocal, "AuthRequired", true));
+	// NOTE: RealVNC sets ConnectPriority to 0 by default, we set it to 2.
 	m_server->SetConnectPriority(LoadInt(hkLocal, "ConnectPriority", 2));
 	if (!m_server->LoopbackOnly())
 	{
@@ -1279,6 +1329,7 @@ vncProperties::Load(BOOL usersettings)
 	m_pref_PollConsoleOnly=TRUE;
 	m_pref_PollOnEventOnly=FALSE;
 	m_pref_RemoveWallpaper=TRUE;
+	m_alloweditclients = TRUE;
 	m_allowshutdown = TRUE;
 	m_allowproperties = TRUE;
 	m_pref_FullScreen = TRUE;
@@ -1298,6 +1349,7 @@ vncProperties::Load(BOOL usersettings)
 #if !defined HORIZONLIVE
 		m_allowshutdown = LoadInt(hkDefault, "AllowShutdown", m_allowshutdown);
 		m_allowproperties = LoadInt(hkDefault, "AllowProperties", m_allowproperties);
+		m_alloweditclients = LoadInt(hkDefault, "AllowEditClients", m_alloweditclients);
 #endif	
 	}
 
@@ -1312,6 +1364,7 @@ vncProperties::Load(BOOL usersettings)
 #if !defined HORIZONLIVE
 			m_allowshutdown = LoadInt(hkLocalUser, "AllowShutdown", m_allowshutdown);
 			m_allowproperties = LoadInt(hkLocalUser, "AllowProperties", m_allowproperties);
+			m_alloweditclients = LoadInt(hkLocalUser, "AllowEditClients", m_alloweditclients);
 #endif
 		}
 
@@ -1553,6 +1606,12 @@ vncProperties::SaveUserPrefs(HKEY appkey)
 	// Connection querying settings
 	SaveInt(appkey, "QuerySetting", m_server->QuerySetting());
 	SaveInt(appkey, "QueryTimeout", m_server->QueryTimeout());
+
+	// Lock settings
+	SaveInt(appkey, "LockSetting", m_server->LockSettings());
+
+	// Wallpaper removal
+	SaveInt(appkey, "RemoveWallpaper", m_server->RemoveWallpaperEnabled());
 
 	// Save the password
 	char passwd[MAXPWLEN];

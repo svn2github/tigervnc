@@ -137,9 +137,6 @@ vncDesktopThread::run_undetached(void *arg)
 		return NULL;
 	}
 
-	// Succeeded to initialise ok
-	ReturnVal(TRUE);
-
 	RECT rect;
 	if (m_server->WindowShared()) {
 		GetWindowRect(m_server->GetWindowShared(), &rect);
@@ -151,6 +148,9 @@ vncDesktopThread::run_undetached(void *arg)
 
 	IntersectRect(&rect, &rect, &m_desktop->m_bmrect);
 	m_server->SetSharedRect(rect);
+
+	// Succeeded to initialise ok
+	ReturnVal(TRUE);
 
 	// START PROCESSING DESKTOP MESSAGES
 

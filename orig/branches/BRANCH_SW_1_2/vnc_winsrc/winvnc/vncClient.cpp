@@ -1,3 +1,4 @@
+//  Copyright (C) 2001 HorizonLive.com, Inc. All Rights Reserved.
 //  Copyright (C) 2001 Const Kaplinsky. All Rights Reserved.
 //  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
@@ -572,7 +573,7 @@ vncClientThread::run(void *arg)
 			m_client->m_buffer->EnableXCursor(FALSE);
 			m_client->m_buffer->EnableRichCursor(FALSE);
 			m_client->m_buffer->EnableLastRect(FALSE);
-
+			m_client->m_use_NewFBSize = FALSE;
 			m_client->m_cursor_update_pending = FALSE;
 			m_client->m_cursor_update_sent = FALSE;
 
@@ -649,13 +650,23 @@ vncClientThread::run(void *arg)
 						continue;
 					}
 
+					// Is this a NewFBSize encoding request?
+					if (Swap32IfLE(encoding) == rfbEncodingNewFBSize) {
+						m_client->m_use_NewFBSize = TRUE;
+						vnclog.Print(LL_INTINFO, VNCLOG("NewFBSize protocol extension enabled\n"));
+						continue;
+					}
+
+					
 					// Have we already found a suitable encoding?
 					if (!encoding_set)
 					{	// omni_mutex_lock l(m_client->m_regionLock);
 
 						// No, so try the buffer to see if this encoding will work...
-						if (m_client->m_buffer->SetEncoding(Swap32IfLE(encoding)))
+						if (m_client->m_buffer->SetEncoding(Swap32IfLE(encoding))) {
 							encoding_set = TRUE;
+							m_client->m_encoding = encoding;
+						}
 					}
 				}
 
@@ -666,6 +677,7 @@ vncClientThread::run(void *arg)
 
 					vnclog.Print(LL_INTINFO, VNCLOG("defaulting to raw encoder\n"));
 
+					m_client->m_encoding = rfbEncodingRaw;
 					if (!m_client->m_buffer->SetEncoding(Swap32IfLE(rfbEncodingRaw)))
 					{
 						vnclog.Print(LL_INTERR, VNCLOG("failed to select raw encoder!\n"));
@@ -848,6 +860,7 @@ vncClientThread::run(void *arg)
 			// Unknown message, so fail!
 			connected = FALSE;
 		}
+
 	}
 
 	// Move into the thread's original desktop
@@ -894,6 +907,9 @@ vncClient::vncClient()
 
 	// IMPORTANT: Initially, client is not protocol-ready.
 	m_protocol_ready = FALSE;
+	m_DesktopSizeChanged = FALSE;
+	m_use_NewFBSize = FALSE;
+	m_ReadyChangeDS = FALSE;
 }
 
 vncClient::~vncClient()
@@ -1032,21 +1048,28 @@ vncClient::TriggerUpdate()
 {
 	// Lock the updates stored so far
 	omni_mutex_lock l(m_regionLock);
-	if (!m_protocol_ready) return;
-
-	if (m_updatewanted)
-	{
+	if (!m_protocol_ready)
+		return;
+		
+	if (m_DesktopSizeChanged) {
+		m_ReadyChangeDS = TRUE;
+		m_full_rgn.Clear();
+		m_incr_rgn.Clear();
+		m_changed_rgn.Clear();
+		return;
+	}
+	
+	if (m_updatewanted) {
+	
 		// Handle the three polling modes
-		if (m_server->PollFullScreen())
-		{
+		if (m_server->PollFullScreen()) {
 			RECT rect;
 			rect.left = (m_pollingcycle % 2) * m_qtrscreen.right;
 			rect.right = rect.left + m_qtrscreen.right;
 			rect.top = (m_pollingcycle / 2) * m_qtrscreen.bottom;
 			rect.bottom = rect.top + m_qtrscreen.bottom;
-
 			m_changed_rgn.AddRect(rect);
-			
+
 			m_pollingcycle = (m_pollingcycle + 1) % 4;
 		}
 
@@ -1076,24 +1099,23 @@ vncClient::TriggerUpdate()
 
 		// Clear the remote event flag
 		m_remoteevent = FALSE;
-
-		// Send an update if one is waiting
-		if (!m_changed_rgn.IsEmpty() ||
-			!m_full_rgn.IsEmpty() ||
-			m_copyrect_set ||
-			m_cursor_update_pending)
+	}
+	
+	// Send an update if one is waiting
+	if (!m_changed_rgn.IsEmpty() ||
+		!m_full_rgn.IsEmpty() ||
+		m_copyrect_set ||
+		m_cursor_update_pending)
 		{
-			// Has the palette changed?
-			if (m_palettechanged)
-			{
-				m_palettechanged = FALSE;
-				if (!SendPalette())
-					return;
-			}
-
-			// Now send the update
-			m_updatewanted = !SendUpdate();
+		// Has the palette changed?
+		if (m_palettechanged) {
+			m_palettechanged = FALSE;
+			if (!SendPalette())
+				return;
 		}
+
+		// Now send the update
+		m_updatewanted = !SendUpdate();
 	}
 }
 
@@ -1586,6 +1608,43 @@ vncClient::SendLastRect()
 	return TRUE;
 }
 
+// Send NewFBSize pseudo-rectangle to notify the client about
+// framebuffer size change
+BOOL
+vncClient::SendNewFBSize()
+{
+	rfbFramebufferUpdateRectHeader hdr;
+	RECT SharedRect;
+
+	if (m_server->WindowShared()) 
+		GetWindowRect(m_server->GetWindowShared(), &SharedRect);
+	else
+		SharedRect = m_server->getSharedRect();
+		
+	if (m_use_NewFBSize) {
+		hdr.r.x = 0;
+		hdr.r.y = 0;
+		hdr.r.w = Swap16IfLE(SharedRect.right - SharedRect.left);
+		hdr.r.h = Swap16IfLE(SharedRect.bottom - SharedRect.top);
+		hdr.encoding = Swap32IfLE(rfbEncodingNewFBSize);
+
+		rfbFramebufferUpdateMsg header;
+		header.nRects = Swap16IfLE(1);
+		if (!SendRFBMsg(rfbFramebufferUpdate, (BYTE *)&header,
+						sz_rfbFramebufferUpdateMsg))
+			return FALSE;
+
+		// Now send the message;
+		if (!m_socket->SendQueued((char *)&hdr, sizeof(hdr)))
+			return FALSE;
+	}
+	m_fullscreen.bottom = SharedRect.bottom - SharedRect.top;
+	m_fullscreen.right = SharedRect.right - SharedRect.left;
+	m_qtrscreen.right = m_fullscreen.right/2;
+	m_qtrscreen.bottom = m_fullscreen.bottom/2;
+	return TRUE;
+}
+
 // Send the encoder-generated palette to the client
 // This function only returns FALSE if the SendQueued fails - any other
 // error is coped with internally...
@@ -1657,3 +1716,13 @@ vncClient::SendCursorShapeUpdate()
 	return TRUE;
 }
 
+BOOL
+vncClient::SetNewDS()
+{
+	SendNewFBSize(); 
+	BOOL t = m_buffer->SetEncoding(Swap32IfLE(m_encoding));
+	m_changed_rgn.AddRect(m_fullscreen);
+	UpdateDesktopSize(FALSE);
+	m_ReadyChangeDS = FALSE;
+	return t;
+}

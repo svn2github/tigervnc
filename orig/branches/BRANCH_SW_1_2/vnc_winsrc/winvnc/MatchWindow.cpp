@@ -198,12 +198,12 @@ LRESULT CALLBACK CMatchWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, L
                     ptHitTest.x=LOWORD(lParam);  
                     ptHitTest.y=HIWORD(lParam);
                     int i=pMatchWnd->HitTest(ptHitTest);
-                    if (i>-1)
+					if (i > -1)
                     {
-                        SetCapture(hWnd);
-                        iCornerNumber=i;
-                        RECT wRect;
-                        GetWindowRect(hWnd,&wRect);
+						RECT wRect;
+						GetWindowRect(hWnd,&wRect);
+						SetCapture(hWnd);
+						iCornerNumber=i;
                         
                         switch (iCornerNumber)
                         {
@@ -258,19 +258,22 @@ LRESULT CALLBACK CMatchWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, L
                         }
                         ClipCursor(&wRect);
                     }
-                    else
-                    {
-		        PostMessage(hWnd,WM_NCLBUTTONDOWN, HTCAPTION, lParam);
-                    }
+					else
+					{
+						PostMessage(hWnd,WM_NCLBUTTONDOWN, HTCAPTION, lParam);
+            
+					} 
 		}
 		break;
-        case WM_LBUTTONUP:
+	case WM_LBUTTONUP: 
             if (GetCapture()==hWnd)
             {
                 ReleaseCapture();
                 ClipCursor(NULL);
             }
             break;
+			
+				
 	case WM_PAINT:
 			hdc = BeginPaint(hWnd, &ps);
 			
@@ -301,16 +304,20 @@ LRESULT CALLBACK CMatchWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, L
 			DeleteObject(hBrush);
 			EndPaint(hWnd, &ps);
 		break;
-        case WM_SIZE:
-        case WM_MOVE:
-                if (pMatchWnd!=NULL)
-                {
-                    int left,right,top,bottom;
-                    pMatchWnd->GetPosition(left,top,right,bottom);
-                    if (pMatchWnd->m_pServer!=NULL)
-                        pMatchWnd->m_pServer->SetMatchSizeFields(left,top,right,bottom);
-                }
-                break;
+        
+			case WM_SIZE:
+			case WM_MOVE:
+				
+				if (pMatchWnd!=NULL)
+				{
+					int left,right,top,bottom;
+					pMatchWnd->GetPosition(left,top,right,bottom);
+					if (pMatchWnd->m_pServer!=NULL)
+						pMatchWnd->m_pServer->SetMatchSizeFields(left,top,right,bottom);
+				}		
+				
+			break;
+
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}

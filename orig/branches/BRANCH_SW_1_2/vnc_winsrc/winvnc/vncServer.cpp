@@ -1,3 +1,4 @@
+//  Copyright (C) 2001 HorizonLive.com, Inc. All Rights Reserved.
 //  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
@@ -1446,3 +1447,71 @@ vncServer::SetMatchSizeFields(int left,int top,int right,int bottom)
 	m_shared_rect.bottom=bottom;
 	m_shared_rect.right=right;
 }
+
+void
+vncServer::UpdateDesktopSize()
+{
+	vncClientList::iterator i;
+	
+	omni_mutex_lock l(m_clientsLock);
+
+	// Post this screen size update to all the connected clients
+	for (i = m_authClients.begin(); i != m_authClients.end(); i++)
+	{
+		// Post the update
+		GetClient(*i)->UpdateDesktopSize(TRUE);
+	}
+}
+
+BOOL
+vncServer::CheckUpdateDesktopSize()
+{
+	vncClientList::iterator i;
+	
+	BOOL check = FALSE;
+	omni_mutex_lock l(m_clientsLock);
+
+	for (i = m_authClients.begin(); i != m_authClients.end(); i++)
+	{
+		check = check || GetClient(*i)->IsDesktopSizeChanged();
+	}
+	return check;
+}
+
+
+void
+vncServer::SetNewDS()
+{
+	vncClientList::iterator i;
+		
+	omni_mutex_lock l(m_clientsLock);
+
+	// Post this screen size update to all the connected clients
+	for (i = m_authClients.begin(); i != m_authClients.end(); i++)
+	{
+		// Post the update
+		if (!GetClient(*i)->SetNewDS()) {
+			vnclog.Print(LL_INTINFO, VNCLOG("Unable to set new desktop size\n"));
+			KillClient (*i);
+		}
+	}
+}
+
+
+BOOL
+vncServer::ReadyChangeDS()
+{
+	vncClientList::iterator i;
+	
+	BOOL check = TRUE;
+	omni_mutex_lock l(m_clientsLock);
+
+	// Post this screen size update to all the connected clients
+	for (i = m_authClients.begin(); i != m_authClients.end(); i++)
+	{
+		// Post the update
+		check = check && GetClient(*i)->ReadyChangeDS();
+	}
+	return check;
+}
+

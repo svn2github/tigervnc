@@ -29,6 +29,8 @@
 #define IDB_BITMAP2                     140
 #define IDC_CURSOR1                     141
 #define IDB_BITMAP3                     142
+#define IDR_SCHEDULER_CLASS             143
+#define IDR_MUTEX_CLASS                 144
 #define IDC_CONNECT_BORDER              1003
 #define IDC_CONNECT_SOCK                1004
 #define IDC_CONNECT_CORBA               1005
@@ -100,7 +102,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        143
+#define _APS_NEXT_RESOURCE_VALUE        145
 #define _APS_NEXT_COMMAND_VALUE         40008
 #define _APS_NEXT_CONTROL_VALUE         1063
 #define _APS_NEXT_SYMED_VALUE           101

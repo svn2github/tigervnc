@@ -396,6 +396,8 @@ IDR_VNCCANVAS_CLASS     JAVACLASS DISCARDABLE   "res\\vncCanvas.class"
 IDR_VNCVIEWER_CLASS     JAVACLASS DISCARDABLE   "res\\vncviewer.class"
 IDR_ANIMMEMIMAGESRC_CLASS JAVACLASS DISCARDABLE   "res\\animatedMemoryImageSource.class"
 IDR_DESCIPHER_CLASS     JAVACLASS DISCARDABLE   "res\\DesCipher.class"
+IDR_SCHEDULER_CLASS     JAVACLASS DISCARDABLE   "res\\Scheduler.class"
+IDR_MUTEX_CLASS         JAVACLASS DISCARDABLE   "res\\Mutex.class"
 
 /////////////////////////////////////////////////////////////////////////////
 //

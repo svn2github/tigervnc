@@ -1,3 +1,4 @@
+//  Copyright (C) 2001 HorizonLive.com, Inc. All Rights Reserved.
 //  Copyright (C) 2001 Const Kaplinsky. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
@@ -186,38 +187,67 @@ vncDesktopThread::run_undetached(void *arg)
 					m_server->KillAuthClients();
 					break;
 				}
-
-				// Add a full screen update to all the clients
-				RECT rect = m_desktop->m_bmrect;
-				m_server->UpdateRect(rect);
-				m_server->UpdatePalette();
 			}
+			
+			BOOL change = FALSE;
+			if ( m_server->OneSharedAppli() && !m_server->CheckUpdateDesktopSize() ) {
+				RECT SharedRect;
+
+				if ( m_server->WindowShared() )
+					GetWindowRect( m_server->GetWindowShared(), &SharedRect );
+				else
+					SharedRect = m_server->getSharedRect();
+			
+				if (  m_desktop->m_scrinfo.framebufferHeight != SharedRect.bottom - SharedRect.top   
+					|| m_desktop->m_bmrect.right-m_desktop->m_bmrect.left != SharedRect.right - SharedRect.left ) 
+					m_server->UpdateDesktopSize();
+			}			
+								
+				if ( m_server->ReadyChangeDS () ) {
+			
+					// Attempt to close the old hooks
+					if (!m_desktop->Shutdown())
+					{
+						m_server->KillAuthClients();
+						break;
+					}
+
+					// Now attempt to re-install them!
+					if (!m_desktop->Startup())
+					{
+						m_server->KillAuthClients();
+						break;
+					}
+					m_server->SetNewDS();
+				}	
+			 
+			
 	
 			// TRIGGER THE UPDATE
-
 			// Update the mouse if required
-			if (m_desktop->m_cursormoved)
-			{
-				m_desktop->m_cursormoved = FALSE;
+				if (m_desktop->m_cursormoved) {
+			
+					m_desktop->m_cursormoved = FALSE;
 
-				// Tell the server that the cursor has moved!
-				m_server->UpdateMouse();
-			}
+					// Tell the server that the cursor has moved!
+					m_server->UpdateMouse();
+				}
 
-			// Check for moved windows
-			if (!m_server->OneSharedAppli())
-				m_desktop->CalcCopyRects();
+				// Check for moved windows
+				if (!m_server->OneSharedAppli())
+					m_desktop->CalcCopyRects();
 
-			// Flush the cached region data to all clients
-			m_server->UpdateRegion(rgncache);
-			rgncache.Clear();
+				// Flush the cached region data to all clients
+				m_server->UpdateRegion(rgncache);
+				rgncache.Clear();
 
-			// Trigger an update to be sent
-			m_server->TriggerUpdate();
+				// Trigger an update to be sent
+				m_server->TriggerUpdate();
 
-			// Increase our priority while we process messages, to avoid "busy" applications
-			// flooding us with messages
-			omni_thread::set_priority(omni_thread::PRIORITY_HIGH);
+				// Increase our priority while we process messages, to avoid "busy" applications
+				// flooding us with messages
+				omni_thread::set_priority(omni_thread::PRIORITY_HIGH);
+			
 		}
 
 		// Now wait on further messages, or quit if told to
@@ -1371,6 +1401,7 @@ vncDesktop::Init(vncServer *server)
 void
 vncDesktop::RequestUpdate()
 {
+	if ( !m_server->CheckUpdateDesktopSize() )
 	PostMessage(m_hwnd, WM_TIMER, 0, 0);
 }
 

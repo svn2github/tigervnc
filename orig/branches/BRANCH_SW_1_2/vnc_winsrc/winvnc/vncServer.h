@@ -256,6 +256,10 @@ public:
 	virtual void SetWindowShared(HWND hWnd);
     virtual HWND GetWindowShared() { return m_hwndShared; };
 	virtual RECT getSharedRect () { return m_shared_rect; };
+	virtual void UpdateDesktopSize() ;
+	virtual BOOL CheckUpdateDesktopSize() ;
+	virtual BOOL ReadyChangeDS();
+	virtual void SetNewDS();
 
 	// Internal stuffs
 protected:
@@ -302,9 +306,9 @@ protected:
 	BOOL				m_poll_consoleonly;
 
     // shared preferences
-     BOOL    m_shared_oneapplionly;
-     HWND    m_hwndShared; // to keep the window 
-	 BOOL	 m_WindowShared;
+	BOOL				m_shared_oneapplionly;
+	HWND				m_hwndShared; // to keep the window 
+	BOOL				m_WindowShared;
 
 	// Name of this desktop
 	char				*m_name;

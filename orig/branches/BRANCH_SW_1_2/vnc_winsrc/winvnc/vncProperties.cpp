@@ -1,3 +1,4 @@
+//  Copyright (C) 2001 HorizonLive.com, Inc. All Rights Reserved.
 //  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
@@ -280,7 +281,7 @@ vncProperties::DialogProc(HWND hwnd,
 
 			_this->hNameAppli = GetDlgItem(hwnd, IDC_NAME_APPLI);
 
-		if (_this->m_pref_SharedOneAppliOnly)
+			if (_this->m_server->OneSharedAppli())
 				{
 					if(_this->m_pref_WindowShared)
 					{
@@ -522,11 +523,9 @@ vncProperties::DialogProc(HWND hwnd,
 
 				// Handle the share one window stuff
 			    HWND hOneSharedAppli = GetDlgItem(hwnd, IDC_ONESHARED_APPLI);
-			    _this->m_server->OneSharedAppli(
-					SendMessage(hOneSharedAppli, BM_GETCHECK, 0, 0) == BST_CHECKED
-					);
-				
-    
+			    _this->m_pref_SharedOneAppliOnly = SendMessage(hOneSharedAppli, BM_GETCHECK, 0, 0) == BST_CHECKED;
+  				_this->m_server->OneSharedAppli(_this->m_pref_SharedOneAppliOnly);
+				  
 				HWND hWindowCapture = GetDlgItem(hwnd, IDC_WINDOW);
 			    _this->m_server->WindowShared(
 					SendMessage(hWindowCapture, BM_GETCHECK, 0, 0) == BST_CHECKED
@@ -658,8 +657,7 @@ vncProperties::DialogProc(HWND hwnd,
 				
 				HWND bmp_hWnd=GetDlgItem(hwnd,IDC_BMPCURSOR);
 			    HBITMAP hNewImage,hOldImage;
-	
-				
+								
 				if (!(partage)){
 					HWND ShWnd=GetDlgItem(hwnd,IDC_WINDOW);
 					EnableWindow(ShWnd,FALSE);
@@ -672,8 +670,8 @@ vncProperties::DialogProc(HWND hwnd,
 					EnableWindow(bmp_hWnd,FALSE);
 					hNewImage=LoadBitmap(hAppInstance,MAKEINTRESOURCE(IDB_BITMAP3));
 					hOldImage=(HBITMAP)::SendMessage(bmp_hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
-					DeleteObject(hOldImage);}
-				else {
+					DeleteObject(hOldImage);
+				}else {
 					   HWND ShWnd=GetDlgItem(hwnd,IDC_WINDOW);
 					   EnableWindow(ShWnd,TRUE);
 					   HWND ShWnds=GetDlgItem(hwnd,IDC_SCREEN);
@@ -687,7 +685,7 @@ vncProperties::DialogProc(HWND hwnd,
 					   HWND Shnwnd = GetDlgItem(hwnd, IDC_NAME_APPLI);
 	      			   EnableWindow(Shnwnd,TRUE);
 	     			   _this->SetWindowCaption(_this->m_server->GetWindowShared());
-					}else {
+					} else {
 						EnableWindow(bmp_hWnd,FALSE);
 					    hNewImage=LoadBitmap(hAppInstance,MAKEINTRESOURCE(IDB_BITMAP3));
 						hOldImage=(HBITMAP)::SendMessage(bmp_hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
@@ -742,19 +740,13 @@ vncProperties::DialogProc(HWND hwnd,
 							DeleteObject(hOldImage);
 						    if (_this->m_pMatchWindow!=NULL) 
 							_this->m_pMatchWindow->Show();
-			
-			EnableWindow(GetDlgItem(hwnd,IDC_NAME_APPLI),FALSE);
-					
-					
-			
+
+							EnableWindow(GetDlgItem(hwnd,IDC_NAME_APPLI),FALSE);
 			}
-		
 			return TRUE;
-
-	}		
-	
-
+		}
 		break;
+
 	}
 	return 0;
 }
@@ -1128,8 +1120,8 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	m_pref_PollFullScreen=LoadInt(appkey, "PollFullScreen", m_pref_PollFullScreen);
 	m_pref_PollConsoleOnly=LoadInt(appkey, "OnlyPollConsole", m_pref_PollConsoleOnly);
 	m_pref_PollOnEventOnly=LoadInt(appkey, "OnlyPollOnEvent", m_pref_PollOnEventOnly);
-	//m_pref_SharedOneAppliOnly=LoadInt(appkey, "SharedOneAppliOnly",m_pref_SharedOneAppliOnly);
-	//m_pref_WindowShared=LoadInt(appkey, "WindowShared",m_pref_WindowShared);
+	m_pref_SharedOneAppliOnly = m_server->OneSharedAppli();
+	m_pref_WindowShared = m_server->WindowShared();
 }
 
 void
@@ -1294,8 +1286,6 @@ vncProperties::SaveUserPrefs(HKEY appkey)
 
 	SaveInt(appkey, "OnlyPollConsole", m_server->PollConsoleOnly());
 	SaveInt(appkey, "OnlyPollOnEvent", m_server->PollOnEventOnly());
-	SaveInt(appkey, "SharedOneAppliOnly", m_server->OneSharedAppli());
-	SaveInt(appkey, "WindowShared", m_pref_WindowShared);
 }
 
 

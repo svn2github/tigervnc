@@ -1808,11 +1808,19 @@ SOURCE=.\res\DesCipher.class
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\Mutex.class
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\optionsFrame.class
 # End Source File
 # Begin Source File
 
 SOURCE=.\res\rfbProto.class
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\Scheduler.class
 # End Source File
 # Begin Source File
 
@@ -1830,6 +1838,10 @@ SOURCE=.\res\vncviewer.jar
 # Begin Source File
 
 SOURCE=.\BUILDING.txt
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\cursor1.cur
 # End Source File
 # Begin Source File
 

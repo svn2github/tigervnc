@@ -610,6 +610,7 @@ vncClientThread::run(void *arg)
 					// Is this an XCursor encoding request?
 					if (Swap32IfLE(encoding) == rfbEncodingXCursor) {
 						m_client->m_buffer->EnableXCursor(TRUE);
+						m_client->m_use_XCursor = TRUE;
 						vnclog.Print(LL_INTINFO, VNCLOG("X-style cursor shape updates enabled\n"));
 						continue;
 					}
@@ -617,6 +618,7 @@ vncClientThread::run(void *arg)
 					// Is this a RichCursor encoding request?
 					if (Swap32IfLE(encoding) == rfbEncodingRichCursor) {
 						m_client->m_buffer->EnableRichCursor(TRUE);
+						m_client->m_use_RichCursor = TRUE;
 						vnclog.Print(LL_INTINFO, VNCLOG("Full-color cursor shape updates enabled\n"));
 						continue;
 					}
@@ -646,6 +648,7 @@ vncClientThread::run(void *arg)
 					// Is this a LastRect encoding request?
 					if (Swap32IfLE(encoding) == rfbEncodingLastRect) {
 						m_client->m_buffer->EnableLastRect(TRUE);
+						m_client->m_use_lastrect = TRUE;
 						vnclog.Print(LL_INTINFO, VNCLOG("LastRect protocol extension enabled\n"));
 						continue;
 					}
@@ -762,16 +765,17 @@ vncClientThread::run(void *arg)
 					msg.pe.x = Swap16IfLE(msg.pe.x);
 					msg.pe.y = Swap16IfLE(msg.pe.y);
 
-				     // if we share only one window...
-			     if (m_server->OneSharedAppli())
-				 {
+					// If we share only one window...
+					RECT coord;
+					if (m_server->WindowShared()) {
+						GetWindowRect(m_server->GetWindowShared(), &coord);
+						m_server->SetMatchSizeFields(coord.left, coord.top, coord.right, coord.bottom);  
+						coord = m_server->getSharedRect();
 					
-					RECT coord = m_server->getSharedRect();
-					
-					// to put position relative to screen
-					msg.pe.x = msg.pe.x + coord.left;
-					msg.pe.y = msg.pe.y + coord.top;
-				 }
+						// Put position relative to screen
+						msg.pe.x = msg.pe.x + coord.left;
+						msg.pe.y = msg.pe.y + coord.top;
+					}
 
 					// Work out the flags for this event
 					DWORD flags = MOUSEEVENTF_ABSOLUTE;
@@ -808,8 +812,7 @@ vncClientThread::run(void *arg)
 					// Generate coordinate values
 			
 					HWND bureau = GetDesktopWindow();
-					RECT coord;
-					GetWindowRect(bureau,&coord);
+					GetWindowRect(bureau, &coord);
 
 					unsigned long x = (msg.pe.x *  65535) / (coord.right - coord.left);
 					unsigned long y = (msg.pe.y * 65535) / (coord.bottom - coord.top);
@@ -910,6 +913,9 @@ vncClient::vncClient()
 	m_DesktopSizeChanged = FALSE;
 	m_use_NewFBSize = FALSE;
 	m_ReadyChangeDS = FALSE;
+	m_use_XCursor = FALSE;
+	m_use_RichCursor = FALSE;
+	m_use_lastrect = FALSE;
 }
 
 vncClient::~vncClient()
@@ -1026,20 +1032,19 @@ vncClient::PollWindow(HWND hwnd)
 		// Get the rectangle
 		if (GetWindowRect(hwnd, &rect))
 		{
-			if (m_server->OneSharedAppli())
-			{
-				if (m_server->WindowShared()) {
-					GetWindowRect(m_server->GetWindowShared(), &trect);
-				} else {
-					trect = m_server->getSharedRect();
-				}
-				rect.left -= trect.left;
-				rect.top -= trect.top;
-				rect.right -= trect.left;
-				rect.bottom -= trect.top;
-			}
-			m_changed_rgn.AddRect(rect);
+			if (m_server->WindowShared()) {
+				GetWindowRect(m_server->GetWindowShared(), &trect);
+				m_server->SetMatchSizeFields(rect.left, rect.top, rect.right, rect.bottom);  
+			} 
+				
+			trect = m_server->getSharedRect();
+			
+			rect.left -= trect.left;
+			rect.top -= trect.top;
+			rect.right -= trect.left;
+			rect.bottom -= trect.top;
 		}
+		m_changed_rgn.AddRect(rect);
 	}
 }
 
@@ -1053,9 +1058,6 @@ vncClient::TriggerUpdate()
 		
 	if (m_DesktopSizeChanged) {
 		m_ReadyChangeDS = TRUE;
-		m_full_rgn.Clear();
-		m_incr_rgn.Clear();
-		m_changed_rgn.Clear();
 		return;
 	}
 	
@@ -1099,23 +1101,23 @@ vncClient::TriggerUpdate()
 
 		// Clear the remote event flag
 		m_remoteevent = FALSE;
-	}
-	
-	// Send an update if one is waiting
-	if (!m_changed_rgn.IsEmpty() ||
-		!m_full_rgn.IsEmpty() ||
-		m_copyrect_set ||
-		m_cursor_update_pending)
-		{
-		// Has the palette changed?
-		if (m_palettechanged) {
-			m_palettechanged = FALSE;
-			if (!SendPalette())
-				return;
-		}
 
-		// Now send the update
-		m_updatewanted = !SendUpdate();
+		// Send an update if one is waiting
+		if (!m_changed_rgn.IsEmpty() ||
+			!m_full_rgn.IsEmpty() ||
+			m_copyrect_set ||
+			m_cursor_update_pending)
+			{
+			// Has the palette changed?
+			if (m_palettechanged) {
+				m_palettechanged = FALSE;
+				if (!SendPalette())
+					return;
+			}
+
+			// Now send the update
+			m_updatewanted = !SendUpdate();
+		}
 	}
 }
 
@@ -1616,10 +1618,12 @@ vncClient::SendNewFBSize()
 	rfbFramebufferUpdateRectHeader hdr;
 	RECT SharedRect;
 
-	if (m_server->WindowShared()) 
+	if (m_server->WindowShared()) { 
 		GetWindowRect(m_server->GetWindowShared(), &SharedRect);
-	else
-		SharedRect = m_server->getSharedRect();
+		m_server->SetMatchSizeFields( SharedRect.left, SharedRect.top, SharedRect.right, SharedRect.bottom);  
+	}
+	
+	SharedRect = m_server->getSharedRect();
 		
 	if (m_use_NewFBSize) {
 		hdr.r.x = 0;
@@ -1721,7 +1725,13 @@ vncClient::SetNewDS()
 {
 	SendNewFBSize(); 
 	BOOL t = m_buffer->SetEncoding(Swap32IfLE(m_encoding));
-	m_changed_rgn.AddRect(m_fullscreen);
+	m_buffer->EnableXCursor(m_use_XCursor);
+	m_buffer->EnableRichCursor(m_use_RichCursor);
+	m_buffer->EnableLastRect(m_use_lastrect);
+	m_full_rgn.Clear();
+	m_incr_rgn.Clear();
+	// m_changed_rgn.Clear();
+	m_full_rgn.AddRect(m_fullscreen);
 	UpdateDesktopSize(FALSE);
 	m_ReadyChangeDS = FALSE;
 	return t;

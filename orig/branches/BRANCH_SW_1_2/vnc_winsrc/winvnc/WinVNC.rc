@@ -67,15 +67,15 @@ BEGIN
                     IDC_DISABLE_LOCAL_INPUTS,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,10,100,145,15
     PUSHBUTTON      "Ad&vanced",IDADVANCED,165,85,51,15
-    CONTROL         "Part of the screen:",IDC_ONESHARED_APPLI,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,207,103,10
     EDITTEXT        IDC_NAME_APPLI,91,221,119,14,ES_AUTOHSCROLL
     CONTROL         IDI_WINVNC,IDC_BMPCURSOR,"Static",SS_BITMAP,63,218,15,13
     CONTROL         "Window",IDC_WINDOW,"Button",BS_AUTORADIOBUTTON | 
-                    WS_GROUP | WS_TABSTOP,19,223,42,8
+                    WS_TABSTOP,19,222,42,10
     CONTROL         "Screen Area",IDC_SCREEN,"Button",BS_AUTORADIOBUTTON | 
                     WS_TABSTOP,19,236,55,10
     GROUPBOX        "Sharing",IDC_PARTAGE_BORDER,5,196,211,55
+    CONTROL         "Full Screen",IDC_FULLSCREEN,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,19,207,51,10
 END
 
 IDD_ABOUT DIALOG DISCARDABLE  0, 0, 326, 122
@@ -217,7 +217,7 @@ BEGIN
         HORZGUIDE, 170
         HORZGUIDE, 174
         HORZGUIDE, 190
-        HORZGUIDE, 234
+        HORZGUIDE, 236
     END
 
     IDD_ABOUT, DIALOG

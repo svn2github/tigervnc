@@ -101,10 +101,15 @@ vncServer::vncServer()
 	m_clientquitsig = new omni_condition(&m_clientsLock);
 	m_clients_disabled = FALSE;
 	
-	// one window shared stuff
-	m_shared_oneapplionly = FALSE;
-    m_WindowShared= TRUE;
+	// One window shared stuff
+	m_full_screen = TRUE;
+	m_WindowShared= FALSE;
 	m_hwndShared = NULL;
+	m_screen_area = FALSE;
+
+	RECT temp;
+	GetWindowRect(GetDesktopWindow(), &temp);
+	SetMatchSizeFields(temp.left, temp.top, temp.right, temp.bottom);
 }
 
 vncServer::~vncServer()
@@ -765,6 +770,7 @@ vncServer::UpdateRegion(vncRegion &region)
 	// Post this update to all the connected clients
 	for (i = m_authClients.begin(); i != m_authClients.end(); i++)
 	{
+		if (!GetClient(*i)->IsDesktopSizeChanged())
 		// Post the update
 		GetClient(*i)->UpdateRegion(region);
 	}
@@ -1440,8 +1446,14 @@ vncServer::SetWindowShared(HWND hWnd)
 }
 
 void 
-vncServer::SetMatchSizeFields(int left,int top,int right,int bottom)
+vncServer::SetMatchSizeFields(int left, int top, int right, int bottom)
 {
+	if (right - left < 32)
+		right += 32;
+	
+	if (bottom - top < 32)
+		bottom += 32 ;
+
 	m_shared_rect.left=left;
 	m_shared_rect.top=top;
 	m_shared_rect.bottom=bottom;

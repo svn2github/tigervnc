@@ -248,9 +248,7 @@ public:
 	virtual BOOL RemoveWallpaperEnabled() {return m_remove_wallpaper;};
 
     // handling to share only one window
-    virtual void OneSharedAppli(BOOL enable) { m_shared_oneapplionly = enable; };
-    virtual BOOL OneSharedAppli() { return m_shared_oneapplionly; };
-	virtual void WindowShared(BOOL enable) { m_WindowShared = enable; };
+    virtual void WindowShared(BOOL enable) { m_WindowShared = enable; };
     virtual BOOL WindowShared() { return m_WindowShared; };
     virtual void SetMatchSizeFields(int left,int top,int right,int bottom);
 	virtual void SetWindowShared(HWND hWnd);
@@ -260,6 +258,11 @@ public:
 	virtual BOOL CheckUpdateDesktopSize() ;
 	virtual BOOL ReadyChangeDS();
 	virtual void SetNewDS();
+    virtual BOOL FullScreen() { return m_full_screen; };
+	virtual void FullScreen(BOOL enable) { m_full_screen = enable; };
+	virtual BOOL ScreenAreaShared() { return m_screen_area; };
+	virtual void ScreenAreaShared(BOOL enable) { m_screen_area = enable; };
+
 
 	// Internal stuffs
 protected:
@@ -309,7 +312,8 @@ protected:
 	BOOL				m_shared_oneapplionly;
 	HWND				m_hwndShared; // to keep the window 
 	BOOL				m_WindowShared;
-
+	BOOL				m_full_screen;
+	BOOL				m_screen_area;
 	// Name of this desktop
 	char				*m_name;
 

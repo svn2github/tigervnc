@@ -131,10 +131,10 @@ protected:
 	BOOL m_pref_PollFullScreen;
 	BOOL m_pref_PollConsoleOnly;
 	BOOL m_pref_PollOnEventOnly;
-	BOOL m_pref_SharedOneAppliOnly;
 	BOOL m_pref_WindowShared;
 	HWND hNameAppli;
-
+	BOOL m_pref_FullScreen;
+	BOOL m_pref_ScreenAreaShared;
 private:
 static  void DrawFrameAroundWindow(HWND hWnd);
 static  LRESULT CALLBACK BmpWndProc(HWND, UINT, WPARAM, LPARAM);

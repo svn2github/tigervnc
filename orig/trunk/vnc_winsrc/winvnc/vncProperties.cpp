@@ -485,7 +485,7 @@ vncProperties::DialogProc(HWND hwnd,
 					_this->m_server->SetLockSettings(0);
 				}
 
-				if(_this->m_shareddtarea->ApplySharedControls(hwnd) == true)
+				if(_this->m_shareddtarea->ApplySharedControls() == true)
 					return true;
 
 				// Handle the polling stuff
@@ -718,21 +718,15 @@ vncProperties::DialogProc(HWND hwnd,
 #endif
 
 		case IDC_FULLSCREEN:
-
-			_this->m_shareddtarea->FullScreen(hwnd);
-		
+			_this->m_shareddtarea->FullScreen();
 			return TRUE;
 	
 		case IDC_WINDOW:
-
-			_this->m_shareddtarea->SharedWindow(hwnd);
-
+			_this->m_shareddtarea->SharedWindow();
 			return TRUE;
 
 		case IDC_SCREEN:
-
-			_this->m_shareddtarea->SharedScreen(hwnd);
-
+			_this->m_shareddtarea->SharedScreen();
 			return TRUE;
 
 		}

@@ -25,6 +25,7 @@ import java.awt.event.*;
 import java.awt.image.*;
 import java.io.*;
 import java.lang.*;
+import java.util.*;
 import java.util.zip.*;
 
 
@@ -41,10 +42,8 @@ class VncCanvas extends Canvas
   Color[] colors;
   int bytesPixel;
 
-  int scaledWidth, scaledHeight;
-
-  Graphics memGraphics;
   Image memImage;
+  Graphics memGraphics;
 
   Image rawPixelsImage;
   MemoryImageSource pixelsSource;
@@ -58,11 +57,23 @@ class VncCanvas extends Canvas
   final static int tightZlibBufferSize = 512;
   Inflater[] tightInflaters;
 
+  // Since JPEG images are loaded asynchronously, we have to remember
+  // their position in the framebuffer image. Currently, a Hashtable
+  // is used to map Image object references to Dimension objects.
+  // FIXME: Use ordered lists instead, to make sure drawing operations
+  // are performed in correct order.
+  // FIXME: Do not draw anything elase until a JPEG rectangle is fully
+  // drawn?
+  Hashtable jpegAnchorTable;
+
   boolean listenersInstalled;
 
   VncCanvas(VncViewer v) throws IOException {
     viewer = v;
     rfb = viewer.rfb;
+
+    tightInflaters = new Inflater[4];
+    jpegAnchorTable = new Hashtable();
 
     cm8 = new DirectColorModel(8, 7, (7 << 3), (3 << 6));
     cm24 = new DirectColorModel(24, 0xFF0000, 0x00FF00, 0x0000FF);
@@ -84,20 +95,18 @@ class VncCanvas extends Canvas
     listenersInstalled = false;
     if (!viewer.options.viewOnly)
       enableInput(true);
-
-    tightInflaters = new Inflater[4];
   }
 
   public Dimension getPreferredSize() {
-    return new Dimension(scaledWidth, scaledHeight);
+    return new Dimension(rfb.framebufferWidth, rfb.framebufferHeight);
   }
 
   public Dimension getMinimumSize() {
-    return new Dimension(scaledWidth, scaledHeight);
+    return new Dimension(rfb.framebufferWidth, rfb.framebufferHeight);
   }
 
   public Dimension getMaximumSize() {
-    return new Dimension(scaledWidth, scaledHeight);
+    return new Dimension(rfb.framebufferWidth, rfb.framebufferHeight);
   }
 
   public void update(Graphics g) {
@@ -105,31 +114,36 @@ class VncCanvas extends Canvas
   }
 
   public void paint(Graphics g) {
-    if (rfb.framebufferWidth == scaledWidth) {
-      g.drawImage(memImage, 0, 0, this);
-    } else {
-      g.drawImage(memImage, 0, 0, scaledWidth, scaledHeight, this);
-    }
+    g.drawImage(memImage, 0, 0, null);
     if (showSoftCursor) {
       int x0 = cursorX - hotX, y0 = cursorY - hotY;
       Rectangle r = new Rectangle(x0, y0, cursorWidth, cursorHeight);
       if (r.intersects(g.getClipBounds())) {
-	g.drawImage(softCursor, x0, y0, this);
+	g.drawImage(softCursor, x0, y0, null);
       }
     }
   }
 
   //
-  // Override the ImageObserver interface method.
-  // FIXME: Call repaint() from imageUpdate()?
+  // Override the ImageObserver interface method to handle drawing of
+  // JPEG-encoded data.
   //
 
   public boolean imageUpdate(Image img, int infoflags,
                              int x, int y, int width, int height) {
-    if ((infoflags & ALLBITS) == 0) {
-      return true;
+    if ((infoflags & (ALLBITS | ABORT)) == 0) {
+      return true;		// We need more image data.
     } else {
-      return false;
+      // If the whole image is available, draw it now.
+      if ((infoflags & ALLBITS) != 0) {
+	Rectangle rect = (Rectangle)jpegAnchorTable.get(img);
+	if (rect != null) {
+	  jpegAnchorTable.remove(img);
+	  memGraphics.drawImage(img, rect.x, rect.y, null);
+	  scheduleRepaint(rect.x, rect.y, rect.width, rect.height);
+	}
+      }
+      return false;		// All image data was processed.
     }
   }
 
@@ -153,9 +167,7 @@ class VncCanvas extends Canvas
 
   void updateFramebufferSize() {
 
-    int f = viewer.options.scalingFactor;
-    scaledWidth = (rfb.framebufferWidth * f + 50) / 100;
-    scaledHeight = (rfb.framebufferHeight * f + 50) / 100;
+    jpegAnchorTable.clear();
 
     memImage = viewer.createImage(rfb.framebufferWidth, rfb.framebufferHeight);
     memGraphics = memImage.getGraphics();
@@ -183,19 +195,19 @@ class VncCanvas extends Canvas
       if (viewer.desktopScrollPane != null)
 	resizeDesktopFrame();
     } else {
-      setSize(scaledWidth, scaledHeight);
+      setSize(rfb.framebufferWidth, rfb.framebufferHeight);
     }
   }
 
   void resizeDesktopFrame() {
-    setSize(scaledWidth, scaledHeight);
+    setSize(rfb.framebufferWidth, rfb.framebufferHeight);
 
     // FIXME: Find a better way to determine correct size of a
     // ScrollPane.  -- const
     Insets insets = viewer.desktopScrollPane.getInsets();
-    viewer.desktopScrollPane.setSize(scaledWidth +
+    viewer.desktopScrollPane.setSize(rfb.framebufferWidth +
 				     2 * Math.min(insets.left, insets.right),
-				     scaledHeight +
+				     rfb.framebufferHeight +
 				     2 * Math.min(insets.top, insets.bottom));
 
     viewer.vncFrame.pack();
@@ -668,14 +680,15 @@ class VncCanvas extends Canvas
       return;
     }
 
-    // FIXME: createImage() does not load all image data at once.
     if (comp_ctl == rfb.TightJpeg) {
       byte[] jpegData = new byte[rfb.readCompactLen()];
       rfb.is.readFully(jpegData);
+      // Create an Image object from the JPEG data.
       Image jpegImage = Toolkit.getDefaultToolkit().createImage(jpegData);
+      // Remember the rectangle where the image should be drawn.
+      jpegAnchorTable.put(jpegImage, new Rectangle(x, y, w, h));
+      // Let the imageUpdate() method do the actual drawing.
       Toolkit.getDefaultToolkit().prepareImage(jpegImage, -1, -1, this);
-      memGraphics.drawImage(jpegImage, x, y, this);
-      scheduleRepaint(x, y, w, h);
       return;
     }
 
@@ -939,7 +952,7 @@ class VncCanvas extends Canvas
     // Draw updated pixels of the off-screen image.
     pixelsSource.newPixels(x, y, w, h);
     memGraphics.setClip(x, y, w, h);
-    memGraphics.drawImage(rawPixelsImage, 0, 0, this);
+    memGraphics.drawImage(rawPixelsImage, 0, 0, null);
     memGraphics.setClip(0, 0, rfb.framebufferWidth, rfb.framebufferHeight);
   }
 
@@ -950,16 +963,7 @@ class VncCanvas extends Canvas
   void
   scheduleRepaint(int x, int y, int w, int h) {
     // Request repaint delayed by 20 milliseconds.
-    if (rfb.framebufferWidth == scaledWidth) {
-      repaint(20, x, y, w, h);
-    } else {
-      int f = viewer.options.scalingFactor;
-      int sx = (x * f + 50) / 100;
-      int sy = (y * f + 50) / 100;
-      int sw = ((x + w) * f + 49) / 100 - sx + 1;
-      int sh = ((y + h) * f + 49) / 100 - sy + 1;
-      repaint(20, sx, sy, sw, sh);
-    }
+    repaint(20, x, y, w, h);
   }
 
 
@@ -993,7 +997,7 @@ class VncCanvas extends Canvas
   public void processLocalKeyEvent(KeyEvent evt) {
     if (rfb != null && rfb.inNormalProtocol) {
       try {
-        rfb.writeKeyEvent(evt);
+	rfb.writeKeyEvent(evt);
       } catch (Exception e) {
 	e.printStackTrace();
       }
@@ -1006,18 +1010,12 @@ class VncCanvas extends Canvas
   public void processLocalMouseEvent(MouseEvent evt, boolean moved) {
     if (rfb != null && rfb.inNormalProtocol) {
       if (moved) {
-        softCursorMove(evt.getX(), evt.getY());
-      }
-      if (rfb.framebufferWidth != scaledWidth) {
-	int f = viewer.options.scalingFactor;
-	int sx = (evt.getX() * 100 + f/2) / f;
-	int sy = (evt.getY() * 100 + f/2) / f;
-	evt.translatePoint(sx - evt.getX(), sy - evt.getY());
+	softCursorMove(evt.getX(), evt.getY());
       }
       try {
 	rfb.writePointerEvent(evt);
       } catch (Exception e) {
-        e.printStackTrace();
+	e.printStackTrace();
       }
     }
   }

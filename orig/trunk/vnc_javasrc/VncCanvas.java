@@ -706,9 +706,8 @@ class VncCanvas extends Canvas
     scheduleRepaint(x, y, w, h);
   }
 
-
   //
-  // Handle a tight rectangle.
+  // Handle a Tight-encoded rectangle.
   //
 
   void handleTightRect(int x, int y, int w, int h) throws Exception {

@@ -1,3 +1,4 @@
+//  Copyright (C) 2001 Const Kaplinsky. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
 //  This file is part of the VNC system.
@@ -1436,6 +1437,46 @@ vncDesktop::CaptureMouse(BYTE *scrBuff, UINT scrBuffSize)
 	// Copy the mouse cursor into the screen buffer, if any of it is visible
 	if (IntersectRect(&m_cursorpos, &m_cursorpos, &screen))
 		CopyToBuffer(m_cursorpos, scrBuff, scrBuffSize);
+}
+
+// Obtain cursor image data in server's local format.
+// The length of databuf[] should be at least (width * height * 4).
+BOOL
+vncDesktop::GetRichCursorData(BYTE *databuf, HCURSOR hcursor, int width, int height)
+{
+	// Protect the memory bitmap (is it really necessary here?)
+	omni_mutex_lock l(m_bitbltlock);
+
+	// Create bitmap, select it into memory DC
+	HBITMAP membitmap = CreateCompatibleBitmap(m_hrootdc, width, height);
+	if (membitmap == NULL) {
+		return FALSE;
+	}
+	HBITMAP oldbitmap = (HBITMAP) SelectObject(m_hmemdc, membitmap);
+	if (oldbitmap == NULL) {
+		DeleteObject(membitmap);
+		return FALSE;
+	}
+
+	// Draw the cursor
+	DrawIconEx(m_hmemdc, 0, 0, hcursor, 0, 0, 0, NULL, DI_NORMAL | DI_COMPAT);
+	SelectObject(m_hmemdc, oldbitmap);
+
+	// Prepare BITMAPINFO structure (copy most m_bminfo fields)
+	BITMAPINFO *bmi = (BITMAPINFO *)calloc(1, sizeof(BITMAPINFO) + 256 * sizeof(RGBQUAD));
+	memcpy(bmi, &m_bminfo.bmi, sizeof(BITMAPINFO) + 256 * sizeof(RGBQUAD));
+	bmi->bmiHeader.biWidth = width;
+	bmi->bmiHeader.biHeight = -height;
+
+	// Clear data buffer and extract RGB data
+	memset(databuf, 0x00, width * height * 4);
+	int lines = GetDIBits(m_hmemdc, membitmap, 0, height, databuf, bmi, DIB_RGB_COLORS);
+
+	// Cleanup
+	free(bmi);
+	DeleteObject(membitmap);
+
+	return (lines != 0);
 }
 
 // Return the current mouse pointer position

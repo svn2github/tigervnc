@@ -1,3 +1,4 @@
+//  Copyright (C) 2001 Const Kaplinsky. All Rights Reserved.
 //  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
@@ -75,18 +76,34 @@ public:
 	virtual UINT EncodeRect(BYTE *source, BYTE *dest, const RECT &rect);
 	virtual UINT EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest, const RECT &rect);
 
+	// Additional translation function for cursor shape data (overloaded!)
+	void Translate(BYTE *source, BYTE *dest, int w, int h, int bytesPerRow);
+
 	// Translation handling
 	BOOL SetLocalFormat(rfbPixelFormat &pixformat, int width, int height);
 	BOOL SetRemoteFormat(rfbPixelFormat &pixformat);
-	BOOL SetCompressLevel(UINT level);
-	BOOL SetQualityLevel(UINT level);
+
+	// Configuring encoder
+	void SetCompressLevel(int level);
+	void SetQualityLevel(int level);
+	void EnableXCursor(BOOL enable) { m_use_xcursor = enable; }
+	void EnableRichCursor(BOOL enable) { m_use_richcursor = enable; }
 	void EnableLastRect(BOOL enable) { m_use_lastrect = enable; }
 
 	// Colour map handling
 	BOOL GetRemotePalette(RGBQUAD *quadlist, UINT ncolours);
 
+	// Supporting cursor shape updates
+	BOOL SendEmptyCursorShape(VSocket *outConn);
+	BOOL SendCursorShape(VSocket *outConn, vncDesktop *desktop);
+
 protected:
 	BOOL SetTranslateFunction();
+
+	// Supporting cursor shape updates
+	BOOL SendXCursorShape(VSocket *outConn, BYTE *mask, int xhot,int yhot,int width,int height);
+	BOOL SendRichCursorShape(VSocket *outConn, BYTE *mbits, BYTE *cbits, int xhot,int yhot,int width,int height);
+	void FixCursorMask(BYTE *mbits, BYTE *cbits, int width, int height, int width_bytes);
 
 // Implementation
 protected:
@@ -101,8 +118,11 @@ protected:
 	int					rectangleOverhead;		// Total size of rectangle header data
 	int					encodedSize;			// Total size of encoded data
 	int					transmittedSize;		// Total amount of data sent
+
 	int					m_compresslevel;		// Encoding-specific compression level (if needed).
-	int					m_qualitylevel;			// Image quality level for lossy compression.
+	int					m_qualitylevel;			// Image quality level for lossy JPEG compression.
+	BOOL				m_use_xcursor;			// XCursor cursor shape updates allowed.
+	BOOL				m_use_richcursor;		// RichCursor cursor shape updates allowed.
 	BOOL				m_use_lastrect;			// LastRect pseudo-encoding allowed.
 };
 

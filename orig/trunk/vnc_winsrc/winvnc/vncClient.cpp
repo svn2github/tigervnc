@@ -525,11 +525,12 @@ vncClientThread::run(void *arg)
 
 			m_client->m_buffer->SetQualityLevel(-1);
 			m_client->m_buffer->SetCompressLevel(6);
+			m_client->m_buffer->EnableXCursor(FALSE);
+			m_client->m_buffer->EnableRichCursor(FALSE);
 			m_client->m_buffer->EnableLastRect(FALSE);
 
-			m_client->m_xcursor_enabled = FALSE;
-			m_client->m_xcursor_active = FALSE;
-			m_client->m_xcursor_pending = FALSE;
+			m_client->m_cursor_update_pending = FALSE;
+			m_client->m_cursor_update_sent = FALSE;
 
 			// Read in the preferred encodings
 			msg.se.nEncodings = Swap16IfLE(msg.se.nEncodings);
@@ -563,8 +564,15 @@ vncClientThread::run(void *arg)
 
 					// Is this an XCursor encoding request?
 					if (Swap32IfLE(encoding) == rfbEncodingXCursor) {
-						m_client->m_xcursor_enabled = TRUE;
-						vnclog.Print(LL_INTINFO, VNCLOG("X-style cursor shape updates requested\n"));
+						m_client->m_buffer->EnableXCursor(TRUE);
+						vnclog.Print(LL_INTINFO, VNCLOG("X-style cursor shape updates enabled\n"));
+						continue;
+					}
+
+					// Is this a RichCursor encoding request?
+					if (Swap32IfLE(encoding) == rfbEncodingRichCursor) {
+						m_client->m_buffer->EnableRichCursor(TRUE);
+						vnclog.Print(LL_INTINFO, VNCLOG("Full-color cursor shape updates enabled\n"));
 						continue;
 					}
 
@@ -573,10 +581,9 @@ vncClientThread::run(void *arg)
 						(Swap32IfLE(encoding) <= rfbEncodingCompressLevel9))
 					{
 						// Client specified encoding-specific compression level
-						m_client->m_buffer->SetCompressLevel(Swap32IfLE(encoding) -
-															 rfbEncodingCompressLevel0);
-						vnclog.Print(LL_INTINFO, VNCLOG("compression level requested: %lu\n"),
-							(CARD32)(Swap32IfLE(encoding) - rfbEncodingCompressLevel0));
+						int level = (int)(Swap32IfLE(encoding) - rfbEncodingCompressLevel0);
+						m_client->m_buffer->SetCompressLevel(level);
+						vnclog.Print(LL_INTINFO, VNCLOG("compression level requested: %d\n"), level);
 						continue;
 					}
 
@@ -585,17 +592,16 @@ vncClientThread::run(void *arg)
 						(Swap32IfLE(encoding) <= rfbEncodingQualityLevel9))
 					{
 						// Client specified image quality level used for JPEG compression
-						m_client->m_buffer->SetQualityLevel(Swap32IfLE(encoding) -
-															rfbEncodingQualityLevel0);
-						vnclog.Print(LL_INTINFO, VNCLOG("image quality level requested: %lu\n"),
-							(CARD32)(Swap32IfLE(encoding) - rfbEncodingQualityLevel0));
+						int level = (int)(Swap32IfLE(encoding) - rfbEncodingQualityLevel0);
+						m_client->m_buffer->SetQualityLevel(level);
+						vnclog.Print(LL_INTINFO, VNCLOG("image quality level requested: %d\n"), level);
 						continue;
 					}
 
 					// Is this a LastRect encoding request?
 					if (Swap32IfLE(encoding) == rfbEncodingLastRect) {
 						m_client->m_buffer->EnableLastRect(TRUE);
-						vnclog.Print(LL_INTINFO, VNCLOG("LastRect protocol extension requested\n"));
+						vnclog.Print(LL_INTINFO, VNCLOG("LastRect protocol extension enabled\n"));
 						continue;
 					}
 
@@ -811,10 +817,8 @@ vncClient::vncClient()
 	m_ptrevent.x = 0;
 	m_ptrevent.y=0;
 
-	m_xcursor_enabled = FALSE;
-	m_xcursor_active = FALSE;
-	m_xcursor_pending = FALSE;
-	m_hcursor = NULL;
+	m_cursor_update_pending = FALSE;
+	m_cursor_update_sent = FALSE;
 
 	m_thread = NULL;
 	m_updatewanted = FALSE;
@@ -992,7 +996,7 @@ vncClient::TriggerUpdate()
 		}
 
 		// Check if cursor shape update has to be sent
-		CheckCursorShape();
+		m_cursor_update_pending = m_buffer->IsCursorUpdatePending();
 
 		// Clear the remote event flag
 		m_remoteevent = FALSE;
@@ -1001,7 +1005,7 @@ vncClient::TriggerUpdate()
 		if (!m_changed_rgn.IsEmpty() ||
 			!m_full_rgn.IsEmpty() ||
 			m_copyrect_set ||
-			m_xcursor_pending)
+			m_cursor_update_pending)
 		{
 			// Has the palette changed?
 			if (m_palettechanged)
@@ -1020,12 +1024,13 @@ vncClient::TriggerUpdate()
 void
 vncClient::UpdateMouse()
 {
-	omni_mutex_lock l(m_regionLock);
-
-	if (!m_mousemoved)
+	if (!m_mousemoved && !m_cursor_update_sent)
 	{
+		omni_mutex_lock l(m_regionLock);
+
 		if (IntersectRect(&m_oldmousepos, &m_oldmousepos, &m_fullscreen))
 			m_changed_rgn.AddRect(m_oldmousepos);
+
 		m_mousemoved = TRUE;
 	}
 }
@@ -1267,7 +1272,7 @@ vncClient::SendUpdate()
 	if (m_changed_rgn.IsEmpty() &&
 		m_full_rgn.IsEmpty() &&
 		!m_copyrect_set &&
-		!m_xcursor_pending)
+		!m_cursor_update_pending)
 		return FALSE;
 
 	// Check that the copyrect region doesn't intersect the full update region
@@ -1342,7 +1347,7 @@ vncClient::SendUpdate()
 			m_incr_rgn.Clear();
 		}
 
-		if (!m_xcursor_active) {
+		if (!m_cursor_update_sent && !m_cursor_update_pending) {
 			if (!m_mousemoved) {
 				vncRegion tmpMouseRgn;
 				tmpMouseRgn.AddRect(m_oldmousepos);
@@ -1385,7 +1390,7 @@ vncClient::SendUpdate()
 
 	if (numrects != 0xFFFF) {
 		// Count cursor shape update
-		if (m_xcursor_pending)
+		if (m_cursor_update_pending)
 			numrects++;
 		// Handle the copyrect region
 		if (m_copyrect_set)
@@ -1402,8 +1407,8 @@ vncClient::SendUpdate()
 		return TRUE;
 
 	// Send mouse cursor shape update
-	if (m_xcursor_pending) {
-		if (!SendCursorShapeUpdate(TRUE, FALSE))
+	if (m_cursor_update_pending) {
+		if (!SendCursorShapeUpdate())
 			return TRUE;
 	}
 
@@ -1562,227 +1567,17 @@ vncClient::SendPalette()
 	return TRUE;
 }
 
-
-// Check if we should send a cursor shape update
-void
-vncClient::CheckCursorShape()
-{
-	if (m_xcursor_enabled && m_buffer->GetCursor() != m_hcursor) {
-		if (IsCursorShapeGood()) {
-			// Yes, we'll send normal cursor shape update
-			m_xcursor_active = TRUE;
-			m_xcursor_pending = TRUE;
-		} else if (m_xcursor_active) {
-			// Send empty cursor shape update to notify the client
-			m_xcursor_active = FALSE;
-			m_xcursor_pending = TRUE;
-		}
-		// Else do not change anything, wait for better cursor ;-)
-	}
-}
-
-// Determine if current cursor shape can be sent using XCursor encoding
 BOOL
-vncClient::IsCursorShapeGood()
+vncClient::SendCursorShapeUpdate()
 {
-	// Check mouse cursor handle.
-	HCURSOR m_hcursor = m_buffer->GetCursor();
-	if (m_hcursor == NULL) {
-		return FALSE;
+	m_cursor_update_pending = FALSE;
+
+	if (!m_buffer->SendCursorShape(m_socket)) {
+		m_cursor_update_sent = FALSE;
+		return m_buffer->SendEmptyCursorShape(m_socket);
 	}
 
-	// Check cursor info.
-	ICONINFO IconInfo;
-	if (!GetIconInfo(m_hcursor, &IconInfo)) {
-		return FALSE;
-	}
-	if (IconInfo.hbmColor != NULL) {
-		DeleteObject(IconInfo.hbmColor);
-		if (IconInfo.hbmMask != NULL) {
-			DeleteObject(IconInfo.hbmColor);
-		}
-		return FALSE;
-	}
-	if (IconInfo.hbmMask == NULL)
-		return FALSE;
-
-	// Check cursor bitmap info.
-	BITMAP bmMask;
-	if ( !GetObject(IconInfo.hbmMask, sizeof(BITMAP), (LPVOID)&bmMask) ||
-		 bmMask.bmPlanes != 1 || bmMask.bmBitsPixel != 1) {
-		DeleteObject(IconInfo.hbmMask);
-		return FALSE;
-	}
-
-	// Remove bitmap created by GetIconInfo().
-	DeleteObject(IconInfo.hbmMask);
-
+	m_cursor_update_sent = TRUE;
 	return TRUE;
-}
-
-//
-// EXPERIMENTAL CODE.
-// New version of cursor shape updates support.
-//
-
-// FIXME: make enableXCursor, enableRichCursor class members.
-
-BOOL
-vncClient::SendCursorShapeUpdate(BOOL enableXCursor, BOOL enableRichCursor)
-{
-	m_xcursor_pending = FALSE;	// FIXME: This variable should disappear.
-
-	if (!SendCursorShape(enableXCursor, enableRichCursor))
-		return SendEmptyCursorShape(enableXCursor, enableRichCursor);
-
-	return TRUE;
-}
-
-BOOL
-vncClient::SendCursorShape(BOOL enableXCursor, BOOL enableRichCursor)
-{
-	// Get mouse cursor handle
-	m_hcursor = m_buffer->GetCursor();
-	if (m_hcursor == NULL) {
-		vnclog.Print(LL_INTINFO, VNCLOG("vncBuffer::GetCursor() returned NULL.\n"));
-		return FALSE;
-	}
-
-	// Get cursor info
-	ICONINFO IconInfo;
-	if (!GetIconInfo(m_hcursor, &IconInfo)) {
-		vnclog.Print(LL_INTINFO, VNCLOG("GetIconInfo() failed.\n"));
-		return FALSE;
-	}
-	BOOL isColorCursor = FALSE;
-	if (IconInfo.hbmColor != NULL) {
-		isColorCursor = TRUE;
-		DeleteObject(IconInfo.hbmColor);
-	}
-	if (IconInfo.hbmMask == NULL) {
-		vnclog.Print(LL_INTINFO, VNCLOG("cursor bitmap handle is NULL.\n"));
-		return FALSE;
-	}
-
-	// Check bitmap info for the cursor
-	BITMAP bmMask;
-	if (!GetObject(IconInfo.hbmMask, sizeof(BITMAP), (LPVOID)&bmMask)) {
-		vnclog.Print(LL_INTINFO, VNCLOG("GetObject() for bitmap failed.\n"));
-		DeleteObject(IconInfo.hbmMask);
-		return FALSE;
-	}
-	if (bmMask.bmPlanes != 1 || bmMask.bmBitsPixel != 1) {
-		DeleteObject(IconInfo.hbmMask);
-		vnclog.Print(LL_INTINFO, VNCLOG("incorrect data in cursor bitmap.\n"));
-		return FALSE;
-	}
-
-	// Get cursor bitmap data
-	// FIXME: MS says we should use GetDIBits() instead of GetBitmapBits().
-	BYTE *mbits = new BYTE[bmMask.bmWidthBytes * bmMask.bmHeight];
-	BOOL success = GetBitmapBits(IconInfo.hbmMask,
-								 bmMask.bmWidthBytes * bmMask.bmHeight, mbits);
-	DeleteObject(IconInfo.hbmMask);
-
-	if (!success) {
-		delete[] mbits;
-		vnclog.Print(LL_INTINFO, VNCLOG("GetBitmapBits() failed.\n"));
-		return FALSE;
-	}
-
-	FixCursorMask(mbits, bmMask, isColorCursor);
-
-	// Call appropriate routine to send cursor shape update
-	if (!isColorCursor) {
-		if (enableXCursor) {
-			success = SendXCursorShape(mbits,
-									   IconInfo.xHotspot, IconInfo.yHotspot,
-									   bmMask.bmWidth, bmMask.bmHeight / 2);
-		} else {
-			success = FALSE;	// FIXME: Insert appropriate function call.
-		}
-	} else {
-		if (enableRichCursor) {
-			success = FALSE;	// FIXME: Insert appropriate function call.
-		} else {
-			success = FALSE;	// FIXME: Insert appropriate function call.
-		}
-	}
-
-	// Cleanup
-	DeleteObject(IconInfo.hbmMask);
-	delete[] mbits;
-
-	return success;
-}
-
-BOOL
-vncClient::SendEmptyCursorShape(BOOL enableXCursor, BOOL enableRichCursor)
-{
-	rfbFramebufferUpdateRectHeader hdr;
-	hdr.r.x = Swap16IfLE(0);
-	hdr.r.y = Swap16IfLE(0);
-	hdr.r.w = Swap16IfLE(0);
-	hdr.r.h = Swap16IfLE(0);
-	if (enableXCursor) {
-		hdr.encoding = Swap32IfLE(rfbEncodingXCursor);
-	} else {
-		hdr.encoding = Swap32IfLE(rfbEncodingRichCursor);
-	}
-
-	return m_socket->SendExact((char *)&hdr, sizeof(hdr));
-}
-
-BOOL
-vncClient::SendXCursorShape(BYTE *mask, int xhot,int yhot,int width,int height)
-{
-	rfbFramebufferUpdateRectHeader hdr;
-	hdr.r.x = Swap16IfLE(xhot);
-	hdr.r.y = Swap16IfLE(yhot);
-	hdr.r.w = Swap16IfLE(width);
-	hdr.r.h = Swap16IfLE(height);
-	hdr.encoding = Swap32IfLE(rfbEncodingXCursor);
-
-	BYTE colors[6] = { 0, 0, 0, 0xFF, 0xFF, 0xFF };
-	int maskRowSize = (width + 7) / 8;
-	int maskSize = maskRowSize * height;
-
-	if ( !m_socket->SendExact((char *)&hdr, sizeof(hdr)) ||
-		 !m_socket->SendExact((char *)colors, 6) ||
-		 !m_socket->SendExact((char *)&mask[maskSize], maskSize) ||
-		 !m_socket->SendExact((char *)mask, maskSize) ) {
-		return FALSE;
-	}
-	return TRUE;
-}
-
-void
-vncClient::FixCursorMask(BYTE *mbits, BITMAP bmMask, BOOL isColorCursor)
-{
-	int width = bmMask.bmWidth;
-	int packedWidthBytes = (width + 7) / 8;
-
-	// Pack and invert bitmap data
-	int x, y;
-	for (y = 0; y < bmMask.bmHeight; y++) {
-		for (x = 0; x < packedWidthBytes; x++) {
-			mbits[y * packedWidthBytes + x] =
-				~mbits[y * bmMask.bmWidthBytes + x];
-		}
-	}
-
-	// Replace "inverted background" bits with black color.
-	if (!isColorCursor) {
-		BYTE m, c;
-		int height = bmMask.bmHeight / 2;
-		for (y = 0; y < height; y++) {
-			for (x = 0; x < packedWidthBytes; x++) {
-				m = mbits[y * packedWidthBytes + x];
-				c = mbits[(height + y) * packedWidthBytes + x];
-				mbits[y * packedWidthBytes + x] |= ~(m | c);
-				mbits[(height + y) * packedWidthBytes + x] |= ~(m | c);
-			}
-		}
-	}
 }
 

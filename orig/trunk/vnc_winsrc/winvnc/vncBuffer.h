@@ -1,3 +1,4 @@
+//  Copyright (C) 2001 Const Kaplinsky. All Rights Reserved.
 //  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
@@ -78,15 +79,22 @@ public:
 	RECT GrabMouse();
 	BOOL SetClientFormat(rfbPixelFormat &format);
 
-	// ENCODING
-	BOOL SetEncoding(CARD32 encoding);
-	UINT TranslateRect(const RECT &rect, VSocket *outConn);
-	BOOL SetCompressLevel(CARD32 level);
-	BOOL SetQualityLevel(CARD32 level);
+	// CONFIGURING ENCODER
+	void SetCompressLevel(int level);
+	void SetQualityLevel(int level);
+	void EnableXCursor(BOOL enable);
+	void EnableRichCursor(BOOL enable);
 	void EnableLastRect(BOOL enable);
 	BOOL IsLastRectEnabled() { return m_use_lastrect; }
 
-	HCURSOR GetCursor();
+	// ENCODING
+	BOOL SetEncoding(CARD32 encoding);
+	UINT TranslateRect(const RECT &rect, VSocket *outConn);
+
+	// SENDING CURSOR SHAPE UPDATES
+	BOOL IsCursorUpdatePending();
+	BOOL SendCursorShape(VSocket *outConn);
+	BOOL SendEmptyCursorShape(VSocket *outConn);
 
 // Implementation
 protected:
@@ -117,9 +125,17 @@ protected:
 	vncEncoder     *m_hold_tight_encoder;
 	bool           zlibhex_encoder_in_use;
 	vncEncoder     *m_hold_zlibhex_encoder;
-	UINT			m_compresslevel;
-	UINT			m_qualitylevel;
-	BOOL            m_use_lastrect;
+
+	// These variables mirror similar variables from vncEncoder class.
+	// They are necessary because vncEncoder instance may be created after
+	// their values were set.
+	int				m_compresslevel;
+	int				m_qualitylevel;
+	BOOL			m_use_xcursor;
+	BOOL			m_use_richcursor;
+	BOOL			m_use_lastrect;
+
+	HCURSOR			m_hcursor;		// Used to track cursor shape changes
 };
 
 #endif // _WINVNC_VNCBUFFER

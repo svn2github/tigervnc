@@ -92,10 +92,11 @@ public:
 		BYTE				*oldBuff
 		);
 	int ScreenBuffSize();
-	HWND Window() {return m_hwnd;};
+	HWND Window() { return m_hwnd; }
 
 	// Mouse related
 	void CaptureMouse(BYTE *scrBuff, UINT scrBuffSize);
+	BOOL GetRichCursorData(BYTE *databuf, HCURSOR hcursor, int width, int height);
 	RECT MouseRect();
 	void SetCursor(HCURSOR cursor);
 	HCURSOR GetCursor() { return m_hcursor; }

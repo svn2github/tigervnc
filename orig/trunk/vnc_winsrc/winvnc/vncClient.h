@@ -1,3 +1,4 @@
+//  Copyright (C) 2001 Const Kaplinsky. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
 //  This file is part of the VNC system.
@@ -113,21 +114,11 @@ protected:
 	BOOL SendRectangles(rectlist &rects);
 	BOOL SendRectangle(RECT &rect);
 	BOOL SendCopyRect(RECT &dest, POINT &source);
+	BOOL SendCursorShapeUpdate();
 	BOOL SendLastRect();
 	BOOL SendPalette();
 
 	void PollWindow(HWND hwnd);
-
-	// Support for cursor shape updates
-protected:
-	void CheckCursorShape();
-	BOOL IsCursorShapeGood();
-
-	BOOL SendCursorShapeUpdate(BOOL enableXCursor, BOOL enableRichCursor);
-	BOOL SendCursorShape(BOOL enableXCursor, BOOL enableRichCursor);
-	BOOL SendEmptyCursorShape(BOOL enableXCursor, BOOL enableRichCursor);
-	BOOL SendXCursorShape(BYTE *mask, int xhot,int yhot,int width,int height);
-	void FixCursorMask(BYTE *mbits, BITMAP bmMask, BOOL isColorCursor);
 
 	// Internal stuffs
 protected:
@@ -161,10 +152,9 @@ protected:
 	rfbPointerEventMsg	m_ptrevent;
 	vncKeymap		m_keymap;
 
-	// Support for cursor shape updates
-	BOOL			m_xcursor_enabled;
-	BOOL			m_xcursor_active;
-	BOOL			m_xcursor_pending;
+	// Support for cursor shape updates (XCursor, RichCursor encodings)
+	BOOL			m_cursor_update_pending;
+	BOOL			m_cursor_update_sent;
 	HCURSOR			m_hcursor;
 
 	// Region structures used when preparing updates

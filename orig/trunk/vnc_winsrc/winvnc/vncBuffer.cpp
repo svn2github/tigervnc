@@ -1,3 +1,4 @@
+//  Copyright (C) 2001 Const Kaplinsky. All Rights Reserved.
 //  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
@@ -60,9 +61,14 @@ vncBuffer::vncBuffer(vncDesktop *desktop)
 	m_hold_tight_encoder = NULL;
 	zlibhex_encoder_in_use = false;
 	m_hold_zlibhex_encoder = NULL;
+
 	m_compresslevel = 6;
 	m_qualitylevel = -1;
+	m_use_xcursor = FALSE;
+	m_use_richcursor = FALSE;
 	m_use_lastrect = FALSE;
+
+	m_hcursor = NULL;
 
 	m_mainbuff = NULL;
 	m_backbuff = NULL;
@@ -600,32 +606,40 @@ vncBuffer::SetEncoding(CARD32 encoding)
 	return CheckBuffer();
 }
 
-BOOL
-vncBuffer::SetCompressLevel(CARD32 level)
+void
+vncBuffer::SetCompressLevel(int level)
 {
-	if (level >= 0 && level <= 9) {
-		m_compresslevel = level;
-	} else {
-		m_compresslevel = 6;
-	}
-	if (m_encoder != NULL) {
+	m_compresslevel = (level >= 0 && level <= 9) ? level : 6;
+	if (m_encoder != NULL)
 		m_encoder->SetCompressLevel(m_compresslevel);
-	}
-	return TRUE;
 }
 
-BOOL
-vncBuffer::SetQualityLevel(CARD32 level)
+void
+vncBuffer::SetQualityLevel(int level)
 {
-	if (level >= 0 && level <= 9) {
-		m_qualitylevel = level;
-	} else {
-		m_qualitylevel = -1;
-	}
-	if (m_encoder != NULL) {
+	m_qualitylevel = (level >= 0 && level <= 9) ? level : -1;
+	if (m_encoder != NULL)
 		m_encoder->SetQualityLevel(m_qualitylevel);
+}
+
+void
+vncBuffer::EnableXCursor(BOOL enable)
+{
+	m_use_xcursor = enable;
+	if (m_encoder != NULL) {
+		m_encoder->EnableXCursor(enable);
 	}
-	return TRUE;
+	m_hcursor = NULL;
+}
+
+void
+vncBuffer::EnableRichCursor(BOOL enable)
+{
+	m_use_richcursor = enable;
+	if (m_encoder != NULL) {
+		m_encoder->EnableRichCursor(enable);
+	}
+	m_hcursor = NULL;
 }
 
 void
@@ -680,15 +694,35 @@ vncBuffer::TranslateRect(const RECT &rect, VSocket *outConn)
 
 // Verify that the fast blit buffer hasn't changed
 inline BOOL
-vncBuffer::FastCheckMainbuffer() {
+vncBuffer::FastCheckMainbuffer()
+{
 	VOID *tmp = m_desktop->OptimisedBlitBuffer();
 	if (tmp && (m_mainbuff != tmp))
 		return CheckBuffer();
 	return TRUE;
 }
 
-HCURSOR
-vncBuffer::GetCursor() {
-	return m_desktop->GetCursor();
+// Check if cursor shape update should be sent
+BOOL
+vncBuffer::IsCursorUpdatePending()
+{
+	if (m_use_xcursor || m_use_richcursor) {
+		HCURSOR temp_hcursor = m_desktop->GetCursor();
+		if (temp_hcursor != m_hcursor) {
+			m_hcursor = temp_hcursor;
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+BOOL
+vncBuffer::SendCursorShape(VSocket *outConn) {
+	return m_encoder->SendCursorShape(outConn, m_desktop);
+}
+
+BOOL
+vncBuffer::SendEmptyCursorShape(VSocket *outConn) {
+	return m_encoder->SendEmptyCursorShape(outConn);
 }
 

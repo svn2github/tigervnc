@@ -655,16 +655,13 @@ class vncCanvas extends Canvas
   // Handle cursor shape updates (XCursor and RichCursor encodings).
   //
 
-  final static int OPER_SAVE    = 0;
-  final static int OPER_RESTORE = 1;
-
   boolean prevCursorSet = false;
 
   byte[] rcSavedArea;
   byte[] rcSource;
   boolean[] rcMask;
   int rcHotX, rcHotY, rcWidth, rcHeight;
-  int rcCursorX = 40, rcCursorY = 40;
+  int rcCursorX = 0, rcCursorY = 0;
   int rcLockX, rcLockY, rcLockWidth, rcLockHeight;
   boolean rcCursorHidden, rcLockSet;
 

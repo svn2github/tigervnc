@@ -57,7 +57,7 @@ vncEncryptPasswd(char *passwd, char *encryptedPasswd)
     /* pad password with nulls */
 
     for (i = 0; i < MAXPWLEN; i++) {
-	if (i < strlen(passwd)) {
+	if (i < (int)strlen(passwd)) {
 	    encryptedPasswd[i] = passwd[i];
 	} else {
 	    encryptedPasswd[i] = 0;
@@ -117,7 +117,7 @@ vncEncryptBytes(unsigned char *where, const char *passwd)
     /* key is simply password padded with nulls */
 
     for (i = 0; i < 8; i++) {
-	if (i < strlen(passwd)) {
+	if (i < (int)strlen(passwd)) {
 	    key[i] = passwd[i];
 	} else {
 	    key[i] = 0;

@@ -32,6 +32,8 @@
 #define CONCAT4(a,b,c,d) a##b##c##d
 #define CONCAT4E(a,b,c,d) CONCAT4(a,b,c,d)
 
+// FIXME: Actually, IN and OUT are bad names for these defines.
+
 #define OUT 8
 #include "tableinittctemplate.cpp"
 #include "tableinitcmtemplate.cpp"

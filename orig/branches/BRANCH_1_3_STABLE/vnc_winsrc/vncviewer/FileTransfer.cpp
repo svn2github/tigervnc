@@ -546,19 +546,9 @@ FileTransfer::ShowClientItems(char *path)
 			SetWindowText(m_hwndFTClientPath, m_ClientPath);
 			for (int i=0; i<256; i++) {
 				DriveName[0] = DrivesString[i];
-				switch (GetDriveType(DriveName))
-				{
-					case DRIVE_REMOVABLE:
-					case DRIVE_FIXED:
-					case DRIVE_REMOTE:
-					case DRIVE_CDROM:
-					{
-						char txt[16];
-						strcpy(txt, m_FTClientItemInfo.folderText);
-						m_FTClientItemInfo.Add(DriveName, txt, 0);
-						break;
-					}
-				}
+				char txt[16];
+				strcpy(txt, m_FTClientItemInfo.folderText);
+				m_FTClientItemInfo.Add(DriveName, txt, 0);
 				DriveName[0] = '\0';
 				i+=3;
 				if ((DrivesString[i] == '\0') && (DrivesString[i+1] == '\0')) break;
@@ -645,20 +635,13 @@ FileTransfer::FTBrowseDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 				TVItem.mask = TVIF_CHILDREN | TVIF_TEXT | TVIF_HANDLE;
 				for (int i=0; i<LengthDriveString; i++) {
 					drive[0] = DrivesString[i];
-					switch (GetDriveType(drive))
-						case DRIVE_REMOVABLE:
-						case DRIVE_FIXED:
-						case DRIVE_REMOTE:
-						case DRIVE_CDROM:
-						{
-							TVItem.pszText = drive;
-							TVItem.cChildren = 1;
-							tvins.item = TVItem;
-							tvins.hParent = TreeView_InsertItem(GetDlgItem(hwnd, IDC_FTBROWSETREE), &tvins);
-							tvins.item = TVItem;
-							TreeView_InsertItem(GetDlgItem(hwnd, IDC_FTBROWSETREE), &tvins);
-							tvins.hParent = NULL;
-						}
+					TVItem.pszText = drive;
+					TVItem.cChildren = 1;
+					tvins.item = TVItem;
+					tvins.hParent = TreeView_InsertItem(GetDlgItem(hwnd, IDC_FTBROWSETREE), &tvins);
+					tvins.item = TVItem;
+					TreeView_InsertItem(GetDlgItem(hwnd, IDC_FTBROWSETREE), &tvins);
+					tvins.hParent = NULL;
 					i += 3;
 				}
 			}

@@ -139,9 +139,6 @@ void ClientConnection::Init(VNCviewerApp *pApp)
 	m_hPalette = NULL;
 	m_encPasswd[0] = '\0';
 
-	// Initialize our capability lists
-	InitCapabilities();
-
 	m_pFileTransfer = new FileTransfer(this, m_pApp);
 	m_FileTransferEnable = false;
 
@@ -785,6 +782,7 @@ void ClientConnection::NegotiateProtocolVersion()
 		/* the server supports TightVNC extensions, protocol 3.130 */
 		m_majorVersion = rfbProtocolMajorVersion;
 		m_minorVersion = rfbProtocolMinorVersion;
+		InitCapabilities();
 
     } else {
 

@@ -173,17 +173,17 @@ BEGIN
 END
 #endif
 
-IDD_PROPERTIES_PARENT DIALOGEX 0, 0, 312, 167
+IDD_PROPERTIES_PARENT DIALOGEX 0, 0, 304, 212
 STYLE DS_MODALFRAME | DS_CENTER | DS_CONTEXTHELP | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP | WS_EX_CONTROLPARENT
-FONT 8, "MS Sans Serif", 0, 0, 0x1
+FONT 8, "MS Sans Serif"
 BEGIN
-    CONTROL         "Tab1",IDC_TAB,"SysTabControl32",TCS_MULTILINE | 
-                    WS_TABSTOP,7,0,298,138
-    DEFPUSHBUTTON   "&OK",IDOK,139,145,50,15,WS_GROUP
-    PUSHBUTTON      "&Apply",IDC_APPLY,197,145,50,15
-    PUSHBUTTON      "&Cancel",IDCANCEL,255,145,50,15
+    CONTROL         "Tab1",IDC_TAB,"SysTabControl32",WS_GROUP | WS_TABSTOP,5,
+                    5,294,183
+    DEFPUSHBUTTON   "&OK",IDOK,139,193,50,14,WS_GROUP
+    PUSHBUTTON      "&Cancel",IDCANCEL,194,193,50,14
+    PUSHBUTTON      "&Apply",IDC_APPLY,249,193,50,14
 END
 
 IDD_SHARED_DESKTOP_AREA DIALOG DISCARDABLE  0, 0, 235, 90
@@ -200,65 +200,64 @@ BEGIN
     EDITTEXT        IDC_NAME_APPLI,91,23,137,12,ES_AUTOHSCROLL | ES_READONLY
 END
 
-IDD_INCOMING DIALOG DISCARDABLE  0, 0, 281, 112
-STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE | WS_BORDER
-FONT 8, "MS Sans Serif"
-BEGIN
-    CONTROL         "Accept socket connections",IDC_CONNECT_SOCK,"Button",
-                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,7,117,12
-    LTEXT           "Primary password:",IDC_PASSWORD_LABEL,13,20,69,12,
-                    SS_CENTERIMAGE | NOT WS_GROUP
-    EDITTEXT        IDC_PASSWORD,84,20,39,12,ES_PASSWORD | ES_AUTOHSCROLL
-    LTEXT           "View-only password:",IDC_PASSWORD_VIEWONLY_LABEL,13,39,
-                    69,12,SS_CENTERIMAGE | NOT WS_GROUP
-    EDITTEXT        IDC_PASSWORD_VIEWONLY,84,39,40,12,ES_PASSWORD | 
-                    ES_AUTOHSCROLL
-    GROUPBOX        "Display or port numbers to use:",
-                    IDC_STATIC_DISPLAY_PORT,154,9,120,66
-    CONTROL         "auto",IDC_PORTNO_AUTO,"Button",BS_AUTORADIOBUTTON | 
-                    WS_GROUP | WS_TABSTOP,159,21,33,12
-    CONTROL         "display",IDC_SPECDISPLAY,"Button",BS_AUTORADIOBUTTON | 
-                    WS_TABSTOP,159,39,40,12
-    CONTROL         "ports",IDC_SPECPORT,"Button",BS_AUTORADIOBUTTON | 
-                    WS_TABSTOP,159,58,35,12
-    CTEXT           "display:",IDC_DISPLAY_LABEL,209,21,23,12,SS_CENTERIMAGE | 
-                    NOT WS_GROUP
-    EDITTEXT        IDC_DISPLAYNO,237,20,29,12,ES_AUTOHSCROLL | ES_NUMBER
-    CTEXT           "main port:",IDC_MAIN_LABEL,201,40,33,10,SS_CENTERIMAGE | 
-                    NOT WS_GROUP
-    EDITTEXT        IDC_PORTRFB,237,39,29,12,ES_AUTOHSCROLL | ES_NUMBER
-    CTEXT           "HTTP port:",IDC_HTTP_LABEL,198,59,35,10,SS_CENTERIMAGE | 
-                    NOT WS_GROUP
-    EDITTEXT        IDC_PORTHTTP,237,58,29,12,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "Blank screen on client connections",IDC_BLANK_SCREEN,
-                    "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,67,
-                    144,12
-    CONTROL         "Remove desktop wallpaper on client connections",
-                    IDC_REMOVE_WALLPAPER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,7,80,209,12
-    CONTROL         "Enable file transfers between server and clients",
-                    IDC_ENABLE_FILE_TRANSFERS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,7,93,209,12
-END
-
-IDD_INPUT_HANDLING DIALOG DISCARDABLE  0, 0, 232, 93
+IDD_INCOMING DIALOG DISCARDABLE  0, 0, 288, 166
 STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE
 FONT 8, "MS Sans Serif"
 BEGIN
-    CONTROL         "Disable remote keyboard and pointer (all new clients view only)",
-                    IDC_DISABLE_INPUTS,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
-                    WS_TABSTOP,7,7,218,12
-    CONTROL         "Disable local keyboard and pointer during client sessions",
-                    IDC_DISABLE_LOCAL_INPUTS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,7,21,218,12
-    CONTROL         "Disable remote keyboard and pointer on local activity",
-                    IDC_REMOTE_DISABLE,"Button",BS_AUTOCHECKBOX | BS_TOP | 
-                    BS_MULTILINE | WS_TABSTOP,7,37,218,12
-    LTEXT           "Input enabled after timeout:",IDC_TIMEOUT_LABEL,19,50,
-                    92,12,SS_CENTERIMAGE | NOT WS_GROUP
-    EDITTEXT        IDC_DISABLE_TIME,119,50,23,12,ES_AUTOHSCROLL | ES_NUMBER
-    LTEXT           "seconds",IDC_SECONDS_LABEL,147,50,44,12,SS_CENTERIMAGE | 
+    GROUPBOX        "Incoming connections",IDC_STATIC,5,5,139,63
+    CONTROL         "Accept socket connections",IDC_CONNECT_SOCK,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,13,16,128,12
+    LTEXT           "Primary password:",IDC_PASSWORD_LABEL,19,30,69,12,
+                    SS_CENTERIMAGE | NOT WS_GROUP
+    EDITTEXT        IDC_PASSWORD,91,30,44,12,ES_PASSWORD | ES_AUTOHSCROLL
+    LTEXT           "View-only password:",IDC_PASSWORD_VIEWONLY_LABEL,19,47,
+                    69,12,SS_CENTERIMAGE | NOT WS_GROUP
+    EDITTEXT        IDC_PASSWORD_VIEWONLY,91,47,44,12,ES_PASSWORD | 
+                    ES_AUTOHSCROLL
+    GROUPBOX        "Display or port numbers to use",IDC_STATIC_DISPLAY_PORT,
+                    152,5,131,63
+    CONTROL         "Auto",IDC_PORTNO_AUTO,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP | WS_TABSTOP,160,17,33,12
+    CONTROL         "Display:",IDC_SPECDISPLAY,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,200,17,40,12
+    CONTROL         "Ports:",IDC_SPECPORT,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,160,36,35,12
+    EDITTEXT        IDC_DISPLAYNO,247,17,27,12,ES_AUTOHSCROLL | ES_NUMBER | 
+                    WS_GROUP
+    EDITTEXT        IDC_PORTHTTP,200,36,27,12,ES_AUTOHSCROLL | ES_NUMBER
+    CTEXT           "and",IDC_STATIC,230,36,14,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_PORTRFB,247,36,27,12,ES_AUTOHSCROLL | ES_NUMBER
+    CTEXT           "(main)",IDC_MAIN_LABEL,200,51,27,10,SS_CENTERIMAGE | 
                     NOT WS_GROUP
+    CTEXT           "(HTTP)",IDC_HTTP_LABEL,247,51,27,10,SS_CENTERIMAGE | 
+                    NOT WS_GROUP
+    GROUPBOX        "Input handling",IDC_STATIC,5,72,139,88
+    CONTROL         "Block remote input events",IDC_DISABLE_INPUTS,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,13,84,128,12
+    CONTROL         "Block remote input on local activity",
+                    IDC_REMOTE_DISABLE,"Button",BS_AUTOCHECKBOX | BS_TOP | 
+                    BS_MULTILINE | WS_TABSTOP,13,99,128,12
+    LTEXT           "Inactivity timeout:",IDC_TIMEOUT_LABEL,19,112,59,12,
+                    SS_CENTERIMAGE | NOT WS_GROUP
+    EDITTEXT        IDC_DISABLE_TIME,79,112,23,12,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "seconds",IDC_SECONDS_LABEL,107,112,34,12,SS_CENTERIMAGE | 
+                    NOT WS_GROUP
+    CONTROL         "No local input during client sessions",
+                    IDC_DISABLE_LOCAL_INPUTS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,13,126,128,12
+    CONTROL         "Blank screen on client connections",IDC_BLANK_SCREEN,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,140,128,12
+    GROUPBOX        "When last client disconnects",IDC_STATIC,152,72,131,57
+    CONTROL         "Do nothing",IDC_LOCKSETTING_NOTHING,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,160,84,117,12
+    CONTROL         "Lock workstation",IDC_LOCKSETTING_LOCK,"Button",
+                    BS_AUTORADIOBUTTON,160,98,117,12
+    CONTROL         "Logoff workstation",IDC_LOCKSETTING_LOGOFF,"Button",
+                    BS_AUTORADIOBUTTON,160,112,117,12
+    CONTROL         "Enable file transfers",IDC_ENABLE_FILE_TRANSFERS,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,160,135,110,12
+    CONTROL         "Remove desktop wallpaper",IDC_REMOVE_WALLPAPER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,160,149,110,12
 END
 
 IDD_UPDATE_HANDLING DIALOG DISCARDABLE  0, 0, 235, 113
@@ -289,18 +288,6 @@ BEGIN
                     WS_TABSTOP,7,67,209,13
     LTEXT           "( driver status unknown )",IDC_STATIC_DRVINFO,7,88,221,
                     18
-END
-
-IDD_CLIENT_DISCONNECT DIALOG DISCARDABLE  0, 0, 176, 72
-STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE
-FONT 8, "MS Sans Serif"
-BEGIN
-    CONTROL         "Do nothing",IDC_LOCKSETTING_NOTHING,"Button",
-                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,7,7,117,12
-    CONTROL         "Lock workstation",IDC_LOCKSETTING_LOCK,"Button",
-                    BS_AUTORADIOBUTTON | WS_TABSTOP,7,22,117,12
-    CONTROL         "Logoff workstation",IDC_LOCKSETTING_LOGOFF,"Button",
-                    BS_AUTORADIOBUTTON | WS_TABSTOP,7,37,117,12
 END
 
 IDD_QUERY_SETTINGS DIALOG DISCARDABLE  0, 0, 237, 90
@@ -463,9 +450,10 @@ BEGIN
 
     IDD_PROPERTIES_PARENT, DIALOG
     BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 305
-        BOTTOMMARGIN, 160
+        LEFTMARGIN, 5
+        RIGHTMARGIN, 299
+        TOPMARGIN, 5
+        BOTTOMMARGIN, 207
     END
 
     IDD_SHARED_DESKTOP_AREA, DIALOG
@@ -478,20 +466,34 @@ BEGIN
 
     IDD_INCOMING, DIALOG
     BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 274
-        VERTGUIDE, 159
-        VERTGUIDE, 266
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 105
+        LEFTMARGIN, 5
+        RIGHTMARGIN, 283
+        VERTGUIDE, 13
+        VERTGUIDE, 19
+        VERTGUIDE, 58
+        VERTGUIDE, 91
+        VERTGUIDE, 108
+        VERTGUIDE, 135
+        VERTGUIDE, 141
+        VERTGUIDE, 144
+        VERTGUIDE, 152
+        VERTGUIDE, 160
+        TOPMARGIN, 5
+        BOTTOMMARGIN, 161
+        HORZGUIDE, 36
+        HORZGUIDE, 53
+        HORZGUIDE, 68
+        HORZGUIDE, 72
+        HORZGUIDE, 90
+        HORZGUIDE, 118
     END
 
     IDD_INPUT_HANDLING, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 225
+        RIGHTMARGIN, 278
         TOPMARGIN, 7
-        BOTTOMMARGIN, 86
+        BOTTOMMARGIN, 161
     END
 
     IDD_UPDATE_HANDLING, DIALOG

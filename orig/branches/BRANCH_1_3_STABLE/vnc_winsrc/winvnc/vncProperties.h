@@ -69,8 +69,6 @@ public:
 	static BOOL CALLBACK IncomingDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static BOOL CALLBACK PollDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static BOOL CALLBACK SharedDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-	static BOOL CALLBACK InputHandlingDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-	static BOOL CALLBACK DisconnectDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static BOOL CALLBACK QuerySettingsDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static BOOL CALLBACK AdministrationDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -182,9 +180,7 @@ private:
 	HWND m_hTab;
 	HWND m_hIncoming;
 	HWND m_hShared;
-	HWND m_hInputHandling;
 	HWND m_hPoll;
-	HWND m_hDisconnect;
 	HWND m_hQuerySettings;
 	HWND m_hAdministration;
 	CMatchWindow* m_pMatchWindow;

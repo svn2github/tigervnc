@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2001,2002 HorizonLive.com, Inc.  All Rights Reserved.
+//  Copyright (C) 2001-2003 HorizonLive.com, Inc.  All Rights Reserved.
 //  Copyright (C) 2002 Constantin Kaplinsky.  All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge.  All Rights Reserved.
 //
@@ -87,6 +87,8 @@ public class VncViewer extends java.applet.Applet
   int deferCursorUpdates;
   int deferUpdateRequests;
 
+  // Reference to this applet for inter-applet communication.
+  public static java.applet.Applet refApplet;
 
   //
   // init()
@@ -95,6 +97,8 @@ public class VncViewer extends java.applet.Applet
   public void init() {
 
     readParameters();
+
+    refApplet = this;
 
     if (inSeparateFrame) {
       vncFrame = new Frame("TightVNC");
@@ -191,7 +195,7 @@ public class VncViewer extends java.applet.Applet
       if (showControls)
 	buttonPanel.enableButtons();
 
-      vc.processNormalProtocol();
+      processNormalProtocol();
 
     } catch (NoRouteToHostException e) {
       fatalError("Network error: no route to server: " + host, e);
@@ -239,6 +243,26 @@ public class VncViewer extends java.applet.Applet
       }
     }
     
+  }
+
+
+  //
+  // Process RFB socket messages.
+  // If the rfbThread is being stopped, ignore any exceptions,
+  // otherwise rethrow the exception so it can be handled.
+  //
+ 
+  void processNormalProtocol() throws Exception {
+    try {
+      vc.processNormalProtocol();
+    } catch (Exception e) {
+      if (rfbThread == null) {
+	System.out.println("Ignoring RFB socket exceptions" +
+			   " because applet is stopping");
+      } else {
+	throw e;
+      }
+    }
   }
 
 
@@ -734,11 +758,23 @@ public class VncViewer extends java.applet.Applet
   }
 
   //
+  // Stop the applet.
+  // Main applet thread will terminate on first exception
+  // after seeing that rfbThread has been set to null.
+  //
+
+  public void stop() {
+    System.out.println("Stopping applet");
+    rfbThread = null;
+  }
+
+  //
   // This method is called before the applet is destroyed.
   //
 
   public void destroy() {
     System.out.println("Destroying applet");
+
     vncContainer.removeAll();
     options.dispose();
     clipboard.dispose();
@@ -750,6 +786,13 @@ public class VncViewer extends java.applet.Applet
       vncFrame.dispose();
   }
 
+  //
+  // Start/stop receiving mouse events.
+  //
+
+  public void enableInput(boolean enable) {
+    vc.enableInput(enable);
+  }
 
   //
   // Close application properly on window close event.
@@ -760,7 +803,8 @@ public class VncViewer extends java.applet.Applet
     if (rfb != null)
       disconnect();
 
-    vncFrame.dispose();
+    vncContainer.hide();
+
     if (!inAnApplet) {
       System.exit(0);
     }

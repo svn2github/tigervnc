@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2001,2002 HorizonLive.com, Inc.  All Rights Reserved.
+//  Copyright (C) 2001-2003 HorizonLive.com, Inc.  All Rights Reserved.
 //  Copyright (C) 2001,2002 Constantin Kaplinsky.  All Rights Reserved.
 //  Copyright (C) 2000 Tridia Corporation.  All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge.  All Rights Reserved.
@@ -202,12 +202,12 @@ class VncCanvas extends Canvas
     // its geometry should be changed. It's not necessary to replace
     // existing image if only pixel format should be changed.
     if (memImage == null) {
-      memImage = viewer.createImage(fbWidth, fbHeight);
+      memImage = viewer.vncContainer.createImage(fbWidth, fbHeight);
       memGraphics = memImage.getGraphics();
     } else if (memImage.getWidth(null) != fbWidth ||
 	       memImage.getHeight(null) != fbHeight) {
       synchronized(memImage) {
-	memImage = viewer.createImage(fbWidth, fbHeight);
+	memImage = viewer.vncContainer.createImage(fbWidth, fbHeight);
 	memGraphics = memImage.getGraphics();
       }
     }
@@ -228,7 +228,7 @@ class VncCanvas extends Canvas
 	new MemoryImageSource(fbWidth, fbHeight, cm24, pixels24, 0, fbWidth);
     }
     pixelsSource.setAnimated(true);
-    rawPixelsImage = createImage(pixelsSource);
+    rawPixelsImage = Toolkit.getDefaultToolkit().createImage(pixelsSource);
 
     // Update the size of desktop containers.
     if (viewer.inSeparateFrame) {
@@ -1389,7 +1389,7 @@ class VncCanvas extends Canvas
 
     softCursorSource =
       new MemoryImageSource(width, height, softCursorPixels, 0, width);
-    softCursor = createImage(softCursorSource);
+    softCursor = Toolkit.getDefaultToolkit().createImage(softCursorSource);
 
     // Set remaining data associated with cursor.
 

@@ -775,7 +775,7 @@ BOOL CALLBACK vncProperties::SharedDlgProc(HWND hwnd, UINT uMsg,
 							"AppShare was unable to begin sharing your computer.\n"
 							"Please verify that you have entered the correct AppShare Key"
 							" and try again.",
-							"LiveShare Connection Error",
+							"AppShare Connection Error",
 							MB_OK | MB_ICONEXCLAMATION );
 						delete tmpsock;
 						return true;

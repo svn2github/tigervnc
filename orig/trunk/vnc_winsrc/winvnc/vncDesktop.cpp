@@ -249,6 +249,14 @@ vncDesktopThread::run_undetached(void *arg)
 		{
 			break;
 		}
+#ifdef HORIZONLIVE
+		else if (msg.message == LS_QUIT)
+		{
+			// this is our custom quit message
+			vnclog.Print(LL_INTINFO, VNCLOG("Received LS_QUIT message.\n"));
+			break;
+		}
+#endif
 		else
 		{
 			// Process any other messages normally

@@ -6,6 +6,7 @@ RC=brc32
 LD=ilink32
 
 CFLAGS= -v- -O2 -3 -tWM -xd- -q -Iomnithread -I.. -w-8057 -w-8004 -w-8066 -w-8027 -w-8012 -w-8022 -DXMD_H
+RCFLAGS= -DWITH_JAVA_VIEWER
 LDFLAGS= /c /Tpe /aa /Gn /B:0x400000
 
 OBJS=d3des.obj vncauth.obj Log.obj MinMax.obj RectList.obj stdhdrs.obj \
@@ -30,7 +31,7 @@ LIBS=zlib\zlib.lib libjpeg\libjpeg.lib VNCHooks\VNCHooks.lib
 	$(CC) -c $(CFLAGS) $<
 .rc.res:
 	echo:>afxres.h
-	$(RC) -r $<
+	$(RC) -r $(RCFLAGS) $<
 	del afxres.h
 
 winvnc.exe: $(OBJS) $(LIBS) winvnc.res

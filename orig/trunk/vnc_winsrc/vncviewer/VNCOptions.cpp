@@ -364,6 +364,34 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 				Load(m_configFilename);
 				m_configSpecified = true;
 			}
+		} else if ( SwitchMatch(args[j], _T("encoding") )) {
+			if (++j == i) {
+				ArgError(_T("No encoding specified"));
+				continue;
+			}
+			int enc = -1;
+			if (_tcsicmp(args[j], _T("raw")) == 0) {
+				enc = rfbEncodingRaw;
+			} else if (_tcsicmp(args[j], _T("rre")) == 0) {
+				enc = rfbEncodingRRE;
+			} else if (_tcsicmp(args[j], _T("corre")) == 0) {
+				enc = rfbEncodingCoRRE;
+			} else if (_tcsicmp(args[j], _T("hextile")) == 0) {
+				enc = rfbEncodingHextile;
+			} else if (_tcsicmp(args[j], _T("zlib")) == 0) {
+				enc = rfbEncodingZlib;
+			} else if (_tcsicmp(args[j], _T("tight")) == 0) {
+				enc = rfbEncodingTight;
+			} else if (_tcsicmp(args[j], _T("zlibhex")) == 0) {
+				enc = rfbEncodingZlibHex;
+			} else {
+				ArgError(_T("Invalid encoding specified"));
+				continue;
+			}
+			if (enc != -1) {
+				m_UseEnc[enc] = true;
+				m_PreferredEncoding = enc;
+			}
 		} else if ( SwitchMatch(args[j], _T("compresslevel") )) {
 			if (++j == i) {
 				ArgError(_T("No compression level specified"));
@@ -537,7 +565,7 @@ void VNCOptions::Register()
 }
 
 void VNCOptions::ShowUsage(LPTSTR info) {
-    TCHAR msg[1024];
+    TCHAR msg[2048];
     TCHAR *tmpinf = _T("");
     if (info != NULL) 
         tmpinf = info;
@@ -545,15 +573,15 @@ void VNCOptions::ShowUsage(LPTSTR info) {
 #ifdef UNDER_CE
 		_T("%s\n\rUsage includes:\n\r")
 			_T("vncviewer [/8bit] [/swapmouse] [/shared] [/belldeiconify] \n\r")
-			_T(" [/hpc | /palm] [/slow] [server:display] \n\r")
+			_T(" [/hpc | /palm] [/slow] server[:display] \n\r")
 			_T("For full details see documentation."),
 #else
 		_T("%s\n\rUsage includes:\n\r"
-			"  vncviewer [/8bit] [/swapmouse] [/shared] [/noshared] \n\r"
+			"  vncviewer [/8bit] [/shared] [/noshared] [/swapmouse] \n\r"
 			"      [/belldeiconify] [/listen] [/fullscreen] [/viewonly] \n\r"
 			"      [/emulate3] [/scale a/b] [/config configfile] \n\r"
-			"      [/compresslevel N] [/quality N] [/nocursorshape] \n\r"
-			"      [/noremotecursor] [server:display]\n\r"
+			"      [/encoding encname] [/compresslevel n] [/quality n] \n\r"
+			"      [/nocursorshape] [/noremotecursor] server[:display]\n\r"
 			"For full details see documentation."), 
 #endif
         tmpinf);

@@ -144,6 +144,7 @@ protected:
 	BOOL SetPalette();
 
 	void CopyToBuffer(RECT &rect, BYTE *scrBuff);
+	void CopyRectToBuffer(RECT &dest, POINT &source);
 	void CalcCopyRects();
 	
 	// Routine to attempt enabling optimised DIBsection blits
@@ -158,6 +159,7 @@ protected:
 	void PollWindow(HWND hwnd, RECT &rect);
 	void CheckRects(vncRegion &rgn, rectlist &rects);
 	void GetChangedRegion(vncRegion &rgn, RECT &rect);											
+
 
 
 	// DATA

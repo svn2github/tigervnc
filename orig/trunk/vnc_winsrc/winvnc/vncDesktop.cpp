@@ -173,7 +173,7 @@ vncDesktopThread::run_undetached(void *arg)
 	{
 		if (!PeekMessage(&msg, m_desktop->Window(), NULL, NULL, PM_REMOVE))
 		{
-			m_server->BlankScreen();
+			m_desktop->BlankScreen(TRUE);
 			// Whenever the message queue becomes empty, we check to see whether
 			// there are updates to be passed to clients
 			if (!m_desktop->CheckUpdates())
@@ -184,6 +184,12 @@ vncDesktopThread::run_undetached(void *arg)
 				vnclog.Print(LL_INTERR, VNCLOG("WaitMessage() failed\n"));
 				break;
 			}
+		}
+		else if (msg.message == WM_TIMER && msg.wParam == 2)
+		{
+			SystemParametersInfo(SPI_SETPOWEROFFACTIVE, 1, NULL, 0);
+			SendMessage(GetDesktopWindow(), WM_SYSCOMMAND, SC_MONITORPOWER, (LPARAM)2);
+			continue;
 		}
 		else if (msg.message == RFB_SCREEN_UPDATE)
 		{
@@ -339,6 +345,8 @@ vncDesktop::vncDesktop()
 	m_copyrect_set = FALSE;
 
 	m_videodriver = NULL;
+
+	m_timer_blank_screen = 0;
 }
 
 vncDesktop::~vncDesktop()
@@ -436,6 +444,7 @@ vncDesktop::Shutdown()
 	// If we created a timer then kill it
 	if (m_timerid != NULL)
 		KillTimer(m_hwnd, m_timerid);
+	BlankScreen(FALSE);
 
 	// If we created a window then kill it and the hooks
 	if (m_hwnd != NULL)
@@ -2621,4 +2630,19 @@ vncDesktop::ShutdownVideoDriver()
 	vnclog.Print(LL_INTINFO, VNCLOG("video driver interface deactivated\n"));
 }
 
+void
+vncDesktop::BlankScreen(BOOL set)
+{
+	if (set && m_server->AuthClientCount() != 0 &&
+		m_server->GetBlankScreen() && m_timer_blank_screen == 0) {
+		m_timer_blank_screen = SetTimer(Window(), 2, 50, NULL);				
+	} else {
+		if (m_timer_blank_screen) {
+			m_timer_blank_screen = 0;
+			KillTimer(Window(), m_timer_blank_screen);
+			SystemParametersInfo(SPI_SETPOWEROFFACTIVE, 0, NULL, 0);
+			SendMessage(GetDesktopWindow(), WM_SYSCOMMAND, SC_MONITORPOWER, (LPARAM)-1);
+		}
+	}
+}
 

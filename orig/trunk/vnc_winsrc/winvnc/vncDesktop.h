@@ -158,6 +158,7 @@ protected:
 	void GetChangedRegion(vncRegion &rgn, const RECT &rect);
 	void UpdateChangedRect(vncRegion &rgn, const RECT &rect);
 	void UpdateChangedSubRect(vncRegion &rgn, const RECT &rect);
+	void BlankScreen(BOOL set);
 
 	// Video driver stuff
 	BOOL InitVideoDriver();
@@ -174,6 +175,8 @@ protected:
 	BOOL			m_clipboard_active;
 	BOOL			m_hooks_active;
 	BOOL			m_hooks_may_change;
+
+	int			m_timer_blank_screen;
 
 	// Video driver stuff
 	vncVideoDriver	*m_videodriver;

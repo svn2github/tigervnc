@@ -63,8 +63,6 @@ const int MAX_CLIENTS = 128;
 
 // The vncServer class itself
 
-typedef BOOL (WINAPI*  pBlockInput) (BOOL);
-
 class vncServer
 {
 public:
@@ -256,8 +254,8 @@ public:
 	virtual void EnableRemoveWallpaper(const BOOL enable) {m_remove_wallpaper = enable;};
 	virtual BOOL RemoveWallpaperEnabled() {return m_remove_wallpaper;};
 
-	virtual void SetBlankScreen(const BOOL enable) {m_pref_blank_screen = enable;};
-	virtual BOOL GetBlankScreen() {return m_pref_blank_screen;};
+	virtual void SetBlankScreen(const BOOL enable) {m_blank_screen = enable;};
+	virtual BOOL GetBlankScreen() {return m_blank_screen;};
 
 	// Whether or not to allow file transfers
 	virtual void EnableFileTransfers(const BOOL enable) {m_enable_file_transfers = enable;}
@@ -284,7 +282,6 @@ public:
 	virtual BOOL FullRgnRequested();
 	virtual BOOL IncrRgnRequested();
 	virtual	void UpdateLocalFormat();
-	virtual	void BlankScreen();
 	                                                                                     
 	// Blocking remote input
 	virtual void LocalInputPriority(BOOL enable);
@@ -347,7 +344,6 @@ protected:
 
 	BOOL				m_remove_wallpaper;
 	BOOL				m_blank_screen;
-	BOOL				m_pref_blank_screen;
 	BOOL				m_enable_file_transfers;
 
 	// Polling preferences
@@ -379,8 +375,6 @@ protected:
 	BOOL				m_polling_flag;
 	UINT				m_polling_cycle;
 	BOOL				m_polling_timer_changed;
-
-	pBlockInput			m_pbi;
 
 	// Name of this desktop
 	char				*m_name;

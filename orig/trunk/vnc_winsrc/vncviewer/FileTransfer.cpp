@@ -69,6 +69,7 @@ FileTransfer::CreateFileTransferDialog()
 	UpdateWindow(m_hwndFileTransfer);
 
 	m_hwndFTProgress = GetDlgItem(m_hwndFileTransfer, IDC_FTPROGRESS);
+	m_hwndProgress = GetDlgItem(m_hwndFileTransfer, IDC_PROGRESS);
 	m_hwndFTClientList = GetDlgItem(m_hwndFileTransfer, IDC_FTCLIENTLIST);
 	m_hwndFTServerList = GetDlgItem(m_hwndFileTransfer, IDC_FTSERVERLIST);
 	m_hwndFTClientPath = GetDlgItem(m_hwndFileTransfer, IDC_CLIENTPATH);
@@ -84,6 +85,10 @@ FileTransfer::CreateFileTransferDialog()
 	SetIcon(m_hwndFileTransfer, IDC_SERVERRELOAD, IDI_FILERELOAD);
 	SetIcon(m_hwndFileTransfer, IDC_CLIENTCREATEDIR, IDI_CREATEDIR);
 	SetIcon(m_hwndFileTransfer, IDC_SERVERCREATEDIR, IDI_CREATEDIR);
+	SetIcon(m_hwndFileTransfer, IDC_CLIENTDELETEDIR, IDI_DELETEDIR);
+	SetIcon(m_hwndFileTransfer, IDC_SERVERDELETEDIR, IDI_DELETEDIR);
+	SetIcon(m_hwndFileTransfer, IDC_CLIENTRENAME, IDI_RENAME);
+	SetIcon(m_hwndFileTransfer, IDC_SERVERRENAME, IDI_RENAME);
 
 	RECT Rect;
 	GetClientRect(m_hwndFTClientList, &Rect);
@@ -160,10 +165,7 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 				EndDialog(hwnd, TRUE);
 				return TRUE;
 			case IDC_CLIENTUP:
-				SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
-				EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), FALSE);
-				SendMessage(_this->m_hwndFTProgress, PBM_SETPOS, 0, 0);
-				_this->ClearStatusText();
+				_this->ClearFTControls();
 				if (strcmp(_this->m_ClientPathTmp, "") == 0) return TRUE;
 				for (i=(strlen(_this->m_ClientPathTmp)-2); i>=0; i--) {
 					if (_this->m_ClientPathTmp[i] == '\\') {
@@ -175,10 +177,7 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 				_this->ShowClientItems(_this->m_ClientPathTmp);
 				return TRUE;
 			case IDC_SERVERUP:
-				SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
-				EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), FALSE);
-				SendMessage(_this->m_hwndFTProgress, PBM_SETPOS, 0, 0);
-				_this->ClearStatusText();
+				_this->ClearFTControls();
 				if (strcmp(_this->m_ServerPathTmp, "") == 0) return TRUE;
 				for (i=(strlen(_this->m_ServerPathTmp)-2); i>=0; i--) {
 					if (_this->m_ServerPathTmp[i] == '\\') {
@@ -190,17 +189,11 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 				_this->SendFileListRequestMessage(_this->m_ServerPathTmp, 0, FT_FLR_DEST_MAIN);
 				return TRUE;
 			case IDC_CLIENTRELOAD:
-				SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
-				EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), FALSE);
-				SendMessage(_this->m_hwndFTProgress, PBM_SETPOS, 0, 0);
-				_this->ClearStatusText();
+				_this->ClearFTControls();
 				_this->ShowClientItems(_this->m_ClientPath);
 				return TRUE;
 			case IDC_SERVERRELOAD:
-				SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
-				EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), FALSE);
-				SendMessage(_this->m_hwndFTProgress, PBM_SETPOS, 0, 0);
-				_this->ClearStatusText();
+				_this->ClearFTControls();
 				_this->SendFileListRequestMessage(_this->m_ServerPathTmp, 0, FT_FLR_DEST_MAIN);
 				return TRUE;
 			case IDC_FTCOPY:
@@ -229,32 +222,28 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 				EnableWindow(GetDlgItem(hwnd, IDC_FTCANCEL), FALSE);
 				return TRUE;
 			case IDC_CLIENTBROWSE_BUT:
-				SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
-				EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), FALSE);
-				SendMessage(_this->m_hwndFTProgress, PBM_SETPOS, 0, 0);
-				_this->ClearStatusText();
+				_this->ClearFTControls();
 				_this->CreateFTBrowseDialog(FALSE);
 				return TRUE;
 			case IDC_SERVERBROWSE_BUT:
-				SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
-				EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), FALSE);
-				SendMessage(_this->m_hwndFTProgress, PBM_SETPOS, 0, 0);
-				_this->ClearStatusText();
+				_this->ClearFTControls();
 				_this->CreateFTBrowseDialog(TRUE);
 				return TRUE;
 			case IDC_CLIENTCREATEDIR:
-				SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
-				EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), FALSE);
-				SendMessage(_this->m_hwndFTProgress, PBM_SETPOS, 0, 0);
-				_this->ClearStatusText();
+				_this->ClearFTControls();
 				_this->ClientCreateDir();				
 				return TRUE;
 			case IDC_SERVERCREATEDIR:
-				SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
-				EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), FALSE);
-				SendMessage(_this->m_hwndFTProgress, PBM_SETPOS, 0, 0);
-				_this->ClearStatusText();
+				_this->ClearFTControls();
 				_this->ServerCreateDir();
+				return TRUE;
+			case IDC_CLIENTDELETEDIR:
+				_this->ClearFTControls();
+				_this->ClientDeleteDir();				
+				return TRUE;
+			case IDC_SERVERDELETEDIR:
+				_this->ClearFTControls();
+				_this->ServerDeleteDir();
 				return TRUE;
 		}
 		}
@@ -361,7 +350,10 @@ FileTransfer::FileTransferUpload()
 	strcpy(m_szLastRelTransPath, "");
 	if (m_TransferInfo.GetNumEntries() != 0) return;
 	m_dwNumItemsSel = GetSelectedItems(m_hwndFTClientList, &m_TransferInfo);
+	m_dwSelFileSize = GetSelectedFileSize(m_ClientPath, &m_TransferInfo);
 	m_bUploadStarted = TRUE;
+	InitFTProgressBar(0);
+	InitProgressBar(0);
 	CheckUploadQueue();
 }
 
@@ -372,6 +364,7 @@ FileTransfer::CheckUploadQueue()
 	if ((numEntries < 0) || (!m_bUploadStarted)) {
 		m_bTransferEnable = FALSE;
 		m_bUploadStarted = FALSE;
+		SetStatusText("Copy Operation Successfully Completed");
 		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
 		return;
 	}
@@ -416,6 +409,7 @@ FileTransfer::CheckUploadQueue()
 		if (m_TransferInfo.GetNumEntries() == 0) {
 			m_bTransferEnable = FALSE;
 			m_bUploadStarted = FALSE;
+			SetStatusText("Copy Operation Successfully Completed");
 			return;
 		}
 	}
@@ -507,8 +501,6 @@ FileTransfer::UploadFilePortion()
 	if (bResult && dwNumOfBytesRead == 0) {
 		/* This is the end of the file. */
 		SendFileUploadDataMessage(m_dwModTime);
-		SendMessage(m_hwndFTProgress, PBM_SETPOS, 0, 0);
-		ClearStatusText();
 		CloseHandle(m_hFiletoRead);
 		if ((m_dwNumItemsSel > 0) && (strcmp(m_ServerPath, m_szRemoteTransPath) == 0)) {
 			m_dwNumItemsSel--;
@@ -523,6 +515,27 @@ FileTransfer::UploadFilePortion()
 	PostMessage(m_clientconn->m_hwnd1, fileTransferUploadMessage, (WPARAM) 0, (LPARAM) 0);
 }
 
+void 
+FileTransfer::ProcessFDSDMessage()
+{
+	rfbFileDirSizeDataMsg fdsd;
+	m_clientconn->ReadExact((char *) &fdsd, sz_rfbFileDirSizeDataMsg);
+	CARD32 dSize = Swap32IfLE(fdsd.dSize);
+	m_dwSelFileSize += dSize;
+
+	if (m_NumReqDirSize == 0) {
+		m_bDownloadStarted = TRUE;
+		InitFTProgressBar(0);
+		InitProgressBar(0);
+		CheckDownloadQueue();
+	} else {
+		m_NumReqDirSize--;
+		char path[MAX_PATH];
+		sprintf(path, "%s\\%s", m_szRemoteTransPath, m_TransferInfo.GetNameAt(m_NumReqDirSize));
+		SendFileDirSizeRequestMessage(strlen(path),path);
+	}
+}
+
 void FileTransfer::FileTransferDownload()
 {
 	strcpy(m_szLocalTransPath, m_ClientPath);
@@ -530,7 +543,24 @@ void FileTransfer::FileTransferDownload()
 	strcpy(m_szLastRelTransPath, "");
 	if (m_TransferInfo.GetNumEntries() != 0) return;
 	m_dwNumItemsSel = GetSelectedItems(m_hwndFTServerList, &m_TransferInfo);
+	m_NumReqDirSize = m_dwNumItemsSel;
+	m_dwSelFileSize = 0;
+	m_TransferInfo.Sort();
+	for (int i = m_TransferInfo.GetNumEntries() - 1; i >= 0; i--) {
+		m_NumReqDirSize--;
+		int size = m_TransferInfo.GetIntSizeAt(i);
+		if (size >= 0) {
+			m_dwSelFileSize += size;
+		} else {
+			char path[MAX_PATH];
+			sprintf(path, "%s\\%s", m_szRemoteTransPath, m_TransferInfo.GetNameAt(i));
+			SendFileDirSizeRequestMessage(strlen(path), path);
+			return;
+		}
+	}
 	m_bDownloadStarted = TRUE;
+	InitFTProgressBar(0);
+	InitProgressBar(0);
 	CheckDownloadQueue();
 }
 
@@ -541,6 +571,7 @@ void FileTransfer::CheckDownloadQueue()
 		m_bTransferEnable = FALSE;
 		m_bDownloadStarted = FALSE;
 		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
+		SetStatusText("Copy Operation Successfully Completed");
 		return;
 	}
 	char path[MAX_PATH];
@@ -604,12 +635,10 @@ FileTransfer::DownloadFilePortion()
 
 	if ((fdd.realSize == 0) && (fdd.compressedSize == 0)) {
 		unsigned int mTime;
-		m_clientconn->ReadExact((char *) &mTime, sizeof(unsigned int));
+		m_clientconn->ReadExact((char *) &mTime, sizeof(CARD32));
 		FILETIME Filetime;
 		Time70ToFiletime(mTime, &Filetime);
 		SetFileTime(m_hFiletoWrite, &Filetime, &Filetime, &Filetime);
-		SendMessage(m_hwndFTProgress, PBM_SETPOS, 0, 0);
-		ClearStatusText();
 		CloseHandle(m_hFiletoWrite);
 		if ((m_dwNumItemsSel > 0) && (strcmp(m_ClientPath, m_szLocalTransPath) == 0)) {
 			m_dwNumItemsSel--;
@@ -691,10 +720,11 @@ FileTransfer::ShowClientItems(char *path)
 				i+=3;
 				if ((DrivesString[i] == '\0') && (DrivesString[i+1] == '\0')) break;
 			}
+/*
 			BOOL bCreate = FALSE;
 			if (SHGetSpecialFolderPath(NULL, m_szLocalMyDocPath, CSIDL_PERSONAL, bCreate))
 				m_FTClientItemInfo.Add((char *) myDocumentsText, (char *) m_FTClientItemInfo.folderText, 0);
-
+*/
 			m_FTClientItemInfo.Sort();
 			ShowListViewItems(m_hwndFTClientList, &m_FTClientItemInfo);
 		}
@@ -1087,10 +1117,24 @@ FileTransfer::SendFileListRequestMessage(char *filename, unsigned char flags, in
 }
 
 void 
+FileTransfer::SendFileDirSizeRequestMessage(unsigned short pathLen, char *path)
+{
+	char _path[MAX_PATH];
+	strcpy(_path, path);
+	int len = strlen(_path);
+	if (_path[len-1] == '\\') _path[len-1] = '\0';
+	ConvertPath(_path);
+	len = strlen(_path);
+	rfbFileDirSizeRequestMsg fdsr;
+	fdsr.type = rfbFileDirSizeRequest;
+	fdsr.dNameLen = Swap16IfLE(len);
+	m_clientconn->WriteExact((char *)&fdsr, sz_rfbFileDirSizeRequestMsg);
+	m_clientconn->WriteExact(_path, len);
+}
+
+void 
 FileTransfer::ProcessListViewDBLCLK(HWND hwnd, char *Path, char *PathTmp, int iItem)
 {
-	SendMessage(m_hwndFTProgress, PBM_SETPOS, 0, 0);
-	ClearStatusText();
 	strcpy(PathTmp, Path);
 	char buffer[MAX_PATH];
 	char buffer_tmp[16];
@@ -1159,17 +1203,49 @@ void
 FileTransfer::InitProgressBar(int nPosition)
 {
 	m_dwProgBarValue = 0;
+	m_dwProgBarPercent = 0;
+	SendMessage(m_hwndProgress, PBM_SETPOS, (WPARAM) nPosition, (LPARAM) 0);
+	SendMessage(m_hwndProgress, PBM_SETRANGE, (WPARAM) 0, MAKELPARAM(0, 65535)); 
+	SetDlgItemText(m_hwndFileTransfer, IDC_CURRENTFILEPERCENT, "0%");
+}
+
+void 
+FileTransfer::InitFTProgressBar(int nPosition)
+{
+	m_dwFTProgBarValue = 0;
+	m_dwFTProgBarPercent = 0;
 	SendMessage(m_hwndFTProgress, PBM_SETPOS, (WPARAM) nPosition, (LPARAM) 0);
 	SendMessage(m_hwndFTProgress, PBM_SETRANGE, (WPARAM) 0, MAKELPARAM(0, 65535)); 
+	SetDlgItemText(m_hwndFileTransfer, IDC_FILETRANSFERPERCENT, "0%");
 }
 
 void
 FileTransfer::IncreaseProgBarPos(int pos)
 {
+	DWORD oldPosition = (DWORD) ((((float) m_dwProgBarValue) / m_dwFileSize) * 65535);
+	DWORD oldFTPosition = (DWORD) ((((float) m_dwFTProgBarValue) / m_dwSelFileSize) * 65535);
 	m_dwProgBarValue += pos;
+	m_dwFTProgBarValue += pos;
 	if (m_dwProgBarValue > m_dwFileSize) m_dwProgBarValue = m_dwFileSize;
+	if (m_dwFTProgBarValue > m_dwSelFileSize) m_dwFTProgBarValue = m_dwSelFileSize;
 	DWORD newPosition = (DWORD) ((((float) m_dwProgBarValue) / m_dwFileSize) * 65535);
-	SendMessage(m_hwndFTProgress, PBM_SETPOS, (WPARAM) newPosition, (LPARAM) 0);
+	DWORD newFTPosition = (DWORD) ((((float) m_dwFTProgBarValue) / m_dwSelFileSize) * 65535);
+	if (newPosition != oldPosition)	SendMessage(m_hwndProgress, PBM_SETPOS, (WPARAM) newPosition, (LPARAM) 0);
+	if (newFTPosition != oldFTPosition) SendMessage(m_hwndFTProgress, PBM_SETPOS, (WPARAM) newFTPosition, (LPARAM) 0);
+	DWORD percent = (DWORD) (((float) m_dwProgBarValue / m_dwFileSize) * 100);
+	if (percent != m_dwProgBarPercent) {
+		char buf[5];
+		sprintf(buf, "%d%%", percent);
+		SetDlgItemText(m_hwndFileTransfer, IDC_CURRENTFILEPERCENT, buf);
+		m_dwProgBarPercent = percent;
+	}
+	percent = (DWORD) (((float) m_dwFTProgBarValue / m_dwSelFileSize) * 100);
+	if (percent != m_dwFTProgBarPercent) {
+		char buf[5];
+		sprintf(buf, "%d%%", percent);
+		SetDlgItemText(m_hwndFileTransfer, IDC_FILETRANSFERPERCENT, buf);
+		m_dwFTProgBarPercent = percent;
+	}
 }
 
 void 
@@ -1318,7 +1394,9 @@ void FileTransfer::SetIcon(HWND hwnd, int dest, int idIcon)
 	SendMessage(GetDlgItem(hwnd, dest), BM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) hIcon);
 	DestroyIcon((HICON) hIcon);
 }
-void FileTransfer::ClientCreateDir()
+
+void 
+FileTransfer::ClientCreateDir()
 {
 	if (strlen(m_ClientPath) == 0) {
 		SetStatusText("Illegal local path. Directory is not created.");
@@ -1331,7 +1409,8 @@ void FileTransfer::ClientCreateDir()
 		}
 	}
 }
-void FileTransfer::ServerCreateDir()
+void 
+FileTransfer::ServerCreateDir()
 {
 	if (strlen(m_ServerPath) == 0) {
 		SetStatusText("Illegal remote path. Directory is not created.");
@@ -1343,6 +1422,28 @@ void FileTransfer::ServerCreateDir()
 			SendFileListRequestMessage(m_ServerPath, 0, FT_FLR_DEST_MAIN);
 		}
 	}
+}
+
+void
+FileTransfer::ClientDeleteDir()
+{
+	if (strlen(m_ClientPath) == 0) {
+		SetStatusText("Illegal local path. Can't delete");
+		return;
+	}
+	FileTransferItemInfo ftfi;
+	int numSel = GetSelectedItems(m_hwndFTClientList, &ftfi);
+	if (numSel <= 0) {
+		SetStatusText("Select file or folder for deleting.");
+		return;
+	}
+
+}
+
+void
+FileTransfer::ServerDeleteDir()
+{
+
 }
 
 int 
@@ -1454,4 +1555,57 @@ FileTransfer::MakeStatusText(char *prefix, char *path1, char *path2, char *name)
 	} else {
 		SetStatusText("%s %s\\%s to %s\\%s", prefix, path1, name, path2, name);
 	}
+}
+
+DWORD
+FileTransfer::GetSelectedFileSize(char *path, FileTransferItemInfo *pFTFI)
+{
+	DWORD dwSelFileSize = 0;
+	FileTransferItemInfo ftfi;
+	for (int i = 0; i < pFTFI->GetNumEntries(); i++) {
+		int size = pFTFI->GetIntSizeAt(i);
+		if (size >= 0) {
+			dwSelFileSize += size;
+		} else {
+			ftfi.Add(pFTFI->GetNameAt(i), size, 0);
+		}
+	}
+	char fullPath[MAX_PATH];
+	while (ftfi.GetNumEntries() > 0) {
+		sprintf(fullPath, "%s\\%s\\*", path, ftfi.GetNameAt(0));
+		WIN32_FIND_DATA FindFileData;
+		SetErrorMode(SEM_FAILCRITICALERRORS);
+		HANDLE hFile = FindFirstFile(fullPath, &FindFileData);
+		SetErrorMode(0);
+
+		if (hFile != INVALID_HANDLE_VALUE) {
+			do {
+				if (strcmp(FindFileData.cFileName, ".") != 0 &&
+					strcmp(FindFileData.cFileName, "..") != 0) {
+					char buff[MAX_PATH];
+					if ((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {	
+						sprintf(buff, "%s\\%s", ftfi.GetNameAt(0), FindFileData.cFileName);
+						ftfi.Add(buff, -1, 0);
+					} else {
+						dwSelFileSize += FindFileData.nFileSizeLow;
+					}
+				}
+			} while (FindNextFile(hFile, &FindFileData));
+		}			
+		FindClose(hFile);
+		ftfi.DeleteAt(0);
+	}
+	return dwSelFileSize;
+}
+
+void
+FileTransfer::ClearFTControls()
+{
+	SetDlgItemText(m_hwndFileTransfer, IDC_FTCOPY, noactionText);
+	SetDlgItemText(m_hwndFileTransfer, IDC_FILETRANSFERPERCENT, "0%");
+	SetDlgItemText(m_hwndFileTransfer, IDC_CURRENTFILEPERCENT, "0%");
+	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCOPY), FALSE);
+	SendMessage(m_hwndProgress, PBM_SETPOS, 0, 0);
+	SendMessage(m_hwndFTProgress, PBM_SETPOS, 0, 0);
+	ClearStatusText();
 }

@@ -104,6 +104,10 @@ SOURCE=.\res\cursor1.cur
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\deletedi.ico
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\filereload.ico
 # End Source File
 # Begin Source File
@@ -117,6 +121,10 @@ SOURCE=.\res\idr_tray.ico
 # Begin Source File
 
 SOURCE=.\res\nocursor.cur
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\rename.ico
 # End Source File
 # Begin Source File
 

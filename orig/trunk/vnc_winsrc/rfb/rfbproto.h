@@ -385,6 +385,7 @@ typedef struct _rfbInteractionCapsMsg {
 #define rfbFileDownloadData 131
 #define rfbFileUploadCancel 132
 #define rfbFileDownloadFailed 133
+#define rfbFileDirSizeData 134
 
 /* signatures for non-standard messages */
 #define sig_rfbFileListData "FTS_LSDT"
@@ -410,6 +411,7 @@ typedef struct _rfbInteractionCapsMsg {
 #define rfbFileDownloadCancel 134
 #define rfbFileUploadFailed 135
 #define rfbFileCreateDirRequest 136
+#define rfbFileDirSizeRequest 137
 
 /* signatures for non-standard messages */
 #define sig_rfbFileListRequest "FTC_LSRQ"
@@ -955,6 +957,19 @@ typedef struct _rfbFileDownloadFailedMsg {
 #define sz_rfbFileDownloadFailedMsg 4
 
 /*-----------------------------------------------------------------------------
+ * FileDirSizeData
+ */
+
+typedef struct _rfbFileDirSizeDataMsg {
+    CARD8 type;
+    CARD8 pad1;
+	CARD16 pad2;
+    CARD32 dSize;
+} rfbFileDirSizeDataMsg;
+
+#define sz_rfbFileDirSizeDataMsg 8
+
+/*-----------------------------------------------------------------------------
  * Union of all server->client messages.
  */
 
@@ -968,6 +983,7 @@ typedef union _rfbServerToClientMsg {
     rfbFileDownloadDataMsg fdd;
     rfbFileUploadCancelMsg fuc;
     rfbFileDownloadFailedMsg fdf;
+	rfbFileDirSizeDataMsg fdsd;
 } rfbServerToClientMsg;
 
 
@@ -1222,6 +1238,19 @@ typedef struct _rfbFileCreateDirRequestMsg {
 #define sz_rfbFileCreateDirRequestMsg 4
 
 /*-----------------------------------------------------------------------------
+ * FileDirSizeRequest
+ */
+
+typedef struct _rfbFileDirSizeRequestMsg {
+    CARD8 type;
+    CARD8 unused;
+    CARD16 dNameLen;
+    /* Followed by dName[dNameLen] */
+} rfbFileDirSizeRequestMsg;
+
+#define sz_rfbFileDirSizeRequestMsg 4
+
+/*-----------------------------------------------------------------------------
  * Union of all client->server messages.
  */
 
@@ -1241,4 +1270,5 @@ typedef union _rfbClientToServerMsg {
     rfbFileDownloadCancelMsg fdc;
     rfbFileUploadFailedMsg fuf;
     rfbFileCreateDirRequestMsg fcdr;
+	rfbFileDirSizeRequestMsg fdsr;
 } rfbClientToServerMsg;

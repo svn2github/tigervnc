@@ -2977,6 +2977,9 @@ void* ClientConnection::run_undetached(void* arg) {
 				break;
 			case rfbFileDownloadFailed:
 				break;
+			case rfbFileDirSizeData:
+				m_pFileTransfer->ProcessFDSDMessage();
+				break;
 
 			default:
 				vnclog.Print(3, _T("Unknown message type x%02x\n"), msgType );

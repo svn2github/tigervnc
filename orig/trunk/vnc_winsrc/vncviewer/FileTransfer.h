@@ -58,6 +58,7 @@ public:
 	void ConvertPath(char *path);
 	void ProcessListViewDBLCLK(HWND hwnd, char *Path, char *PathTmp, int iItem);
 	void ProcessFLRMessage();
+	void ProcessFDSDMessage();
 	void SendFileListRequestMessage(char *filename, unsigned char flags, int dest);
 	void ShowServerItems();
 	void ShowClientItems(char *path);
@@ -89,11 +90,13 @@ public:
 private:
 //	int m_sizeDownloadFile;
 	int m_FLRDest;
+	int m_NumReqDirSize;
 
 	DWORD m_dwFileSize;
 	DWORD m_dwFileBlockSize;
 	DWORD m_dwModTime;
 	DWORD m_dwNumItemsSel;
+	DWORD m_dwSelFileSize;
 
 	unsigned int FiletimeToTime70(FILETIME ftime);
 	void Time70ToFiletime(unsigned int time70, FILETIME *pftime);
@@ -102,13 +105,19 @@ private:
 	void SendFileDownloadCancelMessage(unsigned short reasonLen, char *reason);
 	void SendFileCreateDirRequestMessage(unsigned short dNameLen, char *dName);
 	void SendFileDownloadRequestMessage(unsigned short dNameLen, char *dName);
+	void SendFileDirSizeRequestMessage(unsigned short pathLen, char *path);
 	void CreateItemInfoList(FileTransferItemInfo *pftii, FTSIZEDATA *ftsd, int ftsdNum, char *pfnames, int fnamesSize);
 	void InitProgressBar(int nPosition);
+	void InitFTProgressBar(int nPosition);
 	void IncreaseProgBarPos(int pos);
 	void SetIcon(HWND hwnd, int dest, int idIcon);
 	void ClientCreateDir();
 	void ServerCreateDir();
+	void ClientDeleteDir();
+	void ServerDeleteDir();
 	void SetDefaultBlockSize() { m_dwFileBlockSize = 8192; };
+
+	DWORD GetSelectedFileSize(char *path, FileTransferItemInfo *pFTFI);
 
 	void SetStatusText(LPCSTR format,...);
 	void ClearStatusText() { SetWindowText(m_hwndFTStatus, ""); };
@@ -118,6 +127,8 @@ private:
 	void CheckUploadQueue();
 	void UploadFile(int num);
 
+	void ClearFTControls();
+
 	void FileTransferDownload();
 	void CheckDownloadQueue();
 	void ProcessFLRDownload();
@@ -126,6 +137,9 @@ private:
 	int GetSelectedItems(HWND hwnd, FileTransferItemInfo *pFTII);
 
 	DWORD m_dwProgBarValue;
+	DWORD m_dwProgBarPercent;
+	DWORD m_dwFTProgBarValue;
+	DWORD m_dwFTProgBarPercent;
 
 	HWND m_hwndFileTransfer;
 	HWND m_hwndFTClientList;
@@ -133,6 +147,7 @@ private:
 	HWND m_hwndFTClientPath;
 	HWND m_hwndFTServerPath;
 	HWND m_hwndFTProgress;
+	HWND m_hwndProgress;
 	HWND m_hwndFTStatus;
 	HWND m_hwndFTBrowse;
 	

@@ -222,6 +222,7 @@ private:
 	void SendFileDownloadData(unsigned int mTime);
 	void SendFileUploadCancel(unsigned short reasonLen, char *reason);
 	void SendFileDownloadFailed(unsigned short reasonLen, char *reason);
+	void SendFileDirSizeData(CARD32 size);
 	void CloseUndoneFileTransfer();
 	BOOL m_bUploadStarted;
 	BOOL m_bDownloadStarted;

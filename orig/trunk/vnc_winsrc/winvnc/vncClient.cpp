@@ -1314,10 +1314,12 @@ vncClientThread::run(void *arg)
 							i += 3;
 							if (szDrivesList[i+1] == '\0') break;
 					}
+/*
 					char myDocPath[MAX_PATH];
 					BOOL bCreate = FALSE;
 					if (SHGetSpecialFolderPath(NULL, myDocPath, CSIDL_PERSONAL, bCreate))
 						ftii.Add(myDocPath, -2, 0);
+*/
 				} else {
 					strcat(path, "\\*");
 					HANDLE FLRhandle;
@@ -1369,7 +1371,7 @@ vncClientThread::run(void *arg)
 				pFLD->dataSize = Swap16IfLE(ftii.GetSummaryNamesLength() + ftii.GetNumEntries());
 				pFLD->compressedSize = pFLD->dataSize;
 				for (int i = 0; i < ftii.GetNumEntries(); i++) {
-					pftsd[i].size = Swap32IfLE(ftii.GetSizeAt(i));
+					pftsd[i].size = Swap32IfLE(ftii.GetIntSizeAt(i));
 					pftsd[i].data = Swap32IfLE(ftii.GetDataAt(i));
 					strcpy(pFilenames, ftii.GetNameAt(i));
 					pFilenames = pFilenames + strlen(pFilenames) + 1;
@@ -1389,7 +1391,7 @@ vncClientThread::run(void *arg)
 				msg.fdr.position = Swap32IfLE(msg.fdr.position);
 				if (msg.fdr.fNameSize > 255) {
 					m_socket->ReadExact(NULL, msg.fdr.fNameSize);
-					char reason[] = "Size of file for download large than 255 bytes";
+					char reason[] = "Size of filename for download large than 255 bytes";
 					int reasonLen = strlen(reason);
 					m_client->SendFileDownloadFailed(reasonLen, reason);
 					break;
@@ -1590,7 +1592,55 @@ vncClientThread::run(void *arg)
 				CreateDirectory((LPCTSTR) dirName, NULL);
 				delete [] dirName;
 			}
+			break;
+	
+		case rfbFileDirSizeRequest:
+			if (!m_server->FileTransfersEnabled() || !m_client->IsInputEnabled()) {
+				connected = FALSE;
+				break;
+			}
+			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileDirSizeRequestMsg-1))
+			{
+				msg.fdsr.dNameLen = Swap16IfLE(msg.fdsr.dNameLen);
+				char *dirName = new char[msg.fdsr.dNameLen + 1];
+				m_socket->ReadExact(dirName, msg.fdsr.dNameLen);
+				dirName[msg.fdsr.dNameLen] = '\0';
+				dirName = ConvertPath(dirName);
+				FileTransferItemInfo ftfi;
+				char fullPath[MAX_PATH];
+				sprintf(fullPath, "%s\\*", dirName);
+				CARD32 dirFileSize = 0;
+				do {
+					WIN32_FIND_DATA FindFileData;
+					SetErrorMode(SEM_FAILCRITICALERRORS);
+					HANDLE hFile = FindFirstFile(fullPath, &FindFileData);
+					SetErrorMode(0);
 
+					if (hFile != INVALID_HANDLE_VALUE) {
+						do {
+							if (strcmp(FindFileData.cFileName, ".") != 0 &&
+								strcmp(FindFileData.cFileName, "..") != 0) {
+								char buff[MAX_PATH];
+								if ((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {	
+									if (ftfi.GetNumEntries() == 0) {
+										strcpy(buff, FindFileData.cFileName);
+									} else {
+										sprintf(buff, "%s\\%s", ftfi.GetNameAt(0), FindFileData.cFileName);
+									}
+									ftfi.Add(buff, -1, 0);
+								} else {
+									dirFileSize += FindFileData.nFileSizeLow;
+								}
+							}
+						} while (FindNextFile(hFile, &FindFileData));
+					}			
+					FindClose(hFile);
+					sprintf(fullPath, "%s\\%s\\*", dirName, ftfi.GetNameAt(0));
+					ftfi.DeleteAt(0);
+				} while (ftfi.GetNumEntries() > 0);
+				m_client->SendFileDirSizeData(dirFileSize);
+				delete [] dirName;
+			}
 			break;
 
 		default:
@@ -2451,7 +2501,15 @@ vncClient::SendFileDownloadData(unsigned short sizeFile, char *pFile)
 	memcpy(pFollow, pFile, sizeFile);
 	m_socket->SendExact(pAllFDDMessage, msgLen);
 	delete [] pAllFDDMessage;
+}
 
+void
+vncClient::SendFileDirSizeData(CARD32 size)
+{
+	rfbFileDirSizeDataMsg fdsd;
+	fdsd.type = rfbFileDirSizeData;
+	fdsd.dSize = Swap32IfLE(size);
+	m_socket->SendExact((char *)&fdsd, sz_rfbFileDirSizeDataMsg);
 }
 
 unsigned int 

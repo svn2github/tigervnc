@@ -487,9 +487,11 @@ void *vncHTTPListenThread::run_undetached(void * arg)
 
 	// Go into a loop, listening for connections on the given socket
 	for (;;) {
+		if (m_shutdown)
+			break;
 		// Accept an incoming connection
 		VSocket *new_socket = m_listen_socket->Accept();
-		if (new_socket == NULL || m_shutdown)
+		if (new_socket == NULL)
 			break;
 
 		// Start a client thread for this connection

@@ -28,6 +28,8 @@
 #if (!defined(_VNC_CONNECTINGDIALOG))
 #define _VNC_CONNECTINGDIALOG
 
+class ConnDialogThread;
+
 class ConnectingDialog
 {
 public:
@@ -37,11 +39,7 @@ public:
 	void SetStatus(const char *msg);
 
 private:
-	void Close();
-	static LRESULT CALLBACK ConnectingDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
-	HWND m_hwnd;
-	char *m_vnchost;
+	ConnDialogThread *m_thread;
 };
 
 #endif

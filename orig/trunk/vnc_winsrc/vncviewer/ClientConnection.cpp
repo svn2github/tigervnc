@@ -286,9 +286,6 @@ void ClientConnection::Run()
 	SendClientInit();
 	ReadServerInit();
 
-	delete m_connDlg;
-	m_connDlg = NULL;
-
 	// Only for protocol version 3.7t
 	if (m_tightVncProtocol) {
 		// Determine which protocol messages and encodings are supported.
@@ -296,6 +293,9 @@ void ClientConnection::Run()
 		// Enable file transfers if the server supports this feature.
 		m_enableFileTransfers = m_clientMsgCaps.IsEnabled(rfbFileListRequest);
 	}
+
+	delete m_connDlg;
+	m_connDlg = NULL;
 
 	EnableFullControlOptions();
 
@@ -1439,9 +1439,9 @@ void ClientConnection::SizeWindow(bool centered)
 	m_winwidth1 = min(m_fullwinwidth1,  workwidth);
 	m_winheight1 = min(m_fullwinheight1, workheight);
 
-	DWORD style = SWP_SHOWWINDOW | SWP_NOMOVE;
-	if (centered) {
-		style = SWP_SHOWWINDOW;
+	DWORD style = 0;
+	if (!centered) {
+		style |= SWP_NOMOVE;
 	}
 	if (GetMenuState(GetSystemMenu(m_hwnd1, FALSE),
 					 ID_TOOLBAR, MF_BYCOMMAND) == MF_CHECKED) {
@@ -1844,7 +1844,7 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 						prev_scale_den != _this->m_opts.m_scale_den) {
 						// Resize the window if scaling factors were changed
 						_this->SizeWindow(false);
-						InvalidateRect(hwnd, NULL, TRUE);
+						InvalidateRect(hwnd, NULL, FALSE);
 						// Make the window correspond to the requested state
 						_this->RealiseFullScreenMode(true);
 					}

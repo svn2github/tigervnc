@@ -1,6 +1,6 @@
 LIBRARY		"zlib"
 
-DESCRIPTION	'"""zlib data compression library"""'
+; DESCRIPTION	'"""zlib data compression library"""'
 
 ; EXETYPE		NT
 

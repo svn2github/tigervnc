@@ -75,15 +75,18 @@ rfbTranslateWithRGBTablesINtoOUT (char *table, rfbPixelFormat *in,
     OUT_T *redTable = (OUT_T *)table;
     OUT_T *greenTable = redTable + in->redMax + 1;
     OUT_T *blueTable = greenTable + in->greenMax + 1;
+    IN_T in_pix;
+    OUT_T out_pix;
 
     while (height > 0) {
 	opLineEnd = op + width;
 
 	while (op < opLineEnd) {
-	    *(op++) = (redTable[(*ip >> in->redShift) & in->redMax] |
-		       greenTable[(*ip >> in->greenShift) & in->greenMax] |
-		       blueTable[(*ip >> in->blueShift) & in->blueMax]);
-	    ip++;
+	    in_pix = *ip++;
+	    out_pix  = redTable[(in_pix >> in->redShift) & in->redMax];
+	    out_pix |= greenTable[(in_pix >> in->greenShift) & in->greenMax];
+	    out_pix |= blueTable[(in_pix >> in->blueShift) & in->blueMax];
+	    *op++ = out_pix;
 	}
 	ip += ipextra;
 	height--;

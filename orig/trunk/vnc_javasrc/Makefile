@@ -6,7 +6,7 @@ CP = cp
 JC = javac
 JAR = jar
 ARCHIVE = vncviewer.jar
-PAGES = index.vnc shared.vnc zlib.vnc
+PAGES = index.vnc shared.vnc noshared.vnc hextile.vnc zlib.vnc tight.vnc
 INSTALL_DIR = /usr/local/vnc/classes
 
 CLASSES = vncviewer.class rfbProto.class authenticationPanel.class \

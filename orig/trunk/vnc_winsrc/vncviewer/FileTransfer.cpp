@@ -88,9 +88,9 @@ FileTransfer::CreateFileTransferDialog()
 	RECT Rect;
 	GetClientRect(m_hwndFTClientList, &Rect);
 	Rect.right -= GetSystemMetrics(SM_CXHSCROLL);
-	int xwidth0 = (int) (0.39 * Rect.right);
-	int xwidth1 = (int) (0.22 * Rect.right);
-	int xwidth2 = (int) (0.39 * Rect.right);
+	int xwidth0 = (int) (0.36 * Rect.right);
+	int xwidth1 = (int) (0.24 * Rect.right);
+	int xwidth2 = (int) (0.4 * Rect.right);
 
 	FTInsertColumn(m_hwndFTClientList, "Name", 0, xwidth0, LVCFMT_LEFT);
 	FTInsertColumn(m_hwndFTClientList, "Size", 1, xwidth1, LVCFMT_RIGHT);
@@ -123,8 +123,8 @@ FileTransfer::CreateFileTransferDialog()
 	m_bEndFTDlgOnYes = FALSE;
 	m_bOverwriteAll = FALSE;
 
-	char buf[MAX_HOST_NAME_LEN + 18];
-	char localHostName[MAX_HOST_NAME_LEN];
+	char buf[MAX_HOST_NAME_LEN + 32];
+	char localHostName[MAX_HOST_NAME_LEN + 1];
 	if (gethostname(localHostName, MAX_HOST_NAME_LEN) != SOCKET_ERROR) {
 		sprintf(buf, "Local Computer: %s", localHostName);
 	} else {
@@ -314,21 +314,17 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 				_this->ClearFTControls();
 				_this->CreateFTBrowseDialog(TRUE);
 				return TRUE;
-			case IDC_CREATELOCFLD:
+			case IDC_CREATEFLD:
 				{
-					HANDLE hIcon = (HANDLE) SendDlgItemMessage(_this->m_hwndFileTransfer, IDC_CREATELOCFLD, STM_GETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) 0);
-					if ((HIWORD(wParam) == STN_CLICKED) && (hIcon != _this->m_hIconCreateLocFolderGray)) {
-						_this->ClearFTControls();
-						_this->ClientCreateDir();
-					}
-				}
-				return TRUE;
-			case IDC_CREATEREMFLD:
-				{
-					HANDLE hIcon = (HANDLE) SendDlgItemMessage(_this->m_hwndFileTransfer, IDC_CREATEREMFLD, STM_GETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) 0);
-					if ((HIWORD(wParam) == STN_CLICKED) && (hIcon != _this->m_hIconCreateRemFolderGray)) {
-						_this->ClearFTControls();
-						_this->ServerCreateDir();
+					HANDLE hIcon = (HANDLE) SendDlgItemMessage(_this->m_hwndFileTransfer, IDC_CREATEFLD, STM_GETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) 0);
+					if ((HIWORD(wParam) == STN_CLICKED) && (hIcon != _this->m_hIconCreateFolderGray)) {
+						if (hIcon == _this->m_hIconCreateLocFolder) {
+							_this->ClearFTControls();
+							_this->ClientCreateDir();
+						} else {
+							_this->ClearFTControls();
+							_this->ServerCreateDir();
+						}
 					}
 				}
 				return TRUE;
@@ -426,7 +422,7 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 		_this->CloseFileTransferDialog();
 		return TRUE;
 	}
-	return 0;
+	return FALSE;
 }
 
 void
@@ -1036,7 +1032,7 @@ FileTransfer::ShowClientItems(char *path)
 			m_FTClientItemInfo.Sort();
 			SendDlgItemMessage(m_hwndFileTransfer, IDC_CLIENTPATH, CB_SETCURSEL, (WPARAM) FT_ID_MYCOMPUTER, (LPARAM) 0);
 			ShowListViewItems(m_hwndFTClientList, &m_FTClientItemInfo);
-			SendDlgItemMessage(m_hwndFileTransfer, IDC_CREATELOCFLD, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconCreateLocFolderGray);
+			SendDlgItemMessage(m_hwndFileTransfer, IDC_CREATEFLD, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconCreateFolderGray);
 		}
 	} else {
 		//Show Files
@@ -1093,7 +1089,6 @@ FileTransfer::ShowClientItems(char *path)
 		} else {
 			m_bClientRefresh = FALSE;
 		}
-		SendDlgItemMessage(m_hwndFileTransfer, IDC_CREATELOCFLD, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconCreateLocFolder);
 	}
 }
 
@@ -1324,7 +1319,7 @@ void
 FileTransfer::ProcessDlgMessage(HWND hwnd)
 {
 	MSG msg;
-	while(PeekMessage(&msg, hwnd, 0, 0, PM_REMOVE)) {
+	while(PeekMessage(&msg, hwnd, 0, 0, PM_REMOVE) != 0) {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
@@ -1586,7 +1581,7 @@ FileTransfer::ShowServerItems()
 			m_FTServerItemInfo.Sort();
 			ShowListViewItems(m_hwndFTServerList, &m_FTServerItemInfo);
 		} else {
-			SendDlgItemMessage(m_hwndFileTransfer, IDC_CREATEREMFLD, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconCreateRemFolderGray);
+			SendDlgItemMessage(m_hwndFileTransfer, IDC_CREATEFLD, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconCreateFolderGray);
 		}
 		strcpy(m_ServerPath, m_ServerPathTmp);
 		if (!m_bServerRefresh) {
@@ -2435,7 +2430,7 @@ void
 FileTransfer::ClearFTControls()
 {
 	if (strcmp(m_ServerPath, "") == 0) 
-		SendDlgItemMessage(m_hwndFileTransfer, IDC_CREATEREMFLD, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconCreateRemFolderGray);
+		SendDlgItemMessage(m_hwndFileTransfer, IDC_CREATEFLD, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconCreateFolderGray);
 	ClearFTButtons();
 	SetDlgItemText(m_hwndFileTransfer, IDC_FILETRANSFERPERCENT, "0%");
 	SetDlgItemText(m_hwndFileTransfer, IDC_CURRENTFILEPERCENT, "0%");
@@ -2450,17 +2445,19 @@ FileTransfer::CheckClientLV()
 	HANDLE hIcon = (HANDLE) SendDlgItemMessage(m_hwndFileTransfer, IDC_FTCOPY, STM_GETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) 0);
 	int selCount = ListView_GetSelectedCount(m_hwndFTClientList);
 	if (strlen(m_ClientPath) != 0) {
-		SendDlgItemMessage(m_hwndFileTransfer, IDC_CREATELOCFLD, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconCreateLocFolder);
-		if ((GetFocus() == m_hwndFTClientList) && (selCount > 0)) {
-			SendDlgItemMessage(m_hwndFileTransfer, IDC_FTDELETE, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconDelete);
-			if (selCount == 1) {
-				SendDlgItemMessage(m_hwndFileTransfer, IDC_FTRENAME, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconRename);
-			} else {
-				SendDlgItemMessage(m_hwndFileTransfer, IDC_FTRENAME, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconRenameGray);
+		if (GetFocus() == m_hwndFTClientList) {
+			SendDlgItemMessage(m_hwndFileTransfer, IDC_CREATEFLD, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconCreateLocFolder);
+			if (selCount > 0) {
+				SendDlgItemMessage(m_hwndFileTransfer, IDC_FTDELETE, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconDelete);
+				if (selCount == 1) {
+					SendDlgItemMessage(m_hwndFileTransfer, IDC_FTRENAME, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconRename);
+				} else {
+					SendDlgItemMessage(m_hwndFileTransfer, IDC_FTRENAME, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconRenameGray);
+				}
 			}
 		}
 	} else {
-		SendDlgItemMessage(m_hwndFileTransfer, IDC_CREATELOCFLD, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconCreateLocFolderGray);
+		SendDlgItemMessage(m_hwndFileTransfer, IDC_CREATEFLD, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconCreateFolderGray);
 		SendDlgItemMessage(m_hwndFileTransfer, IDC_FTDELETE, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconDeleteGray);
 		SendDlgItemMessage(m_hwndFileTransfer, IDC_FTRENAME, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconRenameGray);
 	}
@@ -2479,17 +2476,19 @@ FileTransfer::CheckServerLV()
 	HANDLE hIcon = (HANDLE) SendDlgItemMessage(m_hwndFileTransfer, IDC_FTCOPY, STM_GETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) 0);
 	int selCount = ListView_GetSelectedCount(m_hwndFTServerList);
 	if (strlen(m_ServerPath) != 0) {
-		SendDlgItemMessage(m_hwndFileTransfer, IDC_CREATEREMFLD, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconCreateRemFolder);
-		if ((GetFocus() == m_hwndFTServerList) && (selCount > 0)) {
-			SendDlgItemMessage(m_hwndFileTransfer, IDC_FTDELETE, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconDelete);
-			if (selCount == 1) {
-				SendDlgItemMessage(m_hwndFileTransfer, IDC_FTRENAME, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconRename);
-			} else {
-				SendDlgItemMessage(m_hwndFileTransfer, IDC_FTRENAME, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconRenameGray);
+		if (GetFocus() == m_hwndFTServerList) {
+			SendDlgItemMessage(m_hwndFileTransfer, IDC_CREATEFLD, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconCreateRemFolder);
+			if (selCount > 0) {
+				SendDlgItemMessage(m_hwndFileTransfer, IDC_FTDELETE, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconDelete);
+				if (selCount == 1) {
+					SendDlgItemMessage(m_hwndFileTransfer, IDC_FTRENAME, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconRename);
+				} else {
+					SendDlgItemMessage(m_hwndFileTransfer, IDC_FTRENAME, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconRenameGray);
+				}
 			}
 		}
 	} else {
-		SendDlgItemMessage(m_hwndFileTransfer, IDC_CREATEREMFLD, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconCreateRemFolderGray);
+		SendDlgItemMessage(m_hwndFileTransfer, IDC_CREATEFLD, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconCreateFolderGray);
 		SendDlgItemMessage(m_hwndFileTransfer, IDC_FTDELETE, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconDeleteGray);
 		SendDlgItemMessage(m_hwndFileTransfer, IDC_FTRENAME, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconRenameGray);
 	}
@@ -2765,18 +2764,16 @@ FileTransfer::InitFTIcons()
 	m_hIconCancel     = LoadImage(m_pApp->m_instance, MAKEINTRESOURCE(IDI_CANCELFT), IMAGE_ICON, 150, 13, LR_DEFAULTCOLOR);
 	m_hIconCancelGray = LoadImage(m_pApp->m_instance, MAKEINTRESOURCE(IDI_CANCELFTGRAY), IMAGE_ICON, 150, 13, LR_DEFAULTCOLOR);
 
-	m_hIconCreateLocFolder     = LoadImage(m_pApp->m_instance, MAKEINTRESOURCE(IDI_CREATELOCALFOLDER), IMAGE_ICON, 150, 13, LR_DEFAULTCOLOR);
-	m_hIconCreateLocFolderGray = LoadImage(m_pApp->m_instance, MAKEINTRESOURCE(IDI_CREATELOCFOLDERGRAY), IMAGE_ICON, 150, 13, LR_DEFAULTCOLOR);
-	m_hIconCreateRemFolder     = LoadImage(m_pApp->m_instance, MAKEINTRESOURCE(IDI_CREATEREMOTEFOLDER), IMAGE_ICON, 150, 13, LR_DEFAULTCOLOR);
-	m_hIconCreateRemFolderGray = LoadImage(m_pApp->m_instance, MAKEINTRESOURCE(IDI_CREATEREMFOLDERGRAY), IMAGE_ICON, 150, 13, LR_DEFAULTCOLOR);
+	m_hIconCreateLocFolder  = LoadImage(m_pApp->m_instance, MAKEINTRESOURCE(IDI_CREATELOCALFOLDER), IMAGE_ICON, 150, 13, LR_DEFAULTCOLOR);
+	m_hIconCreateRemFolder  = LoadImage(m_pApp->m_instance, MAKEINTRESOURCE(IDI_CREATEREMOTEFOLDER), IMAGE_ICON, 150, 13, LR_DEFAULTCOLOR);
+	m_hIconCreateFolderGray = LoadImage(m_pApp->m_instance, MAKEINTRESOURCE(IDI_CREATEFOLDERGRAY), IMAGE_ICON, 150, 13, LR_DEFAULTCOLOR);
 
 	SendDlgItemMessage(m_hwndFileTransfer, IDC_FTCOPY, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconCopyGray);
 	SendDlgItemMessage(m_hwndFileTransfer, IDC_FTDELETE, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconDeleteGray);
 	SendDlgItemMessage(m_hwndFileTransfer, IDC_FTRENAME, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconRenameGray);
 	SendDlgItemMessage(m_hwndFileTransfer, IDC_FTCANCEL, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconCancelGray);
 
-	SendDlgItemMessage(m_hwndFileTransfer, IDC_CREATELOCFLD, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconCreateLocFolder);
-	SendDlgItemMessage(m_hwndFileTransfer, IDC_CREATEREMFLD, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconCreateRemFolder);
+	SendDlgItemMessage(m_hwndFileTransfer, IDC_CREATEFLD, STM_SETIMAGE, (WPARAM) IMAGE_ICON, (LPARAM) m_hIconCreateFolderGray);
 }
 
 void
@@ -2790,7 +2787,6 @@ FileTransfer::DestroyFTIcons()
 	DestroyIcon((HICON) m_hIconRename);
 	DestroyIcon((HICON) m_hIconRenameGray);
 	DestroyIcon((HICON) m_hIconCreateLocFolder);
-	DestroyIcon((HICON) m_hIconCreateLocFolderGray);
 	DestroyIcon((HICON) m_hIconCreateRemFolder);
-	DestroyIcon((HICON) m_hIconCreateRemFolderGray);
+	DestroyIcon((HICON) m_hIconCreateFolderGray);
 }

@@ -236,9 +236,8 @@ private:
 	HANDLE m_hIconRename;
 	HANDLE m_hIconRenameGray;
 	HANDLE m_hIconCreateLocFolder;
-	HANDLE m_hIconCreateLocFolderGray;
 	HANDLE m_hIconCreateRemFolder;
-	HANDLE m_hIconCreateRemFolderGray;
+	HANDLE m_hIconCreateFolderGray;
 	HANDLE m_hIconCancel;
 	HANDLE m_hIconCancelGray;
 

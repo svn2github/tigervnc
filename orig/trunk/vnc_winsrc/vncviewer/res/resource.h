@@ -58,6 +58,7 @@
 #define IDI_COPYGRAY                    261
 #define IDI_CREATELOCALFOLDER           262
 #define IDI_CREATELOCFOLDERGRAY         263
+#define IDI_CREATEFOLDERGRAY            263
 #define IDI_CREATEREMOTEFOLDER          264
 #define IDI_CREATEREMFOLDERGRAY         265
 #define IDI_CANCELFT                    266
@@ -188,8 +189,7 @@
 #define ID_FTYESTOALL                   1155
 #define IDC_FTCONFIRMTEXT               1156
 #define IDC_DISABLE                     1157
-#define IDC_CREATEREMFLD                1159
-#define IDC_CREATELOCFLD                1160
+#define IDC_CREATEFLD                   1160
 #define IDC_STATIC_CURRENT_FILE         1161
 #define IDC_STATIC_FILE_TRANSFER        1162
 #define ID_SESSION_SET_CRECT            32777
@@ -206,7 +206,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        268
+#define _APS_NEXT_RESOURCE_VALUE        269
 #define _APS_NEXT_COMMAND_VALUE         40011
 #define _APS_NEXT_CONTROL_VALUE         1163
 #define _APS_NEXT_SYMED_VALUE           244

@@ -114,7 +114,9 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 			return TRUE;
 		}
 	break;
-
+	case WM_HELP:	
+		help.Popup(lParam);
+		return 0;
 	case WM_COMMAND:
 		{
 		switch (LOWORD(wParam))

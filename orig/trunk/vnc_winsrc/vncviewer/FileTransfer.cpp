@@ -477,20 +477,29 @@ FileTransfer::ShowClientItems(char path[rfbMAX_PATH])
 		strcat(path_, "\\*");
 		m_handle = FindFirstFile(path_, &m_FindFileData);
 		while(1) {
-			if ((m_handle != INVALID_HANDLE_VALUE) && 
-			   (strcmp(m_FindFileData.cFileName, ".") != 0) &&
-			   (strcmp(m_FindFileData.cFileName, "..") != 0)) FilesNum += 1;
-			if (!FindNextFile(m_handle, &m_FindFileData)) break;
+			if (m_handle != INVALID_HANDLE_VALUE) {
+				if ((strcmp(m_FindFileData.cFileName, ".") != 0) &&
+			       (strcmp(m_FindFileData.cFileName, "..") != 0)) {
+					FilesNum += 1;
+				}
+			} else {
+				FilesNum = 0;
+				if (GetLastError() != ERROR_SUCCESS) {
+					BlockingFileTransferDialog(true);
+					strcpy(m_ClientPathTmp, m_ClientPath);
+					return;
+				}
+				break;
 			}
+			if (!FindNextFile(m_handle, &m_FindFileData)) break;
+		}
+		strcpy(m_ClientPath, m_ClientPathTmp);
+		SetWindowText(m_hwndFTClientPath, m_ClientPath);
+		ListView_DeleteAllItems(m_hwndFTClientList); 
 		if (FilesNum == 0) {
 			BlockingFileTransferDialog(true);
-			strcpy(m_ClientPathTmp, m_ClientPath);
 			return;
-		} else {
-			strcpy(m_ClientPath, m_ClientPathTmp);
-			SetWindowText(m_hwndFTClientPath, m_ClientPath);
-		}
-		ListView_DeleteAllItems(m_hwndFTClientList); 
+		} 
 		m_handle = FindFirstFile(path_, &m_FindFileData);
 		if (m_FTClientItemInfo !=NULL) delete [] m_FTClientItemInfo;
 		m_FTClientItemInfo = new FTITEMINFO [FilesNum];
@@ -766,9 +775,15 @@ FileTransfer::ShowServerItems()
 	m_clientconn->ReadExact(filename, fld.fnamesize);
 	filename[fld.fnamesize] = '\0';
 	if (!m_bServerBrowseRequest) {
+		if (fld.attr == 0x0002) {
+			BlockingFileTransferDialog(true);
+			return;
+		}
 		if (fld.fnamesize == 0) {
 			BlockingFileTransferDialog(true);
-			strcpy(m_ServerPathTmp, m_ServerPath);
+			strcpy(m_ServerPath, m_ServerPathTmp);
+			SetWindowText(m_hwndFTServerPath, m_ServerPath);
+			ListView_DeleteAllItems(m_hwndFTServerList); 
 			return;
 		} else {
 			strcpy(m_ServerPath, m_ServerPathTmp);

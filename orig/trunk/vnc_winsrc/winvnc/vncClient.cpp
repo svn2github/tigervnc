@@ -1188,8 +1188,11 @@ vncClientThread::run(void *arg)
 								NumFiles++;
 							}
 						} while (FindNextFile(FLRhandle, &FindFileData));
-	 					FindClose(FLRhandle);	
+					} else {
+						NumFiles = 0;
+						if (GetLastError() != ERROR_SUCCESS) pFLD->attr = Swap16IfLE(0x0002);
  					}
+ 					FindClose(FLRhandle);	
 					if(NumFiles == 0) {
 						m_socket->SendExact(pAllMessage, sz_rfbFileListDataMsg);
 						break;

@@ -366,7 +366,7 @@ void ClientConnection::CreateDisplay()
 			      m_pApp->m_instance,
 			      NULL);
 	SetWindowLong(m_hwnd1, GWL_USERDATA, (LONG) this);
-	SetWindowLong(m_hwnd1, GWL_WNDPROC	, (LONG)ClientConnection::WndProc1);
+	SetWindowLong(m_hwnd1, GWL_WNDPROC, (LONG)ClientConnection::WndProc1);
 	hwndd = m_hwnd1;
 	
 	ShowWindow(m_hwnd1, SW_HIDE);
@@ -533,10 +533,58 @@ void ClientConnection::CreateDisplay()
 		CheckMenuItem(GetSystemMenu(m_hwnd1, FALSE),
 					ID_TOOLBAR, MF_BYCOMMAND|MF_CHECKED);
 	}
-	
+	if (!m_serverInitiated) {
+		TCHAR  valname[3];
+		int dwbuflen = 255;
+		int i, j;
+		int k = pApp->m_options.m_listServer;
+		TCHAR list[80];
+		HKEY m_hRegKey;
+		TCHAR  buf[256];
+		DWORD dispos;
+		TCHAR  buf1[256];
+				
+		itoa(k, list, 10);
+		RegCreateKeyEx(HKEY_CURRENT_USER,
+					"Software\\ORL\\VNCviewer\\MRU1", 0, NULL, 
+					REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, 
+					NULL, &m_hRegKey, &dispos);
+		_tcscpy(buf1, m_opts.m_display);
+							
+		for ( i = 0; i < k; i++) {
+			j = i;
+			itoa(i, valname, 10);
+			dwbuflen = 255;
+			if ((RegQueryValueEx( m_hRegKey, (LPTSTR)valname, 
+						NULL, NULL, 
+						(LPBYTE) buf, (LPDWORD) &dwbuflen) != ERROR_SUCCESS) ||
+						(_tcscmp(buf, m_opts.m_display) == NULL)) {
+				RegSetValueEx( m_hRegKey, valname, 
+							NULL, REG_SZ, 
+							(CONST BYTE *)buf1, (_tcslen(buf1)+1));
+				break;
+			}
+			RegSetValueEx(m_hRegKey, valname, 
+						NULL, REG_SZ, 
+						(CONST BYTE *)buf1, (_tcslen(buf1)+1)); 
+				_tcscpy(buf1, buf);
+		}
+		if (j == k) {
+			dwbuflen = 255;
+			_tcscpy(valname, list);
+			_tcscpy(buf, "");
+			RegQueryValueEx( m_hRegKey, (LPTSTR)valname, 
+						NULL, NULL, 
+						(LPBYTE)buf, (LPDWORD)&dwbuflen);
+			m_opts.delkey(buf, "Software\\ORL\\VNCviewer\\MRU1");
+		}
+		RegCloseKey(m_hRegKey);
+		m_opts.SaveOpt(m_opts.m_display,
+						"Software\\ORL\\VNCviewer\\MRU1");
+	}		
 	// record which client created this window
 	
-	#ifndef _WIN32_WCE
+#ifndef _WIN32_WCE
 	// We want to know when the clipboard changes, so
 	// insert ourselves in the viewer chain. But doing
 	// this will cause us to be notified immediately of
@@ -1241,6 +1289,7 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 	ClientConnection *_this = (ClientConnection *) GetWindowLong(hwnd, GWL_USERDATA);
 		
 	switch (iMsg) {
+	
 	case WM_NOTIFY:
 	{		
 		LPTOOLTIPTEXT TTStr;
@@ -1344,7 +1393,11 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 					}
 				}
 				if (_this->m_serverInitiated) {
-					_this->m_opts.SaveOpt(".listen", "Software\\ORL\\VNCviewer\\MRU1");
+					_this->m_opts.SaveOpt(".listen", 
+										"Software\\ORL\\VNCviewer\\MRU1");
+				} else {
+					_this->m_opts.SaveOpt(_this->m_opts.m_display,
+										"Software\\ORL\\VNCviewer\\MRU1");
 				}
 				return 0;
 			}
@@ -1482,57 +1535,7 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 					rwn.right, rwn.bottom, SWP_SHOWWINDOW);
 		}
 		return 0;
-	case WM_CLOSE:
-		if (!_this->m_serverInitiated) {
-			TCHAR  valname[3];
-			int dwbuflen = 255;
-			int i, j;
-			int k = pApp->m_options.m_listServer;
-			TCHAR list[80];
-			HKEY m_hRegKey;
-			TCHAR  buf[256];
-			DWORD dispos;
-			TCHAR  buf1[256];
-				
-			itoa(k, list, 10);
-			RegCreateKeyEx(HKEY_CURRENT_USER,
-					"Software\\ORL\\VNCviewer\\MRU1", 0, NULL, 
-					REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, 
-					NULL, &m_hRegKey, &dispos);
-			_tcscpy(buf1, _this->m_opts.m_display);
-			_this->m_opts.SaveOpt(_this->m_opts.m_display,
-					"Software\\ORL\\VNCviewer\\MRU1");
-				
-			for ( i = 0; i < k; i++) {
-				j = i;
-				itoa(i, valname, 10);
-				dwbuflen = 255;
-				if ((RegQueryValueEx( m_hRegKey, (LPTSTR)valname, 
-						NULL, NULL, 
-						(LPBYTE) buf, (LPDWORD) &dwbuflen) != ERROR_SUCCESS) ||
-						(_tcscmp(buf, _this->m_opts.m_display) == NULL)) {
-					RegSetValueEx( m_hRegKey, valname, 
-							NULL, REG_SZ, 
-							(CONST BYTE *)buf1, (_tcslen(buf1)+1));
-					break;
-				}
-				RegSetValueEx(m_hRegKey, valname, 
-						NULL, REG_SZ, 
-						(CONST BYTE *)buf1, (_tcslen(buf1)+1)); 
-				_tcscpy(buf1, buf);
-			}
-			if (j == k) {
-				dwbuflen = 255;
-				_tcscpy(valname, list);
-				_tcscpy(buf, "");
-				RegQueryValueEx( m_hRegKey, (LPTSTR)valname, 
-						NULL, NULL, 
-						(LPBYTE)buf, (LPDWORD)&dwbuflen);
-				_this->m_opts.delkey(buf, "Software\\ORL\\VNCviewer\\MRU1");
-			}
-			RegCloseKey(m_hRegKey);
-		}
-		
+	case WM_CLOSE:		
 		// Close the worker thread as well
 		_this->KillThread();
 		DestroyWindow(hwnd);

@@ -1771,11 +1771,11 @@ void
 vncDesktop::SetLocalInputPriorityHook(BOOL enable)
 {
 	if (vncService::IsWin95()) {
-		SetKeyboardPriorityHook(enable,RFB_LOCAL_KEYBOARD);
-		SetMousePriorityHook(enable,RFB_LOCAL_MOUSE);
+		SetKeyboardPriorityHook(m_hwnd,enable,RFB_LOCAL_KEYBOARD);
+		SetMousePriorityHook(m_hwnd,enable,RFB_LOCAL_MOUSE);
 	} else {
-		SetKeyboardPriorityLLHook(enable,RFB_LOCAL_KEYBOARD);
-		SetMousePriorityLLHook(enable,RFB_LOCAL_MOUSE);
+		SetKeyboardPriorityLLHook(m_hwnd,enable,RFB_LOCAL_KEYBOARD);
+		SetMousePriorityLLHook(m_hwnd,enable,RFB_LOCAL_MOUSE);
 	}
 
 	if (!enable)

@@ -67,11 +67,11 @@ extern "C"
 	// Control mouse filtering
 	DllExport BOOL SetMouseFilterHook(BOOL activate);
 	// hooks for Local event priority impl. (win9x)
-	DllExport BOOL SetKeyboardPriorityHook(BOOL activate,UINT LocalMsg);
-	DllExport BOOL SetMousePriorityHook(BOOL activate,UINT LocalMsg);
+	DllExport BOOL SetKeyboardPriorityHook(HWND hwnd, BOOL activate,UINT LocalMsg);
+	DllExport BOOL SetMousePriorityHook(HWND hwnd, BOOL activate,UINT LocalMsg);
 	// hooks for Local event priority impl. (winNT)
-	DllExport BOOL SetKeyboardPriorityLLHook(BOOL activate,UINT LocalMsg);
-	DllExport BOOL SetMousePriorityLLHook(BOOL activate,UINT LocalMsg);
+	DllExport BOOL SetKeyboardPriorityLLHook(HWND hwnd, BOOL activate,UINT LocalMsg);
+	DllExport BOOL SetMousePriorityLLHook(HWND hwnd, BOOL activate,UINT LocalMsg);
 
 }
 

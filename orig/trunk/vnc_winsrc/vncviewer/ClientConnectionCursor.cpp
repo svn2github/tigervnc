@@ -133,8 +133,8 @@ void ClientConnection::ReadCursorShape(rfbFramebufferUpdateRectHeader *pfburh) {
 
 	rcWidth = pfburh->r.w;
 	rcHeight = pfburh->r.h;
-	rcHotX = (rcHotX < rcWidth) ? pfburh->r.x : rcWidth - 1;
-	rcHotY = (rcHotY < rcHeight) ? pfburh->r.y : rcHeight - 1;
+	rcHotX = (pfburh->r.x < rcWidth) ? pfburh->r.x : rcWidth - 1;
+	rcHotY = (pfburh->r.y < rcHeight) ? pfburh->r.y : rcHeight - 1;
 
 	{
 		omni_mutex_lock l(m_bitmapdcMutex);

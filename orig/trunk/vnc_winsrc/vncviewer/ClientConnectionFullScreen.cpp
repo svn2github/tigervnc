@@ -136,14 +136,14 @@ DisableButton::DisableButton(VNCviewerApp *pApp, ClientConnection * CConn)
 
 	wcex.cbSize = sizeof(WNDCLASSEX); 
 
-	wcex.style			= CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW;
+	wcex.style			= CS_DBLCLKS;
 	wcex.lpfnWndProc	= (WNDPROC)DisableButton::DisableProc;
 	wcex.cbClsExtra		= 0;
 	wcex.cbWndExtra		= 0;
 	wcex.hInstance		= NULL;
 	wcex.hIcon			= NULL;
 	wcex.hCursor		= NULL;
-	wcex.hbrBackground	= (HBRUSH) GetSysColorBrush(COLOR_ACTIVEBORDER);
+	wcex.hbrBackground	= (HBRUSH)(COLOR_WINDOW);
 	wcex.lpszMenuName	= NULL;
 	wcex.lpszClassName	= "DisableButtonClass";
 	wcex.hIconSm		= NULL;
@@ -151,7 +151,7 @@ DisableButton::DisableButton(VNCviewerApp *pApp, ClientConnection * CConn)
 	RegisterClassEx(&wcex);
 
 	m_hwndButton = CreateWindowEx(WS_EX_TOPMOST|WS_EX_TOOLWINDOW,			//dwExStyle
-		"DisableButtonClass",		//pointer to registered class name
+		"DisableButtonClass",		// pointer to registered class name
   		"Disable Button",			// pointer to window name
   		WS_POPUP,					// window style
 		12,							// horizontal position of window
@@ -174,7 +174,7 @@ DisableButton::DisableButton(VNCviewerApp *pApp, ClientConnection * CConn)
 	// The bitmap is copied from this DC to the window's DC 
 	// whenever it must be drawn. 	
 	HDC hdc = GetDC(m_hwndButton); 
-	hdcCompat = CreateCompatibleDC(hdc); 
+	hdcCompat = CreateCompatibleDC(hdc);
 	SelectObject(hdcCompat, hbmp);
 	ReleaseDC(m_hwndButton, hdc);
 }
@@ -198,11 +198,10 @@ LRESULT CALLBACK DisableButton::DisableProc(HWND hwnd, UINT iMsg,
 	case WM_PAINT:
 		{
 			PAINTSTRUCT ps;
-			BeginPaint(hwnd, &ps); 
-			Rectangle(ps.hdc, 0, 0, 24, 24); 
-			StretchBlt(ps.hdc, 0, 0, 24, 24, _this->hdcCompat, 
-						0, 0, 24, 24, SRCCOPY); 
-			EndPaint(hwnd, &ps);
+			BeginPaint(hwnd, &ps);
+			BitBlt(ps.hdc, 0, 0, 24, 24, _this->hdcCompat,
+					0, 0, SRCCOPY);
+			EndPaint(hwnd, &ps);			
 		}
 		break; 
 	case WM_MOUSEMOVE:
@@ -219,21 +218,13 @@ LRESULT CALLBACK DisableButton::DisableProc(HWND hwnd, UINT iMsg,
 			newpos.x = wrect.left - (_this->m_MousePoint.x - ptMousePoint.x);
 			newpos.y = wrect.top - (_this->m_MousePoint.y - ptMousePoint.y);
 			if (newpos.x != wrect.left || newpos.y != wrect.top)
-				SetWindowPos(hwnd, NULL,
-							newpos.x, newpos.y,
-							24,24, SWP_SHOWWINDOW);
+				MoveWindow(hwnd,newpos.x, newpos.y, 24,24, TRUE);
 			_this->m_MousePoint.x = ptMousePoint.x;
 			_this->m_MousePoint.y = ptMousePoint.y;
 		}
 		break;
-	case WM_WINDOWPOSCHANGED:
-	case WM_MOVE:
-		UpdateWindow(hwnd);
-		break;
 	case WM_LBUTTONDBLCLK:
 		_this->m_CConn->SetFullScreenMode(false);
-		ReleaseCapture();
-		ClipCursor(NULL);
 		break;
 	case WM_LBUTTONDOWN:
 		SetCapture(hwnd);

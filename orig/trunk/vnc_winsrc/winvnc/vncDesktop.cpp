@@ -792,6 +792,7 @@ vncDesktop::ResetDisplayToNormal()
 			ChangeDisplaySettings( lpDevMode, CDS_UPDATEREGISTRY);
 
 		delete lpDevMode;
+		lpDevMode = NULL;
 	}
 
 	// *** The following fixes a bug that existed in that WinNT users

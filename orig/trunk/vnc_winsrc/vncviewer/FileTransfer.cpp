@@ -39,7 +39,6 @@ const char FileTransfer::myDesktopText[] = "Desktop";
 
 #define WM_CHECKUPLOADQUEUE WM_USER+130
 
-
 FileTransfer::FileTransfer(ClientConnection * pCC, VNCviewerApp * pApp)
 {
 	m_clientconn = pCC;
@@ -527,7 +526,7 @@ FileTransfer::FileTransferUpload()
 	if (m_TransferInfo.GetNumEntries() != 0) return;
 	m_CantTransferInfo.Free();
 	m_dwNumItemsSel = GetSelectedItems(m_hwndFTClientList, &m_TransferInfo);
-	m_dwSelFileSize = GetSelectedFileSize(m_ClientPath, &m_TransferInfo);
+	m_dwSelFileSize64 = GetSelectedFileSize(m_ClientPath, &m_TransferInfo);
 	InitFTProgressBar(0);
 	InitProgressBar(0);
 	m_bUploadStarted = TRUE;
@@ -738,21 +737,26 @@ FileTransfer::ProcessFDSDMessage()
 {
 	rfbFileDirSizeDataMsg fdsd;
 	m_clientconn->ReadExact((char *) &fdsd, sz_rfbFileDirSizeDataMsg);
-	CARD32 dSize = Swap32IfLE(fdsd.dSize);
+	CARD16 size16 = Swap16IfLE(fdsd.dSizeHigh16);
+	CARD32 size32 = Swap32IfLE(fdsd.dSizeLow32);
+
+	DWORD64 size64 = 0;
+	size64 = size16;
+	size64 = (size64 << 32) + size32;
 
 	SetFTDlgCursor(IDC_ARROW);
 
 	switch (m_FDSRDest)
 	{
 	case FT_FDSR_DEST_MAIN:
-		ProcessFDSDMain(dSize);
+		ProcessFDSDMain(size64);
 		break;
 	case FT_FDSR_DEST_DOWNLOAD:
-		m_dwSelFileSize -= dSize;
+		m_dwSelFileSize64 -= size64;
 		CheckDownloadQueue();
 		break;
 	case FT_FDSR_DEST_UPLOAD:
-		m_dwSelFileSize -= dSize;
+		m_dwSelFileSize64 -= size64;
 		m_TransferInfo.DeleteAt(0);
 		if (m_TransferInfo.GetNumEntries() == 0) {
 			CheckCantTransferInfo();
@@ -765,9 +769,9 @@ FileTransfer::ProcessFDSDMessage()
 }
 
 void
-FileTransfer::ProcessFDSDMain(DWORD dSize)
+FileTransfer::ProcessFDSDMain(DWORD64 dSize)
 {
-	m_dwSelFileSize += dSize;
+	m_dwSelFileSize64 += dSize;
 
 	if (m_NumReqDirSize == 0) {
 		m_bDownloadStarted = TRUE;
@@ -794,13 +798,13 @@ FileTransfer::FileTransferDownload()
 	m_bDownloadStarted = TRUE;
 	if (!CreateTransferConfDlg()) return;
 	m_NumReqDirSize = m_dwNumItemsSel;
-	m_dwSelFileSize = 0;
+	m_dwSelFileSize64 = 0;
 	m_TransferInfo.Sort();
 	for (int i = m_TransferInfo.GetNumEntries() - 1; i >= 0; i--) {
 		m_NumReqDirSize--;
 		int size = m_TransferInfo.GetIntSizeAt(i);
 		if (size >= 0) {
-			m_dwSelFileSize += size;
+			m_dwSelFileSize64 += size;
 		} else {
 			char path[MAX_PATH];
 			sprintf(path, "%s\\%s", m_szRemoteTransPath, m_TransferInfo.GetNameAt(i));
@@ -1507,7 +1511,7 @@ FileTransfer::ProcessFLRUpload()
 				SendFileDirSizeRequestMessage(strlen(path), path, FT_FDSR_DEST_UPLOAD);
 				return;
 			} else {
-				m_dwSelFileSize -= size;
+				m_dwSelFileSize64 -= size;
 			}
 			m_TransferInfo.DeleteAt(0);
 			if (m_TransferInfo.GetNumEntries() == 0) {
@@ -1787,7 +1791,7 @@ FileTransfer::InitProgressBar(int nPosition)
 void 
 FileTransfer::InitFTProgressBar(int nPosition)
 {
-	m_dwFTProgBarValue = 0;
+	m_dwFTProgBarValue64 = 0;
 	m_dwFTProgBarPercent = 0;
 	SendMessage(m_hwndFTProgress, PBM_SETPOS, (WPARAM) nPosition, (LPARAM) 0);
 	SendMessage(m_hwndFTProgress, PBM_SETRANGE, (WPARAM) 0, MAKELPARAM(0, 65535)); 
@@ -1797,16 +1801,17 @@ FileTransfer::InitFTProgressBar(int nPosition)
 void
 FileTransfer::IncreaseProgBarPos(int pos)
 {
-	DWORD oldPosition = (DWORD) ((((float) m_dwProgBarValue) / m_dwFileSize) * 65535);
-	DWORD oldFTPosition = (DWORD) ((((float) m_dwFTProgBarValue) / m_dwSelFileSize) * 65535);
+	DWORD oldPosition = (DWORD) ((((FLOAT) m_dwProgBarValue) / m_dwFileSize) * 65535);
+	DWORD oldFTPosition = (DWORD) ((m_dwFTProgBarValue64 * 65535) / m_dwSelFileSize64);
 	m_dwProgBarValue += pos;
-	m_dwFTProgBarValue += pos;
+	m_dwFTProgBarValue64 += pos;
 	if (m_dwProgBarValue > m_dwFileSize) m_dwProgBarValue = m_dwFileSize;
-	if (m_dwFTProgBarValue > m_dwSelFileSize) m_dwFTProgBarValue = m_dwSelFileSize;
+	if (m_dwFTProgBarValue64 > m_dwSelFileSize64) m_dwFTProgBarValue64 = m_dwSelFileSize64;
 	DWORD newPosition = (DWORD) ((((float) m_dwProgBarValue) / m_dwFileSize) * 65535);
-	DWORD newFTPosition = (DWORD) ((((float) m_dwFTProgBarValue) / m_dwSelFileSize) * 65535);
+	DWORD newFTPosition = (DWORD) ((m_dwFTProgBarValue64 * 65535) / m_dwSelFileSize64);
 	if (newPosition != oldPosition)	SendMessage(m_hwndProgress, PBM_SETPOS, (WPARAM) newPosition, (LPARAM) 0);
 	if (newFTPosition != oldFTPosition) SendMessage(m_hwndFTProgress, PBM_SETPOS, (WPARAM) newFTPosition, (LPARAM) 0);
+
 	DWORD percent = (DWORD) (((float) m_dwProgBarValue / m_dwFileSize) * 100);
 	if (percent != m_dwProgBarPercent) {
 		char buf[5];
@@ -1814,7 +1819,8 @@ FileTransfer::IncreaseProgBarPos(int pos)
 		SetDlgItemText(m_hwndFileTransfer, IDC_CURRENTFILEPERCENT, buf);
 		m_dwProgBarPercent = percent;
 	}
-	percent = (DWORD) (((float) m_dwFTProgBarValue / m_dwSelFileSize) * 100);
+
+	percent = (DWORD) ((m_dwFTProgBarValue64 * 100) / m_dwSelFileSize64);
 	if (percent != m_dwFTProgBarPercent) {
 		char buf[5];
 		sprintf(buf, "%d%%", percent);
@@ -2378,15 +2384,15 @@ FileTransfer::MakeStatusText(char *prefix, char *path1, char *path2, char *name)
 	}
 }
 
-DWORD
+DWORD64
 FileTransfer::GetSelectedFileSize(char *path, FileTransferItemInfo *pFTFI)
 {
-	DWORD dwSelFileSize = 0;
+	DWORD64 dwSelFileSize64 = 0;
 	FileTransferItemInfo ftfi;
 	for (int i = 0; i < pFTFI->GetNumEntries(); i++) {
 		int size = pFTFI->GetIntSizeAt(i);
 		if (size >= 0) {
-			dwSelFileSize += size;
+			dwSelFileSize64 += size;
 		} else {
 			ftfi.Add(pFTFI->GetNameAt(i), size, 0);
 		}
@@ -2408,7 +2414,7 @@ FileTransfer::GetSelectedFileSize(char *path, FileTransferItemInfo *pFTFI)
 						sprintf(buff, "%s\\%s", ftfi.GetNameAt(0), FindFileData.cFileName);
 						ftfi.Add(buff, -1, 0);
 					} else {
-						dwSelFileSize += FindFileData.nFileSizeLow;
+						dwSelFileSize64 += FindFileData.nFileSizeLow;
 					}
 				}
 			} while (FindNextFile(hFile, &FindFileData));
@@ -2416,7 +2422,7 @@ FileTransfer::GetSelectedFileSize(char *path, FileTransferItemInfo *pFTFI)
 		FindClose(hFile);
 		ftfi.DeleteAt(0);
 	}
-	return dwSelFileSize;
+	return dwSelFileSize64;
 }
 
 void

@@ -224,7 +224,7 @@ private:
 	void SendFileDownloadData(unsigned int mTime);
 	void SendFileUploadCancel(unsigned short reasonLen, char *reason);
 	void SendFileDownloadFailed(unsigned short reasonLen, char *reason);
-	void SendFileDirSizeData(CARD32 size);
+	void SendFileDirSizeData(DWORD64 size64);
 	void SendLastRequestFailed(CARD8 typeOfRequest, CARD16 reasonLen, 
 							   CARD32 sysError, char *reason);
 	void SendFileSpecDirData(CARD8 flags, CARD16 specFlags, char *pDirName);

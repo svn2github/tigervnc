@@ -983,8 +983,8 @@ typedef struct _rfbFileDownloadFailedMsg {
 typedef struct _rfbFileDirSizeDataMsg {
     CARD8 type;
     CARD8 pad1;
-	CARD16 pad2;
-    CARD32 dSize;
+	CARD16 dSizeHigh16;
+    CARD32 dSizeLow32;
 } rfbFileDirSizeDataMsg;
 
 #define sz_rfbFileDirSizeDataMsg 8

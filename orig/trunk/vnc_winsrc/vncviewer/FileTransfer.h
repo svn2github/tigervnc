@@ -121,7 +121,7 @@ private:
 	DWORD m_dwFileBlockSize;
 	DWORD m_dwModTime;
 	DWORD m_dwNumItemsSel;
-	DWORD m_dwSelFileSize;
+	DWORD m_dwSelFileSize64;
 
 	unsigned int FiletimeToTime70(FILETIME ftime);
 	void Time70ToFiletime(unsigned int time70, FILETIME *pftime);
@@ -155,7 +155,7 @@ private:
 	void SetDefaultBlockSize() { m_dwFileBlockSize = 8192; };
 	void FTClientDelete(FileTransferItemInfo *ftfi);
 
-	DWORD GetSelectedFileSize(char *path, FileTransferItemInfo *pFTFI);
+	DWORD64 GetSelectedFileSize(char *path, FileTransferItemInfo *pFTFI);
 
 	void CloseFileTransferDialog();
 	void SetStatusText(LPCSTR format,...);
@@ -179,7 +179,7 @@ private:
 	void ProcessFLRUpload();
 	void ProcessFLRDownload();
 	void ProcessFLRDelete();
-	void ProcessFDSDMain(DWORD dSize);
+	void ProcessFDSDMain(DWORD64 dSize);
 
 	void SetEndTransfer(char *statusText);
 	void CheckCantTransferInfo();
@@ -193,7 +193,7 @@ private:
 
 	DWORD m_dwProgBarValue;
 	DWORD m_dwProgBarPercent;
-	DWORD m_dwFTProgBarValue;
+	DWORD64 m_dwFTProgBarValue64;
 	DWORD m_dwFTProgBarPercent;
 	DWORD m_dwNumDelItems;
 	DWORD m_dwNumUndel;

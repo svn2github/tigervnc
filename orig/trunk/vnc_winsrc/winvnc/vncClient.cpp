@@ -1502,10 +1502,14 @@ vncClientThread::run(void *arg)
 				m_client->m_modTime = m_client->FiletimeToTime70(FindFileData.ftLastWriteTime);
 				if (sz_rfbFileSize == 0) {
 					m_client->SendFileDownloadData(m_client->m_modTime);
+					vnclog.Print(LL_CLIENTS, VNCLOG("file download complete: %s\n"), m_client->m_DownloadFilename);
+					CloseHandle(m_client->m_hFileToRead);
+					m_client->m_bDownloadStarted = FALSE;
 				} else {
 					if (sz_rfbFileSize <= sz_rfbBlockSize) sz_rfbBlockSize = sz_rfbFileSize;
 					SetErrorMode(SEM_FAILCRITICALERRORS);
-					m_client->m_hFileToRead = CreateFile(path_file, GENERIC_READ, FILE_SHARE_READ, NULL,	OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+					m_client->m_hFileToRead = CreateFile(path_file, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+//					m_client->m_hFileToRead = CreateFile(path_file, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
 					SetErrorMode(0);
 					if (m_client->m_hFileToRead != INVALID_HANDLE_VALUE) {
 						m_client->m_bDownloadStarted = TRUE;
@@ -1716,7 +1720,7 @@ vncClientThread::run(void *arg)
 				FileTransferItemInfo ftfi;
 				char fullPath[MAX_PATH];
 				ftfi.Add(dirName, -1, 0);
-				CARD32 dirFileSize = 0;
+				DWORD64 dirFileSize64 = 0;
 				do {
 					sprintf(fullPath, "%s\\*", ftfi.GetNameAt(0));
 					WIN32_FIND_DATA FindFileData;
@@ -1733,7 +1737,7 @@ vncClientThread::run(void *arg)
 									sprintf(buff, "%s\\%s", ftfi.GetNameAt(0), FindFileData.cFileName);
 									ftfi.Add(buff, -1, 0);
 								} else {
-									dirFileSize += FindFileData.nFileSizeLow;
+									dirFileSize64 += FindFileData.nFileSizeLow;
 								}
 							}
 						} while (FindNextFile(hFile, &FindFileData));
@@ -1741,7 +1745,7 @@ vncClientThread::run(void *arg)
 					FindClose(hFile);
 					ftfi.DeleteAt(0);
 				} while (ftfi.GetNumEntries() > 0);
-				m_client->SendFileDirSizeData(dirFileSize);
+				m_client->SendFileDirSizeData(dirFileSize64);
 				delete [] dirName;
 			}
 			break;
@@ -2719,16 +2723,30 @@ vncClient::SendFileDownloadPortion()
 	m_rfbBlockSize = 8192;
 	char *pBuff = new char[m_rfbBlockSize];
 	BOOL bResult = ReadFile(m_hFileToRead, pBuff, m_rfbBlockSize, &dwNumberOfBytesRead, NULL);
-	if ((bResult) && (dwNumberOfBytesRead == 0)) {
-		/* This is the end of the file. */
-		SendFileDownloadData(m_modTime);
-		vnclog.Print(LL_CLIENTS, VNCLOG("file download complete: %s\n"), m_DownloadFilename);
+
+	if (bResult != 0) {
+		if (dwNumberOfBytesRead == 0) {
+			/* This is the end of the file. */
+			SendFileDownloadData(m_modTime);
+			vnclog.Print(LL_CLIENTS, VNCLOG("file download complete: %s\n"), m_DownloadFilename);
+			CloseHandle(m_hFileToRead);
+			m_bDownloadStarted = FALSE;
+			delete [] pBuff;
+			return;
+		} else {
+			SendFileDownloadData(dwNumberOfBytesRead, pBuff);
+		}
+	} else {
+		char buf[] = "Download failed. Can't read from file";
+		SendFileDownloadFailed(strlen(buf), buf);
+		vnclog.Print(LL_CLIENTS, VNCLOG("file download failed: %s\n"), m_DownloadFilename);
 		CloseHandle(m_hFileToRead);
 		m_bDownloadStarted = FALSE;
+		delete [] pBuff;
 		return;
 	}
-	SendFileDownloadData(dwNumberOfBytesRead, pBuff);
 	delete [] pBuff;
+
 	PostToWinVNC(fileTransferDownloadMessage, (WPARAM) this, (LPARAM) 0);
 }
 
@@ -2749,11 +2767,15 @@ vncClient::SendFileDownloadData(unsigned short sizeFile, char *pFile)
 }
 
 void
-vncClient::SendFileDirSizeData(CARD32 size)
+vncClient::SendFileDirSizeData(DWORD64 size64)
 {
+	CARD16 size16 = ((size64 & 0x0000FFFF00000000) >> 32);
+	CARD32 size32 = (size64 & 0x00000000FFFFFFFF);
+
 	rfbFileDirSizeDataMsg fdsd;
 	fdsd.type = rfbFileDirSizeData;
-	fdsd.dSize = Swap32IfLE(size);
+	fdsd.dSizeHigh16 = Swap16IfLE(size16);
+	fdsd.dSizeLow32 = Swap32IfLE(size32);
 	m_socket->SendExact((char *)&fdsd, sz_rfbFileDirSizeDataMsg);
 }
 

@@ -1767,15 +1767,15 @@ SOURCE=.\res\WinVNC.ico
 # PROP Default_Filter ".class, .jar"
 # Begin Source File
 
-SOURCE=.\res\animatedMemoryImageSource.class
+SOURCE=.\res\AuthPanel.class
 # End Source File
 # Begin Source File
 
-SOURCE=.\res\authenticationPanel.class
+SOURCE=.\res\ButtonPanel.class
 # End Source File
 # Begin Source File
 
-SOURCE=.\res\clipboardFrame.class
+SOURCE=.\res\ClipboardFrame.class
 # End Source File
 # Begin Source File
 
@@ -1783,23 +1783,23 @@ SOURCE=.\res\DesCipher.class
 # End Source File
 # Begin Source File
 
-SOURCE=.\res\optionsFrame.class
+SOURCE=.\res\OptionsFrame.class
 # End Source File
 # Begin Source File
 
-SOURCE=.\res\rfbProto.class
+SOURCE=.\res\RfbProto.class
 # End Source File
 # Begin Source File
 
-SOURCE=.\res\vncCanvas.class
+SOURCE=.\res\VncCanvas.class
 # End Source File
 # Begin Source File
 
-SOURCE=.\res\vncviewer.class
+SOURCE=.\res\VncViewer.class
 # End Source File
 # Begin Source File
 
-SOURCE=.\res\vncviewer.jar
+SOURCE=.\res\VncViewer.jar
 # End Source File
 # End Group
 # Begin Source File

@@ -371,20 +371,20 @@ END
 // JAVAARCHIVE
 //
 
-IDR_VNCVIEWER_JAR       JAVAARCHIVE DISCARDABLE "res\\vncviewer.jar"
+IDR_VNCVIEWER_JAR       JAVAARCHIVE DISCARDABLE "res\\VncViewer.jar"
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // JAVACLASS
 //
 
-IDR_AUTHPANEL_CLASS     JAVACLASS DISCARDABLE   "res\\authenticationPanel.class"
-IDR_CLIPBOARDFRAME_CLASS JAVACLASS DISCARDABLE   "res\\clipboardFrame.class"
-IDR_OPTIONSFRAME_CLASS  JAVACLASS DISCARDABLE   "res\\optionsFrame.class"
-IDR_RFBPROTO_CLASS      JAVACLASS DISCARDABLE   "res\\rfbProto.class"
-IDR_VNCCANVAS_CLASS     JAVACLASS DISCARDABLE   "res\\vncCanvas.class"
-IDR_VNCVIEWER_CLASS     JAVACLASS DISCARDABLE   "res\\vncviewer.class"
-IDR_ANIMMEMIMAGESRC_CLASS JAVACLASS DISCARDABLE   "res\\animatedMemoryImageSource.class"
+IDR_AUTHPANEL_CLASS     JAVACLASS DISCARDABLE   "res\\AuthPanel.class"
+IDR_CLIPBOARDFRAME_CLASS JAVACLASS DISCARDABLE   "res\\ClipboardFrame.class"
+IDR_OPTIONSFRAME_CLASS  JAVACLASS DISCARDABLE   "res\\OptionsFrame.class"
+IDR_RFBPROTO_CLASS      JAVACLASS DISCARDABLE   "res\\RfbProto.class"
+IDR_VNCCANVAS_CLASS     JAVACLASS DISCARDABLE   "res\\VncCanvas.class"
+IDR_VNCVIEWER_CLASS     JAVACLASS DISCARDABLE   "res\\VncViewer.class"
+IDR_BUTTONPANEL_CLASS   JAVACLASS DISCARDABLE   "res\\ButtonPanel.class"
 IDR_DESCIPHER_CLASS     JAVACLASS DISCARDABLE   "res\\DesCipher.class"
 
 /////////////////////////////////////////////////////////////////////////////

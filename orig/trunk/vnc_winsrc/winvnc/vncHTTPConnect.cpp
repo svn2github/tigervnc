@@ -38,8 +38,9 @@
 // HTTP messages/message formats
 const char HTTP_MSG_OK []			="HTTP/1.0 200 OK\n\n";
 const char HTTP_FMT_INDEX[]			="<HTML><TITLE>TightVNC desktop [%.256s]</TITLE>\n"
-	"<APPLET CODE=vncviewer.class ARCHIVE=vncviewer.jar WIDTH=%d HEIGHT=%d>\n"
+	"<APPLET CODE=VncViewer.class ARCHIVE=VncViewer.jar WIDTH=%d HEIGHT=%d>\n"
 	"<param name=PORT value=%d><param name=ENCODING value=Tight></APPLET>\n"
+	"<BR>\n"
 	"<A href=\"http://www.tightvnc.com/\">www.TightVNC.com</A></HTML>\n";
 const char HTTP_MSG_NOSOCKCONN []	="<HTML><TITLE>TightVNC desktop</TITLE>\n"
 	"<BODY>The requested desktop is not configured to accept incoming connections.</BODY>\n"
@@ -56,15 +57,15 @@ typedef struct _FileToResourceMap {
 } FileMap;
 
 const FileMap filemapping []	={
-	{"/vncviewer.jar", "JavaArchive", IDR_VNCVIEWER_JAR},
-	{"/authenticationPanel.class", "JavaClass", IDR_AUTHPANEL_CLASS},
-	{"/clipboardFrame.class", "JavaClass", IDR_CLIPBOARDFRAME_CLASS},
+	{"/VncViewer.jar", "JavaArchive", IDR_VNCVIEWER_JAR},
+	{"/AuthPanel.class", "JavaClass", IDR_AUTHPANEL_CLASS},
+	{"/ClipboardFrame.class", "JavaClass", IDR_CLIPBOARDFRAME_CLASS},
 	{"/DesCipher.class", "JavaClass", IDR_DESCIPHER_CLASS},
-	{"/optionsFrame.class", "JavaClass", IDR_OPTIONSFRAME_CLASS},
-	{"/rfbProto.class", "JavaClass", IDR_RFBPROTO_CLASS},
-	{"/vncCanvas.class", "JavaClass", IDR_VNCCANVAS_CLASS},
-	{"/vncviewer.class", "JavaClass", IDR_VNCVIEWER_CLASS},
-	{"/animatedMemoryImageSource.class", "JavaClass", IDR_ANIMMEMIMAGESRC_CLASS}
+	{"/OptionsFrame.class", "JavaClass", IDR_OPTIONSFRAME_CLASS},
+	{"/RfbProto.class", "JavaClass", IDR_RFBPROTO_CLASS},
+	{"/VncCanvas.class", "JavaClass", IDR_VNCCANVAS_CLASS},
+	{"/VncViewer.class", "JavaClass", IDR_VNCVIEWER_CLASS},
+	{"/ButtonPanel.class", "JavaClass", IDR_BUTTONPANEL_CLASS}
 	};
 const int filemappingsize		= 9;
 

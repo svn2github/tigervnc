@@ -16,7 +16,7 @@
 #define IDR_RFBPROTO_CLASS              126
 #define IDR_VNCCANVAS_CLASS             127
 #define IDR_VNCVIEWER_CLASS             128
-#define IDR_ANIMMEMIMAGESRC_CLASS       129
+#define IDR_BUTTONPANEL_CLASS           129
 #define IDD_ABOUT                       131
 #define IDB_VNCLOGO                     132
 #define IDR_DESCIPHER_CLASS             133

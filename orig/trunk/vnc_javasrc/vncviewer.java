@@ -29,7 +29,7 @@ import java.awt.event.*;
 import java.io.*;
 
 public class vncviewer extends java.applet.Applet
-  implements java.lang.Runnable {
+  implements java.lang.Runnable, WindowListener {
 
   boolean inAnApplet = true;
 
@@ -76,6 +76,9 @@ public class vncviewer extends java.applet.Applet
     options = new optionsFrame(this);
     clipboard = new clipboardFrame(this);
     authenticator = new authenticationPanel();
+
+    if (!inAnApplet)
+      f.addWindowListener(this);
 
     rfbThread = new Thread(this);
     rfbThread.start();
@@ -348,7 +351,7 @@ public class vncviewer extends java.applet.Applet
   }
 
   //
-  // disconnect() - print out a fatal error message.
+  // disconnect() - close connection to server.
   //
 
   public void disconnect() {
@@ -366,7 +369,7 @@ public class vncviewer extends java.applet.Applet
       validate();
       rfbThread.stop();
     } else {
-      System.exit(1);
+      System.exit(0);
     }
   }
 
@@ -389,4 +392,25 @@ public class vncviewer extends java.applet.Applet
       System.exit(1);
     }
   }
+
+
+  //
+  // Close application properly on window close event.
+  //
+
+  public void windowClosing(WindowEvent evt) {
+    System.out.println("Terminated");
+    System.exit(0);
+  }
+
+  //
+  // Ignore window events we're not interested in.
+  //
+
+  public void windowActivated(WindowEvent evt) {}
+  public void windowDeactivated (WindowEvent evt) {}
+  public void windowOpened(WindowEvent evt) {}
+  public void windowClosed(WindowEvent evt) {}
+  public void windowIconified(WindowEvent evt) {}
+  public void windowDeiconified(WindowEvent evt) {}
 }

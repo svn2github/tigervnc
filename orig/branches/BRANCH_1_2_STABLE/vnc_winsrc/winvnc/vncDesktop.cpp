@@ -560,7 +560,7 @@ void vncDesktop::ChangeResNow()
 	origPelsHeight = lpDevMode->dmPelsHeight; // *** - Jeremy Peaks
 
 	// *** Open the registry key for resolution settings
-	HKEY checkdetails;
+	HKEY checkdetails = NULL;
 	RegOpenKeyEx(HKEY_LOCAL_MACHINE, 
 				"Software\\ORL\\WinVNC3",
 				0,

@@ -161,6 +161,7 @@
 #define IDC_LOG_BROWSE                  1139
 #define IDC_SERVERCREATEDIR             1140
 #define IDC_EDITDIRNAME                 1141
+#define IDC_AUTO_SCROLLING              1142
 #define ID_SESSION_SET_CRECT            32777
 #define IDC_ALLOW_COMPRESSLEVEL         32778
 #define IDC_ALLOW_JPEG                  32779
@@ -177,7 +178,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        248
 #define _APS_NEXT_COMMAND_VALUE         40011
-#define _APS_NEXT_CONTROL_VALUE         1142
+#define _APS_NEXT_CONTROL_VALUE         1143
 #define _APS_NEXT_SYMED_VALUE           244
 #endif
 #endif

@@ -96,6 +96,10 @@ SOURCE=.\res\createdi.ico
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\createdir.ico
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\cursor1.cur
 # End Source File
 # Begin Source File

@@ -280,8 +280,8 @@ STYLE DS_CONTROL | WS_CHILD
 FONT 8, "MS Sans Serif"
 BEGIN
     GROUPBOX        "Interface options",IDC_STATIC_IOPTIONS,4,4,167,77
-    CONTROL         "Show toolbars by default",IDC_CHECK_TOOLBAR,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,12,16,152,10
+    CONTROL         "Show toolbars",IDC_CHECK_TOOLBAR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,12,16,76,10
     CONTROL         "Warn at switching to the full-screen mode",
                     IDC_CHECK_MESSAGE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
                     12,30,152,10
@@ -317,6 +317,8 @@ BEGIN
     EDITTEXT        IDC_EDIT_LOG_LEVEL,92,153,23,14,ES_AUTOHSCROLL
     CONTROL         "Spin2",IDC_SPIN2,"msctls_updown32",UDS_ALIGNRIGHT | 
                     UDS_ARROWKEYS,115,153,10,14
+    CONTROL         "Auto Scrolling ",IDC_AUTO_SCROLLING,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,92,14,72,14
 END
 
 IDD_HELP DIALOG DISCARDABLE  0, 0, 295, 207

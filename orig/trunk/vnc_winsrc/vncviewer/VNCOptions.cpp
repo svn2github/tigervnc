@@ -45,6 +45,7 @@ VNCOptions::VNCOptions()
 	m_toolbar = true;
 	m_historyLimit = 32;
 	m_skipprompt = false;
+	m_AutoScrolling = false;
 	m_Use8Bit = false;
 	m_PreferredEncoding = rfbEncodingTight;
 	m_SwapMouse = false;
@@ -129,6 +130,7 @@ VNCOptions& VNCOptions::operator=(VNCOptions& s)
 	m_scale_den			= s.m_scale_den;
 	m_localCursor		= s.m_localCursor;
 	m_toolbar			= s.m_toolbar;
+	m_AutoScrolling		= s.m_AutoScrolling;
 	strcpy(m_display, s.m_display);
 	strcpy(m_host, s.m_host);
 	m_port				= s.m_port;
@@ -1153,6 +1155,9 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 			
 			HWND hToolbar = GetDlgItem(hwnd, IDC_CHECK_TOOLBAR);
 			SendMessage(hToolbar, BM_SETCHECK, pApp->m_options.m_toolbar, 0);
+
+			HWND hAutoScrolling = GetDlgItem(hwnd, IDC_AUTO_SCROLLING);
+			SendMessage(hAutoScrolling, BM_SETCHECK, pApp->m_options.m_AutoScrolling, 0);
 			
 			HWND hEditList = GetDlgItem(hwnd, IDC_EDIT_AMOUNT_LIST);
 			SetDlgItemInt( hwnd, IDC_EDIT_AMOUNT_LIST, pApp->m_options.m_historyLimit, FALSE);
@@ -1242,6 +1247,7 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 				char buf[80];
 				HWND hMessage = GetDlgItem(hwnd, IDC_CHECK_MESSAGE);
 				HWND hToolbar = GetDlgItem(hwnd, IDC_CHECK_TOOLBAR);
+				HWND hAutoScrolling = GetDlgItem(hwnd, IDC_AUTO_SCROLLING);
 				HWND hChec = GetDlgItem(hwnd, IDC_CHECK_LOG_FILE);
 
 				if (SendMessage(hDotCursor, BM_GETCHECK, 0, 0) == BST_CHECKED) {
@@ -1291,6 +1297,11 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 					pApp->m_options.m_toolbar = false;					
 				} else {
 					pApp->m_options.m_toolbar = true;					
+				}
+				if (SendMessage(hAutoScrolling, BM_GETCHECK, 0, 0) == 0) {
+					pApp->m_options.m_AutoScrolling = false;					
+				} else {
+					pApp->m_options.m_AutoScrolling = true;					
 				}
 				
 				pApp->m_options.m_historyLimit = GetDlgItemInt(hwnd,
@@ -1522,6 +1533,10 @@ void VNCOptions::LoadGenOpt()
 				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
 			m_toolbar = buffer == 1;
 		}
+		if ( RegQueryValueEx( hRegKey, "AutoScrolling", NULL, &valtype, 
+				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
+			m_AutoScrolling = buffer == 1;
+		}
 		if ( RegQueryValueEx( hRegKey, "LogToFile", NULL, &valtype, 
 				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
 				m_logToFile = buffer == 1;
@@ -1608,6 +1623,15 @@ void VNCOptions::SaveGenOpt()
 		buffer = 0;
 	}
 	RegSetValueEx( hRegKey, "NoToolbar", 
+					NULL, REG_DWORD, 
+					(CONST BYTE *)&buffer,
+					4);
+	if (m_AutoScrolling) {
+		buffer = 1;
+	} else {
+		buffer = 0;
+	}
+	RegSetValueEx( hRegKey, "AutoScrolling", 
 					NULL, REG_DWORD, 
 					(CONST BYTE *)&buffer,
 					4);

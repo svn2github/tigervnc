@@ -2322,7 +2322,7 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 				wParam = MAKEWPARAM(LOWORD(wParam), 0);
 			}
 
-			if (_this->InFullScreenMode()) {
+			if (_this->InFullScreenMode() || pApp->m_options.m_AutoScrolling) {
 				if (_this->BumpScroll(coords.x, coords.y))
 					return 0;
 			}

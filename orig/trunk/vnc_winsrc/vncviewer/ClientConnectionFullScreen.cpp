@@ -89,8 +89,17 @@ bool ClientConnection::BumpScroll(int x, int y)
 {
 	int dx = 0;
 	int dy = 0;
-	int rightborder = GetSystemMetrics(SM_CXSCREEN)-BUMPSCROLLBORDER;
-	int bottomborder = GetSystemMetrics(SM_CYSCREEN)-BUMPSCROLLBORDER;
+	int rightborder;
+	int bottomborder;
+	if (pApp->m_options.m_AutoScrolling) {
+		RECT rect;
+		GetClientRect(m_hwnd, &rect);
+		rightborder	= rect.right-BUMPSCROLLBORDER;
+		bottomborder = rect.bottom-BUMPSCROLLBORDER;
+	} else {
+		rightborder	= GetSystemMetrics(SM_CXSCREEN)-BUMPSCROLLBORDER;
+		bottomborder = GetSystemMetrics(SM_CYSCREEN)-BUMPSCROLLBORDER;
+	}
 	if (x < BUMPSCROLLBORDER)
 		dx = -BUMPSCROLLAMOUNTX * m_opts.m_scale_num / m_opts.m_scale_den;
 	if (x >= rightborder)

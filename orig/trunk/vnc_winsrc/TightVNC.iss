@@ -3,8 +3,8 @@
 
 [Setup]
 AppName=TightVNC
-AppVerName=TightVNC 1.2.0
-AppVersion=1.2.0
+AppVerName=TightVNC 1.2.1
+AppVersion=1.2.1
 AppPublisher=Const Kaplinsky
 AppPublisherURL=http://www.tightvnc.com
 AppSupportURL=http://www.tightvnc.com
@@ -32,11 +32,12 @@ Source: "LICENSE.txt"; DestDir: "{app}"; CopyMode: alwaysoverwrite
 Source: "VNCHooks_Settings.reg"; DestDir: "{app}"; CopyMode: alwaysoverwrite
 
 [Icons]
-Name: "{group}\TightVNC Server";                      FileName: "{app}\WinVNC.exe";                                    WorkingDir: "{app}"
-Name: "{group}\TightVNC Viewer";                      FileName: "{app}\vncviewer.exe";                                 WorkingDir: "{app}"
-Name: "{group}\TightVNC Viewer (Listen Mode)";        FileName: "{app}\vncviewer.exe"; Parameters: "-listen";          WorkingDir: "{app}"
+Name: "{group}\Launch TightVNC Server";               FileName: "{app}\WinVNC.exe";                                    WorkingDir: "{app}"
 Name: "{group}\Show About Box";                       FileName: "{app}\WinVNC.exe";    Parameters: "-about";           WorkingDir: "{app}"
 Name: "{group}\Show User Settings";                   FileName: "{app}\WinVNC.exe";    Parameters: "-settings";        WorkingDir: "{app}"
+Name: "{group}\TightVNC Viewer (Best Compression)";   FileName: "{app}\vncviewer.exe"; Parameters: "-compresslevel 9 -quality 0"; WorkingDir: "{app}"
+Name: "{group}\TightVNC Viewer (Fast Compression)";   FileName: "{app}\vncviewer.exe"; Parameters: "-encoding hextile"; WorkingDir: "{app}"
+Name: "{group}\TightVNC Viewer (Listen Mode)";        FileName: "{app}\vncviewer.exe"; Parameters: "-listen";          WorkingDir: "{app}"
 Name: "{group}\Administration\Install Default Registry Settings"; FileName: "{app}\VNCHooks_Settings.reg"; WorkingDir: "{app}"
 Name: "{group}\Administration\Install VNC Service";   FileName: "{app}\WinVNC.exe";    Parameters: "-install";         WorkingDir: "{app}"
 Name: "{group}\Administration\Remove VNC Service";    FileName: "{app}\WinVNC.exe";    Parameters: "-remove";          WorkingDir: "{app}"

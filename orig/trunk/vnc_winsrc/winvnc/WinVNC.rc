@@ -77,7 +77,7 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,134,100,50,14
     CONTROL         132,IDC_VNCLOGO,"Static",SS_BITMAP | SS_SUNKEN,13,7,81,
                     66
-    LTEXT           "TightVNC Server version 1.2.0\nCopyright (C) 2000, 2001 Const Kaplinsky\nhttp://www.tightvnc.com/",
+    LTEXT           "TightVNC Server version 1.2.1\nCopyright (C) 2000, 2001 Const Kaplinsky\nhttp://www.tightvnc.com/",
                     IDC_STATIC,134,7,185,27
     LTEXT           "Includes code from TridiaVNC 1.4.0\nCopyright (C) 2000, 2001 Tridia Corporation\nhttp://www.tridiavnc.com/",
                     IDC_STATIC,134,66,185,28
@@ -85,19 +85,19 @@ BEGIN
                     IDC_STATIC,134,36,185,29
 END
 
-IDD_OUTGOING_CONN DIALOG DISCARDABLE  0, 0, 243, 47
+IDD_OUTGOING_CONN DIALOG DISCARDABLE  0, 0, 246, 49
 STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "Initiate Outgoing Connection (Add New Client)"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,190,6,46,14
-    PUSHBUTTON      "Cancel",IDCANCEL,190,25,46,15
     EDITTEXT        IDC_HOSTNAME_EDIT,55,6,130,14,ES_AUTOHSCROLL
-    RTEXT           "Host Name:",IDC_HOSTNAME_STATIC,7,6,43,14,
-                    SS_CENTERIMAGE
-    CTEXT           "(NB:Host must be running VNCviewer in 'listen' mode)",
-                    IDC_NOTE_STATIC,7,25,178,15,SS_CENTERIMAGE
+    DEFPUSHBUTTON   "OK",IDOK,192,6,47,14
+    PUSHBUTTON      "Cancel",IDCANCEL,192,25,47,14
+    LTEXT           "Host Name:",IDC_HOSTNAME_STATIC,7,6,43,14,
+                    SS_CENTERIMAGE | NOT WS_GROUP
+    LTEXT           "Note: You may use host:display format, e.g. myclient:1\nHost must be running VNC viewer in 'listen' mode",
+                    IDC_NOTE_STATIC,7,25,178,17,NOT WS_GROUP
 END
 
 IDD_ACCEPT_CONN DIALOG DISCARDABLE  0, 0, 235, 102
@@ -219,13 +219,13 @@ BEGIN
     IDD_OUTGOING_CONN, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 236
+        RIGHTMARGIN, 239
         VERTGUIDE, 50
         VERTGUIDE, 55
         VERTGUIDE, 185
-        VERTGUIDE, 190
+        VERTGUIDE, 192
         TOPMARGIN, 6
-        BOTTOMMARGIN, 40
+        BOTTOMMARGIN, 42
         HORZGUIDE, 20
         HORZGUIDE, 25
     END
@@ -291,8 +291,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,2,0,0
- PRODUCTVERSION 1,2,0,0
+ FILEVERSION 1,2,1,0
+ PRODUCTVERSION 1,2,1,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -325,14 +325,14 @@ BEGIN
             VALUE "Comments", "Based on TridiaVNC by Tridia Corporation\0"
             VALUE "CompanyName", "Const Kaplinsky\0"
             VALUE "FileDescription", "TightVNC Win32 Server\0"
-            VALUE "FileVersion", "1, 2, 0, 0\0"
+            VALUE "FileVersion", "1, 2, 1, 0\0"
             VALUE "InternalName", "WinVNC\0"
             VALUE "LegalCopyright", "Copyright   2000, 2001 [many holders]\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "WinVNC.exe\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "TightVNC Win32 Server\0"
-            VALUE "ProductVersion", "1, 2, 0, 0\0"
+            VALUE "ProductVersion", "1, 2, 1, 0\0"
             VALUE "SpecialBuild", "\0"
         END
     END

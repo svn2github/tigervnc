@@ -302,7 +302,7 @@ vncProperties::DialogProc(HWND hwnd,
 			_this->m_server->GetPassword(passwd);
 			{
 			    vncPasswd::ToText plain(passwd);
-			    SetDlgItemText(hwnd, IDC_PASSWORD, (const char *) plain);
+			    SetDlgItemText(hwnd, IDC_PASSWORD, "~~~~~~~~");
 			}
 
 			// Remote input settings
@@ -372,17 +372,20 @@ vncProperties::DialogProc(HWND hwnd,
 		case IDOK:
 		case IDC_APPLY:
 			{
-				// Save the password
+				// Save the password if one was entered
 				char passwd[MAXPWLEN+1];
-				if (GetDlgItemText(hwnd, IDC_PASSWORD, (LPSTR) &passwd, MAXPWLEN+1) == 0)
-				{
-				    vncPasswd::FromClear crypt;
-				    _this->m_server->SetPassword(crypt);
-				}
-				else
-				{
-				    vncPasswd::FromText crypt(passwd);
-				    _this->m_server->SetPassword(crypt);
+				int len = GetDlgItemText(hwnd, IDC_PASSWORD, (LPSTR) &passwd, MAXPWLEN+1);
+				if (strcmp(passwd, "~~~~~~~~") != 0) {
+					if (len == 0)
+					{
+						vncPasswd::FromClear crypt;
+						_this->m_server->SetPassword(crypt);
+					}
+					else
+					{
+						vncPasswd::FromText crypt(passwd);
+						_this->m_server->SetPassword(crypt);
+					}
 				}
 
 				// Save the new settings to the server

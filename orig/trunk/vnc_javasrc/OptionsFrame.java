@@ -252,7 +252,7 @@ class OptionsFrame extends Frame
 
     // Handle JPEG quality setting.
 
-    if (preferredEncoding == RfbProto.EncodingTight) {
+    if (preferredEncoding == RfbProto.EncodingTight && !eightBitColors) {
       labels[jpegQualityIndex].setEnabled(true);
       choices[jpegQualityIndex].setEnabled(true);
       try {
@@ -293,17 +293,20 @@ class OptionsFrame extends Frame
 
   //
   // setColorFormat sets eightBitColors variable depending on the GUI
-  // setting, and switches between 8-bit and 24-bit colors mode, if
+  // setting, causing switches between 8-bit and 24-bit colors mode if
   // necessary.
   //
 
   void setColorFormat() {
 
-    eightBitColors
-      = choices[eightBitColorsIndex].getSelectedItem().equals("Yes");
+    eightBitColors =
+      choices[eightBitColorsIndex].getSelectedItem().equals("Yes");
 
-    // FIXME: implement dynamic changing of the color mode.
+    boolean enableJPEG = !eightBitColors &&
+      choices[encodingIndex].getSelectedItem().equals("Tight");
 
+    labels[jpegQualityIndex].setEnabled(enableJPEG);
+    choices[jpegQualityIndex].setEnabled(enableJPEG);
   }
 
   //

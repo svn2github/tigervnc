@@ -54,7 +54,7 @@ VNCviewerApp32::VNCviewerApp32(HINSTANCE hInstance, PSTR szCmdLine) :
 		
 		try {
 			m_pflasher = new Flasher(FLASH_PORT_OFFSET);
-			m_pdaemon = new Daemon(INCOMING_PORT_OFFSET);
+			m_pdaemon = new Daemon(m_options.m_listenPort);
 		} catch (WarningException &e) {
 			char msg[1024];
 			sprintf(msg, "Error creating listening daemon:\n\r(%s)\n\r%s",

@@ -70,6 +70,7 @@ VNCOptions::VNCOptions()
 	m_configSpecified = false;
 	m_configFilename[0] = '\0';
 	m_listening = false;
+	m_listenPort = INCOMING_PORT_OFFSET;
 	m_restricted = false;
 
 	m_useCompressLevel = false;
@@ -133,6 +134,7 @@ VNCOptions& VNCOptions::operator=(VNCOptions& s)
 	strcpy(m_configFilename, s.m_configFilename);
 
 	m_listening			= s.m_listening;
+	m_listenPort		= s.m_listenPort;
 	m_restricted		= s.m_restricted;
 
 	m_useCompressLevel		= s.m_useCompressLevel;
@@ -239,6 +241,13 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 			PostQuitMessage(1);
 		} else if ( SwitchMatch(args[j], _T("listen"))) {
 			m_listening = true;
+			if (j+1 < i && args[j+1][0] >= '0' && args[j+1][0] <= '9') {
+				if (_stscanf(args[j+1], _T("%d"), &m_listenPort) != 1) {
+					ArgError(_T("Invalid listen port specified"));
+					continue;
+				}
+				j++;
+			}
 		} else if ( SwitchMatch(args[j], _T("restricted"))) {
 			m_restricted = true;
 		} else if ( SwitchMatch(args[j], _T("viewonly"))) {

@@ -675,25 +675,17 @@ vncProperties::DialogProc(HWND hwnd,
 				if (success)
 					_this->m_server->SetPollingTimer(pollingtimer);
 
-								
 #else
 				_this->m_server->SetLiveShareKey(_this->m_pref_LiveShareKey);
-
 #endif
-				TCHAR titlewindow[80];
-				GetDlgItemText(hwnd, IDC_NAME_APPLI, titlewindow, 80);
-				HWND hwndwindow = vncService::GetSharedWindow(titlewindow);
-				if ((hwndwindow != _this->m_server->GetWindowShared()) && 
-					(hwndwindow != NULL)) {
-					_this->m_server->SetWindowShared(hwndwindow);
-				}
-				// Check that shared window not null
+
 				if ( _this->m_pref_WindowShared && (_this->m_server->GetWindowShared() == NULL) )
 				{	
-					MessageBox(NULL,"You have not yet selected a window to share.\n"
-									"Please first select a window with the 'Window Target'\n"
-									"icon, or print a substring of a title of the window,\n"
-									"and try again.", "No Window Selected", MB_OK | MB_ICONEXCLAMATION);
+					MessageBox(NULL,
+							   "You have not yet selected a window to share.\n"
+							   "Please first select a window with the 'Window Target'\n"
+							   "icon, and try again.", "No Window Selected",
+							   MB_OK | MB_ICONEXCLAMATION);
 					return true;
 				}
 

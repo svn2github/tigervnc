@@ -85,8 +85,6 @@ extern "C" {
 class vncClientThread : public omni_thread
 {
 public:
-	char * ConvertPath(char *path);
-
 	// Init
 	virtual BOOL Init(vncClient *client,
 					  vncServer *server,
@@ -1292,7 +1290,7 @@ vncClientThread::run(void *arg)
 				char path[255 + 1];
 				m_socket->ReadExact(path, msg.flr.dirNameSize);
 				path[msg.flr.dirNameSize] = '\0';
-				ConvertPath(path);
+				m_client->ConvertPath(path);
 				FileTransferItemInfo ftii;
 				if (strlen(path) == 0) {
 					TCHAR szDrivesList[256];
@@ -1378,7 +1376,69 @@ vncClientThread::run(void *arg)
 				m_socket->SendExact(pAllMessage, msgLen);
 			}
 			break;
-
+		case rfbFileSpecDirRequest:
+			if (!m_server->FileTransfersEnabled() || !m_client->IsInputEnabled()) {
+				connected = FALSE;
+				break;
+			}
+			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileSpecDirRequestMsg-1))
+			{
+				msg.fsdr.specFlags = Swap16IfLE(msg.fsdr.specFlags);
+				char path[MAX_PATH];
+				BOOL bCreate = FALSE;
+				switch (msg.fsdr.specFlags) 
+				{
+				case rfbSpecDirMyDocuments:
+					if (SHGetSpecialFolderPath(NULL, path, CSIDL_PERSONAL, bCreate)) {
+						m_client->SendFileSpecDirData(msg.fsdr.flags, msg.fsdr.specFlags, path);
+					} else {
+						CARD8 typeOfRequest = rfbFileSpecDirRequest;
+						char reason[] = "Can't get MyDocuments folder path";
+						CARD16 reasonLen = strlen(reason);
+						m_client->SendLastRequestFailed(typeOfRequest, reasonLen, 0, reason);
+					}
+					break;
+				case rfbSpecDirMyPictures:
+					if (SHGetSpecialFolderPath(NULL, path, 0x0027, bCreate)) {
+						m_client->SendFileSpecDirData(msg.fsdr.flags, msg.fsdr.specFlags, path);
+					} else {
+						CARD8 typeOfRequest = rfbFileSpecDirRequest;
+						char reason[] = "Can't get MyPictures folder path";
+						CARD16 reasonLen = strlen(reason);
+						m_client->SendLastRequestFailed(typeOfRequest, reasonLen, 0, reason);
+					}
+					break;
+				case rfbSpecDirMyMusic:
+					if (SHGetSpecialFolderPath(NULL, path, 0x000d, bCreate)) {
+						m_client->SendFileSpecDirData(msg.fsdr.flags, msg.fsdr.specFlags, path);
+					} else {
+						CARD8 typeOfRequest = rfbFileSpecDirRequest;
+						char reason[] = "Can't get MyMusic folder path";
+						CARD16 reasonLen = strlen(reason);
+						m_client->SendLastRequestFailed(typeOfRequest, reasonLen, 0, reason);
+					}
+					break;
+				case rfbSpecDirDesktop:
+					if (SHGetSpecialFolderPath(NULL, path, CSIDL_DESKTOP, bCreate)) {
+						m_client->SendFileSpecDirData(msg.fsdr.flags, msg.fsdr.specFlags, path);
+					} else {
+						CARD8 typeOfRequest = rfbFileSpecDirRequest;
+						char reason[] = "Can't get Desktop folder path";
+						CARD16 reasonLen = strlen(reason);
+						m_client->SendLastRequestFailed(typeOfRequest, reasonLen, 0, reason);
+					}
+					break;
+				default:
+					{
+						CARD8 typeOfRequest = rfbFileSpecDirRequest;
+						char reason[] = "Unknown type of requested special folder";
+						CARD16 reasonLen = strlen(reason);
+						m_client->SendLastRequestFailed(typeOfRequest, reasonLen, 0, reason);
+					}
+					break;
+				}
+			}
+			break;
 		case rfbFileDownloadRequest:
 			if (!m_server->FileTransfersEnabled() || !m_client->IsInputEnabled()) {
 				connected = FALSE;
@@ -1398,7 +1458,7 @@ vncClientThread::run(void *arg)
 				char path_file[255];
 				m_socket->ReadExact(path_file, msg.fdr.fNameSize);
 				path_file[msg.fdr.fNameSize] = '\0';
-				ConvertPath(path_file);
+				m_client->ConvertPath(path_file);
 				strcpy(m_client->m_DownloadFilename, path_file);
 				
 				HANDLE hFile;
@@ -1459,7 +1519,7 @@ vncClientThread::run(void *arg)
 				}
 				m_socket->ReadExact(m_client->m_UploadFilename, msg.fupr.fNameSize);
 				m_client->m_UploadFilename[msg.fupr.fNameSize] = '\0';
-				ConvertPath(m_client->m_UploadFilename);
+				m_client->ConvertPath(m_client->m_UploadFilename);
 				vnclog.Print(LL_CLIENTS, VNCLOG("file upload requested: %s\n"),
 							 m_client->m_UploadFilename);
 				m_client->m_hFileToWrite = CreateFile(m_client->m_UploadFilename, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
@@ -1587,7 +1647,7 @@ vncClientThread::run(void *arg)
 				char *dirName = new char[msg.fcdr.dNameLen + 1];
 				m_socket->ReadExact(dirName, msg.fcdr.dNameLen);
 				dirName[msg.fcdr.dNameLen] = '\0';
-				dirName = ConvertPath(dirName);
+				dirName = m_client->ConvertPath(dirName);
 				CreateDirectory((LPCTSTR) dirName, NULL);
 				delete [] dirName;
 			}
@@ -1608,8 +1668,8 @@ vncClientThread::run(void *arg)
 				m_socket->ReadExact(pNewName, msg.frr.newNameLen);
 				pOldName[msg.frr.oldNameLen] = '\0';
 				pNewName[msg.frr.newNameLen] = '\0';
-				pOldName = ConvertPath(pOldName);
-				pNewName = ConvertPath(pNewName);
+				pOldName = m_client->ConvertPath(pOldName);
+				pNewName = m_client->ConvertPath(pNewName);
 				if (!MoveFile(pOldName, pNewName)) {
 					CARD32 sysError = GetLastError();
 					CARD8 typeOfRequest = rfbFileRenameRequest;
@@ -1633,7 +1693,7 @@ vncClientThread::run(void *arg)
 				char *dirName = new char[msg.fdsr.dNameLen + 1];
 				m_socket->ReadExact(dirName, msg.fdsr.dNameLen);
 				dirName[msg.fdsr.dNameLen] = '\0';
-				dirName = ConvertPath(dirName);
+				dirName = m_client->ConvertPath(dirName);
 				FileTransferItemInfo ftfi;
 				char fullPath[MAX_PATH];
 				sprintf(fullPath, "%s\\*", dirName);
@@ -1682,7 +1742,7 @@ vncClientThread::run(void *arg)
 				char *pName = new char[msg.fder.nameLen + 1];
 				m_socket->ReadExact(pName, msg.fder.nameLen);
 				pName[msg.fder.nameLen] = '\0';
-				pName = ConvertPath(pName);
+				pName = m_client->ConvertPath(pName);
 				WIN32_FIND_DATA FindFileData;
 				SetErrorMode(SEM_FAILCRITICALERRORS);
 				HANDLE hFile = FindFirstFile(pName, &FindFileData);
@@ -2488,11 +2548,26 @@ vncClient::UpdateLocalFormat()
 	m_buffer->UpdateLocalFormat();
 }
 
-char * 
-vncClientThread::ConvertPath(char *path)
+char *
+vncClient::ConvertToNetPath(char *path)
 {
 	int len = strlen(path);
-	if(len >= 255) return path;
+	if (len >= MAX_PATH) return path;
+	if (strcmp(path, "") == 0) {strcpy(path, "/"); return path;}
+	for (int i = (len - 1); i >= 0; i--) {
+		if (path[i] == '\\') path[i] = '/';
+		path[i+1] = path[i];
+	}
+	path[len + 1] = '\0';
+	path[0] = '/';
+	return path;
+}
+
+char * 
+vncClient::ConvertPath(char *path)
+{
+	int len = strlen(path);
+	if(len >= MAX_PATH) return path;
 	if((path[0] == '/') && (len == 1)) {path[0] = '\0'; return path;}
 	for(int i = 0; i < (len - 1); i++) {
 		if(path[i+1] == '/') path[i+1] = '\\';
@@ -2615,6 +2690,26 @@ vncClient::SendLastRequestFailed(CARD8 typeOfRequest, CARD16 reasonLen,
 	memcpy(pFollow, reason, reasonLen);
 	m_socket->SendExact(pAllFLRFMessage, msgLen);
 	delete [] pAllFLRFMessage;
+}
+
+void 
+vncClient::SendFileSpecDirData(CARD8 flags, CARD16 specFlags, char *pDirName)
+{
+	char path[MAX_PATH];
+	strcpy(path, pDirName);
+	ConvertToNetPath(path);
+	int size = strlen(path);
+	int msgLen = sz_rfbFileSpecDirDataMsg + size;
+	char *pAllFSDDMessage = new char[msgLen];
+	rfbFileSpecDirDataMsg *pFSDD = (rfbFileSpecDirDataMsg *) pAllFSDDMessage;
+	char *pFollow = &pAllFSDDMessage[sz_rfbFileSpecDirDataMsg];
+	pFSDD->type = rfbFileSpecDirData;
+	pFSDD->flags = flags;
+	pFSDD->specFlags = Swap16IfLE(specFlags);
+	pFSDD->dirNameSize = Swap16IfLE(size);
+	memcpy(pFollow, path, size);
+	m_socket->SendExact(pAllFSDDMessage, msgLen);
+	delete [] pAllFSDDMessage;
 }
 
 unsigned int 

@@ -387,6 +387,7 @@ typedef struct _rfbInteractionCapsMsg {
 #define rfbFileDownloadFailed 133
 #define rfbFileDirSizeData 134
 #define rfbFileLastRequestFailed 135
+#define rfbFileSpecDirData 136
 
 /* signatures for non-standard messages */
 #define sig_rfbFileListData "FTS_LSDT"
@@ -415,6 +416,7 @@ typedef struct _rfbInteractionCapsMsg {
 #define rfbFileDirSizeRequest 137
 #define	rfbFileRenameRequest 138
 #define rfbFileDeleteRequest 139
+#define rfbFileSpecDirRequest 140
 
 
 /* signatures for non-standard messages */
@@ -919,6 +921,20 @@ typedef struct _rfbFileListDataMsg {
 #define sz_rfbFileListDataMsg 8
 
 /*-----------------------------------------------------------------------------
+ * FileSpecDirData
+ */
+
+typedef struct _rfbFileSpecDirDataMsg {
+    CARD8 type;
+    CARD8 flags;
+    CARD16 specFlags;
+    CARD16 dirNameSize;
+    /* Followed by char Dirname[dirNameSize] */
+} rfbFileSpecDirDataMsg;
+
+#define sz_rfbFileSpecDirDataMsg 6
+
+/*-----------------------------------------------------------------------------
  * FileDownloadData
  */
 
@@ -998,6 +1014,7 @@ typedef union _rfbServerToClientMsg {
     rfbBellMsg b;
     rfbServerCutTextMsg sct;
     rfbFileListDataMsg fld;
+	rfbFileSpecDirDataMsg fsdd;
     rfbFileDownloadDataMsg fdd;
     rfbFileUploadCancelMsg fuc;
     rfbFileDownloadFailedMsg fdf;
@@ -1174,6 +1191,24 @@ typedef struct _rfbFileListRequestMsg {
 #define sz_rfbFileListRequestMsg 4
 
 /*-----------------------------------------------------------------------------
+ * FileSpecDirRequest
+ */
+
+typedef struct _rfbFileSpecDirRequestMsg {
+    CARD8 type;
+    CARD8 flags;
+	CARD16 specFlags;
+} rfbFileSpecDirRequestMsg;
+
+#define rfbSpecDirMyDocuments 1
+#define rfbSpecDirMyPictures 2
+#define rfbSpecDirMyMusic 3
+#define rfbSpecDirDesktop 4
+
+
+#define sz_rfbFileSpecDirRequestMsg 4
+
+/*-----------------------------------------------------------------------------
  * FileDownloadRequest
  */
 
@@ -1311,6 +1346,7 @@ typedef union _rfbClientToServerMsg {
     rfbPointerEventMsg pe;
     rfbClientCutTextMsg cct;
     rfbFileListRequestMsg flr;
+	rfbFileSpecDirRequestMsg fsdr;
     rfbFileDownloadRequestMsg fdr;
     rfbFileUploadRequestMsg fupr;
     rfbFileUploadDataMsg fud;

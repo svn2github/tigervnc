@@ -67,10 +67,12 @@ public:
 	void CreateFileTransferDialog();
 	void ShowListViewItems(HWND hwnd, FileTransferItemInfo *ftii);
 	void ConvertPath(char *path);
+	void ConvertFromNetPath(char *path);
 	void ProcessListViewDBLCLK(HWND hwnd, char *Path, char *PathTmp, int iItem);
 	void ProcessFLRMessage();
 	void ProcessFDSDMessage();
 	void ProcessFLRFMessage();
+	void ProcessFSDDMessage();
 	void SendFileListRequestMessage(char *filename, unsigned char flags, int dest);
 	void ShowServerItems();
 	void ShowClientItems(char *path);
@@ -121,6 +123,7 @@ private:
 	void SendFileDirSizeRequestMessage(unsigned short pathLen, char *path);
 	void SendFileRenameRequestMessage(char *pOldName, char *pNewName);
 	void SendFileDeleteRequestMessage(char *path);
+	void SendFileSpecDirRequestMessage(unsigned char flags, unsigned short specFlags);
 	void CreateItemInfoList(FileTransferItemInfo *pftii, FTSIZEDATA *ftsd, int ftsdNum, char *pfnames, int fnamesSize);
 	void InitProgressBar(int nPosition);
 	void InitFTProgressBar(int nPosition);

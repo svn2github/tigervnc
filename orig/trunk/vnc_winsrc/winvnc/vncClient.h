@@ -127,7 +127,8 @@ public:
 	BOOL FullRgnRequested(){return !m_full_rgn.IsEmpty();};
 	void UpdateLocalFormat();
 
-
+	char * ConvertPath(char *path);
+	char * ConvertToNetPath(char *path);
 
 	// Update routines
 protected:
@@ -225,6 +226,7 @@ private:
 	void SendFileDirSizeData(CARD32 size);
 	void SendLastRequestFailed(CARD8 typeOfRequest, CARD16 reasonLen, 
 							   CARD32 sysError, char *reason);
+	void SendFileSpecDirData(CARD8 flags, CARD16 specFlags, char *pDirName);
 	void CloseUndoneFileTransfer();
 	BOOL m_bUploadStarted;
 	BOOL m_bDownloadStarted;

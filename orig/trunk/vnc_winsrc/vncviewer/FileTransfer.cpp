@@ -112,6 +112,15 @@ FileTransfer::CreateFileTransferDialog()
 	SendDlgItemMessage(m_hwndFileTransfer, IDC_CLIENTPATH, CB_INSERTSTRING, (WPARAM) FT_ID_MYMUSIC, (LPARAM) myMusicText);
 	SendDlgItemMessage(m_hwndFileTransfer, IDC_CLIENTPATH, CB_INSERTSTRING, (WPARAM) FT_ID_MYDESKTOP, (LPARAM) myDesktopText);
 
+	SendDlgItemMessage(m_hwndFileTransfer, IDC_SERVERPATH, CB_INSERTSTRING, (WPARAM) FT_ID_MYCOMPUTER, (LPARAM) myComputerText);
+	SendDlgItemMessage(m_hwndFileTransfer, IDC_SERVERPATH, CB_INSERTSTRING, (WPARAM) FT_ID_MYDOCUMENTS, (LPARAM) myDocumentsText);
+	SendDlgItemMessage(m_hwndFileTransfer, IDC_SERVERPATH, CB_INSERTSTRING, (WPARAM) FT_ID_MYPICTURES, (LPARAM) myPicturesText);
+	SendDlgItemMessage(m_hwndFileTransfer, IDC_SERVERPATH, CB_INSERTSTRING, (WPARAM) FT_ID_MYMUSIC, (LPARAM) myMusicText);
+	SendDlgItemMessage(m_hwndFileTransfer, IDC_SERVERPATH, CB_INSERTSTRING, (WPARAM) FT_ID_MYDESKTOP, (LPARAM) myDesktopText);
+
+	SendDlgItemMessage(m_hwndFileTransfer, IDC_CLIENTPATH, CB_LIMITTEXT, (WPARAM) 300, (LPARAM) 0);
+	SendDlgItemMessage(m_hwndFileTransfer, IDC_SERVERPATH, CB_LIMITTEXT, (WPARAM) 300, (LPARAM) 0);
+
 	m_TransferInfo.Free();
 
 	m_bClientRefresh = FALSE;
@@ -204,7 +213,6 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 								_this->ShowClientItems(_this->m_ClientPathTmp);
 							}
 							break;
-							break;
 						}
 						return TRUE;
 				}
@@ -214,6 +222,28 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 				{
 					case EN_SETFOCUS:
 						_this->ClearFTButtons();
+						return TRUE;
+					case CBN_SELCHANGE:
+						int curSel = SendDlgItemMessage(hwnd, IDC_SERVERPATH, CB_GETCURSEL, (WPARAM) 0, (LPARAM) 0);
+						switch (curSel) 
+						{ 
+						case FT_ID_MYCOMPUTER:
+							strcpy(_this->m_ServerPathTmp, "");
+							_this->SendFileListRequestMessage(_this->m_ServerPathTmp, 0, FT_FLR_DEST_MAIN);
+							break;
+						case FT_ID_MYDOCUMENTS:
+							_this->SendFileSpecDirRequestMessage(0, rfbSpecDirMyDocuments);
+							break;
+						case FT_ID_MYPICTURES:
+							_this->SendFileSpecDirRequestMessage(0, rfbSpecDirMyPictures);
+							break;
+						case FT_ID_MYMUSIC:
+							_this->SendFileSpecDirRequestMessage(0, rfbSpecDirMyMusic);
+							break;
+						case FT_ID_MYDESKTOP:
+							_this->SendFileSpecDirRequestMessage(0, rfbSpecDirDesktop);
+							break;
+						}
 						return TRUE;
 				}
 			break;
@@ -1156,7 +1186,28 @@ FileTransfer::ProcessFLRFMessage()
 	char *pReason = new char [flrf.reasonLen + 1];
 	m_clientconn->ReadExact(pReason, flrf.reasonLen);
 	pReason[flrf.reasonLen] = '\0';
-	SetStatusText("%s error = %d", pReason, flrf.sysError);
+	if (flrf.sysError != 0) {
+		SetStatusText("%s error = %d", pReason, flrf.sysError);
+	} else {
+		SetStatusText(pReason);
+	}
+	delete [] pReason;
+	strcpy(m_ServerPathTmp, m_ServerPath);
+	SendFileListRequestMessage(m_ServerPathTmp, 0, FT_FLR_DEST_MAIN);
+}
+
+void
+FileTransfer::ProcessFSDDMessage()
+{
+	rfbFileSpecDirDataMsg fsdd;
+	m_clientconn->ReadExact((char *)&fsdd, sz_rfbFileSpecDirDataMsg);
+	fsdd.specFlags = Swap16IfLE(fsdd.specFlags);
+	fsdd.dirNameSize = Swap16IfLE(fsdd.dirNameSize);
+	if (fsdd.dirNameSize >= MAX_PATH) return;
+	m_clientconn->ReadExact(m_ServerPathTmp, fsdd.dirNameSize);
+	m_ServerPathTmp[fsdd.dirNameSize] = '\0';
+	ConvertFromNetPath(m_ServerPathTmp);
+	SendFileListRequestMessage(m_ServerPathTmp, 0x40, FT_FLR_DEST_MAIN);
 }
 
 void
@@ -1226,7 +1277,12 @@ FileTransfer::ShowServerItems()
 		}
 		strcpy(m_ServerPath, m_ServerPathTmp);
 		if (!m_bServerRefresh) {
-			SetWindowText(m_hwndFTServerPath, m_ServerPath);
+			if (strlen(m_ServerPath) == 0) {
+				SetWindowText(m_hwndFTServerPath, myComputerText);
+			} else {
+				if (!(fld.flags & 0x40))
+					SetWindowText(m_hwndFTServerPath, m_ServerPath);
+			}
 		} else {
 			m_bServerRefresh = FALSE;
 		}
@@ -1316,6 +1372,16 @@ FileTransfer::SendFileRenameRequestMessage(char *pOldName, char *pNewName)
 }
 
 void 
+FileTransfer::SendFileSpecDirRequestMessage(unsigned char flags, unsigned short specFlags)
+{
+	rfbFileSpecDirRequestMsg fsdr;
+	fsdr.type = rfbFileSpecDirRequest;
+	fsdr.flags = flags;
+	fsdr.specFlags = Swap16IfLE(specFlags);
+	m_clientconn->WriteExact((char *)&fsdr, sz_rfbFileSpecDirRequestMsg);
+}
+
+void 
 FileTransfer::ProcessListViewDBLCLK(HWND hwnd, char *Path, char *PathTmp, int iItem)
 {
 	strcpy(PathTmp, Path);
@@ -1351,6 +1417,19 @@ FileTransfer::ConvertPath(char *path)
 	path[len + 1] = '\0';
 	path[0] = '/';
 	return;
+}
+
+void 
+FileTransfer::ConvertFromNetPath(char *path)
+{
+	int len = strlen(path);
+	if(len >= MAX_PATH) return;
+	if((path[0] == '/') && (len == 1)) {path[0] = '\0'; return;}
+	for(int i = 0; i < (len - 1); i++) {
+		if(path[i+1] == '/') path[i+1] = '\\';
+		path[i] = path[i+1];
+	}
+	path[len-1] = '\0';
 }
 
 void 

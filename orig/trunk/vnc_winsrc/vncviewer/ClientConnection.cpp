@@ -2983,7 +2983,9 @@ void* ClientConnection::run_undetached(void* arg) {
 			case rfbFileLastRequestFailed:
 				m_pFileTransfer->ProcessFLRFMessage();
 				break;
-
+			case rfbFileSpecDirData:
+				m_pFileTransfer->ProcessFSDDMessage();
+				break;
 			default:
 				vnclog.Print(3, _T("Unknown message type x%02x\n"), msgType );
 				throw WarningException("Unhandled message type received!\n");

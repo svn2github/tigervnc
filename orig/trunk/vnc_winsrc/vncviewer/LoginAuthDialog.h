@@ -36,12 +36,14 @@ public:
 	TCHAR m_username[256];
 	TCHAR m_passwd[256];
 
-	LoginAuthDialog();
+	LoginAuthDialog(char *title = NULL);
 	virtual ~LoginAuthDialog();
 	int DoDialog();
 
 	static BOOL CALLBACK DlgProc(HWND hwndDlg, UINT uMsg,
 								 WPARAM wParam, LPARAM lParam);
+private:
+	char m_title[256];
 };
 
 #endif // LOGINAUTHDIALOG_H__

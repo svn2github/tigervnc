@@ -56,6 +56,9 @@
 #include "vncAcceptDialog.h"
 #include "vncKeymap.h"
 #include "Windows.h"
+extern "C" {
+#include "d3des.h"
+}
 
 #include "FileTransferItemInfo.h"
 
@@ -99,6 +102,9 @@ public:
 	virtual BOOL NegotiateTunneling();
 	virtual BOOL NegotiateAuthentication(int authType);
 	virtual BOOL AuthenticateVNC();
+	virtual BOOL AuthenticateExternal();
+	virtual BOOL VerifyExternalAuth(char *username, char *password,
+									char *local_ip, char *remote_ip);
 	virtual BOOL ReadClientInit();
 	virtual BOOL SendInteractionCaps();
 
@@ -234,6 +240,9 @@ vncClientThread::InitAuthenticate()
 	if (secType == rfbSecTypeVncAuth)
 		return AuthenticateVNC();
 
+	if (secType == rfbAuthExternal)
+		return AuthenticateExternal();
+
 	return TRUE;
 }
 
@@ -251,7 +260,8 @@ vncClientThread::GetAuthenticationType()
 
 #ifndef HORIZONLIVE
 	// By default we disallow passwordless workstations!
-	if (no_password_set && m_server->AuthRequired())
+	if (no_password_set && m_server->AuthRequired() &&
+		!m_server->ExternalAuthEnabled())
 	{
 		vnclog.Print(LL_CONNERR,
 			VNCLOG("no password specified for server - client rejected\n"));
@@ -333,7 +343,10 @@ vncClientThread::GetAuthenticationType()
 		return rfbSecTypeInvalid;
 	}
 
-	// Return authentication type (VncAuth, or None)
+	// Return preferred authentication type
+	if (m_server->ExternalAuthEnabled())
+		return rfbAuthExternal;
+
 	if (m_auth || no_password_set || skip_auth) {
 		return rfbSecTypeNone;
 	} else {
@@ -401,7 +414,7 @@ vncClientThread::NegotiateAuthentication(int authType)
 {
 	int nTypes = 0;
 
-	if (authType == rfbAuthVNC) {
+	if (authType == rfbAuthVNC || authType == rfbAuthExternal) {
 		nTypes++;
 	} else if (authType != rfbAuthNone) {
 		vnclog.Print(LL_INTERR, VNCLOG("unknown authentication type\n"));
@@ -413,10 +426,14 @@ vncClientThread::NegotiateAuthentication(int authType)
 	if (!m_socket->SendExact((char *)&caps, sz_rfbAuthenticationCapsMsg))
 		return FALSE;
 
-	if (authType == rfbAuthVNC) {
+	if (authType == rfbAuthVNC || authType == rfbAuthExternal) {
 		// Inform the client that we support only the standard VNC authentication.
 		rfbCapabilityInfo cap;
-		SetCapInfo(&cap, rfbAuthVNC, rfbStandardVendor);
+		if (authType == rfbAuthVNC) {
+			SetCapInfo(&cap, rfbAuthVNC, rfbStandardVendor);
+		} else {
+			SetCapInfo(&cap, rfbAuthExternal, rfbTightVncVendor);
+		}
 		if (!m_socket->SendExact((char *)&cap, sz_rfbCapabilityInfo))
 			return FALSE;
 
@@ -497,6 +514,68 @@ vncClientThread::AuthenticateVNC()
 	}
 
 	return TRUE;
+}
+
+BOOL
+vncClientThread::AuthenticateExternal()
+{
+	CARD8 usernameLen, passwordLen;
+	if (!m_socket->ReadExact((char *)&usernameLen, sizeof(usernameLen)))
+		return FALSE;
+	if (!m_socket->ReadExact((char *)&passwordLen, sizeof(passwordLen)))
+		return FALSE;
+
+	int len = (usernameLen + passwordLen + 7) & 0xFFFFFFF8;
+	unsigned char *buf = new unsigned char[len];
+	if (!m_socket->ReadExact((char *)buf, len))
+		return FALSE;
+
+	// Decrypt the username/password pair
+	unsigned char key[8] = {11,110,60,254,61,210,245,92};
+    deskey(key, DE1);
+	for (int i = 0; i < len; i += 8)
+		des(buf + i, buf + i);
+
+	// Extract username and the password
+	char username[256];
+	memcpy(username, buf, usernameLen);
+	username[usernameLen] = '\0';
+	char password[256];
+	memcpy(password, buf + usernameLen, passwordLen);
+	password[passwordLen] = '\0';
+	memset(buf, '\0', len);
+	delete[] buf;
+
+	BOOL auth_ok = VerifyExternalAuth(username, password,
+									  m_socket->GetSockName(),
+									  m_socket->GetPeerName());
+
+	memset(username, '\0', strlen(username));
+	memset(password, '\0', strlen(password));
+
+	CARD32 authmsg;
+	if (!auth_ok) {
+		vnclog.Print(LL_CONNERR, VNCLOG("authentication failed\n"));
+
+		authmsg = Swap32IfLE(rfbVncAuthFailed);
+		m_socket->SendExact((char *)&authmsg, sizeof(authmsg));
+		return FALSE;
+	} else {
+		// Tell the client we're ok
+		authmsg = Swap32IfLE(rfbVncAuthOK);
+		if (!m_socket->SendExact((char *)&authmsg, sizeof(authmsg)))
+			return FALSE;
+	}
+
+	return TRUE;
+}
+
+BOOL
+vncClientThread::VerifyExternalAuth(char *username, char *password,
+									char *local_ip, char *remote_ip)
+{
+	return (strcmp(username, "testuser") == 0 &&
+			strcmp(password, "testpassword") == 0);
 }
 
 //

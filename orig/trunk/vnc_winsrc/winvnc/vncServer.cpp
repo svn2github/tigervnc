@@ -883,6 +883,19 @@ vncServer::GetPasswordViewOnly(char *passwd)
 	memcpy(passwd, m_password_viewonly, MAXPWLEN);
 }
 
+// External authentication
+void
+vncServer::EnableExternalAuth(BOOL enable)
+{
+	m_external_auth = enable;
+}
+
+BOOL
+vncServer::ExternalAuthEnabled()
+{
+	return m_external_auth;
+}
+
 // Remote input handling
 void
 vncServer::EnableRemoteInputs(BOOL enable)

@@ -980,6 +980,7 @@ vncProperties::Load(BOOL usersettings)
 		memcpy(m_pref_passwd, crypt, MAXPWLEN);
 		memcpy(m_pref_passwd_viewonly, crypt, MAXPWLEN);
 	}
+	m_pref_externalAuth=FALSE;
 	m_pref_QuerySetting=2;
 	m_pref_QueryTimeout=30;
 	m_pref_QueryAccept=FALSE;
@@ -1101,6 +1102,8 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	// Load the view-only password, default to the primary one
 	memcpy(m_pref_passwd_viewonly, m_pref_passwd, MAXPWLEN);
 	LoadPassword(appkey, m_pref_passwd_viewonly, "PasswordViewOnly");
+	// External authentication
+	m_pref_externalAuth=LoadInt(appkey, "ExternalAuth", m_pref_externalAuth);
 	// CORBA Settings
 	m_pref_CORBAConn=LoadInt(appkey, "CORBAConnect", m_pref_CORBAConn);
 
@@ -1145,6 +1148,9 @@ vncProperties::ApplyUserPrefs()
 	// Update the password
 	m_server->SetPassword(m_pref_passwd);
 	m_server->SetPasswordViewOnly(m_pref_passwd_viewonly);
+
+	// Enable/disable external authentication
+	m_server->EnableExternalAuth(m_pref_externalAuth);
 
 	// Now change the listening port settings
 	m_server->SetAutoPortSelect(m_pref_AutoPortSelect);

@@ -274,9 +274,11 @@ typedef struct _rfbAuthenticationCapsMsg {
 #define rfbAuthNone 1
 #define rfbAuthVNC 2
 #define rfbAuthUnixLogin 129
+#define rfbAuthExternal 130
 
 #define sig_rfbAuthVNC "VNCAUTH_"
 #define sig_rfbAuthUnixLogin "ULGNAUTH"
+#define sig_rfbAuthExternal "XTRNAUTH"
 
 
 /*-----------------------------------------------------------------------------

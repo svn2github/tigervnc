@@ -38,8 +38,15 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-LoginAuthDialog::LoginAuthDialog()
+LoginAuthDialog::LoginAuthDialog(char *title)
 {
+	if (title != NULL) {
+		strncpy(m_title, title, sizeof(m_title)-1);
+		m_title[sizeof(m_title)-1] = '\0';
+	} else {
+		m_title[0] = '\0';
+	}
+
 	m_username[0] = __T('\0');
 	m_passwd[0] = __T('\0');
 }
@@ -68,6 +75,8 @@ BOOL CALLBACK LoginAuthDialog::DlgProc(HWND hwnd, UINT uMsg,
 	case WM_INITDIALOG:
 		SetWindowLong(hwnd, GWL_USERDATA, lParam);
 		_this = (LoginAuthDialog *)lParam;
+		if (_this->m_title[0] != '\0')
+			SetWindowText(hwnd, _this->m_title);
 		CentreWindow(hwnd);
 		return TRUE;
 	case WM_COMMAND:

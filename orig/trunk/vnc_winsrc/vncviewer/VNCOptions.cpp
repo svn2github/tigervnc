@@ -551,6 +551,7 @@ void VNCOptions::Load(char *fname)
 	m_requestShapeUpdates =	readInt("cursorshape",		m_requestShapeUpdates, fname) != 0;
 	m_ignoreShapeUpdates =	readInt("noremotecursor",	m_ignoreShapeUpdates, fname) != 0;
 	int level =				readInt("compresslevel",	-1,				fname);
+	m_useCompressLevel = false;
 	if (level != -1) {
 		m_useCompressLevel = true;
 		m_compressLevel = level;
@@ -948,14 +949,19 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 				if (i > 0) {
 					_this->m_scale_num = i;
 					_this->m_scale_den = 100;
+					_this->FixScaling();
 					_this->m_FitWindow = false;
+					_this->m_scaling = (_this->m_scale_num > 1) || (_this->m_scale_den > 1);
 				} else {
 					TCHAR buf[20];
 					GetDlgItemText(hwnd, IDC_SCALE_EDIT, buf, 20);
-					_this->m_FitWindow = strcmp(buf, "Auto") == 0;
-				}
-				_this->FixScaling();
-				_this->m_scaling = (_this->m_scale_num > 1) || (_this->m_scale_den > 1);
+					if (strcmp(buf, "Auto") == 0) {
+						_this->m_FitWindow = true;
+						_this->m_scaling = true;
+					} else {
+						_this->m_FitWindow = false;
+					}
+				}	
 				
 				HWND hCopyRect = GetDlgItem(hwnd, ID_SESSION_SET_CRECT);
 				_this->m_UseEnc[rfbEncodingCopyRect] =

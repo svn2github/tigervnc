@@ -1,31 +1,35 @@
-// FileTransfer.cpp: implementation of the FileTransfer class.
+//  Copyright (C) 2003 Dennis Syrovatsky. All Rights Reserved.
 //
-//////////////////////////////////////////////////////////////////////
+//  This file is part of the VNC system.
+//
+//  The VNC system is free software; you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation; either version 2 of the License, or
+//  (at your option) any later version.
+//
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with this program; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
+//  USA.
+//
+// TightVNC distribution homepage on the Web: http://www.tightvnc.com/
+//
+// If the source code for the VNC system is not available from the place 
+// whence you received this file, check http://www.uk.research.att.com/vnc or contact
+// the authors on vnc@uk.research.att.com for information on obtaining it.
 
 #include "vncviewer.h"
 #include "FileTransfer.h"
+#include "FileTransferItemInfo.h"
 
 const char FileTransfer::uploadText[] = ">>>";
 const char FileTransfer::downloadText[] = "<<<";
 const char FileTransfer::noactionText[] = "<--->";
-
-const char FileTransfer::folderText[] = "<Folder>";
-
-int 
-CompareFTItemInfo(const void *F, const void *S)
-{
-	if (strcmp(((FTITEMINFO *)F)->Size, ((FTITEMINFO *)S)->Size) == 0) {
-		return stricmp(((FTITEMINFO *)F)->Name, ((FTITEMINFO *)S)->Name);
-	} else {
-		if (strcmp(((FTITEMINFO *)F)->Size, FileTransfer::folderText) == 0) return -1;
-		if (strcmp(((FTITEMINFO *)S)->Size, FileTransfer::folderText) == 0) {
-			return 1;
-		} else {
-		return stricmp(((FTITEMINFO *)F)->Name, ((FTITEMINFO *)S)->Name);
-		}
-	}
-	return 0;
-}
 
 FileTransfer::FileTransfer(ClientConnection * pCC, VNCviewerApp * pApp)
 {
@@ -34,8 +38,6 @@ FileTransfer::FileTransfer(ClientConnection * pCC, VNCviewerApp * pApp)
 	m_TransferEnable = FALSE;
 	m_bServerBrowseRequest = FALSE;
 	m_hTreeItem = NULL;
-	m_FTClientItemInfo = NULL;
-	m_FTServerItemInfo = NULL;
 	m_ClientPath[0] = '\0';
 	m_ClientPathTmp[0] = '\0';
 	m_ServerPath[0] = '\0';
@@ -44,8 +46,8 @@ FileTransfer::FileTransfer(ClientConnection * pCC, VNCviewerApp * pApp)
 
 FileTransfer::~FileTransfer()
 {
-	if (m_FTClientItemInfo != NULL) delete [] m_FTClientItemInfo;
-	if (m_FTServerItemInfo != NULL) delete [] m_FTServerItemInfo;
+	m_FTClientItemInfo.Free();
+	m_FTServerItemInfo.Free();
 }
 void 
 FileTransfer::CreateFileTransferDialog()
@@ -134,14 +136,8 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 			break;
 			case IDC_EXIT:
 				_this->m_clientconn->m_fileTransferDialogShown = false;
-				if (_this->m_FTClientItemInfo != NULL) {
-				delete [] _this->m_FTClientItemInfo;
-				_this->m_FTClientItemInfo = NULL;
-				}
-				if (_this->m_FTServerItemInfo != NULL) {
-				delete [] _this->m_FTServerItemInfo;
-				_this->m_FTServerItemInfo = NULL;
-				}
+				_this->m_FTClientItemInfo.Free();
+				_this->m_FTServerItemInfo.Free();
 				EndDialog(hwnd, TRUE);
 				return TRUE;
 			case IDC_CLIENTUP:
@@ -268,14 +264,8 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 	case WM_CLOSE:
 	case WM_DESTROY:
 		_this->m_clientconn->m_fileTransferDialogShown = false;
-		if (_this->m_FTClientItemInfo != NULL) {
-			delete [] _this->m_FTClientItemInfo;
-			_this->m_FTClientItemInfo = NULL;
-		}
-		if (_this->m_FTServerItemInfo != NULL) {
-			delete [] _this->m_FTServerItemInfo;
-			_this->m_FTServerItemInfo = NULL;
-		}
+		_this->m_FTClientItemInfo.Free();
+		_this->m_FTServerItemInfo.Free();
 		EndDialog(hwnd, TRUE);
 		return TRUE;
 	}
@@ -289,10 +279,10 @@ FileTransfer::OnGetDispClientInfo(NMLVDISPINFO *plvdi)
   switch (plvdi->item.iSubItem)
     {
     case 0:
-		plvdi->item.pszText = m_FTClientItemInfo[plvdi->item.iItem].Name;
+		plvdi->item.pszText = m_FTClientItemInfo.GetNameAt(plvdi->item.iItem);
       break;
     case 1:
-		plvdi->item.pszText = m_FTClientItemInfo[plvdi->item.iItem].Size;
+		plvdi->item.pszText = m_FTClientItemInfo.GetSizeAt(plvdi->item.iItem);
       break;
     default:
       break;
@@ -305,10 +295,10 @@ FileTransfer::OnGetDispServerInfo(NMLVDISPINFO *plvdi)
   switch (plvdi->item.iSubItem)
   {
     case 0:
-		plvdi->item.pszText = m_FTServerItemInfo[plvdi->item.iItem].Name;
+		plvdi->item.pszText = m_FTServerItemInfo.GetNameAt(plvdi->item.iItem);
       break;
     case 1:
-		plvdi->item.pszText = m_FTServerItemInfo[plvdi->item.iItem].Size;
+		plvdi->item.pszText = m_FTServerItemInfo.GetSizeAt(plvdi->item.iItem);
       break;
     default:
       break;
@@ -362,9 +352,7 @@ FileTransfer::FileTransferUpload()
 	fud.type = rfbFileUploadData;
 	int amount = (sz_rfbFileSize + sz_rfbBlockSize - 1) / sz_rfbBlockSize;
 	fud.amount = Swap16IfLE(amount);
-	SendMessage(m_hwndFTProgress, PBM_SETPOS, 0, 0);
-    SendMessage(m_hwndFTProgress, PBM_SETRANGE, 0, MAKELPARAM(0, amount)); 
-	SendMessage(m_hwndFTProgress, PBM_SETSTEP, (WPARAM) 1, 0); 
+	InitProgressBar(0, 0, amount, 1);
 	if (sz_rfbFileSize <= sz_rfbBlockSize) {
 			sz_rfbBlockSize = sz_rfbFileSize;
 			fud.size = Swap16IfLE(sz_rfbFileSize);
@@ -439,9 +427,7 @@ FileTransfer::FileTransferDownload()
 	if (fdd.num == 0) {
 		sprintf(path, "%s\\%s", m_ClientPath, m_ServerFilename);
 		m_hFiletoWrite = CreateFile(path, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
-		SendMessage(m_hwndFTProgress, PBM_SETPOS, 0, 0);
-		SendMessage(m_hwndFTProgress, PBM_SETRANGE, 0, MAKELPARAM(0, fdd.amount)); 
-		SendMessage(m_hwndFTProgress, PBM_SETSTEP, (WPARAM) 1, 0); 
+		InitProgressBar(0, 0, fdd.amount, 1);
 	}
 	WriteFile(m_hFiletoWrite, pBuff,	fdd.size, &dwNumberOfBytesWritten, NULL);
 	SendMessage(m_hwndFTProgress, PBM_STEPIT, 0, 0); 
@@ -460,83 +446,80 @@ FileTransfer::ShowClientItems(char *path)
 {
 	if (strlen(path) == 0) {
 		//Show Logical Drives
-		ListView_DeleteAllItems(m_hwndFTClientList); 
-		int DrivesNum = 0;
+		ListView_DeleteAllItems(m_hwndFTClientList);
+		m_FTClientItemInfo.Free();
+		int LengthDrivesString = 0;
 		char DrivesString[256];
-		DrivesNum = GetLogicalDriveStringByType(DRIVE_FIXED, DrivesString);
-		if (DrivesNum == 0) {
+		char DriveName[rfbMAX_PATH] = "?:";
+		LengthDrivesString = GetLogicalDriveStrings(256, DrivesString);
+		if ((LengthDrivesString == 0) || (LengthDrivesString > 256)) {
 			BlockingFileTransferDialog(TRUE);
 			strcpy(m_ClientPathTmp, m_ClientPath);
 			return;
 		} else {
 			strcpy(m_ClientPath, m_ClientPathTmp);
 			SetWindowText(m_hwndFTClientPath, m_ClientPath);
+			for (int i=0; i<256; i++) {
+				DriveName[0] = DrivesString[i];
+				switch (GetDriveType(DriveName))
+				{
+					case DRIVE_FIXED:
+					{
+						char txt[16];
+						strcpy(txt, m_FTClientItemInfo.folderText);
+						m_FTClientItemInfo.Add(DriveName, txt);
+						break;
+					}
+				}
+				DriveName[0] = '\0';
+				i+=3;
+				if ((DrivesString[i] == '\0') && (DrivesString[i+1] == '\0')) break;
+			}
+			m_FTClientItemInfo.Sort();
+			ShowListViewItems(m_hwndFTClientList, &m_FTClientItemInfo);
 		}
-		if (m_FTClientItemInfo != NULL) delete [] m_FTClientItemInfo;
-		m_FTClientItemInfo = new FTITEMINFO [DrivesNum];
-		for (int i=0; i<DrivesNum; i++) {
-			strcpy(m_FTClientItemInfo[i].Name, "?:");
-			m_FTClientItemInfo[i].Name[0] = DrivesString[i];
-			strcpy(m_FTClientItemInfo[i].Size, folderText);
-		}
-		ShowListViewItems(m_hwndFTClientList, m_FTClientItemInfo, DrivesNum);
 	} else {
 		//Show Files
 		HANDLE m_handle;
-		int FilesNum = 0;
+		int n = 0;
 		WIN32_FIND_DATA m_FindFileData;
 		strcat(path, "\\*");
 		m_handle = FindFirstFile(path, &m_FindFileData);
 		while(1) {
 			if (m_handle != INVALID_HANDLE_VALUE) {
+				if (n == 0) {
+					m_FTClientItemInfo.Free();
+					n = 1;
+				}
+				char buffer[16];
 				if ((strcmp(m_FindFileData.cFileName, ".") != 0) &&
 			       (strcmp(m_FindFileData.cFileName, "..") != 0)) {
-					FilesNum += 1;
+					if (!(m_FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+						sprintf(buffer, "%d", m_FindFileData.nFileSizeLow);
+					} else {
+						strcpy(buffer, m_FTClientItemInfo.folderText);
+					}
+					m_FTClientItemInfo.Add(m_FindFileData.cFileName, buffer);
 				}
 			} else {
-				FilesNum = 0;
+				BlockingFileTransferDialog(TRUE);
+				path[strlen(path) - 2] = '\0';
 				if (GetLastError() != ERROR_SUCCESS) {
-					BlockingFileTransferDialog(TRUE);
-					path[strlen(path) - 2] = '\0';
 					strcpy(m_ClientPathTmp, m_ClientPath);
 					FindClose(m_handle);
 					return;
 				}
-				break;
+				strcpy(m_ClientPath, m_ClientPathTmp);
+				SetWindowText(m_hwndFTClientPath, m_ClientPath);
+				FindClose(m_handle);
+				return;
 			}
 			if (!FindNextFile(m_handle, &m_FindFileData)) break;
 		}
+		FindClose(m_handle);
 		ListView_DeleteAllItems(m_hwndFTClientList); 
-		if (FilesNum == 0) {
-			BlockingFileTransferDialog(TRUE);
-			path[strlen(path) - 2] = '\0';
-			strcpy(m_ClientPath, m_ClientPathTmp);
-			SetWindowText(m_hwndFTClientPath, m_ClientPath);
-			FindClose(m_handle);
-			return;
-		} 
-		FindClose(m_handle);
-		m_handle = FindFirstFile(path, &m_FindFileData);
-		if (m_FTClientItemInfo !=NULL) delete [] m_FTClientItemInfo;
-		m_FTClientItemInfo = new FTITEMINFO [FilesNum];
-		int i=0;
-		while(1) {
-			if ((strcmp(m_FindFileData.cFileName, ".") != 0) &&
-			   (strcmp(m_FindFileData.cFileName, "..") != 0)) {
-				if (!(m_FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
-					char buffer[32];
-					sprintf(buffer, "%d", m_FindFileData.nFileSizeLow);
-					strcpy(m_FTClientItemInfo[i].Size, buffer);
-				} else {
-					strcpy(m_FTClientItemInfo[i].Size, folderText);
-				}
-				strcpy(m_FTClientItemInfo[i].Name, m_FindFileData.cFileName);
-				i++;
-			}
-			if (!FindNextFile(m_handle, &m_FindFileData)) break;
-		}
-		FindClose(m_handle);
-		ShowListViewItems(m_hwndFTClientList, m_FTClientItemInfo, FilesNum);
+		m_FTClientItemInfo.Sort();
+		ShowListViewItems(m_hwndFTClientList, &m_FTClientItemInfo);
 		path[strlen(path) - 2] = '\0';
 		strcpy(m_ClientPath, m_ClientPathTmp);
 		SetWindowText(m_hwndFTClientPath, m_ClientPath);
@@ -564,17 +547,20 @@ FileTransfer::FTBrowseDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 				TVINSERTSTRUCT tvins; 
 				char DrivesString[256];
 				char drive[] = "?:";
-				int NumDrives = _this->GetLogicalDriveStringByType(DRIVE_FIXED, DrivesString);
+				int LengthDriveString = GetLogicalDriveStrings(256, DrivesString);
 				TVItem.mask = TVIF_CHILDREN | TVIF_TEXT | TVIF_HANDLE;
-				for (int i=0; i<NumDrives; i++) {
+				for (int i=0; i<LengthDriveString; i++) {
 					drive[0] = DrivesString[i];
-					TVItem.pszText = drive;
-					TVItem.cChildren = 1;
-					tvins.item = TVItem;
-					tvins.hParent = TreeView_InsertItem(GetDlgItem(hwnd, IDC_FTBROWSETREE), &tvins);
-					tvins.item = TVItem;
-					TreeView_InsertItem(GetDlgItem(hwnd, IDC_FTBROWSETREE), &tvins);
-					tvins.hParent = NULL;
+					if (GetDriveType(drive) == DRIVE_FIXED) {
+						TVItem.pszText = drive;
+						TVItem.cChildren = 1;
+						tvins.item = TVItem;
+						tvins.hParent = TreeView_InsertItem(GetDlgItem(hwnd, IDC_FTBROWSETREE), &tvins);
+						tvins.item = TVItem;
+						TreeView_InsertItem(GetDlgItem(hwnd, IDC_FTBROWSETREE), &tvins);
+						tvins.hParent = NULL;
+					}
+					i += 3;
 				}
 			}
 			return TRUE;
@@ -799,25 +785,34 @@ FileTransfer::ShowServerItems()
 			SetWindowText(m_hwndFTServerPath, m_ServerPath);
 		}
 		if (fld.num == 0) {
-			if (m_FTServerItemInfo != NULL) delete [] m_FTServerItemInfo;
-			m_FTServerItemInfo = new FTITEMINFO[fld.amount];
+			m_FTServerItemInfo.Free();
 			ListView_DeleteAllItems(m_hwndFTServerList); 
 		}
-		strcpy(m_FTServerItemInfo[fld.num].Name, filename);
+		char ItemServerName[rfbMAX_PATH];
+		strcpy(ItemServerName, filename);
 		switch (fld.attr)
 			{
 			case 0x0000:
-				char buffer_[32];
+				{
+				char buffer_[16];
 				sprintf(buffer_, "%d", fld.size);
-				strcpy(m_FTServerItemInfo[fld.num].Size, buffer_);
+				m_FTServerItemInfo.Add(ItemServerName, buffer_);
 				break;
+				}
 			case 0x0001:
-				strcpy(m_FTServerItemInfo[fld.num].Size, folderText);
+				{
+				char buffer_[16];
+				strcpy(buffer_, m_FTServerItemInfo.folderText);
+				m_FTServerItemInfo.Add(ItemServerName, buffer_);
 				break;
+				}
 			default:
-				strcpy(m_FTServerItemInfo[fld.num].Size, "Unknown");
+				m_FTServerItemInfo.Add(ItemServerName, "Unknown");
 			}
-		if (fld.num == fld.amount - 1) ShowListViewItems(m_hwndFTServerList, m_FTServerItemInfo, fld.amount);
+		if (fld.num == fld.amount - 1) {
+			m_FTServerItemInfo.Sort();
+			ShowListViewItems(m_hwndFTServerList, &m_FTServerItemInfo);
+		}
 	} else {
 		if (fld.num == 0) {
 			while (TreeView_GetChild(GetDlgItem(m_hwndFTBrowse, IDC_FTBROWSETREE), m_hTreeItem) != NULL) {
@@ -877,7 +872,7 @@ FileTransfer::ProcessListViewDBLCLK(HWND hwnd, char *Path, char *PathTmp, int iI
 	char buffer_tmp[16];
 	ListView_GetItemText(hwnd, iItem, 0, buffer, rfbMAX_PATH);
 	ListView_GetItemText(hwnd, iItem, 1, buffer_tmp, 16);
-	if (strcmp(buffer_tmp, folderText) == 0) {
+	if (strcmp(buffer_tmp, m_FTClientItemInfo.folderText) == 0) {
 			BlockingFileTransferDialog(FALSE);
 			if (strlen(PathTmp) >= 2) strcat(PathTmp, "\\");
 			strcat(PathTmp, buffer);
@@ -902,14 +897,13 @@ FileTransfer::ConvertPath(char *path)
 }
 
 void 
-FileTransfer::ShowListViewItems(HWND hwnd, FTITEMINFO *FTItemInfo, int NumItem)
+FileTransfer::ShowListViewItems(HWND hwnd, FileTransferItemInfo *ftii)
 {
 	LVITEM LVItem;
 	LVItem.mask = LVIF_TEXT | LVIF_STATE; 
 	LVItem.state = 0; 
 	LVItem.stateMask = 0; 
-	qsort(FTItemInfo, NumItem, rfbMAX_PATH + 16, CompareFTItemInfo);
-	for (int i=0; i<NumItem; i++) {
+	for (int i=0; i<ftii->GetNumEntries(); i++) {
 		LVItem.iItem = i;
 		LVItem.iSubItem = 0;
 		LVItem.pszText = LPSTR_TEXTCALLBACK;
@@ -931,25 +925,9 @@ FileTransfer::FTInsertColumn(HWND hwnd, char *iText, int iOrder, int xWidth)
     ListView_InsertColumn(hwnd, iOrder, &lvc);
 }
 
-int
-FileTransfer::GetLogicalDriveStringByType(unsigned int DriveType, char *DrivesString)
+void FileTransfer::InitProgressBar(int nPosition, int nMinRange, int nMaxRange, int nStep)
 {
-	char szDrivesList[256];
-	char drive[10];
-	int DrivesNum = 0;
-	GetLogicalDriveStrings(256, szDrivesList);
-	for (int i=0, j=0, p=0; i<=255; i++) {
-		drive[p] = szDrivesList[i];
-		p++;
-		if (szDrivesList[i] == '\0') {
-			p = 0;
-			if (GetDriveType((LPCTSTR) drive) == DriveType) {
-				DrivesString[j] = drive[0];
-				DrivesNum++;
-				j++;
-			}
-			if (szDrivesList[i+1] == '\0') break;
-		}
-	}
-	return DrivesNum;
+	SendMessage(m_hwndFTProgress, PBM_SETPOS, (WPARAM) nPosition, (LPARAM) 0);
+    SendMessage(m_hwndFTProgress, PBM_SETRANGE, (WPARAM) 0, MAKELPARAM(nMinRange, nMaxRange)); 
+	SendMessage(m_hwndFTProgress, PBM_SETSTEP, (WPARAM) nStep, 0); 
 }

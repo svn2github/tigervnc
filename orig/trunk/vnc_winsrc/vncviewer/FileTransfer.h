@@ -1,23 +1,37 @@
-// FileTransfer.h: interface for the FileTransfer class.
+//  Copyright (C) 2003 Dennis Syrovatsky. All Rights Reserved.
 //
-//////////////////////////////////////////////////////////////////////
+//  This file is part of the VNC system.
+//
+//  The VNC system is free software; you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation; either version 2 of the License, or
+//  (at your option) any later version.
+//
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with this program; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
+//  USA.
+//
+// TightVNC distribution homepage on the Web: http://www.tightvnc.com/
+//
+// If the source code for the VNC system is not available from the place 
+// whence you received this file, check http://www.uk.research.att.com/vnc or contact
+// the authors on vnc@uk.research.att.com for information on obtaining it.
 
 #if !defined(FILETRANSFER)
 #define FILETRANSFER
 
-#define rfbMAX_PATH 255
-
 #include "windows.h"
 #include "commctrl.h"
 #include "ClientConnection.h"
+#include "FileTransferItemInfo.h"
 
 class ClientConnection;
-
-typedef struct tagFTITEMINFO
-{
-    char Name[rfbMAX_PATH];
-    char Size[16];
-} FTITEMINFO;
 
 class FileTransfer  
 {
@@ -27,15 +41,12 @@ private:
 	static const char noactionText[];
 
 public:
-	static const char folderText[];
-
 	FileTransfer(ClientConnection * pCC, VNCviewerApp * pApp);
 	~FileTransfer();
 
 	void FTInsertColumn(HWND hwnd, char *iText, int iOrder, int xWidth);
-	int GetLogicalDriveStringByType(unsigned int DriveType, char *DrivesString);
 	void CreateFileTransferDialog();
-	void ShowListViewItems(HWND hwnd, FTITEMINFO *FTItemInfo, int NumItem);
+	void ShowListViewItems(HWND hwnd, FileTransferItemInfo *ftii);
 	void ConvertPath(char *path);
 	void ProcessListViewDBLCLK(HWND hwnd, char *Path, char *PathTmp, int iItem);
 	void SendFileListRequestMessage(char *filename);
@@ -53,8 +64,6 @@ public:
 	char m_ClientPathTmp[rfbMAX_PATH];
 	char m_ClientFilename[rfbMAX_PATH];
 	char m_ServerFilename[rfbMAX_PATH];
-	FTITEMINFO * m_FTClientItemInfo;
-	FTITEMINFO * m_FTServerItemInfo;
 	void OnGetDispClientInfo(NMLVDISPINFO *plvdi); 
 	void OnGetDispServerInfo(NMLVDISPINFO *plvdi); 
 	static LRESULT CALLBACK FileTransferDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -66,6 +75,7 @@ public:
 	VNCviewerApp * m_pApp; 
 	
 private:
+	void InitProgressBar(int nPosition, int nMinRange, int nMaxRange, int nStep);
 	HWND m_hwndFileTransfer;
 	HWND m_hwndFTClientList;
 	HWND m_hwndFTServerList;
@@ -82,6 +92,9 @@ private:
 	HANDLE m_hFiletoWrite;
 	HTREEITEM m_hTreeItem;
 	HINSTANCE m_FTInstance;
+
+	FileTransferItemInfo m_FTClientItemInfo;
+	FileTransferItemInfo m_FTServerItemInfo;
 };
 
 #endif // !defined(FILETRANSFER)

@@ -1245,6 +1245,8 @@ vncClientThread::run(void *arg)
 				m_socket->ReadExact(path_file, size);
 				path_file[size] = '\0';
 				ConvertPath(path_file);
+				vnclog.Print(LL_CLIENTS, VNCLOG("file download requested: %s\n"),
+							 path_file);
 				pfdd->type = rfbFileDownloadData;
 				hFile = FindFirstFile(path_file, &FindFileData);
 				if ((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) || 
@@ -1276,6 +1278,8 @@ vncClientThread::run(void *arg)
 				}
 				CloseHandle(hFiletoRead);
 				delete [] pBuff;
+				vnclog.Print(LL_CLIENTS, VNCLOG("file download complete: %s\n"),
+							 path_file);
 			}
 			break;
 
@@ -1285,6 +1289,8 @@ vncClientThread::run(void *arg)
 				m_socket->ReadExact(m_FullFilename, msg.fupr.fnamesize);
 				m_FullFilename[msg.fupr.fnamesize] = '\0';
 				ConvertPath(m_FullFilename);
+				vnclog.Print(LL_CLIENTS, VNCLOG("file upload requested: %s\n"),
+							 m_FullFilename);
 				m_hFiletoWrite = CreateFile(m_FullFilename, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
 			}				
 			break;
@@ -1302,6 +1308,8 @@ vncClientThread::run(void *arg)
 				WriteFile(m_hFiletoWrite, pBuff, msg.fud.size, &dwNumberOfBytesWritten, NULL);
 				if (msg.fud.num == msg.fud.amount - 1) {
 					CloseHandle(m_hFiletoWrite);
+					vnclog.Print(LL_CLIENTS, VNCLOG("file upload complete: %s\n"),
+								 m_FullFilename);
 				}
 				delete [] pBuff;
 			}

@@ -1311,15 +1311,9 @@ vncProperties::SaveUserPrefs(HKEY appkey)
 	SaveInt(appkey, "QueryAccept", m_server->QueryAccept());
 	SaveInt(appkey, "QueryAllowNoPass", m_server->QueryAllowNoPass());
 
-	// Lock settings
 	SaveInt(appkey, "LockSetting", m_server->LockSettings());
-
-	// Wallpaper removal
 	SaveInt(appkey, "RemoveWallpaper", m_server->RemoveWallpaperEnabled());
-
 	SaveInt(appkey, "BlankScreen", m_server->GetBlankScreen());
-
-	// File transfers control
 	SaveInt(appkey, "EnableFileTransfers", m_server->FileTransfersEnabled());
 
 	// Save the password

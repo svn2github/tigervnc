@@ -379,8 +379,7 @@ protected:
 	UINT				m_polling_cycle;
 	BOOL				m_polling_timer_changed;
 
-	pBlockInput			pbi;
-	HMODULE				hUser32;
+	pBlockInput			m_pbi;
 
 	// Name of this desktop
 	char				*m_name;

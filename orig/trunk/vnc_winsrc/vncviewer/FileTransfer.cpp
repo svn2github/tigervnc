@@ -1109,12 +1109,42 @@ FileTransfer::procFileDownloadDataMsg()
 bool 
 FileTransfer::procFileUploadCancelMsg()
 {
+	rfbFileUploadCancelMsg fuc;
+	m_pCC->ReadExact((char *)&fuc, sz_rfbFileUploadCancelMsg);
+
+	fuc.reasonLen = Swap16IfLE(fuc.reasonLen);
+
+	char *pReason = new char [fuc.reasonLen + 1];
+	m_pCC->ReadExact(pReason, fuc.reasonLen);
+	pReason[fuc.reasonLen] = '\0';
+
+	m_bUpload = false;
+	m_fileReader.close();
+	m_fileTransferInfoEx.deleteAt(0);
+	m_pFileTransferDlg->m_pStatusBox->setStatusText("Upload Failed.");
+	PostMessage(m_pCC->m_hwnd, (UINT) WM_FT_CHECKTRANSFERQUEUE, (WPARAM) 0, (LPARAM) 0);
+
 	return true;
 }
 
 bool 
 FileTransfer::procFileDownloadFailedMsg()
 {
+	rfbFileDownloadFailedMsg fdf;
+	m_pCC->ReadExact((char *)&fdf, sz_rfbFileDownloadFailedMsg);
+
+	fdf.reasonLen = Swap16IfLE(fdf.reasonLen);
+	
+	char *pReason = new char [fdf.reasonLen + 1];
+	m_pCC->ReadExact(pReason, fdf.reasonLen);
+	pReason[fdf.reasonLen] = '\0';
+
+	m_fileWriter.close();
+	m_fileTransferInfoEx.deleteAt(0);
+	m_bDownload = false;
+	m_pFileTransferDlg->m_pStatusBox->setStatusText("Download Failed.");
+	PostMessage(m_pCC->m_hwnd, (UINT) WM_FT_CHECKTRANSFERQUEUE, (WPARAM) 0, (LPARAM) 0);
+
 	return true;
 }
 

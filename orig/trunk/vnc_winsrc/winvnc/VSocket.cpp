@@ -607,8 +607,8 @@ VSocket::ReadExact(char *buff, const VCard bufflen)
 			FD_ZERO(&write_fds);
 			if (out_queue)
 				FD_SET((unsigned int)sock, &write_fds);
-			tm.tv_sec = 1;
-			tm.tv_usec = 0;
+			tm.tv_sec = 0;
+			tm.tv_usec = 50;
 			count = select(sock + 1, &read_fds, &write_fds, NULL, &tm);
 		} while (count == 0);
 		if (count < 0 || count > 2) {

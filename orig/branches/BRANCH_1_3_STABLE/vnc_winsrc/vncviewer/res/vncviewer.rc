@@ -13,25 +13,6 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Russian resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_RUS)
-#ifdef _WIN32
-LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
-#pragma code_page(1251)
-#endif //_WIN32
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Bitmap
-//
-
-IDB_BITMAP1             BITMAP  DISCARDABLE     "toolbar.bmp"
-#endif    // Russian resources
-/////////////////////////////////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////////////////////////////////
 // English (U.S.) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
@@ -45,6 +26,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // Bitmap
 //
 
+IDB_BITMAP1             BITMAP  DISCARDABLE     "toolbar.bmp"
 IDB_VNCBITMAP           BITMAP  DISCARDABLE     "tightvnc.bmp"
 IDB_VNC32               BITMAP  DISCARDABLE     "tightvnc48.bmp"
 
@@ -145,7 +127,7 @@ END
 IDD_FTBROWSE_DLG DIALOGEX 0, 0, 183, 196
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTROLPARENT
-CAPTION "Browse Files"
+CAPTION "Choose Directory"
 FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "Tree1",IDC_FTBROWSETREE,"SysTreeView32",TVS_HASBUTTONS | 
@@ -162,29 +144,33 @@ EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "TightVNC File Transfers"
 FONT 8, "MS Sans Serif"
 BEGIN
-    CTEXT           "Local Computer",IDC_LOCAL_COMP_LABEL,7,7,180,10
-    CTEXT           "TightVNC Server",IDC_TVNC_SERV_LABEL,229,7,180,10
-    EDITTEXT        IDC_CLIENTPATH,7,21,134,12,ES_AUTOHSCROLL | WS_GROUP | 
-                    NOT WS_TABSTOP
+    CTEXT           "Local Computer",IDC_LOCAL_COMP_LABEL,7,7,180,10,NOT 
+                    WS_GROUP
+    CTEXT           "TightVNC Server",IDC_TVNC_SERV_LABEL,229,7,180,10,NOT 
+                    WS_GROUP
+    EDITTEXT        IDC_CLIENTPATH,7,21,134,12,ES_AUTOHSCROLL | ES_READONLY | 
+                    WS_GROUP
     PUSHBUTTON      "...",IDC_CLIENTBROWSE_BUT,145,21,14,12,WS_GROUP
     PUSHBUTTON      "",IDC_CLIENTUP,159,21,14,12,BS_ICON
     PUSHBUTTON      "",IDC_CLIENTRELOAD,173,21,14,12,BS_ICON
-    EDITTEXT        IDC_SERVERPATH,229,21,134,12,ES_AUTOHSCROLL | WS_GROUP | 
-                    NOT WS_TABSTOP
+    EDITTEXT        IDC_SERVERPATH,229,21,134,12,ES_AUTOHSCROLL | 
+                    ES_READONLY | WS_GROUP
     PUSHBUTTON      "...",IDC_SERVERBROWSE_BUT,367,21,14,12,WS_GROUP
     PUSHBUTTON      "",IDC_SERVERUP,381,21,14,12,BS_ICON
     PUSHBUTTON      "",IDC_SERVERRELOAD,395,21,14,12,BS_ICON
     CONTROL         "List1",IDC_FTCLIENTLIST,"SysListView32",LVS_REPORT | 
-                    LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | WS_BORDER | 
-                    WS_GROUP | WS_TABSTOP,7,40,180,196
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | 
+                    WS_BORDER | WS_GROUP | WS_TABSTOP,7,40,180,196
     PUSHBUTTON      "<--->",IDC_FTCOPY,194,127,29,14,WS_DISABLED | WS_GROUP
     CONTROL         "List2",IDC_FTSERVERLIST,"SysListView32",LVS_REPORT | 
-                    LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | WS_BORDER | 
-                    WS_GROUP | WS_TABSTOP,229,40,180,196
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | 
+                    WS_BORDER | WS_GROUP | WS_TABSTOP,229,40,180,196
     CONTROL         "Progress1",IDC_FTPROGRESS,"msctls_progress32",WS_BORDER,
                     7,244,346,10
-    PUSHBUTTON      "Cancel",IDC_FTCANCEL,359,242,50,14,WS_DISABLED
-    LTEXT           "",IDC_FTSTATUS,7,261,346,14,SS_CENTERIMAGE
+    PUSHBUTTON      "Cancel",IDC_FTCANCEL,359,242,50,14,WS_DISABLED | 
+                    WS_GROUP
+    LTEXT           "",IDC_FTSTATUS,7,261,346,14,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
     PUSHBUTTON      "&Close",IDC_EXIT,359,261,50,14
 END
 
@@ -613,6 +599,15 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
+// Cursor
+//
+
+IDC_DOTCURSOR           CURSOR  DISCARDABLE     "cursor1.cur"
+IDC_NOCURSOR            CURSOR  DISCARDABLE     "nocursor.cur"
+IDC_SMALLDOT            CURSOR  DISCARDABLE     "smalldot.cur"
+
+/////////////////////////////////////////////////////////////////////////////
+//
 // String Table
 //
 
@@ -752,27 +747,6 @@ BEGIN
 END
 
 #endif    // English (U.S.) resources
-/////////////////////////////////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////////////////////////////////
-// English (U.K.) resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENG)
-#ifdef _WIN32
-LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
-#pragma code_page(1252)
-#endif //_WIN32
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Cursor
-//
-
-IDC_DOTCURSOR           CURSOR  DISCARDABLE     "cursor1.cur"
-IDC_NOCURSOR            CURSOR  DISCARDABLE     "nocursor.cur"
-IDC_SMALLDOT            CURSOR  DISCARDABLE     "smalldot.cur"
-#endif    // English (U.K.) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

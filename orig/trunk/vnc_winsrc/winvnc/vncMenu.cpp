@@ -572,9 +572,13 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 			char name [10];// = inet_ntoa(address);
 			pHost=gethostbyaddr((char *)&lParam,4,AF_INET);
 
-			if (name == 0)
-				return 0;
-			strcpy(key,pHost->h_name);
+			if (pHost == NULL) {
+				struct in_addr address;
+				address.S_un.S_addr = lParam;
+				strcpy(key, inet_ntoa(address));
+			} else {
+				strcpy(key,pHost->h_name);
+			}
 			strcat(key,":");
 
 			// Get the port number

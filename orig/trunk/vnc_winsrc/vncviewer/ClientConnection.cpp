@@ -1489,6 +1489,8 @@ void ClientConnection::SizeWindow(bool centered)
 				SWP_SHOWWINDOW);
 	
 	SetForegroundWindow(m_hwnd1);
+
+	PositionChildWindow();
 }
 
 void ClientConnection::PositionChildWindow()
@@ -1509,15 +1511,16 @@ void ClientConnection::PositionChildWindow()
 	if (GetMenuState(GetSystemMenu(m_hwnd1, FALSE),
 				ID_TOOLBAR, MF_BYCOMMAND) == MF_CHECKED) {
 		RECT rtb;
-		GetWindowRect(m_hToolbar, &rtb);		
-		if ((parentheight - rtb.bottom) <= m_fullwinheight) {
-			y = rtb.bottom - rtb.top - 3;
+		GetWindowRect(m_hToolbar, &rtb);
+		int rtbheight = rtb.bottom - rtb.top;
+		if ((parentheight - rtbheight) <= m_fullwinheight) {
+			y = rtbheight - 4;
 		} else {
-			y = (parentheight + rtb.bottom - m_fullwinheight) / 2 - rtb.top;
+			y = (parentheight + rtbheight - m_fullwinheight) / 2;
 		}
 		parentheight = parentheight - rtb.bottom + rtb.top + 4;
 		SetWindowPos(m_hToolbar, HWND_TOP, rparent.left, rparent.top,
-					parentwidth, rtb.bottom - rtb.top, SWP_SHOWWINDOW);
+					parentwidth, rtbheight, SWP_SHOWWINDOW);
 	} else {
 		if (m_fullwinheight >= parentheight) {
 			y = 0;
@@ -1528,7 +1531,9 @@ void ClientConnection::PositionChildWindow()
 	}
 	
 	SetWindowPos(m_hwnd, HWND_TOP, x, y,
-					parentwidth, parentheight, SWP_SHOWWINDOW);
+					min(parentwidth, m_fullwinwidth),
+					min(parentheight, m_fullwinheight),
+					SWP_SHOWWINDOW);
 }
 
 void ClientConnection::CreateLocalFramebuffer() {
@@ -2004,38 +2009,6 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 		if ( _this->m_opts.m_ViewOnly) return 0;
 		_this->SwitchOffKey();
 		return 0;
-	case WM_SIZING:
-		{
-			// Don't allow sizing larger than framebuffer
-			RECT *lprc = (LPRECT) lParam;
-			switch (wParam) {
-			case WMSZ_RIGHT: 
-			case WMSZ_TOPRIGHT:
-			case WMSZ_BOTTOMRIGHT:
-				lprc->right = min(lprc->right, lprc->left + _this->m_winwidth1+1);
-				break;
-			case WMSZ_LEFT:
-			case WMSZ_TOPLEFT:
-			case WMSZ_BOTTOMLEFT:
-				lprc->left = max(lprc->left, lprc->right - _this->m_winwidth1);
-				break;
-			}
-			
-			switch (wParam) {
-			case WMSZ_TOP:
-			case WMSZ_TOPLEFT:
-			case WMSZ_TOPRIGHT:
-				lprc->top = max(lprc->top, lprc->bottom - _this->m_winheight1);
-				break;
-			case WMSZ_BOTTOM:
-			case WMSZ_BOTTOMLEFT:
-			case WMSZ_BOTTOMRIGHT:
-				lprc->bottom = min(lprc->bottom, lprc->top + _this->m_winheight1);
-				break;
-			}
-
-			return 0;
-		}	
 	case WM_SIZE:
 		_this->PositionChildWindow();
 		return 0;

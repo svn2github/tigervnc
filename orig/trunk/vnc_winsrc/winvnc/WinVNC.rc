@@ -947,9 +947,9 @@ BEGIN
     IDC_ACTION_REFUSE       "Refuse"
     IDC_ACTION_ACCEPT       "Accept"
     IDC_REMOVE_WALLPAPER    "Do not show the desktop wallpaper while at least one viewer is connected to this server. This both saves bandwidth and decreases CPU utilization on the server, resulting in better responsiveness of the remote desktop."
-    IDC_LOCKSETTING_NOTHING "Do nothing"
-    IDC_LOCKSETTING_LOCK    "Lock workstation"
-    IDC_LOCKSETTING_LOGOFF  "Logoff workstation"
+    IDC_LOCKSETTING_NOTHING "Do nothing when a viewer disconnects. This is the default option."
+    IDC_LOCKSETTING_LOCK    "Lock workstation on disconnect. This option is supported under Windows 2000/XP only."
+    IDC_LOCKSETTING_LOGOFF  "Logoff workstation on disconnect."
     IDC_DONT_SET_HOOKS      "Full-screen polling can detect updates without using the hooks DLL, which is used by default to detect screen changes. Use this option for troubleshouting when the hooks DLL causes side effects in other applications."
     IDC_ENABLE_FILE_TRANSFERS 
                             "When this option is set, remote viewers will be allowed to transfer any files between their local computers and this server."

@@ -790,12 +790,8 @@ vncClientThread::run(void *arg)
 
 					// Work out the flags for this event
 					DWORD flags = MOUSEEVENTF_ABSOLUTE;
-					if (msg.pe.x != m_client->m_ptrevent.x ||
-						msg.pe.y != m_client->m_ptrevent.y)
-					{
- 						flags |= MOUSEEVENTF_MOVE;
-						m_server->SetMouseCounter(1);
-					}
+					flags |= MOUSEEVENTF_MOVE;
+					m_server->SetMouseCounter(1);
 
 					if ( (msg.pe.buttonMask & rfbButton1Mask) != 
 						(m_client->m_ptrevent.buttonMask & rfbButton1Mask) )
@@ -931,7 +927,7 @@ vncClient::vncClient()
 	m_mousemoved = FALSE;
 	m_ptrevent.buttonMask = 0;
 	m_ptrevent.x = 0;
-	m_ptrevent.y=0;
+	m_ptrevent.y = 0;
 
 	m_cursor_update_pending = FALSE;
 	m_cursor_update_sent = FALSE;

@@ -85,10 +85,25 @@ class VncCanvas extends Canvas
     rawPixelsImage = createImage(pixelsSource);
 
     if (viewer.inSeparateFrame) {
-      viewer.vncFrame.pack();
+      if (viewer.desktopScrollPane != null)
+	resizeDesktopFrame();
     } else {
       setSize(rfb.framebufferWidth, rfb.framebufferHeight);
     }
+  }
+
+  void resizeDesktopFrame() {
+    Insets insets = viewer.desktopScrollPane.getInsets();
+
+    // FIXME: Find a better way to determine correct size of a
+    // ScrollPane.  -- const
+    viewer.desktopScrollPane.setSize(rfb.framebufferWidth +
+				     2 * Math.min(insets.left, insets.right),
+				     rfb.framebufferHeight +
+				     2 * Math.min(insets.top, insets.bottom));
+
+    viewer.vncFrame.pack();
+    viewer.desktopScrollPane.doLayout();
   }
 
   public Dimension getPreferredSize() {

@@ -51,6 +51,7 @@ public class VncViewer extends java.applet.Applet
 
   Frame vncFrame;
   Container vncContainer;
+  ScrollPane desktopScrollPane;
 
   String[] mainArgs;
   String host;
@@ -126,13 +127,20 @@ public class VncViewer extends java.applet.Applet
       vc = new VncCanvas(this);
       gbc.weightx = 1.0;
       gbc.weighty = 1.0;
-      gridbag.setConstraints(vc, gbc);
-      vncContainer.add(vc);
+      gbc.anchor = GridBagConstraints.NORTHWEST;
+      gbc.fill = GridBagConstraints.BOTH;
 
       if (inSeparateFrame) {
+	desktopScrollPane = new ScrollPane();
+	gridbag.setConstraints(desktopScrollPane, gbc);
+	desktopScrollPane.add(vc);
+	vncFrame.add(desktopScrollPane);
 	vncFrame.setTitle(rfb.desktopName);
 	vncFrame.pack();
+	vc.resizeDesktopFrame();
       } else {
+	gridbag.setConstraints(vc, gbc);
+	add(vc);
 	validate();
       }
 
@@ -177,6 +185,7 @@ public class VncViewer extends java.applet.Applet
       // being executed before the password field of the authenticator
       // is fully drawn and activated, therefore requestFocus() does
       // not work. Currently, I don't know how to solve this problem.
+      //   -- const
       if (password == null)
 	authenticator.setPasswordFocus();
     }

@@ -18,6 +18,12 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 //  USA.
 //
+// For the latest source code, please check:
+//
+// http://www.DevelopVNC.org/
+//
+// or send email to: feedback@developvnc.org.
+//
 // If the source code for the VNC system is not available from the place 
 // whence you received this file, check http://www.tridiavnc.com/vnc or contact
 // the authors on vnc@uk.research.att.com for information on obtaining it.
@@ -44,7 +50,7 @@ class vncEncodeZlib;
 
 // Set maximum zlib rectangle size in pixels.  Always allow at least
 // two scan lines.
-#define ZLIB_MAX_RECT_SIZE (128*256)
+#define ZLIB_MAX_RECT_SIZE (8*1024)
 #define ZLIB_MAX_SIZE(min) ((( min * 2 ) > ZLIB_MAX_RECT_SIZE ) ? ( min * 2 ) : ZLIB_MAX_RECT_SIZE )
 
 
@@ -62,6 +68,7 @@ public:
 	~vncEncodeZlib();
 
 	virtual void Init();
+	virtual void LogStats();
 
 	virtual UINT RequiredBuffSize(UINT width, UINT height);
 	virtual UINT NumCodedRects(RECT &rect);

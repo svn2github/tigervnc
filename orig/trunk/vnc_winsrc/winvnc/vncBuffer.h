@@ -18,6 +18,12 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 //  USA.
 //
+// For the latest source code, please check:
+//
+// http://www.DevelopVNC.org/
+//
+// or send email to: feedback@developvnc.org.
+//
 // If the source code for the VNC system is not available from the place 
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
 // the authors on vnc@uk.research.att.com for information on obtaining it.
@@ -103,6 +109,8 @@ protected:
 	vncEncoder     *m_hold_zlib_encoder;
 	bool           tight_encoder_in_use;
 	vncEncoder     *m_hold_tight_encoder;
+	bool           zlibhex_encoder_in_use;
+	vncEncoder     *m_hold_zlibhex_encoder;
 };
 
 #endif // _WINVNC_VNCBUFFER

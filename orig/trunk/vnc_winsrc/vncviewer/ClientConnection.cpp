@@ -142,6 +142,10 @@ void ClientConnection::Init(VNCviewerApp *pApp)
 	m_emulatingMiddleButton = false;
 
 	m_decompStreamInited = false;
+
+	m_decompStreamRaw.total_in = ZLIBHEX_DECOMP_UNINITED;
+	m_decompStreamEncoded.total_in = ZLIBHEX_DECOMP_UNINITED;
+
 	for (int i = 0; i < 4; i++)
 		m_tightZlibStreamActive[i] = false;
 
@@ -1867,6 +1871,9 @@ void ClientConnection::ReadScreenUpdate() {
 			break;
 		case rfbEncodingTight:
 			ReadTightRect(&surh);
+			break;
+		case rfbEncodingZlibHex:
+			ReadZlibHexRect(&surh);
 			break;
 		default:
 			log.Print(0, _T("Unknown encoding %d - not supported!\n"), surh.encoding);

@@ -1023,7 +1023,7 @@ SOURCE=.\vncEncodeZlib.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\vncHTTPConnect.cpp
+SOURCE=.\vncEncodeZlibHex.cpp
 
 !IF  "$(CFG)" == "WinVNC - Win32 Release"
 
@@ -1036,32 +1036,6 @@ SOURCE=.\vncHTTPConnect.cpp
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Profile"
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
-
-DEP_CPP_VNCHT=\
-	".\omnithread\omnithread.h"\
-	".\omnithread\omnithread\nt.h"\
-	".\RectList.h"\
-	".\rfb.h"\
-	".\rfbproto.h"\
-	".\stdhdrs.h"\
-	".\translate.h"\
-	".\vncauth.h"\
-	".\vncBuffer.h"\
-	".\vncClient.h"\
-	".\vncCorbaConnect.h"\
-	".\vncDesktop.h"\
-	".\vncEncoder.h"\
-	".\vncHTTPConnect.h"\
-	".\vncKeymap.h"\
-	".\vncRegion.h"\
-	".\vncServer.h"\
-	".\vncSockConnect.h"\
-	".\VSocket.h"\
-	".\VTypes.h"\
-	
-NODEP_CPP_VNCHT=\
-	".\vnccontrol.h"\
-	
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
@@ -1671,7 +1645,7 @@ SOURCE=.\vncEncodeZlib.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\vncHTTPConnect.h
+SOURCE=.\vncEncodeZlibHex.h
 # End Source File
 # Begin Source File
 

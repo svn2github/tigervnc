@@ -32,7 +32,7 @@
 
 #pragma once
 
-#define LASTENCODING rfbEncodingTight
+#define LASTENCODING rfbEncodingZlibHex
 
 #define NOCURSOR 0
 #define DOTCURSOR 1

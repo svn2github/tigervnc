@@ -16,6 +16,13 @@
  *  along with this software; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  *  USA.
+ *
+ * For the latest source code, please check:
+ *
+ * http://www.DevelopVNC.org/
+ *
+ * or send email to: feedback@developvnc.org.
+ *
  */
 
 /*
@@ -292,6 +299,7 @@ typedef struct {
 #define rfbEncodingHextile 5
 #define rfbEncodingZlib 6
 #define rfbEncodingTight 7
+#define rfbEncodingZlibHex 8
 
 
 
@@ -464,6 +472,20 @@ typedef struct {
 #define rfbTightFilterCopy             0x00
 #define rfbTightFilterPalette          0x01
 #define rfbTightFilterGradient         0x02
+
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * ZLIBHEX - zlib compressed Hextile Encoding.  Essentially, this is the
+ * hextile encoding with zlib compression on the tiles that can not be
+ * efficiently encoded with one of the other hextile subencodings.  The
+ * new zlib subencoding uses two bytes to specify the length of the
+ * compressed tile and then the compressed data follows.  As with the
+ * raw sub-encoding, the zlib subencoding invalidates the other
+ * values, if they are also set.
+ */
+
+#define rfbHextileZlibRaw		(1 << 5)
+#define rfbHextileZlibHex		(1 << 6)
 
 
 /*-----------------------------------------------------------------------------

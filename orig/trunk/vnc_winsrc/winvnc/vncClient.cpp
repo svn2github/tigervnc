@@ -958,7 +958,8 @@ vncClientThread::run(void *arg)
 					if (Swap32IfLE(encoding) == rfbEncodingCopyRect)
 					{
 						// Client wants us to use CopyRect
-						m_client->m_copyrect_use = TRUE;
+						// FIXME: CopyRect handling is broken and thus temporarily disabled.
+						// m_client->m_copyrect_use = TRUE;
 						continue;
 					}
 

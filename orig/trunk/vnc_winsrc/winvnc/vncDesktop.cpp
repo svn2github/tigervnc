@@ -1,5 +1,5 @@
-//  Copyright (C) 2002 Vladimir Vologzhanin. All Rights Reserved.
-//  Copyright (C) 2001 Constantin Kaplinsky. All Rights Reserved.
+//  Copyright (C) 2001-2004 HorizonLive.com, Inc. All Rights Reserved.
+//  Copyright (C) 2001-2004 TightVNC Team. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
 //  This file is part of the VNC system.
@@ -2588,6 +2588,11 @@ vncDesktop::InitVideoDriver()
 	// Mirror video drivers supported only under Win2K and WinXP
 	if (vncService::VersionMajor() != 5)
 		return FALSE;
+
+	if (m_server->DontUseDriver()) {
+		vnclog.Print(LL_INTINFO, VNCLOG("not activating video driver interface\n"));
+		return FALSE;
+	}
 
 	if (m_videodriver != NULL && m_videodriver->TestMapped()) {
 		vnclog.Print(LL_INTINFO, VNCLOG("video driver interface already active\n"));

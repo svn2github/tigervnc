@@ -400,6 +400,10 @@ SOURCE=.\VSocket.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\WallpaperUtils.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\WinVNC.cpp
 # End Source File
 # Begin Source File
@@ -617,6 +621,10 @@ SOURCE=.\VSocket.h
 # Begin Source File
 
 SOURCE=.\VTypes.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\WallpaperUtils.h
 # End Source File
 # Begin Source File
 

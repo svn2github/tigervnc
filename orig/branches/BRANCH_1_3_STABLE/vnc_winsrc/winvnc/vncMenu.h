@@ -28,6 +28,10 @@
 
 // This class handles creation of a system-tray icon & menu
 
+#ifdef HORIZONLIVE
+#include "horizon/horizonMenu.h"
+#else
+
 class vncMenu;
 
 #if (!defined(_WINVNC_VNCMENU))
@@ -38,6 +42,7 @@ class vncMenu;
 #include "vncServer.h"
 #include "vncProperties.h"
 #include "vncAbout.h"
+#include "WallpaperUtils.h"
 
 // Constants
 extern const UINT MENU_SERVER_SHAREWINDOW;
@@ -96,4 +101,5 @@ protected:
 };
 
 
-#endif
+#endif // _WINVNC_VNCMENU
+#endif // HORIZONLIVE

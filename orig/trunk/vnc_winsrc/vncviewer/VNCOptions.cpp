@@ -45,13 +45,7 @@ VNCOptions::VNCOptions()
 	m_ViewOnly = false;
 	m_FullScreen = false;
 	m_Use8Bit = false;
-#ifndef UNDER_CE
-	m_PreferredEncoding = rfbEncodingHextile;
-#else
-	// With WinCE2.0, CoRRE seems more efficient since it
-	// reads the whole update in one socket call.
-	m_PreferredEncoding = rfbEncodingCoRRE;
-#endif
+	m_PreferredEncoding = rfbEncodingTight;
 	m_SwapMouse = false;
 	m_Emul3Buttons = true;
 	m_Emul3Timeout = 100; // milliseconds

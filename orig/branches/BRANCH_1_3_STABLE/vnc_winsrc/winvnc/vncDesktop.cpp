@@ -742,272 +742,31 @@ void vncDesktop::ChangeResNow()
 	}
 }
 
-// *** This method is a front-end for the SystemParameterInfo() call.
-// *** First the HKLM\\Software\\ORL\\WinVNC\\<regName> string is checkted
-// *** for presence, string type and Yes/yes/Y/y, if so, SystemParameterInfo
-// *** is called.
-void
-vncDesktop::DisableIfRegSystemParameter(char *regName,
-										int spiCommand,
-										int spiParamInt,
-										void* spiParamPtr,
-										int spiUpdate)
-{
-	// *** Checks to see if reg key is set, then disables the
-	// *** system parameter by invoking SystemParameterInfo().
-	// *** This is placed here rather than vncHooks.cpp as it causes
-	// *** VNC to crash if put there. - Jeremy Peaks
-
-	HKEY checkdetails;
-	RegOpenKeyEx(HKEY_LOCAL_MACHINE, 
-				WINVNC_REGISTRY_KEY,
-				0,
-				KEY_READ,
-				&checkdetails);
-
-	int slen=MAX_REG_ENTRY_LEN;
-	int valType;
-	char inouttext[MAX_REG_ENTRY_LEN];
-
-	memset(inouttext, 0, MAX_REG_ENTRY_LEN);
-
-	// *** Get the registry value - Jeremy Peaks
-	RegQueryValueEx(checkdetails,
-		regName,
-		NULL,
-		(LPDWORD) &valType,
-		(LPBYTE) &inouttext,
-		(LPDWORD) &slen);
-
-	// *** If regName = Yes/yes/Y/y then disable setting
-	// *** - Jeremy Peaks & W. Brian Blevins
-	if ((valType == REG_SZ) &&
-		(inouttext[0] == 'Y' || inouttext[0] == 'y')) {
-
-		vnclog.Print(LL_INTINFO, VNCLOG("SCR-WBB: attempting to %s.\n"), regName);
-
-		SystemParametersInfo(spiCommand, spiParamInt, spiParamPtr, spiUpdate);
-		// SystemParametersInfo(SPI_SETDESKPATTERN, 0, 0, 0);
-	}
-
-	if (checkdetails != NULL) {
-		RegCloseKey(checkdetails);
-	}
-	
-}
-
-// *** Prepare the display settings for the new connection.
-// *** The precise changes depend on a number of registry settings.
 void
 vncDesktop::SetupDisplayForConnection()
 {
-
 	KillScreenSaver();
 
 	ChangeResNow(); // *** - Jeremy Peaks
-	
-	OptimizeDisplayForConnection();
-	
-}
-
-// *** If configured, perform a set of display optimizations to
-// *** improve performance over the remote connection.
-BOOL
-vncDesktop::OptimizeDisplayForConnection()
-{
-
-	BOOL result;
-	HKEY checkdetails = NULL;
-	result = FALSE;
-
-#ifndef HORIZONLIVE
-	RegOpenKeyEx(HKEY_LOCAL_MACHINE, 
-				WINVNC_REGISTRY_KEY,
-				0,
-				KEY_READ,
-				&checkdetails);
-
-	int slen=MAX_REG_ENTRY_LEN;
-	int valType;
-	char inouttext[MAX_REG_ENTRY_LEN];
-
-	memset(inouttext, 0, MAX_REG_ENTRY_LEN);
-
-	// *** Get the DisablePattern value - Jeremy Peaks
-	RegQueryValueEx(checkdetails,
-		"OptimizeDesktop",
-		NULL,
-		(LPDWORD) &valType,
-		(LPBYTE) &inouttext,
-		(LPDWORD) &slen);
-
-	// *** If Optimize = Yes/yes/Y/y then turn on all optimizations
-	// *** - W. Brian Blevins
-	if ((valType == REG_SZ) &&
-		(inouttext[0] == 'Y' || inouttext[0] == 'y')) {
-
-		vnclog.Print(LL_INTINFO, VNCLOG("SCR-WBB: desktop optimization enabled.\n"));
-		result = TRUE;
-
-		vnclog.Print(LL_INTINFO, VNCLOG("SCR-WBB: attempting to disable pattern.\n"));
-		SystemParametersInfo(SPI_SETDESKPATTERN, 0, 0, SPIF_SENDCHANGE);
-
-		vnclog.Print(LL_INTINFO, VNCLOG("SCR-WBB: attempting to disable wallpaper.\n"));
-		SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, "", SPIF_SENDCHANGE);
-
-		vnclog.Print(LL_INTINFO, VNCLOG("SCR-WBB: attempting to disable font smoothing.\n"));
-		SystemParametersInfo(SPI_SETFONTSMOOTHING, FALSE, 0, SPIF_SENDCHANGE);
-
-		vnclog.Print(LL_INTINFO, VNCLOG("SCR-WBB: attempting to disable full window drags.\n"));
-		SystemParametersInfo(SPI_SETDRAGFULLWINDOWS, FALSE, 0, SPIF_SENDCHANGE);
-		result = TRUE;
-	}
-#else
-	vnclog.Print(LL_INTINFO, VNCLOG("SCR-WBB: attempting to disable wallpaper.\n"));
-	SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, "", SPIF_SENDCHANGE);
-	result = TRUE;
-#endif
-
-	if (checkdetails != NULL) {
-		RegCloseKey(checkdetails);
-	}
-
-	return result;
 }
 
 void
 vncDesktop::ResetDisplayToNormal()
 {
-
-	int slen=MAX_REG_ENTRY_LEN;
-	int valType;
-	char inouttext[MAX_REG_ENTRY_LEN];
-
-	if ( lpDevMode != NULL ) {
+	if (lpDevMode != NULL) {
 
 		// *** In case the resolution was changed, revert to original settings now
 		lpDevMode->dmPelsWidth = origPelsWidth;
 		lpDevMode->dmPelsHeight = origPelsHeight;
 
-		long resultOfResChange = ChangeDisplaySettings( lpDevMode, CDS_TEST);
+		long resultOfResChange = ChangeDisplaySettings(lpDevMode, CDS_TEST);
 		if (resultOfResChange == DISP_CHANGE_SUCCESSFUL)
-			ChangeDisplaySettings( lpDevMode, CDS_UPDATEREGISTRY);
+			ChangeDisplaySettings(lpDevMode, CDS_UPDATEREGISTRY);
 
 		delete lpDevMode;
 		lpDevMode = NULL;
 	}
-
-	// *** The following fixes a bug that existed in that WinNT users
-	// *** wallpapers reverted back to default system settings, rather than
-	// *** their own wallpaper.  The value is now taken from HKEY_CURRENT_USER
-
-	// *** Open the registry key for current users settings
-	HKEY checkdetails = NULL;
-	HKEY oldvalue = NULL;
-
-#ifndef HORIZONLIVE
-	
-	RegOpenKeyEx(HKEY_LOCAL_MACHINE, 
-				WINVNC_REGISTRY_KEY,
-				0,
-				KEY_READ,
-				&checkdetails);
-
-	memset(inouttext, 0, MAX_REG_ENTRY_LEN);
-
-	// *** Get the DisablePattern value - Jeremy Peaks
-	RegQueryValueEx(checkdetails,
-		"OptimizeDesktop",
-		NULL,
-		(LPDWORD) &valType,
-		(LPBYTE) &inouttext,
-		(LPDWORD) &slen);
-
-	if (checkdetails != NULL) 
-		RegCloseKey(checkdetails);
-
-
-	// *** If Optimize = Yes/yes/Y/y then turn on all optimizations
-	// *** - W. Brian Blevins
-	if ((valType == REG_SZ) &&
-		(inouttext[0] == 'Y' || inouttext[0] == 'y')) { 
-#endif
-	
-		RegOpenKeyEx(HKEY_CURRENT_USER, 
-					"Control Panel\\Desktop",
-					0,
-					KEY_READ,
-					&oldvalue);
-	
-		memset(inouttext, 0, MAX_REG_ENTRY_LEN);
-		slen=MAX_REG_ENTRY_LEN;	
-		// *** Get the Wallpaper value - Jeremy Peaks
-		RegQueryValueEx(oldvalue,
-			"Wallpaper",
-			NULL,
-			(LPDWORD) &valType,
-			(LPBYTE) &inouttext,
-			(LPDWORD) &slen);
-
-		// *** Disconnected now, so just in case the wallpaper was disabled
-		// *** earlier, revert to saved wallpaper settings. - Jeremy Peaks
-		SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, inouttext, SPIF_SENDCHANGE);
-		memset(inouttext, 0, MAX_REG_ENTRY_LEN);
-		slen=MAX_REG_ENTRY_LEN;	
-	
-#ifndef HORIZONLIVE
-
-		// *** Get the FontSmoothing value - Jeremy Peaks
-		RegQueryValueEx(oldvalue,
-			"FontSmoothing",
-			NULL,
-			(LPDWORD) &valType,
-			(LPBYTE) &inouttext,
-			(LPDWORD) &slen);
-
-		if ((valType == REG_SZ) && (inouttext[0] == '1')) 
-			SystemParametersInfo(SPI_SETFONTSMOOTHING, TRUE, 0, SPIF_SENDCHANGE);
-		
-	
-		// *** Get the Pattern value - Jeremy Peaks
-		slen=MAX_REG_ENTRY_LEN;	
-		memset(inouttext, 0, MAX_REG_ENTRY_LEN);
-
-		RegQueryValueEx(oldvalue,
-			"Pattern",
-			NULL,
-			(LPDWORD) &valType,
-			(LPBYTE) &inouttext,
-			(LPDWORD) &slen);
-
-		// *** Just in case the pattern was disabled, re-enable it now
-		// *** - Jeremy Peaks
-		SystemParametersInfo(SPI_SETDESKPATTERN, 0, inouttext, SPIF_SENDCHANGE);
-		memset(inouttext, 0, MAX_REG_ENTRY_LEN);
-		slen=MAX_REG_ENTRY_LEN;	
-	
-
-		// *** Get the DragFullWindows value - W. Brian Blevins
-		RegQueryValueEx(oldvalue,
-			"DragFullWindows",
-			NULL,
-			(LPDWORD) &valType,
-			(LPBYTE) &inouttext,
-			(LPDWORD) &slen);
-
-		// *** Just in case full window dragging was disabled, re-enable it now
-		// *** - W. Brian Blevins
-		if ((valType == REG_SZ) && (inouttext[0] == '1')) 
-			SystemParametersInfo(SPI_SETDRAGFULLWINDOWS, TRUE, 0, SPIF_SENDCHANGE);
-	}
-#endif
-		
-	if (oldvalue != NULL) {
-		RegCloseKey(oldvalue);
-		RegCloseKey(HKEY_CURRENT_USER);
-	}
 }
-
 
 BOOL
 vncDesktop::InitBitmap()

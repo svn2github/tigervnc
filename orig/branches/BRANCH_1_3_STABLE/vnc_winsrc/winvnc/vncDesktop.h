@@ -121,10 +121,7 @@ protected:
 	void KillScreenSaver();
 
 	void ChangeResNow();
-	void DisablePattern();
-	void DisableIfRegSystemParameter(char *regName, int spiCommand, int spiParamInt, void* spiParamPtr, int spiUpdate);
 	void SetupDisplayForConnection();
-	BOOL OptimizeDisplayForConnection();
 	void ResetDisplayToNormal();
 
 	BOOL InitBitmap();

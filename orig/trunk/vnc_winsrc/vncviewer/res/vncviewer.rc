@@ -179,7 +179,7 @@ FONT 8, "MS Sans Serif"
 BEGIN
     COMBOBOX        IDC_HOSTNAME_EDIT,51,7,125,66,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "...",IDC_LOAD,180,7,16,12
+    PUSHBUTTON      "...",IDC_LOAD,180,7,16,13
     CONTROL         "     Low-&bandwidth connection",IDC_MODEM_RADIO,"Button",
                     BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,58,36,132,10
     CONTROL         "     &Default connection options",IDC_CUSTOM_RADIO,
@@ -277,7 +277,7 @@ IDD_PARENT DIALOGEX 0, 0, 319, 221
 STYLE DS_MODALFRAME | DS_CONTEXTHELP | WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP | WS_EX_CONTROLPARENT
 CAPTION "Options"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,256,200,56,14
     PUSHBUTTON      "OK",IDOK,183,200,56,14
@@ -624,7 +624,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDC_TAB                 "Property Sheet"
-    IDC_LOAD                "Load connection info from a file."
+    IDC_LOAD                "Load connection info from a file, assuming it was saved earlier by choosing ""Save connection info as..."" in the viewer's system menu."
     IDC_CONN_PROF           "Connection profile"
 END
 

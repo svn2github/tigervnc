@@ -98,8 +98,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 			continue;
 		argfound = TRUE;
 
+		// Determine the length of current argument in the command line
+		size_t arglen = strcspn(&szCmdLine[i], " \t\r\n\v\f");
+
 		// Now check for command-line arguments
-		if (strncmp(&szCmdLine[i], winvncRunServiceHelper, strlen(winvncRunServiceHelper)) == 0)
+		if (strncmp(&szCmdLine[i], winvncRunServiceHelper, arglen) == 0 &&
+			arglen == strlen(winvncRunServiceHelper))
 		{
 			// NB : This flag MUST be parsed BEFORE "-service", otherwise it will match
 			// the wrong option!  (This code should really be replaced with a simple
@@ -109,86 +113,98 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 			vncService::PostUserHelperMessage();
 			return 0;
 		}
-		if (strncmp(&szCmdLine[i], winvncRunService, strlen(winvncRunService)) == 0)
+		if (strncmp(&szCmdLine[i], winvncRunService, arglen) == 0 &&
+			arglen == strlen(winvncRunService))
 		{
 			// Run WinVNC as a service
 			return vncService::WinVNCServiceMain();
 		}
-		if (strncmp(&szCmdLine[i], winvncRunAsUserApp, strlen(winvncRunAsUserApp)) == 0)
+		if (strncmp(&szCmdLine[i], winvncRunAsUserApp, arglen) == 0 &&
+			arglen == strlen(winvncRunAsUserApp))
 		{
 			// WinVNC is being run as a user-level program
 			return WinVNCAppMain();
 		}
-		if (strncmp(&szCmdLine[i], winvncInstallService, strlen(winvncInstallService)) == 0)
+		if (strncmp(&szCmdLine[i], winvncInstallService, arglen) == 0 &&
+			arglen == strlen(winvncInstallService))
 		{
 			// Install WinVNC as a service
 			vncService::InstallService();
-			i+=strlen(winvncInstallService);
+			i += arglen;
 			continue;
 		}
-		if (strncmp(&szCmdLine[i], winvncReinstallService, strlen(winvncReinstallService)) == 0)
+		if (strncmp(&szCmdLine[i], winvncReinstallService, arglen) == 0 &&
+			arglen == strlen(winvncReinstallService))
 		{
 			// Silently remove WinVNC, then re-install it
 			vncService::ReinstallService();
-			i+=strlen(winvncReinstallService);
+			i += arglen;
 			continue;
 		}
-		if (strncmp(&szCmdLine[i], winvncRemoveService, strlen(winvncRemoveService)) == 0)
+		if (strncmp(&szCmdLine[i], winvncRemoveService, arglen) == 0 &&
+			arglen == strlen(winvncRemoveService))
 		{
 			// Remove the WinVNC service
 			vncService::RemoveService();
-			i+=strlen(winvncRemoveService);
+			i += arglen;
 			continue;
 		}
-		if (strncmp(&szCmdLine[i], winvncReload, strlen(winvncReload)) == 0)
+		if (strncmp(&szCmdLine[i], winvncReload, arglen) == 0 &&
+			arglen == strlen(winvncReload))
 		{
 			// Reload Properties from the registry
 			vncService::PostReloadMessage();
-			i+=strlen(winvncReload);
+			i += arglen;
 			continue;
 		}
-		if (strncmp(&szCmdLine[i], winvncShowProperties, strlen(winvncShowProperties)) == 0)
+		if (strncmp(&szCmdLine[i], winvncShowProperties, arglen) == 0 &&
+			arglen == strlen(winvncShowProperties))
 		{
 			// Show the Properties dialog of an existing instance of WinVNC
 			vncService::ShowProperties();
-			i+=strlen(winvncShowProperties);
+			i += arglen;
 			continue;
 		}
-		if (strncmp(&szCmdLine[i], winvncShowDefaultProperties, strlen(winvncShowDefaultProperties)) == 0)
+		if (strncmp(&szCmdLine[i], winvncShowDefaultProperties, arglen) == 0 &&
+			arglen == strlen(winvncShowDefaultProperties))
 		{
 			// Show the Properties dialog of an existing instance of WinVNC
 			vncService::ShowDefaultProperties();
-			i+=strlen(winvncShowDefaultProperties);
+			i += arglen;
 			continue;
 		}
-		if (strncmp(&szCmdLine[i], winvncShowAbout, strlen(winvncShowAbout)) == 0)
+		if (strncmp(&szCmdLine[i], winvncShowAbout, arglen) == 0 &&
+			arglen == strlen(winvncShowAbout))
 		{
 			// Show the About dialog of an existing instance of WinVNC
 			vncService::ShowAboutBox();
-			i+=strlen(winvncShowAbout);
+			i += arglen;
 			continue;
 		}
-		if (strncmp(&szCmdLine[i], winvncKillAllClients, strlen(winvncKillAllClients)) == 0)
+		if (strncmp(&szCmdLine[i], winvncKillAllClients, arglen) == 0 &&
+			arglen == strlen(winvncKillAllClients))
 		{
 			// NB : This flag MUST be parsed BEFORE "-kill", otherwise it will match
 			// the wrong option!
 
 			// Kill all connected clients
 			vncService::KillAllClients();
-			i+=strlen(winvncKillAllClients);
+			i += arglen;
 			continue;
 		}
-		if (strncmp(&szCmdLine[i], winvncKillRunningCopy, strlen(winvncKillRunningCopy)) == 0)
+		if (strncmp(&szCmdLine[i], winvncKillRunningCopy, arglen) == 0 &&
+			arglen == strlen(winvncKillRunningCopy))
 		{
 			// Kill any already running copy of WinVNC
 			vncService::KillRunningCopy();
-			i+=strlen(winvncKillRunningCopy);
+			i += arglen;
 			continue;
 		}
-		if (strncmp(&szCmdLine[i], winvncAddNewClient, strlen(winvncAddNewClient)) == 0)
+		if (strncmp(&szCmdLine[i], winvncAddNewClient, arglen) == 0 &&
+			arglen == strlen(winvncAddNewClient))
 		{
 			// Add a new client to an existing copy of winvnc
-			i+=strlen(winvncAddNewClient);
+			i += arglen;
 
 			// First, we have to parse the command line to get the hostname to use
 			int start, end;
@@ -226,10 +242,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 				continue;
 			}
 		}
-		if (strncmp(&szCmdLine[i], winvncShareWindow, strlen(winvncShareWindow)) == 0)
+		if (strncmp(&szCmdLine[i], winvncShareWindow, arglen) == 0 &&
+			arglen == strlen(winvncShareWindow))
 		{
-			
-			i+=strlen(winvncShareWindow);
+			i += arglen;
 			int start, end, current;
 			start=i;
 			while ((szCmdLine[start] != '"') && (start < strlen(szCmdLine))) start++;
@@ -252,7 +268,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 		}
 
 #ifdef HORIZONLIVE
-		if (strncmp(&szCmdLine[i], winvncNoSettings, strlen(winvncNoSettings)) == 0)
+		if (strncmp(&szCmdLine[i], winvncNoSettings, arglen) == 0 &&
+			arglen == strlen(winvncNoSettings))
 		{
 			// Set nosettings flag
 			vncService::SetNoSettings(true);
@@ -265,7 +282,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 		// Show the usage dialog
 		MessageBox(NULL, winvncUsageText, "WinVNC Usage", MB_OK | MB_ICONINFORMATION);
 		break;
-	};
+	}
 
 	// If no arguments were given then just run
 	if (!argfound)

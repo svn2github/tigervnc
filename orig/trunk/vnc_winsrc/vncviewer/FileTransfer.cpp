@@ -183,7 +183,7 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 				if (_this->m_bFTCOPY == FALSE) {
 					if (strcmp(_this->m_ServerPath, "") == 0) {
 						char buffer[rfbMAX_PATH];
-						sprintf(buffer, "Unacceptable TightVNC Server path. Upload is missing");
+						sprintf(buffer, "Illegal TightVNC Server path. Upload impossible.");
 						SetWindowText(_this->m_hwndFTStatus, buffer);
 						return TRUE;
 					}
@@ -193,7 +193,7 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 				} else {
 					char buffer[rfbMAX_PATH + rfbMAX_PATH + rfbMAX_PATH];
 					if (strcmp(_this->m_ClientPath, "") == 0) {
-						sprintf(buffer, "Unacceptable Local Computer path. Download is missing");
+						sprintf(buffer, "Illegal Local Computer path. Download impossible.");
 						SetWindowText(_this->m_hwndFTStatus, buffer);
 						return TRUE;
 					}

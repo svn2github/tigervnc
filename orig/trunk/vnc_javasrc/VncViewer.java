@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2001 HorizonLive.com, Inc.  All Rights Reserved.
+//  Copyright (C) 2001, 2002 HorizonLive.com, Inc.  All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge.  All Rights Reserved.
 //
 //  This is free software; you can redistribute it and/or modify
@@ -19,8 +19,8 @@
 //
 
 //
-// vncviewer.java - the VNC viewer applet.  This class mainly just sets up the
-// user interface, leaving it to the vncCanvas to do the actual rendering of
+// VncViewer.java - the VNC viewer applet.  This class mainly just sets up the
+// user interface, leaving it to the VncCanvas to do the actual rendering of
 // a VNC desktop.
 //
 
@@ -28,41 +28,42 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 
-public class vncviewer extends java.applet.Applet
+public class VncViewer extends java.applet.Applet
   implements java.lang.Runnable, WindowListener {
 
   boolean inAnApplet = true;
+  boolean inSeparateFrame = false;
 
   //
-  // main() is called when run as a java program from the command line.  It
-  // simply creates a frame and runs the applet inside it.
+  // main() is called when run as a java program from the command line.
+  // It simply runs the applet inside a newly-created frame.
   //
 
   public static void main(String[] argv) {
-    vncviewer v = new vncviewer();
+    VncViewer v = new VncViewer();
     v.mainArgs = argv;
     v.inAnApplet = false;
-
-    v.f = new Frame("TightVNC");
-    v.f.add("Center", v);
+    v.inSeparateFrame = true;
 
     v.init();
     v.start();
   }
 
-  Frame f;
+  Frame vncFrame;
+  Container vncContainer;
+
   String[] mainArgs;
   String host;
   int port;
   String password = null;
-  rfbProto rfb;
+  RfbProto rfb;
   Thread rfbThread;
   GridBagLayout gridbag;
   ButtonPanel buttonPanel;
-  vncCanvas vc;
-  optionsFrame options;
-  clipboardFrame clipboard;
-  authenticationPanel authenticator;
+  VncCanvas vc;
+  OptionsFrame options;
+  ClipboardFrame clipboard;
+  AuthPanel authenticator;
 
 
   //
@@ -73,12 +74,22 @@ public class vncviewer extends java.applet.Applet
 
     readParameters();
 
-    options = new optionsFrame(this);
-    clipboard = new clipboardFrame(this);
-    authenticator = new authenticationPanel();
+    if (inSeparateFrame) {
+      vncFrame = new Frame("TightVNC");
+      if (!inAnApplet) {
+	vncFrame.add("Center", this);
+      }
+      vncContainer = vncFrame;
+    } else {
+      vncContainer = this;
+    }
 
-    if (!inAnApplet)
-      f.addWindowListener(this);
+    options = new OptionsFrame(this);
+    clipboard = new ClipboardFrame(this);
+    authenticator = new AuthPanel();
+
+    if (inSeparateFrame)
+      vncFrame.addWindowListener(this);
 
     rfbThread = new Thread(this);
     rfbThread.start();
@@ -94,7 +105,7 @@ public class vncviewer extends java.applet.Applet
   public void run() {
 
     gridbag = new GridBagLayout();
-    setLayout(gridbag);
+    vncContainer.setLayout(gridbag);
 
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.gridwidth = GridBagConstraints.REMAINDER;
@@ -103,8 +114,8 @@ public class vncviewer extends java.applet.Applet
     if (options.showControls) {
       buttonPanel = new ButtonPanel(this);
       buttonPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
-      gridbag.setConstraints(buttonPanel,gbc);
-      add(buttonPanel);
+      gridbag.setConstraints(buttonPanel, gbc);
+      vncContainer.add(buttonPanel);
     }
 
     try {
@@ -112,15 +123,15 @@ public class vncviewer extends java.applet.Applet
 
       doProtocolInitialisation();
 
-      vc = new vncCanvas(this);
+      vc = new VncCanvas(this);
       gbc.weightx = 1.0;
       gbc.weighty = 1.0;
-      gridbag.setConstraints(vc,gbc);
-      add(vc);
+      gridbag.setConstraints(vc, gbc);
+      vncContainer.add(vc);
 
-      if (!inAnApplet) {
-	f.setTitle(rfb.desktopName);
-	f.pack();
+      if (inSeparateFrame) {
+	vncFrame.setTitle(rfb.desktopName);
+	vncFrame.pack();
       } else {
 	validate();
       }
@@ -152,17 +163,23 @@ public class vncviewer extends java.applet.Applet
       gbc.weighty = 1.0;
       gbc.ipadx = 100;
       gbc.ipady = 50;
-      gridbag.setConstraints(authenticator,gbc);
-      add(authenticator);
-    }
-    validate();
-    if (!inAnApplet) {
-      f.pack();
-      f.show();
+      gridbag.setConstraints(authenticator, gbc);
+      vncContainer.add(authenticator);
     }
 
-    if (password == null)
-      authenticator.getPasswordField().requestFocus();
+    if (inSeparateFrame) {
+      vncFrame.pack();
+      vncFrame.show();
+    } else {
+      validate();
+      // FIXME: here setPasswordFocus() does not always work under
+      // Netscape 4.7x/Java 1.1.5/Linux. It seems like this call is
+      // being executed before the password field of the authenticator
+      // is fully drawn and activated, therefore requestFocus() does
+      // not work. Currently, I don't know how to solve this problem.
+      if (password == null)
+	authenticator.setPasswordFocus();
+    }
 
     boolean authenticationDone = false;
 
@@ -177,7 +194,7 @@ public class vncviewer extends java.applet.Applet
         }
       }
 
-      rfb = new rfbProto(host, port, this);
+      rfb = new RfbProto(host, port, this);
 
       rfb.readVersionMsg();
 
@@ -188,12 +205,12 @@ public class vncviewer extends java.applet.Applet
 
       switch (rfb.readAuthScheme()) {
 
-      case rfbProto.NoAuth:
+      case RfbProto.NoAuth:
 	System.out.println("No authentication needed");
 	authenticationDone = true;
 	break;
 
-      case rfbProto.VncAuth:
+      case RfbProto.VncAuth:
 	byte[] challenge = new byte[16];
 	rfb.is.readFully(challenge);
 
@@ -224,15 +241,15 @@ public class vncviewer extends java.applet.Applet
 	int authResult = rfb.is.readInt();
 
 	switch (authResult) {
-	case rfbProto.VncAuthOK:
+	case RfbProto.VncAuthOK:
 	  System.out.println("VNC authentication succeeded");
 	  authenticationDone = true;
 	  break;
-	case rfbProto.VncAuthFailed:
+	case RfbProto.VncAuthFailed:
 	  System.out.println("VNC authentication failed");
 	  authenticator.retry();
 	  break;
-	case rfbProto.VncAuthTooMany:
+	case RfbProto.VncAuthTooMany:
 	  throw new IOException("VNC authentication failed - " +
 				"too many tries");
 	default:
@@ -244,7 +261,7 @@ public class vncviewer extends java.applet.Applet
     }
 
     if (password == null)
-      remove(authenticator);
+      vncContainer.remove(authenticator);
   }
 
 
@@ -317,8 +334,14 @@ public class vncviewer extends java.applet.Applet
       }
     }
 
-    String s = readParameter("PORT", true);
-    port = Integer.parseInt(s);
+    String str = readParameter("PORT", true);
+    port = Integer.parseInt(str);
+
+    if (inAnApplet) {
+      str = readParameter("Open New Window", false);
+      if (str != null && str.equalsIgnoreCase("Yes"))
+	inSeparateFrame = true;
+    }
 
     password = readParameter("PASSWORD", false);
   }
@@ -360,13 +383,14 @@ public class vncviewer extends java.applet.Applet
     clipboard.dispose();
 
     if (inAnApplet) {
-      removeAll();
+      vncContainer.removeAll();
       rfb.close();
       rfb = null;
-      Label l = new Label("Disconnected");
-      setLayout(new FlowLayout(FlowLayout.LEFT, 30, 30));
-      add(l);
-      validate();
+      Label errLabel = new Label("Disconnected");
+      errLabel.setFont(new Font("Helvetica", Font.PLAIN, 12));
+      vncContainer.setLayout(new FlowLayout(FlowLayout.LEFT, 30, 30));
+      vncContainer.add(errLabel);
+      vncContainer.validate();
       rfbThread.stop();
     } else {
       System.exit(0);
@@ -377,16 +401,16 @@ public class vncviewer extends java.applet.Applet
   // fatalError() - print out a fatal error message.
   //
 
-  public void fatalError(String s) {
-    System.out.println(s);
+  public void fatalError(String str) {
+    System.out.println(str);
 
     if (inAnApplet) {
-      removeAll();
-      Label l = new Label(s);
-
-      setLayout(new FlowLayout(FlowLayout.LEFT, 30, 30));
-      add(l);
-      validate();
+      vncContainer.removeAll();
+      Label errLabel = new Label(str);
+      errLabel.setFont(new Font("Helvetica", Font.PLAIN, 12));
+      vncContainer.setLayout(new FlowLayout(FlowLayout.LEFT, 30, 30));
+      vncContainer.add(errLabel);
+      vncContainer.validate();
       Thread.currentThread().stop();
     } else {
       System.exit(1);
@@ -399,15 +423,25 @@ public class vncviewer extends java.applet.Applet
   //
 
   public void windowClosing(WindowEvent evt) {
-    System.out.println("Terminated");
-    System.exit(0);
+    if (rfb != null)
+      disconnect();
+
+    vncFrame.dispose();
+  }
+
+  //
+  // Move the keyboard focus to the password field on window activation.
+  //
+
+  public void windowActivated(WindowEvent evt) {
+    if (vncFrame.isAncestorOf(authenticator))
+      authenticator.setPasswordFocus();
   }
 
   //
   // Ignore window events we're not interested in.
   //
 
-  public void windowActivated(WindowEvent evt) {}
   public void windowDeactivated (WindowEvent evt) {}
   public void windowOpened(WindowEvent evt) {}
   public void windowClosed(WindowEvent evt) {}

@@ -30,7 +30,7 @@
 import java.awt.*;
 import java.awt.event.*;
 
-class optionsFrame extends Frame
+class OptionsFrame extends Frame
   implements WindowListener, ActionListener, ItemListener {
 
   static String[] names = {
@@ -65,7 +65,7 @@ class optionsFrame extends Frame
   Label[] labels = new Label[names.length];
   Choice[] choices = new Choice[names.length];
   Button dismiss;
-  vncviewer viewer;
+  VncViewer viewer;
 
 
   //
@@ -90,7 +90,7 @@ class optionsFrame extends Frame
   // arrays.
   //
 
-  optionsFrame(vncviewer v) {
+  OptionsFrame(VncViewer v) {
     super("TightVNC Options");
 
     viewer = v;
@@ -186,48 +186,48 @@ class optionsFrame extends Frame
   //
   // setEncodings looks at the encoding, compression level, cursor
   // shape updates and copyRect choices and sets the encodings array
-  // appropriately. It also calls the vncviewer's setEncodings method
+  // appropriately. It also calls the VncViewer's setEncodings method
   // to send a message to the RFB server if necessary.
   //
 
   void setEncodings() {
     nEncodings = 0;
     if (choices[useCopyRectIndex].getSelectedItem().equals("Yes")) {
-      encodings[nEncodings++] = rfbProto.EncodingCopyRect;
+      encodings[nEncodings++] = RfbProto.EncodingCopyRect;
     }
 
-    int preferredEncoding = rfbProto.EncodingRaw;
+    int preferredEncoding = RfbProto.EncodingRaw;
     boolean enableCompressLevel = false;
 
     if (choices[encodingIndex].getSelectedItem().equals("RRE")) {
-      preferredEncoding = rfbProto.EncodingRRE;
+      preferredEncoding = RfbProto.EncodingRRE;
     } else if (choices[encodingIndex].getSelectedItem().equals("CoRRE")) {
-      preferredEncoding = rfbProto.EncodingCoRRE;
+      preferredEncoding = RfbProto.EncodingCoRRE;
     } else if (choices[encodingIndex].getSelectedItem().equals("Hextile")) {
-      preferredEncoding = rfbProto.EncodingHextile;
+      preferredEncoding = RfbProto.EncodingHextile;
     } else if (choices[encodingIndex].getSelectedItem().equals("Zlib")) {
-      preferredEncoding = rfbProto.EncodingZlib;
+      preferredEncoding = RfbProto.EncodingZlib;
       enableCompressLevel = true;
     } else if (choices[encodingIndex].getSelectedItem().equals("Tight")) {
-      preferredEncoding = rfbProto.EncodingTight;
+      preferredEncoding = RfbProto.EncodingTight;
       enableCompressLevel = true;
     }
 
     encodings[nEncodings++] = preferredEncoding;
-    if (preferredEncoding != rfbProto.EncodingHextile) {
-      encodings[nEncodings++] = rfbProto.EncodingHextile;
+    if (preferredEncoding != RfbProto.EncodingHextile) {
+      encodings[nEncodings++] = RfbProto.EncodingHextile;
     }
-    if (preferredEncoding != rfbProto.EncodingTight) {
-      encodings[nEncodings++] = rfbProto.EncodingTight;
+    if (preferredEncoding != RfbProto.EncodingTight) {
+      encodings[nEncodings++] = RfbProto.EncodingTight;
     }
-    if (preferredEncoding != rfbProto.EncodingZlib) {
-      encodings[nEncodings++] = rfbProto.EncodingZlib;
+    if (preferredEncoding != RfbProto.EncodingZlib) {
+      encodings[nEncodings++] = RfbProto.EncodingZlib;
     }
-    if (preferredEncoding != rfbProto.EncodingCoRRE) {
-      encodings[nEncodings++] = rfbProto.EncodingCoRRE;
+    if (preferredEncoding != RfbProto.EncodingCoRRE) {
+      encodings[nEncodings++] = RfbProto.EncodingCoRRE;
     }
-    if (preferredEncoding != rfbProto.EncodingRRE) {
-      encodings[nEncodings++] = rfbProto.EncodingRRE;
+    if (preferredEncoding != RfbProto.EncodingRRE) {
+      encodings[nEncodings++] = RfbProto.EncodingRRE;
     }
 
     if (enableCompressLevel) {
@@ -242,7 +242,7 @@ class optionsFrame extends Frame
       }
       if (compressLevel >= 1 && compressLevel <= 9) {
 	encodings[nEncodings++] =
-	  rfbProto.EncodingCompressLevel0 + compressLevel;
+	  RfbProto.EncodingCompressLevel0 + compressLevel;
       }
     } else {
       labels[compressLevelIndex].setEnabled(false);
@@ -255,13 +255,14 @@ class optionsFrame extends Frame
       !choices[cursorUpdatesIndex].getSelectedItem().equals("Disable");
 
     if (requestCursorUpdates) {
-      encodings[nEncodings++] = rfbProto.EncodingXCursor;
-      encodings[nEncodings++] = rfbProto.EncodingRichCursor;
+      encodings[nEncodings++] = RfbProto.EncodingXCursor;
+      encodings[nEncodings++] = RfbProto.EncodingRichCursor;
       ignoreCursorUpdates =
 	choices[cursorUpdatesIndex].getSelectedItem().equals("Ignore");
     }
 
-    encodings[nEncodings++] = rfbProto.EncodingLastRect;
+    encodings[nEncodings++] = RfbProto.EncodingLastRect;
+    encodings[nEncodings++] = RfbProto.EncodingNewFBSize;
 
     viewer.setEncodings();
   }

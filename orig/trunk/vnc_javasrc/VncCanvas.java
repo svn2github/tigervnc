@@ -29,14 +29,14 @@ import java.util.zip.*;
 
 
 //
-// vncCanvas is a subclass of Canvas which draws a VNC desktop on it.
+// VncCanvas is a subclass of Canvas which draws a VNC desktop on it.
 //
 
-class vncCanvas extends Canvas
+class VncCanvas extends Canvas
   implements KeyListener, MouseListener, MouseMotionListener {
 
-  vncviewer v;
-  rfbProto rfb;
+  VncViewer v;
+  RfbProto rfb;
   ColorModel cm;
   Color[] colors;
 
@@ -51,7 +51,7 @@ class vncCanvas extends Canvas
   final static int tightZlibBufferSize = 512;
   Inflater[] tightInflaters;
 
-  vncCanvas(vncviewer v1) throws IOException {
+  VncCanvas(VncViewer v1) throws IOException {
     v = v1;
     rfb = v.rfb;
 
@@ -118,7 +118,7 @@ class vncCanvas extends Canvas
       int msgType = rfb.readServerMessageType();
 
       switch (msgType) {
-      case rfbProto.FramebufferUpdate:
+      case RfbProto.FramebufferUpdate:
 	rfb.readFramebufferUpdate();
 
 	for (int i = 0; i < rfb.updateNRects; i++) {
@@ -140,14 +140,14 @@ class vncCanvas extends Canvas
 
 	  switch (rfb.updateRectEncoding) {
 
-	  case rfbProto.EncodingRaw:
+	  case RfbProto.EncodingRaw:
 	  {
 	    drawRawRect(rfb.updateRectX, rfb.updateRectY,
 			rfb.updateRectW, rfb.updateRectH);
 	    break;
 	  }
 
-	  case rfbProto.EncodingCopyRect:
+	  case RfbProto.EncodingCopyRect:
 	  {
 	    rfb.readCopyRect();
 	    softCursorLockArea(rfb.copyRectSrcX, rfb.copyRectSrcY,
@@ -156,7 +156,7 @@ class vncCanvas extends Canvas
 	    break;
 	  }
 
-	  case rfbProto.EncodingRRE:
+	  case RfbProto.EncodingRRE:
 	  {
 	    int rx = rfb.updateRectX, ry = rfb.updateRectY;
 	    int rw = rfb.updateRectW, rh = rfb.updateRectH;
@@ -180,7 +180,7 @@ class vncCanvas extends Canvas
 	    break;
 	  }
 
-	  case rfbProto.EncodingCoRRE:
+	  case RfbProto.EncodingCoRRE:
 	  {
 	    int rx = rfb.updateRectX, ry = rfb.updateRectY;
 	    int rw = rfb.updateRectW, rh = rfb.updateRectH;
@@ -204,7 +204,7 @@ class vncCanvas extends Canvas
 	    break;
 	  }
 
-	  case rfbProto.EncodingHextile:
+	  case RfbProto.EncodingHextile:
 	  {
 	    int rx = rfb.updateRectX, ry = rfb.updateRectY;
 	    int rw = rfb.updateRectW, rh = rfb.updateRectH;
@@ -277,7 +277,7 @@ class vncCanvas extends Canvas
 	    break;
 	  }
 
-	  case rfbProto.EncodingZlib:
+	  case RfbProto.EncodingZlib:
 	  {
 	    int nBytes = rfb.is.readInt();
 
@@ -300,7 +300,7 @@ class vncCanvas extends Canvas
 	    break;
 	  }
 
-	  case rfbProto.EncodingTight:
+	  case RfbProto.EncodingTight:
 	  {
 	    drawTightRect( rfb.updateRectX, rfb.updateRectY,
 			   rfb.updateRectW, rfb.updateRectH );
@@ -319,14 +319,14 @@ class vncCanvas extends Canvas
 					  rfb.framebufferHeight, true);
 	break;
 
-      case rfbProto.SetColourMapEntries:
+      case RfbProto.SetColourMapEntries:
 	throw new IOException("Can't handle SetColourMapEntries message");
 
-      case rfbProto.Bell:
+      case RfbProto.Bell:
         Toolkit.getDefaultToolkit().beep();
 	break;
 
-      case rfbProto.ServerCutText:
+      case RfbProto.ServerCutText:
 	String s = rfb.readServerCutText();
 	v.clipboard.setCutText(s);
 	break;

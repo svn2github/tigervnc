@@ -21,7 +21,7 @@
 //
 
 //
-// rfbProto.java
+// RfbProto.java
 //
 
 import java.io.*;
@@ -41,7 +41,7 @@ class myInputStream extends FilterInputStream {
 }
 */
 
-class rfbProto {
+class RfbProto {
 
   final String versionMsg = "RFB 003.003\n";
   final static int ConnFailed = 0, NoAuth = 1, VncAuth = 2;
@@ -58,7 +58,7 @@ class rfbProto {
     EncodingRRE = 2, EncodingCoRRE = 4, EncodingHextile = 5,
     EncodingZlib = 6, EncodingTight = 7, EncodingCompressLevel0 = 0xFFFFFF00,
     EncodingXCursor = 0xFFFFFF10, EncodingRichCursor = 0xFFFFFF11,
-    EncodingLastRect = 0xFFFFFF20;
+    EncodingLastRect = 0xFFFFFF20, EncodingNewFBSize = 0xFFFFFF21;
 
   final int HextileRaw			= (1 << 0);
   final int HextileBackgroundSpecified	= (1 << 1);
@@ -81,14 +81,14 @@ class rfbProto {
   DataInputStream is;
   OutputStream os;
   boolean inNormalProtocol = false;
-  vncviewer viewer;
+  VncViewer viewer;
 
 
   //
   // Constructor.  Just make TCP connection to RFB server.
   //
 
-  rfbProto(String h, int p, vncviewer v) throws IOException {
+  RfbProto(String h, int p, VncViewer v) throws IOException {
     viewer = v;
     host = h;
     port = p;
@@ -220,6 +220,16 @@ class rfbProto {
 
 
   //
+  // Set new framebuffer size
+  //
+
+  void setFramebufferSize(int width, int height) {
+    framebufferWidth = width;
+    framebufferHeight = height;
+  }
+
+
+  //
   // Read the server message type
   //
 
@@ -249,6 +259,10 @@ class rfbProto {
     updateRectW = is.readUnsignedShort();
     updateRectH = is.readUnsignedShort();
     updateRectEncoding = is.readInt();
+
+    if ((updateRectEncoding == EncodingLastRect) ||
+	(updateRectEncoding == EncodingNewFBSize))
+      return;
 
     if ((updateRectX + updateRectW > framebufferWidth) ||
 	(updateRectY + updateRectH > framebufferHeight)) {

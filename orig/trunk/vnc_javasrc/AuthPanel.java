@@ -24,7 +24,7 @@ import java.awt.event.*;
 // The panel which implements the user authentication scheme
 //
 
-class authenticationPanel extends Panel implements ActionListener {
+class AuthPanel extends Panel implements ActionListener {
 
   Label title, retry, prompt;
   TextField password;
@@ -34,7 +34,7 @@ class authenticationPanel extends Panel implements ActionListener {
   // Constructor.
   //
 
-  public authenticationPanel() {
+  public AuthPanel() {
 
     title = new Label("VNC Authentication",Label.CENTER);
     title.setFont(new Font("Helvetica", Font.BOLD, 18));
@@ -85,11 +85,11 @@ class authenticationPanel extends Panel implements ActionListener {
   }
 
   //
-  // Get reference to the password text field object.
+  // Move keyboard focus to the password text field object.
   //
 
-  public TextField getPasswordField() {
-    return password;
+  public void setPasswordFocus() {
+    password.requestFocus();
   }
 
   //
@@ -110,6 +110,7 @@ class authenticationPanel extends Panel implements ActionListener {
   public void retry() {
     retry.setText("Sorry. Try again.");
     password.setText("");
+    setPasswordFocus();
   }
 
 }

@@ -8,7 +8,7 @@
 <TITLE>
 $USER's $DESKTOP desktop ($DISPLAY)
 </TITLE>
-<APPLET CODE=vncviewer.class ARCHIVE=vncviewer.jar
+<APPLET CODE=VncViewer.class ARCHIVE=VncViewer.jar
         WIDTH=$APPLETWIDTH HEIGHT=$APPLETHEIGHT>
 <param name=PORT value=$PORT>
 </APPLET>

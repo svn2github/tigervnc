@@ -25,20 +25,19 @@
 import java.awt.*;
 import java.awt.event.*;
 
-class clipboardFrame extends Frame
+class ClipboardFrame extends Frame
   implements WindowListener, ActionListener {
 
   TextArea textArea;
   Button clear, dismiss;
   String selection;
-  vncviewer viewer;
-
+  VncViewer viewer;
 
   //
   // Constructor.
   //
 
-  clipboardFrame(vncviewer v) {
+  ClipboardFrame(VncViewer v) {
     super("TightVNC Clipboard");
 
     viewer = v;

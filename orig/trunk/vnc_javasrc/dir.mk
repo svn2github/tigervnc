@@ -2,16 +2,18 @@
 # Making the VNC applet.
 #
 
-CLASSES = vncviewer.class rfbProto.class authenticationPanel.class \
-	  vncCanvas.class optionsFrame.class clipboardFrame.class \
-	  ButtonPanel.class DesCipher.class
+CLASSES = VncViewer.class RfbProto.class AuthPanel.class VncCanvas.class \
+	  OptionsFrame.class ClipboardFrame.class ButtonPanel.class \
+	  DesCipher.class
 
-all: $(CLASSES) vncviewer.jar
+PAGES = index.vnc shared.vnc noshared.vnc hextile.vnc zlib.vnc tight.vnc
 
-vncviewer.jar: $(CLASSES)
+all: $(CLASSES) VncViewer.jar
+
+VncViewer.jar: $(CLASSES)
 	@$(JavaArchive)
 
-export:: $(CLASSES) vncviewer.jar index.vnc shared.vnc
+export:: $(CLASSES) VncViewer.jar $(PAGES)
 	@$(ExportJavaClasses)
 
 clean::

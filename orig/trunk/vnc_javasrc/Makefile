@@ -5,17 +5,17 @@
 CP = cp
 JC = javac
 JAR = jar
-ARCHIVE = vncviewer.jar
+ARCHIVE = VncViewer.jar
 PAGES = index.vnc shared.vnc noshared.vnc hextile.vnc zlib.vnc tight.vnc
 INSTALL_DIR = /usr/local/vnc/classes
 
-CLASSES = vncviewer.class rfbProto.class authenticationPanel.class \
-	  vncCanvas.class optionsFrame.class clipboardFrame.class \
-	  ButtonPanel.class DesCipher.class
+CLASSES = VncViewer.class RfbProto.class AuthPanel.class VncCanvas.class \
+	  OptionsFrame.class ClipboardFrame.class ButtonPanel.class \
+	  DesCipher.class
 
-SOURCES = vncviewer.java rfbProto.java authenticationPanel.java \
-	  vncCanvas.java optionsFrame.java clipboardFrame.java \
-	  ButtonPanel.java DesCipher.java
+SOURCES = VncViewer.java RfbProto.java AuthPanel.java VncCanvas.java \
+	  OptionsFrame.java ClipboardFrame.java ButtonPanel.java \
+	  DesCipher.java
 
 all: $(CLASSES) $(ARCHIVE)
 
@@ -28,7 +28,7 @@ $(ARCHIVE): $(CLASSES)
 install: $(CLASSES) $(ARCHIVE)
 	$(CP) $(CLASSES) $(ARCHIVE) $(PAGES) $(INSTALL_DIR)
 
-export:: $(CLASSES) $(ARCHIVE) index.vnc shared.vnc
+export:: $(CLASSES) $(ARCHIVE) $(PAGES)
 	@$(ExportJavaClasses)
 
 clean::

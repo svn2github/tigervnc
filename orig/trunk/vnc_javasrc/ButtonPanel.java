@@ -29,13 +29,13 @@ import java.io.*;
 
 class ButtonPanel extends Panel implements ActionListener {
 
-  vncviewer viewer;
+  VncViewer viewer;
   Button disconnectButton;
   Button optionsButton;
   Button clipboardButton;
   Button ctrlAltDelButton;
 
-  ButtonPanel(vncviewer v) {
+  ButtonPanel(VncViewer v) {
     viewer = v;
 
     setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));

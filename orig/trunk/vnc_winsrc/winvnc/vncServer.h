@@ -295,6 +295,8 @@ public:
 	virtual BOOL PollingTimerChanged() { return m_polling_timer_changed; }
 	virtual void PollingTimerChanged(BOOL change) { m_polling_timer_changed = change; }
 
+  BOOL checkPointer(vncClient *pClient);
+
 	// Internal stuffs
 protected:
 	// Connection servers

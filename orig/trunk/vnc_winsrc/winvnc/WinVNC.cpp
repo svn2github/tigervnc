@@ -367,8 +367,8 @@ int WinVNCAppMain()
 	MSG msg;
 	while (GetMessage(&msg, NULL, 0,0) ) {
 		vnclog.Print(LL_INTINFO, VNCLOG("message %d received\n"), msg.message);
-		if (!help.TranslateMsg(&msg)) {
-				TranslateMessage(&msg);  // convert key ups and downs to chars
+    if (!help.TranslateMsg(&msg)) {
+      TranslateMessage(&msg);  // convert key ups and downs to chars
 				DispatchMessage(&msg);
 			}
 	}

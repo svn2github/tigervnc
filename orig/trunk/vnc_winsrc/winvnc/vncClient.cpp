@@ -61,6 +61,7 @@ extern "C" {
 }
 
 #include "FileTransferItemInfo.h"
+#include "vncMenu.h"
 
 //
 // Normally, using macros is no good, but this macro saves us from
@@ -1377,7 +1378,6 @@ vncClientThread::run(void *arg)
         strcpy(m_client->m_DownloadFilename, path_file);
         
         HANDLE hFile;
-        BOOL bResult;
         DWORD sz_rfbFileSize;
         DWORD sz_rfbBlockSize = 8192;
         DWORD dwNumberOfBytesRead = 0;
@@ -1401,32 +1401,17 @@ vncClientThread::run(void *arg)
         }
         sz_rfbFileSize = FindFileData.nFileSizeLow;
         FindClose(hFile);
+        m_client->m_modTime = m_client->FiletimeToTime70(FindFileData.ftLastWriteTime);
         if (sz_rfbFileSize == 0) {
-          unsigned int mTime = m_client->FiletimeToTime70(FindFileData.ftLastWriteTime);
-          m_client->SendFileDownloadData(mTime);
+          m_client->SendFileDownloadData(m_client->m_modTime);
         } else {
           if (sz_rfbFileSize <= sz_rfbBlockSize) sz_rfbBlockSize = sz_rfbFileSize;
           SetErrorMode(SEM_FAILCRITICALERRORS);
-          m_client->m_hFileToRead = CreateFile(path_file, GENERIC_READ, FILE_SHARE_READ, NULL,	OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);				// handle to file with attributes to copy  
+          m_client->m_hFileToRead = CreateFile(path_file, GENERIC_READ, FILE_SHARE_READ, NULL,	OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
           SetErrorMode(0);
           if (m_client->m_hFileToRead != INVALID_HANDLE_VALUE) {
             m_client->m_bDownloadStarted = TRUE;
-            char *pBuff = new char[sz_rfbBlockSize];
-            while(m_client->m_bDownloadStarted) {
-              bResult = ReadFile(m_client->m_hFileToRead, pBuff, sz_rfbBlockSize, &dwNumberOfBytesRead, NULL);
-              if (bResult && dwNumberOfBytesRead == 0) {
-                /* This is the end of the file. */
-                unsigned int mTime = m_client->FiletimeToTime70(FindFileData.ftLastWriteTime);
-                m_client->SendFileDownloadData(mTime);
-                vnclog.Print(LL_CLIENTS, VNCLOG("file download complete: %s\n"),
-                  path_file);
-                break;
-              }
-              m_client->SendFileDownloadData(dwNumberOfBytesRead, pBuff);
-            }
-            delete [] pBuff;
-            CloseHandle(m_client->m_hFileToRead);
-            m_client->m_bDownloadStarted = FALSE;
+            m_client->SendFileDownloadPortion();
           }
         }
       }
@@ -1545,11 +1530,11 @@ vncClientThread::run(void *arg)
       }
       if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileDownloadCancelMsg-1))
       {
-        m_client->CloseUndoneFileTransfer();
         msg.fdc.reasonLen = Swap16IfLE(msg.fdc.reasonLen);
         char *reason = new char[msg.fdc.reasonLen + 1];
         m_socket->ReadExact(reason, msg.fdc.reasonLen);
         reason[msg.fdc.reasonLen] = '\0';
+        m_client->CloseUndoneFileTransfer();
         delete [] reason;
       }
       break;
@@ -2403,6 +2388,27 @@ vncClient::SendFileDownloadData(unsigned int mTime)
   memcpy(pFollow, &mTime, sizeof(unsigned int));
   m_socket->SendExact(pAllFDDMessage, msgLen);
   delete [] pAllFDDMessage;
+}
+
+void
+vncClient::SendFileDownloadPortion()
+{
+  if (!m_bDownloadStarted) return;
+  DWORD dwNumberOfBytesRead = 0;
+  m_rfbBlockSize = 8192;
+  char *pBuff = new char[m_rfbBlockSize];
+  BOOL bResult = ReadFile(m_hFileToRead, pBuff, m_rfbBlockSize, &dwNumberOfBytesRead, NULL);
+  if ((bResult) && (dwNumberOfBytesRead == 0)) {
+    /* This is the end of the file. */
+    SendFileDownloadData(m_modTime);
+    vnclog.Print(LL_CLIENTS, VNCLOG("file download complete: %s\n"), m_DownloadFilename);
+    CloseHandle(m_hFileToRead);
+    m_bDownloadStarted = FALSE;
+    return;
+  }
+  SendFileDownloadData(dwNumberOfBytesRead, pBuff);
+  delete [] pBuff;
+  PostToWinVNC(fileTransferDownloadMessage, (WPARAM) this, (LPARAM) 0);
 }
 
 void 

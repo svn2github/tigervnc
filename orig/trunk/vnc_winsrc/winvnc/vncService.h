@@ -39,6 +39,8 @@ class vncService;
 
 #include "stdhdrs.h"
 
+BOOL PostToWinVNC(UINT message, WPARAM wParam, LPARAM lParam);
+
 // The NT-specific code wrapper class
 class vncService
 {

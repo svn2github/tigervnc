@@ -56,6 +56,9 @@ const UINT MENU_SERVICEHELPER_MSG = RegisterWindowMessage("WinVNC.ServiceHelper.
 const UINT MENU_RELOAD_MSG = RegisterWindowMessage("WinVNC.Reload.Message");
 const UINT MENU_ADD_CLIENT_MSG = RegisterWindowMessage("WinVNC.AddClient.Message");
 const UINT MENU_KILL_ALL_CLIENTS_MSG = RegisterWindowMessage("WinVNC.KillAllClients.Message");
+
+const UINT fileTransferDownloadMessage = RegisterWindowMessage("VNCServer.1.3.FileTransferDownloadMessage");
+
 #ifdef HORIZONLIVE
 const char *MENU_CLASS_NAME = "LiveShare Tray Icon";
 #else
@@ -762,6 +765,12 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 			_this->m_server->KillAuthClients();
 			return 0;
 		}
+    if (iMsg == fileTransferDownloadMessage) 
+    {
+      vncClient *cl = (vncClient *) wParam;
+      if (_this->m_server->checkPointer(cl)) cl->SendFileDownloadPortion();
+    }
+
 	}
 	// Message not recognised
 	return DefWindowProc(hwnd, iMsg, wParam, lParam);

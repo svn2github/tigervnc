@@ -1608,3 +1608,14 @@ vncServer::SetPollingCycle(UINT msec)
 		PollingTimerChanged(true);
 	}
 }
+
+BOOL
+vncServer::checkPointer(vncClient *pClient)
+{
+  vncClientList::iterator i;
+  for (i = m_authClients.begin(); i != m_authClients.end(); i++)
+  {
+    if (GetClient(*i) == pClient) return TRUE;
+  }
+  return FALSE;
+}

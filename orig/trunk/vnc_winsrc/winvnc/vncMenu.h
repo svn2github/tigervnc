@@ -50,6 +50,8 @@ extern const UINT MENU_ADD_CLIENT_MSG;
 extern const UINT MENU_KILL_ALL_CLIENTS_MSG;
 extern const char *MENU_CLASS_NAME;
 
+extern const UINT fileTransferDownloadMessage;
+
 // The tray menu class itself
 class vncMenu
 {

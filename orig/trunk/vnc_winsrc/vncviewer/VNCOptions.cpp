@@ -1143,38 +1143,22 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 			SetWindowLong(hwnd, GWL_USERDATA, lParam);
 			VNCOptions *_this = (VNCOptions *) lParam;
 			// Initialise the controls
-			bool cursor;
-			if (pApp->m_options.m_localCursor == DOTCURSOR) {
-				cursor = true;
-			} else {
-				cursor = false;
-			}
+	
 			HWND hDotCursor = GetDlgItem(hwnd, IDC_DOTCURSOR_RADIO);
-			SendMessage(hDotCursor, BM_SETCHECK, cursor, 0);
+			SendMessage(hDotCursor, BM_SETCHECK, 
+						(pApp->m_options.m_localCursor == DOTCURSOR), 0);
 
-			if (pApp->m_options.m_localCursor == SMALLCURSOR) {
-				cursor = true;
-			} else {
-				cursor = false;
-			}
 			HWND hSmallCursor = GetDlgItem(hwnd, IDC_SMALLDOTCURSOR_RADIO);
-			SendMessage(hSmallCursor, BM_SETCHECK, cursor, 0);
+			SendMessage(hSmallCursor, BM_SETCHECK, 
+						(pApp->m_options.m_localCursor == SMALLCURSOR), 0);
 			
-			if (pApp->m_options.m_localCursor == NOCURSOR) {
-				cursor = true;
-			} else {
-				cursor = false;
-			}
 			HWND hNoCursor = GetDlgItem(hwnd, IDC_NOCURSOR_RADIO);
-			SendMessage(hNoCursor, BM_SETCHECK, cursor, 0);
+			SendMessage(hNoCursor, BM_SETCHECK, 
+						(pApp->m_options.m_localCursor == NOCURSOR), 0);
 			
-			if (pApp->m_options.m_localCursor == NORMALCURSOR) {
-				cursor = true;
-			} else {
-				cursor = false;
-			}
 			HWND hNormalCursor = GetDlgItem(hwnd, IDC_NORMALCURSOR_RADIO);
-			SendMessage(hNormalCursor, BM_SETCHECK, cursor, 0);
+			SendMessage(hNormalCursor, BM_SETCHECK, 
+						(pApp->m_options.m_localCursor == NORMALCURSOR), 0);
 			
 			HWND hMessage = GetDlgItem(hwnd, IDC_CHECK_MESSAGE);
 			SendMessage(hMessage, BM_SETCHECK, !pApp->m_options.m_skipprompt, 0);
@@ -1201,8 +1185,6 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 			HWND hSpin3 = GetDlgItem(hwnd, IDC_SPIN3);
 			SendMessage(hSpin3, UDM_SETBUDDY, (WPARAM) (HWND)hListenPort, 0);
 			
-			HWND hlevel = GetDlgItem(hwnd, IDC_STATIC_LOG_LEVEL);
-			HWND hLogBrowse = GetDlgItem(hwnd, IDC_LOG_BROWSE);
 			SendMessage(hChec, BM_SETCHECK, pApp->m_options.m_logToFile, 0);
 			_this->EnableLog(hwnd, !(SendMessage(hChec, BM_GETCHECK, 0, 0) == 0));				
 			SetDlgItemInt( hwnd, IDC_EDIT_LOG_LEVEL, pApp->m_options.m_logLevel, FALSE);
@@ -1217,21 +1199,21 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 		case IDC_LISTEN_PORT:
 			switch (HIWORD(wParam)) {
 			case EN_KILLFOCUS:
-				Lim(hwnd, IDC_LISTEN_PORT, 1, 6553);				
+				Lim(hwnd, IDC_LISTEN_PORT, 1, 65536);				
 				return 0;
 			}
 			return 0;
 		case IDC_EDIT_AMOUNT_LIST:
 			switch (HIWORD(wParam)) {
 			case EN_KILLFOCUS:
-				Lim(hwnd, IDC_EDIT_AMOUNT_LIST, 1, 64);				
+				Lim(hwnd, IDC_EDIT_AMOUNT_LIST, 0, 64);				
 				return 0;
 			}
 			return 0;
 		case IDC_EDIT_LOG_LEVEL:
 			switch (HIWORD(wParam)) {
 			case EN_KILLFOCUS:
-				Lim(hwnd, IDC_EDIT_LOG_LEVEL, 1, 12);				
+				Lim(hwnd, IDC_EDIT_LOG_LEVEL, 0, 12);				
 				return 0;
 			}
 			return 0;
@@ -1351,30 +1333,35 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 			LPNMHDR pn = (LPNMHDR)lParam;
 			switch (pn->code) {
 			case UDN_DELTAPOS: 
-				{	int max;
+				{	int max, min;
 					NMUPDOWN lpnmud = *(LPNMUPDOWN) lParam;
 					NMHDR hdr = lpnmud.hdr;
 					HWND hCtrl = (HWND)SendMessage(hdr.hwndFrom, UDM_GETBUDDY, 0, 0);
 					long ctrl = GetDlgCtrlID(hCtrl);
 					int h = GetDlgItemInt( hwnd, ctrl, NULL, TRUE);
 					if (lpnmud.iDelta > 0) {
-						h = h - 1;						
+						if (h != 0) {
+							h = h - 1;
+						}
 					} else {
 						h = h + 1;	
 					}
 					SetDlgItemInt( hwnd, ctrl, h, FALSE);
 					switch (ctrl) {
 					case IDC_EDIT_AMOUNT_LIST:
+						min = 0;
 						max = 64;
 						break;
 					case IDC_EDIT_LOG_LEVEL:
+						min = 0;
 						max = 12;
 						break;
 					case IDC_LISTEN_PORT:
-						max = 6553;
+						min = 1;
+						max = 65536;
 						break;
 					}
-					_this->Lim(hwnd, ctrl, 1, max);
+					_this->Lim(hwnd, ctrl, min, max);
 					return 0;
 				}			
 			}

@@ -51,6 +51,8 @@ class VncCanvas extends Canvas
   final static int tightZlibBufferSize = 512;
   Inflater[] tightInflaters;
 
+  boolean listenersInstalled;
+
   VncCanvas(VncViewer v) throws IOException {
     viewer = v;
     rfb = viewer.rfb;
@@ -65,13 +67,29 @@ class VncCanvas extends Canvas
 
     updateFramebufferSize();
 
-    if (!viewer.options.viewOnly) {
+    listenersInstalled = false;
+    if (!viewer.options.viewOnly)
+      enableInput(true);
+
+    tightInflaters = new Inflater[4];
+  }
+
+  //
+  // Start/stop receiving keyboard and mouse events.
+  //
+
+  public synchronized void enableInput(boolean enable) {
+    if (enable && !listenersInstalled) {
+      listenersInstalled = true;
       addKeyListener(this);
       addMouseListener(this);
       addMouseMotionListener(this);
+    } else if (!enable && listenersInstalled) {
+      listenersInstalled = false;
+      removeKeyListener(this);
+      removeMouseListener(this);
+      removeMouseMotionListener(this);
     }
-
-    tightInflaters = new Inflater[4];
   }
 
   void updateFramebufferSize() {

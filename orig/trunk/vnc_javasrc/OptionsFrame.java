@@ -39,8 +39,8 @@ class OptionsFrame extends Frame
     "Cursor shape updates",
     "Use CopyRect",
     "Mouse buttons 2 and 3",
-    "Share desktop",
     "View only",
+    "Share desktop",
   };
 
   static String[][] values = {
@@ -54,13 +54,13 @@ class OptionsFrame extends Frame
   };
 
   final int
-    encodingIndex        	= 0,
-    compressLevelIndex   	= 1,
-    cursorUpdatesIndex   	= 2,
-    useCopyRectIndex     	= 3,
-    mouseButtonIndex     	= 4,
-    shareDesktopIndex    	= 5,
-    viewOnlyIndex   	 	= 6;
+    encodingIndex       = 0,
+    compressLevelIndex  = 1,
+    cursorUpdatesIndex  = 2,
+    useCopyRectIndex    = 3,
+    mouseButtonIndex    = 4,
+    viewOnlyIndex       = 5,
+    shareDesktopIndex   = 6;
 
   Label[] labels = new Label[names.length];
   Choice[] choices = new Choice[names.length];
@@ -174,14 +174,6 @@ class OptionsFrame extends Frame
     choices[shareDesktopIndex].setEnabled(false);
   }
 
-  //
-  // Disable the viewOnly option
-  //
-
-  void disableViewOnly() {
-    labels[viewOnlyIndex].setEnabled(false);
-    choices[viewOnlyIndex].setEnabled(false);
-  }
 
   //
   // setEncodings looks at the encoding, compression level, cursor
@@ -277,11 +269,13 @@ class OptionsFrame extends Frame
     reverseMouseButtons2And3
       = choices[mouseButtonIndex].getSelectedItem().equals("Reversed");
 
-    shareDesktop
-      = choices[shareDesktopIndex].getSelectedItem().equals("Yes");
-
     viewOnly 
       = choices[viewOnlyIndex].getSelectedItem().equals("Yes");
+    if (viewer.vc != null)
+      viewer.vc.enableInput(!viewOnly);
+
+    shareDesktop
+      = choices[shareDesktopIndex].getSelectedItem().equals("Yes");
   }
 
 
@@ -312,9 +306,8 @@ class OptionsFrame extends Frame
   //
 
   public void actionPerformed(ActionEvent evt) {
-    if (evt.getSource() == closeButton) {
+    if (evt.getSource() == closeButton)
       setVisible(false);
-    }
   }
 
   //

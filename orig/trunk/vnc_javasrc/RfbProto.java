@@ -181,7 +181,6 @@ class RfbProto {
       os.write(0);
     }
     viewer.options.disableShareDesktop();
-    viewer.options.disableViewOnly();
   }
 
 

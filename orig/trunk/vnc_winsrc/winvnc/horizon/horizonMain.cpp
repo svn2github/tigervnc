@@ -38,7 +38,6 @@ const int LS_QUIT = 0x800D ;
 // handle to app data
 HINSTANCE hAppInstance ;
 DWORD mainthreadId ;
-VNCHelp help ;
 
 //
 // main functions
@@ -326,15 +325,12 @@ int AppShareMain( const string& args )
 		// log messages that get this far
 		// vnclog.Print( LL_INTINFO, VNCLOG( "message received, id => %d\n" ), msg.message ) ;
 
-		if ( ! help.TranslateMsg( &msg ) ) 
-		{
-			// specialized appshare message 
-			if ( msg.message == LS_QUIT )
-				PostQuitMessage( 0 ) ;
+		// specialized appshare message 
+		if ( msg.message == LS_QUIT )
+			PostQuitMessage( 0 ) ;
 	
-			TranslateMessage( &msg ) ;
-			DispatchMessage( &msg ) ;
-		}
+		TranslateMessage( &msg ) ;
+		DispatchMessage( &msg ) ;
 	}
 
 	vnclog.Print( LL_STATE, VNCLOG( "exited main message loop\n" ) ) ;
@@ -347,24 +343,19 @@ int AppShareMain( const string& args )
 	return 0 ;
 }
 
-void AppShareUsage( const string& args )
+void 
+AppShareUsage( const string& args )
 {
 	vnclog.Print( LL_NONE, VNCLOG( "printing usage, args => %s\n" ), args.c_str() ) ;
 
-	const char message[] =
-		"winvnc [-run] [-kill] [-service] [-servicehelper]\n"
-		" [-connect [host[:display]]] [-connect [host[::port]]]\n"
-		" [-install] [-remove] [-reinstall] [-reload]\n"
-		" [-settings] [-defaultsettings] [-killallclients]\n"
-		" [-sharewindow  \"title\"] [-about] [-help]\n"
-	;
-
+	const char message[] = "appshare [ -basic ] [ -connect host:port ]\n" ;
 	MessageBox( NULL, message, szAppName, MB_OK | MB_ICONINFORMATION ) ;
 
 	return ;
 }
 
-int WinVNCAppMain( void )
+int 
+WinVNCAppMain( void )
 {
 	MessageBox( NULL, "Invalid call to WinVNCAppMain()", szAppName, MB_OK | MB_ICONERROR ) ;
 	return 0 ;

@@ -21,7 +21,6 @@ using std::string ;
 #include "resource.h"
 
 #include "VSocket.h"
-#include "VNCHelp.h"
 #include "Log.h"
 
 #include "vncInstHandler.h"
@@ -53,7 +52,6 @@ extern const char* szProcessName ;
 
 extern HINSTANCE hAppInstance ;
 extern DWORD mainthreadId ;
-extern VNCHelp help ;
 
 // custom signal for requesting quit
 extern const int LS_QUIT ;

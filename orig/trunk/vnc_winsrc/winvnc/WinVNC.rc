@@ -84,7 +84,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | DS_CONTEXTHELP | WS_POPUP |
     WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "AppShare Settings"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     GROUPBOX        "Select Sharing Area",IDC_SHARINGAREA_BORDER,5,5,188,55
     CONTROL         "Window",IDC_WINDOW,"Button",BS_AUTORADIOBUTTON | 
@@ -112,7 +112,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | DS_CONTEXTHELP | WS_POPUP |
     WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Advanced Properties"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     GROUPBOX        "Update Handling",IDC_UPDATE_BORDER,5,5,196,92
     CONTROL         "Poll Full Screen",IDC_POLL_FULLSCREEN,"Button",
@@ -147,7 +147,7 @@ IDD_ACCEPT_REVERSE DIALOGEX 0, 0, 179, 55
 STYLE DS_SYSMODAL | DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | 
     WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "Begin AppShare Session?"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "&OK",IDACCEPT,17,31,47,17
     PUSHBUTTON      "&Cancel",IDREJECT,113,31,48,17,0,WS_EX_TRANSPARENT
@@ -159,7 +159,7 @@ IDD_PROPERTIES_PARENT DIALOGEX 0, 0, 312, 167
 STYLE DS_MODALFRAME | DS_CENTER | DS_CONTEXTHELP | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP | WS_EX_CONTROLPARENT
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     CONTROL         "Tab1",IDC_TAB,"SysTabControl32",TCS_MULTILINE | 
                     WS_TABSTOP,7,0,298,138
@@ -222,23 +222,23 @@ BEGIN
                     IDC_STATIC_DISPLAY_PORT,154,9,120,66
 END
 
-IDD_INPUT_HANDLING DIALOG DISCARDABLE  0, 0, 223, 93
+IDD_INPUT_HANDLING DIALOG DISCARDABLE  0, 0, 232, 93
 STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE
 FONT 8, "MS Sans Serif"
 BEGIN
-    CONTROL         "Disable remote keyboard and pointer (all clients view only)",
+    CONTROL         "Disable remote keyboard and pointer (all new clients view only)",
                     IDC_DISABLE_INPUTS,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
-                    WS_TABSTOP,7,7,202,12
+                    WS_TABSTOP,7,7,218,12
     CONTROL         "Disable local keyboard and pointer during client sessions",
                     IDC_DISABLE_LOCAL_INPUTS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,7,22,199,12
+                    WS_TABSTOP,7,21,218,12
     CONTROL         "Disable remote keyboard and pointer on local activity",
                     IDC_REMOTE_DISABLE,"Button",BS_AUTOCHECKBOX | BS_TOP | 
-                    BS_MULTILINE | WS_TABSTOP,7,37,201,12
+                    BS_MULTILINE | WS_TABSTOP,7,37,218,12
     LTEXT           "Input enabled after timeout:",IDC_TIMEOUT_LABEL,19,50,
                     92,12,SS_CENTERIMAGE | NOT WS_GROUP
     EDITTEXT        IDC_DISABLE_TIME,119,50,23,12,ES_AUTOHSCROLL | ES_NUMBER
-    LTEXT           "seconds",IDC_SECONDS_LABEL,147,50,50,12,SS_CENTERIMAGE | 
+    LTEXT           "seconds",IDC_SECONDS_LABEL,147,50,44,12,SS_CENTERIMAGE | 
                     NOT WS_GROUP
 END
 
@@ -465,7 +465,7 @@ BEGIN
     IDD_INPUT_HANDLING, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 216
+        RIGHTMARGIN, 225
         TOPMARGIN, 7
         BOTTOMMARGIN, 86
     END

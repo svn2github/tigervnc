@@ -492,8 +492,8 @@ vncClientThread::AuthenticateVNC()
 		// Check against the view-only password
 		vncEncryptBytes((BYTE *)&challenge_viewonly, plain_viewonly);
 		if (memcmp(challenge_viewonly, response, sizeof(response)) == 0) {
-			m_client->m_pointerenabled = FALSE;
-			m_client->m_keyboardenabled = FALSE;
+			m_client->EnablePointer(FALSE);
+			m_client->EnableKeyboard(FALSE);
 			auth_ok = TRUE;
 		}
 	}
@@ -631,8 +631,7 @@ vncClientThread::SendInteractionCaps()
 	rfbCapabilityInfo smsg_list[MAX_SMSG_CAPS];
 	i = 0;
 #ifndef HORIZONLIVE
-	if (m_server->FileTransfersEnabled() &&
-		(m_client->m_keyboardenabled || m_client->m_pointerenabled)) {
+	if (m_server->FileTransfersEnabled() && m_client->IsInputEnabled()) {
 		SetCapInfo(&smsg_list[i++], rfbFileListData,       rfbTightVncVendor);
 		SetCapInfo(&smsg_list[i++], rfbFileDownloadData,   rfbTightVncVendor);
 		SetCapInfo(&smsg_list[i++], rfbFileUploadCancel,   rfbTightVncVendor);
@@ -650,8 +649,7 @@ vncClientThread::SendInteractionCaps()
 	rfbCapabilityInfo cmsg_list[MAX_CMSG_CAPS];
 	i = 0;
 #ifndef HORIZONLIVE
-	if (m_server->FileTransfersEnabled() &&
-		(m_client->m_keyboardenabled || m_client->m_pointerenabled)) {
+	if (m_server->FileTransfersEnabled() && m_client->IsInputEnabled()) {
 		SetCapInfo(&cmsg_list[i++], rfbFileListRequest,    rfbTightVncVendor);
 		SetCapInfo(&cmsg_list[i++], rfbFileDownloadRequest,rfbTightVncVendor);
 		SetCapInfo(&cmsg_list[i++], rfbFileUploadRequest,  rfbTightVncVendor);
@@ -852,7 +850,7 @@ vncClientThread::run(void *arg)
 	}
 
 	// Clear the CapsLock and NumLock keys
-	if (m_client->m_keyboardenabled)
+	if (m_client->IsKeyboardEnabled())
 	{
 		ClearKeyState(VK_CAPITAL);
 		// *** JNW - removed because people complain it's wrong
@@ -1125,7 +1123,7 @@ vncClientThread::run(void *arg)
 			// Read the rest of the message:
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbKeyEventMsg-1))
 			{				
-				if (m_client->m_keyboardenabled)
+				if (m_client->IsKeyboardEnabled() && !m_client->IsInputBlocked())
 				{
 					msg.ke.key = Swap32IfLE(msg.ke.key);
 
@@ -1141,7 +1139,7 @@ vncClientThread::run(void *arg)
 			// Read the rest of the message:
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbPointerEventMsg-1))
 			{
-				if (m_client->m_pointerenabled)
+				if (m_client->IsPointerEnabled() && !m_client->IsInputBlocked())
 				{
 					// Convert the coords to Big Endian
 					msg.pe.x = Swap16IfLE(msg.pe.x);
@@ -1268,8 +1266,7 @@ vncClientThread::run(void *arg)
 
 #ifndef HORIZONLIVE
 		case rfbFileListRequest:
-			if (!m_server->FileTransfersEnabled() ||
-				(!m_client->m_keyboardenabled && !m_client->m_pointerenabled)) {
+			if (!m_server->FileTransfersEnabled() || !m_client->IsInputEnabled()) {
 				connected = FALSE;
 				break;
 			}
@@ -1362,8 +1359,7 @@ vncClientThread::run(void *arg)
 			break;
 
 		case rfbFileDownloadRequest:
-			if (!m_server->FileTransfersEnabled() ||
-				(!m_client->m_keyboardenabled && !m_client->m_pointerenabled)) {
+			if (!m_server->FileTransfersEnabled() || !m_client->IsInputEnabled()) {
 				connected = FALSE;
 				break;
 			}
@@ -1425,8 +1421,7 @@ vncClientThread::run(void *arg)
 			break;
 
 		case rfbFileUploadRequest:
-			if (!m_server->FileTransfersEnabled() ||
-				(!m_client->m_keyboardenabled && !m_client->m_pointerenabled)) {
+			if (!m_server->FileTransfersEnabled() || !m_client->IsInputEnabled()) {
 				connected = FALSE;
 				break;
 			}
@@ -1473,8 +1468,7 @@ vncClientThread::run(void *arg)
 			break;
 
 		case rfbFileUploadData:
-			if (!m_server->FileTransfersEnabled() ||
-				(!m_client->m_keyboardenabled && !m_client->m_pointerenabled)) {
+			if (!m_server->FileTransfersEnabled() || !m_client->IsInputEnabled()) {
 				connected = FALSE;
 				break;
 			}
@@ -1530,8 +1524,7 @@ vncClientThread::run(void *arg)
 			break;
 
 		case rfbFileDownloadCancel:
-			if (!m_server->FileTransfersEnabled() ||
-				(!m_client->m_keyboardenabled && !m_client->m_pointerenabled)) {
+			if (!m_server->FileTransfersEnabled() || !m_client->IsInputEnabled()) {
 				connected = FALSE;
 				break;
 			}
@@ -1547,8 +1540,7 @@ vncClientThread::run(void *arg)
 			break;
 
 		case rfbFileUploadFailed:
-			if (!m_server->FileTransfersEnabled() ||
-				(!m_client->m_keyboardenabled && !m_client->m_pointerenabled)) {
+			if (!m_server->FileTransfersEnabled() || !m_client->IsInputEnabled()) {
 				connected = FALSE;
 				break;
 			}
@@ -1564,8 +1556,7 @@ vncClientThread::run(void *arg)
 			break;
 
 		case rfbFileCreateDirRequest:
-			if (!m_server->FileTransfersEnabled() ||
-				(!m_client->m_keyboardenabled && !m_client->m_pointerenabled)) {
+			if (!m_server->FileTransfersEnabled() || !m_client->IsInputEnabled()) {
 				connected = FALSE;
 				break;
 			}
@@ -1613,6 +1604,10 @@ vncClient::vncClient()
 	m_client_name = 0;
 	m_server_name = 0;
 	m_buffer = NULL;
+
+	m_keyboardenabled = FALSE;
+	m_pointerenabled = FALSE;
+	m_inputblocked = FALSE;
 
 	m_copyrect_use = FALSE;
 

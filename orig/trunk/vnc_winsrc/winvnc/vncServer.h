@@ -92,11 +92,8 @@ public:
 	virtual vncClient* GetClient(vncClientId clientid);
 	virtual vncClientList ClientList();
 
-	virtual void SetKeyboardEnabled(BOOL enabled);
-	virtual void SetPointerEnabled(vncClientId client, BOOL enabled);
+	virtual void BlockRemoteInput(BOOL block);
 
-	virtual BOOL GetKeyboardEnabled(vncClientId client);
-	virtual BOOL GetPointerEnabled(vncClientId client);
 	virtual const char* GetClientName(vncClientId client);
 
 #ifdef HORIZONLIVE

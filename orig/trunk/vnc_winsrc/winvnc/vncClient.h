@@ -94,11 +94,14 @@ public:
 	virtual void UpdatePalette();
 
 	// Functions for setting & getting the client settings
-	virtual void EnableKeyboard(BOOL enable) {m_keyboardenabled = enable;};
-	virtual void EnablePointer(BOOL enable) {m_pointerenabled = enable;};
+	virtual void EnableKeyboard(BOOL enable) { m_keyboardenabled = enable; }
+	virtual void EnablePointer(BOOL enable)  { m_pointerenabled = enable;  }
+	virtual void BlockInput(BOOL block)      { m_inputblocked = block; }
+	virtual BOOL IsKeyboardEnabled() { return m_keyboardenabled; }
+	virtual BOOL IsPointerEnabled()  { return m_pointerenabled;  }
+	virtual BOOL IsInputEnabled()    { return m_keyboardenabled || m_pointerenabled; }
+	virtual BOOL IsInputBlocked()    { return m_inputblocked; }
 
-	virtual BOOL IsKeyboardEnabled() {return m_keyboardenabled;};
-	virtual BOOL IsPointerEnabled() {return m_pointerenabled;};
 	virtual const char *GetClientName();
 	virtual const char *GetServerName();
 	virtual vncClientId GetClientId() {return m_id;};
@@ -131,6 +134,7 @@ protected:
 	BOOL			m_protocol_tightvnc;
 	BOOL			m_keyboardenabled;
 	BOOL			m_pointerenabled;
+	BOOL			m_inputblocked;
 	BOOL			m_copyrect_use;
 	vncClientId		m_id;
 

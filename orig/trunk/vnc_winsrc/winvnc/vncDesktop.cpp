@@ -208,7 +208,7 @@ vncDesktopThread::run_undetached(void *arg)
 					droptime.LowPart = ftime.dwLowDateTime; 
 					droptime.HighPart = ftime.dwHighDateTime;
 					droptime.QuadPart /= 10000000;	// convert into seconds
-					m_server->SetKeyboardEnabled(false);
+					m_server->BlockRemoteInput(true);
 				}
 			} else {
 				GetSystemTime(&systime);
@@ -216,7 +216,7 @@ vncDesktopThread::run_undetached(void *arg)
 				droptime.LowPart = ftime.dwLowDateTime; 
 				droptime.HighPart = ftime.dwHighDateTime;
 				droptime.QuadPart /= 10000000;	// convert into seconds
-				m_server->SetKeyboardEnabled(false);
+				m_server->BlockRemoteInput(true);
 			}
 		}
 		else if (msg.message == RFB_LOCAL_MOUSE)
@@ -234,7 +234,7 @@ vncDesktopThread::run_undetached(void *arg)
 					droptime.LowPart = ftime.dwLowDateTime; 
 					droptime.HighPart = ftime.dwHighDateTime;
 					droptime.QuadPart /= 10000000;	// convert into seconds
-					m_server->SetKeyboardEnabled(false);
+					m_server->BlockRemoteInput(true);
 				}
 			} else {
 				GetSystemTime(&systime);
@@ -242,7 +242,7 @@ vncDesktopThread::run_undetached(void *arg)
 				droptime.LowPart = ftime.dwLowDateTime; 
 				droptime.HighPart = ftime.dwHighDateTime;
 				droptime.QuadPart /= 10000000;	// convert into seconds
-				m_server->SetKeyboardEnabled(false);
+				m_server->BlockRemoteInput(true);
 			}
 		}
 		else if (msg.message == WM_QUIT)
@@ -275,7 +275,7 @@ vncDesktopThread::run_undetached(void *arg)
 			now.QuadPart /= 10000000;	// convert into seconds
 
 			if (now.QuadPart - m_server->DisableTime() >= droptime.QuadPart) {
-				m_server->SetKeyboardEnabled(true);
+				m_server->BlockRemoteInput(false);
 				droptime.QuadPart = 0;
 				m_server->SetKeyboardCounter(0);
 				m_server->SetMouseCounter(0, msg.pt, false);
@@ -1757,18 +1757,16 @@ vncDesktop::SetLocalInputDisableHook(BOOL enable)
 void
 vncDesktop::SetLocalInputPriorityHook(BOOL enable)
 {
-	if ( vncService::IsWin95() ) {
+	if (vncService::IsWin95()) {
 		SetKeyboardPriorityHook(enable,RFB_LOCAL_KEYBOARD);
 		SetMousePriorityHook(enable,RFB_LOCAL_MOUSE);
-
 	} else {
-
 		SetKeyboardPriorityLLHook(enable,RFB_LOCAL_KEYBOARD);
 		SetMousePriorityLLHook(enable,RFB_LOCAL_MOUSE);
 	}
-	
-	if ( !enable )	
-		m_server->SetKeyboardEnabled(true);
+
+	if (!enable)
+		m_server->BlockRemoteInput(false);
 }
 
 // Routine to find out which windows have moved

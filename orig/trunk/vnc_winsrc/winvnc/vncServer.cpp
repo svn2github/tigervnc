@@ -495,48 +495,13 @@ vncServer::ClientList()
 }
 
 void
-vncServer::SetKeyboardEnabled(BOOL enabled)
+vncServer::BlockRemoteInput(BOOL block)
 {
+	omni_mutex_lock l(m_clientsLock);
+
 	vncClientList::iterator i;
-	omni_mutex_lock l(m_clientsLock);
-
 	for (i = m_authClients.begin(); i != m_authClients.end(); i++)
-	{
-		GetClient(*i)->EnableKeyboard(enabled);
-		GetClient(*i)->EnablePointer(enabled);
-	}
-}
-
-void
-vncServer::SetPointerEnabled(vncClientId clientid, BOOL enabled)
-{
-	omni_mutex_lock l(m_clientsLock);
-
-	vncClient *client = GetClient(clientid);
-	if (client != NULL)
-		client->EnablePointer(enabled);
-}
-
-BOOL
-vncServer::GetKeyboardEnabled(vncClientId clientid)
-{
-	omni_mutex_lock l(m_clientsLock);
-
-	vncClient *client = GetClient(clientid);
-	if (client != NULL)
-		return client->IsKeyboardEnabled();
-	return FALSE;
-}
-
-BOOL
-vncServer::GetPointerEnabled(vncClientId clientid)
-{
-	omni_mutex_lock l(m_clientsLock);
-
-	vncClient *client = GetClient(clientid);
-	if (client != NULL)
-		return client->IsPointerEnabled();
-	return FALSE;
+		GetClient(*i)->BlockInput(block);
 }
 
 const char*
@@ -908,7 +873,6 @@ void
 vncServer::EnableRemoteInputs(BOOL enable)
 {
 	m_enable_remote_inputs = enable;
-	SetKeyboardEnabled(enable);
 }
 
 BOOL vncServer::RemoteInputsEnabled()

@@ -74,11 +74,15 @@ class vncCanvas extends Canvas
     tightInflaters = new Inflater[4];
   }
 
-  public Dimension preferredSize() {
+  public Dimension getPreferredSize() {
     return new Dimension(rfb.framebufferWidth, rfb.framebufferHeight);
   }
 
-  public Dimension minimumSize() {
+  public Dimension getMinimumSize() {
+    return new Dimension(rfb.framebufferWidth, rfb.framebufferHeight);
+  }
+
+  public Dimension getMaximumSize() {
     return new Dimension(rfb.framebufferWidth, rfb.framebufferHeight);
   }
 

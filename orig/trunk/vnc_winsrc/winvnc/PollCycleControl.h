@@ -15,7 +15,7 @@ class PollCycleControl ;
 #include "stdhdrs.h"
 
 #include "vncServer.h"
-#include "horizon/vncServerSingleton.h"
+#include "vncServerSingleton.h"
 
 #include "CPUUsage.h"
 #include "CPUUsageWin32HRPC.h"

@@ -319,34 +319,34 @@ BEGIN
     LTEXT           "seconds",IDC_STATIC_SECONDS,115,23,35,11,SS_CENTERIMAGE
 END
 
-IDD_ADMINISTRATION DIALOG DISCARDABLE  0, 0, 292, 115
+IDD_ADMINISTRATION DIALOG DISCARDABLE  0, 0, 288, 111
 STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE
 FONT 8, "MS Sans Serif"
 BEGIN
-    GROUPBOX        "Administration",IDC_STATIC_ADMINISTR,7,7,141,101
+    GROUPBOX        "Administration",IDC_STATIC_ADMINISTR,5,5,142,101
     CONTROL         "Disable empty passwords",IDREQUIREAUTH,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,15,19,129,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,17,129,12
     CONTROL         "Allow loopback connections",IDALLOWLOOPBACK,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,15,34,132,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,32,132,12
     CONTROL         "Allow only loopback connections",IDONLYLOOPBACK,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,22,49,117,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,20,47,117,12
     CONTROL         "Log information to WinVNC.log",IDLOG,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,15,64,125,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,62,125,12
     CONTROL         "Log detailed debugging information",IDLOGLOTS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,22,79,123,12
-    GROUPBOX        "HTTP server",IDC_STATIC_TEMPORARY,156,7,128,40
+                    BS_AUTOCHECKBOX | WS_TABSTOP,20,77,123,12
+    GROUPBOX        "HTTP server",IDC_STATIC_TEMPORARY,155,5,128,40
     CONTROL         "Enable built-in HTTP server",IDENABLEHTTPD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,164,18,110,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,163,16,115,10
     CONTROL         "Enable applet params in URLs",IDC_URL_PARAMS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,164,32,111,10
-    GROUPBOX        "Connection Priority",IDC_STATIC_CONN_PRIOR,156,51,128,
+                    BS_AUTOCHECKBOX | WS_TABSTOP,163,30,115,10
+    GROUPBOX        "Connection Priority",IDC_STATIC_CONN_PRIOR,155,49,128,
                     57
     CONTROL         "Disconnect existing connections",IDPRIORITY0,"Button",
-                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,164,64,114,10
+                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,163,62,115,10
     CONTROL         "Automatic shared sessions",IDPRIORITY1,"Button",
-                    BS_AUTORADIOBUTTON,164,78,112,10
+                    BS_AUTORADIOBUTTON,163,76,115,10
     CONTROL         "Refuse concurrent connections",IDPRIORITY2,"Button",
-                    BS_AUTORADIOBUTTON,164,92,113,10
+                    BS_AUTORADIOBUTTON,163,90,115,10
 END
 
 IDD_CONTROL_PANEL DIALOGEX 0, 0, 209, 218
@@ -573,13 +573,15 @@ BEGIN
 
     IDD_ADMINISTRATION, DIALOG
     BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 284
-        VERTGUIDE, 14
-        VERTGUIDE, 22
+        LEFTMARGIN, 5
+        RIGHTMARGIN, 283
+        VERTGUIDE, 13
+        VERTGUIDE, 20
+        VERTGUIDE, 155
         VERTGUIDE, 164
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 108
+        VERTGUIDE, 278
+        TOPMARGIN, 5
+        BOTTOMMARGIN, 106
     END
 
     IDD_CONTROL_PANEL, DIALOG

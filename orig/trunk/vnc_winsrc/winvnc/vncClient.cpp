@@ -1403,8 +1403,8 @@ vncClient::SendUpdate()
 
 	// Send mouse cursor shape update
 	if (m_xcursor_pending) {
-		if (!SendCursorShape())
-			SendEmptyCursorShape(rfbEncodingXCursor);
+		if (!SendCursorShapeUpdate(TRUE, FALSE))
+			return TRUE;
 	}
 
 	// Encode & send the copyrect
@@ -1420,7 +1420,8 @@ vncClient::SendUpdate()
 
 	// Send LastRect marker if needed.
 	if (numrects == 0xFFFF) {
-		SendLastRect();
+		if (!SendLastRect())
+			return TRUE;
 	}
 
 	// Both lists should be empty when we exit
@@ -1619,168 +1620,169 @@ vncClient::IsCursorShapeGood()
 	return TRUE;
 }
 
-// Send cursor shape update using XCursor or RichCursor encoding
-BOOL
-vncClient::SendCursorShape()
-{
-	m_xcursor_pending = FALSE;
+//
+// EXPERIMENTAL CODE.
+// New version of cursor shape updates support.
+//
 
+// FIXME: make enableXCursor, enableRichCursor class members.
+
+BOOL
+vncClient::SendCursorShapeUpdate(BOOL enableXCursor, BOOL enableRichCursor)
+{
+	m_xcursor_pending = FALSE;	// FIXME: This variable should disappear.
+
+	if (!SendCursorShape(enableXCursor, enableRichCursor))
+		return SendEmptyCursorShape(enableXCursor, enableRichCursor);
+
+	return TRUE;
+}
+
+BOOL
+vncClient::SendCursorShape(BOOL enableXCursor, BOOL enableRichCursor)
+{
 	// Get mouse cursor handle
 	m_hcursor = m_buffer->GetCursor();
 	if (m_hcursor == NULL) {
-		vnclog.Print(LL_INTINFO, VNCLOG("DBG:cursor handle is NULL.\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("vncBuffer::GetCursor() returned NULL.\n"));
 		return FALSE;
 	}
 
 	// Get cursor info
 	ICONINFO IconInfo;
 	if (!GetIconInfo(m_hcursor, &IconInfo)) {
-		vnclog.Print(LL_INTINFO, VNCLOG("DBG:GetIconInfo() failed.\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("GetIconInfo() failed.\n"));
 		return FALSE;
+	}
+	BOOL isColorCursor = FALSE;
+	if (IconInfo.hbmColor != NULL) {
+		isColorCursor = TRUE;
+		DeleteObject(IconInfo.hbmColor);
 	}
 	if (IconInfo.hbmMask == NULL) {
-		if (IconInfo.hbmColor != NULL)
-			DeleteObject(IconInfo.hbmColor);
-		vnclog.Print(LL_INTINFO, VNCLOG("DBG:cursor bitmap handle is NULL.\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("cursor bitmap handle is NULL.\n"));
 		return FALSE;
 	}
 
-	// Get bitmap info for the cursor
+	// Check bitmap info for the cursor
 	BITMAP bmMask;
-	if ( !GetObject(IconInfo.hbmMask, sizeof(BITMAP), (LPVOID)&bmMask) ||
-		 bmMask.bmPlanes != 1 || bmMask.bmBitsPixel != 1) {
+	if (!GetObject(IconInfo.hbmMask, sizeof(BITMAP), (LPVOID)&bmMask)) {
+		vnclog.Print(LL_INTINFO, VNCLOG("GetObject() for bitmap failed.\n"));
 		DeleteObject(IconInfo.hbmMask);
-		if (IconInfo.hbmColor != NULL)
-			DeleteObject(IconInfo.hbmColor);
-		vnclog.Print(LL_INTINFO, VNCLOG("DBG:incorrect data in cursor "
-										"BITMAP structure (mask).\n"));
-		vnclog.Print(LL_INTINFO, VNCLOG("DBG:bmMask: %dx%d, %d planes, "
-										"%d bpp, %d bytes per row.\n"),
-					 bmMask.bmWidth, bmMask.bmHeight, bmMask.bmPlanes,
-					 bmMask.bmBitsPixel, bmMask.bmWidthBytes);
 		return FALSE;
 	}
-	vnclog.Print(LL_INTINFO, VNCLOG("DBG:bmMask: %dx%d, %d bytes per row.\n"),
-				 bmMask.bmWidth, bmMask.bmHeight, bmMask.bmWidthBytes);
-
-	// For now, we deal only with black-and-white cursors
-	if (IconInfo.hbmColor != NULL) {
+	if (bmMask.bmPlanes != 1 || bmMask.bmBitsPixel != 1) {
 		DeleteObject(IconInfo.hbmMask);
-		DeleteObject(IconInfo.hbmColor);
-		vnclog.Print(LL_INTINFO, VNCLOG("DBG:cursor is not monochrome.\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("incorrect data in cursor bitmap.\n"));
 		return FALSE;
 	}
-
-	// Compute data sizes etc.
-	int width = bmMask.bmWidth;
-	int height = bmMask.bmHeight / 2;
-	int packedWidthBytes = (width + 7) / 8;
 
 	// Get cursor bitmap data
-	BYTE *mbits = new BYTE[bmMask.bmWidthBytes * bmMask.bmHeight];
 	// FIXME: MS says we should use GetDIBits() instead of GetBitmapBits().
+	BYTE *mbits = new BYTE[bmMask.bmWidthBytes * bmMask.bmHeight];
 	BOOL success = GetBitmapBits(IconInfo.hbmMask,
 								 bmMask.bmWidthBytes * bmMask.bmHeight, mbits);
 	DeleteObject(IconInfo.hbmMask);
 
 	if (!success) {
 		delete[] mbits;
-		if (IconInfo.hbmColor != NULL)
-			DeleteObject(IconInfo.hbmColor);
-		vnclog.Print(LL_INTINFO, VNCLOG("DBG:GetBitmapBits() failed.\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("GetBitmapBits() failed.\n"));
 		return FALSE;
 	}
 
-	// Pack bitmap data
-	if (packedWidthBytes != bmMask.bmWidthBytes) {
-		for (int y = 0; y < bmMask.bmHeight; y++) {
-			memmove(&mbits[y * packedWidthBytes],
-					&mbits[y * bmMask.bmWidthBytes],
-					packedWidthBytes);
+	FixCursorMask(mbits, bmMask, isColorCursor);
+
+	// Call appropriate routine to send cursor shape update
+	if (!isColorCursor) {
+		if (enableXCursor) {
+			success = SendXCursorShape(mbits,
+									   IconInfo.xHotspot, IconInfo.yHotspot,
+									   bmMask.bmWidth, bmMask.bmHeight / 2);
+		} else {
+			success = FALSE;	// FIXME: Insert appropriate function call.
+		}
+	} else {
+		if (enableRichCursor) {
+			success = FALSE;	// FIXME: Insert appropriate function call.
+		} else {
+			success = FALSE;	// FIXME: Insert appropriate function call.
 		}
 	}
 
-	// Invert mask and pixel bits
-	// FIXME: pack and invert in one pass.
-	for (int i = 0; i < packedWidthBytes * height * 2; i++)
-		mbits[i] = ~mbits[i];
-
-	// Replace "inverted background" bits with checkered pattern
-	// to make such cursors visible on most backgrounds.
-	// FIXME: pack, invert and recode "inverted background" in one pass.
-	int x, y;
-	BYTE m, c;
-	BYTE pattern[2] = { 0xAA, 0x55 };
-	for (y = 0; y < height; y++) {
-		for (x = 0; x < packedWidthBytes; x++) {
-			m = mbits[y * packedWidthBytes + x];
-			c = mbits[(height + y) * packedWidthBytes + x];
-			mbits[y * packedWidthBytes + x] |= ~(m | c);
-			mbits[(height + y) * packedWidthBytes + x] |= ~(m | c);
-		}
-	}
-
-	// Send cursor shape to the client
-	vnclog.Print(LL_INTINFO, VNCLOG("DBG:sending XCursor update.\n"));
-	SendCursorShapeData(IconInfo.xHotspot, IconInfo.yHotspot, width, height,
-						0, mbits, &mbits[packedWidthBytes*height],
-						rfbEncodingXCursor);
-
+	// Cleanup
+	DeleteObject(IconInfo.hbmMask);
 	delete[] mbits;
 
-	return TRUE;
+	return success;
 }
 
 BOOL
-vncClient::SendCursorShapeData(int xhot, int yhot, int width, int height,
-							   int bytesPixel, BYTE *maskData, BYTE *colorData,
-							   CARD32 encoding)
-{
-	// Prepare the rectangle header
-	rfbFramebufferUpdateRectHeader hdr;
-	hdr.r.x = Swap16IfLE(xhot);
-	hdr.r.y = Swap16IfLE(yhot);
-	hdr.r.w = Swap16IfLE(width);
-	hdr.r.h = Swap16IfLE(height);
-	hdr.encoding = Swap32IfLE(encoding);
-
-	// Compute data sizes
-	int maskRowSize = (width + 7) / 8;
-	int maskDataSize = maskRowSize * height;
-	int colorDataSize;
-	if (encoding == rfbEncodingXCursor) {
-		colorDataSize = maskDataSize;
-	} else {
-		colorDataSize = width * height * bytesPixel;
-	}
-
-	// Now send the message
-	if (!m_socket->SendExact((char *)&hdr, sizeof(hdr))) {
-		return FALSE;
-	}
-	if (encoding == rfbEncodingXCursor) {
-		BYTE colors[6] = { 0, 0, 0, 0xFF, 0xFF, 0xFF };
-		if (!m_socket->SendExact((char *)colors, 6)) {
-			return FALSE;
-		}
-	}
-	if ( !m_socket->SendExact((char *)colorData, colorDataSize) ||
-		 !m_socket->SendExact((char *)maskData, maskDataSize) ) {
-		return FALSE;
-	}
-	return TRUE;
-}
-
-BOOL
-vncClient::SendEmptyCursorShape(CARD32 encoding)
+vncClient::SendEmptyCursorShape(BOOL enableXCursor, BOOL enableRichCursor)
 {
 	rfbFramebufferUpdateRectHeader hdr;
 	hdr.r.x = Swap16IfLE(0);
 	hdr.r.y = Swap16IfLE(0);
 	hdr.r.w = Swap16IfLE(0);
 	hdr.r.h = Swap16IfLE(0);
-	hdr.encoding = Swap32IfLE(encoding);
+	if (enableXCursor) {
+		hdr.encoding = Swap32IfLE(rfbEncodingXCursor);
+	} else {
+		hdr.encoding = Swap32IfLE(rfbEncodingRichCursor);
+	}
 
 	return m_socket->SendExact((char *)&hdr, sizeof(hdr));
+}
+
+BOOL
+vncClient::SendXCursorShape(BYTE *mask, int xhot,int yhot,int width,int height)
+{
+	rfbFramebufferUpdateRectHeader hdr;
+	hdr.r.x = Swap16IfLE(xhot);
+	hdr.r.y = Swap16IfLE(yhot);
+	hdr.r.w = Swap16IfLE(width);
+	hdr.r.h = Swap16IfLE(height);
+	hdr.encoding = Swap32IfLE(rfbEncodingXCursor);
+
+	BYTE colors[6] = { 0, 0, 0, 0xFF, 0xFF, 0xFF };
+	int maskRowSize = (width + 7) / 8;
+	int maskSize = maskRowSize * height;
+
+	if ( !m_socket->SendExact((char *)&hdr, sizeof(hdr)) ||
+		 !m_socket->SendExact((char *)colors, 6) ||
+		 !m_socket->SendExact((char *)&mask[maskSize], maskSize) ||
+		 !m_socket->SendExact((char *)mask, maskSize) ) {
+		return FALSE;
+	}
+	return TRUE;
+}
+
+void
+vncClient::FixCursorMask(BYTE *mbits, BITMAP bmMask, BOOL isColorCursor)
+{
+	int width = bmMask.bmWidth;
+	int packedWidthBytes = (width + 7) / 8;
+
+	// Pack and invert bitmap data
+	int x, y;
+	for (y = 0; y < bmMask.bmHeight; y++) {
+		for (x = 0; x < packedWidthBytes; x++) {
+			mbits[y * packedWidthBytes + x] =
+				~mbits[y * bmMask.bmWidthBytes + x];
+		}
+	}
+
+	// Replace "inverted background" bits with black color.
+	if (!isColorCursor) {
+		BYTE m, c;
+		int height = bmMask.bmHeight / 2;
+		for (y = 0; y < height; y++) {
+			for (x = 0; x < packedWidthBytes; x++) {
+				m = mbits[y * packedWidthBytes + x];
+				c = mbits[(height + y) * packedWidthBytes + x];
+				mbits[y * packedWidthBytes + x] |= ~(m | c);
+				mbits[(height + y) * packedWidthBytes + x] |= ~(m | c);
+			}
+		}
+	}
 }
 

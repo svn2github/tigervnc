@@ -122,11 +122,12 @@ protected:
 protected:
 	void CheckCursorShape();
 	BOOL IsCursorShapeGood();
-	BOOL SendCursorShape();
-	BOOL SendEmptyCursorShape(CARD32 encoding);
-	BOOL SendCursorShapeData(int xhot, int yhot, int width, int height,
-							 int bytesPixel, BYTE *maskData, BYTE *colorData,
-							 CARD32 encoding);
+
+	BOOL SendCursorShapeUpdate(BOOL enableXCursor, BOOL enableRichCursor);
+	BOOL SendCursorShape(BOOL enableXCursor, BOOL enableRichCursor);
+	BOOL SendEmptyCursorShape(BOOL enableXCursor, BOOL enableRichCursor);
+	BOOL SendXCursorShape(BYTE *mask, int xhot,int yhot,int width,int height);
+	void FixCursorMask(BYTE *mbits, BITMAP bmMask, BOOL isColorCursor);
 
 	// Internal stuffs
 protected:

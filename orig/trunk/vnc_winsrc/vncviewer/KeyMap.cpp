@@ -159,7 +159,16 @@ KeyActionSpec KeyMap::PCtoX(UINT virtkey, DWORD keyData) {
     
 
     if (numkeys != 0) {
+		// A special case - use Meta instead of Alt if ScrollLock is on.
         UINT key = kas.keycodes[numkeys-1];
+		if ( (key == XK_Alt_L || key == XK_Alt_R) &&
+			 GetKeyState(VK_SCROLL) ) {
+			if (key == XK_Alt_L) {
+				kas.keycodes[numkeys-1] = XK_Meta_L;
+			} else {
+				kas.keycodes[numkeys-1] = XK_Meta_R;
+			}
+		}
         vnclog.Print(8, _T("keymap gives %u (%x) "), key, key);
 
     } else {

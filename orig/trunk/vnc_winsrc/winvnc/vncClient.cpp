@@ -180,7 +180,7 @@ vncClientThread::InitTunneling()
 
 	// Advertise our tunneling capabilities (currently, nothing to advertise).
 	rfbTunnelingCapsMsg caps;
-	caps.connFailed = (char)false;
+	caps.connFailed = (CARD8)false;
 	caps.nTunnelTypes = Swap16IfLE(nTypes);
 	return m_socket->SendExact((char *)&caps, sz_rfbTunnelingCapsMsg);
 
@@ -422,7 +422,7 @@ vncClientThread::SendConnFailedMessage(const char *msg)
 {
 	if (m_client->m_protocol_minor_version >= 130) {
 		rfbConnFailedMsg failMsg;
-		failMsg.connFailed = (char)true;
+		failMsg.connFailed = (CARD8)true;
 		failMsg.reasonLength = Swap32IfLE(strlen(msg));
 		if (!m_socket->SendExact((char *)&failMsg, sz_rfbConnFailedMsg)) {
 			return;
@@ -449,7 +449,7 @@ vncClientThread::SendNoAuthMessage()
 {
 	if (m_client->m_protocol_minor_version >= 130) {
 		rfbAuthenticationCapsMsg caps;
-		caps.connFailed = (char)false;
+		caps.connFailed = (CARD8)false;
 		caps.nAuthTypes = Swap16IfLE(0);
 		if (!m_socket->SendExact((char *)&caps, sz_rfbAuthenticationCapsMsg)) {
 			return FALSE;
@@ -471,7 +471,7 @@ BOOL
 vncClientThread::SendAuthenticationCaps()
 {
 	rfbAuthenticationCapsMsg caps;
-	caps.connFailed = (char)false;
+	caps.connFailed = (CARD8)false;
 	caps.nAuthTypes = Swap16IfLE(1);
 	if (!m_socket->SendExact((char *)&caps, sz_rfbAuthenticationCapsMsg))
 		return FALSE;

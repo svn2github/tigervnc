@@ -168,6 +168,7 @@ vncDesktopThread::run_undetached(void *arg)
 	{
 		if (!PeekMessage(&msg, m_desktop->Window(), NULL, NULL, PM_REMOVE))
 		{
+			m_server->BlankScreen();
 			// Whenever the message queue becomes empty, we check to see whether
 			// there are updates to be passed to clients
 			if (!m_desktop->CheckUpdates())

@@ -861,6 +861,9 @@ vncClientThread::run(void *arg)
 	{
 		rfbClientToServerMsg msg;
 
+		// Continuously try to blank the server's screen, if configured so
+		// FIXME: Why we do this from each client's thread?
+
 		// Ensure that we're running in the correct desktop
 		if (!vncService::InputDesktopSelected())
 			if (!vncService::SelectDesktop(NULL))
@@ -904,7 +907,6 @@ vncClientThread::run(void *arg)
 				// Set the palette-changed flag, just in case...
 				m_client->m_palettechanged = TRUE;
 			}
-
 			break;
 
 		case rfbSetEncodings:

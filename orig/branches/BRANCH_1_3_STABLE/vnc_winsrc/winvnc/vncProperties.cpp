@@ -1001,6 +1001,7 @@ vncProperties::Load(BOOL usersettings)
 	m_pref_DontSetHooks=FALSE;
 	m_pref_DontUseDriver=FALSE;
 	m_pref_RemoveWallpaper=TRUE;
+	m_pref_BlankScreen = FALSE;
 	m_pref_EnableFileTransfers = TRUE;
 	m_alloweditclients = TRUE;
 	m_allowshutdown = TRUE;
@@ -1084,6 +1085,7 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	m_pref_IdleTimeout=LoadInt(appkey, "IdleTimeout", m_pref_IdleTimeout);
 	
 	m_pref_RemoveWallpaper=LoadInt(appkey, "RemoveWallpaper", m_pref_RemoveWallpaper);
+	m_pref_BlankScreen=LoadInt(appkey, "BlankScreen", m_pref_BlankScreen);
 	m_pref_EnableFileTransfers=LoadInt(appkey, "EnableFileTransfers", m_pref_EnableFileTransfers);
 
 	m_pref_PriorityTime =LoadInt(appkey, "LocalInputsPriorityTime", m_pref_PriorityTime);
@@ -1142,6 +1144,7 @@ vncProperties::ApplyUserPrefs()
 	m_server->SetQueryAllowNoPass(m_pref_QueryAllowNoPass);
 	m_server->SetAutoIdleDisconnectTimeout(m_pref_IdleTimeout);
 	m_server->EnableRemoveWallpaper(m_pref_RemoveWallpaper);
+	m_server->SetBlankScreen(m_pref_BlankScreen);
 	m_server->EnableFileTransfers(m_pref_EnableFileTransfers);
 
 	// Update the password
@@ -1305,13 +1308,9 @@ vncProperties::SaveUserPrefs(HKEY appkey)
 	SaveInt(appkey, "QueryAccept", m_server->QueryAccept());
 	SaveInt(appkey, "QueryAllowNoPass", m_server->QueryAllowNoPass());
 
-	// Lock settings
 	SaveInt(appkey, "LockSetting", m_server->LockSettings());
-
-	// Wallpaper removal
 	SaveInt(appkey, "RemoveWallpaper", m_server->RemoveWallpaperEnabled());
-
-	// File transfers control
+	SaveInt(appkey, "BlankScreen", m_server->GetBlankScreen());
 	SaveInt(appkey, "EnableFileTransfers", m_server->FileTransfersEnabled());
 
 	// Save the password

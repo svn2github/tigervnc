@@ -122,7 +122,10 @@ vncServer::vncServer()
 	m_cursor_pos.y = 0;
 
 	// initialize
-	m_enable_file_transfers = FALSE ; 
+	m_enable_file_transfers = FALSE;
+	m_remove_wallpaper = FALSE;
+	m_blank_screen = FALSE;
+	m_pref_blank_screen = FALSE;
 
 #ifdef HORIZONLIVE
 	m_full_screen = FALSE;
@@ -131,6 +134,14 @@ vncServer::vncServer()
 	m_remote_mouse = 1;
 	m_remote_keyboard = 1;
 #endif
+
+	m_pbi = NULL;
+	HMODULE m_hUser32 = LoadLibrary("USER32");	// FIXME: no matching FreeLibrary().
+	if (m_hUser32 != NULL) {
+		m_pbi = (pBlockInput)GetProcAddress(m_hUser32, "BlockInput");
+		if (m_pbi == NULL)
+			FreeLibrary(m_hUser32);
+	}
 }
 
 vncServer::~vncServer()
@@ -1607,4 +1618,44 @@ vncServer::checkPointer(vncClient *pClient)
     if (GetClient(*i) == pClient) return TRUE;
   }
   return FALSE;
+}
+
+void
+vncServer::BlankScreen()
+{
+	if (m_pref_blank_screen && !m_blank_screen && AuthClientCount() != 0) {
+		m_blank_screen = TRUE;		
+		if (m_pbi != NULL) {
+			// FIXME: Call BlockInput only if it should change current state.
+			(*m_pbi)(TRUE);
+		}
+		return;
+	}
+
+	if (m_pref_blank_screen && m_blank_screen) {
+		if (AuthClientCount() != 0) {
+			SystemParametersInfo(SPI_SETPOWEROFFACTIVE, 1, NULL, 0);
+			SendMessage(GetDesktopWindow(), WM_SYSCOMMAND, SC_MONITORPOWER, (LPARAM)2);
+		} else {
+			SystemParametersInfo(SPI_SETPOWEROFFACTIVE, 0, NULL, 0);
+			SendMessage(GetDesktopWindow(), WM_SYSCOMMAND, SC_MONITORPOWER, (LPARAM)-1);
+			if (m_pbi != NULL) {
+			// FIXME: Call BlockInput only if it should change current state.
+			(*m_pbi)(FALSE);
+			}
+			m_blank_screen = FALSE;
+		}
+		return;
+	}
+
+	if (!m_pref_blank_screen && m_blank_screen && AuthClientCount() != 0) {
+		SystemParametersInfo(SPI_SETPOWEROFFACTIVE, 0, NULL, 0);
+		SendMessage(GetDesktopWindow(), WM_SYSCOMMAND, SC_MONITORPOWER, (LPARAM)-1);
+		if (m_pbi != NULL) {
+			// FIXME: Call BlockInput only if it should change current state.
+			(*m_pbi)(FALSE);
+		}
+		m_blank_screen = FALSE;
+		return;
+	}
 }

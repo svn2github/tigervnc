@@ -60,7 +60,7 @@ const UINT MENU_KILL_ALL_CLIENTS_MSG = RegisterWindowMessage("WinVNC.KillAllClie
 const UINT fileTransferDownloadMessage = RegisterWindowMessage("VNCServer.1.3.FileTransferDownloadMessage");
 
 #ifdef HORIZONLIVE
-const char *MENU_CLASS_NAME = "LiveShare Tray Icon";
+const char *MENU_CLASS_NAME = "AppShare Tray Icon";
 #else
 const char *MENU_CLASS_NAME = "WinVNC Tray Icon";
 #endif

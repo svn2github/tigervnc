@@ -26,4 +26,10 @@
 #include "stdhdrs.h"
 
 // Create the main log object
+#ifdef HORIZONLIVE
+// ( uncomment this when doing serious debugging )
+// Log vnclog(7, LL_ALL, "G:\\appshare_vnc.log", true);
+Log vnclog(0, 1, "appshare.log", false);
+#else
 Log vnclog(0, 1, "WinVNC.log", false);
+#endif

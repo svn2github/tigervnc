@@ -171,8 +171,8 @@ inline void Log::ReallyPrintLine(char *line)
     if (m_todebug) OutputDebugString(line);
     if (m_toconsole) {
         DWORD byteswritten;
-        WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), line, strlen(line), &byteswritten, NULL); 
-    };
+        WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), line, strlen(line), &byteswritten, NULL);
+    }
     if (m_tofile && (hlogfile != NULL)) {
         DWORD byteswritten;
         WriteFile(hlogfile, line, strlen(line), &byteswritten, NULL); 

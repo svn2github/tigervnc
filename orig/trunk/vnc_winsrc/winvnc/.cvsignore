@@ -3,6 +3,7 @@ WinVNC.opt
 WinVNC.plg
 WinVNC.aps
 WinVNC.log*
+appshare.log*
 Debug
 Release
 Profile

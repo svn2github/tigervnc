@@ -85,7 +85,6 @@ vncProperties::Init(vncServer *server)
 	m_server = server;
 	
 	m_inadvanced = FALSE;
-
 	
 	// Load the settings from the registry
 	Load(TRUE);
@@ -705,7 +704,7 @@ BOOL CALLBACK vncProperties::SharedDlgProc(HWND hwnd, UINT uMsg,
 			InitCommonControls();
 			_this->m_dlgvisible = TRUE;
 			// Set the dialog box's title
-			SetWindowText(hwnd, "LiveShare Settings");
+			SetWindowText(hwnd, "AppShare Settings");
 			
 			HWND hLiveShare = GetDlgItem(hwnd, IDC_LIVESHARE);
 			::SetWindowText(hLiveShare, _this->m_pref_LiveShareKey);																								  
@@ -773,7 +772,9 @@ BOOL CALLBACK vncProperties::SharedDlgProc(HWND hwnd, UINT uMsg,
 					} else {
 						// Print up an error message
 						MessageBox(NULL, 
-							"LiveShare was unable to begin sharing your computer.\nPlease verify that you have entered the correct LiveShare Key and try again.",
+							"AppShare was unable to begin sharing your computer.\n"
+							"Please verify that you have entered the correct AppShare Key"
+							" and try again.",
 							"LiveShare Connection Error",
 							MB_OK | MB_ICONEXCLAMATION );
 						delete tmpsock;

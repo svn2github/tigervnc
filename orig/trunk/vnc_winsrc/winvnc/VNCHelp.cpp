@@ -20,7 +20,7 @@
 // VNCHelp.cpp: implementation of the VNCHelp class.
 
 #include "stdhdrs.h"
-#include "Htmlhelp.h"
+#include "HtmlHelp.h"
 #include "WinVNC.h"
 #include "VNCHelp.h"
 

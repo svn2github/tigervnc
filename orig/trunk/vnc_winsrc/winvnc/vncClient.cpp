@@ -1524,11 +1524,10 @@ vncClient::UpdateRect(RECT &rect)
 	if (IsRectEmpty(&rect))
 		return;
 	
-	{	omni_mutex_lock l(m_regionLock);
+	omni_mutex_lock l(m_regionLock);
 		
 	if (IntersectRect(&rect, &rect, &m_server->getSharedRect()))
 		m_changed_rgn.AddRect(rect);
-	}
 }
 
 void
@@ -1549,6 +1548,77 @@ vncClient::UpdateRegion(vncRegion &region)
 	}
 }
 
+void
+vncClient::CopyRect(RECT &dest, POINT &source)
+{
+	// If copyrect is disabled then just redraw the region!
+	if (!m_copyrect_use)
+	{
+		UpdateRect(dest);
+		return;
+	}
+
+	{	omni_mutex_lock l(m_regionLock);
+
+		// Clip the destination to the screen
+		RECT destrect;
+		if (!IntersectRect(&destrect, &dest, &m_server->getSharedRect()))
+			return;
+
+		// Adjust the source correspondingly
+		source.x = source.x + (destrect.left - dest.left);
+		source.y = source.y + (destrect.top - dest.top);
+
+		// Work out the source rectangle
+		RECT srcrect;
+
+		// Is this a continuation of an earlier window drag?
+		if (m_copyrect_set &&
+			((source.x == m_copyrect_rect.left) && (source.y == m_copyrect_rect.top)))
+		{
+			// Yes, so use the old source position
+			srcrect.left = m_copyrect_src.x;
+			srcrect.top = m_copyrect_src.y;
+		}
+		else
+		{
+			// No, so use this source position
+			srcrect.left = source.x;
+			srcrect.top = source.y;
+		}
+
+		// And fill out the right & bottom using the dest rect
+		srcrect.right = destrect.right-destrect.left + srcrect.left;
+		srcrect.bottom = destrect.bottom-destrect.top + srcrect.top;
+
+		// Clip the source to the screen
+		RECT srcrect2;
+		if (!IntersectRect(&srcrect2, &srcrect, &m_server->getSharedRect()))
+			return;
+
+		// Correct the destination rectangle
+		destrect.left += (srcrect2.left - srcrect.left);
+		destrect.top += (srcrect2.top - srcrect.top);
+		destrect.right = srcrect2.right-srcrect2.left + destrect.left;
+		destrect.bottom = srcrect2.bottom-srcrect2.top + destrect.top;
+
+		// Is there an existing CopyRect rectangle?
+		if (m_copyrect_set)
+		{
+			// Yes, so compare their areas!
+			if (((destrect.right-destrect.left) * (destrect.bottom-destrect.top))
+				< ((m_copyrect_rect.right-m_copyrect_rect.left) * (m_copyrect_rect.bottom-m_copyrect_rect.top)))
+				return;
+		}
+
+		// Set the copyrect...
+		m_copyrect_rect = destrect;
+		m_copyrect_src.x = srcrect2.left;
+		m_copyrect_src.y = srcrect2.top;
+
+		m_copyrect_set = TRUE;
+	}
+}
 
 void
 vncClient::UpdateClipText(LPSTR text)
@@ -1956,25 +2026,10 @@ vncClient::SetNewFBSize(BOOL sendnewfb)
 	return TRUE;
 }
 
-
-
 void
 vncClient::UpdateLocalFormat()
 {
 	m_buffer->UpdateLocalFormat();
-}
-
-
-
-void
-vncClient::CopyRect(RECT &dest, POINT &source)
-{
-	if ( m_copyrect_use )
-	{
-		m_copyrect_rect = dest;
-		m_copyrect_src = source;
-		m_copyrect_set = true;
-	}
 }
 
 char * 

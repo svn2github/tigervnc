@@ -1,5 +1,5 @@
 
-TightVNC 1.2.2 Source Distribution for Windows platforms
+TightVNC 1.2.3 Source Distribution for Windows platforms
 ========================================================
 
 This distribution is based on the standard VNC source with

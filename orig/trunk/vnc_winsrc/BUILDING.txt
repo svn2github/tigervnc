@@ -1,4 +1,4 @@
-BUILDING vncviewer and WinVNC (TightVNC 1.2.2 release)
+BUILDING vncviewer and WinVNC (TightVNC 1.2.3 release)
 ======================================================
 
 This distibution requires two third-party libraries for successfull

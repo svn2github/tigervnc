@@ -1458,7 +1458,7 @@ ClientConnection::~ClientConnection()
 
 	if (m_desktopName != NULL) delete [] m_desktopName;
 	delete [] m_netbuf;
-	delete [] m_pFileTransfer;
+	delete m_pFileTransfer;
 	DeleteDC(m_hBitmapDC);
 	if (m_hBitmap != NULL)
 		DeleteObject(m_hBitmap);

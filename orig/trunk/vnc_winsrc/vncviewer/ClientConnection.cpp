@@ -1490,6 +1490,46 @@ void ClientConnection::SizeWindow(bool centered)
 	SetForegroundWindow(m_hwnd1);
 }
 
+void ClientConnection::PositionChildWindow()
+{
+	RECT rparent;
+	int x, y;
+
+	GetClientRect(m_hwnd1, &rparent);
+	
+	int parentwidth = rparent.right - rparent.left;
+	int parentheight = rparent.bottom - rparent.top; 
+	
+	if (m_fullwinwidth >= parentwidth) {
+			x = 0;
+		} else {
+			x = (parentwidth - m_fullwinwidth) / 2;
+		}
+	if (GetMenuState(GetSystemMenu(m_hwnd1, FALSE),
+				ID_TOOLBAR, MF_BYCOMMAND) == MF_CHECKED) {
+		RECT rtb;
+		GetWindowRect(m_hToolbar, &rtb);		
+		if ((parentheight - rtb.bottom) <= m_fullwinheight) {
+			y = rtb.bottom - rtb.top - 3;
+		} else {
+			y = (parentheight + rtb.bottom - m_fullwinheight) / 2 - rtb.top;
+		}
+		parentheight = parentheight - rtb.bottom + rtb.top + 4;
+		SetWindowPos(m_hToolbar, HWND_TOP, rparent.left, rparent.top,
+					parentwidth, rtb.bottom - rtb.top, SWP_SHOWWINDOW);
+	} else {
+		if (m_fullwinheight >= parentheight) {
+			y = 0;
+		} else {
+			y = (parentheight - m_fullwinheight) / 2;
+		}
+		ShowWindow(m_hToolbar, SW_HIDE);
+	}
+	
+	SetWindowPos(m_hwnd, HWND_TOP, x, y,
+					parentwidth, parentheight, SWP_SHOWWINDOW);
+}
+
 void ClientConnection::CreateLocalFramebuffer() {
 	omni_mutex_lock l(m_bitmapdcMutex);
 
@@ -1836,23 +1876,19 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 			SendMessage(hwnd, WM_CLOSE, 0, 0);
 			return 0;
 		case ID_TOOLBAR:
-			RECT win;
-			GetClientRect(hwnd, &win);
-			
 			if (GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
 				ID_TOOLBAR,MF_BYCOMMAND) == MF_CHECKED) {
 				CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
 					ID_TOOLBAR, MF_BYCOMMAND|MF_UNCHECKED);
-				if ((win.bottom-win.top) > _this->m_fullwinheight) {
-					SetWindowPos(hwnd,HWND_TOP, 0, 0,
-						_this->m_winwidth1, _this->m_winheight1,
-						SWP_NOMOVE|SWP_SHOWWINDOW);
-				}
 			} else {
 				CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
 					ID_TOOLBAR, MF_BYCOMMAND|MF_CHECKED);
 			}
-			SendMessage(hwnd, WM_SIZE, 0, 0);
+			if (GetWindowLong(hwnd, GWL_STYLE) & WS_MAXIMIZE) {
+				_this->PositionChildWindow();
+			} else {
+				_this->SizeWindow(false);
+			}
 			return 0;
 		case ID_CONN_SAVE_AS:			
 			_this->SaveConnection();
@@ -2000,20 +2036,7 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 			return 0;
 		}	
 	case WM_SIZE:
-		RECT rwn, rtb;
-		GetClientRect(hwnd, &rwn);
-		if (GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
-				ID_TOOLBAR, MF_BYCOMMAND) == MF_CHECKED) {
-			GetWindowRect(_this->m_hToolbar, &rtb);
-			SetWindowPos(_this->m_hwnd, HWND_TOP, 0, rtb.bottom - rtb.top - 3 ,
-					rwn.right, rwn.bottom - (rtb.bottom - rtb.top) + 4, SWP_SHOWWINDOW);
-			SetWindowPos(_this->m_hToolbar, HWND_TOP, 0, 0,
-					rwn.right - rwn.left, rtb.bottom - rtb.top, SWP_SHOWWINDOW);
-		} else {
-			SetWindowPos(_this->m_hwnd, HWND_TOP, rwn.left, rwn.top,
-				rwn.right - rwn.left, rwn.bottom - rwn.top, SWP_SHOWWINDOW);
-		}
-		
+		_this->PositionChildWindow();
 		return 0;
 	case WM_CLOSE:		
 		// Close the worker thread as well

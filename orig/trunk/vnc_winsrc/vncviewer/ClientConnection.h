@@ -135,6 +135,7 @@ private:
 	void ReadScreenUpdate();
 	void Update(RECT *pRect);
 	void SizeWindow(bool centered);
+	void PositionChildWindow();
 	bool ScrollScreen(int dx, int dy);
 	void UpdateScrollbars();
 	void EnableFullControlOptions();

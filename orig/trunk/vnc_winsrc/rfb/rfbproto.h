@@ -130,7 +130,7 @@ typedef struct _rfbCapabilityInfo {
 
 	CARD32 code;				/* numeric identifier */
 	CARD8 vendorSignature[4];	/* vendor identification */
-	CARD8 nameSignatire[8];		/* abbreviated option name */
+	CARD8 nameSignature[8];		/* abbreviated option name */
 
 } rfbCapabilityInfo;
 

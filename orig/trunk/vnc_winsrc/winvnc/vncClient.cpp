@@ -159,11 +159,10 @@ vncClientThread::InitHandshakingCaps()
 		return FALSE;
 
 	// Inform the client that we do support the standard VNC authentication.
-	// FIXME: Move to a separate class e.g. vncCapsContainer.
 	rfbCapabilityInfo cap;
 	cap.code = Swap32IfLE(rfbVncAuth);
 	memcpy(cap.vendorSignature, rfbStandardVendor, sz_rfbCapabilityInfoVendor);
-	memcpy(cap.nameSignatire, rfbVncAuthSignature, sz_rfbCapabilityInfoName);
+	memcpy(cap.nameSignature, rfbVncAuthSignature, sz_rfbCapabilityInfoName);
 
 	return m_socket->SendExact((char *)&cap, sz_rfbCapabilityInfo);
 }

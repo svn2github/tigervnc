@@ -34,6 +34,7 @@ class ButtonPanel extends Panel implements ActionListener {
   Button optionsButton;
   Button clipboardButton;
   Button ctrlAltDelButton;
+  Button refreshButton;
 
   ButtonPanel(VncViewer v) {
     viewer = v;
@@ -54,12 +55,17 @@ class ButtonPanel extends Panel implements ActionListener {
     ctrlAltDelButton.setEnabled(false);
     add(ctrlAltDelButton);
     ctrlAltDelButton.addActionListener(this);
+    refreshButton = new Button("Refresh");
+    refreshButton.setEnabled(false);
+    add(refreshButton);
+    refreshButton.addActionListener(this);
   }
 
   public void enableButtons() {
     disconnectButton.setEnabled(true);
     clipboardButton.setEnabled(true);
     ctrlAltDelButton.setEnabled(true);
+    refreshButton.setEnabled(true);
   }
 
   public void actionPerformed(ActionEvent evt) {
@@ -84,6 +90,14 @@ class ButtonPanel extends Panel implements ActionListener {
           new KeyEvent(this, KeyEvent.KEY_RELEASED, 0, modifiers, 127);
         viewer.rfb.writeKeyEvent(ctrlAltDelEvent);
 
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    } else if (evt.getSource() == refreshButton) {
+      try {
+	RfbProto rfb = viewer.rfb;
+	rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
+					  rfb.framebufferHeight, false);
       } catch (IOException e) {
         e.printStackTrace();
       }

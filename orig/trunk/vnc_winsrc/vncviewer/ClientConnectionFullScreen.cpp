@@ -61,6 +61,8 @@ void ClientConnection::RealiseFullScreenMode(bool suppressPrompt)
 				_T("VNCviewer full-screen mode"),
 				MB_OK | MB_ICONINFORMATION | MB_TOPMOST | MB_SETFOREGROUND);
 		}
+		BOOL showToolBar = (GetMenuState(GetSystemMenu(m_hwnd1, FALSE),
+				ID_TOOLBAR, MF_BYCOMMAND) == MF_CHECKED);
 		ShowWindow(m_hToolbar, SW_HIDE);
 		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_TOOLBAR, MF_BYCOMMAND|MF_GRAYED);
 		ShowWindow(m_hwnd1, SW_MAXIMIZE);
@@ -72,7 +74,8 @@ void ClientConnection::RealiseFullScreenMode(bool suppressPrompt)
 		int cy = GetSystemMetrics(SM_CYSCREEN);
 		SetWindowPos(m_hwnd1, HWND_TOP, -1, -1, cx + 3, cy + 3, SWP_FRAMECHANGED);
 		CheckMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_FULLSCREEN, MF_BYCOMMAND|MF_CHECKED);
-		m_QuitFSW->ShowButton(TRUE);
+		if (showToolBar)
+			m_QuitFSW->ShowButton(TRUE);
 		SetFocus(m_hwnd1);
 	} else {
 		m_QuitFSW->ShowButton(FALSE);

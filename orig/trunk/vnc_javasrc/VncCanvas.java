@@ -25,7 +25,6 @@ import java.awt.event.*;
 import java.awt.image.*;
 import java.io.*;
 import java.lang.*;
-import java.util.*;
 import java.util.zip.*;
 
 
@@ -50,30 +49,33 @@ class VncCanvas extends Canvas
   byte[] pixels8;
   int[] pixels24;
 
+  // Zlib encoder's data.
   byte[] zlibBuf;
   int zlibBufLen = 0;
   Inflater zlibInflater;
 
+  // Tight encoder's data.
   final static int tightZlibBufferSize = 512;
   Inflater[] tightInflaters;
 
   // Since JPEG images are loaded asynchronously, we have to remember
-  // their position in the framebuffer image. Currently, a Hashtable
-  // is used to map Image object references to Dimension objects.
-  // FIXME: Use ordered lists instead, to make sure drawing operations
-  // are performed in correct order.
-  // FIXME: Do not draw anything elase until a JPEG rectangle is fully
-  // drawn?
-  Hashtable jpegAnchorTable;
+  // their position in the framebuffer. Also, this jpegRect object is
+  // used for synchronization between the rfbThread and a JVM's thread
+  // which decodes and loads JPEG images.
+  Rectangle jpegRect;
 
+  // True if we process keyboard and mouse events.
   boolean listenersInstalled;
+
+  //
+  // The constructor.
+  //
 
   VncCanvas(VncViewer v) throws IOException {
     viewer = v;
     rfb = viewer.rfb;
 
     tightInflaters = new Inflater[4];
-    jpegAnchorTable = new Hashtable();
 
     cm8 = new DirectColorModel(8, 7, (7 << 3), (3 << 6));
     cm24 = new DirectColorModel(24, 0xFF0000, 0x00FF00, 0x0000FF);
@@ -97,6 +99,10 @@ class VncCanvas extends Canvas
       enableInput(true);
   }
 
+  //
+  // Callback methods to determine geometry of our Component.
+  //
+
   public Dimension getPreferredSize() {
     return new Dimension(rfb.framebufferWidth, rfb.framebufferHeight);
   }
@@ -108,6 +114,10 @@ class VncCanvas extends Canvas
   public Dimension getMaximumSize() {
     return new Dimension(rfb.framebufferWidth, rfb.framebufferHeight);
   }
+
+  //
+  // All painting is performed here.
+  //
 
   public void update(Graphics g) {
     paint(g);
@@ -136,11 +146,13 @@ class VncCanvas extends Canvas
     } else {
       // If the whole image is available, draw it now.
       if ((infoflags & ALLBITS) != 0) {
-	Rectangle rect = (Rectangle)jpegAnchorTable.get(img);
-	if (rect != null) {
-	  jpegAnchorTable.remove(img);
-	  memGraphics.drawImage(img, rect.x, rect.y, null);
-	  scheduleRepaint(rect.x, rect.y, rect.width, rect.height);
+	if (jpegRect != null) {
+	  synchronized(jpegRect) {
+	    memGraphics.drawImage(img, jpegRect.x, jpegRect.y, null);
+	    scheduleRepaint(jpegRect.x, jpegRect.y,
+			    jpegRect.width, jpegRect.height);
+	    jpegRect.notify();
+	  }
 	}
       }
       return false;		// All image data was processed.
@@ -166,8 +178,6 @@ class VncCanvas extends Canvas
   }
 
   void updateFramebufferSize() {
-
-    jpegAnchorTable.clear();
 
     memImage = viewer.createImage(rfb.framebufferWidth, rfb.framebufferHeight);
     memGraphics = memImage.getGraphics();
@@ -681,15 +691,32 @@ class VncCanvas extends Canvas
     }
 
     if (comp_ctl == rfb.TightJpeg) {
+
+      // Read JPEG data.
       byte[] jpegData = new byte[rfb.readCompactLen()];
       rfb.is.readFully(jpegData);
+
       // Create an Image object from the JPEG data.
       Image jpegImage = Toolkit.getDefaultToolkit().createImage(jpegData);
+
       // Remember the rectangle where the image should be drawn.
-      jpegAnchorTable.put(jpegImage, new Rectangle(x, y, w, h));
-      // Let the imageUpdate() method do the actual drawing.
-      Toolkit.getDefaultToolkit().prepareImage(jpegImage, -1, -1, this);
+      jpegRect = new Rectangle(x, y, w, h);
+
+      // Let the imageUpdate() method do the actual drawing, here just
+      // wait until the image is fully loaded and drawn.
+      synchronized(jpegRect) {
+	Toolkit.getDefaultToolkit().prepareImage(jpegImage, -1, -1, this);
+	try {
+	  jpegRect.wait();
+	} catch (InterruptedException e) {
+	  throw new IOException("Interrupted while decoding JPEG image");
+	}
+      }
+
+      // Done, jpegRect is not needed any more.
+      jpegRect = null;
       return;
+
     }
 
     // Read filter id and parameters.

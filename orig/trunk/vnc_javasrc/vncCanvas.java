@@ -632,13 +632,15 @@ class vncCanvas extends Canvas
 	  if (v.gotFocus) {
 	    requestFocus();
 	  }
-	  rfb.writePointerEvent(evt);
+	  if (!v.options.viewOnly)
+		  rfb.writePointerEvent(evt);
 	  break;
 	case Event.KEY_PRESS:
 	case Event.KEY_RELEASE:
 	case Event.KEY_ACTION:
 	case Event.KEY_ACTION_RELEASE:
-	  rfb.writeKeyEvent(evt);
+	  if (!v.options.viewOnly)
+		  rfb.writeKeyEvent(evt);
 	  break;
 	}
       } catch (Exception e) {

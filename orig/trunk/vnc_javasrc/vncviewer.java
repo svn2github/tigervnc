@@ -52,6 +52,7 @@ public class vncviewer extends java.applet.Applet
   String[] mainArgs;
   String host;
   int port;
+  String password = null;
   rfbProto rfb;
   Thread rfbThread;
   GridBagLayout gridbag;
@@ -94,25 +95,28 @@ public class vncviewer extends java.applet.Applet
     gridbag = new GridBagLayout();
     setLayout(gridbag);
 
-    buttonPanel = new Panel();
-    buttonPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
-    disconnectButton = new Button("Disconnect");
-    disconnectButton.disable();
-    buttonPanel.add(disconnectButton);
-    optionsButton = new Button("Options");
-    buttonPanel.add(optionsButton);
-    clipboardButton = new Button("Clipboard");
-    clipboardButton.disable();
-    buttonPanel.add(clipboardButton);
-    ctrlAltDelButton = new Button("Send Ctrl-Alt-Del");
-    ctrlAltDelButton.disable();
-    buttonPanel.add(ctrlAltDelButton);
-
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbc.anchor = GridBagConstraints.NORTHWEST;
-    gridbag.setConstraints(buttonPanel,gbc);
-    add(buttonPanel);
+
+    if (options.showControls) {
+	    buttonPanel = new Panel();
+	    buttonPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+	    disconnectButton = new Button("Disconnect");
+	    disconnectButton.disable();
+	    buttonPanel.add(disconnectButton);
+	    optionsButton = new Button("Options");
+	    buttonPanel.add(optionsButton);
+	    clipboardButton = new Button("Clipboard");
+	    clipboardButton.disable();
+	    buttonPanel.add(clipboardButton);
+	    ctrlAltDelButton = new Button("Send Ctrl-Alt-Del");
+	    ctrlAltDelButton.disable();
+	    buttonPanel.add(ctrlAltDelButton);
+
+	    gridbag.setConstraints(buttonPanel,gbc);
+	    add(buttonPanel);
+    }
 
     try {
       connectAndAuthenticate();
@@ -132,9 +136,11 @@ public class vncviewer extends java.applet.Applet
 	validate();
       }
 
-      disconnectButton.enable();
-      clipboardButton.enable();
-      ctrlAltDelButton.enable();
+      if (options.showControls) {
+	      disconnectButton.enable();
+	      clipboardButton.enable();
+	      ctrlAltDelButton.enable();
+      }
 
       vc.processNormalProtocol();
 
@@ -152,26 +158,31 @@ public class vncviewer extends java.applet.Applet
 
   void connectAndAuthenticate() throws IOException {
 
-    GridBagConstraints gbc = new GridBagConstraints();
-    gbc.gridwidth = GridBagConstraints.REMAINDER;
-    gbc.anchor = GridBagConstraints.NORTHWEST;
-    gbc.weightx = 1.0;
-    gbc.weighty = 1.0;
-    gbc.ipadx = 100;
-    gbc.ipady = 50;
-    gridbag.setConstraints(authenticator,gbc);
-    add(authenticator);
+    if (password == null) {
+	    GridBagConstraints gbc = new GridBagConstraints();
+	    gbc.gridwidth = GridBagConstraints.REMAINDER;
+	    gbc.anchor = GridBagConstraints.NORTHWEST;
+	    gbc.weightx = 1.0;
+	    gbc.weighty = 1.0;
+	    gbc.ipadx = 100;
+	    gbc.ipady = 50;
+	    gridbag.setConstraints(authenticator,gbc);
+	    add(authenticator);
+    }
     validate();
     if (!inAnApplet) {
       f.pack();
       f.show();
     }
-    authenticator.getPasswordField().requestFocus();
+
+    if (password == null)
+	    authenticator.getPasswordField().requestFocus();
 
     boolean authenticationDone = false;
 
     while (!authenticationDone) {
 
+    if (password == null)
       synchronized(authenticator) {
 	try {
 	  authenticator.wait();
@@ -199,10 +210,15 @@ public class vncviewer extends java.applet.Applet
 	byte[] challenge = new byte[16];
 	rfb.is.readFully(challenge);
 
-	String pw = authenticator.password.getText();
+	String pw;
+	if (password == null)
+		pw = authenticator.password.getText();
+	else
+		pw = password;
+
 	if (pw.length() > 8) pw = pw.substring(0,8); // truncate to 8 chars
 
-	if (pw.length() == 0) {
+	if (pw.length() == 0 && password == null) {
 	  authenticator.retry();
 	  break;
 	}
@@ -243,7 +259,8 @@ public class vncviewer extends java.applet.Applet
       }
     }
 
-    remove(authenticator);
+    if (password == null)
+      remove(authenticator);
   }
 
 
@@ -422,6 +439,8 @@ public class vncviewer extends java.applet.Applet
 
     String s = readParameter("PORT", true);
     port = Integer.parseInt(s);
+
+    password = readParameter("PASSWORD", false);
   }
 
   public String readParameter(String name, boolean required) {

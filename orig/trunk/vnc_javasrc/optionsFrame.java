@@ -37,6 +37,7 @@ class optionsFrame extends Frame {
     "Use CopyRect",
     "Mouse buttons 2 and 3",
     "Share desktop",
+    "View only",
   };
 
   static String[][] values = {
@@ -46,15 +47,17 @@ class optionsFrame extends Frame {
     { "Yes", "No" },
     { "Normal", "Reversed" },
     { "Yes", "No" },
+    { "Yes", "No" },
   };
 
   final int
-    encodingIndex        = 0,
-    compressLevelIndex   = 1,
-    cursorUpdatesIndex   = 2,
-    useCopyRectIndex     = 3,
-    mouseButtonIndex     = 4,
-    shareDesktopIndex    = 5;
+    encodingIndex        	= 0,
+    compressLevelIndex   	= 1,
+    cursorUpdatesIndex   	= 2,
+    useCopyRectIndex     	= 3,
+    mouseButtonIndex     	= 4,
+    shareDesktopIndex    	= 5,
+    viewOnlyIndex   	 	= 6;
 
   Label[] labels = new Label[names.length];
   Choice[] choices = new Choice[names.length];
@@ -75,9 +78,9 @@ class optionsFrame extends Frame {
   boolean ignoreCursorUpdates;
 
   boolean reverseMouseButtons2And3;
-
   boolean shareDesktop;
-
+  boolean viewOnly;
+  boolean showControls;
 
   //
   // Constructor.  Set up the labels and choices from the names and values
@@ -126,6 +129,7 @@ class optionsFrame extends Frame {
     choices[useCopyRectIndex].select("Yes");
     choices[mouseButtonIndex].select("Normal");
     choices[shareDesktopIndex].select("Yes");
+    choices[viewOnlyIndex].select("No");
 
     // But let them be overridden by parameters
 
@@ -139,6 +143,13 @@ class optionsFrame extends Frame {
 	}
       }
     }
+
+    // "Show Controls" setting does not have associated GUI option
+
+    showControls = true;
+    String s = v.readParameter("Show Controls", false);
+    if (s != null && s.equalsIgnoreCase("No"))
+      showControls = false;
 
     // Make the booleans and encodings array correspond to the state of the GUI
 
@@ -154,6 +165,12 @@ class optionsFrame extends Frame {
   void disableShareDesktop() {
     labels[shareDesktopIndex].disable();
     choices[shareDesktopIndex].disable();
+  }
+
+
+  void disableViewOnly() {
+    labels[viewOnlyIndex].disable();
+    choices[viewOnlyIndex].disable();
   }
 
   //
@@ -251,6 +268,9 @@ class optionsFrame extends Frame {
 
     shareDesktop
       = choices[shareDesktopIndex].getSelectedItem().equals("Yes");
+
+    viewOnly 
+      = choices[viewOnlyIndex].getSelectedItem().equals("Yes");
   }
 
 
@@ -274,7 +294,8 @@ class optionsFrame extends Frame {
       return true;
 
     } else if ((evt.target == choices[mouseButtonIndex]) ||
-	       (evt.target == choices[shareDesktopIndex])) {
+	       (evt.target == choices[shareDesktopIndex]) ||
+	       (evt.target == choices[viewOnlyIndex])) {
 
       setOtherOptions();
       return true;

@@ -898,7 +898,7 @@ vncProperties::Load(BOOL usersettings)
 		WINVNC_REGISTRY_KEY,
 		0, REG_NONE, REG_OPTION_NON_VOLATILE,
 		KEY_READ, NULL, &hkLocal, &dw) != ERROR_SUCCESS)
-		return;
+		hkLocal = NULL;
 
 	// Now try to get the per-user local key
 	if (RegOpenKeyEx(hkLocal,

@@ -101,7 +101,8 @@ void Log::OpenFile()
 			strcat(backupfilename, ".bak");
 			// Attempt the move and replace any existing backup
 			// Note that failure is silent - where would we log a message to? ;)
-			MoveFileEx(m_filename, backupfilename, MOVEFILE_REPLACE_EXISTING);
+			DeleteFile(backupfilename);
+			MoveFile(m_filename, backupfilename);
 			delete [] backupfilename;
 		}
 	}

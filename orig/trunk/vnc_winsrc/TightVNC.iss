@@ -31,10 +31,13 @@ Source: "WinVNC.exe"; DestDir: "{app}"; CopyMode: alwaysoverwrite; Flags: restar
 Source: "VNCHooks.dll"; DestDir: "{app}"; CopyMode: alwaysoverwrite; Flags: restartreplace
 Source: "vncviewer.exe"; DestDir: "{app}"; CopyMode: alwaysoverwrite
 Source: "README.txt"; DestDir: "{app}"; CopyMode: alwaysoverwrite; Flags: isreadme
-Source: "WhatsNew.txt"; DestDir: "{app}"; CopyMode: alwaysoverwrite
-Source: "ChangeLog.txt"; DestDir: "{app}"; CopyMode: alwaysoverwrite
 Source: "LICENCE.txt"; DestDir: "{app}"; CopyMode: alwaysoverwrite
 Source: "VNCHooks_Settings.reg"; DestDir: "{app}"; CopyMode: alwaysoverwrite
+Source: "Web\*"; DestDir: "{app}\Web"; CopyMode: alwaysoverwrite
+Source: "Web\doc\win32\*"; DestDir: "{app}\Web\doc\win32"; CopyMode: alwaysoverwrite
+Source: "Web\doc\java\*"; DestDir: "{app}\Web\doc\java"; CopyMode: alwaysoverwrite
+Source: "Web\doc\man\*"; DestDir: "{app}\Web\doc\man"; CopyMode: alwaysoverwrite
+Source: "Web\doc\unix\*"; DestDir: "{app}\Web\doc\unix"; CopyMode: alwaysoverwrite
 
 [Icons]
 Name: "{group}\Launch TightVNC Server";               FileName: "{app}\WinVNC.exe";                                    WorkingDir: "{app}"
@@ -43,11 +46,16 @@ Name: "{group}\Show User Settings";                   FileName: "{app}\WinVNC.ex
 Name: "{group}\TightVNC Viewer (Best Compression)";   FileName: "{app}\vncviewer.exe"; Parameters: "-compresslevel 9 -quality 0"; WorkingDir: "{app}"
 Name: "{group}\TightVNC Viewer (Fast Compression)";   FileName: "{app}\vncviewer.exe"; Parameters: "-encoding hextile"; WorkingDir: "{app}"
 Name: "{group}\TightVNC Viewer (Listen Mode)";        FileName: "{app}\vncviewer.exe"; Parameters: "-listen";          WorkingDir: "{app}"
-Name: "{group}\Administration\Install Default Registry Settings"; FileName: "{app}\VNCHooks_Settings.reg"; WorkingDir: "{app}"
+Name: "{group}\Administration\Install Default Registry Settings"; FileName: "{app}\VNCHooks_Settings.reg";             WorkingDir: "{app}"
 Name: "{group}\Administration\Install VNC Service";   FileName: "{app}\WinVNC.exe";    Parameters: "-install";         WorkingDir: "{app}"
 Name: "{group}\Administration\Remove VNC Service";    FileName: "{app}\WinVNC.exe";    Parameters: "-remove";          WorkingDir: "{app}"
 Name: "{group}\Administration\Run Service Helper";    FileName: "{app}\WinVNC.exe";    Parameters: "-servicehelper";   WorkingDir: "{app}"
 Name: "{group}\Administration\Show Default Settings"; FileName: "{app}\WinVNC.exe";    Parameters: "-defaultsettings"; WorkingDir: "{app}"
+Name: "{group}\Documentation\About VNC and TightVNC"; FileName: "{app}\Web\index.html";                                WorkingDir: "{app}\Web"
+Name: "{group}\Documentation\Installation and Getting Started"; FileName: "{app}\Web\winst.html";                      WorkingDir: "{app}\Web"
+Name: "{group}\Documentation\Licensing Terms";        FileName: "{app}\LICENCE.txt";                                   WorkingDir: "{app}"
+Name: "{group}\Documentation\What's New (Detailed Log)"; FileName: "{app}\Web\Win32-ChangeLog.txt";                    WorkingDir: "{app}\Web"
+Name: "{group}\Documentation\What's New (Summary)";   FileName: "{app}\Web\WhatsNew.txt";                              WorkingDir: "{app}\Web"
 
 [Tasks]
 Name: associate; Description: "&Associate .vnc files with TightVNC Viewer"; GroupDescription: "File Associations:"

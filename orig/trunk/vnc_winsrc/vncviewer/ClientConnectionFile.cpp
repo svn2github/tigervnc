@@ -34,7 +34,7 @@
 
 static OPENFILENAME ofn;
 
-void ofnInit()
+static void ofnInit()
 {
 	static char filter[] = "VNC files (*.vnc)\0*.vnc\0" \
 						   "All files (*.*)\0*.*\0";
@@ -54,11 +54,33 @@ void ofnInit()
 void ClientConnection::SaveConnection()
 {
 	vnclog.Print(2, _T("Saving connection info\n"));	
-	char fname[_MAX_PATH];
 	char tname[_MAX_FNAME + _MAX_EXT];
 	ofnInit();
-	int disp = PORT_TO_DISPLAY(m_port);
-	sprintf(fname, "%.10s-%d.vnc", m_host, (disp > 0 && disp < 100) ? disp : m_port);
+
+	// Let's choose a reasonable file name based on hostname and port
+	char fname[_MAX_PATH];
+
+	// If the first character of the hostname is a letter, try to use
+	// only the part of the hostname before the first dot
+	char *ptr = NULL;
+	if (isalpha(m_host[0])) {
+		ptr = strchr(m_host, '.');
+		if (ptr - m_host > 24)
+			ptr = NULL;
+	}
+	if (ptr) {
+		memcpy(fname, m_host, ptr - m_host);
+		fname[ptr - m_host] = '\0';
+	} else {
+		sprintf(fname, "%.24s", m_host);
+	}
+	// Append the port number if it's not the default port
+	if (PORT_TO_DISPLAY(m_port) != 0) {
+		sprintf(&fname[strlen(fname)], "-%d", m_port);
+	}
+	// Finally, append the .vnc suffix (note there will be no buffer overrun)
+	strcat(fname, ".vnc");
+
 	ofn.hwndOwner = m_hwnd;
 	ofn.lpstrFile = fname;
 	ofn.lpstrFileTitle = tname; 

@@ -1352,8 +1352,10 @@ vncDesktop::CreateBuffers()
 
 	// Create a new DIB section ***
 	HBITMAP tempbitmap = CreateDIBSection(m_hmemdc, &m_bminfo.bmi, DIB_RGB_COLORS, &m_DIBbits, NULL, 0);
-	
-	if ( (tempbitmap == NULL) || m_formatmunged) {
+
+	m_freemainbuff = false;
+
+	if (tempbitmap == NULL || m_formatmunged) {
 		vnclog.Print(LL_INTWARN, VNCLOG("failed to build DIB section - reverting to slow blits\n"));
 		m_DIBbits = NULL;
 		// create our own buffer to copy blits through
@@ -1366,8 +1368,7 @@ vncDesktop::CreateBuffers()
 			vnclog.Print(LL_INTERR, VNCLOG("unable to allocate back buffer[%d]\n"), ScreenBuffSize());
 			return FALSE;
 		}
-	
-			return TRUE;
+		return TRUE;
 	}
 	
 	// Create our own buffer to copy blits through

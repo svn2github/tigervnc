@@ -418,7 +418,7 @@ class VncCanvas extends Canvas
   // Handle a CopyRect rectangle.
   //
 
-  void handleCopyRect(int x, int y, int w, int h) throws Exception {
+  void handleCopyRect(int x, int y, int w, int h) throws IOException {
 
     rfb.readCopyRect();
     memGraphics.copyArea(rfb.copyRectSrcX, rfb.copyRectSrcY, w, h,
@@ -431,7 +431,7 @@ class VncCanvas extends Canvas
   // Handle an RRE-encoded rectangle.
   //
 
-  void handleRRERect(int x, int y, int w, int h) throws Exception {
+  void handleRRERect(int x, int y, int w, int h) throws IOException {
 
     int nSubrects = rfb.is.readInt();
     int sx, sy, sw, sh;
@@ -475,7 +475,7 @@ class VncCanvas extends Canvas
   // Handle a CoRRE-encoded rectangle.
   //
 
-  void handleCoRRERect(int x, int y, int w, int h) throws Exception {
+  void handleCoRRERect(int x, int y, int w, int h) throws IOException {
 
     int nSubrects = rfb.is.readInt();
     int sx, sy, sw, sh;
@@ -522,7 +522,7 @@ class VncCanvas extends Canvas
   // These colors should be kept between handleHextileSubrect() calls.
   private Color hextile_bg, hextile_fg;
 
-  void handleHextileRect(int x, int y, int w, int h) throws Exception {
+  void handleHextileRect(int x, int y, int w, int h) throws IOException {
 
     hextile_bg = new Color(0);
     hextile_fg = new Color(0);
@@ -549,7 +549,8 @@ class VncCanvas extends Canvas
   // Handle one tile in the Hextile-encoded data.
   //
 
-  void handleHextileSubrect(int tx, int ty, int tw, int th) throws Exception {
+  void handleHextileSubrect(int tx, int ty, int tw, int th)
+    throws IOException {
 
     int subencoding = rfb.is.readUnsignedByte();
 
@@ -928,8 +929,7 @@ class VncCanvas extends Canvas
   // Decode 1bpp-encoded bi-color rectangle (8-bit and 24-bit versions).
   //
 
-  void decodeMonoData(int x, int y, int w, int h, byte[] src, byte[] palette)
-    throws IOException {
+  void decodeMonoData(int x, int y, int w, int h, byte[] src, byte[] palette) {
 
     int dx, dy, n;
     int i = y * rfb.framebufferWidth + x;
@@ -949,8 +949,7 @@ class VncCanvas extends Canvas
     }
   }
 
-  void decodeMonoData(int x, int y, int w, int h, byte[] src, int[] palette)
-    throws IOException {
+  void decodeMonoData(int x, int y, int w, int h, byte[] src, int[] palette) {
 
     int dx, dy, n;
     int i = y * rfb.framebufferWidth + x;
@@ -974,8 +973,7 @@ class VncCanvas extends Canvas
   // Decode data processed with the "Gradient" filter.
   //
 
-  void decodeGradientData (int x, int y, int w, int h, byte[] buf)
-    throws IOException {
+  void decodeGradientData (int x, int y, int w, int h, byte[] buf) {
 
     int dx, dy, c;
     byte[] prevRow = new byte[w * 3];

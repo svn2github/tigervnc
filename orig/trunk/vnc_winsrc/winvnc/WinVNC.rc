@@ -144,7 +144,7 @@ BEGIN
                     10,56,179,15
     CONTROL         "Allow ONLY loopback",IDONLYLOOPBACK,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,175,133,100,15
-    CONTROL         "Log extensive degug info",IDLOGLOTS,"Button",
+    CONTROL         "Log extensive debug info",IDLOGLOTS,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,175,177,100,15
     CONTROL         "Allow loopback connections",IDALLOWLOOPBACK,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,155,114,120,15
@@ -153,7 +153,7 @@ BEGIN
     GROUPBOX        "Connection Priority",IDPRIORITY,5,103,133,69
     CONTROL         "Disconnect existing connections",IDPRIORITY0,"Button",
                     BS_AUTORADIOBUTTON | WS_GROUP,10,115,121,15
-    CONTROL         "Refuse concurrent connetions",IDPRIORITY2,"Button",
+    CONTROL         "Refuse concurrent connections",IDPRIORITY2,"Button",
                     BS_AUTORADIOBUTTON,10,152,121,15
     CONTROL         "Automatic shared sessions",IDPRIORITY1,"Button",
                     BS_AUTORADIOBUTTON,10,133,121,15

@@ -20,6 +20,7 @@ CFG=zlib - Win32 Debug
 !MESSAGE "zlib - Win32 Release" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE "zlib - Win32 Debug" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE "zlib - Win32 No_CORBA" (based on "Win32 (x86) Dynamic-Link Library")
+!MESSAGE "zlib - Win32 HorizonLive" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE 
 
 # Begin Project
@@ -108,6 +109,35 @@ LINK32=link.exe
 # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib /nologo /subsystem:windows /dll /machine:I386
 # SUBTRACT LINK32 /pdb:none
 
+!ELSEIF  "$(CFG)" == "zlib - Win32 HorizonLive"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "zlib___Win32_HorizonLive"
+# PROP BASE Intermediate_Dir "zlib___Win32_HorizonLive"
+# PROP BASE Ignore_Export_Lib 0
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "..\HorizonLive"
+# PROP Intermediate_Dir "..\HorizonLive"
+# PROP Ignore_Export_Lib 0
+# PROP Target_Dir ""
+# ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "ZLIB_EXPORTS" /D "_ZLIB_DLL" /D "ZLIB_DLL" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "ZLIB_EXPORTS" /D "_ZLIB_DLL" /D "ZLIB_DLL" /YX /FD /c
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD BASE RSC /l 0x409 /d "NDEBUG"
+# ADD RSC /l 0x409 /d "NDEBUG"
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib /nologo /subsystem:windows /dll /machine:I386
+# SUBTRACT BASE LINK32 /pdb:none
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib /nologo /subsystem:windows /dll /machine:I386
+# SUBTRACT LINK32 /pdb:none
+
 !ENDIF 
 
 # Begin Target
@@ -115,6 +145,7 @@ LINK32=link.exe
 # Name "zlib - Win32 Release"
 # Name "zlib - Win32 Debug"
 # Name "zlib - Win32 No_CORBA"
+# Name "zlib - Win32 HorizonLive"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"

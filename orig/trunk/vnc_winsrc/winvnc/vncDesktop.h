@@ -79,6 +79,8 @@ public:
 
 	// Screen translation, capture, info
 	void FillDisplayInfo(rfbServerInitMsg *scrInfo);
+	void SetLocalInputDisableHook(BOOL enable);
+	void SetLocalInputPriorityHook(BOOL enable);
 	void Translate(
 		rfbTranslateFnType	translator,
 		char				*dest,

@@ -25,6 +25,7 @@ CFG=WinVNC - Win32 Profile
 !MESSAGE "WinVNC - Win32 Profile" (based on "Win32 (x86) Application")
 !MESSAGE "WinVNC - Win32 Alpha No_CORBA" (based on "Win32 (ALPHA) Application")
 !MESSAGE "WinVNC - Win32 Alpha Debug No_CORBA" (based on "Win32 (ALPHA) Application")
+!MESSAGE "WinVNC - Win32 HorizonLive" (based on "Win32 (x86) Application")
 !MESSAGE 
 
 # Begin Project
@@ -252,6 +253,40 @@ LINK32=link.exe
 # ADD LINK32 wsock32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib /nologo /subsystem:windows /debug /machine:ALPHA /pdbtype:sept
 # SUBTRACT LINK32 /pdb:none
 
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "WinVNC___Win32_HorizonLive"
+# PROP BASE Intermediate_Dir "WinVNC___Win32_HorizonLive"
+# PROP BASE Ignore_Export_Lib 0
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "HorizonLive"
+# PROP Intermediate_Dir "HorizonLive"
+# PROP Ignore_Export_Lib 0
+# PROP Target_Dir ""
+CPP=cl.exe
+# ADD BASE CPP /nologo /MD /W3 /GX /O2 /I "./omnithread" /I "./zlib" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "__WIN32__" /D "__NT__" /D "__x86__" /D "_WINSTATIC" /D "NCORBA" /D "ZLIB_DLL" /D "XMD_H" /Fr /YX /FD /c
+# SUBTRACT BASE CPP /X
+# ADD CPP /nologo /MD /W3 /GX /O2 /I "./omnithread" /I "./zlib" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "__WIN32__" /D "__NT__" /D "__x86__" /D "_WINSTATIC" /D "NCORBA" /D "ZLIB_DLL" /D "XMD_H" /D "HORIZONLIVE" /Fr /YX /FD /c
+# SUBTRACT CPP /X
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d "NDEBUG"
+# ADD RSC /l 0x409 /d "NDEBUG"
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 wsock32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib /nologo /subsystem:windows /machine:I386 /nodefaultlib:"LIBC"
+# SUBTRACT BASE LINK32 /pdb:none /nodefaultlib
+# ADD LINK32 wsock32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib /nologo /subsystem:windows /machine:I386 /nodefaultlib:"LIBC" /out:"HorizonLive/LiveShare.exe"
+# SUBTRACT LINK32 /pdb:none /nodefaultlib
+
 !ENDIF 
 
 # Begin Target
@@ -263,6 +298,7 @@ LINK32=link.exe
 # Name "WinVNC - Win32 Profile"
 # Name "WinVNC - Win32 Alpha No_CORBA"
 # Name "WinVNC - Win32 Alpha Debug No_CORBA"
+# Name "WinVNC - Win32 HorizonLive"
 # Begin Group "Source"
 
 # PROP Default_Filter ".cpp, .c"
@@ -288,6 +324,8 @@ DEP_CPP_D3DES=\
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
+
 !ENDIF 
 
 # End Source File
@@ -308,6 +346,31 @@ SOURCE=.\Log.cpp
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\MatchWindow.cpp
+
+!IF  "$(CFG)" == "WinVNC - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 Debug"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 Purify"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 No_CORBA"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 Profile"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
 
 !ENDIF 
 
@@ -333,6 +396,8 @@ DEP_CPP_MINMA=\
 	
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
 
 !ENDIF 
 
@@ -360,6 +425,8 @@ DEP_CPP_RECTL=\
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
+
 !ENDIF 
 
 # End Source File
@@ -384,6 +451,8 @@ DEP_CPP_STDHD=\
 	
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
 
 !ENDIF 
 
@@ -418,6 +487,11 @@ SOURCE=.\tableinitcmtemplate.cpp
 # PROP Exclude_From_Build 1
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
+
+# PROP BASE Exclude_From_Build 1
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
 
 # PROP BASE Exclude_From_Build 1
 # PROP Exclude_From_Build 1
@@ -459,6 +533,11 @@ SOURCE=.\tableinittctemplate.cpp
 # PROP BASE Exclude_From_Build 1
 # PROP Exclude_From_Build 1
 
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
+
+# PROP BASE Exclude_From_Build 1
+# PROP Exclude_From_Build 1
+
 !ENDIF 
 
 # End Source File
@@ -496,6 +575,11 @@ SOURCE=.\tabletranstemplate.cpp
 # PROP BASE Exclude_From_Build 1
 # PROP Exclude_From_Build 1
 
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
+
+# PROP BASE Exclude_From_Build 1
+# PROP Exclude_From_Build 1
+
 !ENDIF 
 
 # End Source File
@@ -527,6 +611,8 @@ DEP_CPP_TRANS=\
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
+
 !ENDIF 
 
 # End Source File
@@ -554,6 +640,8 @@ DEP_CPP_VNCAB=\
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
+
 !ENDIF 
 
 # End Source File
@@ -575,6 +663,8 @@ SOURCE=.\vncAcceptDialog.cpp
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
+
 !ENDIF 
 
 # End Source File
@@ -595,6 +685,8 @@ SOURCE=.\vncAdvancedProperties.cpp
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
 
 !ENDIF 
 
@@ -628,6 +720,8 @@ NODEP_CPP_VNCAU=\
 	
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
 
 !ENDIF 
 
@@ -680,6 +774,8 @@ NODEP_CPP_VNCBU=\
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
+
 !ENDIF 
 
 # End Source File
@@ -728,6 +824,8 @@ NODEP_CPP_VNCCL=\
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
+
 !ENDIF 
 
 # End Source File
@@ -748,6 +846,8 @@ SOURCE=.\vncConnDialog.cpp
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
 
 !ENDIF 
 
@@ -799,13 +899,50 @@ NODEP_CPP_VNCDE=\
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
+
 !ENDIF 
 
 # End Source File
 # Begin Source File
 
 SOURCE=.\vncDesktopDX.cpp
+
+!IF  "$(CFG)" == "WinVNC - Win32 Release"
+
 # PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 Debug"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 Purify"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 No_CORBA"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 Profile"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
+
+# PROP BASE Exclude_From_Build 1
+# PROP Exclude_From_Build 1
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
@@ -852,6 +989,8 @@ NODEP_CPP_VNCEN=\
 	
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
 
 !ENDIF 
 
@@ -902,6 +1041,8 @@ NODEP_CPP_VNCENC=\
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
+
 !ENDIF 
 
 # End Source File
@@ -948,6 +1089,8 @@ NODEP_CPP_VNCENCO=\
 	
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
 
 !ENDIF 
 
@@ -997,6 +1140,8 @@ NODEP_CPP_VNCENCOD=\
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
+
 !ENDIF 
 
 # End Source File
@@ -1017,6 +1162,8 @@ SOURCE=.\vncEncodeTight.cpp
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
 
 !ENDIF 
 
@@ -1039,6 +1186,8 @@ SOURCE=.\vncEncodeZlib.cpp
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
+
 !ENDIF 
 
 # End Source File
@@ -1060,6 +1209,8 @@ SOURCE=.\vncEncodeZlibHex.cpp
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
+
 !ENDIF 
 
 # End Source File
@@ -1080,6 +1231,8 @@ SOURCE=.\vncHTTPConnect.cpp
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
 
 !ENDIF 
 
@@ -1106,6 +1259,8 @@ DEP_CPP_VNCIN=\
 	
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
 
 !ENDIF 
 
@@ -1136,6 +1291,8 @@ DEP_CPP_VNCKE=\
 	
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
 
 !ENDIF 
 
@@ -1189,6 +1346,8 @@ NODEP_CPP_VNCME=\
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
+
 !ENDIF 
 
 # End Source File
@@ -1238,6 +1397,8 @@ NODEP_CPP_VNCPR=\
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
+
 !ENDIF 
 
 # End Source File
@@ -1264,6 +1425,8 @@ DEP_CPP_VNCRE=\
 	
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
 
 !ENDIF 
 
@@ -1312,6 +1475,8 @@ NODEP_CPP_VNCSE=\
 	
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
 
 !ENDIF 
 
@@ -1366,6 +1531,8 @@ NODEP_CPP_VNCSER=\
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
+
 !ENDIF 
 
 # End Source File
@@ -1413,6 +1580,8 @@ NODEP_CPP_VNCSO=\
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
+
 !ENDIF 
 
 # End Source File
@@ -1440,6 +1609,8 @@ DEP_CPP_VNCTI=\
 	
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
 
 !ENDIF 
 
@@ -1470,6 +1641,8 @@ NODEP_CPP_VSOCK=\
 	
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
 
 !ENDIF 
 
@@ -1524,6 +1697,8 @@ NODEP_CPP_WINVN=\
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
 
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
+
 !ENDIF 
 
 # End Source File
@@ -1546,6 +1721,10 @@ SOURCE=.\keysymdef.h
 # Begin Source File
 
 SOURCE=.\Log.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\MatchWindow.h
 # End Source File
 # Begin Source File
 
@@ -1599,13 +1778,53 @@ SOURCE=.\vnc.hh
 
 # PROP Exclude_From_Build 1
 
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
+
+# PROP BASE Exclude_From_Build 1
+# PROP Exclude_From_Build 1
+
 !ENDIF 
 
 # End Source File
 # Begin Source File
 
 SOURCE=.\vnc.idl
+
+!IF  "$(CFG)" == "WinVNC - Win32 Release"
+
 # PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 Debug"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 Purify"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 No_CORBA"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 Profile"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
+
+# PROP BASE Exclude_From_Build 1
+# PROP Exclude_From_Build 1
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
@@ -1661,6 +1880,8 @@ SOURCE=.\vncEncodeCoRRE.h
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
 
 !ENDIF 
 
@@ -1812,7 +2033,15 @@ SOURCE=.\res\VncViewer.jar
 # End Group
 # Begin Source File
 
+SOURCE=.\res\bitmap1.bmp
+# End Source File
+# Begin Source File
+
 SOURCE=.\BUILDING.txt
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\cursor1.cur
 # End Source File
 # Begin Source File
 
@@ -1821,6 +2050,18 @@ SOURCE=.\History.txt
 # Begin Source File
 
 SOURCE=.\res\ico00001.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\ico00002.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\ico00003.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\tightvnc.bmp
 # End Source File
 # End Target
 # End Project

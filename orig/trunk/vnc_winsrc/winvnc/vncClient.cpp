@@ -53,6 +53,7 @@
 #include "vncService.h"
 #include "vncPasswd.h"
 #include "vncAcceptDialog.h"
+#include "vncKeymap.h"
 // #include "rfb.h"
 
 // vncClient thread class
@@ -203,6 +204,7 @@ vncClientThread::InitAuthenticate()
 	}
 
 	// By default we disallow passwordless workstations!
+#if !defined HORIZONLIVE
 	if ((strlen(plain) == 0) && m_server->AuthRequired())
 	{
 		vnclog.Print(LL_CONNERR, VNCLOG("no password specified for server - client rejected\n"));
@@ -222,7 +224,7 @@ vncClientThread::InitAuthenticate()
 
 		return FALSE;
 	}
-
+#endif
 	// By default we filter out local loop connections, because they're pointless
 	// (would like to allow this if "Allow No Password" is pressed on query)
 	if (!m_server->LoopbackOk())
@@ -510,6 +512,9 @@ vncClientThread::run(void *arg)
 		//ClearKeyState(VK_NUMLOCK);
 		ClearKeyState(VK_SCROLL);
 	}
+/// !!!!
+	vncKeymap *m_keymap = new vncKeymap(m_client);
+	m_server->SetKeyboardCounter(0);
 
 	// MAIN LOOP
 
@@ -576,6 +581,7 @@ vncClientThread::run(void *arg)
 			m_client->m_buffer->EnableXCursor(FALSE);
 			m_client->m_buffer->EnableRichCursor(FALSE);
 			m_client->m_buffer->EnableLastRect(FALSE);
+			m_client->m_use_NewFBSize = FALSE;
 
 			m_client->m_cursor_update_pending = FALSE;
 			m_client->m_cursor_update_sent = FALSE;
@@ -613,6 +619,7 @@ vncClientThread::run(void *arg)
 					// Is this an XCursor encoding request?
 					if (Swap32IfLE(encoding) == rfbEncodingXCursor) {
 						m_client->m_buffer->EnableXCursor(TRUE);
+						m_client->m_use_XCursor = TRUE;
 						vnclog.Print(LL_INTINFO, VNCLOG("X-style cursor shape updates enabled\n"));
 						continue;
 					}
@@ -620,6 +627,7 @@ vncClientThread::run(void *arg)
 					// Is this a RichCursor encoding request?
 					if (Swap32IfLE(encoding) == rfbEncodingRichCursor) {
 						m_client->m_buffer->EnableRichCursor(TRUE);
+						m_client->m_use_RichCursor = TRUE;
 						vnclog.Print(LL_INTINFO, VNCLOG("Full-color cursor shape updates enabled\n"));
 						continue;
 					}
@@ -649,7 +657,15 @@ vncClientThread::run(void *arg)
 					// Is this a LastRect encoding request?
 					if (Swap32IfLE(encoding) == rfbEncodingLastRect) {
 						m_client->m_buffer->EnableLastRect(TRUE);
+						m_client->m_use_lastrect = TRUE;
 						vnclog.Print(LL_INTINFO, VNCLOG("LastRect protocol extension enabled\n"));
+						continue;
+					}
+
+					// Is this a NewFBSize encoding request?
+					if (Swap32IfLE(encoding) == rfbEncodingNewFBSize) {
+						m_client->m_use_NewFBSize = TRUE;
+						vnclog.Print(LL_INTINFO, VNCLOG("NewFBSize protocol extension enabled\n"));
 						continue;
 					}
 
@@ -658,8 +674,11 @@ vncClientThread::run(void *arg)
 					{	// omni_mutex_lock l(m_client->m_regionLock);
 
 						// No, so try the buffer to see if this encoding will work...
-						if (m_client->m_buffer->SetEncoding(Swap32IfLE(encoding)))
-							encoding_set = TRUE;
+						if (m_client->m_buffer->SetEncoding(Swap32IfLE(encoding))) {
+ 							encoding_set = TRUE;
+							m_client->m_encoding = encoding;
+						}
+
 					}
 				}
 
@@ -670,6 +689,7 @@ vncClientThread::run(void *arg)
 
 					vnclog.Print(LL_INTINFO, VNCLOG("defaulting to raw encoder\n"));
 
+					m_client->m_encoding = rfbEncodingRaw;
 					if (!m_client->m_buffer->SetEncoding(Swap32IfLE(rfbEncodingRaw)))
 					{
 						vnclog.Print(LL_INTERR, VNCLOG("failed to select raw encoder!\n"));
@@ -737,8 +757,8 @@ vncClientThread::run(void *arg)
 					msg.ke.key = Swap32IfLE(msg.ke.key);
 
 					// Get the keymapper to do the work
-					m_client->m_keymap.DoXkeysym(msg.ke.key, msg.ke.down);
-
+					//m_client->m_keymap.DoXkeysym(msg.ke.key, msg.ke.down);
+					m_keymap->DoXkeysym(msg.ke.key, msg.ke.down);
 					m_client->m_remoteevent = TRUE;
 				}
 			}
@@ -754,11 +774,29 @@ vncClientThread::run(void *arg)
 					msg.pe.x = Swap16IfLE(msg.pe.x);
 					msg.pe.y = Swap16IfLE(msg.pe.y);
 
+					// if we share only one window...
+			     	
+					RECT coord;
+					if ( m_server->WindowShared() ) {
+						GetWindowRect( m_server->GetWindowShared(), &coord );
+						m_server->SetMatchSizeFields( coord.left, coord.top, coord.right, coord.bottom);  
+					}
+					
+					coord = m_server->getSharedRect();
+					
+					// to put position relative to screen
+					msg.pe.x = msg.pe.x + coord.left;
+					msg.pe.y = msg.pe.y + coord.top;
+
 					// Work out the flags for this event
 					DWORD flags = MOUSEEVENTF_ABSOLUTE;
 					if (msg.pe.x != m_client->m_ptrevent.x ||
 						msg.pe.y != m_client->m_ptrevent.y)
-						flags |= MOUSEEVENTF_MOVE;
+					{
+ 						flags |= MOUSEEVENTF_MOVE;
+						m_server->SetMouseCounter(1);
+					}
+
 					if ( (msg.pe.buttonMask & rfbButton1Mask) != 
 						(m_client->m_ptrevent.buttonMask & rfbButton1Mask) )
 					{
@@ -768,12 +806,16 @@ vncClientThread::run(void *arg)
 					    else
 						flags |= (msg.pe.buttonMask & rfbButton1Mask) 
 						    ? MOUSEEVENTF_LEFTDOWN : MOUSEEVENTF_LEFTUP;
+						if ( (msg.pe.buttonMask & rfbButton1Mask) )
+							m_server->SetMouseCounter(1);
 					}
 					if ( (msg.pe.buttonMask & rfbButton2Mask) != 
 						(m_client->m_ptrevent.buttonMask & rfbButton2Mask) )
 					{
 						flags |= (msg.pe.buttonMask & rfbButton2Mask) 
 						    ? MOUSEEVENTF_MIDDLEDOWN : MOUSEEVENTF_MIDDLEUP;
+						if ( (msg.pe.buttonMask & rfbButton2Mask) )
+							m_server->SetMouseCounter(1);
 					}
 					if ( (msg.pe.buttonMask & rfbButton3Mask) != 
 						(m_client->m_ptrevent.buttonMask & rfbButton3Mask) )
@@ -784,6 +826,8 @@ vncClientThread::run(void *arg)
 					    else
 						flags |= (msg.pe.buttonMask & rfbButton3Mask) 
 						    ? MOUSEEVENTF_RIGHTDOWN : MOUSEEVENTF_RIGHTUP;
+						if ( (msg.pe.buttonMask & rfbButton3Mask) )
+							m_server->SetMouseCounter(1);
 					}
 
 					// Treat buttons 4 and 5 presses as mouse wheel events
@@ -802,8 +846,12 @@ vncClientThread::run(void *arg)
 					}
 
 					// Generate coordinate values
-					unsigned long x = (msg.pe.x *  65535) / (m_client->m_fullscreen.right);
-					unsigned long y = (msg.pe.y * 65535) / (m_client->m_fullscreen.bottom);
+					
+					HWND temp = GetDesktopWindow();
+					GetWindowRect(temp,&coord);
+
+					unsigned long x = (msg.pe.x * 65535) / (coord.right - coord.left);
+					unsigned long y = (msg.pe.y * 65535) / (coord.bottom - coord.top);
 
 					// Do the pointer event
 					::mouse_event(flags, (DWORD)x, (DWORD)y, wheel_movement, 0);
@@ -861,6 +909,9 @@ vncClientThread::run(void *arg)
 	vnclog.Print(LL_CLIENTS, VNCLOG("client disconnected : %s (id %hd)\n"),
 				 m_client->GetClientName(), m_client->GetClientId());
 
+	if (m_keymap != NULL)
+		delete m_keymap;
+
 	// Remove the client from the server, just in case!
 	m_server->RemoveClient(m_client->GetClientId());
 }
@@ -897,6 +948,14 @@ vncClient::vncClient()
 
 	// IMPORTANT: Initially, client is not protocol-ready.
 	m_protocol_ready = FALSE;
+	
+	m_DesktopSizeChanged = FALSE;
+	m_use_NewFBSize = FALSE;
+	m_ReadyChangeDS = FALSE;
+	m_use_XCursor = FALSE;
+	m_use_RichCursor = FALSE;
+	m_use_lastrect = FALSE;
+
 }
 
 vncClient::~vncClient()
@@ -1008,10 +1067,22 @@ vncClient::PollWindow(HWND hwnd)
 	// Are we still wanting to poll this window?
 	if (poll)
 	{
-		RECT rect;
+		RECT rect,trect;
 
 		// Get the rectangle
 		if (GetWindowRect(hwnd, &rect))
+		{
+			if (m_server->WindowShared()) {
+				GetWindowRect(m_server->GetWindowShared(), &trect);
+				m_server->SetMatchSizeFields( rect.left, rect.top, rect.right, rect.bottom);  
+			} 
+				
+			trect = m_server->getSharedRect();
+			rect.left -= trect.left;
+			rect.top -= trect.top;
+			rect.right -= trect.left;
+			rect.bottom -= trect.top;
+		}
 			m_changed_rgn.AddRect(rect);
 	}
 }
@@ -1023,6 +1094,11 @@ vncClient::TriggerUpdate()
 	omni_mutex_lock l(m_regionLock);
 	if (!m_protocol_ready) return;
 
+	if (m_DesktopSizeChanged) {         
+		m_ReadyChangeDS = TRUE;     
+		return;                     
+	}
+	
 	if (m_updatewanted)
 	{
 		// Handle the three polling modes
@@ -1645,4 +1721,68 @@ vncClient::SendCursorShapeUpdate()
 	m_cursor_update_sent = TRUE;
 	return TRUE;
 }
+
+// Send NewFBSize pseudo-rectangle to notify the client about
+// framebuffer size change
+BOOL
+vncClient::SendNewFBSize()
+{
+	rfbFramebufferUpdateRectHeader hdr;
+	RECT SharedRect;
+
+	if (m_server->WindowShared()) { 
+		GetWindowRect(m_server->GetWindowShared(), &SharedRect);
+		m_server->SetMatchSizeFields( SharedRect.left, SharedRect.top, SharedRect.right, SharedRect.bottom);  
+	}
+	
+	SharedRect = m_server->getSharedRect();
+		
+	if (m_use_NewFBSize) {
+		hdr.r.x = 0;
+		hdr.r.y = 0;
+		hdr.r.w = Swap16IfLE(SharedRect.right - SharedRect.left);
+		hdr.r.h = Swap16IfLE(SharedRect.bottom - SharedRect.top);
+		hdr.encoding = Swap32IfLE(rfbEncodingNewFBSize);
+
+		rfbFramebufferUpdateMsg header;
+		header.nRects = Swap16IfLE(1);
+		if (!SendRFBMsg(rfbFramebufferUpdate, (BYTE *)&header,
+						sz_rfbFramebufferUpdateMsg))
+			return FALSE;
+
+		// Now send the message;
+		if (!m_socket->SendQueued((char *)&hdr, sizeof(hdr)))
+			return FALSE;
+	}
+	m_fullscreen.bottom = SharedRect.bottom - SharedRect.top;
+	m_fullscreen.right = SharedRect.right - SharedRect.left;
+	m_qtrscreen.right = m_fullscreen.right/2;
+	m_qtrscreen.bottom = m_fullscreen.bottom/2;
+	return TRUE;
+}
+
+BOOL
+vncClient::SetNewDS()
+{
+	SendNewFBSize(); 
+	BOOL t = m_buffer->SetEncoding(Swap32IfLE(m_encoding));
+	m_buffer->EnableXCursor(m_use_XCursor);
+	m_buffer->EnableRichCursor(m_use_RichCursor);
+	m_buffer->EnableLastRect(m_use_lastrect);
+	m_full_rgn.Clear();
+	m_incr_rgn.Clear();
+	//m_changed_rgn.Clear();
+	m_full_rgn.AddRect(m_fullscreen);
+	UpdateDesktopSize(FALSE);
+	m_ReadyChangeDS = FALSE;
+	return t;
+}
+
+void
+vncClient::SetInputCounter()
+{
+	m_server->SetKeyboardCounter(1);
+}
+
+
 

@@ -47,11 +47,18 @@ HWND hVeneto = NULL;
 UINT UpdateRectMessage = 0;
 UINT CopyRectMessage = 0;
 UINT MouseMoveMessage = 0;
+UINT LocalMouseMessage = 0;
+UINT LocalKeyboardMessage = 0;
 HHOOK hCallWndHook = NULL;							// Handle to the CallWnd hook
 HHOOK hGetMsgHook = NULL;							// Handle to the GetMsg hook
 HHOOK hDialogMsgHook = NULL;						// Handle to the DialogMsg hook
 HHOOK hLLKeyboardHook = NULL;						// Handle to LowLevel kbd hook
 HHOOK hLLMouseHook = NULL;							// Handle to LowLevel mouse hook
+HHOOK hLLKeyboardPrHook = NULL;						// Handle to LowLevel kbd hook for local event priority
+HHOOK hLLMousePrHook = NULL;						// Handle to LowLevel mouse hook for local event priority
+HHOOK hKeyboardHook = NULL;							// Handle to kbd hook
+HHOOK hMouseHook = NULL;							// Handle to mouse hook
+
 #pragma data_seg( )
 
 #else
@@ -102,6 +109,10 @@ LRESULT CALLBACK GetMessageProc(int nCode, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK DialogMessageProc(int nCode, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK LowLevelKeyboardFilterProc(int nCode, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK LowLevelMouseFilterProc(int nCode, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK LowLevelKeyboardPriorityProc(int nCode, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK LowLevelMousePriorityProc(int nCode, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK KeyboardPriorityProc(int nCode, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK MousePriorityProc(int nCode, WPARAM wParam, LPARAM lParam);
 
 // Forward definition of setup and shutdown procedures
 BOOL InitInstance();
@@ -319,6 +330,41 @@ DllExport BOOL SetKeyboardFilterHook(BOOL activate)
 	}
 }
 
+DllExport BOOL SetKeyboardPriorityLLHook(BOOL activate, UINT LocalKbdMsg)
+{
+	LocalKeyboardMessage = LocalKbdMsg;
+	if (activate)
+	{
+#ifdef WH_KEYBOARD_LL
+		if (hLLKeyboardPrHook == NULL)
+		{
+			// Start up the hook...
+			hLLKeyboardPrHook = SetWindowsHookEx(
+					WH_KEYBOARD_LL,					// Hook in before msg reaches app
+					(HOOKPROC) LowLevelKeyboardPriorityProc,			// Hook procedure
+					hInstance,						// This DLL instance
+					0L								// Hook in to all apps
+					);
+			if (hLLKeyboardPrHook == NULL)
+				return FALSE;
+		}
+		return TRUE;
+#else
+#pragma message("warning:Low-Level Keyboard hook code omitted.")
+		return FALSE;
+#endif
+	} else {
+		if (hLLKeyboardPrHook != NULL)
+		{
+			// Stop the hook...
+			if (!UnhookWindowsHookEx(hLLKeyboardPrHook))
+				return FALSE;
+			hLLKeyboardPrHook = NULL;
+		}
+		return TRUE;
+	}
+}
+
 // Routine to start and stop local mouse message filtering
 DllExport BOOL SetMouseFilterHook(BOOL activate)
 {
@@ -353,6 +399,107 @@ DllExport BOOL SetMouseFilterHook(BOOL activate)
 		return TRUE;
 	}
 }
+
+DllExport BOOL SetMousePriorityLLHook(BOOL activate, UINT LocalMouseMsg)
+{
+	LocalMouseMessage = LocalMouseMsg;
+	if (activate)
+	{
+#ifdef WH_MOUSE_LL
+		if (hLLMousePrHook == NULL)
+		{
+			// Start up the hook...
+			hLLMousePrHook = SetWindowsHookEx(
+					WH_MOUSE_LL,					// Hook in before msg reaches app
+					(HOOKPROC) LowLevelMousePriorityProc,			// Hook procedure
+					hInstance,						// This DLL instance
+					0L								// Hook in to all apps
+					);
+			if (hLLMousePrHook == NULL)
+				return FALSE;
+		}
+		return TRUE;
+#else
+#pragma message("warning:Low-Level Mouse hook code omitted.")
+		return FALSE;
+#endif
+	} else {
+		if (hLLMousePrHook != NULL)
+		{
+			// Stop the hook...
+			if (!UnhookWindowsHookEx(hLLMousePrHook))
+				return FALSE;
+			hLLMousePrHook = NULL;
+		}
+		return TRUE;
+	}
+}
+
+
+// Routine to start and stop local keyboard message filtering
+DllExport BOOL SetKeyboardPriorityHook(BOOL activate, UINT LocalKbdMsg)
+{
+	LocalKeyboardMessage = LocalKbdMsg;
+	if (activate)
+	{
+		if (hKeyboardHook == NULL)
+		{
+			// Start up the hook...
+			hKeyboardHook = SetWindowsHookEx(
+					WH_KEYBOARD,					// Hook in before msg reaches app
+					(HOOKPROC) KeyboardPriorityProc,// Hook procedure
+					hInstance,						// This DLL instance
+					0L								// Hook in to all apps
+					);
+			if (hKeyboardHook == NULL)
+				return FALSE;
+		}
+		return TRUE;
+	} else {
+		if (hKeyboardHook != NULL)
+		{
+			// Stop the hook...
+			if (!UnhookWindowsHookEx(hKeyboardHook))
+				return FALSE;
+			hKeyboardHook = NULL;
+		}
+		return TRUE;
+	}
+}
+
+
+// Routine to start and stop local mouse message filtering
+DllExport BOOL SetMousePriorityHook(BOOL activate, UINT LocalMouseMsg)
+{
+	LocalMouseMessage = LocalMouseMsg;
+	if (activate)
+	{
+		if (hMouseHook == NULL)
+		{
+			// Start up the hook...
+			hMouseHook = SetWindowsHookEx(
+					WH_MOUSE,					// Hook in before msg reaches app
+					(HOOKPROC) MousePriorityProc,			// Hook procedure
+					hInstance,						// This DLL instance
+					0L								// Hook in to all apps
+					);
+			if (hMouseHook == NULL)
+				return FALSE;
+		}
+		return TRUE;
+	} else {
+		if (hMouseHook != NULL)
+		{
+			// Stop the hook...
+			if (!UnhookWindowsHookEx(hMouseHook))
+				return FALSE;
+			hMouseHook = NULL;
+		}
+		return TRUE;
+	}
+}
+
+
 
 // Routine to get the window's client rectangle, in screen coordinates
 inline BOOL GetAbsoluteClientRect(HWND hwnd, RECT *rect)
@@ -800,6 +947,31 @@ LRESULT CALLBACK LowLevelKeyboardFilterProc(int nCode, WPARAM wParam, LPARAM lPa
 	// Otherwise, pass on the message
 	return CallNextHookEx(hLLKeyboardHook, nCode, wParam, lParam);
 }
+
+LRESULT CALLBACK LowLevelKeyboardPriorityProc(int nCode, WPARAM wParam, LPARAM lParam)
+{
+	// Are we expected to handle this callback?
+	if (nCode == HC_ACTION)
+	{
+		// Is this keyboard event "real" or "injected"
+		// i.e. hardware or software-produced?
+		KBDLLHOOKSTRUCT *hookStruct = (KBDLLHOOKSTRUCT*)lParam;
+		if (!(hookStruct->flags & LLKHF_INJECTED)) {
+			// Message was not injected - send RFB_LOCAL_KEYBOARD msg!
+			// Remote event will be blocked
+			PostMessage(
+				hVeneto,
+				LocalKeyboardMessage,
+				0,
+				0
+				);
+		}
+	}
+
+	// Otherwise, pass on the message
+	return CallNextHookEx(hLLKeyboardPrHook, nCode, wParam, lParam);
+}
+
 #endif
 
 // Hook procedure for LowLevel Mouse filtering
@@ -814,7 +986,7 @@ LRESULT CALLBACK LowLevelMouseFilterProc(int nCode, WPARAM wParam, LPARAM lParam
 		// i.e. hardware or software-produced?
 		MSLLHOOKSTRUCT *hookStruct = (MSLLHOOKSTRUCT*)lParam;
 		if (!(hookStruct->flags & LLMHF_INJECTED)) {
-			// Message was not injected - reject it!
+
 			return TRUE;
 		}
 	}
@@ -822,7 +994,68 @@ LRESULT CALLBACK LowLevelMouseFilterProc(int nCode, WPARAM wParam, LPARAM lParam
 	// Otherwise, pass on the message
 	return CallNextHookEx(hLLMouseHook, nCode, wParam, lParam);
 }
+
+LRESULT CALLBACK LowLevelMousePriorityProc(int nCode, WPARAM wParam, LPARAM lParam)
+{
+	// Are we expected to handle this callback?
+	if (nCode == HC_ACTION)
+	{
+		// Is this mouse event "real" or "injected"
+		// i.e. hardware or software-produced?
+		MSLLHOOKSTRUCT *hookStruct = (MSLLHOOKSTRUCT*)lParam;
+		if (!(hookStruct->flags & LLMHF_INJECTED)) {
+			// Message was not injected - send RFB_LOCAL_MOUSE msg!
+			// Remote event will be blocked
+			PostMessage(
+				hVeneto,
+				LocalMouseMessage,
+				0,
+				0
+				);
+		}
+	}
+
+	// Otherwise, pass on the message
+	return CallNextHookEx(hLLMousePrHook, nCode, wParam, lParam);
+}
+
 #endif
+
+LRESULT CALLBACK KeyboardPriorityProc(int nCode, WPARAM wParam, LPARAM lParam)
+{
+	// Are we expected to handle this callback?
+	if (nCode == HC_ACTION)
+	{
+			PostMessage(
+			hVeneto,
+			LocalKeyboardMessage,
+			0,
+			0
+			);
+		
+	}
+
+	return CallNextHookEx(hLLKeyboardHook, nCode, wParam, lParam);
+}
+
+
+LRESULT CALLBACK MousePriorityProc(int nCode, WPARAM wParam, LPARAM lParam)
+{
+	// Are we expected to handle this callback?
+	if (nCode == HC_ACTION)
+	{
+		if ( (wParam == WM_LBUTTONDOWN) || (wParam == WM_RBUTTONDOWN) || (wParam == WM_MBUTTONDOWN) || (wParam == WM_MOUSEMOVE) )
+			PostMessage(
+			hVeneto,
+			LocalMouseMessage,
+			0,
+			0
+			);
+	}
+
+	return CallNextHookEx(hLLMouseHook, nCode, wParam, lParam);
+}
+
 
 char * NameFromPath(const char *path)
 {

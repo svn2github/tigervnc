@@ -143,19 +143,25 @@ const vncKeymapping keymap[] = {
     {VK_SCROLL,		XK_Scroll_Lock}
 };
 
-vncKeymap::vncKeymap()
+vncKeymap::vncKeymap(vncClient * client)
 {
-};
+m_client = client;
+}
+
+vncKeymap::~vncKeymap()
+{
+}
 
 void
-KeybdEvent(BYTE keycode, DWORD flags)
+vncKeymap::KeybdEvent(BYTE keycode, DWORD flags)
 {
 	// Send the desired keyboard event
+	m_client->SetInputCounter();
 	keybd_event(keycode, MapVirtualKey(keycode, 0), flags, 0);
 }
 
 void
-SetShiftState(BYTE key, BOOL down)
+vncKeymap::SetShiftState(BYTE key, BOOL down)
 {
 	BOOL keystate = (GetAsyncKeyState(key) & 0x8000) != 0;
 
@@ -268,7 +274,7 @@ vncKeymap::DoXkeysym(CARD32 keysym, BOOL keydown)
 		// so now we clear both shift keys and use the generic shift instead.
 		SetShiftState(VK_RSHIFT, FALSE);
 		SetShiftState(VK_LSHIFT, FALSE);
-		SetShiftState(VK_SHIFT, keymask & 1);
+		SetShiftState(VK_SHIFT, keymask);
 
 		// But only toggle Ctrl & Alt if they aught to be down
 		ctrl = (GetAsyncKeyState(VK_LCONTROL) & 0x8000) != 0;

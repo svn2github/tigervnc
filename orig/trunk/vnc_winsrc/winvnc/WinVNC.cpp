@@ -46,7 +46,12 @@
 
 // Application instance and name
 HINSTANCE	hAppInstance;
+#ifdef HORIZONLIVE
+const char	*szAppName = "LiveShare";
+#else
 const char	*szAppName = "WinVNC";
+#endif
+
 DWORD		mainthreadId;
 
 // WinMain parses the command line and either calls the main App
@@ -223,7 +228,11 @@ int WinVNCAppMain()
 	if (!instancehan.Init())
 	{
 		// We don't allow multiple instances!
+#ifdef HORIZONLIVE
+		MessageBox(NULL, "The LiveShare host is already running.", szAppName, MB_OK);
+#else		
 		MessageBox(NULL, "Another instance of WinVNC is already running", szAppName, MB_OK);
+#endif
 		return 0;
 	}
 

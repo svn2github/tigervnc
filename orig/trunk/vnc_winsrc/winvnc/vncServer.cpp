@@ -100,6 +100,25 @@ vncServer::vncServer()
 	// Signal set when a client quits
 	m_clientquitsig = new omni_condition(&m_clientsLock);
 	m_clients_disabled = FALSE;
+	m_local_input_priority = FALSE;
+
+	m_full_screen = TRUE;
+	m_WindowShared= FALSE;
+	m_hwndShared = NULL;
+	m_screen_area = FALSE;
+	m_disable_time = 3;
+	RECT temp;
+	GetWindowRect(GetDesktopWindow(), &temp);
+	SetMatchSizeFields(temp.left, temp.top, temp.right, temp.bottom);
+#ifdef HORIZONLIVE
+	m_full_screen = FALSE;
+	m_WindowShared= TRUE;
+	m_local_input_priority = TRUE;
+	m_remote_mouse = 1;
+	m_remote_keyboard = 1;
+
+#endif
+
 }
 
 vncServer::~vncServer()
@@ -489,13 +508,16 @@ vncServer::SetCapability(vncClientId clientid, int capability)
 }
 
 void
-vncServer::SetKeyboardEnabled(vncClientId clientid, BOOL enabled)
+vncServer::SetKeyboardEnabled(BOOL enabled)
 {
+	vncClientList::iterator i;
 	omni_mutex_lock l(m_clientsLock);
 
-	vncClient *client = GetClient(clientid);
-	if (client != NULL)
-		client->EnableKeyboard(enabled);
+	for (i = m_authClients.begin(); i != m_authClients.end(); i++)
+	{
+		GetClient(*i)->EnableKeyboard(enabled);
+		GetClient(*i)->EnablePointer(enabled);
+	}
 }
 
 void
@@ -767,7 +789,8 @@ vncServer::UpdateRegion(vncRegion &region)
 	for (i = m_authClients.begin(); i != m_authClients.end(); i++)
 	{
 		// Post the update
-		GetClient(*i)->UpdateRegion(region);
+		if ( !GetClient(*i)->IsDesktopSizeChanged() )
+			GetClient(*i)->UpdateRegion(region);
 	}
 }
 
@@ -898,6 +921,7 @@ void
 vncServer::EnableRemoteInputs(BOOL enable)
 {
 	m_enable_remote_inputs = enable;
+	SetKeyboardEnabled(enable);
 }
 
 BOOL vncServer::RemoteInputsEnabled()
@@ -909,13 +933,31 @@ BOOL vncServer::RemoteInputsEnabled()
 void
 vncServer::DisableLocalInputs(BOOL disable)
 {
-	m_disable_local_inputs = disable;
+	if ( m_disable_local_inputs != disable )
+	{
+		m_disable_local_inputs = disable;
+		if ( AuthClientCount() != 0 )
+			m_desktop->SetLocalInputDisableHook(disable);
+	}
 }
 
 BOOL vncServer::LocalInputsDisabled()
 {
 	return m_disable_local_inputs;
 }
+
+void vncServer::LocalInputPriority(BOOL disable)
+{
+	if( m_local_input_priority != disable )
+	{
+		m_local_input_priority = disable;
+		if ( AuthClientCount() != 0 )
+			m_desktop->SetLocalInputPriorityHook(disable);
+	}
+	
+}  
+
+
 
 // Socket connection handling
 BOOL
@@ -998,10 +1040,13 @@ vncServer::SockConnect(BOOL On)
 	else
 	{
 		// *** JNW - Trying to fix up a lock-up when the listening socket closes
+#if !defined HORIZONLIVE
+	
 		KillAuthClients();
 		KillUnauthClients();
 		WaitUntilAuthEmpty();
 		WaitUntilUnauthEmpty();
+#endif
 
 		// Is there a listening socket?
 		if (m_socketConn != NULL)
@@ -1440,5 +1485,137 @@ vncServer::RemAuthHostsBlacklist(const char *machine) {
 
 		previous = current;
 		current = current->_next;
+	}
+}
+
+void
+vncServer::SetWindowShared(HWND hWnd)
+{
+	m_hwndShared=hWnd;
+}
+
+void 
+vncServer::SetMatchSizeFields(int left,int top,int right,int bottom)
+{
+	RECT trect;
+	GetWindowRect(GetDesktopWindow(), &trect);
+
+/*	if ( right - left < 32 )
+		right = left + 32;
+	
+	if ( bottom - top < 32)
+		bottom = top + 32 ;*/
+
+	if( right > trect.right )
+		right = trect.right;
+	if( bottom > trect.bottom )
+		bottom = trect.bottom;
+	if( left < trect.left)
+		left = trect.left;
+	if( top < trect.top)
+		top = trect.top;
+
+ 
+	m_shared_rect.left=left;
+	m_shared_rect.top=top;
+	m_shared_rect.bottom=bottom;
+	m_shared_rect.right=right;
+}
+
+void
+vncServer::UpdateDesktopSize()
+{
+	vncClientList::iterator i;
+	
+	omni_mutex_lock l(m_clientsLock);
+
+	// Post this screen size update to all the connected clients
+	for (i = m_authClients.begin(); i != m_authClients.end(); i++)
+	{
+		// Post the update
+		GetClient(*i)->UpdateDesktopSize(TRUE);
+	}
+}
+
+BOOL
+vncServer::CheckUpdateDesktopSize()
+{
+	vncClientList::iterator i;
+
+	BOOL check = FALSE;
+	omni_mutex_lock l(m_clientsLock);
+
+	for (i = m_authClients.begin(); i != m_authClients.end(); i++)
+	{
+		check = check || GetClient(*i)->IsDesktopSizeChanged();
+	}
+
+	if ( m_authClients.empty() )
+		check = true;
+
+	
+	return check;
+}
+
+
+void
+vncServer::SetNewDS()
+{
+	vncClientList::iterator i;
+		
+	omni_mutex_lock l(m_clientsLock);
+
+	// Post this screen size update to all the connected clients
+	for (i = m_authClients.begin(); i != m_authClients.end(); i++)
+	{
+		// Post the update
+		if (!GetClient(*i)->SetNewDS()) {
+			vnclog.Print(LL_INTINFO, VNCLOG("Unable to set new desktop size\n"));
+			KillClient (*i);
+		}
+	}
+}
+
+
+BOOL
+vncServer::ReadyChangeDS()
+{
+	vncClientList::iterator i;
+	
+	BOOL check = TRUE;
+	omni_mutex_lock l(m_clientsLock);
+
+	// Post this screen size update to all the connected clients
+	for (i = m_authClients.begin(); i != m_authClients.end(); i++)
+	{
+		// Post the update
+		check = check && GetClient(*i)->ReadyChangeDS();
+	}
+
+	if ( m_authClients.empty() )
+		check = false;
+	
+	return check;
+}
+
+void 
+vncServer::SetKeyboardCounter(int count)
+{
+	if (LocalInputPriority() && vncService::IsWin95())
+	{
+		m_remote_keyboard += count;
+		if (count == 0)
+			m_remote_keyboard = 0;
+	}       
+}
+
+void 
+vncServer::SetMouseCounter(int count)
+{
+	if (LocalInputPriority() && vncService::IsWin95())
+	{
+		m_remote_mouse += count;
+		if (count == 0)
+			m_remote_mouse = 0;
 	}
 }

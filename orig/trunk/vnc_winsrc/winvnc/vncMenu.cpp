@@ -47,19 +47,6 @@ const UINT MENU_SERVICEHELPER_MSG = RegisterWindowMessage("WinVNC.ServiceHelper.
 const UINT MENU_ADD_CLIENT_MSG = RegisterWindowMessage("WinVNC.AddClient.Message");
 const char *MENU_CLASS_NAME = "WinVNC Tray Icon";
 
-static void
-KillWallpaper()
-{
-	// Tell all applications that there is no wallpaper
-	// Note that this doesn't change the wallpaper registry setting!
-	SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, "", SPIF_SENDCHANGE);
-}
-
-static void
-RestoreWallpaper()
-{
-	SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, NULL, SPIF_SENDCHANGE);
-}
 
 // Implementation
 
@@ -111,13 +98,6 @@ vncMenu::vncMenu(vncServer *server)
 	// Ask the server object to notify us of stuff
 	server->AddNotify(m_hwnd);
 
-	// Initialise the properties dialog object
-	if (!m_properties.Init(m_server))
-	{
-		PostQuitMessage(0);
-		return;
-	}
-
 	// Only enable the timer if the tray icon will be displayed.
 	if ( ! server->GetDisableTrayIcon())
 	{
@@ -126,16 +106,33 @@ vncMenu::vncMenu(vncServer *server)
 	}
 
 	// Load the icons for the tray
+#ifdef HORIZONLIVE
+	m_winvnc_normal_icon = LoadIcon(hAppInstance, MAKEINTRESOURCE(IDI_LIVESHARENC));
+	m_flash_icon = LoadIcon(hAppInstance, MAKEINTRESOURCE(IDI_LIVESHARE));
+#else
 	m_winvnc_normal_icon = LoadIcon(hAppInstance, MAKEINTRESOURCE(IDI_WINVNC));
 	m_winvnc_disabled_icon = LoadIcon(hAppInstance, MAKEINTRESOURCE(IDI_DISABLED));
 	m_flash_icon = LoadIcon(hAppInstance, MAKEINTRESOURCE(IDI_FLASH));
+#endif	
 	m_winvnc_icon = m_winvnc_normal_icon;
 
 	// Load the popup menu
+#ifdef HORIZONLIVE
+	m_hmenu = LoadMenu(hAppInstance, MAKEINTRESOURCE(IDR_LSHTRAYMENU));
+#else
 	m_hmenu = LoadMenu(hAppInstance, MAKEINTRESOURCE(IDR_TRAYMENU));
+#endif
 
 	// Install the tray icon!
 	AddTrayIcon();
+
+	// Initialise the properties dialog object
+	if (!m_properties.Init(m_server))
+	{
+		PostQuitMessage(0);
+		return;
+	}
+
 }
 
 vncMenu::~vncMenu()
@@ -156,15 +153,15 @@ void
 vncMenu::AddTrayIcon()
 {
 	// If the user name is non-null then we have a user!
-	if (strcmp(m_username, "") != 0)
-	{
+//!!!!	if (strcmp(m_username, "") != 0)
+	//{
 		// Make sure the server has not been configured to
 		// suppress the tray icon.
 		if ( ! m_server->GetDisableTrayIcon())
 		{
 			SendTrayMsg(NIM_ADD, FALSE);
 		}
-	}
+	//}
 }
 
 void
@@ -220,17 +217,28 @@ vncMenu::SendTrayMsg(DWORD msg, BOOL flash)
 	m_nid.uFlags = NIF_ICON | NIF_MESSAGE;
 	m_nid.uCallbackMessage = WM_TRAYNOTIFY;
 
-	// Use resource string as tip if there is one
-	if (LoadString(hAppInstance, IDI_WINVNC, m_nid.szTip, sizeof(m_nid.szTip)))
-	{
-	    m_nid.uFlags |= NIF_TIP;
-	}
 	
 	// Try to add the server's IP addresses to the tip string, if possible
+#ifdef HORIZONLIVE
+	// Use resource string as tip if there is one
+	if (LoadString(hAppInstance, IDI_LIVESHARE, m_nid.szTip, sizeof(m_nid.szTip)))
+	    m_nid.uFlags |= NIF_TIP;
+	
+	
+	strncat(m_nid.szTip, " : ", (sizeof(m_nid.szTip)-1)-strlen(m_nid.szTip));
+	if (m_server->AuthClientCount() != 0)                                                      
+		strncat(m_nid.szTip, "Connected", (sizeof(m_nid.szTip)-1)-strlen(m_nid.szTip));
+	else                                                                                   
+    	strncat(m_nid.szTip, "Not Connected", (sizeof(m_nid.szTip)-1)-strlen(m_nid.szTip));    
+#else	                                                                                               
+
+	// Use resource string as tip if there is one
+	if (LoadString(hAppInstance, IDI_WINVNC, m_nid.szTip, sizeof(m_nid.szTip)))
+	    m_nid.uFlags |= NIF_TIP;
+		
 	if (m_nid.uFlags & NIF_TIP)
 	{
 	    strncat(m_nid.szTip, " - ", (sizeof(m_nid.szTip)-1)-strlen(m_nid.szTip));
-
 	    if (m_server->SockConnected())
 	    {
 		unsigned long tiplen = strlen(m_nid.szTip);
@@ -245,7 +253,8 @@ vncMenu::SendTrayMsg(DWORD msg, BOOL flash)
 		strncat(m_nid.szTip, "Not listening", (sizeof(m_nid.szTip)-1)-strlen(m_nid.szTip));
 	    }
 	}
-
+#endif	
+	
 	// Send the message
 	if (Shell_NotifyIcon(msg, &m_nid))
 	{
@@ -304,12 +313,6 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 		// Adjust the icon accordingly
 		_this->FlashTrayIcon(_this->m_server->AuthClientCount() != 0);
 
-		if (_this->m_server->AuthClientCount() != 0) {
-			if (_this->m_server->RemoveWallpaperEnabled())
-				KillWallpaper();
-		} else {
-			RestoreWallpaper();
-		}
 		return 0;
 
 		// STANDARD MESSAGE HANDLING

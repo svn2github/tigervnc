@@ -425,6 +425,8 @@ vncBuffer::SetClientFormat(rfbPixelFormat &format)
 BOOL
 vncBuffer::SetEncoding(CARD32 encoding)
 {
+	m_desktop->FillDisplayInfo(&m_scrinfo);
+
 	// Delete the old encoder
 	if (m_encoder != NULL)
 	{

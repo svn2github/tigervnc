@@ -95,7 +95,7 @@ public:
 
 	virtual void SetTeleport(vncClientId client, BOOL teleport);
 	virtual void SetCapability(vncClientId client, int capability);
-	virtual void SetKeyboardEnabled(vncClientId client, BOOL enabled);
+	virtual void SetKeyboardEnabled(BOOL enabled);
 	virtual void SetPointerEnabled(vncClientId client, BOOL enabled);
 
 	virtual BOOL IsTeleport(vncClientId client);
@@ -248,6 +248,33 @@ public:
 	virtual void EnableRemoveWallpaper(const BOOL enable) {m_remove_wallpaper = enable;};
 	virtual BOOL RemoveWallpaperEnabled() {return m_remove_wallpaper;};
 
+    // handling to share only one window                                                    
+    virtual void WindowShared(BOOL enable) { m_WindowShared = enable; };                    
+    virtual BOOL WindowShared() { return m_WindowShared; };                                 
+    virtual void SetMatchSizeFields(int left,int top,int right,int bottom);                 
+	virtual void SetWindowShared(HWND hWnd);                                             
+    virtual HWND GetWindowShared() { return m_hwndShared; };                                
+	virtual RECT getSharedRect () { return m_shared_rect; };                             
+	virtual void UpdateDesktopSize() ;                                                   
+	virtual BOOL CheckUpdateDesktopSize() ;                                              
+	virtual BOOL ReadyChangeDS();                                                        
+	virtual void SetNewDS();                                                             
+    virtual BOOL FullScreen() { return m_full_screen; };                                    
+	virtual void FullScreen(BOOL enable) { m_full_screen = enable; };                    
+	virtual BOOL ScreenAreaShared() { return m_screen_area; };                           
+	virtual void ScreenAreaShared(BOOL enable) { m_screen_area = enable; };              
+	                                                                                     
+	// blocking remote input stuff                                                       
+	virtual void LocalInputPriority(BOOL enable);               
+	virtual BOOL LocalInputPriority() {return m_local_input_priority;};                            
+	virtual void SetKeyboardCounter(int count);                                          
+	virtual int KeyboardCounter(){ return m_remote_keyboard;};                           
+	virtual void SetMouseCounter(int count);                                             
+	virtual int MouseCounter(){ return m_remote_mouse;};                                 
+	virtual UINT DisableTime() {return m_disable_time;};
+	virtual void SetDisableTime(UINT disabletime) {m_disable_time = disabletime;};                                             
+
+	
 	// Internal stuffs
 protected:
 	// Connection servers
@@ -260,6 +287,7 @@ protected:
 
 	// General preferences
 	UINT				m_port;
+	RECT			    m_shared_rect;
 	BOOL				m_autoportselect;
 	char				m_password[MAXPWLEN];
 	BOOL				m_passwd_required;
@@ -281,6 +309,7 @@ protected:
 	BOOL				m_queryallownopass;
 	BOOL				m_clients_disabled;
 	UINT				m_idle_timeout;
+	UINT				m_disable_time;
 
 	BOOL				m_remove_wallpaper;
 
@@ -291,6 +320,20 @@ protected:
 
 	BOOL				m_poll_oneventonly;
 	BOOL				m_poll_consoleonly;
+
+
+	// screen area sharing preferences                                                   
+	BOOL				m_shared_oneapplionly;               
+	HWND				m_hwndShared;  
+	BOOL				m_WindowShared;                      
+	BOOL				m_full_screen;                       
+	BOOL				m_screen_area;                       
+	                                                                     
+	// local event priority stuff                                        
+	BOOL				m_local_input_priority;                    
+	INT					m_remote_mouse;              
+	INT					m_remote_keyboard;           
+	                                                                     
 
 	// Name of this desktop
 	char				*m_name;

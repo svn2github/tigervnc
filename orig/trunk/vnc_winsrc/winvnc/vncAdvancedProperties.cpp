@@ -95,12 +95,20 @@ vncAdvancedProperties::Show(BOOL show, BOOL usersettings)
 				m_returncode_valid = FALSE;
 
 				// Do the dialog box
+
+#ifdef HORIZONLIVE
+				int result = DialogBoxParam(hAppInstance,
+				    MAKEINTRESOURCE(IDD_LIVESHAREADVPROP), 
+				    NULL,
+				    (DLGPROC) DialogProc,
+				    (LONG) this);
+#else
 				int result = DialogBoxParam(hAppInstance,
 				    MAKEINTRESOURCE(IDD_ADVPROPERTIES), 
 				    NULL,
 				    (DLGPROC) DialogProc,
 				    (LONG) this);
-
+#endif
 				if (!m_returncode_valid)
 				    result = IDCANCEL;
 
@@ -157,6 +165,54 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 			}
 
 			// Initialise the properties controls
+#ifdef HORIZONLIVE
+
+			// Set the polling options
+			HWND hPollFullScreen = GetDlgItem(hwnd, IDC_POLL_FULLSCREEN);
+			SendMessage(hPollFullScreen,
+				BM_SETCHECK,
+				_this->m_server->PollFullScreen(),
+				0);
+
+			HWND hPollForeground = GetDlgItem(hwnd, IDC_POLL_FOREGROUND);
+			SendMessage(hPollForeground,
+				BM_SETCHECK,
+				_this->m_server->PollForeground(),
+				0);
+
+			HWND hPollUnderCursor = GetDlgItem(hwnd, IDC_POLL_UNDER_CURSOR);
+			SendMessage(hPollUnderCursor,
+				BM_SETCHECK,
+				_this->m_server->PollUnderCursor(),
+				0);
+
+			HWND hPollConsoleOnly = GetDlgItem(hwnd, IDC_CONSOLE_ONLY);
+			SendMessage(hPollConsoleOnly,
+				BM_SETCHECK,
+				_this->m_server->PollConsoleOnly(),
+				0);
+			EnableWindow(hPollConsoleOnly,
+				_this->m_server->PollUnderCursor() || _this->m_server->PollForeground()
+				);
+
+			HWND hPollOnEventOnly = GetDlgItem(hwnd, IDC_ONEVENT_ONLY);
+			SendMessage(hPollOnEventOnly,
+				BM_SETCHECK,
+				_this->m_server->PollOnEventOnly(),
+				0);
+			EnableWindow(hPollOnEventOnly,
+				_this->m_server->PollUnderCursor() || _this->m_server->PollForeground()
+				);
+
+
+			HWND hRemoteDisable = GetDlgItem(hwnd, IDC_REMOTE_DISABLE);
+			SendMessage(hRemoteDisable,
+				BM_SETCHECK,
+				_this->m_server->LocalInputPriority(),
+				0);
+
+#else
+			
 			HWND hQuery = GetDlgItem(hwnd, IDQUERY);
 			BOOL queryEnabled = (_this->m_server->QuerySetting() == 4);
 			SendMessage(hQuery,
@@ -218,6 +274,7 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 				CheckDlgButton(hwnd, IDPRIORITY2, BST_CHECKED);
 			if (priority == 0)
 				CheckDlgButton(hwnd, IDPRIORITY0, BST_CHECKED);
+#endif
 
 			BOOL logstate = (vnclog.GetMode() >= 2);
 			if (logstate)
@@ -234,7 +291,6 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 			
 			SetForegroundWindow(hwnd);
 
-			/////
 			_this->m_dlgvisible = TRUE;
 
 			return TRUE;
@@ -247,6 +303,40 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 		case IDOK:
 		case IDC_APPLY:
 			{
+			
+#ifdef HORIZONLIVE
+				// Handle the polling stuff
+				HWND hPollFullScreen = GetDlgItem(hwnd, IDC_POLL_FULLSCREEN);
+				_this->m_server->PollFullScreen(
+					SendMessage(hPollFullScreen, BM_GETCHECK, 0, 0) == BST_CHECKED
+					);
+
+				HWND hPollForeground = GetDlgItem(hwnd, IDC_POLL_FOREGROUND);
+				_this->m_server->PollForeground(
+					SendMessage(hPollForeground, BM_GETCHECK, 0, 0) == BST_CHECKED
+					);
+
+				HWND hPollUnderCursor = GetDlgItem(hwnd, IDC_POLL_UNDER_CURSOR);
+				_this->m_server->PollUnderCursor(
+					SendMessage(hPollUnderCursor, BM_GETCHECK, 0, 0) == BST_CHECKED
+					);
+
+				HWND hPollConsoleOnly = GetDlgItem(hwnd, IDC_CONSOLE_ONLY);
+				_this->m_server->PollConsoleOnly(
+					SendMessage(hPollConsoleOnly, BM_GETCHECK, 0, 0) == BST_CHECKED
+					);
+
+				HWND hPollOnEventOnly = GetDlgItem(hwnd, IDC_ONEVENT_ONLY);
+				_this->m_server->PollOnEventOnly(
+					SendMessage(hPollOnEventOnly, BM_GETCHECK, 0, 0) == BST_CHECKED
+				);
+
+
+				HWND hRemoteDisable = GetDlgItem(hwnd, IDC_REMOTE_DISABLE);
+				_this->m_server->LocalInputPriority(
+					SendMessage(hRemoteDisable, BM_GETCHECK, 0, 0) == BST_CHECKED
+				);
+#else
 				// Save the timeout
 				char timeout[256];
 				if (GetDlgItemText(hwnd, IDQUERYTIMEOUT, (LPSTR) &timeout, 256) == 0)
@@ -288,6 +378,7 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 				_this->m_server->SetLoopbackOk(IsDlgButtonChecked(hwnd, IDALLOWLOOPBACK));
 				_this->m_server->SetLoopbackOnly(IsDlgButtonChecked(hwnd, IDONLYLOOPBACK));
 
+#endif
 				if (IsDlgButtonChecked(hwnd, IDLOG))
 					vnclog.SetMode(2);
 				else
@@ -325,6 +416,31 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 			_this->m_dlgvisible = FALSE;
 			return TRUE;
 
+#ifdef HORIZONLIVE
+
+		case IDC_POLL_FOREGROUND:
+		case IDC_POLL_UNDER_CURSOR:
+			// User has clicked on one of the polling mode buttons
+			// affected by the pollconsole and pollonevent options
+			{
+				// Get the poll-mode buttons
+				HWND hPollForeground = GetDlgItem(hwnd, IDC_POLL_FOREGROUND);
+				HWND hPollUnderCursor = GetDlgItem(hwnd, IDC_POLL_UNDER_CURSOR);
+
+				// Determine whether to enable the modifier options
+				BOOL enabled = (SendMessage(hPollForeground, BM_GETCHECK, 0, 0) == BST_CHECKED) ||
+					(SendMessage(hPollUnderCursor, BM_GETCHECK, 0, 0) == BST_CHECKED);
+
+				HWND hPollConsoleOnly = GetDlgItem(hwnd, IDC_CONSOLE_ONLY);
+				EnableWindow(hPollConsoleOnly, enabled);
+
+				HWND hPollOnEventOnly = GetDlgItem(hwnd, IDC_ONEVENT_ONLY);
+				EnableWindow(hPollOnEventOnly, enabled);
+			}
+			return TRUE;
+
+#else
+
 		case IDQUERY:
 			{
 				HWND hQuery = GetDlgItem(hwnd, IDQUERY);
@@ -341,15 +457,7 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 				EnableWindow(hQueryAllowNoPass, queryon);
 			}
 			return TRUE;
-
-		case IDLOG:
-			{
-				BOOL logon = IsDlgButtonChecked(hwnd, IDLOG);
-				HWND hLogLots = GetDlgItem(hwnd, IDLOGLOTS);
-				EnableWindow(hLogLots, logon);
-			}
-			return TRUE;
-
+		
 		case IDALLOWLOOPBACK:
 			{
 				BOOL loopon = IsDlgButtonChecked(hwnd, IDALLOWLOOPBACK);
@@ -359,6 +467,15 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 			}
 			return TRUE;
 
+#endif
+				case IDLOG:
+			{
+				BOOL logon = IsDlgButtonChecked(hwnd, IDLOG);
+				HWND hLogLots = GetDlgItem(hwnd, IDLOGLOTS);
+				EnableWindow(hLogLots, logon);
+			}
+			return TRUE;
+		
 		}
 
 		break;
@@ -488,6 +605,7 @@ vncAdvancedProperties::Load(BOOL usersettings)
 	vnclog.SetMode(LoadInt(hkLocal, "DebugMode", 0));
 	vnclog.SetLevel(LoadInt(hkLocal, "DebugLevel", 0));
 
+#if !defined HORIZONLIVE	
 	// Authentication required, httpd enabled, loopback allowed, loopbackOnly
 	m_server->SetHttpdEnabled(LoadInt(hkLocal, "EnableHTTPDaemon", true),
 							  LoadInt(hkLocal, "EnableURLParams", false));
@@ -565,6 +683,7 @@ vncAdvancedProperties::Load(BOOL usersettings)
 
 	// Make the loaded settings active..
 	ApplyUserPrefs();
+#endif
 
 	// Note whether we loaded the user settings or just the default system settings
 	m_usersettings = usersettings;
@@ -573,6 +692,8 @@ vncAdvancedProperties::Load(BOOL usersettings)
 void
 vncAdvancedProperties::LoadUserPrefs(HKEY appkey)
 {
+#if !defined HORIZONLIVE	
+
 	// LOAD USER PREFS FROM THE SELECTED KEY
 
 	// Connection querying settings
@@ -584,11 +705,14 @@ vncAdvancedProperties::LoadUserPrefs(HKEY appkey)
 	m_server->SetQueryAccept(m_pref_QueryAccept);
 	m_pref_QueryAllowNoPass=LoadInt(appkey, "QueryAllowNoPass", m_pref_QueryAllowNoPass);
 	m_server->SetQueryAllowNoPass(m_pref_QueryAllowNoPass);
+#endif
 }
 
 void
 vncAdvancedProperties::ApplyUserPrefs()
 {
+#if !defined HORIZONLIVE	
+
 	// APPLY THE CACHED PREFERENCES TO THE SERVER
 
 	// Update the connection querying settings
@@ -619,6 +743,7 @@ vncAdvancedProperties::ApplyUserPrefs()
 	//	vnclog.SetLevel(12);
 	//else
 	//	vnclog.SetLevel(2);
+#endif
 }
 
 void
@@ -687,14 +812,18 @@ vncAdvancedProperties::Save()
 		0, REG_NONE, REG_OPTION_NON_VOLATILE,
 		KEY_WRITE | KEY_READ, NULL, &hkLocal, &dw) != ERROR_SUCCESS)
 		return;
+
+#if !defined HORIZONLIVE
 	SaveInt(hkLocal, "ConnectPriority", m_server->ConnectPriority());
-	SaveInt(hkLocal, "DebugMode", vnclog.GetMode());
-	SaveInt(hkLocal, "DebugLevel", vnclog.GetLevel());
 	SaveInt(hkLocal, "LoopbackOnly", m_server->LoopbackOnly());
 	SaveInt(hkLocal, "EnableHTTPDaemon", m_server->HttpdEnabled());
 	SaveInt(hkLocal, "EnableURLParams", m_server->HttpdParamsEnabled());
 	SaveInt(hkLocal, "AllowLoopback", m_server->LoopbackOk());
 	SaveInt(hkLocal, "AuthRequired", m_server->AuthRequired());
+#endif
+
+	SaveInt(hkLocal, "DebugMode", vnclog.GetMode());
+	SaveInt(hkLocal, "DebugLevel", vnclog.GetLevel());
 	RegCloseKey(hkLocal);
 
 	// Close the user registry hive, to allow it to unload if reqd
@@ -707,10 +836,19 @@ vncAdvancedProperties::SaveUserPrefs(HKEY appkey)
 	// SAVE THE PER USER PREFS
 	vnclog.Print(LL_INTINFO, VNCLOG("saving current settings to registry\n"));
 
+#ifdef HORIZONLIVE
+	// Polling prefs
+	SaveInt(appkey, "PollUnderCursor", m_server->PollUnderCursor());
+	SaveInt(appkey, "PollForeground", m_server->PollForeground());
+	SaveInt(appkey, "PollFullScreen", m_server->PollFullScreen());
+	SaveInt(appkey, "OnlyPollConsole", m_server->PollConsoleOnly());
+	SaveInt(appkey, "OnlyPollOnEvent", m_server->PollOnEventOnly());
+#else
 	// Connection querying settings
 	SaveInt(appkey, "QuerySetting", m_server->QuerySetting());
 	SaveInt(appkey, "QueryTimeout", m_server->QueryTimeout());
 	SaveInt(appkey, "QueryAccept", m_server->QueryAccept());
 	SaveInt(appkey, "QueryAllowNoPass", m_server->QueryAllowNoPass());
+#endif
 }
 

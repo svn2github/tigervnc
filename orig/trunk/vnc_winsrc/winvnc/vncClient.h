@@ -106,6 +106,13 @@ public:
 	virtual const char *GetClientName();
 	virtual vncClientId GetClientId() {return m_id;};
 
+	virtual void UpdateDesktopSize(BOOL enable) { m_DesktopSizeChanged = enable;};
+	virtual BOOL IsDesktopSizeChanged() {return m_DesktopSizeChanged;};
+	virtual BOOL ReadyChangeDS() {return m_ReadyChangeDS;};
+	virtual BOOL SetNewDS();
+	void SetInputCounter();
+
+
 	// Update routines
 protected:
 	BOOL SendUpdate();
@@ -118,6 +125,7 @@ protected:
 	BOOL SendCopyRect(RECT &dest, POINT &source);
 	BOOL SendCursorShapeUpdate();
 	BOOL SendLastRect();
+	BOOL SendNewFBSize();
 	BOOL SendPalette();
 
 	void PollWindow(HWND hwnd);
@@ -152,7 +160,8 @@ protected:
 	RECT			m_oldmousepos;
 	BOOL			m_mousemoved;
 	rfbPointerEventMsg	m_ptrevent;
-	vncKeymap		m_keymap;
+	/// !!!!
+	//vncKeymap		m_keymap;
 
 	// Support for cursor shape updates (XCursor, RichCursor encodings)
 	BOOL			m_cursor_update_pending;
@@ -182,6 +191,15 @@ protected:
 	RECT			m_qtrscreen;
 	UINT			m_pollingcycle;
 	BOOL			m_remoteevent;
+	// Information used for changing desktop size 
+	CARD32			m_encoding;
+	BOOL			m_DesktopSizeChanged;
+	BOOL			m_ReadyChangeDS;
+	BOOL			m_use_NewFBSize;
+	BOOL			m_use_XCursor;
+	BOOL			m_use_RichCursor;
+	BOOL			m_use_lastrect;
+
 };
 
 #endif

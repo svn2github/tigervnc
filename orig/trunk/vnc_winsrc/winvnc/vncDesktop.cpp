@@ -44,6 +44,10 @@
 const UINT RFB_SCREEN_UPDATE = RegisterWindowMessage("WinVNC.Update.DrawRect");
 const UINT RFB_COPYRECT_UPDATE = RegisterWindowMessage("WinVNC.Update.CopyRect");
 const UINT RFB_MOUSE_UPDATE = RegisterWindowMessage("WinVNC.Update.Mouse");
+// message for blocking remote input events
+const UINT RFB_LOCAL_KEYBOARD = RegisterWindowMessage("WinVNC.Local.Keyboard");
+const UINT RFB_LOCAL_MOUSE = RegisterWindowMessage("WinVNC.Local.Mouse");
+
 const char szDesktopSink[] = "WinVNC desktop sink";
 
 // Atoms
@@ -136,8 +140,13 @@ vncDesktopThread::run_undetached(void *arg)
 	vncRegion rgncache;
 	rgncache.Clear();
 
+	SYSTEMTIME	systime;
+	FILETIME	ftime;
+	LARGE_INTEGER	now, droptime;
 	BOOL unhandled;
 	MSG msg;
+	droptime.QuadPart = 0;
+
 	while (TRUE)
 	{
 		unhandled = TRUE;
@@ -167,6 +176,8 @@ vncDesktopThread::run_undetached(void *arg)
 				}
 
 				// Now attempt to re-install them!
+				m_desktop->ChangeResNow();
+
 				if (!m_desktop->Startup())
 				{
 					vnclog.Print(LL_INTERR, VNCLOG("failed to re-start desktop server.\n"));
@@ -198,6 +209,42 @@ vncDesktopThread::run_undetached(void *arg)
 				m_server->UpdatePalette();
 			}
 	
+			if ( !m_server->CheckUpdateDesktopSize() ) {
+				RECT SharedRect;
+
+				if ( m_server->WindowShared() ) {
+					GetWindowRect( m_server->GetWindowShared(), &SharedRect );
+					m_server->SetMatchSizeFields( SharedRect.left, SharedRect.top, SharedRect.right, SharedRect.bottom);  
+				}
+				
+				SharedRect = m_server->getSharedRect();
+			
+				if (  m_desktop->m_scrinfo.framebufferHeight != SharedRect.bottom - SharedRect.top   
+					|| m_desktop->m_bmrect.right-m_desktop->m_bmrect.left != SharedRect.right - SharedRect.left ) 
+					m_server->UpdateDesktopSize();
+				
+			}			
+								
+				if ( m_server->ReadyChangeDS () ) {
+			
+					// Attempt to close the old hooks
+					if (!m_desktop->Shutdown())
+					{
+						m_server->KillAuthClients();
+						break;
+					}
+
+					// Now attempt to re-install them!
+					if (!m_desktop->Startup())
+					{
+						m_server->KillAuthClients();
+						break;
+					}
+					m_server->SetNewDS();
+					
+				}	
+			
+
 			// TRIGGER THE UPDATE
 
 			// Update the mouse if required
@@ -210,7 +257,8 @@ vncDesktopThread::run_undetached(void *arg)
 			}
 
 			// Check for moved windows
-			m_desktop->CalcCopyRects();
+			if (m_server->FullScreen())
+				m_desktop->CalcCopyRects();
 
 			// Flush the cached region data to all clients
 			m_server->UpdateRegion(rgncache);
@@ -232,15 +280,17 @@ vncDesktopThread::run_undetached(void *arg)
 		if (msg.message == RFB_SCREEN_UPDATE)
 		{
 			// An area of the screen has changed
-			RECT rect;
-			rect.left =	(SHORT) LOWORD(msg.wParam);
-			rect.top = (SHORT) HIWORD(msg.wParam);
-			rect.right = (SHORT) LOWORD(msg.lParam);
-			rect.bottom = (SHORT) HIWORD(msg.lParam);
-			if ((rect.left < 0) || (rect.top < 0) ||
-				(rect.right > m_desktop->m_bmrect.right) || (rect.bottom > m_desktop->m_bmrect.bottom))
-				vnclog.Print(50, VNCLOG("update:%d,%dx%d,%d\n"),
-					rect.left, rect.top, rect.right, rect.bottom);
+			RECT rect, coord;
+			if (m_server->WindowShared()) {
+				GetWindowRect(m_server->GetWindowShared(), &coord);
+				m_server->SetMatchSizeFields( coord.left, coord.top, coord.right, coord.bottom);  
+			} 
+			coord = m_server->getSharedRect();
+			
+			rect.left =	(SHORT)LOWORD(msg.wParam)- coord.left;
+			rect.top = (SHORT)HIWORD(msg.wParam) - coord.top;
+			rect.right = (SHORT)LOWORD(msg.lParam) - coord.left;
+			rect.bottom = (SHORT)HIWORD(msg.lParam) - coord.top;
 
 			rgncache.AddRect(rect);
 //			m_server->UpdateRect(rect);
@@ -255,9 +305,86 @@ vncDesktopThread::run_undetached(void *arg)
 			m_desktop->m_cursormoved = TRUE;
 			unhandled = FALSE;
 		}
+		// Blocking remote input events 
+
+		if ( msg.message == RFB_LOCAL_KEYBOARD )
+		{
+			if (vncService::IsWin95()) 
+			{
+				m_server->SetKeyboardCounter(-1);
+				if ( m_server->KeyboardCounter() < 0 )
+					{
+					// Get the current time as a 64-bit value
+					GetSystemTime(&systime);
+					SystemTimeToFileTime(&systime, &ftime);
+					droptime.LowPart = ftime.dwLowDateTime; 
+					droptime.HighPart = ftime.dwHighDateTime;
+					droptime.QuadPart /= 10000000; // Convert it into seconds
+					m_server->SetKeyboardEnabled(false);
+					}
+			} else {
+					GetSystemTime(&systime);
+					SystemTimeToFileTime(&systime, &ftime);
+					droptime.LowPart = ftime.dwLowDateTime; 
+					droptime.HighPart = ftime.dwHighDateTime;
+					droptime.QuadPart /= 10000000; // Convert it into seconds
+					m_server->SetKeyboardEnabled(false);
+			}
+
+			unhandled = FALSE;
+		}
+
+		if ( msg.message == RFB_LOCAL_MOUSE )
+		{
+
+			if (vncService::IsWin95()) 
+			{
+				m_server->SetMouseCounter(-1);
+				if ( m_server->MouseCounter() < 0 )
+				{
+					// Get the current time as a 64-bit value
+					GetSystemTime(&systime);
+					SystemTimeToFileTime(&systime, &ftime);
+					droptime.LowPart = ftime.dwLowDateTime; 
+					droptime.HighPart = ftime.dwHighDateTime;
+					droptime.QuadPart /= 10000000; // Convert it into seconds
+					m_server->SetKeyboardEnabled(false);
+				}
+			} else {
+					// Get the current time as a 64-bit value
+					GetSystemTime(&systime);
+					SystemTimeToFileTime(&systime, &ftime);
+					droptime.LowPart = ftime.dwLowDateTime; 
+					droptime.HighPart = ftime.dwHighDateTime;
+					droptime.QuadPart /= 10000000; // Convert it into seconds
+					m_server->SetKeyboardEnabled(false);
+			}
+
+			unhandled = FALSE;
+		}
+
 
 		if (unhandled)
 			DispatchMessage(&msg);
+
+		// check timer for block remote input events 
+		if ( m_server->LocalInputPriority()  && (droptime.QuadPart != 0 )) 
+		{
+			GetSystemTime(&systime);
+			SystemTimeToFileTime(&systime, &ftime);
+			now.LowPart = ftime.dwLowDateTime;
+			now.HighPart = ftime.dwHighDateTime;
+			now.QuadPart /= 10000000; // Convert it into seconds
+
+			if (now.QuadPart - m_server->DisableTime() >= droptime.QuadPart )
+			{
+				m_server->SetKeyboardEnabled(true);
+				droptime.QuadPart = 0;
+				m_server->SetKeyboardCounter(0);
+				m_server->SetMouseCounter(0);
+			}						
+		}
+
 	}
 
 	m_desktop->SetClipboardActive(FALSE);
@@ -268,7 +395,8 @@ vncDesktopThread::run_undetached(void *arg)
 	m_desktop->Shutdown();
 
 	// Clear the shift modifier keys, now that there are no remote clients
-	vncKeymap::ClearShiftKeys();
+	///!!!!
+	//vncKeymap::ClearShiftKeys();
 
 	// Switch back into our home desktop, under NT (no effect under 9x)
 	vncService::SelectHDESK(home_desktop);
@@ -301,6 +429,8 @@ vncDesktop::vncDesktop()
 	m_formatmunged = FALSE;
 
 	m_clipboard_active = FALSE;
+	lpDevMode = NULL;
+
 }
 
 vncDesktop::~vncDesktop()
@@ -369,9 +499,19 @@ vncDesktop::Startup()
 		m_server->PollFullScreen(TRUE);
 	}
 
+#if !defined HORIZONLIVE
 	// Start up the keyboard and mouse filters
 	SetKeyboardFilterHook(m_server->LocalInputsDisabled());
 	SetMouseFilterHook(m_server->LocalInputsDisabled());
+#endif
+
+	// Start up the keyboard and mouse hooks  for 
+	// local event priority over remote impl.
+	if(m_server->LocalInputPriority()){
+		SetLocalInputPriorityHook(true);
+		m_server->SetKeyboardCounter(0);
+		m_server->SetMouseCounter(0);
+	}
 
 	// Start a timer to handle Polling Mode.  The timer will cause
 	// an "idle" event once every second, which is necessary if Polling
@@ -400,8 +540,16 @@ vncDesktop::Shutdown()
 	if(m_hwnd != NULL)
 	{	
 		// Remove the system hooks
+		
+		//unset keyboard and mouse hooks
+		SetLocalInputPriorityHook(false);
 		UnSetHook(m_hwnd);
 
+#if !defined HORIZONLIVE
+		// Stp the keyboard and mouse filters
+		SetKeyboardFilterHook(false);
+		SetMouseFilterHook(false);
+#endif
 		// The window is being closed - remove it from the viewer list
 		ChangeClipboardChain(m_hwnd, m_hnextviewer);
 
@@ -686,38 +834,11 @@ vncDesktop::SetupDisplayForConnection()
 {
 
 	KillScreenSaver();
-
+//!!!!
 	ChangeResNow(); // *** - Jeremy Peaks
 	
-	// If all optimizatations are not already enabled, then
-	// check each one individually.
-	if (! OptimizeDisplayForConnection())
-	{
-		DisableIfRegSystemParameter("DisablePattern",
-									SPI_SETDESKPATTERN,
-									0,
-									0,
-									SPIF_SENDCHANGE);
-
-		DisableIfRegSystemParameter("DisableWallpaper",
-									SPI_SETDESKWALLPAPER,
-									0,
-									"",
-									SPIF_SENDCHANGE);
-
-		DisableIfRegSystemParameter("DisableFontSmoothing",
-									SPI_SETFONTSMOOTHING,
-									FALSE,
-									0,
-									SPIF_SENDCHANGE);
-
-		DisableIfRegSystemParameter("DisableFullWindowDrag",
-									SPI_SETDRAGFULLWINDOWS,
-									FALSE,
-									0,
-									SPIF_SENDCHANGE);
-	}
-
+	OptimizeDisplayForConnection();
+	
 }
 
 // *** If configured, perform a set of display optimizations to
@@ -727,10 +848,10 @@ vncDesktop::OptimizeDisplayForConnection()
 {
 
 	BOOL result;
-	HKEY checkdetails;
-
+	HKEY checkdetails = NULL;
 	result = FALSE;
 
+#if !defined HORIZONLIVE
 	RegOpenKeyEx(HKEY_LOCAL_MACHINE, 
 				"Software\\ORL\\WinVNC3",
 				0,
@@ -772,6 +893,11 @@ vncDesktop::OptimizeDisplayForConnection()
 		SystemParametersInfo(SPI_SETDRAGFULLWINDOWS, FALSE, 0, SPIF_SENDCHANGE);
 
 	}
+#else
+	vnclog.Print(LL_INTINFO, VNCLOG("SCR-WBB: attempting to disable wallpaper.\n"));
+	SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, "", SPIF_SENDCHANGE);
+	result = TRUE;
+#endif
 
 	if (checkdetails != NULL) {
 		RegCloseKey(checkdetails);
@@ -807,92 +933,119 @@ vncDesktop::ResetDisplayToNormal()
 	// *** their own wallpaper.  The value is now taken from HKEY_CURRENT_USER
 
 	// *** Open the registry key for current users settings
-	HKEY checkdetails;
-	RegOpenKeyEx(HKEY_CURRENT_USER, 
-				"Control Panel\\Desktop",
+	HKEY checkdetails = NULL, oldvalue;
+
+#if !defined HORIZONLIVE
+	
+	RegOpenKeyEx(HKEY_LOCAL_MACHINE, 
+				"Software\\ORL\\WinVNC3",
 				0,
 				KEY_READ,
 				&checkdetails);
-	
+
 	memset(inouttext, 0, MAX_REG_ENTRY_LEN);
-	
-	// *** Get the Wallpaper value - Jeremy Peaks
+
+	// *** Get the DisablePattern value - Jeremy Peaks
 	RegQueryValueEx(checkdetails,
-		"Wallpaper",
+		"OptimizeDesktop",
 		NULL,
 		(LPDWORD) &valType,
 		(LPBYTE) &inouttext,
 		(LPDWORD) &slen);
 
-	// *** Disconnected now, so just in case the wallpaper was disabled
-	// *** earlier, revert to saved wallpaper settings. - Jeremy Peaks
-	SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, inouttext, SPIF_SENDCHANGE);
-
-	memset(inouttext, 0, MAX_REG_ENTRY_LEN);
-
-	// *** Get the FontSmoothing value - Jeremy Peaks
-	RegQueryValueEx(checkdetails,
-		"FontSmoothing",
-		NULL,
-		(LPDWORD) &valType,
-		(LPBYTE) &inouttext,
-		(LPDWORD) &slen);
-
-	// *** Just in case font smoothing was disabled, re-enable it now
-	// *** - Jeremy Peaks
-	if ((valType == REG_SZ) &&
-		(inouttext[0] == '1')) {
-
-		SystemParametersInfo(SPI_SETFONTSMOOTHING, TRUE, 0, SPIF_SENDCHANGE);
-
-	}
-	
-	// *** Get the Pattern value - Jeremy Peaks
-	long sllen = MAX_REG_ENTRY_LEN;
-
-	memset(inouttext, 0, MAX_REG_ENTRY_LEN);
-
-	RegQueryValueEx(checkdetails,
-		"Pattern",
-		NULL,
-		(LPDWORD) &valType,
-		(LPBYTE) &inouttext,
-		(LPDWORD) &sllen);
-
-
-	// *** Just in case the pattern was disabled, re-enable it now
-	// *** - Jeremy Peaks
-	SystemParametersInfo(SPI_SETDESKPATTERN, 0, inouttext, SPIF_SENDCHANGE);
-
-	memset(inouttext, 0, MAX_REG_ENTRY_LEN);
-
-	// *** Get the DragFullWindows value - W. Brian Blevins
-	RegQueryValueEx(checkdetails,
-		"DragFullWindows",
-		NULL,
-		(LPDWORD) &valType,
-		(LPBYTE) &inouttext,
-		(LPDWORD) &slen);
-
-	// *** Just in case full window dragging was disabled, re-enable it now
+	// *** If Optimize = Yes/yes/Y/y then turn on all optimizations
 	// *** - W. Brian Blevins
 	if ((valType == REG_SZ) &&
-		(inouttext[0] == '1')) {
-
-		SystemParametersInfo(SPI_SETDRAGFULLWINDOWS, TRUE, 0, SPIF_SENDCHANGE);
-
-	}
+		(inouttext[0] == 'Y' || inouttext[0] == 'y')) {
+#endif
 	
-	if (checkdetails != NULL) {
-		RegCloseKey(checkdetails);
-	}
+		RegOpenKeyEx(HKEY_CURRENT_USER, 
+					"Control Panel\\Desktop",
+					0,
+					KEY_READ,
+					&oldvalue);
+	
+		memset(inouttext, 0, MAX_REG_ENTRY_LEN);
+	
+		// *** Get the Wallpaper value - Jeremy Peaks
+		RegQueryValueEx(oldvalue,
+			"Wallpaper",
+			NULL,
+			(LPDWORD) &valType,
+			(LPBYTE) &inouttext,
+			(LPDWORD) &slen);
 
+		// *** Disconnected now, so just in case the wallpaper was disabled
+		// *** earlier, revert to saved wallpaper settings. - Jeremy Peaks
+		SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, inouttext, SPIF_SENDCHANGE);
+		memset(inouttext, 0, MAX_REG_ENTRY_LEN);
+
+#if !defined HORIZONLIVE
+
+		// *** Get the FontSmoothing value - Jeremy Peaks
+		RegQueryValueEx(oldvalue,
+			"FontSmoothing",
+			NULL,
+			(LPDWORD) &valType,
+			(LPBYTE) &inouttext,
+			(LPDWORD) &slen);
+
+		if ((valType == REG_SZ) && (inouttext[0] == '1')) 
+			SystemParametersInfo(SPI_SETFONTSMOOTHING, TRUE, 0, SPIF_SENDCHANGE);
+		
+	
+		// *** Get the Pattern value - Jeremy Peaks
+		long sllen = MAX_REG_ENTRY_LEN;
+		memset(inouttext, 0, MAX_REG_ENTRY_LEN);
+
+		RegQueryValueEx(oldvalue,
+			"Pattern",
+			NULL,
+			(LPDWORD) &valType,
+			(LPBYTE) &inouttext,
+			(LPDWORD) &sllen);
+
+		// *** Just in case the pattern was disabled, re-enable it now
+		// *** - Jeremy Peaks
+		SystemParametersInfo(SPI_SETDESKPATTERN, 0, inouttext, SPIF_SENDCHANGE);
+		memset(inouttext, 0, MAX_REG_ENTRY_LEN);
+
+		// *** Get the DragFullWindows value - W. Brian Blevins
+		RegQueryValueEx(oldvalue,
+			"DragFullWindows",
+			NULL,
+			(LPDWORD) &valType,
+			(LPBYTE) &inouttext,
+			(LPDWORD) &slen);
+
+		// *** Just in case full window dragging was disabled, re-enable it now
+		// *** - W. Brian Blevins
+		if ((valType == REG_SZ) && (inouttext[0] == '1')) 
+			SystemParametersInfo(SPI_SETDRAGFULLWINDOWS, TRUE, 0, SPIF_SENDCHANGE);
+	}
+#endif
+		if (checkdetails != NULL) 
+			RegCloseKey(checkdetails);
+		
+		if (oldvalue != NULL) 
+			RegCloseKey(oldvalue);
+	
 }
 
 
 BOOL
 vncDesktop::InitBitmap()
 {
+	// check sharing screen area
+	if (m_server->WindowShared()) {
+		// to get position of our window
+		if (!GetWindowRect(m_server->GetWindowShared(),&m_bmrect))
+			return FALSE;
+		m_server->SetMatchSizeFields(m_bmrect.left,m_bmrect.top,m_bmrect.right,m_bmrect.bottom);
+	} 
+	
+	m_bmrect=m_server->getSharedRect();
+	
 	// Get the device context for the whole screen and find it's size
 	m_hrootdc = ::GetDC(NULL);
 	if (m_hrootdc == NULL) {
@@ -900,9 +1053,6 @@ vncDesktop::InitBitmap()
 		return FALSE;
 	}
 
-	m_bmrect.left = m_bmrect.top = 0;
-	m_bmrect.right = GetDeviceCaps(m_hrootdc, HORZRES);
-	m_bmrect.bottom = GetDeviceCaps(m_hrootdc, VERTRES);
 	vnclog.Print(LL_INTINFO, VNCLOG("bitmap dimensions are %d x %d\n"),
 				 m_bmrect.right, m_bmrect.bottom);
 
@@ -941,7 +1091,8 @@ vncDesktop::InitBitmap()
 	}
 
 	// Create the bitmap to be compatible with the ROOT DC!!!
-	m_membitmap = CreateCompatibleBitmap(m_hrootdc, m_bmrect.right, m_bmrect.bottom);
+	m_membitmap = CreateCompatibleBitmap(m_hrootdc, m_bmrect.right - m_bmrect.left,
+		m_bmrect.bottom - m_bmrect.top);
 	if (m_membitmap == NULL) {
 		vnclog.Print(LL_INTERR, VNCLOG("failed to create memory bitmap, error = %d\n"),
 					 GetLastError());
@@ -1056,6 +1207,11 @@ vncDesktop::SetPixFormat()
 	m_scrinfo.framebufferHeight = (CARD16) (m_bmrect.bottom - m_bmrect.top);	// Swap endian before actually sending
 	m_scrinfo.format.bitsPerPixel = (CARD8) m_bminfo.bmi.bmiHeader.biBitCount;
 	m_scrinfo.format.depth        = (CARD8) m_bminfo.bmi.bmiHeader.biBitCount;
+
+	if (!m_server->FullScreen()) {
+		if (m_scrinfo.format.bitsPerPixel == 8) m_scrinfo.framebufferWidth = (CARD16) ((m_bmrect.right+3 - m_bmrect.left)/4*4);
+		if (m_scrinfo.format.bitsPerPixel == 16) m_scrinfo.framebufferWidth = (CARD16) ((m_bmrect.right+1 - m_bmrect.left)/2*2);
+	}	
 
 	// Calculate the number of bytes per row
 	m_bytesPerRow = m_scrinfo.framebufferWidth * m_scrinfo.format.bitsPerPixel / 8;
@@ -1378,10 +1534,18 @@ vncDesktop::CaptureScreen(RECT &rect, BYTE *scrBuff, UINT scrBuffSize)
 		return;
 
 	// Capture screen into bitmap
-	BOOL blitok = BitBlt(m_hmemdc, rect.left, rect.top,
-		(rect.right-rect.left),
-		(rect.bottom-rect.top),
-		m_hrootdc, rect.left, rect.top, SRCCOPY);
+	BOOL blitok;
+	RECT coord;
+	if ( m_server->WindowShared() ) {
+		GetWindowRect( m_server->GetWindowShared(), &coord );
+		m_server->SetMatchSizeFields( coord.left, coord.top, coord.right, coord.bottom);  
+	}
+				
+	coord = m_server->getSharedRect();
+	blitok = BitBlt(m_hmemdc, rect.left, rect.top,
+					rect.right - rect.left, rect.bottom - rect.top,
+					m_hrootdc, rect.left + coord.left, rect.top + coord.top,
+					SRCCOPY);
 
 	// Select the old bitmap back into the memory DC
 	SelectObject(m_hmemdc, oldbitmap);
@@ -1414,8 +1578,23 @@ vncDesktop::CaptureMouse(BYTE *scrBuff, UINT scrBuffSize)
 	// Translate position for hotspot
 	if (GetIconInfo(m_hcursor, &IconInfo))
 	{
+		RECT coord;
+		if (m_server->WindowShared()) {
+			GetWindowRect(m_server->GetWindowShared(), &coord);
+			m_server->SetMatchSizeFields( coord.left, coord.top, coord.right, coord.bottom);  
+		}
+		coord = m_server->getSharedRect();
+
 		CursorPos.x -= ((int) IconInfo.xHotspot);
+		
+		// here, cursor position is relative to the screen
+		// we put them relative to the screen area !
+		CursorPos.x = CursorPos.x - coord.left;
+
 		CursorPos.y -= ((int) IconInfo.yHotspot);
+		// we have to do the same thing for y than for x !
+		CursorPos.y = CursorPos.y - coord.top;
+
 		if (IconInfo.hbmMask != NULL)
 			DeleteObject(IconInfo.hbmMask);
 		if (IconInfo.hbmColor != NULL)
@@ -1680,6 +1859,33 @@ EnumWindowsFn(HWND hwnd, LPARAM arg)
 	return TRUE;
 }
 
+
+void
+vncDesktop::SetLocalInputDisableHook(BOOL enable)
+{
+	SetKeyboardFilterHook(enable);
+	SetMouseFilterHook(enable);
+}
+
+void
+vncDesktop::SetLocalInputPriorityHook(BOOL enable)
+{
+	if ( vncService::IsWin95() ) {
+		SetKeyboardPriorityHook(enable,RFB_LOCAL_KEYBOARD);
+		SetMousePriorityHook(enable,RFB_LOCAL_MOUSE);
+		m_server->SetKeyboardCounter(0);
+		m_server->SetMouseCounter(0);
+
+	} else {
+
+		SetKeyboardPriorityLLHook(enable,RFB_LOCAL_KEYBOARD);
+		SetMousePriorityLLHook(enable,RFB_LOCAL_MOUSE);
+	}
+	
+	if ( !enable )	
+		m_server->SetKeyboardEnabled(true);
+}
+
 // Routine to find out which windows have moved
 void
 vncDesktop::CalcCopyRects()
@@ -1713,7 +1919,6 @@ DesktopWndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		// Get the system palette
 		if (!_this->SetPalette())
 			PostQuitMessage(0);
-
 		// Update any palette-based clients, too
 		_this->m_server->UpdatePalette();
 		return 0;

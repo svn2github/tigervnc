@@ -27,6 +27,15 @@
 #define IDD_ACCEPT_CONN                 136
 #define IDD_ADVPROPERTIES               137
 #define IDI_DISABLED                    138
+#define IDD_LIVESHAREPROP               138
+#define IDR_LSHTRAYMENU                 139
+#define IDD_LIVESHAREADVPROP            139
+#define IDB_BITMAP1                     139
+#define IDI_LIVESHARE                   140
+#define IDB_BITMAP2                     140
+#define IDC_CURSOR1                     141
+#define IDI_LIVESHARENC                 142
+#define IDB_BITMAP3                     142
 #define IDC_CONNECT_BORDER              1003
 #define IDC_CONNECT_SOCK                1004
 #define IDC_CONNECT_CORBA               1005
@@ -41,6 +50,7 @@
 #define IDC_POLL_UNDER_CURSOR           1014
 #define IDC_ONEVENT_ONLY                1015
 #define IDC_VNCLOGO                     1016
+#define IDC_REMOTE_DISABLE              1016
 #define IDC_VERSION                     1017
 #define IDC_NAME                        1018
 #define IDC_EMAIL                       1019
@@ -80,6 +90,17 @@
 #define IDPRIORITY2                     1053
 #define IDPRIORITY1                     1054
 #define IDENABLEHTTPD                   1055
+#define IDC_PARTAGE_BORDER              1056
+#define IDC_PARTAGE_BORDER2             1057
+#define IDC_NAME_APPLI                  1058
+#define IDC_LIVESHARE                   1059
+#define IDC_BMPCURSOR                   1060
+#define IDC_WINDOW                      1061
+#define IDC_SCREEN                      1062
+#define IDC_FULLSCREEN                  1063
+#define IDC_DISABLE_TIME                1064
+#define IDC_TIMEOUT_LABEL               1065
+#define IDC_SECONDS_LABEL               1066
 #define ID_PROPERTIES                   40001
 #define ID_CLOSE                        40002
 #define ID_KILLCLIENTS                  40003
@@ -92,9 +113,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        139
+#define _APS_NEXT_RESOURCE_VALUE        144
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1056
+#define _APS_NEXT_CONTROL_VALUE         1069
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

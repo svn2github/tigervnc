@@ -25,6 +25,7 @@ CFG=VNCHooks - Win32 Profile
 !MESSAGE "VNCHooks - Win32 Profile" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE "VNCHooks - Win32 Alpha No_CORBA" (based on "Win32 (ALPHA) Dynamic-Link Library")
 !MESSAGE "VNCHooks - Win32 Alpha Debug No_CORBA" (based on "Win32 (ALPHA) Dynamic-Link Library")
+!MESSAGE "VNCHooks - Win32 HorizonLive" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE 
 
 # Begin Project
@@ -240,6 +241,36 @@ LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib /nologo /subsystem:windows /dll /machine:ALPHA
 # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib /nologo /subsystem:windows /dll /debug /machine:ALPHA /pdbtype:sept
 
+!ELSEIF  "$(CFG)" == "VNCHooks - Win32 HorizonLive"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "VNCHooks___Win32_HorizonLive"
+# PROP BASE Intermediate_Dir "VNCHooks___Win32_HorizonLive"
+# PROP BASE Ignore_Export_Lib 0
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "..\HorizonLive"
+# PROP Intermediate_Dir "..\HorizonLive"
+# PROP Ignore_Export_Lib 0
+# PROP Target_Dir ""
+CPP=cl.exe
+# ADD BASE CPP /nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D _WIN32_WINNT=0x0400 /D "HORIZONT_LIVE" /YX /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D _WIN32_WINNT=0x0400 /D "HORIZONLIVE" /YX /FD /c
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+RSC=rc.exe
+# ADD BASE RSC /l 0x409 /d "NDEBUG"
+# ADD RSC /l 0x409 /d "NDEBUG"
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib /nologo /subsystem:windows /dll /machine:I386
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib /nologo /subsystem:windows /dll /machine:I386
+
 !ENDIF 
 
 # Begin Target
@@ -251,6 +282,7 @@ LINK32=link.exe
 # Name "VNCHooks - Win32 Profile"
 # Name "VNCHooks - Win32 Alpha No_CORBA"
 # Name "VNCHooks - Win32 Alpha Debug No_CORBA"
+# Name "VNCHooks - Win32 HorizonLive"
 # Begin Source File
 
 SOURCE=.\resource.h
@@ -280,6 +312,8 @@ DEP_CPP_VNCHO=\
 DEP_CPP_VNCHO=\
 	".\VNCHooks.h"\
 	
+
+!ELSEIF  "$(CFG)" == "VNCHooks - Win32 HorizonLive"
 
 !ENDIF 
 

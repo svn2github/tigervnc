@@ -67,6 +67,10 @@ vncProperties::vncProperties()
 	m_dlgvisible = FALSE;
 	m_usersettings = TRUE;
 	m_inadvanced = FALSE;
+	m_bCaptured= FALSE;
+	m_KeepHandle = NULL;
+	m_pMatchWindow = NULL;
+
 }
 
 vncProperties::~vncProperties()
@@ -81,10 +85,33 @@ vncProperties::Init(vncServer *server)
 	m_server = server;
 	
 	m_inadvanced = FALSE;
+
+#ifdef HORIZONLIVE
+	strcpy(m_pref_LiveShareKey,"");
+#endif
 	
 	// Load the settings from the registry
 	Load(TRUE);
 
+	if (m_pMatchWindow == NULL) 
+	{
+		RECT temp;
+		GetWindowRect(GetDesktopWindow(), &temp);
+		m_pMatchWindow=new CMatchWindow(m_server,temp.left+5,temp.top+5,temp.right/2,temp.bottom/2);
+		m_pMatchWindow->CanModify(TRUE);
+	}
+
+#ifdef HORIZONLIVE
+	
+	char username[UNLEN+1];
+	if (!vncService::CurrentUser(username, sizeof(username)))
+		return FALSE;
+	if (strcmp(username, "") == 0) 
+		Show(TRUE, FALSE);
+	else 
+		Show(TRUE, TRUE);
+
+#else
 	// If the password is empty then always show a dialog
 	char passwd[MAXPWLEN];
 	m_server->GetPassword(passwd);
@@ -119,6 +146,8 @@ vncProperties::Init(vncServer *server)
 				}
 			}
 	}
+
+#endif
 
 	return TRUE;
 }
@@ -181,6 +210,27 @@ vncProperties::Show(BOOL show, BOOL usersettings)
 			// Load in the settings relevant to the user or system
 			Load(usersettings);
 
+#ifdef HORIZONLIVE
+			m_returncode_valid = FALSE;
+			// Do the dialog box
+			int result = DialogBoxParam(hAppInstance,
+			    MAKEINTRESOURCE(IDD_LIVESHAREPROP), 
+			    NULL,
+			    (DLGPROC) DialogProc,
+			    (LONG) this);
+
+			if (!m_returncode_valid)
+			    result = IDCANCEL;
+
+			vnclog.Print(LL_INTINFO, VNCLOG("dialog result = %d\n"), result);
+
+			if (result == -1)
+			{
+				// Dialog box failed, so quit
+				PostQuitMessage(0);
+				return;
+			}
+#else
 			for (;;)
 			{
 				m_returncode_valid = FALSE;
@@ -230,7 +280,7 @@ vncProperties::Show(BOOL show, BOOL usersettings)
 
 				omni_thread::sleep(4);
 			}
-
+#endif
 			// Load in all the settings
 			Load(TRUE);
 		}
@@ -256,7 +306,25 @@ vncProperties::DialogProc(HWND hwnd,
 			// to the calling vncProperties object
 			SetWindowLong(hwnd, GWL_USERDATA, lParam);
 			_this = (vncProperties *) lParam;
+			
+			HWND bmp_hWnd=GetDlgItem(hwnd,IDC_BMPCURSOR);
+			_this->m_OldBmpWndProc=GetWindowLong(bmp_hWnd,GWL_WNDPROC);
+			SetWindowLong(bmp_hWnd,GWL_WNDPROC,(LONG)BmpWndProc);
+			SetWindowLong(bmp_hWnd, GWL_USERDATA, (LONG)_this);
+			HBITMAP hNewImage,hOldImage;
+			_this->hNameAppli = GetDlgItem(hwnd, IDC_NAME_APPLI);
 
+
+#ifdef HORIZONLIVE
+			// Set the dialog box's title to indicate which Properties we're editting
+			SetWindowText(hwnd, "LiveShare Settings");
+			
+			HWND hLiveShare = GetDlgItem(hwnd, IDC_LIVESHARE);
+			::SetWindowText(hLiveShare, _this->m_pref_LiveShareKey);                                                                                                  
+			if (_this->m_server->AuthClientCount() != 0)
+				EnableWindow(hLiveShare,false);
+
+#else
 			// Set the dialog box's title to indicate which Properties we're editting
 			if (_this->m_usersettings) {
 				SetWindowText(hwnd, "WinVNC: Current User Properties");
@@ -319,6 +387,26 @@ vncProperties::DialogProc(HWND hwnd,
 				_this->m_server->LocalInputsDisabled(),
 				0);
 
+			// Local input prioity settings
+			HWND hRemoteDisable = GetDlgItem(hwnd, IDC_REMOTE_DISABLE);
+			SendMessage(hRemoteDisable,
+				BM_SETCHECK,
+				_this->m_server->LocalInputPriority(),
+				0);
+
+			HWND hDisableTime = GetDlgItem(hwnd, IDC_DISABLE_TIME);
+			SetDlgItemInt(hwnd, IDC_DISABLE_TIME, _this->m_server->DisableTime(), FALSE);
+			
+			if ( !(_this->m_server->RemoteInputsEnabled()) || _this->m_server->LocalInputsDisabled() ) 
+			{
+				EnableWindow(hRemoteDisable, FALSE);
+				EnableWindow(hDisableTime, FALSE);
+			}
+			
+			if (!_this->m_server->LocalInputPriority())
+				EnableWindow(hDisableTime, FALSE);
+
+
 			// Set the polling options
 			HWND hPollFullScreen = GetDlgItem(hwnd, IDC_POLL_FULLSCREEN);
 			SendMessage(hPollFullScreen,
@@ -355,7 +443,69 @@ vncProperties::DialogProc(HWND hwnd,
 			EnableWindow(hPollOnEventOnly,
 				_this->m_server->PollUnderCursor() || _this->m_server->PollForeground()
 				);
+#endif
+	
+			if (_this->m_pref_FullScreen) {
+				// hide shared area window
+				if (_this->m_pMatchWindow!=NULL) 
+					_this->m_pMatchWindow->Hide();
 
+				// disable window select stuff
+				EnableWindow(bmp_hWnd,FALSE);
+				hNewImage=LoadBitmap(hAppInstance,MAKEINTRESOURCE(IDB_BITMAP3));
+				hOldImage=(HBITMAP)::SendMessage(bmp_hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
+				DeleteObject(hOldImage);
+				::SetWindowText(_this->hNameAppli,"Full Desktop Selected");                                                                                                  
+			}
+
+			if(_this->m_pref_WindowShared) {
+
+				EnableWindow(bmp_hWnd,TRUE);
+				hNewImage=LoadBitmap(hAppInstance,MAKEINTRESOURCE(IDB_BITMAP1));
+				hOldImage=(HBITMAP)::SendMessage(bmp_hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
+				DeleteObject(hOldImage);	
+				_this->SetWindowCaption(_this->m_server->GetWindowShared());
+
+				if (_this->m_pMatchWindow!=NULL) 
+					_this->m_pMatchWindow->Hide();
+	
+			}
+			
+			if (_this->m_pref_ScreenAreaShared) { 
+				EnableWindow(bmp_hWnd,FALSE);
+				hNewImage=LoadBitmap(hAppInstance,MAKEINTRESOURCE(IDB_BITMAP3));
+				hOldImage=(HBITMAP)::SendMessage(bmp_hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
+				DeleteObject(hOldImage);
+				::SetWindowText(_this->hNameAppli,"Screen Area Selected");
+
+				if (_this->m_pMatchWindow == NULL) {
+					RECT temp;
+					temp = _this->m_server->getSharedRect();
+					_this->m_pMatchWindow=new CMatchWindow(_this->m_server,temp.left+5,temp.top+5,temp.right,temp.bottom);
+					_this->m_pMatchWindow->CanModify(TRUE);
+				}
+				_this->m_pMatchWindow->Show();
+			}
+				
+
+			HWND hFullScreen = GetDlgItem(hwnd, IDC_FULLSCREEN);
+            SendMessage(hFullScreen,    
+			    BM_SETCHECK,
+                _this->m_pref_FullScreen,   0);
+                      
+           EnableWindow(_this->hNameAppli,(_this->m_pref_WindowShared));
+
+			HWND hWindowCaption = GetDlgItem(hwnd, IDC_WINDOW);
+			SendMessage(hWindowCaption,
+				BM_SETCHECK, 
+				_this->m_pref_WindowShared,0);
+
+			HWND hScreenCaption = GetDlgItem(hwnd, IDC_SCREEN);
+			SendMessage(hScreenCaption,
+				BM_SETCHECK, 
+				(_this->m_pref_ScreenAreaShared),0);
+
+			
 			SetForegroundWindow(hwnd);
 
 			_this->m_dlgvisible = TRUE;
@@ -372,6 +522,7 @@ vncProperties::DialogProc(HWND hwnd,
 		case IDOK:
 		case IDC_APPLY:
 			{
+#if !defined HORIZONLIVE				
 				// Save the password if one was entered
 				char passwd[MAXPWLEN+1];
 				int len = GetDlgItemText(hwnd, IDC_PASSWORD, (LPSTR) &passwd, MAXPWLEN+1);
@@ -451,12 +602,101 @@ vncProperties::DialogProc(HWND hwnd,
 					SendMessage(hPollOnEventOnly, BM_GETCHECK, 0, 0) == BST_CHECKED
 					);
 
+				HWND hRemoteDisable = GetDlgItem(hwnd, IDC_REMOTE_DISABLE);
+				_this->m_server->LocalInputPriority(
+					SendMessage(hRemoteDisable, BM_GETCHECK, 0, 0) == BST_CHECKED
+				);
+
+				BOOL success;
+				UINT disabletime = GetDlgItemInt(hwnd, IDC_DISABLE_TIME, &success, TRUE);
+				if (success)
+					_this->m_server->SetDisableTime(disabletime);
+
+#endif
+
+				// check that Shared window not null
+				if ( _this->m_pref_WindowShared && (_this->m_server->GetWindowShared() == NULL) )
+				{
+					MessageBox(NULL,"You have not yet selected a window to share.\nPlease first select a window with the 'Window Target'\nicon and try again.", "No Window Selected", MB_OK | MB_ICONEXCLAMATION);
+					return true;
+				}
+
+				// Handle the share one window stuff
+			    HWND hFullScreen = GetDlgItem(hwnd, IDC_FULLSCREEN);
+			    _this->m_server->FullScreen(
+					SendMessage(hFullScreen, BM_GETCHECK, 0, 0) == BST_CHECKED);
+				  				
+				HWND hWindowCapture = GetDlgItem(hwnd, IDC_WINDOW);
+			    _this->m_server->WindowShared(
+					SendMessage(hWindowCapture, BM_GETCHECK, 0, 0) == BST_CHECKED);
+
+				HWND hScreenArea = GetDlgItem(hwnd, IDC_SCREEN);
+			    _this->m_server->ScreenAreaShared(
+					SendMessage(hScreenArea, BM_GETCHECK, 0, 0) == BST_CHECKED);
+				
+				if ( _this->m_pref_ScreenAreaShared) {
+					int left,right,top,bottom;
+		            if (_this->m_pMatchWindow!=NULL) {
+						_this->m_pMatchWindow->GetPosition(left,top,right,bottom);
+						_this->m_server->SetMatchSizeFields(left,top,right,bottom);
+					}
+				}
+
+				if (_this->m_pref_FullScreen) {
+					RECT temp;
+					GetWindowRect(GetDesktopWindow(), &temp);
+					_this->m_server->SetMatchSizeFields(temp.left, temp.top, temp.right, temp.bottom);
+				}
+
 				// And to the registry
 				_this->Save();
 
 				// Was ok pressed?
 				if (LOWORD(wParam) == IDOK)
 				{
+
+# ifdef HORIZONLIVE					
+					if (_this->m_server->AuthClientCount() == 0)
+					{
+						char hostemp [_MAX_PATH];
+						char *portp;
+						int port;
+						strcpy(hostemp, _this->m_pref_LiveShareKey);
+						// Calculate the Display and Port offset.
+						port = INCOMING_PORT_OFFSET;
+						portp = strchr(hostemp, ':');
+						if (portp)
+						{
+							*portp++ = '\0';
+							port += atoi(portp);
+						}
+
+						// Attempt to create a new socket
+						VSocket *tmpsock;
+						tmpsock = new VSocket;
+						if (!tmpsock)
+							return TRUE;
+
+						// Connect out to the specified host on the VNCviewer listen port
+						// To be really good, we should allow a display number here but
+						// for now we'll just assume we're connecting to display zero
+						tmpsock->Create();
+						if (tmpsock->Connect(hostemp, port)) {
+							// Add the new client to this server
+							_this->m_server->AddClient(tmpsock, TRUE, TRUE);
+							
+						} else {
+							// Print up an error message
+							MessageBox(NULL, 
+							"LiveShare was unable to begin sharing your computer.\nPlease verify that you have entered the correct LiveShare Key and try again.",
+							"LiveShare Connection Error",
+							MB_OK | MB_ICONEXCLAMATION );
+							delete tmpsock;
+							return true;
+						}
+					}
+#endif					
+					
 					// Yes, so close the dialog
 					vnclog.Print(LL_INTINFO, VNCLOG("enddialog (OK)\n"));
 
@@ -496,6 +736,7 @@ vncProperties::DialogProc(HWND hwnd,
 			}
 			return TRUE;
 
+#if !defined HORIZONLIVE		
 		case IDC_CONNECT_SOCK:
 			// The user has clicked on the socket connect tickbox
 			{
@@ -553,6 +794,136 @@ vncProperties::DialogProc(HWND hwnd,
 			}
 			return TRUE;
 
+		case IDC_DISABLE_INPUTS:
+		case IDC_DISABLE_LOCAL_INPUTS:
+			{
+			
+				HWND hDisableInputs = GetDlgItem(hwnd, IDC_DISABLE_INPUTS);
+				HWND hDisableLocalInputs = GetDlgItem(hwnd, IDC_DISABLE_LOCAL_INPUTS);
+	
+				// Determine whether to enable the modifier options
+				BOOL enabled = (SendMessage(hDisableInputs, BM_GETCHECK, 0, 0) != BST_CHECKED) &&
+				(SendMessage(hDisableLocalInputs, BM_GETCHECK, 0, 0) != BST_CHECKED);
+
+				HWND hRemoteDisable = GetDlgItem(hwnd, IDC_REMOTE_DISABLE);
+				HWND hDisableTime = GetDlgItem(hwnd, IDC_DISABLE_TIME);
+				
+				BOOL enabl = (SendMessage(hRemoteDisable, BM_GETCHECK, 0, 0) != BST_CHECKED);
+								
+				EnableWindow(hRemoteDisable, enabled);
+				EnableWindow(hDisableTime, enabled & !enabl);
+				
+				if (!enabled)
+					SendMessage(hRemoteDisable, BM_SETCHECK, enabled, 0);
+				
+
+			}
+			return TRUE;
+	
+		case IDC_REMOTE_DISABLE:
+			{
+			HWND hDisableTime = GetDlgItem(hwnd, IDC_DISABLE_TIME);
+			HWND hRemoteDisable = GetDlgItem(hwnd, IDC_REMOTE_DISABLE);
+			BOOL enabled = (SendMessage(hRemoteDisable, BM_GETCHECK, 0, 0) == BST_CHECKED);
+			EnableWindow(hDisableTime, enabled);
+			}
+			return TRUE;
+	
+				
+
+#else
+		case IDC_LIVESHARE:
+			{
+				char entered_key [_MAX_PATH];
+				char cleaned_key [_MAX_PATH];
+				char *pos = cleaned_key;
+
+				GetDlgItemText(hwnd, IDC_LIVESHARE, entered_key, _MAX_PATH);
+
+				// Clean out low ASCII chars from the LiveShare Key
+				for(int i=0; i<strlen(entered_key); i++)
+					if(entered_key[i] > 0x2C)
+						*pos++ = entered_key[i];
+
+				*pos = '\0';
+				
+				strcpy(_this->m_pref_LiveShareKey, cleaned_key);
+			}
+			return TRUE;
+
+#endif
+
+		case IDC_FULLSCREEN:
+			{	
+				HWND bmp_hWnd=GetDlgItem(hwnd,IDC_BMPCURSOR);
+			    HBITMAP hNewImage,hOldImage;
+
+				_this->m_pref_FullScreen = TRUE;
+				_this->m_pref_WindowShared = FALSE;
+				_this->m_pref_ScreenAreaShared = FALSE;
+				_this->hNameAppli = GetDlgItem(hwnd, IDC_NAME_APPLI);
+				EnableWindow(_this->hNameAppli, FALSE);
+				::SetWindowText(_this->hNameAppli,"Full Desktop Selected");
+			
+				EnableWindow(bmp_hWnd,FALSE);
+				hNewImage=LoadBitmap(hAppInstance,MAKEINTRESOURCE(IDB_BITMAP3));
+				hOldImage=(HBITMAP)::SendMessage(bmp_hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
+				DeleteObject(hOldImage);
+				
+				if (_this->m_pMatchWindow!=NULL) 
+					_this->m_pMatchWindow->Hide();
+			}
+		
+			return TRUE;
+	
+		case IDC_WINDOW:
+			{
+				HWND bmp_hWnd=GetDlgItem(hwnd,IDC_BMPCURSOR);
+				HBITMAP hNewImage,hOldImage;
+				EnableWindow(bmp_hWnd,TRUE);
+				hNewImage=LoadBitmap(hAppInstance,MAKEINTRESOURCE(IDB_BITMAP1));
+				hOldImage=(HBITMAP)::SendMessage(bmp_hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
+				DeleteObject(hOldImage);	
+				if (_this->m_pMatchWindow!=NULL) 
+					_this->m_pMatchWindow->Hide();
+			   
+				_this->SetWindowCaption(_this->m_server->GetWindowShared());
+				EnableWindow(GetDlgItem(hwnd,IDC_NAME_APPLI),TRUE);
+				_this->m_pref_FullScreen = FALSE;
+				_this->m_pref_WindowShared = TRUE;
+				_this->m_pref_ScreenAreaShared = FALSE;
+			
+			}
+			return TRUE;
+
+		case IDC_SCREEN:
+			{
+			
+				if (_this->m_pMatchWindow == NULL) 
+				{
+					RECT temp;
+					temp = _this->m_server->getSharedRect();
+					_this->m_pMatchWindow=new CMatchWindow(_this->m_server,temp.left+5,temp.top+5,temp.right,temp.bottom);
+					_this->m_pMatchWindow->CanModify(TRUE);
+				}
+
+				HWND bmp_hWnd=GetDlgItem(hwnd,IDC_BMPCURSOR);
+			    HBITMAP hNewImage,hOldImage;
+				::SetWindowText(_this->hNameAppli,"Screen Area Selected");
+				_this->m_pref_WindowShared = FALSE;
+				EnableWindow(bmp_hWnd,FALSE);
+				hNewImage=LoadBitmap(hAppInstance,MAKEINTRESOURCE(IDB_BITMAP3));
+				hOldImage=(HBITMAP)::SendMessage(bmp_hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
+				DeleteObject(hOldImage);
+				if (_this->m_pMatchWindow!=NULL) 
+					_this->m_pMatchWindow->Show();
+				EnableWindow(GetDlgItem(hwnd,IDC_NAME_APPLI),FALSE);
+				_this->m_pref_FullScreen = FALSE;
+				_this->m_pref_WindowShared = FALSE;
+				_this->m_pref_ScreenAreaShared = TRUE;
+			}
+			return TRUE;
+
 		}
 
 		break;
@@ -564,25 +935,21 @@ void
 vncProperties::EnableControls(BOOL state, HWND hwnd, vncProperties *_this)
 {
 	EnableWindow(hwnd, state);
-	//return;
+	// return;
 
-	HWND hOk = GetDlgItem(hwnd, IDOK);
-	EnableWindow(hOk, state);
-	HWND hCancel = GetDlgItem(hwnd, IDCANCEL);
-	EnableWindow(hCancel, state);
-	HWND hApply = GetDlgItem(hwnd, IDC_APPLY);
-	EnableWindow(hApply, state);
-	HWND hAdvanced = GetDlgItem(hwnd, IDADVANCED);
-	EnableWindow(hAdvanced, state);
+	EnableWindow(GetDlgItem(hwnd, IDOK), state);
+	EnableWindow(GetDlgItem(hwnd, IDCANCEL), state);
+	EnableWindow(GetDlgItem(hwnd, IDC_APPLY), state);
+	EnableWindow(GetDlgItem(hwnd, IDADVANCED), state);
+	EnableWindow(GetDlgItem(hwnd, IDC_CONNECT_BORDER), state);
+	EnableWindow(GetDlgItem(hwnd, IDC_UPDATE_BORDER), state);
+	EnableWindow(GetDlgItem(hwnd, IDC_PARTAGE_BORDER), state);
 
-	HWND hCon = GetDlgItem(hwnd, IDC_CONNECT_BORDER);
-	EnableWindow(hCon, state);
-	HWND hUp = GetDlgItem(hwnd, IDC_UPDATE_BORDER);
-	EnableWindow(hUp, state);
-	HWND hPortLabel = GetDlgItem(hwnd, IDC_PORTNO_LABEL);
-	EnableWindow(hPortLabel, state);
-	HWND hPassLabel = GetDlgItem(hwnd, IDC_PASSWORD_LABEL);
-	EnableWindow(hPassLabel, state);
+#ifdef HORIZONLIVE
+	EnableWindow(GetDlgItem(hwnd, IDC_LIVESHARE), state);
+#else
+	EnableWindow(GetDlgItem(hwnd, IDC_PORTNO_LABEL), state);
+	EnableWindow(GetDlgItem(hwnd, IDC_PASSWORD_LABEL), state);
 	
 	HWND hConnectSock = GetDlgItem(hwnd, IDC_CONNECT_SOCK);
 	EnableWindow(hConnectSock, state);
@@ -603,19 +970,21 @@ vncProperties::EnableControls(BOOL state, HWND hwnd, vncProperties *_this)
 		 );
 
 	HWND hPassword = GetDlgItem(hwnd, IDC_PASSWORD);
-	EnableWindow(hPassword, state && (SendMessage(hConnectSock, BM_GETCHECK, 0, 0) == BST_CHECKED));
+	EnableWindow(hPassword,
+				 state && (SendMessage(hConnectSock, BM_GETCHECK, 0, 0) == BST_CHECKED));
 
-	// Remote input settings
-	HWND hEnableRemoteInputs = GetDlgItem(hwnd, IDC_DISABLE_INPUTS);
-	EnableWindow(hEnableRemoteInputs, state);
+	EnableWindow(GetDlgItem(hwnd, IDC_DISABLE_INPUTS), state);
+	EnableWindow(GetDlgItem(hwnd, IDC_DISABLE_LOCAL_INPUTS), state);
 
-	// Local input settings
-	HWND hDisableLocalInputs = GetDlgItem(hwnd, IDC_DISABLE_LOCAL_INPUTS);
-	EnableWindow(hDisableLocalInputs, state);
+	HWND hDisableOnActivity = GetDlgItem(hwnd, IDC_REMOTE_DISABLE);
+	EnableWindow(hDisableOnActivity, state);
+	EnableWindow(GetDlgItem(hwnd, IDC_TIMEOUT_LABEL), state);
+	EnableWindow(GetDlgItem(hwnd, IDC_SECONDS_LABEL), state);
+	EnableWindow(GetDlgItem(hwnd, IDC_DISABLE_TIME),
+				 state && (SendMessage(hDisableOnActivity, BM_GETCHECK, 0, 0) == BST_CHECKED));
 
 	// Set the polling options
-	HWND hPollFullScreen = GetDlgItem(hwnd, IDC_POLL_FULLSCREEN);
-	EnableWindow(hPollFullScreen, state);
+	EnableWindow(GetDlgItem(hwnd, IDC_POLL_FULLSCREEN), state);
 
 	HWND hPollForeground = GetDlgItem(hwnd, IDC_POLL_FOREGROUND);
 	EnableWindow(hPollForeground, state);
@@ -636,6 +1005,16 @@ vncProperties::EnableControls(BOOL state, HWND hwnd, vncProperties *_this)
 		((SendMessage(hPollUnderCursor, BM_GETCHECK, 0, 0) == BST_CHECKED) || 
 		 (SendMessage(hPollForeground, BM_GETCHECK, 0, 0) == BST_CHECKED))
 		);
+#endif
+
+	HWND hWindowShared = GetDlgItem(hwnd, IDC_WINDOW);
+	EnableWindow(hWindowShared, state);
+	BOOL isWnd = (SendMessage(hWindowShared, BM_GETCHECK, 0, 0) == BST_CHECKED);
+
+	EnableWindow(GetDlgItem(hwnd, IDC_BMPCURSOR), state && isWnd);
+	EnableWindow(GetDlgItem(hwnd, IDC_NAME_APPLI), state && isWnd);
+	EnableWindow(GetDlgItem(hwnd, IDC_FULLSCREEN), state);
+	EnableWindow(GetDlgItem(hwnd, IDC_SCREEN), state);
 }
 
 // Functions to load & save the settings
@@ -782,6 +1161,20 @@ vncProperties::Load(BOOL usersettings)
 	vnclog.SetMode(LoadInt(hkLocal, "DebugMode", 0));
 	vnclog.SetLevel(LoadInt(hkLocal, "DebugLevel", 0));
 
+#ifdef HORIZONLIVE
+	m_pref_SockConnect=false;
+	m_pref_EnableRemoteInputs=TRUE;
+	m_pref_PollUnderCursor=FALSE;
+	m_pref_PollForeground=TRUE;
+	m_pref_PollFullScreen=FALSE;
+	m_pref_PollConsoleOnly=TRUE;
+	m_pref_PollOnEventOnly=FALSE;
+	m_allowshutdown = TRUE;
+	m_allowproperties = TRUE;
+	m_pref_FullScreen = FALSE;
+	m_pref_WindowShared = TRUE;
+	m_pref_ScreenAreaShared = FALSE;
+#else
 	// Disable Tray Icon
 	m_server->SetDisableTrayIcon(LoadInt(hkLocal, "DisableTrayIcon", false));
 
@@ -835,14 +1228,23 @@ vncProperties::Load(BOOL usersettings)
 	m_pref_RemoveWallpaper=TRUE;
 	m_allowshutdown = TRUE;
 	m_allowproperties = TRUE;
+	m_pref_FullScreen = TRUE;
+	m_pref_WindowShared = FALSE;
+	m_pref_ScreenAreaShared = FALSE;
+	m_pref_PriorityTime = 3;
+	m_pref_LocalInputPriority = FALSE;
+
+#endif
 
 	// Load the local prefs for this user
 	if (hkDefault != NULL)
 	{
 		vnclog.Print(LL_INTINFO, VNCLOG("loading DEFAULT local settings\n"));
 		LoadUserPrefs(hkDefault);
+#if !defined HORIZONLIVE
 		m_allowshutdown = LoadInt(hkDefault, "AllowShutdown", m_allowshutdown);
 		m_allowproperties = LoadInt(hkDefault, "AllowProperties", m_allowproperties);
+#endif	
 	}
 
 	// Are we being asked to load the user settings, or just the default local system settings?
@@ -853,8 +1255,10 @@ vncProperties::Load(BOOL usersettings)
 		{
 			vnclog.Print(LL_INTINFO, VNCLOG("loading \"%s\" local settings\n"), username);
 			LoadUserPrefs(hkLocalUser);
+#if !defined HORIZONLIVE
 			m_allowshutdown = LoadInt(hkLocalUser, "AllowShutdown", m_allowshutdown);
 			m_allowproperties = LoadInt(hkLocalUser, "AllowProperties", m_allowproperties);
+#endif
 		}
 
 		// Now override the system settings with the user's settings
@@ -895,6 +1299,7 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 {
 	// LOAD USER PREFS FROM THE SELECTED KEY
 
+#if !defined HORIZONLIVE
 	// Connection prefs
 	m_pref_SockConnect=LoadInt(appkey, "SocketConnect", m_pref_SockConnect);
 	m_pref_AutoPortSelect=LoadInt(appkey, "AutoPortSelect", m_pref_AutoPortSelect);
@@ -905,6 +1310,10 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	
 	m_pref_RemoveWallpaper=LoadInt(appkey, "RemoveWallpaper", m_pref_RemoveWallpaper);
 
+	m_pref_LocalInputPriority=LoadInt(appkey, "LocalInputsPriority", m_pref_LocalInputPriority);
+	m_pref_PriorityTime =LoadInt(appkey, "LocalInputsPriorityTime", m_pref_PriorityTime);
+
+	
 	// Connection querying settings
 	m_pref_QuerySetting=LoadInt(appkey, "QuerySetting", m_pref_QuerySetting);
 	m_pref_QueryTimeout=LoadInt(appkey, "QueryTimeout", m_pref_QueryTimeout);
@@ -921,20 +1330,26 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	m_pref_EnableRemoteInputs=LoadInt(appkey, "InputsEnabled", m_pref_EnableRemoteInputs);
 	m_pref_LockSettings=LoadInt(appkey, "LockSetting", m_pref_LockSettings);
 	m_pref_DisableLocalInputs=LoadInt(appkey, "LocalInputsDisabled", m_pref_DisableLocalInputs);
-
+#endif
 	// Polling prefs
 	m_pref_PollUnderCursor=LoadInt(appkey, "PollUnderCursor", m_pref_PollUnderCursor);
 	m_pref_PollForeground=LoadInt(appkey, "PollForeground", m_pref_PollForeground);
 	m_pref_PollFullScreen=LoadInt(appkey, "PollFullScreen", m_pref_PollFullScreen);
 	m_pref_PollConsoleOnly=LoadInt(appkey, "OnlyPollConsole", m_pref_PollConsoleOnly);
 	m_pref_PollOnEventOnly=LoadInt(appkey, "OnlyPollOnEvent", m_pref_PollOnEventOnly);
+
+	// screen area sharing prefs
+	m_pref_FullScreen = m_server->FullScreen();
+	m_pref_WindowShared = m_server->WindowShared();
+	m_pref_ScreenAreaShared = m_server->ScreenAreaShared();
+
 }
 
 void
 vncProperties::ApplyUserPrefs()
 {
 	// APPLY THE CACHED PREFERENCES TO THE SERVER
-
+#if !defined HORIZONLIVE
 	// Update the connection querying settings
 	m_server->SetQuerySetting(m_pref_QuerySetting);
 	m_server->SetQueryTimeout(m_pref_QueryTimeout);
@@ -943,16 +1358,6 @@ vncProperties::ApplyUserPrefs()
 	m_server->SetAutoIdleDisconnectTimeout(m_pref_IdleTimeout);
 	m_server->EnableRemoveWallpaper(m_pref_RemoveWallpaper);
 
-	// Is the listening socket closing?
-	if (!m_pref_SockConnect)
-		m_server->SockConnect(m_pref_SockConnect);
-
-	// Are inputs being disabled?
-	if (!m_pref_EnableRemoteInputs)
-		m_server->EnableRemoteInputs(m_pref_EnableRemoteInputs);
-	if (m_pref_DisableLocalInputs)
-		m_server->DisableLocalInputs(m_pref_DisableLocalInputs);
-
 	// Update the password
 	m_server->SetPassword(m_pref_passwd);
 
@@ -960,8 +1365,7 @@ vncProperties::ApplyUserPrefs()
 	m_server->SetAutoPortSelect(m_pref_AutoPortSelect);
 	if (!m_pref_AutoPortSelect)
 		m_server->SetPort(m_pref_PortNumber);
-	m_server->SockConnect(m_pref_SockConnect);
-
+	
 	// Set the beep options
 	m_server->SetBeepConnect(m_pref_BeepConnect);
 	m_server->SetBeepDisconnect(m_pref_BeepDisconnect);
@@ -973,13 +1377,23 @@ vncProperties::ApplyUserPrefs()
 	m_server->EnableRemoteInputs(m_pref_EnableRemoteInputs);
 	m_server->SetLockSettings(m_pref_LockSettings);
 	m_server->DisableLocalInputs(m_pref_DisableLocalInputs);
+	m_server->LocalInputPriority(m_pref_LocalInputPriority);
+	m_server->SetDisableTime(m_pref_PriorityTime);
 
+#endif
+
+	m_server->SockConnect(m_pref_SockConnect);
 	// Polling prefs
 	m_server->PollUnderCursor(m_pref_PollUnderCursor);
 	m_server->PollForeground(m_pref_PollForeground);
 	m_server->PollFullScreen(m_pref_PollFullScreen);
 	m_server->PollConsoleOnly(m_pref_PollConsoleOnly);
 	m_server->PollOnEventOnly(m_pref_PollOnEventOnly);
+	
+	m_server->FullScreen(m_pref_FullScreen);
+	m_server->WindowShared(m_pref_WindowShared);
+	m_server->ScreenAreaShared(m_pref_ScreenAreaShared);
+
 }
 
 void
@@ -1057,6 +1471,8 @@ vncProperties::Save()
 void
 vncProperties::SaveUserPrefs(HKEY appkey)
 {
+#if !defined HORIZONLIVE
+
 	// SAVE THE PER USER PREFS
 	vnclog.Print(LL_INTINFO, VNCLOG("saving current settings to registry\n"));
 
@@ -1068,7 +1484,10 @@ vncProperties::SaveUserPrefs(HKEY appkey)
 	SaveInt(appkey, "InputsEnabled", m_server->RemoteInputsEnabled());
 	SaveInt(appkey, "LocalInputsDisabled", m_server->LocalInputsDisabled());
 	SaveInt(appkey, "IdleTimeout", m_server->AutoIdleDisconnectTimeout());
-
+	
+	SaveInt(appkey, "LocalInputsPriority", m_server->LocalInputPriority());
+	SaveInt(appkey, "LocalInputsPriorityTime", m_server->DisableTime());
+	
 	// Connection querying settings
 	SaveInt(appkey, "QuerySetting", m_server->QuerySetting());
 	SaveInt(appkey, "QueryTimeout", m_server->QueryTimeout());
@@ -1090,4 +1509,134 @@ vncProperties::SaveUserPrefs(HKEY appkey)
 
 	SaveInt(appkey, "OnlyPollConsole", m_server->PollConsoleOnly());
 	SaveInt(appkey, "OnlyPollOnEvent", m_server->PollOnEventOnly());
+#endif
 }
+
+LRESULT CALLBACK vncProperties::BmpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	HBITMAP hNewImage,hOldImage;
+	HCURSOR hNewCursor,hOldCursor;
+	vncProperties* pDialog=(vncProperties*) GetWindowLong(hWnd,GWL_USERDATA);
+
+	switch (message)
+	{
+	
+	case WM_SETCURSOR :
+		if (HIWORD(lParam)==WM_LBUTTONDOWN)
+		{
+			SetCapture(hWnd);
+			hNewImage=LoadBitmap(hAppInstance,MAKEINTRESOURCE(IDB_BITMAP2));
+			hOldImage=(HBITMAP)::SendMessage(hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
+			DeleteObject(hOldImage);
+			hNewCursor=(HCURSOR)LoadImage(hAppInstance,MAKEINTRESOURCE(IDC_CURSOR1),IMAGE_CURSOR,32,32,LR_DEFAULTCOLOR);
+			hOldCursor=SetCursor(hNewCursor);
+			DestroyCursor(hOldCursor);
+			pDialog->m_bCaptured=TRUE;
+		}
+		break;
+	
+	case WM_LBUTTONUP:
+		ReleaseCapture();
+		
+		if (pDialog->m_KeepHandle!=NULL)
+		{
+			// We need to remove frame
+			DrawFrameAroundWindow(pDialog->m_KeepHandle);
+			pDialog->m_server->SetWindowShared(pDialog->m_KeepHandle);
+			// No more need
+			pDialog->m_KeepHandle=NULL;
+		} else {
+			pDialog->m_server->SetWindowShared(NULL);
+		}
+		
+		hNewImage=LoadBitmap(hAppInstance,MAKEINTRESOURCE(IDB_BITMAP1));
+		hOldImage=(HBITMAP)::SendMessage(hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
+		DeleteObject(hOldImage);
+		hNewCursor=LoadCursor(hAppInstance,MAKEINTRESOURCE(IDC_ARROW));
+		hOldCursor=SetCursor(hNewCursor);
+		DestroyCursor(hOldCursor);
+		pDialog->m_bCaptured=FALSE;
+		break;
+	
+	case WM_MOUSEMOVE:
+		if (pDialog->m_bCaptured)
+		{
+			HWND hParent=::GetParent(hWnd);
+			POINTS pnt;
+			POINT pnt1;
+			pnt=MAKEPOINTS(lParam);
+			pnt1.x=pnt.x;
+			pnt1.y=pnt.y;
+			ClientToScreen(hWnd,&pnt1);
+			HWND hMouseWnd=::WindowFromPoint(pnt1);
+			if (pDialog->m_KeepHandle!=hMouseWnd)
+			{
+				// New Windows Handle
+				// Was KeepHndle A Real Window ?
+				if (pDialog->m_KeepHandle!=NULL)
+				{
+					// We need to remove frame
+					vncProperties::DrawFrameAroundWindow(pDialog->m_KeepHandle);
+				}
+				pDialog->m_KeepHandle=hMouseWnd;
+				if (!IsChild(hParent,hMouseWnd) && (hMouseWnd!=hParent))
+				{
+					pDialog->SetWindowCaption(hMouseWnd);
+					vncProperties::DrawFrameAroundWindow(hMouseWnd);
+				} else {	// My Window
+					pDialog->m_KeepHandle=NULL;
+					pDialog->SetWindowCaption(NULL);					}
+				}
+			}
+			break;
+	case WM_PAINT:
+	case STM_SETIMAGE:
+		
+		return CallWindowProc( (WNDPROC) pDialog->m_OldBmpWndProc,  hWnd, message, wParam, lParam);
+	
+	default:
+		return DefWindowProc( hWnd, message, wParam, lParam);
+	}
+	return 0;
+}
+
+
+void vncProperties::DrawFrameAroundWindow(HWND hWnd)
+{
+	HDC hWindowDc=::GetWindowDC(hWnd);
+	HBRUSH hBrush=CreateSolidBrush(RGB(0,0,0));
+	HRGN Rgn=CreateRectRgn(0,0,1,1);
+	int iRectResult=GetWindowRgn(hWnd,Rgn);
+	if (iRectResult==ERROR || iRectResult==NULLREGION || Rgn==NULL)
+	{
+		RECT rect;
+		GetWindowRect(hWnd,&rect);
+		OffsetRect(&rect,-rect.left,-rect.top);
+		Rgn=CreateRectRgn(rect.left,rect.top,rect.right,rect.bottom);
+	}
+	
+	SetROP2(hWindowDc,R2_MERGEPENNOT);
+	FrameRgn(hWindowDc,Rgn,hBrush,3,3);
+	::DeleteObject(Rgn);
+	::DeleteObject(hBrush);
+    ::ReleaseDC(hWnd,hWindowDc);
+}
+
+void vncProperties::SetWindowCaption(HWND hWnd)
+{
+	char strWindowText[256];
+	if (hWnd == NULL) 
+	{
+		strcpy(strWindowText, "* No Window Selected *");
+	} else {
+		GetWindowText(hWnd, strWindowText, sizeof(strWindowText));
+		if (!strWindowText[0]) 
+		{
+			int bytes = sprintf(strWindowText, "0x%x ", hWnd);
+			GetClassName(hWnd, strWindowText + bytes,
+				sizeof(strWindowText) - bytes);
+		}
+	}
+	::SetWindowText(hNameAppli, strWindowText);
+}
+

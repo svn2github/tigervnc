@@ -41,11 +41,13 @@
 #define NOCURSOR 0
 #define DOTCURSOR 1
 #define NORMALCURSOR 2
+#define SMALLCURSOR 3
 #define MAX_LEN_COMBO 7
 struct COMBOSTRING {
 		TCHAR NameString[20];
 		int rfbEncoding;
 };
+
 class VNCOptions  
 {
 public:
@@ -136,7 +138,7 @@ public:
 	static void Lim(HWND hwnd,int control,DWORD min, DWORD max);
 	// Register() makes this viewer the app invoked for .vnc files
 	static void Register();
-	HWND m_hPageConnection, m_hPageGeneral, m_hTab, m_hParent;
+	HWND m_hPageConnection, m_hPageGeneral, m_hTab, m_hParent, m_hWindow;
 	
 
 private:

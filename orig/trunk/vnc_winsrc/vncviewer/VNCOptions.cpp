@@ -62,7 +62,7 @@ VNCOptions::VNCOptions()
 	m_display[0] = '\0';
 	m_host[0] = '\0';
 	m_port = -1;
-	
+	m_hWindow = 0;
 	m_kbdname[0] = '\0';
 	m_kbdSpecified = false;
 	
@@ -130,7 +130,8 @@ VNCOptions& VNCOptions::operator=(VNCOptions& s)
 	strcpy(m_display, s.m_display);
 	strcpy(m_host, s.m_host);
 	m_port				= s.m_port;
-	
+	m_hWindow			= s.m_hWindow;
+
 	strcpy(m_kbdname, s.m_kbdname);
 	m_kbdSpecified		= s.m_kbdSpecified;
 	
@@ -293,6 +294,8 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 			m_localCursor = NOCURSOR;
 		} else if ( SwitchMatch(args[j], _T("dotcursor"))) {
 			m_localCursor = DOTCURSOR;
+		} else if ( SwitchMatch(args[j], _T("smalldotcursor"))) {
+			m_localCursor = SMALLCURSOR;
 		} else if ( SwitchMatch(args[j], _T("normalcursor"))) {			
 			m_localCursor= NORMALCURSOR;
 		} else if ( SwitchMatch(args[j], _T("belldeiconify") )) {
@@ -1148,6 +1151,14 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 			}
 			HWND hDotCursor = GetDlgItem(hwnd, IDC_DOTCURSOR_RADIO);
 			SendMessage(hDotCursor, BM_SETCHECK, cursor, 0);
+
+			if (pApp->m_options.m_localCursor == SMALLCURSOR) {
+				cursor = true;
+			} else {
+				cursor = false;
+			}
+			HWND hSmallCursor = GetDlgItem(hwnd, IDC_SMALLDOTCURSOR_RADIO);
+			SendMessage(hSmallCursor, BM_SETCHECK, cursor, 0);
 			
 			if (pApp->m_options.m_localCursor == NOCURSOR) {
 				cursor = true;
@@ -1257,20 +1268,36 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 				HWND hDotCursor = GetDlgItem(hwnd, IDC_DOTCURSOR_RADIO);
 				HWND hNoCursor = GetDlgItem(hwnd, IDC_NOCURSOR_RADIO);
 				HWND hNormalCursor = GetDlgItem(hwnd, IDC_NORMALCURSOR_RADIO);
+				HWND hSmallCursor = GetDlgItem(hwnd, IDC_SMALLDOTCURSOR_RADIO);
 				char buf[80];
 				HWND hMessage = GetDlgItem(hwnd, IDC_CHECK_MESSAGE);
 				HWND hToolbar = GetDlgItem(hwnd, IDC_CHECK_TOOLBAR);
 				HWND hChec = GetDlgItem(hwnd, IDC_CHECK_LOG_FILE);
 
 				if (SendMessage(hDotCursor, BM_GETCHECK, 0, 0) == BST_CHECKED) {
-					pApp->m_options.m_localCursor = DOTCURSOR;	
+					pApp->m_options.m_localCursor = DOTCURSOR;
+					SetClassLong(_this->m_hWindow, GCL_HCURSOR,
+									(long)LoadCursor(pApp->m_instance, 
+									MAKEINTRESOURCE(IDC_DOTCURSOR)));
+				}
+				if (SendMessage(hSmallCursor, BM_GETCHECK, 0, 0) == BST_CHECKED) {
+					pApp->m_options.m_localCursor = SMALLCURSOR;
+					SetClassLong(_this->m_hWindow, GCL_HCURSOR,
+									(long)LoadCursor(pApp->m_instance, 
+									MAKEINTRESOURCE(IDC_SMALLDOT)));
 				}
 				if (SendMessage(hNoCursor, BM_GETCHECK, 0, 0) == BST_CHECKED) {
-					pApp->m_options.m_localCursor = NOCURSOR;	
+					pApp->m_options.m_localCursor = NOCURSOR;
+					SetClassLong(_this->m_hWindow, GCL_HCURSOR,
+									(long)LoadCursor(pApp->m_instance, 
+									MAKEINTRESOURCE(IDC_NOCURSOR)));
 				}
 				if (SendMessage(hNormalCursor, BM_GETCHECK, 0, 0) == BST_CHECKED) {
-					pApp->m_options.m_localCursor = NORMALCURSOR;	
+					pApp->m_options.m_localCursor = NORMALCURSOR;
+					SetClassLong(_this->m_hWindow, GCL_HCURSOR,
+									(long)LoadCursor(NULL,IDC_ARROW));
 				}
+				
 				if (SendMessage(hChec, BM_GETCHECK, 0, 0) == 0) {
 					pApp->m_options.m_logToFile = false;
 				} else {
@@ -1284,13 +1311,12 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 					vnclog.SetLevel(pApp->m_options.m_logLevel);
 					vnclog.SetFile(pApp->m_options.m_logFilename);
 				}
-
+				
 				if (SendMessage(hMessage, BM_GETCHECK, 0, 0) == 0) {
 					pApp->m_options.m_skipprompt = true;
 				} else {
 					pApp->m_options.m_skipprompt = false;
-				}
-				
+				}				
 				if (SendMessage(hToolbar, BM_GETCHECK, 0, 0) == 0) {
 					pApp->m_options.m_toolbar = false;					
 				} else {

@@ -304,6 +304,8 @@ void ClientConnection::Run()
 	start_undetached();
 }
 
+static WNDCLASS wndclass;
+
 void ClientConnection::CreateDisplay() 
 {
 	// Create the window
@@ -336,6 +338,10 @@ void ClientConnection::CreateDisplay()
 	case NOCURSOR:
 		wndclass.hCursor	= LoadCursor(m_pApp->m_instance, 
 										MAKEINTRESOURCE(IDC_NOCURSOR));
+		break;
+	case SMALLCURSOR:
+		wndclass.hCursor	= LoadCursor(m_pApp->m_instance, 
+										MAKEINTRESOURCE(IDC_SMALLDOT));
 		break;
 	case NORMALCURSOR:
 		wndclass.hCursor	=LoadCursor(NULL,IDC_ARROW);
@@ -455,7 +461,7 @@ void ClientConnection::CreateDisplay()
 			      NULL,                // Menu handle
 			      m_pApp->m_instance,
 			       NULL);
-
+	m_opts.m_hWindow = m_hwnd;
     ShowWindow(m_hwnd, SW_HIDE);
 		
 	SetWindowLong(m_hwnd, GWL_USERDATA, (LONG) this);
@@ -1748,6 +1754,13 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 		// Remove us from the clipboard viewer chain
 		BOOL res = ChangeClipboardChain( _this->m_hwnd, _this->m_hwndNextViewer);
 #endif
+		if (_this->m_serverInitiated) {
+			_this->m_opts.SaveOpt(".listen", 
+								"Software\\ORL\\VNCviewer\\MRU1");
+		} else {
+			_this->m_opts.SaveOpt(_this->m_opts.m_display,
+								"Software\\ORL\\VNCviewer\\MRU1");
+		}
 		if (_this->m_waitingOnEmulateTimer) {
 			
 			KillTimer(_this->m_hwnd, _this->m_emulate3ButtonsTimer);
@@ -1756,6 +1769,7 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 			
 		_this->m_hwnd1 = 0;
 		_this->m_hwnd = 0;
+		_this->m_opts.m_hWindow = 0;
 		// We are currently in the main thread.
 		// The worker thread should be about to finish if
 		// it hasn't already. Wait for it.

@@ -1002,7 +1002,11 @@ vncServer::SockConnect(BOOL On)
 			}
 
 			// Now let's start the HTTP connection stuff
-			if (m_httpConn == NULL && m_httpd_enabled) {
+			if (m_port_http == m_port) {
+				vnclog.Print(LL_INTERR, VNCLOG("cannot start both RFB and HTTP servers "
+											   "on the same port\n"));
+			}
+            if (m_httpConn == NULL && m_httpd_enabled && m_port_http != m_port) {
 				m_httpConn = new vncHTTPConnect;
 				if (m_httpConn != NULL) {
 					// Start up the HTTP server

@@ -492,56 +492,52 @@ BOOL
 vncClientThread::SendInteractionCaps()
 {
 	// Update these constants on changing capability lists!
-#ifndef HORIZONLIVE
-	const int N_SMSG_CAPS = 4;
-	const int N_CMSG_CAPS = 6;
-#else
-	const int N_SMSG_CAPS = 0;
-	const int N_CMSG_CAPS = 0;
-#endif
-	const int N_ENC_CAPS = 14;
-
-	// Create the header structure sent prior to capability lists
-	rfbInteractionCapsMsg intr_caps;
-	intr_caps.nServerMessageTypes = Swap16IfLE(N_SMSG_CAPS);
-	intr_caps.nClientMessageTypes = Swap16IfLE(N_CMSG_CAPS);
-	intr_caps.nEncodingTypes = Swap16IfLE(N_ENC_CAPS);
-	intr_caps.pad = 0;
+	const int MAX_SMSG_CAPS = 4;
+	const int MAX_CMSG_CAPS = 6;
+	const int MAX_ENC_CAPS = 14;
 
 	int i;
 
-#ifndef HORIZONLIVE
 	// Supported server->client message types
-	rfbCapabilityInfo smsg_list[N_SMSG_CAPS];
+	rfbCapabilityInfo smsg_list[MAX_SMSG_CAPS];
 	i = 0;
-	SetCapInfo(&smsg_list[i++], rfbFileListData,           rfbTightVncVendor);
-	SetCapInfo(&smsg_list[i++], rfbFileDownloadData,       rfbTightVncVendor);
-	SetCapInfo(&smsg_list[i++], rfbFileUploadCancel,       rfbTightVncVendor);
-	SetCapInfo(&smsg_list[i++], rfbFileDownloadFailed,     rfbTightVncVendor);
-	if (i != N_SMSG_CAPS) {
+#ifndef HORIZONLIVE
+	if (m_client->m_keyboardenabled || m_client->m_pointerenabled) {
+		SetCapInfo(&smsg_list[i++], rfbFileListData,       rfbTightVncVendor);
+		SetCapInfo(&smsg_list[i++], rfbFileDownloadData,   rfbTightVncVendor);
+		SetCapInfo(&smsg_list[i++], rfbFileUploadCancel,   rfbTightVncVendor);
+		SetCapInfo(&smsg_list[i++], rfbFileDownloadFailed, rfbTightVncVendor);
+	}
+#endif
+	int nServerMsgs = i;
+	if (nServerMsgs > MAX_SMSG_CAPS) {
 		vnclog.Print(LL_INTERR,
-					 VNCLOG("assertion failed, i != N_SMSG_CAPS\n"));
+					 VNCLOG("assertion failed, nServerMsgs > MAX_SMSG_CAPS\n"));
 		return FALSE;
 	}
 
 	// Supported client->server message types
-	rfbCapabilityInfo cmsg_list[N_CMSG_CAPS];
+	rfbCapabilityInfo cmsg_list[MAX_CMSG_CAPS];
 	i = 0;
-	SetCapInfo(&cmsg_list[i++], rfbFileListRequest,        rfbTightVncVendor);
-	SetCapInfo(&cmsg_list[i++], rfbFileDownloadRequest,    rfbTightVncVendor);
-	SetCapInfo(&cmsg_list[i++], rfbFileUploadRequest,      rfbTightVncVendor);
-	SetCapInfo(&cmsg_list[i++], rfbFileUploadData,         rfbTightVncVendor);
-	SetCapInfo(&cmsg_list[i++], rfbFileDownloadCancel,     rfbTightVncVendor);
-	SetCapInfo(&cmsg_list[i++], rfbFileUploadFailed,       rfbTightVncVendor);
-	if (i != N_CMSG_CAPS) {
-		vnclog.Print(LL_INTERR,
-					 VNCLOG("assertion failed, i != N_CMSG_CAPS\n"));
-		return FALSE;
+#ifndef HORIZONLIVE
+	if (m_client->m_keyboardenabled || m_client->m_pointerenabled) {
+		SetCapInfo(&cmsg_list[i++], rfbFileListRequest,    rfbTightVncVendor);
+		SetCapInfo(&cmsg_list[i++], rfbFileDownloadRequest,rfbTightVncVendor);
+		SetCapInfo(&cmsg_list[i++], rfbFileUploadRequest,  rfbTightVncVendor);
+		SetCapInfo(&cmsg_list[i++], rfbFileUploadData,     rfbTightVncVendor);
+		SetCapInfo(&cmsg_list[i++], rfbFileDownloadCancel, rfbTightVncVendor);
+		SetCapInfo(&cmsg_list[i++], rfbFileUploadFailed,   rfbTightVncVendor);
 	}
 #endif
+	int nClientMsgs = i;
+	if (nClientMsgs > MAX_CMSG_CAPS) {
+		vnclog.Print(LL_INTERR,
+					 VNCLOG("assertion failed, nClientMsgs > MAX_CMSG_CAPS\n"));
+		return FALSE;
+	}
 
 	// Encoding types
-	rfbCapabilityInfo enc_list[N_ENC_CAPS];
+	rfbCapabilityInfo enc_list[MAX_ENC_CAPS];
 	i = 0;
 	SetCapInfo(&enc_list[i++],  rfbEncodingCopyRect,       rfbStandardVendor);
 	SetCapInfo(&enc_list[i++],  rfbEncodingRRE,            rfbStandardVendor);
@@ -557,23 +553,37 @@ vncClientThread::SendInteractionCaps()
 	SetCapInfo(&enc_list[i++],  rfbEncodingPointerPos,     rfbTightVncVendor);
 	SetCapInfo(&enc_list[i++],  rfbEncodingLastRect,       rfbTightVncVendor);
 	SetCapInfo(&enc_list[i++],  rfbEncodingNewFBSize,      rfbTightVncVendor);
-	if (i != N_ENC_CAPS) {
+	int nEncodings = i;
+	if (nEncodings > MAX_ENC_CAPS) {
 		vnclog.Print(LL_INTERR,
-					 VNCLOG("assertion failed, i != N_ENC_CAPS\n"));
+					 VNCLOG("assertion failed, nEncodings > MAX_ENC_CAPS\n"));
 		return FALSE;
 	}
 
-	// Send header and capability lists
-	return (m_socket->SendExact((char *)&intr_caps,
-								sz_rfbInteractionCapsMsg) &&
-#ifndef HORIZONLIVE
-			m_socket->SendExact((char *)&smsg_list[0],
-								sz_rfbCapabilityInfo * N_SMSG_CAPS) &&
-			m_socket->SendExact((char *)&cmsg_list[0],
-								sz_rfbCapabilityInfo * N_CMSG_CAPS) &&
-#endif
-			m_socket->SendExact((char *)&enc_list[0],
-								sz_rfbCapabilityInfo * N_ENC_CAPS));
+	// Create and send the header structure
+	rfbInteractionCapsMsg intr_caps;
+	intr_caps.nServerMessageTypes = Swap16IfLE(nServerMsgs);
+	intr_caps.nClientMessageTypes = Swap16IfLE(nClientMsgs);
+	intr_caps.nEncodingTypes = Swap16IfLE(nEncodings);
+	intr_caps.pad = 0;
+	if (!m_socket->SendExact((char *)&intr_caps, sz_rfbInteractionCapsMsg))
+		return FALSE;
+
+	// Send the capability lists
+	if (nServerMsgs &&
+		!m_socket->SendExact((char *)&smsg_list[0],
+							 sz_rfbCapabilityInfo * nServerMsgs))
+		return FALSE;
+	if (nClientMsgs &&
+		!m_socket->SendExact((char *)&cmsg_list[0],
+							 sz_rfbCapabilityInfo * nClientMsgs))
+		return FALSE;
+	if (nEncodings &&
+		!m_socket->SendExact((char *)&enc_list[0],
+							 sz_rfbCapabilityInfo * nEncodings))
+		return FALSE;
+
+	return TRUE;
 }
 
 void
@@ -1126,6 +1136,10 @@ vncClientThread::run(void *arg)
 
 #ifndef HORIZONLIVE
 		case rfbFileListRequest:
+			if (!m_client->m_keyboardenabled && !m_client->m_pointerenabled) {
+				connected = FALSE;
+				break;
+			}
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileListRequestMsg-1))
 			{
 				const UINT size = msg.flr.dnamesize;
@@ -1227,6 +1241,10 @@ vncClientThread::run(void *arg)
 			break;
 
 		case rfbFileDownloadRequest:
+			if (!m_client->m_keyboardenabled && !m_client->m_pointerenabled) {
+				connected = FALSE;
+				break;
+			}
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileDownloadRequestMsg-1))
 			{
 				const UINT size = msg.fdr.fnamesize;
@@ -1284,6 +1302,10 @@ vncClientThread::run(void *arg)
 			break;
 
 		case rfbFileUploadRequest:
+			if (!m_client->m_keyboardenabled && !m_client->m_pointerenabled) {
+				connected = FALSE;
+				break;
+			}
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileUploadRequestMsg-1))
 			{
 				m_socket->ReadExact(m_FullFilename, msg.fupr.fnamesize);
@@ -1296,6 +1318,10 @@ vncClientThread::run(void *arg)
 			break;
 
 		case rfbFileUploadData:
+			if (!m_client->m_keyboardenabled && !m_client->m_pointerenabled) {
+				connected = FALSE;
+				break;
+			}
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileUploadDataMsg-1))
 			{
 				msg.fud.amount = Swap16IfLE(msg.fud.amount);
@@ -1316,9 +1342,17 @@ vncClientThread::run(void *arg)
 			break;
 
 		case rfbFileDownloadCancel:
+			if (!m_client->m_keyboardenabled && !m_client->m_pointerenabled) {
+				connected = FALSE;
+				break;
+			}
 			break;
 
 		case rfbFileUploadFailed:
+			if (!m_client->m_keyboardenabled && !m_client->m_pointerenabled) {
+				connected = FALSE;
+				break;
+			}
 			if (strcmp(m_FullFilename, "") != 0) {
 				CloseHandle(m_hFiletoWrite);
 				DeleteFile(m_FullFilename);

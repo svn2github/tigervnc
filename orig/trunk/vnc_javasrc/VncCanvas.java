@@ -119,7 +119,7 @@ class VncCanvas extends Canvas
     paint(g);
   }
 
-  public synchronized void paint(Graphics g) {
+  public void paint(Graphics g) {
     synchronized(memImage) {
       g.drawImage(memImage, 0, 0, null);
     }
@@ -1411,15 +1411,16 @@ class VncCanvas extends Canvas
   //
 
   synchronized void softCursorMove(int x, int y) {
-    if (showSoftCursor) {
-      repaint(viewer.deferCursorUpdates,
-	      cursorX - hotX, cursorY - hotY, cursorWidth, cursorHeight);
-      repaint(viewer.deferCursorUpdates,
-	      x - hotX, y - hotY, cursorWidth, cursorHeight);
-    }
-
+    int oldX = cursorX;
+    int oldY = cursorY;
     cursorX = x;
     cursorY = y;
+    if (showSoftCursor) {
+      repaint(viewer.deferCursorUpdates,
+	      oldX - hotX, oldY - hotY, cursorWidth, cursorHeight);
+      repaint(viewer.deferCursorUpdates,
+	      cursorX - hotX, cursorY - hotY, cursorWidth, cursorHeight);
+    }
   }
 
   //

@@ -330,6 +330,8 @@ private:
 
 	TCHAR *m_desktopName;
 	unsigned char m_encPasswd[8];
+	unsigned char m_encPasswdExt[512];
+	int m_authScheme;
 	rfbServerInitMsg m_si;
 	rfbPixelFormat m_myFormat, m_pendingFormat;
 	// protocol version in use.

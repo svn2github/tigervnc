@@ -84,19 +84,33 @@ void ClientConnection::SaveConnection()
 	char buf[32];
 	sprintf(buf, "%d", m_port);
 	WritePrivateProfileString("connection", "port", buf, fname);
-	if (MessageBox(m_hwnd,
-		"Do you want to save the password in this file?\n\r"
-		"If you say Yes, anyone with access to this file could access your session\n\r"
-		"and (potentially) discover your VNC password.",  
-		"Security warning", 
-		MB_YESNO | MB_ICONWARNING) == IDYES) 
-	{
-		for (int i = 0; i < MAXPWLEN; i++) {
-			sprintf(buf+i*2, "%02x", (unsigned int) m_encPasswd[i]);
+	buf[0] = '\0';
+	if (m_authScheme == rfbAuthVNC || m_authScheme == rfbAuthExternal) {
+		if (MessageBox(m_hwnd,
+			"Do you want to save the password in this file?\n\r"
+			"If you say Yes, anyone with access to this file could access your session\n\r"
+			"and (potentially) discover your VNC password.",  
+			"Security warning", 
+			MB_YESNO | MB_ICONWARNING) == IDYES) 
+		{
+			if (m_authScheme == rfbAuthVNC) {
+				for (int i = 0; i < MAXPWLEN; i++) {
+					sprintf(buf+i*2, "%02x", (unsigned int) m_encPasswd[i]);
+				}
+				WritePrivateProfileString("connection", "password", buf, fname);
+			} else {	// (m_authScheme == rfbAuthExternal)
+				CARD8 usernameLen = m_encPasswdExt[0];
+				CARD8 passwordLen = m_encPasswdExt[1];
+				int len = (usernameLen + passwordLen + 7) & 0xFFFFFFF8;
+				char *bigbuf = new char[(2 + len) * 2 + 1];
+				for (int i = 0; i < 2 + len; i++) {
+					sprintf(bigbuf+i*2, "%02x", (unsigned int) m_encPasswdExt[i]);
+				}
+				WritePrivateProfileString("connection", "password_ext", bigbuf, fname);
+				delete[] bigbuf;
+			}
 		}
-	} else
-		buf[0] = '\0';
-	WritePrivateProfileString("connection", "password", buf, fname);
+	}
 	m_opts.Save(fname);
 	m_opts.Register();
 }
@@ -128,13 +142,22 @@ int ClientConnection::LoadConnection(char *fname, bool sess)
 	}
 	FormatDisplay(m_port, m_opts.m_display, m_host);
 
-	char buf[32];
+	char buf[1026];
 	m_encPasswd[0] = '\0';
+	memset(m_encPasswdExt, 0, 2);
 	if (GetPrivateProfileString("connection", "password", "", buf, 32, fname) > 0) {
 		for (int i = 0; i < MAXPWLEN; i++)	{
 			int x = 0;
 			sscanf(buf+i*2, "%2x", &x);
 			m_encPasswd[i] = (unsigned char) x;
+		}
+	}
+	if (GetPrivateProfileString("connection", "password_ext", "", buf, 1026, fname) >= 2) {
+		int len = strlen(buf) / 2;
+		for (int i = 0; i < len; i++)	{
+			int x = 0;
+			sscanf(buf+i*2, "%2x", &x);
+			m_encPasswdExt[i] = (unsigned char) x;
 		}
 	}
 	if (sess) {

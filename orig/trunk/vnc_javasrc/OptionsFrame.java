@@ -141,11 +141,7 @@ class OptionsFrame extends Frame
     choices[encodingIndex].select("Tight");
     choices[compressLevelIndex].select("Default");
     choices[jpegQualityIndex].select("6");
-    if (viewer.sessionFileName == null) {
-      choices[cursorUpdatesIndex].select("Enable");
-    } else {
-      choices[cursorUpdatesIndex].select("Disable");
-    }
+    choices[cursorUpdatesIndex].select("Enable");
     choices[useCopyRectIndex].select("Yes");
     choices[eightBitColorsIndex].select("No");
     choices[mouseButtonIndex].select("Normal");

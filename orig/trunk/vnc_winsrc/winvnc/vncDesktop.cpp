@@ -139,7 +139,12 @@ vncDesktopThread::run_undetached(void *arg)
 
 	RECT rect;
 	if (m_server->WindowShared()) {
-		GetWindowRect(m_server->GetWindowShared(), &rect);
+		if (!m_server->GetBlackRgn()) {
+			GetWindowRect(m_server->GetWindowShared(), &rect);
+		} else {
+			rect = m_desktop->m_bmrect;
+		}
+
 	} else if (m_server->ScreenAreaShared()) {
 		rect = m_server->GetScreenAreaRect();
 	} else {
@@ -1454,28 +1459,35 @@ vncDesktop::CaptureScreen(RECT &rect, BYTE *scrBuff)
 		vncRegion capturergn, blackrgn;
 		capturergn.Clear();
 		blackrgn.Clear();
-		capturergn.AddRect(rect);
+		
+		blackrgn.AddRect(rect);
+		BOOL find = FALSE;
 		DWORD procwin;
 		GetWindowThreadProcessId(m_server->GetWindowShared(), &procwin);
-		HWND hforegr = GetWindow(m_server->GetWindowShared(), GW_HWNDFIRST);
-		while (hforegr != m_server->GetWindowShared()) {
-			if (hforegr == NULL) {
-				capturergn.Clear();
-				blackrgn.AddRect(rect);
-				break;
-			}
+		HWND hforegr = GetWindow(m_server->GetWindowShared(), GW_HWNDLAST);
+		while (hforegr != NULL) {			
+			vncRegion wintmprgn, captmprgn;
+			RECT win;
+			GetWindowRect(hforegr, &win);				
+			wintmprgn.AddRect(win);
+			captmprgn.AddRect(rect);
+			wintmprgn.Intersect(captmprgn);
 			DWORD style = GetWindowLong(hforegr, GWL_STYLE);
 			DWORD procforegr;
 			GetWindowThreadProcessId(hforegr, &procforegr);
-			if (style & WS_VISIBLE && procforegr != procwin) {
-				RECT win;
-				GetWindowRect(hforegr, &win);				
-				blackrgn.AddRect(win);
+			if (style & WS_VISIBLE) {
+				if (procforegr == procwin) {				
+					capturergn.Combine(wintmprgn);
+					find = TRUE;
+				} else {
+					capturergn.Subtract(wintmprgn);
+				}
 			}
-			hforegr = GetWindow(hforegr, GW_HWNDNEXT);	
+			hforegr = GetWindow(hforegr, GW_HWNDPREV);	
 		}
-		blackrgn.Intersect(capturergn);
-		capturergn.Subtract(blackrgn);	
+		if (!find)
+			capturergn.Clear();
+		blackrgn.Subtract(capturergn);		
 		if (!capturergn.IsEmpty()) {
 			rectlist capturerects;
 			m_server->GetBlackRegion()->Subtract(capturergn);
@@ -2009,7 +2021,11 @@ vncDesktop::CheckUpdates()
 
 	RECT new_rect;
 	if (m_server->WindowShared()) {
-		GetWindowRect(m_server->GetWindowShared(), &new_rect);
+		if (!m_server->GetBlackRgn()) {
+			GetWindowRect(m_server->GetWindowShared(), &new_rect);
+		} else {
+			new_rect = m_bmrect;
+		}
 	} else if (m_server->ScreenAreaShared()) {
 		new_rect = m_server->GetScreenAreaRect();
 	} else {

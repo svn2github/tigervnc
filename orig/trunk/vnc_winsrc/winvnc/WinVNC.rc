@@ -168,18 +168,22 @@ BEGIN
     PUSHBUTTON      "&Cancel",IDCANCEL,255,145,50,15
 END
 
-IDD_SHARED_DESKTOP_AREA DIALOG DISCARDABLE  0, 0, 235, 90
+IDD_SHARED_DESKTOP_AREA DIALOG DISCARDABLE  0, 0, 235, 95
 STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE
 FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "Full desktop",IDC_FULLSCREEN,"Button",
-                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,7,7,100,13
+                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,7,6,100,13
     CONTROL         "Window:",IDC_WINDOW,"Button",BS_AUTORADIOBUTTON | 
                     WS_TABSTOP,7,23,44,13
     CONTROL         "Rectangular area",IDC_SCREEN,"Button",
                     BS_AUTORADIOBUTTON | WS_TABSTOP,7,39,100,13
     CONTROL         139,IDC_BMPCURSOR,"Static",SS_BITMAP,63,21,21,17
     EDITTEXT        IDC_NAME_APPLI,91,23,137,12,ES_AUTOHSCROLL | ES_READONLY
+    GROUPBOX        "Option of shared window.",IDC_STATIC,7,57,221,32
+    CONTROL         "Blackout of windows which are created by other processes.",
+                    IDC_CHECK_BLACK_RGN,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,16,70,205,11
 END
 
 IDD_INCOMING DIALOG DISCARDABLE  0, 0, 281, 112
@@ -448,8 +452,8 @@ BEGIN
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 228
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 83
+        TOPMARGIN, 6
+        BOTTOMMARGIN, 89
     END
 
     IDD_INCOMING, DIALOG

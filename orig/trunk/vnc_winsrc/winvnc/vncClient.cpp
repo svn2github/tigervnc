@@ -1145,7 +1145,7 @@ vncClientThread::run(void *arg)
 					msg.pe.x = Swap16IfLE(msg.pe.x);
 					msg.pe.y = Swap16IfLE(msg.pe.y);
 
-
+					
 					// Remember cursor position for this client
 					m_client->m_cursor_pos.x = msg.pe.x;
 					m_client->m_cursor_pos.y = msg.pe.y;
@@ -1162,80 +1162,96 @@ vncClientThread::run(void *arg)
 					// to put position relative to screen
 					msg.pe.x = msg.pe.x + coord.left;
 					msg.pe.y = msg.pe.y + coord.top;
+					bool isblack = false;
+					if (m_server->WindowShared() && m_server->GetBlackRgn()) {				
+						if (!m_server->GetBlackRegion()->IsEmpty()) {
+							rectlist blackrects;
+							m_server->GetBlackRegion()->Rectangles(blackrects);
+							rectlist::iterator i;
+							for (i = blackrects.begin(); i != blackrects.end(); i++) {
+								if (msg.pe.x >=(*i).left && msg.pe.x <= (*i).right && msg.pe.y >= (*i).top &&
+									msg.pe.y <= (*i).bottom)
+									isblack = true;
+							}							
+						}
+					} 
+					if (!isblack) {
+					
+						// Work out the flags for this event
+						DWORD flags = MOUSEEVENTF_ABSOLUTE;
+						flags |= MOUSEEVENTF_MOVE;
+						m_server->SetMouseCounter(1, m_client->m_cursor_pos, false );
 
-					// Work out the flags for this event
-					DWORD flags = MOUSEEVENTF_ABSOLUTE;
-					flags |= MOUSEEVENTF_MOVE;
-					m_server->SetMouseCounter(1, m_client->m_cursor_pos, false );
+						if ( (msg.pe.buttonMask & rfbButton1Mask) != 
+							(m_client->m_ptrevent.buttonMask & rfbButton1Mask) )
+						{
+							if (GetSystemMetrics(SM_SWAPBUTTON))
+								flags |= (msg.pe.buttonMask & rfbButton1Mask) 
+								? MOUSEEVENTF_RIGHTDOWN : MOUSEEVENTF_RIGHTUP;
+							else
+								flags |= (msg.pe.buttonMask & rfbButton1Mask) 
+								? MOUSEEVENTF_LEFTDOWN : MOUSEEVENTF_LEFTUP;
+							m_server->SetMouseCounter(1, m_client->m_cursor_pos, false);
+						}
+						if ( (msg.pe.buttonMask & rfbButton2Mask) != 
+							(m_client->m_ptrevent.buttonMask & rfbButton2Mask) )
+						{
+							flags |= (msg.pe.buttonMask & rfbButton2Mask) 
+								? MOUSEEVENTF_MIDDLEDOWN : MOUSEEVENTF_MIDDLEUP;
+							m_server->SetMouseCounter(1, m_client->m_cursor_pos, false);
+						}
+						if ( (msg.pe.buttonMask & rfbButton3Mask) != 
+							(m_client->m_ptrevent.buttonMask & rfbButton3Mask) )
+						{
+							if (GetSystemMetrics(SM_SWAPBUTTON))
+								flags |= (msg.pe.buttonMask & rfbButton3Mask) 
+								? MOUSEEVENTF_LEFTDOWN : MOUSEEVENTF_LEFTUP;
+							else
+								flags |= (msg.pe.buttonMask & rfbButton3Mask) 
+								? MOUSEEVENTF_RIGHTDOWN : MOUSEEVENTF_RIGHTUP;
+							m_server->SetMouseCounter(1, m_client->m_cursor_pos, false);
+						}
 
-					if ( (msg.pe.buttonMask & rfbButton1Mask) != 
-						(m_client->m_ptrevent.buttonMask & rfbButton1Mask) )
-					{
-						if (GetSystemMetrics(SM_SWAPBUTTON))
-							flags |= (msg.pe.buttonMask & rfbButton1Mask) 
-							? MOUSEEVENTF_RIGHTDOWN : MOUSEEVENTF_RIGHTUP;
-						else
-							flags |= (msg.pe.buttonMask & rfbButton1Mask) 
-							? MOUSEEVENTF_LEFTDOWN : MOUSEEVENTF_LEFTUP;
-						m_server->SetMouseCounter(1, m_client->m_cursor_pos, false);
+						// Treat buttons 4 and 5 presses as mouse wheel events
+						DWORD wheel_movement = 0;
+						if ((msg.pe.buttonMask & rfbButton4Mask) != 0 &&
+							(m_client->m_ptrevent.buttonMask & rfbButton4Mask) == 0)
+						{
+							flags |= MOUSEEVENTF_WHEEL;
+							wheel_movement = (DWORD)+120;
+						}
+						else if ((msg.pe.buttonMask & rfbButton5Mask) != 0 &&
+							(m_client->m_ptrevent.buttonMask & rfbButton5Mask) == 0)
+						{
+							flags |= MOUSEEVENTF_WHEEL;
+							wheel_movement = (DWORD)-120;
+						}
+
+						// Generate coordinate values
+
+						HWND temp = GetDesktopWindow();
+						GetWindowRect(temp,&coord);
+
+						unsigned long x = (msg.pe.x * 65535) / (coord.right - coord.left);
+						unsigned long y = (msg.pe.y * 65535) / (coord.bottom - coord.top);
+
+						// Do the pointer event					
+						::mouse_event(flags, (DWORD)x, (DWORD)y, wheel_movement, 0);
+
+						// Save the old position
+						m_client->m_ptrevent = msg.pe;
+
+						// Flag that a remote event occurred
+						m_client->m_remoteevent = TRUE;
+						m_client->m_pointer_event_time = time(NULL);
+
+						// Flag that the mouse moved
+						// FIXME: It should not set m_cursor_pos_changed here.
+						m_client->UpdateMouse();
+
+						// Trigger an update
+						m_server->RequestUpdate();
 					}
-					if ( (msg.pe.buttonMask & rfbButton2Mask) != 
-						(m_client->m_ptrevent.buttonMask & rfbButton2Mask) )
-					{
-						flags |= (msg.pe.buttonMask & rfbButton2Mask) 
-							? MOUSEEVENTF_MIDDLEDOWN : MOUSEEVENTF_MIDDLEUP;
-						m_server->SetMouseCounter(1, m_client->m_cursor_pos, false);
-					}
-					if ( (msg.pe.buttonMask & rfbButton3Mask) != 
-						(m_client->m_ptrevent.buttonMask & rfbButton3Mask) )
-					{
-						if (GetSystemMetrics(SM_SWAPBUTTON))
-							flags |= (msg.pe.buttonMask & rfbButton3Mask) 
-							? MOUSEEVENTF_LEFTDOWN : MOUSEEVENTF_LEFTUP;
-						else
-							flags |= (msg.pe.buttonMask & rfbButton3Mask) 
-							? MOUSEEVENTF_RIGHTDOWN : MOUSEEVENTF_RIGHTUP;
-						m_server->SetMouseCounter(1, m_client->m_cursor_pos, false);
-					}
-
-					// Treat buttons 4 and 5 presses as mouse wheel events
-					DWORD wheel_movement = 0;
-					if ((msg.pe.buttonMask & rfbButton4Mask) != 0 &&
-						(m_client->m_ptrevent.buttonMask & rfbButton4Mask) == 0)
-					{
-						flags |= MOUSEEVENTF_WHEEL;
-						wheel_movement = (DWORD)+120;
-					}
-					else if ((msg.pe.buttonMask & rfbButton5Mask) != 0 &&
-						(m_client->m_ptrevent.buttonMask & rfbButton5Mask) == 0)
-					{
-						flags |= MOUSEEVENTF_WHEEL;
-						wheel_movement = (DWORD)-120;
-					}
-
-					// Generate coordinate values
-
-					HWND temp = GetDesktopWindow();
-					GetWindowRect(temp,&coord);
-
-					unsigned long x = (msg.pe.x * 65535) / (coord.right - coord.left);
-					unsigned long y = (msg.pe.y * 65535) / (coord.bottom - coord.top);
-
-					// Do the pointer event
-					::mouse_event(flags, (DWORD)x, (DWORD)y, wheel_movement, 0);
-					// Save the old position
-					m_client->m_ptrevent = msg.pe;
-
-					// Flag that a remote event occurred
-					m_client->m_remoteevent = TRUE;
-					m_client->m_pointer_event_time = time(NULL);
-
-					// Flag that the mouse moved
-					// FIXME: It should not set m_cursor_pos_changed here.
-					m_client->UpdateMouse();
-
-					// Trigger an update
-					m_server->RequestUpdate();
 				}
 			}
 			break;

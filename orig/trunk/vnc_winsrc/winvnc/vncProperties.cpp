@@ -1203,6 +1203,7 @@ vncProperties::Load(BOOL usersettings)
 	m_alloweditclients = TRUE;
 	m_pref_FullScreen = FALSE;
 	m_pref_WindowShared = TRUE;
+	m_pref_BlackRgn = FALSE;
 	m_pref_ScreenAreaShared = FALSE;
 	m_pref_externalAuth=FALSE;
 #else
@@ -1269,6 +1270,7 @@ vncProperties::Load(BOOL usersettings)
 	m_allowproperties = TRUE;
 	m_pref_FullScreen = TRUE;
 	m_pref_WindowShared = FALSE;
+	m_pref_BlackRgn = FALSE;
 	m_pref_ScreenAreaShared = FALSE;
 	m_pref_PriorityTime = 3;
 	m_pref_LocalInputPriority = FALSE;
@@ -1399,6 +1401,7 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	// screen area sharing prefs
 	m_pref_FullScreen = m_server->FullScreen();
 	m_pref_WindowShared = m_server->WindowShared();
+	m_pref_BlackRgn = m_server->GetBlackRgn();
 	m_pref_ScreenAreaShared = m_server->ScreenAreaShared();
 
 	m_pref_LocalInputPriority=LoadInt(appkey, "LocalInputsPriority", m_pref_LocalInputPriority);
@@ -1457,6 +1460,7 @@ vncProperties::ApplyUserPrefs()
 
 	m_server->FullScreen(m_pref_FullScreen);
 	m_server->WindowShared(m_pref_WindowShared);
+	m_server->SetBlackRgn(m_pref_BlackRgn);
 	m_server->ScreenAreaShared(m_pref_ScreenAreaShared);
 
 	m_server->LocalInputPriority(m_pref_LocalInputPriority);

@@ -265,7 +265,10 @@ public:
 
     // Patrial desktop sharing
     virtual void WindowShared(BOOL enable) { m_WindowShared = enable; }
+	virtual void SetBlackRgn(BOOL enable) { m_BlackRgn = enable; }
     virtual BOOL WindowShared() { return m_WindowShared; }
+	virtual BOOL GetBlackRgn() { return m_BlackRgn; }
+	virtual vncRegion* GetBlackRegion() { return &m_BlackRegion; }
     virtual void SetMatchSizeFields(int left, int top, int right, int bottom);
 	virtual RECT GetScreenAreaRect() { return m_screenarea_rect; }
 	virtual void SetWindowShared(HWND hWnd);
@@ -314,6 +317,7 @@ protected:
 	UINT				m_port_http;
 	RECT			    m_shared_rect;
 	RECT			    m_screenarea_rect;
+	vncRegion 			m_BlackRegion;
 	BOOL				m_autoportselect;
 	char				m_password[MAXPWLEN];
 	char				m_password_viewonly[MAXPWLEN];
@@ -356,7 +360,8 @@ protected:
 	// screen area sharing preferences                                                   
 	BOOL				m_shared_oneapplionly;               
 	HWND				m_hwndShared;  
-	BOOL				m_WindowShared;                      
+	BOOL				m_WindowShared;
+	BOOL				m_BlackRgn;
 	BOOL				m_full_screen;                       
 	BOOL				m_screen_area;                       
 

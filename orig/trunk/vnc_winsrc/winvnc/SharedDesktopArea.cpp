@@ -82,6 +82,9 @@ void SharedDesktopArea::Init()
 	HWND hScreenCaption = GetDlgItem(m_hwnd, IDC_SCREEN);
 	SendMessage(hScreenCaption, BM_SETCHECK, (m_vncprop->GetPrefScreenAreaShared()), 0);
 
+	HWND hBlackRgn = GetDlgItem(m_hwnd, IDC_CHECK_BLACK_RGN);
+	SendMessage(hBlackRgn, BM_SETCHECK, (m_vncprop->GetPrefBlackRgn()), 0);
+
 	SetForegroundWindow(m_hwnd);
 }
 
@@ -100,7 +103,11 @@ bool SharedDesktopArea::ApplySharedControls()
 	HWND hFullScreen = GetDlgItem(m_hwnd, IDC_FULLSCREEN);
 	m_server->FullScreen(SendMessage(hFullScreen,
 								BM_GETCHECK, 0, 0) == BST_CHECKED);
-				  				
+
+	HWND hBlackRgn = GetDlgItem(m_hwnd, IDC_CHECK_BLACK_RGN);
+	m_server->SetBlackRgn(SendMessage(hBlackRgn,
+								BM_GETCHECK, 0, 0) == BST_CHECKED);
+
 	HWND hWindowCapture = GetDlgItem(m_hwnd, IDC_WINDOW);
 	m_server->WindowShared(SendMessage(hWindowCapture,
 								BM_GETCHECK, 0, 0) == BST_CHECKED);

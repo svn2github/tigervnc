@@ -1449,10 +1449,60 @@ vncDesktop::CaptureScreen(RECT &rect, BYTE *scrBuff)
 
 	// Capture screen into bitmap
 	BOOL blitok;
-	blitok = BitBlt(m_hmemdc, rect.left, rect.top,
-					rect.right - rect.left, rect.bottom - rect.top,
-					m_hrootdc, rect.left, rect.top,	SRCCOPY);
 
+	if (m_server->WindowShared() && m_server->GetBlackRgn()) {
+		vncRegion capturergn, blackrgn;
+		capturergn.Clear();
+		blackrgn.Clear();
+		capturergn.AddRect(rect);
+		DWORD procwin;
+		GetWindowThreadProcessId(m_server->GetWindowShared(), &procwin);
+		HWND hforegr = GetWindow(m_server->GetWindowShared(), GW_HWNDFIRST);
+		while (hforegr != m_server->GetWindowShared()) {
+			if (hforegr == NULL) {
+				capturergn.Clear();
+				blackrgn.AddRect(rect);
+				break;
+			}
+			DWORD style = GetWindowLong(hforegr, GWL_STYLE);
+			DWORD procforegr;
+			GetWindowThreadProcessId(hforegr, &procforegr);
+			if (style & WS_VISIBLE && procforegr != procwin) {
+				RECT win;
+				GetWindowRect(hforegr, &win);				
+				blackrgn.AddRect(win);
+			}
+			hforegr = GetWindow(hforegr, GW_HWNDNEXT);	
+		}
+		blackrgn.Intersect(capturergn);
+		capturergn.Subtract(blackrgn);	
+		if (!capturergn.IsEmpty()) {
+			rectlist capturerects;
+			m_server->GetBlackRegion()->Subtract(capturergn);
+			capturergn.Rectangles(capturerects);
+			rectlist::iterator i;
+			for (i = capturerects.begin(); i != capturerects.end(); i++) {
+				blitok = BitBlt(m_hmemdc, (*i).left, (*i).top,
+								(*i).right - (*i).left, (*i).bottom - (*i).top,
+								m_hrootdc, (*i).left, (*i).top,	SRCCOPY);	
+			}
+		}
+		if (!blackrgn.IsEmpty()) {
+			rectlist blackrects;
+			m_server->GetBlackRegion()->Combine(blackrgn);
+			blackrgn.Rectangles(blackrects);
+			rectlist::iterator i;
+			for (i = blackrects.begin(); i != blackrects.end(); i++) {
+				blitok = PatBlt(m_hmemdc, (*i).left, (*i).top, 
+								(*i).right - (*i).left, 
+								(*i).bottom - (*i).top, BLACKNESS);
+			}
+		}
+	} else {
+		blitok = BitBlt(m_hmemdc, rect.left, rect.top,
+								rect.right - rect.left, rect.bottom - rect.top,
+								m_hrootdc, rect.left, rect.top,	SRCCOPY);
+	}
 	// Select the old bitmap back into the memory DC
 	SelectObject(m_hmemdc, oldbitmap);
 	
@@ -1480,7 +1530,7 @@ vncDesktop::CaptureMouse(BYTE *scrBuff, UINT scrBuffSize)
 	// Get the cursor position
 	if (!GetCursorPos(&CursorPos))
 		return;
-
+	
 	// Translate position for hotspot
 	if (GetIconInfo(m_hcursor, &IconInfo))
 	{

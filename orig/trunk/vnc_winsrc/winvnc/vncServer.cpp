@@ -109,6 +109,8 @@ vncServer::vncServer()
 
 	m_full_screen = TRUE;
 	m_WindowShared= FALSE;
+	m_BlackRgn = FALSE;
+	m_BlackRegion.Clear();
 	m_hwndShared = NULL;
 	m_screen_area = FALSE;
 	m_disable_time = 3;
@@ -124,6 +126,8 @@ vncServer::vncServer()
 #ifdef HORIZONLIVE
 	m_full_screen = FALSE;
 	m_WindowShared= TRUE;
+	m_BlackRgn = FALSE;
+	m_BlackRegion.Clear();
 	m_local_input_priority = TRUE;
 	m_remote_mouse = 1;
 	m_remote_keyboard = 1;

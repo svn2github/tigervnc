@@ -792,7 +792,7 @@ IDC_CURSOR1             CURSOR  DISCARDABLE     "res\\cursor1.cur"
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDI_WINVNC              "WinVNC"
+    IDI_WINVNC              "TightVNC Server"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -804,36 +804,37 @@ STRINGTABLE DISCARDABLE
 BEGIN
     IDC_STATIC_DRVINFO      "Here you can see information about using the mirror display driver."
     IDC_CONNECT_SOCK        "This option controls whether it is possible to connect to this computer with a VNC Viewer. Clearing the checkbox will ensure that remote connections won't be accepted."
+    IDC_BLANK_SCREEN        "Blank local screen when sharing the computer."
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDC_DISPLAYNO           "display:"
+    IDC_DISPLAYNO           "The display number determines which TCP ports will be used for accepting client connections. Display 0 corresponds to ports 5900 (VNC port) and 5800 (HTTP port), display 1 to ports 5901 and 5801 and so on."
     IDC_PASSWORD            "Users authenticated with the primary password are given full control over the server's desktop. Note that only first 8 characters of passwords are used in the standard VNC authentication."
-    IDC_UPDATE_BORDER       "Update Handling"
-    IDC_POLL_FULLSCREEN     "Poll full screen"
-    IDC_CONSOLE_ONLY        "Poll console windows only"
-    IDC_POLL_FOREGROUND     "Poll foreground window"
-    IDC_POLL_UNDER_CURSOR   "Poll window under cursor"
-    IDC_ONEVENT_ONLY        "Poll on event received only"
-    IDC_REMOTE_DISABLE      "Disable remote keyboard and pointer on local activity"
-    IDC_PORTHTTP            "TCP port of the built-in HTTP server"
-    IDC_PORTRFB             "main port:"
+    IDC_UPDATE_BORDER       "Update handling options determine what methods are used to detect screen updates."
+    IDC_POLL_FULLSCREEN     "Scan the whole screen contents for changes. Setting this option guarantees reliable update detection but can notably increase CPU usage. Note that polling is not used with mirror display driver."
+    IDC_CONSOLE_ONLY        "When set, window polling is performed only for console windows. Pixel changes in console windows cannot be detected by the hooks DLL, so this option is set by default."
+    IDC_POLL_FOREGROUND     "Poll the foreground (active) window. This is the default polling mode. Note that polling is not used with mirror display driver."
+    IDC_POLL_UNDER_CURSOR   "Poll the window under cursor. Note that polling is not used with mirror display driver."
+    IDC_ONEVENT_ONLY        "When set, window polling is performed only on receiving keyboard or mouse events from a VNC viewer."
+    IDC_REMOTE_DISABLE      "Set this option to give higher priority to local keyboard and pointer. This blocks remote input while local keyboard or mouse is in use."
+    IDC_PORTHTTP            "TCP port of the built-in Web server serving the Java viewer applet."
+    IDC_PORTRFB             "TCP port used for VNC data exchange (pixel data, input events, file transfers etc.)"
     IDC_PASSWORD_VIEWONLY   "Users authenticated with view-only password are allowed to view the server's desktop, but cannot control it with their mouse and keyboard. Note that only first 8 characters of passwords are used in the standard VNC authentication."
     IDC_URL_PARAMS          "When set, the HTTP server passes parameters from the URL to the Java viewer applet. For example, you could write http://myvnchost:5800/?view+only=yes&restricted+colors=yes"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDC_SPECPORT            "ports"
-    IDC_POLLING_CYCLE       "Polling cycle:"
-    IDC_ACTION_REFUSE       "Refuse"
-    IDC_ACTION_ACCEPT       "Accept"
+    IDC_SPECPORT            "Specify arbitrary TCP port numbers for incoming VNC and HTTP connections."
+    IDC_POLLING_CYCLE       "Specify how often polling should be performed. Lowering the value improves responsiveness but also increases CPU usage."
+    IDC_ACTION_REFUSE       "Reject the connection if the confirmation dialog was timed out."
+    IDC_ACTION_ACCEPT       "Accept the connection if the confirmation dialog was timed out."
     IDC_REMOVE_WALLPAPER    "Do not show the desktop wallpaper while at least one viewer is connected to this server. This both saves bandwidth and decreases CPU utilization on the server, resulting in better responsiveness of the remote desktop."
-    IDC_LOCKSETTING_NOTHING "Do nothing"
-    IDC_LOCKSETTING_LOCK    "Lock workstation"
-    IDC_LOCKSETTING_LOGOFF  "Logoff workstation"
-    IDC_DONT_SET_HOOKS      "Don't use VNCHooks.DLL while polling full screen"
+    IDC_LOCKSETTING_NOTHING "Do nothing when a viewer disconnects. This is the default option."
+    IDC_LOCKSETTING_LOCK    "Lock workstation on disconnect. This option is supported under Windows 2000/XP only."
+    IDC_LOCKSETTING_LOGOFF  "Logoff workstation on disconnect."
+    IDC_DONT_SET_HOOKS      "Full-screen polling can detect updates without using the hooks DLL, which is used by default to detect screen changes. Use this option for troubleshouting when the hooks DLL causes side effects in other applications."
     IDC_ENABLE_FILE_TRANSFERS 
                             "When this option is set, remote viewers will be allowed to transfer any files between their local computers and this server."
     IDC_TAB                 "Here you can choose a group of configuration settings to edit."
@@ -841,37 +842,37 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDC_STATIC_ACTION       "Default action:"
-    IDC_STATIC_TEMPORARY    "Temporary"
-    IDC_STATIC_CONN_PRIOR   "Connection Priority"
-    IDC_STATIC_ADMINISTR    "Administration"
-    IDC_STATIC_DISPLAY_PORT "Display or port numbers to use:"
+    IDC_STATIC_ACTION       "Default action determines what should be done if the confirmation dialog was timed out with no user input."
+    IDC_STATIC_TEMPORARY    "Configuration of the built-in HTTP server."
+    IDC_STATIC_CONN_PRIOR   "Connection priority determines what to do if a VNC viewer requests non-shared session, and there is another connection active."
+    IDC_STATIC_ADMINISTR    "Administration settings."
+    IDC_STATIC_DISPLAY_PORT "Here you can specify which TCP ports should be used for incoming client connections."
     IDC_DONT_USE_DRIVER     "Don't ever try to use mirror display driver. Use this option for troubleshooting purposes. Note that toggling this option does not take immediate effect if there is at least one viewer connected."
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDC_DISABLE_INPUTS      "Disable remote keyboard and pointer (all clients view only"
+    IDC_DISABLE_INPUTS      "If set, no keyboard or mouse control will be allowed to remote VNC viewers."
     IDC_APPLY               "Apply the changes but do not close the dialog box."
-    IDC_PORTNO_AUTO         "auto"
+    IDC_PORTNO_AUTO         "When this option is set, the server will automatically find available port numbers, starting from port 5900 (corresponding to display 0). If built-in Web server is enabled, HTTP port will be set to VNC port minus 100."
     IDC_DISABLE_LOCAL_INPUTS 
-                            "Disable local keyboard and pointer during client sessions"
-    IDADVANCED              "Ad&vanced ..."
-    IDQUERY                 "Query console on incoming connections"
+                            "If set, local keyboard and mouse will be blocked while at least one VNC viewer is connected to this computer."
+    IDADVANCED              "Advanced..."
+    IDQUERY                 "When a client connects, show a confirmation window allowing either to accept or to reject the connection."
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDC_SHARINGAREA_BORDER  "Select Sharing Area"
     IDC_LIVESHARE_BORDER    "Connect with AppShare Key"
-    IDC_NAME_APPLI          "name application"
+    IDC_NAME_APPLI          "Window name. You cannot enter the text here. To choose a window to share, drag the ""target"" icon to the selected window."
     IDC_LIVESHARE           "AppShare Key:"
-    IDC_BMPCURSOR           "bitmap target"
-    IDC_WINDOW              "Window:"
-    IDC_SCREEN              "Rectangular area"
-    IDC_FULLSCREEN          "Full desktop"
-    IDC_DISABLE_TIME        "Input enabled after timeout:"
-    IDC_SPECDISPLAY         "display"
+    IDC_BMPCURSOR           "To choose a window to share, drag this ""target"" to the selected window."
+    IDC_WINDOW              "Share one partucular window. To choose a window to share, drag the ""target"" icon to the selected window."
+    IDC_SCREEN              "Share a rectangular part of the desktop."
+    IDC_FULLSCREEN          "Share the whole desktop of this computer."
+    IDC_DISABLE_TIME        "Specify how many seconds should pass between local keyboard or mouse activity and enabling remote input."
+    IDC_SPECDISPLAY         "Specify a display number. The VNC port is calculated as 5900 plus display, the HTTP port is 5800 plus display."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -882,17 +883,17 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDQUERYTIMEOUT          "Query timeout:"
-    IDREQUIREAUTH           "Disable empty passwords"
-    IDQUERYALLOWNOPASS      "Allow option to accept without authentication"
-    IDONLYLOOPBACK          "Allow only loopback connections"
-    IDLOGLOTS               "Log detailed debugging information"
-    IDALLOWLOOPBACK         "Allow loopback connections"
-    IDLOG                   "Log information to WinVNC.log"
-    IDPRIORITY0             "Disconnect existing connections"
-    IDPRIORITY2             "Refuse concurrent connections"
-    IDPRIORITY1             "Automatic shared sessions"
-    IDENABLEHTTPD           "Enable built-in HTTP daemon"
+    IDQUERYTIMEOUT          "Wait for the specified number of seconds, before the confirmation dialog will be closed and the default action will be performed."
+    IDREQUIREAUTH           "Normally, authentication is always required and empty passwords are not allowed. By unchecking this option, it's possible to allow VNC access without authentication. Note that passwordless access can be a security risk."
+    IDQUERYALLOWNOPASS      "Normally, authentication is required if the connection is accepted. Setting this option activates additional button to accept connection without authentication (remote user is not asked for a password)."
+    IDONLYLOOPBACK          "If set, don't allow any connections unless they are originated from the same machine. This can be used for testing purposes, or with port forwarding programs like SSH."
+    IDLOGLOTS               "Check this to increase amount of the information in the log file. There may be a lot of unnecessary data in the log, but this mode can be very useful for debugging and troubleshooting purposes."
+    IDALLOWLOOPBACK         "Normally, connections from the same machine are disabled. Checking this option allows such connections. This can be used for testing purposes, or with port forwarding programs like SSH."
+    IDLOG                   "Check this to enable logging. The log file is called WinVNC.log (created in the current folder). If the TightVNC Server is running as a system service, the file is typically found in the Windows system folder."
+    IDPRIORITY0             "Disconnect existing connections, accept new connections."
+    IDPRIORITY2             "Preserve existing connections, refuse new connections."
+    IDPRIORITY1             "Preserve existing connections, accept new connections."
+    IDENABLEHTTPD           "Enable built-in Web server which can deliver Java viewer to Web clients."
 END
 
 #endif    // English (U.S.) resources

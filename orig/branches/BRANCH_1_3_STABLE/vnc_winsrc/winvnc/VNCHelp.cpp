@@ -68,6 +68,7 @@ void VNCHelp::Popup(LPARAM lParam)
 			popup.idString = IDC_DISABLE_TIME;
 			break;
 		case IDC_STATIC_TIMEOUT:
+		case IDC_STATIC_SECONDS:
 			popup.idString = IDQUERYTIMEOUT;
 			break;
 		case IDC_STATIC_PCYCLE:

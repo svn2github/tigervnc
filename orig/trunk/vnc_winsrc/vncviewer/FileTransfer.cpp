@@ -45,6 +45,7 @@ FileTransfer::FileTransfer(ClientConnection * pCC, VNCviewerApp * pApp)
     m_bUploadStarted = FALSE;
     m_bDownloadStarted = FALSE;
 	m_bTransferEnable = FALSE;
+	m_bOverwriteAll = FALSE;
 	m_bServerBrowseRequest = FALSE;
 	m_hTreeItem = NULL;
 	m_ClientPath[0] = '\0';
@@ -127,10 +128,11 @@ FileTransfer::CreateFileTransferDialog()
 	ShowWindow(m_hwndFileTransfer, SW_SHOW);
 	UpdateWindow(m_hwndFileTransfer);
 
+//	SetFTDlgCursor(IDC_APPSTARTING);
+
 	ShowClientItems(m_ClientPathTmp);
 	CheckClientLV();
 	SendFileListRequestMessage(m_ServerPathTmp, 0, FT_FLR_DEST_MAIN);
-
 }
 
 LRESULT CALLBACK 
@@ -141,8 +143,6 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 {
 	FileTransfer *_this = (FileTransfer *) GetWindowLong(hwnd, GWL_USERDATA);
 	int i;
-	BOOL bCreate = FALSE;
-	char buf[MAX_PATH];
 	switch (uMsg)
 	{
 	case WM_INITDIALOG:
@@ -175,42 +175,18 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 							_this->ShowClientItems(_this->m_ClientPathTmp);
 							break;
 						case FT_ID_MYDOCUMENTS:
-							if (SHGetSpecialFolderPath(NULL, buf, CSIDL_PERSONAL, bCreate)) {
-								strcpy(_this->m_ClientPathTmp, buf);
-								_this->ShowClientItems(_this->m_ClientPathTmp);
-							} else {
-								strcpy(_this->m_ClientPathTmp, "");
-								_this->ShowClientItems(_this->m_ClientPathTmp);
-							}
+							_this->ShowClientSpecFolder(CSIDL_PERSONAL);
 							break;
 						case FT_ID_MYPICTURES:
-//							if (SHGetSpecialFolderPath(NULL, buf, CSIDL_MYPICTURES, bCreate)) {
-							if (SHGetSpecialFolderPath(NULL, buf, 0x0027, bCreate)) {
-								strcpy(_this->m_ClientPathTmp, buf);
-								_this->ShowClientItems(_this->m_ClientPathTmp);
-							} else {
-								strcpy(_this->m_ClientPathTmp, "");
-								_this->ShowClientItems(_this->m_ClientPathTmp);
-							}
+//							_this->ShowClientSpecFolder(CSIDL_MYPICTURES);
+							_this->ShowClientSpecFolder(0x0027);
 							break;
 						case FT_ID_MYMUSIC:
-//							if (SHGetSpecialFolderPath(NULL, buf, CSIDL_MYMUSIC, bCreate)) {
-							if (SHGetSpecialFolderPath(NULL, buf, 0x000d, bCreate)) {
-								strcpy(_this->m_ClientPathTmp, buf);
-								_this->ShowClientItems(_this->m_ClientPathTmp);
-							} else {
-								strcpy(_this->m_ClientPathTmp, "");
-								_this->ShowClientItems(_this->m_ClientPathTmp);
-							}
+//							_this->ShowClientSpecFolder(CSIDL_MYMUSIC);
+							_this->ShowClientSpecFolder(0x000d);
 							break;
 						case FT_ID_MYDESKTOP:
-							if (SHGetSpecialFolderPath(NULL, buf, CSIDL_DESKTOP, bCreate)) {
-								strcpy(_this->m_ClientPathTmp, buf);
-								_this->ShowClientItems(_this->m_ClientPathTmp);
-							} else {
-								strcpy(_this->m_ClientPathTmp, "");
-								_this->ShowClientItems(_this->m_ClientPathTmp);
-							}
+							_this->ShowClientSpecFolder(CSIDL_DESKTOP);
 							break;
 						}
 						return TRUE;
@@ -946,6 +922,20 @@ FileTransfer::ShowClientItems(char *path)
 			m_bClientRefresh = FALSE;
 		}
 		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_CLIENTCREATEDIR), TRUE);
+	}
+}
+
+void 
+FileTransfer::ShowClientSpecFolder(int idFolder)
+{
+	BOOL bCreate = FALSE;
+	char buf[MAX_PATH];
+	if (SHGetSpecialFolderPath(NULL, buf, idFolder, bCreate)) {
+		strcpy(m_ClientPathTmp, buf);
+		ShowClientItems(m_ClientPathTmp);
+	} else {
+		strcpy(m_ClientPathTmp, m_ClientPath);
+		ShowClientItems(m_ClientPathTmp);
 	}
 }
 
@@ -2207,6 +2197,7 @@ FileTransfer::CreateFTCancelingDlg()
 										  (DLGPROC) FTCancelingDlgProc,
 										  (LONG) this);
 	ShowWindow(m_hwndFTCanceling, SW_SHOW);
+	DrawIcon(GetDC(m_hwndFTCanceling), 15, 22, LoadIcon(NULL, IDI_QUESTION));
 	UpdateWindow(m_hwndFTCanceling);
 	return TRUE;
 }
@@ -2221,10 +2212,11 @@ FileTransfer::FTCancelingDlgProc(HWND hwnd,
 	switch (uMsg)
 	{
 	case WM_INITDIALOG:
-		SetWindowLong(hwnd, GWL_USERDATA, (LONG) lParam);
-		DrawIcon(GetDC(hwnd), 100, 100, LoadIcon(NULL, IDI_QUESTION));
-		SetForegroundWindow(hwnd);
-		CentreWindow(hwnd);
+		{
+			SetWindowLong(hwnd, GWL_USERDATA, (LONG) lParam);
+			SetForegroundWindow(hwnd);
+			CentreWindow(hwnd);
+		}
 		return TRUE;
 	case WM_COMMAND:
 		switch (LOWORD(wParam))
@@ -2261,5 +2253,21 @@ FileTransfer::EndFTCancelDlg(BOOL result)
 		m_FTServerItemInfo.Free();
 		EndDialog(m_hwndFileTransfer, TRUE);
 	}
+
+}
+
+void
+FileTransfer::SetFTDlgCursor(LPCTSTR cursorType)
+{
+	HCURSOR hCurs = LoadCursor(NULL, cursorType);
+	SetClassLong(m_hwndFileTransfer, GCL_HCURSOR, (LONG) hCurs);   
+	SetClassLong(m_hwndFTClientList,GCL_HCURSOR, (LONG) hCurs);   
+	SetClassLong(m_hwndFTClientPath, GCL_HCURSOR, (LONG) hCurs);   
+	SetClassLong(m_hwndProgress, GCL_HCURSOR, (LONG) hCurs);   
+//	SetClassLong(m_hwndFTProgress, GCL_HCURSOR, (LONG) hCurs);   
+	SetClassLong(m_hwndFTStatus, GCL_HCURSOR, (LONG) hCurs);   
+//	SetClassLong(m_hwndFTServerList, GCL_HCURSOR, (LONG) hCurs);   
+//	SetClassLong(m_hwndFTServerPath, GCL_HCURSOR, (LONG) hCurs);   
+	SetClassLong(GetDlgItem(m_hwndFileTransfer, IDC_CLIENTUP), GCL_HCURSOR, (LONG) hCurs);   
 
 }

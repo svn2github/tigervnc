@@ -76,6 +76,7 @@ public:
 	void SendFileListRequestMessage(char *filename, unsigned char flags, int dest);
 	void ShowServerItems();
 	void ShowClientItems(char *path);
+	void ShowClientSpecFolder(int idFolder);
 	void ProcessDlgMessage(HWND hwnd);
 	void ShowTreeViewItems(HWND hwnd, LPNMTREEVIEW m_lParam);
 	void CreateFTBrowseDialog(BOOL status);
@@ -165,6 +166,8 @@ private:
 	void DownloadFile(int num);
 
 	void EndFTCancelDlg(BOOL result);
+	void SetFTDlgCursor(LPCTSTR cursorType);
+
 
 	int GetSelectedItems(HWND hwnd, FileTransferItemInfo *pFTII);
 
@@ -192,6 +195,7 @@ private:
 	BOOL m_bClientRefresh;
 	BOOL m_bServerRefresh;
 	BOOL m_bEndFTDlgOnYes;
+	BOOL m_bOverwriteAll;
 
 	HANDLE m_hFiletoWrite;
     HANDLE m_hFiletoRead;

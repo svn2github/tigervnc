@@ -186,7 +186,7 @@ class RecordingFrame extends Frame
   // Let the user choose a file name showing a FileDialog.
   //
 
-  protected void browseFile() {
+  protected boolean browseFile() {
     File currentFile = new File(fnameField.getText());
 
     FileDialog fd =
@@ -201,8 +201,12 @@ class RecordingFrame extends Frame
 	  newDir += sep;
       }
       String newFname = newDir + fd.getFile();
-      fnameField.setText(newFname);
+      if (newFname.equals(fnameField.getText())) {
+	fnameField.setText(newFname);
+	return true;
+      }
     }
+    return false;
   }
 
   //
@@ -217,7 +221,7 @@ class RecordingFrame extends Frame
 
     recording = true;
 
-    viewer.startRecording(fnameField.getText());
+    viewer.setRecordingStatus(fnameField.getText());
   }
 
   //
@@ -232,7 +236,7 @@ class RecordingFrame extends Frame
 
     recording = false;
 
-    viewer.stopRecording();
+    viewer.setRecordingStatus(null);
   }
 
   //
@@ -261,17 +265,21 @@ class RecordingFrame extends Frame
 
   public void actionPerformed(ActionEvent evt) {
     if (evt.getSource() == browseButton) {
-      browseFile();
+      if (browseFile() && recording)
+	startRecording();
 
     } else if (evt.getSource() == recordButton) {
       if (!recording) {
 	startRecording();
       } else {
 	stopRecording();
+        fnameField.setText(nextNewFilename(fnameField.getText()));
       }
 
     } else if (evt.getSource() == nextButton) {
       fnameField.setText(nextNewFilename(fnameField.getText()));
+      if (recording)
+	startRecording();
 
     } else if (evt.getSource() == closeButton) {
       setVisible(false);

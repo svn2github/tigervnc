@@ -229,27 +229,41 @@ class RfbProto {
     is.readFully(name);
     desktopName = new String(name);
 
-    // If desired, create session file and write initial protocol
-    // messages into it.
-    if (viewer.sessionFileName != null) {
-      rec = new SessionRecorder(viewer.sessionFileName);
-      rec.writeHeader();
-      rec.write(versionMsg.getBytes());
-      rec.writeIntBE(NoAuth);
-      rec.writeShortBE(framebufferWidth);
-      rec.writeShortBE(framebufferHeight);
-      byte[] fbsServerInitMsg =	{
-	32, 24, 0, 1, 0,
-	(byte)0xFF, 0, (byte)0xFF, 0, (byte)0xFF,
-	16, 8, 0, 0, 0, 0
-      };
-      rec.write(fbsServerInitMsg);
-      rec.writeIntBE(nameLength);
-      rec.write(name);
-      numUpdates = 0;
-    }
-
     inNormalProtocol = true;
+  }
+
+
+  //
+  // Create session file and write initial protocol messages into it.
+  //
+
+  void startSession(String fname) throws IOException {
+    rec = new SessionRecorder(fname);
+    rec.writeHeader();
+    rec.write(versionMsg.getBytes());
+    rec.writeIntBE(NoAuth);
+    rec.writeShortBE(framebufferWidth);
+    rec.writeShortBE(framebufferHeight);
+    byte[] fbsServerInitMsg =	{
+      32, 24, 0, 1, 0,
+      (byte)0xFF, 0, (byte)0xFF, 0, (byte)0xFF,
+      16, 8, 0, 0, 0, 0
+    };
+    rec.write(fbsServerInitMsg);
+    rec.writeIntBE(desktopName.length());
+    rec.write(desktopName.getBytes());
+    numUpdates = 0;
+  }
+
+  //
+  // Close session file.
+  //
+
+  void closeSession() throws IOException {
+    if (rec != null) {
+      rec.close();
+      rec = null;
+    }
   }
 
 

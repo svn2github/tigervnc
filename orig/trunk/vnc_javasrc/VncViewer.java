@@ -68,11 +68,12 @@ public class VncViewer extends java.applet.Applet
   ClipboardFrame clipboard;
 
   // Control session recording.
+  Object recordingSync;
   String sessionFileName;
   boolean recordingActive;
   boolean recordingStatusChanged;
-  String cursorUpdatesSetting;
-  String eightBitColorsSetting;
+  String cursorUpdatesDef;
+  String eightBitColorsDef;
 
   // Variables read from parameter values.
   String host;
@@ -104,6 +105,8 @@ public class VncViewer extends java.applet.Applet
       vncContainer = this;
     }
 
+    recordingSync = new Object();
+
     options = new OptionsFrame(this);
     rec = new RecordingFrame(this);
     clipboard = new ClipboardFrame(this);
@@ -112,6 +115,8 @@ public class VncViewer extends java.applet.Applet
     sessionFileName = null;
     recordingActive = false;
     recordingStatusChanged = false;
+    cursorUpdatesDef = null;
+    eightBitColorsDef = null;
 
     if (inSeparateFrame)
       vncFrame.addWindowListener(this);
@@ -459,50 +464,91 @@ public class VncViewer extends java.applet.Applet
 
 
   //
-  // Start session recording.
-  // FIXME: Synchronization.
+  // Order change in session recording status. To stop recording, pass
+  // null in place of the fname argument.
   //
 
-  void startRecording(String fname) {
-
-    // Save settings to restore them after recording the session.
-    if (sessionFileName == null) {
-      cursorUpdatesSetting =
-	options.choices[options.cursorUpdatesIndex].getSelectedItem();
-      eightBitColorsSetting =
-	options.choices[options.eightBitColorsIndex].getSelectedItem();
+  void setRecordingStatus(String fname) {
+    synchronized(recordingSync) {
+      sessionFileName = fname;
+      recordingStatusChanged = true;
     }
+  }
 
-    // Set options to values suitable for recording.
-    options.choices[options.cursorUpdatesIndex].select("Disable");
-    options.choices[options.cursorUpdatesIndex].setEnabled(false);
-    options.setEncodings();
-    options.choices[options.eightBitColorsIndex].select("No");
-    options.choices[options.eightBitColorsIndex].setEnabled(false);
-    options.setColorFormat();
+  //
+  // Start or stop session recording. Returns true if this method call
+  // causes recording of a new session.
+  //
 
-    sessionFileName = fname;
-    recordingStatusChanged = true;
+  boolean checkRecordingStatus() throws IOException {
+    synchronized(recordingSync) {
+      if (recordingStatusChanged) {
+	recordingStatusChanged = false;
+	if (sessionFileName != null) {
+	  startRecording();
+	  return true;
+	} else {
+	  stopRecording();
+	}
+      }
+    }
+    return false;
+  }
+
+  //
+  // Start session recording.
+  //
+
+  protected void startRecording() throws IOException {
+    synchronized(recordingSync) {
+      if (!recordingActive) {
+	// Save settings to restore them after recording the session.
+	cursorUpdatesDef =
+	  options.choices[options.cursorUpdatesIndex].getSelectedItem();
+	eightBitColorsDef =
+	  options.choices[options.eightBitColorsIndex].getSelectedItem();
+	// Set options to values suitable for recording.
+	options.choices[options.cursorUpdatesIndex].select("Disable");
+	options.choices[options.cursorUpdatesIndex].setEnabled(false);
+	options.setEncodings();
+	options.choices[options.eightBitColorsIndex].select("No");
+	options.choices[options.eightBitColorsIndex].setEnabled(false);
+	options.setColorFormat();
+      } else {
+	rfb.closeSession();
+      }
+
+      System.out.println("Recording the session in " + sessionFileName);
+      rfb.startSession(sessionFileName);
+
+      recordingActive = true;
+    }
   }
 
   //
   // Stop session recording.
-  // FIXME: Synchronization.
   //
 
-  void stopRecording() {
+  protected void stopRecording() throws IOException {
+    synchronized(recordingSync) {
+      if (recordingActive) {
+	// Restore options.
+	options.choices[options.cursorUpdatesIndex].select(cursorUpdatesDef);
+	options.choices[options.cursorUpdatesIndex].setEnabled(true);
+	options.setEncodings();
+	options.choices[options.eightBitColorsIndex].select(eightBitColorsDef);
+	options.choices[options.eightBitColorsIndex].setEnabled(true);
+	options.setColorFormat();
 
-    // Restore options.
-    options.choices[options.cursorUpdatesIndex].select(cursorUpdatesSetting);
-    options.choices[options.cursorUpdatesIndex].setEnabled(true);
-    options.setEncodings();
-    options.choices[options.eightBitColorsIndex].select(eightBitColorsSetting);
-    options.choices[options.eightBitColorsIndex].setEnabled(true);
-    options.setColorFormat();
+	rfb.closeSession();
+	System.out.println("Session recording stopped.");
+      }
 
-    sessionFileName = null;
-    recordingStatusChanged = true;
+      sessionFileName = null;
+      recordingActive = false;
+    }
   }
+
 
   //
   // readParameters() - read parameters from the html source or from the

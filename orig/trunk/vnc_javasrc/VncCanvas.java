@@ -279,6 +279,9 @@ class VncCanvas extends Canvas
 
   public void processNormalProtocol() throws Exception {
 
+    // Start/stop session recording if necessary.
+    viewer.checkRecordingStatus();
+
     rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
 				      rfb.framebufferHeight, false);
 
@@ -287,8 +290,11 @@ class VncCanvas extends Canvas
     //
 
     while (true) {
+
+      // Read message type from the server.
       int msgType = rfb.readServerMessageType();
 
+      // Process the message depending on its type.
       switch (msgType) {
       case RfbProto.FramebufferUpdate:
 	rfb.readFramebufferUpdate();
@@ -341,6 +347,13 @@ class VncCanvas extends Canvas
 	  }
 	}
 
+	boolean fullUpdateNeeded = false;
+
+	// Start/stop session recording if necessary. Request full
+	// update if a new session file was opened.
+	if (viewer.checkRecordingStatus())
+	  fullUpdateNeeded = true;
+
 	// Defer framebuffer update request if necessary. But wake up
 	// immediately on keyboard or mouse event.
 	if (viewer.deferUpdateRequests > 0) {
@@ -354,15 +367,15 @@ class VncCanvas extends Canvas
 
 	// Before requesting framebuffer update, check if the pixel
 	// format should be changed. If it should, request full update
-	// instead of incremental one.
+	// instead of an incremental one.
 	if (viewer.options.eightBitColors != (bytesPixel == 1)) {
 	  setPixelFormat();
-	  rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
-					    rfb.framebufferHeight, false);
-	} else {
-	  rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
-					    rfb.framebufferHeight, true);
+	  fullUpdateNeeded = true;
 	}
+
+	rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
+					  rfb.framebufferHeight,
+					  !fullUpdateNeeded);
 
 	break;
 

@@ -1532,6 +1532,7 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 			}
 			RegCloseKey(m_hRegKey);
 		}
+		
 		// Close the worker thread as well
 		_this->KillThread();
 		DestroyWindow(hwnd);

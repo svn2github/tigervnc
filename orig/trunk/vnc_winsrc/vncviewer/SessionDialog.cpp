@@ -177,9 +177,13 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 				_tcscpy(_this->m_cc->m_host, tmphost);
 				_tcscpy(_this->m_pOpt->m_display, display);
 			}
+			
+			EndDialog(_this->m_pOpt->m_hParent, FALSE);
 			EndDialog(hwnd, TRUE);
+
 			return TRUE;						
-		case IDCANCEL: 			
+		case IDCANCEL:
+			EndDialog(_this->m_pOpt->m_hParent, FALSE);
 			EndDialog(hwnd, FALSE);			
 			return TRUE;				
 		case IDC_LOC_NET_RADIO:

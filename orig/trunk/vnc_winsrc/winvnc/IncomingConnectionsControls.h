@@ -18,6 +18,7 @@ public:
 	void Apply();
 	void Init();
 	void InitPortSettings(BOOL CheckedButton);
+	BOOL SetPasswordSettings(DWORD idEditBox);
 	virtual ~IncomingConnectionsControls();	
 
 private:

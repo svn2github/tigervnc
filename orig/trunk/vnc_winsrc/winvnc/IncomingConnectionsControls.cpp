@@ -66,33 +66,19 @@ void IncomingConnectionsControls::Validate(BOOL InitApply)
 }
 
 void IncomingConnectionsControls::Apply()
-{
+{	
 	// Save the password if one was entered
-	char passwd[MAXPWLEN+1];
-	int len = GetDlgItemText(m_hwnd, IDC_PASSWORD, (LPSTR)&passwd, MAXPWLEN+1);
-	if (strcmp(passwd, "~~~~~~~~") != 0) {
-		if (len == 0) {
-			vncPasswd::FromClear crypt;
-			m_server->SetPassword(crypt);
-		} else {
-			vncPasswd::FromText crypt(passwd);
-			m_server->SetPassword(crypt);
-		}
-	}
-	
+	BOOL len = SetPasswordSettings(IDC_PASSWORD);
+
 	// Save the password (view only) if one was entered
-	// FIXME: Code duplication, see above
-	len = GetDlgItemText(m_hwnd, IDC_PASSWORD_VIEWONLY, (LPSTR)&passwd, MAXPWLEN+1);
-	if (strcmp(passwd, "~~~~~~~~") != 0) {
-		if (len == 0) {
-			vncPasswd::FromClear crypt;
-			m_server->SetPasswordViewOnly(crypt);
-		} else {
-			vncPasswd::FromText crypt(passwd);
-			m_server->SetPasswordViewOnly(crypt);
-		}
+	BOOL lenViewOnly = SetPasswordSettings(IDC_PASSWORD_VIEWONLY);
+
+	//
+	if (!len || !lenViewOnly) {
+		MessageBox(NULL, 
+			"WARNING: The server uses the password \nis length which no more than eight symbols. \nSymbols more to the right of the eighth symbol are cut.",
+			szAppName, MB_ICONEXCLAMATION | MB_OK);
 	}
-	
 	// Save the new settings to the server
 	m_server->SetAutoPortSelect(IsChecked(IDC_PORTNO_AUTO));
 	
@@ -114,8 +100,9 @@ void IncomingConnectionsControls::Apply()
 				if (ok1 && ok2)
 					m_server->SetPorts(port_rfb, port_http);
 			} else {
-				MessageBox(NULL, "Warning: RFB and HTTP ports should be different",
-						   szAppName, MB_ICONEXCLAMATION | MB_OK);
+				MessageBox(NULL, 
+						"WARNING: RFB and HTTP ports should be different",
+						 szAppName, MB_ICONEXCLAMATION | MB_OK);
 			}
 		}
 	}
@@ -176,6 +163,28 @@ void IncomingConnectionsControls::InitPortSettings(BOOL CheckedButton)
 	}
 }
 
+BOOL IncomingConnectionsControls::SetPasswordSettings(DWORD idEditBox)
+{
+	char passwd[MAXPWLEN+2];
+	int len = GetDlgItemText(m_hwnd, idEditBox, (LPSTR)&passwd, MAXPWLEN+2);
+	passwd[MAXPWLEN+1] = '\0';
+	if (strcmp(passwd, "~~~~~~~~") != 0) {
+		if (len == 0) {
+			vncPasswd::FromClear crypt;
+			if (idEditBox == IDC_PASSWORD)
+				m_server->SetPassword(crypt);
+			if (idEditBox == IDC_PASSWORD_VIEWONLY)
+				m_server->SetPasswordViewOnly(crypt);
+		} else {
+			vncPasswd::FromText crypt(passwd);
+			if (idEditBox == IDC_PASSWORD)
+				m_server->SetPassword(crypt);
+			if (idEditBox == IDC_PASSWORD_VIEWONLY)
+				m_server->SetPasswordViewOnly(crypt);
+		}		
+	}
+	return (len <= MAXPWLEN);
+}
 IncomingConnectionsControls::~IncomingConnectionsControls()
 {
 	

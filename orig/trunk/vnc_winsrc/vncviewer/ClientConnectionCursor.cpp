@@ -150,6 +150,18 @@ void ClientConnection::ReadCursorShape(rfbFramebufferUpdateRectHeader *pfburh) {
 	prevCursorSet = true;
 }
 
+void ClientConnection::ReadCursorPos(rfbFramebufferUpdateRectHeader *pfburh)
+{
+	int x = (int)pfburh->r.x;
+	if (x >= m_si.framebufferWidth)
+		x = m_si.framebufferWidth - 1;
+	int y = (int)pfburh->r.y;
+	if (y >= m_si.framebufferHeight)
+		y = m_si.framebufferHeight - 1;
+
+	SoftCursorMove(x, y);
+}
+
 //
 // SoftCursorLockArea(). This method should be used to prevent
 // collisions between simultaneous framebuffer update operations and

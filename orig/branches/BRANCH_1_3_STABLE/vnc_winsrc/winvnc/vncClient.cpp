@@ -1365,7 +1365,7 @@ vncClientThread::run(void *arg)
 				msg.fdr.position = Swap32IfLE(msg.fdr.position);
 				if (msg.fdr.fNameSize > 255) {
 					m_socket->ReadExact(NULL, msg.fdr.fNameSize);
-					char reason[] = "Size of file for download large than 255 bytes";
+					char reason[] = "Path length exceeds 255 bytes";
 					int reasonLen = strlen(reason);
 					m_client->SendFileDownloadFailed(reasonLen, reason);
 					break;
@@ -1393,7 +1393,7 @@ vncClientThread::run(void *arg)
 				if ((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) || 
 					(hFile == INVALID_HANDLE_VALUE) || (path_file[0] == '\0')) {
 					FindClose(hFile);
-					char reason[] = "Can't download that file. May be that directory.";
+					char reason[] = "Cannot open file, perhaps it is absent or is a directory";
 					int reasonLen = strlen(reason);
 					m_client->SendFileDownloadFailed(reasonLen, reason);
 					break;
@@ -1427,7 +1427,7 @@ vncClientThread::run(void *arg)
 				msg.fupr.position = Swap32IfLE(msg.fupr.position);
 				if (msg.fupr.fNameSize > MAX_PATH) {
 					m_socket->ReadExact(NULL, msg.fupr.fNameSize);
-					char reason[] = "Size of filename large than MAX_PATH value";
+					char reason[] = "Path length exceeds MAX_PATH value";
 					int reasonLen = strlen(reason);
 					m_client->SendFileUploadCancel(reasonLen, reason);
 					break;
@@ -1501,7 +1501,7 @@ vncClientThread::run(void *arg)
 				char *pBuff = new char [msg.fud.compressedSize];
 				m_socket->ReadExact(pBuff, msg.fud.compressedSize);
 				if (msg.fud.compressedLevel != 0) {
-					char reason[] = "VNCServer don't allow compress data";
+					char reason[] = "Server does not support data compression on upload";
 					int reasonLen = strlen(reason);
 					m_client->SendFileUploadCancel(reasonLen, reason);
 					m_client->CloseUndoneFileTransfer();
@@ -1509,7 +1509,7 @@ vncClientThread::run(void *arg)
 				}
 				BOOL bResult = WriteFile(m_client->m_hFileToWrite, pBuff, msg.fud.compressedSize, &dwNumberOfBytesWritten, NULL);
 				if ((dwNumberOfBytesWritten != msg.fud.compressedSize) || !bResult) {
-					char reason[] = "WriteFile was failed";
+					char reason[] = "Error writing file data";
 					int reasonLen = strlen(reason);
 					m_client->SendFileUploadCancel(reasonLen, reason);
 					m_client->CloseUndoneFileTransfer();

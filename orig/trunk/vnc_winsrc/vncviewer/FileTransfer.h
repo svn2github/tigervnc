@@ -22,35 +22,29 @@ typedef struct tagFTITEMINFO
 class FileTransfer  
 {
 public:
+	void CreateFileTransferDialog();
 	void ShowListViewItems(HWND hwnd, FTITEMINFO *FTItemInfo, int NumItem);
 	void ConvertPath(char *path);
 	void ProcessListViewDBLCLK(HWND hwnd, char *Path, char *PathTmp, int iItem);
 	void SendFileListRequestMessage(char *filename);
-	HANDLE m_hFiletoWrite;
-	char m_ClientFilename[rfbMAX_PATH];
-	char m_ServerFilename[rfbMAX_PATH];
-	HTREEITEM m_hTreeItem;
-	BOOL m_bServerBrowseRequest;
-	HINSTANCE m_FTInstance;
 	void ShowServerItems();
+	void ShowClientItems(char path[rfbMAX_PATH]);
 	void BlockingFileTransferDialog(bool status);
 	void ProcessDlgMessage(HWND hwnd);
-	HWND m_hwndFTStatus;
 	void ShowTreeViewItems(HWND hwnd, LPNMTREEVIEW m_lParam);
+	void CreateFTBrowseDialog(BOOL status);
 	char* strinvert(char str[rfbMAX_PATH]);
 	char* GetTVPath(HWND hwnd, HTREEITEM hTItem, char path[rfbMAX_PATH]);
-	HWND m_hwndFTBrowse;
-	void CreateFTBrowseDialog(BOOL status);
 	char m_ClientPath[rfbMAX_PATH];
 	char m_ServerPath[rfbMAX_PATH];
 	char m_ServerPathTmp[rfbMAX_PATH];
 	char m_ClientPathTmp[rfbMAX_PATH];
+	char m_ClientFilename[rfbMAX_PATH];
+	char m_ServerFilename[rfbMAX_PATH];
 	FTITEMINFO * m_FTClientItemInfo;
 	FTITEMINFO * m_FTServerItemInfo;
 	void OnGetDispClientInfo(NMLVDISPINFO *plvdi); 
 	void OnGetDispServerInfo(NMLVDISPINFO *plvdi); 
-	void ShowClientItems(char path[rfbMAX_PATH]);
-	void CreateFileTransferDialog();
 	FileTransfer(ClientConnection * pCC, VNCviewerApp * pApp);
 	static LRESULT CALLBACK FileTransferDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static BOOL CALLBACK AboutFileTransferDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -67,7 +61,16 @@ public:
 	HWND m_hwndFTClientPath;
 	HWND m_hwndFTServerPath;
 	HWND m_hwndFTProgress;
+	HWND m_hwndFTStatus;
+	HWND m_hwndFTBrowse;
+	
 	BOOL m_TransferEnable;
+	BOOL m_bServerBrowseRequest;
+
+	HANDLE m_hFiletoWrite;
+	HTREEITEM m_hTreeItem;
+	HINSTANCE m_FTInstance;
+
 	virtual ~FileTransfer();
 
 };

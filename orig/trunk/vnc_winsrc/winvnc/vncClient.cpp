@@ -1184,12 +1184,20 @@ vncClientThread::run(void *arg)
 				m_socket->ReadExact(path_file, size);
 				path_file[size] = '\0';
 				ConvertPath(path_file);
+				pfdd->type = rfbFileDownloadData;
 				hFile = FindFirstFile(path_file, &FindFileData);
+				if ((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) || 
+					(hFile == INVALID_HANDLE_VALUE) || (path_file[0] == '\0')) {
+					pfdd->amount = Swap16IfLE(0);
+					pfdd->size = Swap16IfLE(0);
+					m_socket->SendExact(pBuff, sz_rfbFileDownloadDataMsg);
+					FindClose(hFile);
+					break;
+				}
 				sz_rfbFileSize = FindFileData.nFileSizeLow;
 				FindClose(hFile);
 				int amount = (int) ((sz_rfbFileSize + sz_rfbBlockSize - 1) / sz_rfbBlockSize);
 				if (sz_rfbFileSize <= sz_rfbBlockSize) sz_rfbBlockSize = sz_rfbFileSize;
-				pfdd->type = rfbFileDownloadData;
 				pfdd->amount = Swap16IfLE(amount);
 				pfdd->size = Swap16IfLE(sz_rfbBlockSize);
 				HANDLE hFiletoRead = CreateFile(path_file, GENERIC_READ, FILE_SHARE_READ, NULL,	OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);				// handle to file with attributes to copy  
@@ -1912,19 +1920,10 @@ vncClientThread::ConvertPath(char *path)
 	int len = strlen(path);
 	if(len >= 255) return path;
 	if((path[0] == '/') && (len == 1)) {path[0] = '\0'; return path;}
-	if(path[0] == '/') {
-		for(int i = 0; i < (len - 1); i++) {
-			if(path[i+1] == '/') path[i+1] = '\\';
-			path[i] = path[i+1];
-		}
-		path[len-1] = '\0';
-	} else {
-		for(int i = (len - 1); i >= 0; i--) {
-			if(path[i] == '\\') path[i] = '/';
-			path[i+1] = path[i];
-		}
-		path[len + 1] = '\0';
-		path[0] = '/';
+	for(int i = 0; i < (len - 1); i++) {
+		if(path[i+1] == '/') path[i+1] = '\\';
+		path[i] = path[i+1];
 	}
+	path[len-1] = '\0';
 	return path;
 }

@@ -1408,7 +1408,7 @@ void ClientConnection::ReadServerInit()
 	vnclog.Print(0, _T("Desktop name \"%s\"\n"),m_desktopName);
 	vnclog.Print(1, _T("Geometry %d x %d depth %d\n"),
 		m_si.framebufferWidth, m_si.framebufferHeight, m_si.format.depth );
-	SetWindowText(m_hwnd1, m_desktopName);	
+	SetWindowText(m_hwnd1, m_desktopName);
 
 	SizeWindow(true);
 }

@@ -127,6 +127,18 @@ FileTransfer::CreateFileTransferDialog()
 	m_bEndFTDlgOnYes = FALSE;
 	m_bOverwriteAll = FALSE;
 
+	char buf[MAX_HOST_NAME_LEN + 18];
+	char localHostName[MAX_HOST_NAME_LEN];
+	if (gethostname(localHostName, MAX_HOST_NAME_LEN) != SOCKET_ERROR) {
+		sprintf(buf, "Local Computer: %s", localHostName);
+	} else {
+		sprintf(buf, "Local Computer: - Unknown -");
+	}
+	SetDlgItemText(m_hwndFileTransfer, IDC_LOCAL_COMP_LABEL, buf);
+
+	sprintf(buf, "Remote Computer: %s", m_clientconn->m_desktopName);
+	SetDlgItemText(m_hwndFileTransfer, IDC_TVNC_SERV_LABEL, buf);
+
 	ShowWindow(m_hwndFileTransfer, SW_SHOW);
 	UpdateWindow(m_hwndFileTransfer);
 
@@ -383,6 +395,17 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 					return TRUE;
 			}
 		break;
+		}
+		{
+		LPTOOLTIPTEXT TTStr = (LPTOOLTIPTEXT)lParam;
+		if (TTStr->hdr.code == TTN_NEEDTEXT) {
+			switch (TTStr->hdr.idFrom) {
+			case IDC_FTCOPY:
+				TTStr->lpszText = "Copy button text";
+				break;
+			}
+			return 0;
+		}
 		}
 		break;
 	case WM_CHECKUPLOADQUEUE:

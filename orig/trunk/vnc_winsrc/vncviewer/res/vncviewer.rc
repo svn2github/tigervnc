@@ -177,7 +177,7 @@ EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Connection details"
 FONT 8, "MS Sans Serif"
 BEGIN
-    COMBOBOX        IDC_HOSTNAME_EDIT,54,6,130,66,CBS_DROPDOWN | 
+    COMBOBOX        IDC_HOSTNAME_EDIT,54,7,130,66,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "...",IDC_LOAD,185,7,16,12
     CONTROL         "     Low-&bandwidth connection",IDC_MODEM_RADIO,"Button",
@@ -344,6 +344,7 @@ BEGIN
         VERTGUIDE, 179
         VERTGUIDE, 184
         VERTGUIDE, 193
+        VERTGUIDE, 201
         TOPMARGIN, 7
         BOTTOMMARGIN, 78
     END

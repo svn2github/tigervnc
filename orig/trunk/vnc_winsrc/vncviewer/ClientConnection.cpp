@@ -2083,7 +2083,7 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 				CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
 					ID_TOOLBAR, MF_BYCOMMAND|MF_CHECKED);
 			}			
-			_this->SizeWindow(false);			
+			_this->PositionChildWindow();			
 			return 0;
 		case ID_CONN_SAVE_AS:			
 			_this->SaveConnection();
@@ -2196,6 +2196,10 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 			return 0;
 		}
 		break;
+	case WM_SETFOCUS:
+	case WM_ACTIVATEAPP:
+		SetFocus(_this->m_hwnd);
+		break;
 	case WM_ACTIVATE:
 		{
 			BOOL enable = (GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
@@ -2211,7 +2215,7 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 				hotkeys.SetWindow(hwnd);
 				if (enable)
 					_this->m_QuitFSW->ShowButton(TRUE);
-				SetFocus(_this->m_hwnd1);
+				SetFocus(_this->m_hwnd);
 			}
 		}
 		break;

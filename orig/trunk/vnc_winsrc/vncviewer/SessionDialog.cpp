@@ -67,16 +67,15 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 	// WM_INITDIALOG, which we therafter store with the window and retrieve
 	// as follows:
 	SessionDialog *_this = (SessionDialog *) GetWindowLong(hwnd, GWL_USERDATA);
-    int i;
+	int i,b;
 	TCHAR tmphost[256];
-	int b;
+	TCHAR buffer[256];
 	HWND hCustomRadio = GetDlgItem(hwnd, IDC_CUSTOM_RADIO);
 	HWND hModemRadio = GetDlgItem(hwnd, IDC_MODEM_RADIO);
 	HWND hLocNetRadio = GetDlgItem(hwnd, IDC_LOC_NET_RADIO);
 	HWND hListMode = GetDlgItem(hwnd, IDC_LIST_MODE);
-	TCHAR buffer[256];
-    HWND hcombo=GetDlgItem(  hwnd, IDC_HOSTNAME_EDIT);
-	
+	HWND hcombo = GetDlgItem(hwnd, IDC_HOSTNAME_EDIT);
+
 	switch (uMsg) {
 		case WM_INITDIALOG:{
 		

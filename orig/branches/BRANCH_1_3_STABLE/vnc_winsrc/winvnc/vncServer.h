@@ -63,8 +63,6 @@ const int MAX_CLIENTS = 128;
 
 // The vncServer class itself
 
-typedef BOOL (WINAPI*  pBlockInput) (BOOL);
-
 class vncServer
 {
 public:
@@ -256,8 +254,8 @@ public:
 	virtual void EnableRemoveWallpaper(const BOOL enable) {m_remove_wallpaper = enable;};
 	virtual BOOL RemoveWallpaperEnabled() {return m_remove_wallpaper;};
 
-	virtual void SetBlankScreen(const BOOL enable) {m_pref_blank_screen = enable;};
-	virtual BOOL GetBlankScreen() {return m_pref_blank_screen;};
+	virtual void SetBlankScreen(const BOOL enable) {m_blank_screen = enable;};
+	virtual BOOL GetBlankScreen() {return m_blank_screen;};
 
 	// Whether or not to allow file transfers
 	virtual void EnableFileTransfers(const BOOL enable) {m_enable_file_transfers = enable;}
@@ -280,7 +278,6 @@ public:
 	virtual BOOL FullRgnRequested();
 	virtual BOOL IncrRgnRequested();
 	virtual	void UpdateLocalFormat();
-	virtual	void BlankScreen();
 	                                                                                     
 	// Blocking remote input
 	virtual void LocalInputPriority(BOOL enable);
@@ -291,12 +288,10 @@ public:
 	virtual int MouseCounter() { return m_remote_mouse; }
 	virtual UINT DisableTime() { return m_disable_time; }
 	virtual void SetDisableTime(UINT disabletime) { m_disable_time = disabletime; }
-	virtual void SetPollingFlag(BOOL enable) { m_polling_flag = enable; }
-	virtual BOOL GetPollingFlag() { return m_polling_flag; }
 	virtual UINT GetPollingCycle() { return m_polling_cycle; }
 	virtual void SetPollingCycle(UINT msec);
-	virtual BOOL PollingCycleChanged() { return m_polling_timer_changed; }
-	virtual void PollingCycleChanged(BOOL change) { m_polling_timer_changed = change; }
+	virtual BOOL PollingCycleChanged() { return m_polling_cycle_changed; }
+	virtual void PollingCycleChanged(BOOL change) { m_polling_cycle_changed = change; }
 
   BOOL checkPointer(vncClient *pClient);
 
@@ -342,7 +337,6 @@ protected:
 
 	BOOL				m_remove_wallpaper;
 	BOOL				m_blank_screen;
-	BOOL				m_pref_blank_screen;
 	BOOL				m_enable_file_transfers;
 
 	// Polling preferences
@@ -369,11 +363,8 @@ protected:
 	INT					m_remote_keyboard;           
 	POINT				m_cursor_pos;
 
-	BOOL				m_polling_flag;
 	UINT				m_polling_cycle;
-	BOOL				m_polling_timer_changed;
-
-	pBlockInput			m_pbi;
+	BOOL				m_polling_cycle_changed;
 
 	// Name of this desktop
 	char				*m_name;

@@ -168,7 +168,6 @@ vncDesktopThread::run_undetached(void *arg)
 	{
 		if (!PeekMessage(&msg, m_desktop->Window(), NULL, NULL, PM_REMOVE))
 		{
-			m_server->BlankScreen();
 			// Whenever the message queue becomes empty, we check to see whether
 			// there are updates to be passed to clients
 			if (!m_desktop->CheckUpdates())
@@ -291,7 +290,9 @@ vncDesktopThread::run_undetached(void *arg)
 	m_desktop->Shutdown();
 	// Return display settings to previous values.
 	m_desktop->ResetDisplayToNormal();
-	
+	// Turn on the screen.
+	m_desktop->BlankScreen(FALSE);
+
 	// Clear the shift modifier keys, now that there are no remote clients
 	vncKeymap::ClearShiftKeys();
 
@@ -308,7 +309,9 @@ vncDesktop::vncDesktop()
 	m_thread = NULL;
 
 	m_hwnd = NULL;
-	m_timerid = 0;
+	m_polling_flag = FALSE;
+	m_timer_polling = 0;
+	m_timer_blank_screen = 0;
 	m_hnextviewer = NULL;
 	m_hcursor = NULL;
 
@@ -334,6 +337,8 @@ vncDesktop::vncDesktop()
 	m_copyrect_set = FALSE;
 
 	m_videodriver = NULL;
+
+	m_timer_blank_screen = 0;
 }
 
 vncDesktop::~vncDesktop()
@@ -412,7 +417,11 @@ vncDesktop::Startup()
 	// Start a timer to handle Polling Mode.  The timer will cause
 	// an "idle" event, which is necessary if Polling Mode is being used,
 	// to cause TriggerUpdate to be called.
+	SetPollingFlag(FALSE);
 	SetPollingTimer();
+
+	// If necessary, start a separate timer to preserve the diplay turned off.
+	UpdateBlankScreenTimer();
 
 	// Get hold of the WindowPos atom!
 	if ((VNC_WINDOWPOS_ATOM = GlobalAddAtom(VNC_WINDOWPOS_ATOMNAME)) == 0) {
@@ -428,9 +437,15 @@ vncDesktop::Startup()
 BOOL
 vncDesktop::Shutdown()
 {
-	// If we created a timer then kill it
-	if (m_timerid != NULL)
-		KillTimer(m_hwnd, m_timerid);
+	// If we created timers then kill them
+	if (m_timer_polling) {
+		KillTimer(Window(), TimerID::POLL);
+		m_timer_polling = 0;
+	}
+	if (m_timer_blank_screen) {
+		KillTimer(Window(), TimerID::BLANK_SCREEN);
+		m_timer_blank_screen = 0;
+	}
 
 	// If we created a window then kill it and the hooks
 	if (m_hwnd != NULL)
@@ -1412,7 +1427,7 @@ vncDesktop::Init(vncServer *server)
 void
 vncDesktop::RequestUpdate()
 {
-	PostMessage(m_hwnd, WM_TIMER, 0, 0);
+	PostMessage(m_hwnd, WM_TIMER, TimerID::POLL, 0);
 }
 
 int
@@ -1804,9 +1819,20 @@ DesktopWndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		// Update any palette-based clients, too
 		_this->m_server->UpdatePalette();
 		return 0;
+
 	case WM_TIMER:
-		if (wParam == _this->m_timerid)
-			_this->m_server->SetPollingFlag(true);
+		switch (wParam) {
+		case vncDesktop::TimerID::POLL:
+			_this->SetPollingFlag(true);
+			break;
+		case vncDesktop::TimerID::BLANK_SCREEN:
+			if (_this->m_server->GetBlankScreen())
+				_this->BlankScreen(TRUE);
+			break;
+		case vncDesktop::TimerID::RESTORE_SCREEN:
+			_this->BlankScreen(FALSE);
+			break;
+		}
 		return 0;
 
 		// CLIPBOARD MESSAGES
@@ -1905,6 +1931,9 @@ vncDesktop::CheckUpdates()
 		SetPollingTimer();
 		m_server->PollingCycleChanged(false);
 	}
+
+	// Update the state of blank screen timer
+	UpdateBlankScreenTimer();
 
 	// Has the display resolution or desktop changed?
 	if (m_displaychanged || !vncService::InputDesktopSelected())
@@ -2009,8 +2038,8 @@ vncDesktop::CheckUpdates()
 			if (m_videodriver->driver)
 				m_videodriver->HandleDriverChanges(m_changed_rgn);
 		} else {
-			if (m_server->GetPollingFlag()) {
-				m_server->SetPollingFlag(false);
+			if (GetPollingFlag()) {
+				SetPollingFlag(false);
 				PerformPolling();
 			}
 		}
@@ -2086,10 +2115,7 @@ vncDesktop::SetPollingTimer()
 			msec = minPollingCycle;
 		}
 	}
-	m_timerid = SetTimer(m_hwnd, 1, msec, NULL);
-	if (!m_timerid) {
-		vnclog.Print(LL_INTERR, VNCLOG("SetTimer() failed.\n"));
-	}
+	m_timer_polling = SetTimer(Window(), TimerID::POLL, msec, NULL);
 }
 
 inline void
@@ -2546,5 +2572,30 @@ vncDesktop::ShutdownVideoDriver()
 	delete m_videodriver;
 	m_videodriver = NULL;
 	vnclog.Print(LL_INTINFO, VNCLOG("video driver interface deactivated\n"));
+}
+
+void
+vncDesktop::UpdateBlankScreenTimer()
+{
+	BOOL active = m_server->GetBlankScreen();
+	if (active && !m_timer_blank_screen) {
+		m_timer_blank_screen = SetTimer(Window(), TimerID::BLANK_SCREEN, 50, NULL);
+	} else if (!active && m_timer_blank_screen) {
+		KillTimer(Window(), TimerID::BLANK_SCREEN);
+		m_timer_blank_screen = 0;
+		PostMessage(m_hwnd, WM_TIMER, TimerID::RESTORE_SCREEN, 0);
+	}
+}
+
+void
+vncDesktop::BlankScreen(BOOL set)
+{
+	if (set) {
+		SystemParametersInfo(SPI_SETPOWEROFFACTIVE, 1, NULL, 0);
+		SendMessage(GetDesktopWindow(), WM_SYSCOMMAND, SC_MONITORPOWER, (LPARAM)2);
+	} else {
+		SystemParametersInfo(SPI_SETPOWEROFFACTIVE, 0, NULL, 0);
+		SendMessage(GetDesktopWindow(), WM_SYSCOMMAND, SC_MONITORPOWER, (LPARAM)-1);
+	}
 }
 

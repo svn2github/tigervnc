@@ -150,6 +150,7 @@ protected:
 	void SetClipboardActive(BOOL active) {m_clipboard_active = active;};
 
 	BOOL CheckUpdates();
+	void SetPollingTimer();
 	void PerformPolling();
 	void PollWindow(HWND hwnd);
 	void PollArea(RECT &rect);
@@ -229,6 +230,8 @@ protected:
 	RECT			m_copyrect_rect;
 	POINT			m_copyrect_src;
 
+	static const int m_pollingOrder[32];
+	static int		m_pollingStep;
 };
 
 #endif // _WINVNC_VNCDESKTOP

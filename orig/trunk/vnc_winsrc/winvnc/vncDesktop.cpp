@@ -55,6 +55,16 @@ const char szDesktopSink[] = "WinVNC desktop sink";
 const char *VNC_WINDOWPOS_ATOMNAME = "VNCHooks.CopyRect.WindowPos";
 ATOM VNC_WINDOWPOS_ATOM = NULL;
 
+// Static members to use with new polling algorithm
+const int vncDesktop::m_pollingOrder[32] = {
+	 0, 16,  8, 24,  4, 20, 12, 28,
+	10, 26, 18,  2, 22,  6, 30, 14,
+	 1, 17,  9, 25,  7, 23, 15, 31,
+	19,  3, 27, 11, 29, 13,  5, 21
+};
+int vncDesktop::m_pollingStep = 0;
+
+
 // The desktop handler thread
 // This handles the messages posted by RFBLib to the vncDesktop window
 
@@ -395,15 +405,7 @@ vncDesktop::Startup()
 	// Start a timer to handle Polling Mode.  The timer will cause
 	// an "idle" event, which is necessary if Polling Mode is being used,
 	// to cause TriggerUpdate to be called.
-	if (m_videodriver == NULL) {
-		m_timerid = SetTimer(m_hwnd, 1, m_server->GetPollingCycle(), NULL);
-	} else {
-		m_timerid = SetTimer(m_hwnd, 1, 50, NULL);
-	}
-	if (!m_timerid) {
-		vnclog.Print(LL_INTERR, VNCLOG("SetTimer() failed.\n"));
-		return FALSE;
-	}
+	SetPollingTimer();
 
 	// Get hold of the WindowPos atom!
 	if ((VNC_WINDOWPOS_ATOM = GlobalAddAtom(VNC_WINDOWPOS_ATOMNAME)) == 0) {
@@ -1895,7 +1897,7 @@ vncDesktop::CheckUpdates()
 {
 	// Re-install polling timer if necessary
 	if (m_server->PollingCycleChanged()) {
-		m_timerid = SetTimer(m_hwnd, m_timerid, m_server->GetPollingCycle(), NULL);
+		SetPollingTimer();
 		m_server->PollingCycleChanged(false);
 	}
 
@@ -1997,6 +1999,8 @@ vncDesktop::CheckUpdates()
 
 		// Use either a mirror video driver, or perform polling
 		if (m_videodriver != NULL) {
+			// FIXME: If there were no incremental update requests
+			//        for some time, we will loose updates.
 			if (m_videodriver->driver)
 				m_videodriver->HandleDriverChanges(m_changed_rgn);
 		} else {
@@ -2060,6 +2064,27 @@ vncDesktop::CheckUpdates()
 		m_server->TriggerUpdate();
 
 	return TRUE;
+}
+
+void
+vncDesktop::SetPollingTimer()
+{
+	const UINT driverCycle = 30;
+	const UINT minPollingCycle = 5;
+
+	UINT msec;
+	if (m_videodriver != NULL) {
+		msec = driverCycle;
+	} else {
+		msec = m_server->GetPollingCycle() / 16;
+		if (msec < minPollingCycle) {
+			msec = minPollingCycle;
+		}
+	}
+	m_timerid = SetTimer(m_hwnd, 1, msec, NULL);
+	if (!m_timerid) {
+		vnclog.Print(LL_INTERR, VNCLOG("SetTimer() failed.\n"));
+	}
 }
 
 inline void
@@ -2353,7 +2378,42 @@ vncDesktop::PollWindow(HWND hwnd)
 void
 vncDesktop::PollArea(RECT &rect)
 {
-	m_changed_rgn.AddRect(rect);
+	int scanLine = m_pollingOrder[m_pollingStep++ % 32];
+	const UINT bytesPerPixel = m_scrinfo.format.bitsPerPixel / 8;
+
+	// Align 32x32 tiles to the left top corner of the shared area
+	RECT shared = m_server->GetSharedRect();
+	int leftAligned = ((rect.left - shared.left) & 0xFFFFFFE0) + shared.left;
+	int topAligned = (rect.top - shared.top) & 0xFFFFFFE0;
+	if (topAligned + scanLine < rect.top - shared.top)
+		topAligned += 32;
+	topAligned += shared.top;
+
+	RECT rowRect = rect;	// we'll need left and right borders
+	RECT tileRect;
+
+	for (int y = topAligned; y < rect.bottom; y += 32) {
+		int tile_h = (rect.bottom - y >= 32) ? 32 : rect.bottom - y;
+		if (scanLine >= tile_h)
+			continue;
+		int scan_y = y + scanLine;
+		rowRect.top = scan_y;
+		rowRect.bottom = scan_y + 1;
+		CaptureScreen(rowRect, m_mainbuff);
+		int offset = scan_y * m_bytesPerRow + leftAligned * bytesPerPixel;
+		unsigned char *o_ptr = m_backbuff + offset;
+		unsigned char *n_ptr = m_mainbuff + offset;
+		for (int x = leftAligned; x < rect.right; x += 32) {
+			int tile_w = (rect.right - x >= 32) ? 32 : rect.right - x;
+			int nBytes = tile_w * bytesPerPixel;
+			if (memcmp(o_ptr, n_ptr, nBytes) != 0) {
+				SetRect(&tileRect, x, y, x + tile_w, y + tile_h);
+				m_changed_rgn.AddRect(tileRect);
+			}
+			o_ptr += nBytes;
+			n_ptr += nBytes;
+		}
+	}
 }
 
 void

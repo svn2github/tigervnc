@@ -41,7 +41,6 @@
 #include "vncPasswd.h"
 #include "commctrl.h"
 
-const char WINVNC_REGISTRY_KEY [] = "Software\\ORL\\WinVNC3";
 const char NO_PASSWORD_WARN [] = "WARNING : Running WinVNC without setting a password is "
 								"a dangerous security risk!\n"
 								"Until you set a password, WinVNC will not accept incoming connections.";

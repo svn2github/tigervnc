@@ -40,6 +40,12 @@
 #define WM_SRV_CLIENT_AUTHENTICATED	WM_USER+3
 #define WM_SRV_CLIENT_DISCONNECT	WM_USER+4
 
+#ifdef HORIZONLIVE
+#define WINVNC_REGISTRY_KEY "Software\\HorizonLive\\LiveShareHost"
+#else
+#define WINVNC_REGISTRY_KEY "Software\\ORL\\WinVNC3"
+#endif
+
 // Export the application details
 extern HINSTANCE	hAppInstance;
 extern const char	*szAppName;

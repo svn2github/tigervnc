@@ -867,7 +867,7 @@ void vncDesktop::ChangeResNow()
 	// *** Open the registry key for resolution settings
 	HKEY checkdetails;
 	RegOpenKeyEx(HKEY_LOCAL_MACHINE, 
-				"Software\\ORL\\WinVNC3",
+				WINVNC_REGISTRY_KEY,
 				0,
 				KEY_READ,
 				&checkdetails);
@@ -948,7 +948,7 @@ vncDesktop::DisableIfRegSystemParameter(char *regName,
 
 	HKEY checkdetails;
 	RegOpenKeyEx(HKEY_LOCAL_MACHINE, 
-				"Software\\ORL\\WinVNC3",
+				WINVNC_REGISTRY_KEY,
 				0,
 				KEY_READ,
 				&checkdetails);
@@ -1010,7 +1010,7 @@ vncDesktop::OptimizeDisplayForConnection()
 
 #ifndef HORIZONLIVE
 	RegOpenKeyEx(HKEY_LOCAL_MACHINE, 
-				"Software\\ORL\\WinVNC3",
+				WINVNC_REGISTRY_KEY,
 				0,
 				KEY_READ,
 				&checkdetails);
@@ -1096,7 +1096,7 @@ vncDesktop::ResetDisplayToNormal()
 #ifndef HORIZONLIVE
 	
 	RegOpenKeyEx(HKEY_LOCAL_MACHINE, 
-				"Software\\ORL\\WinVNC3",
+				WINVNC_REGISTRY_KEY,
 				0,
 				KEY_READ,
 				&checkdetails);

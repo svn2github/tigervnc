@@ -56,7 +56,11 @@ const UINT MENU_SERVICEHELPER_MSG = RegisterWindowMessage("WinVNC.ServiceHelper.
 const UINT MENU_RELOAD_MSG = RegisterWindowMessage("WinVNC.Reload.Message");
 const UINT MENU_ADD_CLIENT_MSG = RegisterWindowMessage("WinVNC.AddClient.Message");
 const UINT MENU_KILL_ALL_CLIENTS_MSG = RegisterWindowMessage("WinVNC.KillAllClients.Message");
+#ifdef HORIZONLIVE
+const char *MENU_CLASS_NAME = "HorizonLive Tray Icon";
+#else
 const char *MENU_CLASS_NAME = "WinVNC Tray Icon";
+#endif
 
 bool g_restore_ActiveDesktop = false;
 

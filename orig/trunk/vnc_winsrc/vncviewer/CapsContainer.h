@@ -35,8 +35,7 @@
 class CapsContainer
 {
 public:
-	CapsContainer(int maxCaps);
-	CapsContainer() { CapsContainer(64); }
+	CapsContainer(int maxCaps = 64);
 	~CapsContainer();
 
 	void Add(const rfbCapabilityInfo *capinfo, const char *desc = NULL);

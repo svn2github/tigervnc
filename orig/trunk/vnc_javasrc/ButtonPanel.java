@@ -64,9 +64,21 @@ class ButtonPanel extends Panel implements ActionListener {
   public void enableButtons() {
     disconnectButton.setEnabled(true);
     clipboardButton.setEnabled(true);
-    ctrlAltDelButton.setEnabled(true);
     refreshButton.setEnabled(true);
   }
+
+  //
+  // Enable/disable controls that should not be available in view-only
+  // mode.
+  //
+
+  void enableRemoteAccessControls(boolean enable) {
+    ctrlAltDelButton.setEnabled(enable);
+  }
+
+  //
+  // Event processing.
+  //
 
   public void actionPerformed(ActionEvent evt) {
     if (evt.getSource() == disconnectButton) {

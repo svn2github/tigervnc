@@ -43,6 +43,11 @@ extern "C" {
 // changed, doing so will break compatibility with existing clients.
 #define TIGHT_MIN_TO_COMPRESS 12
 
+// The parameters below may be adjusted.
+#define MIN_SPLIT_RECT_SIZE     4096
+#define MIN_SOLID_SUBRECT_SIZE  2048
+#define MAX_SPLIT_TILE_SIZE       16
+
 // C-style structures to store palette entries and compression paramentes.
 // Such code probably should be converted into C++ classes.
 
@@ -118,6 +123,9 @@ protected:
 
 	void FindBestSolidArea(BYTE *source, int x, int y, int w, int h,
 						   CARD32 colorValue, int *w_ptr, int *h_ptr);
+	void ExtendSolidArea  (BYTE *source, int x, int y, int w, int h,
+						   CARD32 colorValue,
+						   int *x_ptr, int *y_ptr, int *w_ptr, int *h_ptr);
 	bool CheckSolidTile   (BYTE *source, int x, int y, int w, int h,
 						   CARD32 *colorPtr, bool needSameColor);
 	bool CheckSolidTile8  (BYTE *source, int x, int y, int w, int h,
@@ -127,21 +135,22 @@ protected:
 	bool CheckSolidTile32 (BYTE *source, int x, int y, int w, int h,
 						   CARD32 *colorPtr, bool needSameColor);
 
-	UINT EncodeRectDumb(BYTE *source, VSocket *outConn, BYTE *dest,
-						const RECT &rect);
-	UINT EncodeSubrect(BYTE *source, VSocket *outConn, BYTE *dest,
-					   int x, int y, int w, int h);
-	void SendTightHeader(int x, int y, int w, int h);
-	int SendSolidRect(BYTE *dest);
-	int SendMonoRect(BYTE *dest, int w, int h);
-	int SendIndexedRect(BYTE *dest, int w, int h);
-	int SendFullColorRect(BYTE *dest, int w, int h);
-	int SendGradientRect(BYTE *dest, int w, int h);
-	int CompressData(BYTE *dest, int streamId, int dataLen,
-					 int zlibLevel, int zlibStrategy);
+	UINT EncodeRectSimple (BYTE *source, VSocket *outConn, BYTE *dest,
+						   const RECT &rect);
+	UINT EncodeSubrect    (BYTE *source, VSocket *outConn, BYTE *dest,
+						   int x, int y, int w, int h);
+	void SendTightHeader  (int x, int y, int w, int h);
+
+	int SendSolidRect     (BYTE *dest);
+	int SendMonoRect      (BYTE *dest, int w, int h);
+	int SendIndexedRect   (BYTE *dest, int w, int h);
+	int SendFullColorRect (BYTE *dest, int w, int h);
+	int SendGradientRect  (BYTE *dest, int w, int h);
+	int CompressData      (BYTE *dest, int streamId, int dataLen,
+						   int zlibLevel, int zlibStrategy);
 	int SendCompressedData(int compressedLen);
 
-	void FillPalette8(int count);
+	void FillPalette8 (int count);
 	void FillPalette16(int count);
 	void FillPalette32(int count);
 
@@ -153,7 +162,7 @@ protected:
 	void EncodeIndexedRect16(BYTE *buf, int count);
 	void EncodeIndexedRect32(BYTE *buf, int count);
 
-	void EncodeMonoRect8(BYTE *buf, int w, int h);
+	void EncodeMonoRect8 (BYTE *buf, int w, int h);
 	void EncodeMonoRect16(BYTE *buf, int w, int h);
 	void EncodeMonoRect32(BYTE *buf, int w, int h);
 
@@ -161,10 +170,10 @@ protected:
 	void FilterGradient16(CARD16 *buf, int w, int h);
 	void FilterGradient32(CARD32 *buf, int w, int h);
 
-	int DetectStillImage (int w, int h);
-	unsigned long DetectStillImage24 (int w, int h);
-	unsigned long DetectStillImage16 (int w, int h);
-	unsigned long DetectStillImage32 (int w, int h);
+	int DetectSmoothImage (int w, int h);
+	unsigned long DetectSmoothImage24 (int w, int h);
+	unsigned long DetectSmoothImage16 (int w, int h);
+	unsigned long DetectSmoothImage32 (int w, int h);
 
 	int SendJpegRect(BYTE *dst, int w, int h, int quality);
 	void PrepareRowForJpeg(BYTE *dst, int y, int w);

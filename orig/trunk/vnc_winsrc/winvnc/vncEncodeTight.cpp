@@ -29,10 +29,10 @@
 // This file implements the vncEncoder-derived vncEncodeTight class.
 // This class overrides some vncEncoder functions to produce a bitmap
 // to Tight encoder. Tight is much more efficient than RAW format on
-// most screen data and usually 2..4 times as efficient as hextile.
+// most screen data and usually 2..10 times as efficient as hextile.
 // It's also more efficient than Zlib encoding in most cases.
 // But note that tight compression may use more CPU time on the server.
-// However, over slower (64kbps or less) connections, the reduction
+// However, over slower (128kbps or less) connections, the reduction
 // in data transmitted usually outweighs the extra latency added
 // while the server CPU performs the compression algorithms.
 
@@ -46,7 +46,7 @@
 // where i in [0..8]. RequiredBuffSize() method depends on this.
 
 const TIGHT_CONF vncEncodeTight::m_conf[10] = {
-	{	512,   32,	 6, 65536, 0, 0, 0, 0,	 0,   0,   4, 20, 10000, 25000 },
+	{	512,   32,	 6, 65536, 0, 0, 0, 0,	 0,   0,   4, 20, 10000, 23000 },
 	{  2048,  128,	 6, 65536, 1, 1, 1, 0,	 0,   0,   8, 30,  8000, 18000 },
 	{  6144,  256,	 8, 65536, 3, 3, 2, 0,	 0,   0,  24, 40,  6500, 15000 },
 	{ 10240, 1024,	12, 65536, 5, 5, 3, 0,	 0,   0,  32, 50,  5000, 12000 },
@@ -108,10 +108,6 @@ vncEncodeTight::LogStats()
  *
  */
 
-#define MIN_SPLIT_RECT_SIZE 	4096
-#define MIN_SOLID_SUBRECT_SIZE	4096
-#define MIN_SOLID_SUBRECT_SIDE	  32
-
 UINT
 vncEncodeTight::RequiredBuffSize(UINT width, UINT height)
 {
@@ -151,8 +147,8 @@ UINT
 vncEncodeTight::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest,
 						   const RECT &rect)
 {
-	const int x = rect.left, y = rect.top;
-	const int w = rect.right - x, h = rect.bottom - y;
+	int x = rect.left, y = rect.top;
+	int w = rect.right - x, h = rect.bottom - y;
 
 	const int maxRectSize = m_conf[m_compresslevel].maxRectSize;
 	const int rawDataSize = maxRectSize * (m_remoteformat.bitsPerPixel / 8);
@@ -168,11 +164,6 @@ vncEncodeTight::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest,
 		m_bufflen = rawDataSize;
 	}
 
-	if (!m_use_lastrect || w * h < MIN_SPLIT_RECT_SIZE)
-		return EncodeRectDumb(source, outConn, dest, rect);
-
-	// Set usePixelFormat24 variable for SendSolidRect().
-
 	if ( m_remoteformat.depth == 24 && m_remoteformat.redMax == 0xFF &&
 		 m_remoteformat.greenMax == 0xFF && m_remoteformat.blueMax == 0xFF ) {
 		m_usePixelFormat24 = true;
@@ -180,16 +171,49 @@ vncEncodeTight::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest,
 		m_usePixelFormat24 = false;
 	}
 
+	if (!m_use_lastrect || w * h < MIN_SPLIT_RECT_SIZE)
+		return EncodeRectSimple(source, outConn, dest, rect);
+
+	// Calculate maximum number of rows in one non-solid rectangle.
+
+	int nMaxRows;
+	{
+		int maxRectSize = m_conf[m_compresslevel].maxRectSize;
+		int maxRectWidth = m_conf[m_compresslevel].maxRectWidth;
+		int nMaxWidth = (w > maxRectWidth) ? maxRectWidth : w;
+		nMaxRows = maxRectSize / nMaxWidth;
+	}
+
 	// Try to find large solid-color areas and send them separately.
 
 	CARD32 colorValue;
-	int w_best, h_best;
+	int x_best, y_best, w_best, h_best;
 	int dx, dy, dw, dh;
 
-	for (dy = y; dy < y + h; dy += 16) {
-		dh = (dy + 16 <= y + h) ? 16 : y + h - dy;
-		for (dx = x; dx < x + w; dx += 16) {
-			dw = (dx + 16 <= x + w) ? 16 : x + w - dx;
+	for (dy = y; dy < y + h; dy += MAX_SPLIT_TILE_SIZE) {
+
+		// If a rectangle becomes too large, send its upper part now.
+
+		if (dy - y >= nMaxRows) {
+			RECT upperRect;
+			SetRect(&upperRect, x, y, x + w, y + nMaxRows);
+
+			int size = EncodeRectSimple(source, outConn, dest, upperRect);
+			outConn->SendExact((char *)dest, size);
+			transmittedSize += size;
+
+			y += nMaxRows;
+			h -= nMaxRows;
+		}
+
+		dh = (dy + MAX_SPLIT_TILE_SIZE <= y + h) ?
+			MAX_SPLIT_TILE_SIZE : (y + h - dy);
+
+		for (dx = x; dx < x + w; dx += MAX_SPLIT_TILE_SIZE) {
+
+			dw = (dx + MAX_SPLIT_TILE_SIZE <= x + w) ?
+				MAX_SPLIT_TILE_SIZE : (x + w - dx);
+
 			if (CheckSolidTile(source, dx, dy, dw, dh, &colorValue, FALSE)) {
 
 				// Get dimensions of solid-color area.
@@ -197,39 +221,55 @@ vncEncodeTight::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest,
 				FindBestSolidArea(source, dx, dy, w - (dx - x), h - (dy - y),
 								  colorValue, &w_best, &h_best);
 
-				// Make sure a solid rectangle is large enough.
+				// Make sure a solid rectangle is large enough
+				// (or the whole rectangle is of the same color).
 
-				if ( w_best < MIN_SOLID_SUBRECT_SIDE ||
-					 h_best < MIN_SOLID_SUBRECT_SIDE ||
+				if ( w_best * h_best != w * h &&
 					 w_best * h_best < MIN_SOLID_SUBRECT_SIZE )
 					continue;
 
-				// Send solid rectangle.
+				// Try to extend solid rectangle to maximum size.
 
-				RECT onePixel;
-				SetRect(&onePixel, dx, dy, dx + 1, dy + 1);
-				Translate(source, m_buffer, onePixel);
+				x_best = dx; y_best = dy;
+				ExtendSolidArea(source, x, y, w, h, colorValue,
+								&x_best, &y_best, &w_best, &h_best);
 
-				SendTightHeader(dx, dy, w_best, h_best);
-				int size = SendSolidRect(dest);
-
-				outConn->SendExact((char *)m_hdrBuffer, m_hdrBufferBytes);
-				transmittedSize += m_hdrBufferBytes;
-				outConn->SendExact((char *)dest, size);
-				transmittedSize += size;
-				encodedSize += size + m_hdrBufferBytes - sz_rfbFramebufferUpdateRectHeader;
-
-				// Send surrounding rectangles.
+				// Compute dimensions of surrounding rectangles.
 
 				RECT rects[4];
-				SetRect(&rects[0], x, y, x + w, dy);
-				SetRect(&rects[1], x, dy, dx, dy + h_best);
-				SetRect(&rects[2], dx + w_best, dy, x + w, dy + h_best);
-				SetRect(&rects[3], x, dy + h_best, x + w, y + h);
+				SetRect(&rects[0],
+						x, y, x + w, y_best);
+				SetRect(&rects[1],
+						x, y_best, x_best, y_best + h_best);
+				SetRect(&rects[2],
+						x_best + w_best, y_best, x + w, y_best + h_best);
+				SetRect(&rects[3],
+						x, y_best + h_best, x + w, y + h);
+
+				// Send solid-color area and surrounding rectangles.
+
 				for (int i = 0; i < 4; i++) {
-					if (rects[i].left == rects[i].right || rects[i].top == rects[i].bottom)
+					if (i == 2) {
+						RECT onePixel;
+						SetRect(&onePixel,
+								x_best, y_best, x_best + 1, y_best + 1);
+						Translate(source, m_buffer, onePixel);
+
+						SendTightHeader(x_best, y_best, w_best, h_best);
+						int size = SendSolidRect(dest);
+
+						outConn->SendExact((char *)m_hdrBuffer,
+										   m_hdrBufferBytes);
+						outConn->SendExact((char *)dest, size);
+						transmittedSize += (m_hdrBufferBytes + size);
+						encodedSize += (size + m_hdrBufferBytes -
+										sz_rfbFramebufferUpdateRectHeader);
+					}
+					if ( rects[i].left == rects[i].right ||
+						 rects[i].top  == rects[i].bottom ) {
 						continue;
-					size = EncodeRect(source, outConn, dest, rects[i]);
+					}
+					int size = EncodeRect(source, outConn, dest, rects[i]);
 					outConn->SendExact((char *)dest, size);
 					transmittedSize += size;
 				}
@@ -238,12 +278,14 @@ vncEncodeTight::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest,
 
 				return 0;
 			}
+
 		}
+
 	}
 
-	/* No suitable solid-color rectangles found. */
+	// No suitable solid-color rectangles found.
 
-	return EncodeRectDumb(source, outConn, dest, rect);
+	return EncodeRectSimple(source, outConn, dest, rect);
 }
 
 void
@@ -256,17 +298,24 @@ vncEncodeTight::FindBestSolidArea(BYTE *source, int x, int y, int w, int h,
 
 	w_prev = w;
 
-	for (dy = y; dy < y + h; dy += 16) {
-		dh = (dy + 16 <= y + h) ? 16 : y + h - dy;
-		dw = (w_prev > 16) ? 16 : w_prev;
+	for (dy = y; dy < y + h; dy += MAX_SPLIT_TILE_SIZE) {
+
+		dh = (dy + MAX_SPLIT_TILE_SIZE <= y + h) ?
+			MAX_SPLIT_TILE_SIZE : (y + h - dy);
+		dw = (w_prev > MAX_SPLIT_TILE_SIZE) ?
+			MAX_SPLIT_TILE_SIZE : w_prev;
+
 		if (!CheckSolidTile(source, x, dy, dw, dh, &colorValue, TRUE))
 			break;
+
 		for (dx = x + dw; dx < x + w_prev;) {
-			dw = (dx + 16 <= x + w_prev) ? 16 : x + w_prev - dx;
+			dw = (dx + MAX_SPLIT_TILE_SIZE <= x + w_prev) ?
+				MAX_SPLIT_TILE_SIZE : (x + w_prev - dx);
 			if (!CheckSolidTile(source, dx, dy, dw, dh, &colorValue, TRUE))
 				break;
-		dx += dw;
+			dx += dw;
 		}
+
 		w_prev = dx - x;
 		if (w_prev * (dy + dh - y) > w_best * h_best) {
 			w_best = w_prev;
@@ -276,6 +325,44 @@ vncEncodeTight::FindBestSolidArea(BYTE *source, int x, int y, int w, int h,
 
 	*w_ptr = w_best;
 	*h_ptr = h_best;
+}
+
+void vncEncodeTight::ExtendSolidArea(BYTE *source, int x, int y, int w, int h,
+									 CARD32 colorValue,
+									 int *x_ptr, int *y_ptr,
+									 int *w_ptr, int *h_ptr)
+{
+	int cx, cy;
+
+	// Try to extend the area upwards.
+	for ( cy = *y_ptr - 1;
+		  cy >= y && CheckSolidTile(source, *x_ptr, cy, *w_ptr, 1,
+									&colorValue, TRUE);
+		  cy-- );
+	*h_ptr += *y_ptr - (cy + 1);
+	*y_ptr = cy + 1;
+
+	// ... downwards.
+	for ( cy = *y_ptr + *h_ptr;
+		  cy < y + h && CheckSolidTile(source, *x_ptr, cy, *w_ptr, 1,
+									   &colorValue, TRUE);
+		  cy++ );
+	*h_ptr += cy - (*y_ptr + *h_ptr);
+
+	// ... to the left.
+	for ( cx = *x_ptr - 1;
+		  cx >= x && CheckSolidTile(source, cx, *y_ptr, 1, *h_ptr,
+									&colorValue, TRUE);
+		  cx-- );
+	*w_ptr += *x_ptr - (cx + 1);
+	*x_ptr = cx + 1;
+
+	// ... to the right.
+	for ( cx = *x_ptr + *w_ptr;
+		  cx < x + w && CheckSolidTile(source, cx, *y_ptr, 1, *h_ptr,
+									   &colorValue, TRUE);
+		  cx++ );
+	*w_ptr += cx - (*x_ptr + *w_ptr);
 }
 
 bool
@@ -326,8 +413,8 @@ DEFINE_CHECK_SOLID_FUNCTION(16)
 DEFINE_CHECK_SOLID_FUNCTION(32)
 
 UINT
-vncEncodeTight::EncodeRectDumb(BYTE *source, VSocket *outConn, BYTE *dest,
-							   const RECT &rect)
+vncEncodeTight::EncodeRectSimple(BYTE *source, VSocket *outConn, BYTE *dest,
+								 const RECT &rect)
 {
 	const int x = rect.left, y = rect.top;
 	const int w = rect.right - x, h = rect.bottom - y;
@@ -397,7 +484,7 @@ vncEncodeTight::EncodeSubrect(BYTE *source, VSocket *outConn, BYTE *dest,
 	switch (m_paletteNumColors) {
 	case 0:
 		// Truecolor image
-		if (DetectStillImage(w, h)) {
+		if (DetectSmoothImage(w, h)) {
 			if (m_qualitylevel != -1) {
 				encDataSize = SendJpegRect(dest, w, h,
 										   m_conf[m_qualitylevel].jpegQuality);
@@ -418,9 +505,9 @@ vncEncodeTight::EncodeSubrect(BYTE *source, VSocket *outConn, BYTE *dest,
 		break;
 	default:
 		// Up to 256 different colors
-		if ( m_paletteNumColors > 64 &&
+		if ( m_paletteNumColors > 96 &&
 			 m_qualitylevel != -1 && m_qualitylevel <= 3 &&
-			 DetectStillImage(w, h) ) {
+			 DetectSmoothImage(w, h) ) {
 			encDataSize = SendJpegRect(dest, w, h,
 									   m_conf[m_qualitylevel].jpegQuality);
 		} else {
@@ -771,7 +858,7 @@ vncEncodeTight::FillPalette##bpp(int count) 								  \
 																			  \
 	c0 = data[0];															  \
 	for (i = 1; i < count && data[i] == c0; i++);							  \
-	if (i == count) {														  \
+	if (i >= count) {														  \
 		m_paletteNumColors = 1; /* Solid rectangle */						  \
 		return; 															  \
 	}																		  \
@@ -793,7 +880,7 @@ vncEncodeTight::FillPalette##bpp(int count) 								  \
 		} else																  \
 			break;															  \
 	}																		  \
-	if (i == count) {														  \
+	if (i >= count) {														  \
 		if (n0 > n1) {														  \
 			m_monoBackground = (CARD32)c0;									  \
 			m_monoForeground = (CARD32)c1;									  \
@@ -831,8 +918,8 @@ DEFINE_FILL_PALETTE_FUNCTION(32)
 // Functions to operate with palette structures.
 //
 
-#define HASH_FUNC16(rgb) ((int)((rgb >> 8) + rgb & 0xFF))
-#define HASH_FUNC32(rgb) ((int)((rgb >> 16) + (rgb >> 8) & 0xFF))
+#define HASH_FUNC16(rgb) ((int)(((rgb >> 8) + rgb) & 0xFF))
+#define HASH_FUNC32(rgb) ((int)(((rgb >> 16) + (rgb >> 8)) & 0xFF))
 
 void
 vncEncodeTight::PaletteReset(void)
@@ -1163,8 +1250,8 @@ DEFINE_GRADIENT_FILTER_FUNCTION(32)
 
 
 //
-// Code to guess if given rectangle is suitable for still image
-// compression.
+// Code to guess if given rectangle is suitable for smooth image
+// compression (by applying "gradient" filter or JPEG coder).
 //
 
 #define JPEG_MIN_RECT_SIZE	4096
@@ -1174,7 +1261,7 @@ DEFINE_GRADIENT_FILTER_FUNCTION(32)
 #define DETECT_MIN_HEIGHT	  8
 
 int
-vncEncodeTight::DetectStillImage (int w, int h)
+vncEncodeTight::DetectSmoothImage (int w, int h)
 {
 	if ( m_localformat.bitsPerPixel == 8 || m_remoteformat.bitsPerPixel == 8 ||
 		 w < DETECT_MIN_WIDTH || h < DETECT_MIN_HEIGHT ) {
@@ -1194,16 +1281,16 @@ vncEncodeTight::DetectStillImage (int w, int h)
 	unsigned long avgError;
 	if (m_remoteformat.bitsPerPixel == 32) {
 		if (m_usePixelFormat24) {
-			avgError = DetectStillImage24(w, h);
+			avgError = DetectSmoothImage24(w, h);
 			if (m_qualitylevel != -1) {
 				return (avgError < m_conf[m_qualitylevel].jpegThreshold24);
 			}
 			return (avgError < m_conf[m_compresslevel].gradientThreshold24);
 		} else {
-			avgError = DetectStillImage32(w, h);
+			avgError = DetectSmoothImage32(w, h);
 		}
 	} else {
-		avgError = DetectStillImage16(w, h);
+		avgError = DetectSmoothImage16(w, h);
 	}
 	if (m_qualitylevel != -1) {
 		return (avgError < m_conf[m_qualitylevel].jpegThreshold);
@@ -1212,7 +1299,7 @@ vncEncodeTight::DetectStillImage (int w, int h)
 }
 
 unsigned long
-vncEncodeTight::DetectStillImage24 (int w, int h)
+vncEncodeTight::DetectSmoothImage24 (int w, int h)
 {
 	int diffStat[256];
 	int pixelCount = 0;
@@ -1270,7 +1357,7 @@ vncEncodeTight::DetectStillImage24 (int w, int h)
 #define DEFINE_DETECT_FUNCTION(bpp) 										  \
 																			  \
 unsigned long																  \
-vncEncodeTight::DetectStillImage##bpp (int w, int h)						  \
+vncEncodeTight::DetectSmoothImage##bpp (int w, int h)						  \
 {																			  \
 	bool endianMismatch;													  \
 	CARD##bpp pix;															  \
@@ -1417,7 +1504,7 @@ vncEncodeTight::PrepareRowForJpeg(BYTE *dst, int y, int w)
 			PrepareRowForJpeg32(dst, src, w);
 		}
 	} else {
-		/* 16 bpp assumed. */
+		// 16 bpp assumed.
 		CARD16 *src = (CARD16 *)&m_buffer[y * w * sizeof(CARD16)];
 		PrepareRowForJpeg16(dst, src, w);
 	}

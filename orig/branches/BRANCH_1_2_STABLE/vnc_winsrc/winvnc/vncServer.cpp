@@ -631,19 +631,7 @@ vncServer::RemoveClient(vncClientId clientid)
 		if (LockSettings() == 1)
 		{
 		    // Yes - lock the machine on disconnect!
-
-		    // *** This code actually just starts the screen-saver.
-		    // So if you want to lock the machine on disconnect, choose
-		    // a locked screen-saver.
-		    MessageBeep(MB_OK);
-		    DefWindowProc(0, WM_SYSCOMMAND, 0xfff0 & SC_SCREENSAVE, 0);
-
-		    // *** LockWorkstation only exists in NT 5 and above, so this code doesn't actually
-		    // work..  For this reason, no mention is made of the locking settings at present in the docs!
-/*
-		    if (!LockWorkStation())
-			vnclog.Print(LL_CONNERR, VNCLOG("client disconnect - failed to lock workstation!\n"));
-*/
+			vncService::LockWorkstation();
 		} else if (LockSettings() > 1)
 		{
 		    char username[UNLEN+1];

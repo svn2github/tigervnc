@@ -411,6 +411,47 @@ vncService::SimulateCtrlAltDel()
 	return TRUE;
 }
 
+// Static routine to lock a 2K or above workstation
+
+BOOL
+vncService::LockWorkstation()
+{
+	if (!IsWinNT()) {
+		vnclog.Print(LL_INTERR, VNCLOG("unable to lock workstation - not NT\n"));
+		return FALSE;
+	}
+
+	vnclog.Print(LL_ALL, VNCLOG("locking workstation\n"));
+
+	// Load the user32 library
+	HMODULE user32 = LoadLibrary("user32.dll");
+	if (!user32) {
+		vnclog.Print(LL_INTERR, VNCLOG("unable to load User32 DLL (%u)\n"), GetLastError());
+		return FALSE;
+	}
+
+	// Get the LockWorkstation function
+	typedef BOOL (*LWProc) ();
+	LWProc lockworkstation = (LWProc)GetProcAddress(user32, "LockWorkStation");
+	if (!lockworkstation) {
+		vnclog.Print(LL_INTERR, VNCLOG("unable to locate LockWorkStation - requires Windows 2000 or above (%u)\n"), GetLastError());
+		FreeLibrary(user32);
+		return FALSE;
+	}
+	
+	// Attempt to lock the workstation
+	BOOL result = (lockworkstation)();
+
+	if (!result) {
+		vnclog.Print(LL_INTERR, VNCLOG("call to LockWorkstation failed\n"));
+		FreeLibrary(user32);
+		return FALSE;
+	}
+
+	FreeLibrary(user32);
+	return result;
+}
+
 // Static routine to show the Properties dialog for a currently-running
 // copy of WinVNC, (usually a servicified version.)
 

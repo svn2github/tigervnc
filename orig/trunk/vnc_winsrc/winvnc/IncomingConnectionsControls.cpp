@@ -68,17 +68,21 @@ void IncomingConnectionsControls::Validate(BOOL InitApply)
 void IncomingConnectionsControls::Apply()
 {	
 	// Save the password if one was entered
-	BOOL len = SetPasswordSettings(IDC_PASSWORD);
+	BOOL isShort = SetPasswordSettings(IDC_PASSWORD);
 
 	// Save the password (view only) if one was entered
-	BOOL lenViewOnly = SetPasswordSettings(IDC_PASSWORD_VIEWONLY);
+	BOOL isShortViewOnly = SetPasswordSettings(IDC_PASSWORD_VIEWONLY);
 
-	//
-	if (!len || !lenViewOnly) {
+	// Warn about passwords longer than eight characters
+	if (!isShort || !isShortViewOnly) {
 		MessageBox(NULL, 
-			"WARNING: The server uses the password \nis length which no more than eight symbols. \nSymbols more to the right of the eighth symbol are cut.",
-			szAppName, MB_ICONEXCLAMATION | MB_OK);
+				   "WARNING: You have entered passwords of length exceeding\n"
+				   "eight characters, but the standard VNC authentication scheme\n"
+				   "does not support such long passwords.\n\n"
+				   "Your passwords will be truncated to just eight characters.",
+				   szAppName, MB_ICONEXCLAMATION | MB_OK);
 	}
+
 	// Save the new settings to the server
 	m_server->SetAutoPortSelect(IsChecked(IDC_PORTNO_AUTO));
 	
@@ -101,8 +105,9 @@ void IncomingConnectionsControls::Apply()
 					m_server->SetPorts(port_rfb, port_http);
 			} else {
 				MessageBox(NULL, 
-						"WARNING: RFB and HTTP ports should be different",
-						 szAppName, MB_ICONEXCLAMATION | MB_OK);
+						   "WARNING: You have entered equal RFB and HTTP port numbers.\n\n"
+						   "Your changes to port numbers will not be saved.",
+						   szAppName, MB_ICONEXCLAMATION | MB_OK);
 			}
 		}
 	}
@@ -185,7 +190,7 @@ BOOL IncomingConnectionsControls::SetPasswordSettings(DWORD idEditBox)
 	}
 	return (len <= MAXPWLEN);
 }
+
 IncomingConnectionsControls::~IncomingConnectionsControls()
 {
-	
 }

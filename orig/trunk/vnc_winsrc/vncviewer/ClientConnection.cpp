@@ -1090,7 +1090,8 @@ bool ClientConnection::AuthenticateVNC(char *errBuf, int errBufSize, bool *again
 		AuthDialog ad;
 		ad.DoDialog();	
 #ifndef UNDER_CE
-		strncpy(passwd, ad.m_passwd, MAXPWLEN + 1);
+		strncpy(passwd, ad.m_passwd, MAXPWLEN);
+		passwd[MAXPWLEN]= '\0';
 #else
 		// FIXME: Move wide-character translations to a separate class
 		int origlen = _tcslen(ad.m_passwd);

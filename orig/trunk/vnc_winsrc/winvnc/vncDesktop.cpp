@@ -1492,7 +1492,9 @@ vncDesktop::Init(vncServer *server)
 void
 vncDesktop::RequestUpdate()
 {
+#ifndef HORIZONLIVE
 	PostMessage(m_hwnd, WM_TIMER, TimerID::POLL, 0);
+#endif
 }
 
 int

@@ -164,6 +164,10 @@ SOURCE=.\FileTransferItemInfo.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\IncomingConnectionsControls.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\InputHandlingControls.cpp
 # End Source File
 # Begin Source File
@@ -425,6 +429,10 @@ SOURCE=.\d3des.h
 # Begin Source File
 
 SOURCE=.\FileTransferItemInfo.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\IncomingConnectionsControls.h
 # End Source File
 # Begin Source File
 
@@ -707,6 +715,10 @@ SOURCE=.\res\VncViewer.class
 SOURCE=.\res\VncViewer.jar
 # End Source File
 # End Group
+# Begin Source File
+
+SOURCE=.\res\bitmap3.bmp
+# End Source File
 # Begin Source File
 
 SOURCE=.\BUILDING.txt

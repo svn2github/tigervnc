@@ -106,6 +106,9 @@
 #define IDC_STATIC_PCYCLE               1081
 #define IDC_STATIC_MS                   1082
 #define IDC_ENABLE_FILE_TRANSFERS       1083
+#define IDC_AND_LABEL                   1084
+#define IDC_MAIN_LABEL                  1085
+#define IDC_HTTP_LABEL                  1086
 #define ID_PROPERTIES                   40001
 #define ID_CLOSE                        40002
 #define ID_KILLCLIENTS                  40003
@@ -120,7 +123,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        147
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1084
+#define _APS_NEXT_CONTROL_VALUE         1087
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

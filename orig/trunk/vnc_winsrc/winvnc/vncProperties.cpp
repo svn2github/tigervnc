@@ -337,44 +337,10 @@ vncProperties::DialogProc(HWND hwnd,
 			}
 
 			// Initialise the properties controls
-			HWND hConnectSock = GetDlgItem(hwnd, IDC_CONNECT_SOCK);
-			BOOL bConnectSock = _this->m_server->SockConnected();
-			SendMessage(hConnectSock, BM_SETCHECK, bConnectSock, 0);
-
-			// Set the content of password fields to a predefined string.
-			SetDlgItemText(hwnd, IDC_PASSWORD, "~~~~~~~~");
-			EnableWindow(GetDlgItem(hwnd, IDC_PASSWORD), bConnectSock);
-			SetDlgItemText(hwnd, IDC_PASSWORD_VIEWONLY, "~~~~~~~~");
-			EnableWindow(GetDlgItem(hwnd, IDC_PASSWORD_VIEWONLY), bConnectSock);
-
-			// Set the initial keyboard focus
-			if (bConnectSock) {
-				SetFocus(GetDlgItem(hwnd, IDC_PASSWORD));
-				SendDlgItemMessage(hwnd, IDC_PASSWORD, EM_SETSEL, 0, (LPARAM)-1);
-			} else {
-				SetFocus(hConnectSock);
-			}
-
-			// Set display/ports settings
-			_this->InitPortSettings(hwnd);
-			
+      _this->m_incConnCtrl = new IncomingConnectionsControls(hwnd, _this->m_server);
+						
 			_this->m_inputhandcontr = new InputHandlingControls(hwnd, _this->m_server);
 			
-
-			// Remove the wallpaper
-			HWND hRemoveWallpaper = GetDlgItem(hwnd, IDC_REMOVE_WALLPAPER);
-			SendMessage(hRemoveWallpaper,
-				BM_SETCHECK,
-				_this->m_server->RemoveWallpaperEnabled(),
-				0);
-
-			// Enable file transfers
-			HWND hEnableFileTransfers = GetDlgItem(hwnd, IDC_ENABLE_FILE_TRANSFERS);
-			SendMessage(hEnableFileTransfers,
-				BM_SETCHECK,
-				_this->m_server->FileTransfersEnabled(),
-				0);
-
 			// Lock settings
 			HWND hLockSetting;
 			switch (_this->m_server->LockSettings()) {
@@ -410,79 +376,9 @@ vncProperties::DialogProc(HWND hwnd,
 		case IDC_APPLY:
 			{
 #ifndef HORIZONLIVE				
-				// Save the password if one was entered
-				char passwd[MAXPWLEN+1];
-				int len = GetDlgItemText(hwnd, IDC_PASSWORD, (LPSTR)&passwd, MAXPWLEN+1);
-				if (strcmp(passwd, "~~~~~~~~") != 0) {
-					if (len == 0) {
-						vncPasswd::FromClear crypt;
-						_this->m_server->SetPassword(crypt);
-					} else {
-						vncPasswd::FromText crypt(passwd);
-						_this->m_server->SetPassword(crypt);
-					}
-				}
-
-				// Save the password (view only) if one was entered
-				// FIXME: Code duplication, see above
-				len = GetDlgItemText(hwnd, IDC_PASSWORD_VIEWONLY, (LPSTR)&passwd, MAXPWLEN+1);
-				if (strcmp(passwd, "~~~~~~~~") != 0) {
-					if (len == 0) {
-						vncPasswd::FromClear crypt;
-						_this->m_server->SetPasswordViewOnly(crypt);
-					} else {
-						vncPasswd::FromText crypt(passwd);
-						_this->m_server->SetPasswordViewOnly(crypt);
-					}
-				}
-
-				// Save the new settings to the server
-				int state = SendDlgItemMessage(hwnd, IDC_PORTNO_AUTO, BM_GETCHECK, 0, 0);
-				_this->m_server->SetAutoPortSelect(state == BST_CHECKED);
-
-				// Save port numbers if we're not auto selecting
-				if (!_this->m_server->AutoPortSelect()) {
-					if ( SendDlgItemMessage(hwnd, IDC_SPECDISPLAY,
-											BM_GETCHECK, 0, 0) == BST_CHECKED ) {
-						// Display number was specified
-						BOOL ok;
-						UINT display = GetDlgItemInt(hwnd, IDC_DISPLAYNO, &ok, TRUE);
-						if (ok)
-							_this->m_server->SetPorts(DISPLAY_TO_PORT(display),
-													  DISPLAY_TO_HPORT(display));
-					} else {
-						// Assuming that port numbers were specified
-						BOOL ok1, ok2;
-						UINT port_rfb = GetDlgItemInt(hwnd, IDC_PORTRFB, &ok1, TRUE);
-						UINT port_http = GetDlgItemInt(hwnd, IDC_PORTHTTP, &ok2, TRUE);
-						if (ok1 && ok2)
-							_this->m_server->SetPorts(port_rfb, port_http);
-					}
-				}
-
-				HWND hConnectSock = GetDlgItem(hwnd, IDC_CONNECT_SOCK);
-				_this->m_server->SockConnect(
-					SendMessage(hConnectSock, BM_GETCHECK, 0, 0) == BST_CHECKED
-					);
-
-				// Update display/port controls on pressing the "Apply" button
-				if (LOWORD(wParam) == IDC_APPLY)
-					_this->InitPortSettings(hwnd);
-
+								
 				_this->m_inputhandcontr->ApplyInputsControlsContents(hwnd);
 				
-				// Wallpaper handling
-				HWND hRemoveWallpaper = GetDlgItem(hwnd, IDC_REMOVE_WALLPAPER);
-				_this->m_server->EnableRemoveWallpaper(
-					SendMessage(hRemoveWallpaper, BM_GETCHECK, 0, 0) == BST_CHECKED
-					);
-
-				// Enabling/disabling file transfers
-				HWND hEnableFileTransfers = GetDlgItem(hwnd, IDC_ENABLE_FILE_TRANSFERS);
-				_this->m_server->EnableFileTransfers(
-					SendMessage(hEnableFileTransfers, BM_GETCHECK, 0, 0) == BST_CHECKED
-					);
-
 				// Lock settings handling
 				if (SendMessage(GetDlgItem(hwnd, IDC_LOCKSETTING_LOCK), BM_GETCHECK, 0, 0)
 					== BST_CHECKED) {
@@ -496,6 +392,8 @@ vncProperties::DialogProc(HWND hwnd,
 
 				if(_this->m_shareddtarea->ApplySharedControls() == true)
 					return true;
+
+        _this->m_incConnCtrl->Apply();
 
 				// Handle the polling stuff
 				_this->m_pollcontrols->Apply();
@@ -554,6 +452,7 @@ vncProperties::DialogProc(HWND hwnd,
 #endif					
 					
 					// Yes, so close the dialog
+          delete _this->m_incConnCtrl;
 					delete _this->m_shareddtarea;
 					delete _this->m_pollcontrols;
 					delete _this->m_inputhandcontr;
@@ -569,6 +468,7 @@ vncProperties::DialogProc(HWND hwnd,
 			}
 
 		case IDCANCEL:
+      delete _this->m_incConnCtrl;
 			delete _this->m_shareddtarea;
 			delete _this->m_pollcontrols;
 			delete _this->m_inputhandcontr;
@@ -600,88 +500,17 @@ vncProperties::DialogProc(HWND hwnd,
 
 #ifndef HORIZONLIVE		
 		case IDC_CONNECT_SOCK:
-			// The user has clicked on the socket connect tickbox
-			{
-				BOOL bConnectSock =
-					(SendDlgItemMessage(hwnd, IDC_CONNECT_SOCK,
-										BM_GETCHECK, 0, 0) == BST_CHECKED);
-
-				EnableWindow(GetDlgItem(hwnd, IDC_PASSWORD), bConnectSock);
-				EnableWindow(GetDlgItem(hwnd, IDC_PASSWORD_VIEWONLY), bConnectSock);
-
-				HWND hPortNoAuto = GetDlgItem(hwnd, IDC_PORTNO_AUTO);
-				EnableWindow(hPortNoAuto, bConnectSock);
-				HWND hSpecDisplay = GetDlgItem(hwnd, IDC_SPECDISPLAY);
-				EnableWindow(hSpecDisplay, bConnectSock);
-				HWND hSpecPort = GetDlgItem(hwnd, IDC_SPECPORT);
-				EnableWindow(hSpecPort, bConnectSock);
-
-				EnableWindow(GetDlgItem(hwnd, IDC_DISPLAYNO), bConnectSock &&
-					(SendMessage(hSpecDisplay, BM_GETCHECK, 0, 0) == BST_CHECKED));
-				EnableWindow(GetDlgItem(hwnd, IDC_PORTRFB), bConnectSock &&
-					(SendMessage(hSpecPort, BM_GETCHECK, 0, 0) == BST_CHECKED));
-				EnableWindow(GetDlgItem(hwnd, IDC_PORTHTTP), bConnectSock &&
-					(SendMessage(hSpecPort, BM_GETCHECK, 0, 0) == BST_CHECKED));
-			}
+    case IDC_PORTNO_AUTO:
+    case IDC_SPECDISPLAY:
+    case IDC_SPECPORT:
+			_this->m_incConnCtrl->Validate();
 			return TRUE;
 
 		case IDC_POLL_FOREGROUND:
 		case IDC_POLL_UNDER_CURSOR:
 		case IDC_POLL_FULLSCREEN:
 			_this->m_pollcontrols->Validate();
-			return TRUE;
-
-		case IDC_PORTNO_AUTO:
-			{
-				EnableWindow(GetDlgItem(hwnd, IDC_DISPLAYNO), FALSE);
-				EnableWindow(GetDlgItem(hwnd, IDC_PORTRFB), FALSE);
-				EnableWindow(GetDlgItem(hwnd, IDC_PORTHTTP), FALSE);
-
-				SetDlgItemText(hwnd, IDC_DISPLAYNO, "");
-				SetDlgItemText(hwnd, IDC_PORTRFB, "");
-				SetDlgItemText(hwnd, IDC_PORTHTTP, "");
-			}
-			return TRUE;
-
-		case IDC_SPECDISPLAY:
-			{
-				EnableWindow(GetDlgItem(hwnd, IDC_DISPLAYNO), TRUE);
-				EnableWindow(GetDlgItem(hwnd, IDC_PORTRFB), FALSE);
-				EnableWindow(GetDlgItem(hwnd, IDC_PORTHTTP), FALSE);
-
-				int display = PORT_TO_DISPLAY(_this->m_server->GetPort());
-				if (display < 0 || display > 99)
-					display = 0;
-				SetDlgItemInt(hwnd, IDC_DISPLAYNO, display, FALSE);
-				SetDlgItemInt(hwnd, IDC_PORTRFB, _this->m_server->GetPort(), FALSE);
-				SetDlgItemInt(hwnd, IDC_PORTHTTP, _this->m_server->GetHttpPort(), FALSE);
-
-				SetFocus(GetDlgItem(hwnd, IDC_DISPLAYNO));
-				SendDlgItemMessage(hwnd, IDC_DISPLAYNO, EM_SETSEL, 0, (LPARAM)-1);
-			}
-			return TRUE;
-
-		case IDC_SPECPORT:
-			{
-				EnableWindow(GetDlgItem(hwnd, IDC_DISPLAYNO), FALSE);
-				EnableWindow(GetDlgItem(hwnd, IDC_PORTRFB), TRUE);
-				EnableWindow(GetDlgItem(hwnd, IDC_PORTHTTP), TRUE);
-
-				int d1 = PORT_TO_DISPLAY(_this->m_server->GetPort());
-				int d2 = HPORT_TO_DISPLAY(_this->m_server->GetHttpPort());
-				if (d1 == d2 && d1 >= 0 && d1 <= 99) {
-					SetDlgItemInt(hwnd, IDC_DISPLAYNO, d1, FALSE);
-				} else {
-					SetDlgItemText(hwnd, IDC_DISPLAYNO, "");
-				}
-				SetDlgItemInt(hwnd, IDC_PORTRFB, _this->m_server->GetPort(), FALSE);
-				SetDlgItemInt(hwnd, IDC_PORTHTTP, _this->m_server->GetHttpPort(), FALSE);
-
-				SetFocus(GetDlgItem(hwnd, IDC_PORTRFB));
-				SendDlgItemMessage(hwnd, IDC_PORTRFB, EM_SETSEL, 0, (LPARAM)-1);
-			}
-			return TRUE;
-
+			return TRUE;				
 		case IDC_DISABLE_INPUTS:
 		case IDC_DISABLE_LOCAL_INPUTS:
 			
@@ -734,45 +563,6 @@ vncProperties::DialogProc(HWND hwnd,
 		break;
 	}
 	return 0;
-}
-
-// Set display/port settings to the correct state
-void
-vncProperties::InitPortSettings(HWND hwnd)
-{
-	BOOL bConnectSock = m_server->SockConnected();
-	BOOL bAutoPort = m_server->AutoPortSelect();
-	UINT port_rfb = m_server->GetPort();
-	UINT port_http = m_server->GetHttpPort();
-	int d1 = PORT_TO_DISPLAY(port_rfb);
-	int d2 = HPORT_TO_DISPLAY(port_http);
-	BOOL bValidDisplay = (d1 == d2 && d1 >= 0 && d1 <= 99);
-
-	CheckDlgButton(hwnd, IDC_PORTNO_AUTO,
-		(bAutoPort) ? BST_CHECKED : BST_UNCHECKED);
-	CheckDlgButton(hwnd, IDC_SPECDISPLAY,
-		(!bAutoPort && bValidDisplay) ? BST_CHECKED : BST_UNCHECKED);
-	CheckDlgButton(hwnd, IDC_SPECPORT,
-		(!bAutoPort && !bValidDisplay) ? BST_CHECKED : BST_UNCHECKED);
-
-	EnableWindow(GetDlgItem(hwnd, IDC_PORTNO_AUTO), bConnectSock);
-	EnableWindow(GetDlgItem(hwnd, IDC_SPECDISPLAY), bConnectSock);
-	EnableWindow(GetDlgItem(hwnd, IDC_SPECPORT), bConnectSock);
-
-	if (bValidDisplay) {
-		SetDlgItemInt(hwnd, IDC_DISPLAYNO, d1, FALSE);
-	} else {
-		SetDlgItemText(hwnd, IDC_DISPLAYNO, "");
-	}
-	SetDlgItemInt(hwnd, IDC_PORTRFB, port_rfb, FALSE);
-	SetDlgItemInt(hwnd, IDC_PORTHTTP, port_http, FALSE);
-
-	EnableWindow(GetDlgItem(hwnd, IDC_DISPLAYNO),
-		bConnectSock && !bAutoPort && bValidDisplay);
-	EnableWindow(GetDlgItem(hwnd, IDC_PORTRFB),
-		bConnectSock && !bAutoPort && !bValidDisplay);
-	EnableWindow(GetDlgItem(hwnd, IDC_PORTHTTP),
-		bConnectSock && !bAutoPort && !bValidDisplay);
 }
 
 // Functions to load & save the settings

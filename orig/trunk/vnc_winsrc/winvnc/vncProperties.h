@@ -45,6 +45,7 @@ class vncProperties;
 #include "PollControls.h"
 #include "InputHandlingControls.h" 
 #include "SharedDesktopArea.h"
+#include "IncomingConnectionsControls.h"
 
 // The vncProperties class itself
 class vncProperties
@@ -159,12 +160,11 @@ protected:
 #endif
 
 private:
-	void InitPortSettings(HWND hwnd);
-
 	CMatchWindow* m_pMatchWindow;
 	PollControls* m_pollcontrols;
 	InputHandlingControls* m_inputhandcontr;
 	SharedDesktopArea* m_shareddtarea;
+  IncomingConnectionsControls* m_incConnCtrl;
 };
 
 #endif // _WINVNC_VNCPROPERTIES

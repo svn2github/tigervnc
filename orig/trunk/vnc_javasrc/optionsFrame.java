@@ -129,7 +129,7 @@ class optionsFrame extends Frame {
 
     // Set up defaults
 
-    choices[encodingIndex].select("Hextile");
+    choices[encodingIndex].select("Tight");
     choices[compressLevelIndex].select("Default");
     choices[cursorUpdatesIndex].select("Enable");
     choices[useCopyRectIndex].select("Yes");

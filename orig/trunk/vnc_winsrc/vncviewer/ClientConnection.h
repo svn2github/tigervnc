@@ -162,6 +162,7 @@ private:
 	// ClientConnectionCursor.cpp
 	void ReadXCursorShape(rfbFramebufferUpdateRectHeader *pfburh);
 	void ReadRichCursorShape(rfbFramebufferUpdateRectHeader *pfburh);
+	void SetDefaultCursor();
 
 	// ClientConnectionFullScreen.cpp
 	void SetFullScreenMode(bool enable);

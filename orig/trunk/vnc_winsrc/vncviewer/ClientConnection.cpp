@@ -790,6 +790,13 @@ void ClientConnection::SetFormatAndEncodings()
 											 m_opts.m_compressLevel );
 	}
 
+
+	// Request XCursor encoding
+	// FIXME: Request this only if not disabled by user
+	// FIXME: Re-request after connection options have been changed
+	// FIXME: Request RichCursor encoding as well
+	encs[se->nEncodings++] = Swap32IfLE(rfbEncodingXCursor);
+
 	len = sz_rfbSetEncodingsMsg + se->nEncodings * 4;
 
 	se->nEncodings = Swap16IfLE(se->nEncodings);

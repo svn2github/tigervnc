@@ -121,6 +121,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 			i+=strlen(winvncInstallService);
 			continue;
 		}
+		if (strncmp(&szCmdLine[i], winvncReinstallService, strlen(winvncReinstallService)) == 0)
+		{
+			// Silently remove WinVNC, then re-install it
+			vncService::ReinstallService();
+			i+=strlen(winvncReinstallService);
+			continue;
+		}
 		if (strncmp(&szCmdLine[i], winvncRemoveService, strlen(winvncRemoveService)) == 0)
 		{
 			// Remove the WinVNC service

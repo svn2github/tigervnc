@@ -1,3 +1,4 @@
+//  Copyright (C) 2002 RealVNC Ltd. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
 //  This file is part of the VNC system.
@@ -226,14 +227,13 @@ vncService::SelectHDESK(HDESK new_desktop)
 
 		// Switch the desktop
 		if(!SetThreadDesktop(new_desktop)) {
-			vnclog.Print(LL_INTERR, VNCLOG("SetThreadDesktop() failed\n"));
+			vnclog.Print(LL_INTERR, VNCLOG("unable to SetThreadDesktop\n"), GetLastError());
 			return FALSE;
 		}
 
 		// Switched successfully - destroy the old desktop
-		if (old_desktop != new_desktop && !CloseDesktop(old_desktop))
-			vnclog.Print(LL_INTERR, VNCLOG("SelectHDESK() failed to close old desktop %x, error = %d\n"),
-						 old_desktop, GetLastError());
+		if (!CloseDesktop(old_desktop))
+			vnclog.Print(LL_INTERR, VNCLOG("SelectHDESK failed to close old desktop %x (Err=%d)\n"), old_desktop, GetLastError());
 
 		return TRUE;
 	}
@@ -275,7 +275,7 @@ vncService::SelectDesktop(char *name)
 
 		// Did we succeed?
 		if (desktop == NULL) {
-			vnclog.Print(LL_INTERR, VNCLOG("SelectDesktop() failed to open desktop\n"));
+			vnclog.Print(LL_INTERR, VNCLOG("unable to open desktop:%d\n"), GetLastError());
 			return FALSE;
 		}
 
@@ -284,7 +284,7 @@ vncService::SelectDesktop(char *name)
 			// Failed to enter the new desktop, so free it!
 			vnclog.Print(LL_INTERR, VNCLOG("SelectDesktop() failed to select desktop\n"));
 			if (!CloseDesktop(desktop))
-				vnclog.Print(LL_INTERR, VNCLOG("SelectDesktop() failed to close desktop\n"));
+				vnclog.Print(LL_INTERR, VNCLOG("SelectDesktop failed to close desktop:%d\n"), GetLastError());
 			return FALSE;
 		}
 
@@ -604,7 +604,10 @@ vncService::ProcessUserHelperMessage(WPARAM wParam, LPARAM lParam) {
 int
 vncService::WinVNCServiceMain()
 {
-	// Mark that we are a service
+	typedef DWORD (WINAPI * RegisterServiceProc)(DWORD, DWORD);
+	const ULONG RSP_SIMPLE_SERVICE = 0x00000001;
+	const ULONG RSP_UNREGISTER_SERVICE = 0x00000000;
+
 	g_servicemode = TRUE;
 
 	// How to run as a service depends upon the OS being used
@@ -620,27 +623,27 @@ vncService::WinVNCServiceMain()
 				break;
 
 			// And find the RegisterServiceProcess function
-			DWORD (*RegisterService)(DWORD, DWORD);
-			RegisterService = (DWORD (*)(DWORD, DWORD))
-				GetProcAddress(kerneldll, "RegisterServiceProcess");
+			RegisterServiceProc RegisterService;
+			RegisterService = (RegisterServiceProc) GetProcAddress(kerneldll, "RegisterServiceProcess");
 			if (RegisterService == NULL)
 				break;
-			
+
 			// Register this process with the OS as a service!
-			RegisterService(NULL, 1);
+			RegisterService(NULL, RSP_SIMPLE_SERVICE);
 
 			// Run the service itself
 			WinVNCAppMain();
 
 			// Then remove the service from the system service table
-			RegisterService(NULL, 0);
+			RegisterService(NULL, RSP_UNREGISTER_SERVICE);
 
 			// Free the kernel library
 			FreeLibrary(kerneldll);
 
 			// *** If we don't kill the process directly here, then 
 			// for some reason, WinVNC crashes...
-			ExitProcess(0);
+			// *** Is this now fixed (with the stdcall patch above)?
+			//ExitProcess(0);
 		}
 		break;
 
@@ -729,22 +732,31 @@ void ServiceStop()
 	// Post a quit message to the main service thread
 	if (g_servicethread != NULL)
 	{
+		vnclog.Print(LL_INTINFO, VNCLOG("quitting from ServiceStop\n"));
 		PostThreadMessage(g_servicethread, WM_QUIT, 0, 0);
 	}
 }
 
 // SERVICE INSTALL ROUTINE
 int
-vncService::InstallService()
+vncService::ReinstallService() {
+	RemoveService(1);
+	InstallService(0);
+	return 0;
+}
+
+int
+vncService::InstallService(BOOL silent)
 {
 	const int pathlength = 2048;
 	char path[pathlength];
 	char servicecmd[pathlength];
 
 	// Get the filename of this executable
-    if (GetModuleFileName(NULL, path, pathlength-(strlen(winvncRunService)+2)) == 0)
-    {
-		MessageBox(NULL, "Unable to install WinVNC service", szAppName, MB_ICONEXCLAMATION | MB_OK);
+    if (GetModuleFileName(NULL, path, pathlength-(strlen(winvncRunService)+2)) == 0) {
+		if (!silent) {
+			MessageBox(NULL, "Unable to install WinVNC service", szAppName, MB_ICONEXCLAMATION | MB_OK);
+		}
 		return 0;
     }
 
@@ -767,7 +779,9 @@ vncService::InstallService()
 				"Software\\Microsoft\\Windows\\CurrentVersion\\RunServices",
 				&runservices) != ERROR_SUCCESS)
 			{
-				MessageBox(NULL, "The SCM could not be contacted - the WinVNC service was not installed", szAppName, MB_ICONEXCLAMATION | MB_OK);
+				if (!silent) {
+					MessageBox(NULL, "The SCM could not be contacted - the WinVNC service was not installed", szAppName, MB_ICONEXCLAMATION | MB_OK);
+				}
 				break;
 			}
 
@@ -775,7 +789,9 @@ vncService::InstallService()
 			if (RegSetValueEx(runservices, szAppName, 0, REG_SZ, (unsigned char *)servicecmd, strlen(servicecmd)+1) != ERROR_SUCCESS)
 			{
 				RegCloseKey(runservices);
-				MessageBox(NULL, "The WinVNC service could not be installed", szAppName, MB_ICONEXCLAMATION | MB_OK);
+				if (!silent) {
+					MessageBox(NULL, "The WinVNC service could not be registered", szAppName, MB_ICONEXCLAMATION | MB_OK);
+				}
 				break;
 			}
 
@@ -809,7 +825,10 @@ vncService::InstallService()
 				&pi
 				))
 			{
-				MessageBox(NULL, "The WinVNC service failed to start", szAppName, MB_ICONSTOP | MB_OK);
+				if (!silent) {
+					MessageBox(NULL, "The WinVNC service failed to start",
+							   szAppName, MB_ICONSTOP | MB_OK);
+				}
 				break;
 			}
 		}
@@ -825,10 +844,12 @@ vncService::InstallService()
 		    hsrvmanager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
 			if (hsrvmanager == NULL)
 			{
-				MessageBox(NULL,
-					"The SCM could not be contacted - the WinVNC service was not installed",
-					szAppName,
-					MB_ICONEXCLAMATION | MB_OK);
+				if (!silent) {
+					MessageBox(NULL,
+						"The Service Control Manager could not be contacted - the WinVNC service was not registered",
+						szAppName,
+						MB_ICONEXCLAMATION | MB_OK);
+				}
 				break;
 			}
 
@@ -848,15 +869,26 @@ vncService::InstallService()
 				VNCDEPENDENCIES,			// dependencies
 				NULL,						// LocalSystem account
 				NULL);						// no password
-			CloseServiceHandle(hsrvmanager);
 			if (hservice == NULL)
 			{
-				MessageBox(NULL,
-					"The WinVNC service could not be installed",
-					szAppName,
-					MB_ICONEXCLAMATION | MB_OK);
+				DWORD error = GetLastError();
+				if (!silent) {
+					if (error == ERROR_SERVICE_EXISTS) {
+						MessageBox(NULL,
+							"The WinVNC service is already registered",
+							szAppName,
+							MB_ICONEXCLAMATION | MB_OK);
+					} else {
+						MessageBox(NULL,
+							"The WinVNC service could not be registered",
+							szAppName,
+							MB_ICONEXCLAMATION | MB_OK);
+					}
+				}
+ 				CloseServiceHandle(hsrvmanager);
 				break;
 			}
+			CloseServiceHandle(hsrvmanager);
 			CloseServiceHandle(hservice);
 
 			// Now install the servicehelper registry setting...
@@ -866,7 +898,9 @@ vncService::InstallService()
 				"Software\\Microsoft\\Windows\\CurrentVersion\\Run",
 				&runapps) != ERROR_SUCCESS)
 			{
-				MessageBox(NULL, "WARNING:Unable to install the ServiceHelper hook\nGlobal user-specific registry settings will not be loaded", szAppName, MB_ICONEXCLAMATION | MB_OK);
+				if (!silent) {
+					MessageBox(NULL, "WARNING:Unable to install the ServiceHelper hook\nGlobal user-specific registry settings will not be loaded", szAppName, MB_ICONEXCLAMATION | MB_OK);
+				}
 			} else {
 				char servicehelpercmd[pathlength];
 
@@ -880,14 +914,16 @@ vncService::InstallService()
 				if (RegSetValueEx(runapps, szAppName, 0, REG_SZ,
 					(unsigned char *)servicehelpercmd, strlen(servicehelpercmd)+1) != ERROR_SUCCESS)
 				{
-					MessageBox(NULL, "WARNING:Unable to install the ServiceHelper hook\nGlobal user-specific registry settings will not be loaded", szAppName, MB_ICONEXCLAMATION | MB_OK);
+					if (!silent) {
+						MessageBox(NULL, "WARNING:Unable to install the ServiceHelper hook\nGlobal user-specific registry settings will not be loaded", szAppName, MB_ICONEXCLAMATION | MB_OK);
+					}
 				}
 				RegCloseKey(runapps);
 			}
 
 			// Everything went fine
 			vncTimedMsgBox::Do(
-				"The WinVNC service was successfully installed\n"
+				"The WinVNC service was successfully registered\n"
 				"The service may be started from the Control Panel, and will\n"
 				"automatically be run the next time this machine is reset",
 				szAppName,
@@ -901,7 +937,7 @@ vncService::InstallService()
 
 // SERVICE REMOVE ROUTINE
 int
-vncService::RemoveService()
+vncService::RemoveService(BOOL silent)
 {
 	// How to remove the WinVNC service depends upon the OS
 	switch (g_platform_id)
@@ -916,7 +952,9 @@ vncService::RemoveService()
 				"Software\\Microsoft\\Windows\\CurrentVersion\\RunServices",
 				&runservices) != ERROR_SUCCESS)
 			{
-				MessageBox(NULL, "The SCM could not be contacted - the WinVNC service was not removed", szAppName, MB_ICONEXCLAMATION | MB_OK);
+				if (!silent) {
+					MessageBox(NULL, "The Service Control Manager could not be contacted - the WinVNC service was not unregistered", szAppName, MB_ICONEXCLAMATION | MB_OK);
+				}
 			}
 			else
 			{
@@ -924,7 +962,9 @@ vncService::RemoveService()
 				if (RegDeleteValue(runservices, szAppName) != ERROR_SUCCESS)
 				{
 					RegCloseKey(runservices);
-					MessageBox(NULL, "The WinVNC service could not be removed", szAppName, MB_ICONEXCLAMATION | MB_OK);
+					if (!silent) {
+						MessageBox(NULL, "The WinVNC service could not be unregistered", szAppName, MB_ICONEXCLAMATION | MB_OK);
+					}
 				}
 
 				RegCloseKey(runservices);
@@ -934,15 +974,17 @@ vncService::RemoveService()
 			// Try to kill any running copy of WinVNC
 			if (!KillRunningCopy())
 			{
-				MessageBox(NULL,
-					"The WinVNC service could not be contacted",
-					szAppName,
-					MB_ICONEXCLAMATION | MB_OK);
+				if (!silent) {
+					MessageBox(NULL,
+						"The WinVNC service could not be contacted",
+						szAppName,
+						MB_ICONEXCLAMATION | MB_OK);
+				}
 				break;
 			}
 
 			// We have successfully removed the service!
-			vncTimedMsgBox::Do("The WinVNC service has been removed", szAppName, MB_ICONINFORMATION | MB_OK);
+			vncTimedMsgBox::Do("The WinVNC service has been unregistered", szAppName, MB_ICONINFORMATION | MB_OK);
 		}
 		break;
 
@@ -961,7 +1003,9 @@ vncService::RemoveService()
 				// Attempt to delete the WinVNC key
 				if (RegDeleteValue(runapps, szAppName) != ERROR_SUCCESS)
 				{
-					MessageBox(NULL, "WARNING:The ServiceHelper hook entry could not be removed from the registry", szAppName, MB_ICONEXCLAMATION | MB_OK);
+					if (!silent) {
+						MessageBox(NULL, "WARNING:The ServiceHelper hook entry could not be removed from the registry", szAppName, MB_ICONEXCLAMATION | MB_OK);
+					}
 				}
 				RegCloseKey(runapps);
 			}
@@ -991,25 +1035,35 @@ vncService::RemoveService()
 								break;
 						}
 
-						if (status.dwCurrentState != SERVICE_STOPPED)
-							MessageBox(NULL, "The WinVNC service could not be stopped", szAppName, MB_ICONEXCLAMATION | MB_OK);
+						if (status.dwCurrentState != SERVICE_STOPPED) {
+							if (!silent) {
+								MessageBox(NULL, "The WinVNC service could not be stopped", szAppName, MB_ICONEXCLAMATION | MB_OK);
+							}
+						}
 					}
 
 					// Now remove the service from the SCM
-					if(DeleteService(hservice))
-						vncTimedMsgBox::Do("The WinVNC service has been removed", szAppName, MB_ICONINFORMATION | MB_OK);
-					else
-						MessageBox(NULL, "The WinVNC service could not be removed", szAppName, MB_ICONEXCLAMATION | MB_OK);
-
+					if(DeleteService(hservice)) {
+						vncTimedMsgBox::Do("The WinVNC service has been unregistered", szAppName, MB_ICONINFORMATION | MB_OK);
+					} else {
+						DWORD error = GetLastError();
+						if (error == ERROR_SERVICE_MARKED_FOR_DELETE) {
+							if (!silent)
+								MessageBox(NULL, "The WinVNC service is already marked to be unregistered", szAppName, MB_ICONEXCLAMATION | MB_OK);
+						} else {
+							if (!silent)
+								MessageBox(NULL, "The WinVNC service could not be unregistered", szAppName, MB_ICONEXCLAMATION | MB_OK);
+						}
+					}
 					CloseServiceHandle(hservice);
 				}
-				else
+				else if (!silent)
 					MessageBox(NULL, "The WinVNC service could not be found", szAppName, MB_ICONEXCLAMATION | MB_OK);
 
 				CloseServiceHandle(hsrvmanager);
 			}
-			else
-				MessageBox(NULL, "The SCM could not be contacted - the WinVNC service was not removed", szAppName, MB_ICONEXCLAMATION | MB_OK);
+			else if (!silent)
+				MessageBox(NULL, "The Service Control Manager could not be contacted - the WinVNC service was not unregistered", szAppName, MB_ICONEXCLAMATION | MB_OK);
 		}
 		break;
 	};
@@ -1092,7 +1146,7 @@ void LogErrorMsg(char *message)
 	// Use event logging to log the error
     heventsrc = RegisterEventSource(NULL, VNCSERVICENAME);
 
-	sprintf(msgbuff, "%s error: %d", VNCSERVICENAME, g_error);
+	sprintf(msgbuff, "%.200s error: %d", VNCSERVICENAME, g_error);
     strings[0] = msgbuff;
     strings[1] = message;
 

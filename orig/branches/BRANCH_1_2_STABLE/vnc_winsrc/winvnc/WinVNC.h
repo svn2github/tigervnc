@@ -54,6 +54,7 @@ const char winvncRunAsUserApp[]		= "-run";
 
 const char winvncInstallService[]	= "-install";
 const char winvncRemoveService[]	= "-remove";
+const char winvncReinstallService[]	= "-reinstall";
 
 const char winvncShowProperties[]	= "-settings";
 const char winvncShowDefaultProperties[]	= "-defaultsettings";
@@ -65,4 +66,6 @@ const char winvncAddNewClient[]		= "-connect";
 const char winvncShowHelp[]			= "-help";
 
 // Usage string
-const char winvncUsageText[]		= "winvnc [-run] [-kill] [-connect host[:display]] [-install] [-remove] [-settings] [-defaultsettings] [-about]\n";
+const char winvncUsageText[]		= "winvnc [-run] [-kill] [-connect host[:display]]"
+									  " [-install] [-remove] [-reinstall] [-settings]"
+									  " [-defaultsettings] [-about]\n";

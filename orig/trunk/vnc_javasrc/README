@@ -280,14 +280,16 @@ Other important facts about session recording:
     streams making it impossible to save Zlib-encoded RFB pixel data without
     using native code.
 
---> Usually, Tight encoding is most suitable for session recording, but some
-    of the issues described above for the Zlib encoding affect the Tight
-    encoding as well. Unlike Zlib sessions, Tight-encoded sessions are always
-    saved Tight-encoded, but the viewer has to re-compress parts of data to
-    synchronize encoder's and decoder's zlib streams. If you want to achieve
-    the best possible performance, turn recording on BEFORE connecting to the
-    VNC server, otherwise CPU usage and compression ratios may be notably
-    less efficient.
+--> Usually, Tight encoding is the most suitable one for session recording,
+    but some of the issues described above for the Zlib encoding affect the
+    Tight encoding as well. Unlike Zlib sessions, Tight-encoded sessions are
+    always saved Tight-encoded, but the viewer has to re-compress parts of
+    data to synchronize encoder's and decoder's zlib streams. And, due to
+    Java zlib API limitations, zlib streams' states have to be reset on each
+    compressed rectangle, causing compression ratios to be lower than in the
+    original VNC session. If you want to achieve the best possible
+    performance, turn recording on BEFORE connecting to the VNC server,
+    otherwise CPU usage and compression ratios may be notably less efficient.
 
 
 HINTS

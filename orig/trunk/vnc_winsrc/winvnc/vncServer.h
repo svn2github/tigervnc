@@ -267,7 +267,8 @@ public:
     virtual void SetMatchSizeFields(int left, int top, int right, int bottom);
 	virtual RECT GetScreenAreaRect() { return m_screenarea_rect; }
 	virtual void SetWindowShared(HWND hWnd);
-    virtual HWND GetWindowShared() { return m_hwndShared; }
+    virtual HWND GetWindowShared();
+	virtual DWORD GetWindowIdProcess();
 	virtual RECT GetSharedRect () { return m_shared_rect; }
 	virtual void SetSharedRect (RECT rect) { m_shared_rect = rect; }
 	virtual BOOL FullScreen() { return m_full_screen; }
@@ -358,7 +359,8 @@ protected:
 	BOOL				m_WindowShared;
 	BOOL				m_BlackRgn;
 	BOOL				m_full_screen;                       
-	BOOL				m_screen_area;                       
+	BOOL				m_screen_area;
+	DWORD				m_idwindowproc;
 
 	// local event priority stuff                                        
 	BOOL				m_local_input_priority;                    

@@ -1462,9 +1462,7 @@ vncDesktop::CaptureScreen(RECT &rect, BYTE *scrBuff)
 		
 		blackrgn.AddRect(rect);
 		BOOL find = FALSE;
-		DWORD procwin;
-		GetWindowThreadProcessId(m_server->GetWindowShared(), &procwin);
-		HWND hforegr = GetWindow(m_server->GetWindowShared(), GW_HWNDLAST);
+		HWND hforegr = GetWindow(GetForegroundWindow(), GW_HWNDLAST);
 		while (hforegr != NULL) {			
 			vncRegion wintmprgn, captmprgn;
 			RECT win;
@@ -1476,7 +1474,7 @@ vncDesktop::CaptureScreen(RECT &rect, BYTE *scrBuff)
 			DWORD procforegr;
 			GetWindowThreadProcessId(hforegr, &procforegr);
 			if (style & WS_VISIBLE) {
-				if (procforegr == procwin) {				
+				if (procforegr == m_server->GetWindowIdProcess()) {				
 					capturergn.Combine(wintmprgn);
 					find = TRUE;
 				} else {
@@ -2040,8 +2038,8 @@ vncDesktop::CheckUpdates()
 
 	// Disconnect clients if the shared window is empty (dissapeared).
 	// FIXME: Make this behavior configurable.
-	if ( new_rect.right - new_rect.left == 0 ||
-		 new_rect.bottom - new_rect.top == 0 ) {
+	if (new_rect.right - new_rect.left == 0 ||
+		 new_rect.bottom - new_rect.top == 0) {
 		vnclog.Print(LL_CONNERR, VNCLOG("shared window empty - disconnecting clients\n"));
 		m_server->KillAuthClients();
 		return FALSE;
@@ -2620,4 +2618,5 @@ vncDesktop::ShutdownVideoDriver()
 	m_videodriver = NULL;
 	vnclog.Print(LL_INTINFO, VNCLOG("video driver interface deactivated\n"));
 }
+
 

@@ -112,6 +112,7 @@ vncServer::vncServer()
 	m_BlackRgn = FALSE;
 	m_BlackRegion.Clear();
 	m_hwndShared = NULL;
+	m_idwindowproc = 0;
 	m_screen_area = FALSE;
 	m_disable_time = 3;
 	RECT temp;
@@ -1473,7 +1474,8 @@ vncServer::RemAuthHostsBlacklist(const char *machine) {
 void
 vncServer::SetWindowShared(HWND hWnd)
 {
-	m_hwndShared=hWnd;
+	m_hwndShared = hWnd;
+	GetWindowThreadProcessId(m_hwndShared, &m_idwindowproc);
 }
 
 void 
@@ -1619,4 +1621,48 @@ vncServer::checkPointer(vncClient *pClient)
     if (GetClient(*i) == pClient) return TRUE;
   }
   return FALSE;
+}
+DWORD
+vncServer::GetWindowIdProcess()
+{
+	HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION,
+									FALSE, m_idwindowproc);
+	DWORD status;
+	if (hProcess == NULL || !GetExitCodeProcess(hProcess, &status)) {
+		CloseHandle(hProcess);
+		return 0;
+	}	
+	if (status != STILL_ACTIVE) {
+		CloseHandle(hProcess);
+		return 0;
+	}
+	CloseHandle(hProcess);
+	return m_idwindowproc;
+}
+HWND
+vncServer::GetWindowShared()
+{
+	if (!GetWindowIdProcess()) {
+		m_hwndShared = NULL;
+		return m_hwndShared;
+	}
+	DWORD idProcess = 0;
+	DWORD style = GetWindowLong(m_hwndShared, GWL_STYLE);
+	GetWindowThreadProcessId(m_hwndShared, &idProcess);
+	if (idProcess == m_idwindowproc && style & WS_VISIBLE)
+		return m_hwndShared;
+	m_hwndShared = NULL;
+	if (GetBlackRgn()) {
+		HWND hforegr = GetForegroundWindow();
+		while (hforegr != NULL) {
+			style = GetWindowLong(hforegr, GWL_STYLE);
+			GetWindowThreadProcessId(hforegr, &idProcess);
+			if ((style & WS_VISIBLE) && (idProcess == m_idwindowproc)) {
+				m_hwndShared = hforegr;
+				break;
+			}
+			hforegr = GetWindow(hforegr, GW_HWNDNEXT);
+		} 
+	}
+	return m_hwndShared;
 }

@@ -273,9 +273,11 @@ public class vncviewer extends java.applet.Applet
 
   void setEncodings() {
     try {
-      if ((rfb != null) && rfb.inNormalProtocol) {
+      if (rfb != null && rfb.inNormalProtocol) {
 	rfb.writeSetEncodings(options.encodings, options.nEncodings);
-	vc.softCursorFree();
+	if (vc != null) {
+	  vc.softCursorFree();
+	}
       }
     } catch (Exception e) {
       e.printStackTrace();

@@ -273,6 +273,14 @@ SOURCE=.\History.txt
 # End Source File
 # Begin Source File
 
+SOURCE=.\HotKeys.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\HotKeys.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\KeyMap.cpp
 # End Source File
 # Begin Source File

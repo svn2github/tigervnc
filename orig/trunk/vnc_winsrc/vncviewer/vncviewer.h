@@ -33,6 +33,7 @@
 #include "VNCviewerApp.h"
 #include "Log.h"
 #include "VNCHelp.h"
+#include "HotKeys.h"
 
 #define WM_SOCKEVENT WM_USER+1
 #define WM_TRAYNOTIFY WM_SOCKEVENT+1
@@ -43,8 +44,8 @@ extern VNCviewerApp *pApp;
 
 // Global logger - may be used by anything
 extern Log vnclog;
-
 extern VNCHelp help;
+extern HotKeys hotkeys;
 
 // Display given window in centre of screen
 void CentreWindow(HWND hwnd);
@@ -53,9 +54,7 @@ void CentreWindow(HWND hwnd);
 // Returns true if valid.
 bool ParseDisplay(LPTSTR display, LPTSTR phost, int hostlen, int *port);
 void FormatDisplay(int port, LPTSTR display, LPTSTR host);
-extern HWND hwndd;
 
-extern HACCEL hAccel;
 
 // Macro DIALOG_MAKEINTRESOURCE is used to allow both normal windows dialogs
 // and the selectable aspect ratio dialogs under WinCE (PalmPC vs HPC).

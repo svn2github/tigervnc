@@ -214,7 +214,6 @@ LRESULT CALLBACK Daemon::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lPa
 			pApp->m_options.SaveOpt(".listen", "Software\\ORL\\VNCviewer\\MRU1");
 			break;
 		case ID_CLOSEDAEMON:
-			DestroyAcceleratorTable(hAccel);
 			PostQuitMessage(0);
 			break;
 		case IDD_APP_ABOUT:
@@ -254,7 +253,6 @@ LRESULT CALLBACK Daemon::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lPa
 		_this->CheckTrayIcon();
 		return 0;
 	case WM_DESTROY:
-		DestroyAcceleratorTable(hAccel);
 		PostQuitMessage(0);
 		return 0;
 	}

@@ -372,8 +372,6 @@ void ClientConnection::CreateDisplay()
 			      NULL);
 	SetWindowLong(m_hwnd1, GWL_USERDATA, (LONG) this);
 	SetWindowLong(m_hwnd1, GWL_WNDPROC, (LONG)ClientConnection::WndProc1);
-	hwndd = m_hwnd1;
-	
 	ShowWindow(m_hwnd1, SW_HIDE);
 	
 	// Create a memory DC which we'll use for drawing to
@@ -462,6 +460,7 @@ void ClientConnection::CreateDisplay()
 			      m_pApp->m_instance,
 			       NULL);
 	m_opts.m_hWindow = m_hwnd;
+	hotkeys.SetWindow(m_hwnd1);
     ShowWindow(m_hwnd, SW_HIDE);
 		
 	SetWindowLong(m_hwnd, GWL_USERDATA, (LONG) this);
@@ -1550,7 +1549,7 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 		return 0;
 	}
 	case WM_SETFOCUS:		
-		hwndd = hwnd;
+		hotkeys.SetWindow(hwnd);
 		return 0;
 	case WM_COMMAND:
 	case WM_SYSCOMMAND:
@@ -1690,7 +1689,6 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 			if (MessageBox(NULL, _T("Are you sure you want to exit?"), 
 				_T("Closing VNCviewer"), 
 				MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2) == IDYES){
-				DestroyAcceleratorTable(hAccel);
 				PostQuitMessage(0);
 			}
 			return 0;

@@ -36,10 +36,8 @@
 
 // All logging is done via the log object
 Log vnclog;
-
 VNCHelp help;
-HWND hwndd;
-HACCEL hAccel;
+HotKeys hotkeys;
 
 #ifdef UNDER_CE
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdLine, int iCmdShow)
@@ -64,47 +62,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 		app.NewConnection();
 	}
 
-	ACCEL accel[8];
-
-	accel[0].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
-	accel[0].key = 0x4f;
-	accel[0].cmd = IDC_OPTIONBUTTON;
-
-	accel[1].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
-	accel[1].key = 0x49;
-	accel[1].cmd = ID_CONN_ABOUT;
-
-	accel[2].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
-	accel[2].key = 0x46;
-	accel[2].cmd = ID_FULLSCREEN;
-
-	accel[3].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
-	accel[3].key = 0x52;
-	accel[3].cmd = ID_REQUEST_REFRESH;
-
-	accel[4].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
-	accel[4].key = 0x4e;
-	accel[4].cmd = ID_NEWCONN;
-
-	accel[5].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
-	accel[5].key = 0x53;
-	accel[5].cmd = ID_CONN_SAVE_AS;
-
-	accel[6].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
-	accel[6].key = 0x54;
-	accel[6].cmd = ID_TOOLBAR;
-
-	accel[7].fVirt = FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
-	accel[7].key = 0x45;
-	accel[7].cmd = IDD_FILETRANSFER;
-
-	hAccel = CreateAcceleratorTable((LPACCEL)accel, 8);
-
 	MSG msg;
 
 	try {
 		while ( GetMessage(&msg, NULL, 0, 0) ) {
-			if(!TranslateAccelerator(hwndd, hAccel, &msg) &&
+			if(!hotkeys.TransAccel(msg) &&
 					!help.TransMess( (DWORD)&msg)) {
 				TranslateMessage(&msg);
 				DispatchMessage(&msg);

@@ -56,7 +56,7 @@
  * affecting alignment.
  */
 
-typedef struct {
+typedef struct _rfbRectangle {
     CARD16 x;
     CARD16 y;
     CARD16 w;
@@ -70,7 +70,7 @@ typedef struct {
  * Structure used to specify pixel format.
  */
 
-typedef struct {
+typedef struct _rfbPixelFormat {
 
     CARD8 bitsPerPixel;		/* 8,16,32 only */
 
@@ -212,7 +212,7 @@ typedef char rfbProtocolVersionMsg[13];	/* allow extra byte for null */
  * access to this client by disconnecting all other clients.
  */
 
-typedef struct {
+typedef struct _rfbClientInitMsg {
     CARD8 shared;
 } rfbClientInitMsg;
 
@@ -227,7 +227,7 @@ typedef struct {
  * its pixel format and the name associated with the desktop.
  */
 
-typedef struct {
+typedef struct _rfbServerInitMsg {
     CARD16 framebufferWidth;
     CARD16 framebufferHeight;
     rfbPixelFormat format;	/* the server's preferred pixel format */
@@ -346,7 +346,7 @@ typedef struct {
  * with alignment of 32-bit pixels):
  */
 
-typedef struct {
+typedef struct _rfbFramebufferUpdateMsg {
     CARD8 type;			/* always rfbFramebufferUpdate */
     CARD8 pad;
     CARD16 nRects;
@@ -363,7 +363,7 @@ typedef struct {
  * Also note again that this structure is a multiple of 4 bytes.
  */
 
-typedef struct {
+typedef struct _rfbFramebufferUpdateRectHeader {
     rfbRectangle r;
     CARD32 encoding;	/* one of the encoding types rfbEncoding... */
 } rfbFramebufferUpdateRectHeader;
@@ -382,7 +382,7 @@ typedef struct {
  * of the source rectangle.
  */
 
-typedef struct {
+typedef struct _rfbCopyRect {
     CARD16 srcX;
     CARD16 srcY;
 } rfbCopyRect;
@@ -397,7 +397,7 @@ typedef struct {
  * [<pixel><rfbRectangle>].
  */
 
-typedef struct {
+typedef struct _rfbRREHeader {
     CARD32 nSubrects;
 } rfbRREHeader;
 
@@ -412,7 +412,7 @@ typedef struct {
  * the whole rectangle must be at most 255x255 pixels.
  */
 
-typedef struct {
+typedef struct _rfbCoRRERectangle {
     CARD8 x;
     CARD8 y;
     CARD8 w;
@@ -480,7 +480,7 @@ typedef struct {
  * zlib compressed format.
  */
 
-typedef struct {
+typedef struct _rfbZlibHeader {
     CARD32 nBytes;
 } rfbZlibHeader;
 
@@ -535,7 +535,7 @@ typedef struct {
  * should be hidden (or default local cursor should be set by the client).
  */
 
-typedef struct {
+typedef struct _rfbXCursorColors {
     CARD8 foreRed;
     CARD8 foreGreen;
     CARD8 foreBlue;
@@ -570,7 +570,7 @@ typedef struct {
  * trueColour then it never needs to process this type of message.
  */
 
-typedef struct {
+typedef struct _rfbSetColourMapEntriesMsg {
     CARD8 type;			/* always rfbSetColourMapEntries */
     CARD8 pad;
     CARD16 firstColour;
@@ -589,7 +589,7 @@ typedef struct {
  * Bell - ring a bell on the client if it has one.
  */
 
-typedef struct {
+typedef struct _rfbBellMsg {
     CARD8 type;			/* always rfbBell */
 } rfbBellMsg;
 
@@ -601,7 +601,7 @@ typedef struct {
  * ServerCutText - the server has new text in its cut buffer.
  */
 
-typedef struct {
+typedef struct _rfbServerCutTextMsg {
     CARD8 type;			/* always rfbServerCutText */
     CARD8 pad1;
     CARD16 pad2;
@@ -616,7 +616,7 @@ typedef struct {
  * Union of all server->client messages.
  */
 
-typedef union {
+typedef union _rfbServerToClientMsg {
     CARD8 type;
     rfbFramebufferUpdateMsg fu;
     rfbSetColourMapEntriesMsg scme;
@@ -638,7 +638,7 @@ typedef union {
  * pixels sent.
  */
 
-typedef struct {
+typedef struct _rfbSetPixelFormatMsg {
     CARD8 type;			/* always rfbSetPixelFormat */
     CARD8 pad1;
     CARD16 pad2;
@@ -655,7 +655,7 @@ typedef struct {
  *    ***************** NOT CURRENTLY SUPPORTED *****************
  */
 
-typedef struct {
+typedef struct _rfbFixColourMapEntriesMsg {
     CARD8 type;			/* always rfbFixColourMapEntries */
     CARD8 pad;
     CARD16 firstColour;
@@ -675,7 +675,7 @@ typedef struct {
  * encoding, even if we don't specify it here.
  */
 
-typedef struct {
+typedef struct _rfbSetEncodingsMsg {
     CARD8 type;			/* always rfbSetEncodings */
     CARD8 pad;
     CARD16 nEncodings;
@@ -691,7 +691,7 @@ typedef struct {
  * false then it wants the whole of the specified rectangle.
  */
 
-typedef struct {
+typedef struct _rfbFramebufferUpdateRequestMsg {
     CARD8 type;			/* always rfbFramebufferUpdateRequest */
     CARD8 incremental;
     CARD16 x;
@@ -734,7 +734,7 @@ typedef struct {
  * Alt			0xffe9
  */
 
-typedef struct {
+typedef struct _rfbKeyEventMsg {
     CARD8 type;			/* always rfbKeyEvent */
     CARD8 down;			/* true if down (press), false if up */
     CARD16 pad;
@@ -748,7 +748,7 @@ typedef struct {
  * PointerEvent - mouse/pen move and/or button press.
  */
 
-typedef struct {
+typedef struct _rfbPointerEventMsg {
     CARD8 type;			/* always rfbPointerEvent */
     CARD8 buttonMask;		/* bits 0-7 are buttons 1-8, 0=up, 1=down */
     CARD16 x;
@@ -769,7 +769,7 @@ typedef struct {
  * ClientCutText - the client has new text in its cut buffer.
  */
 
-typedef struct {
+typedef struct _rfbClientCutTextMsg {
     CARD8 type;			/* always rfbClientCutText */
     CARD8 pad1;
     CARD16 pad2;
@@ -785,7 +785,7 @@ typedef struct {
  * Union of all client->server messages.
  */
 
-typedef union {
+typedef union _rfbClientToServerMsg {
     CARD8 type;
     rfbSetPixelFormatMsg spf;
     rfbFixColourMapEntriesMsg fcme;

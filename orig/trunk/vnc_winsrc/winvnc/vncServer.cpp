@@ -123,6 +123,9 @@ vncServer::vncServer()
 	m_cursor_pos.x = 0;
 	m_cursor_pos.y = 0;
 
+	// initialize
+	m_enable_file_transfers = FALSE ; 
+
 #ifdef HORIZONLIVE
 	m_full_screen = FALSE;
 	m_WindowShared= TRUE;
@@ -131,7 +134,6 @@ vncServer::vncServer()
 	m_local_input_priority = TRUE;
 	m_remote_mouse = 1;
 	m_remote_keyboard = 1;
-	strcpy(m_LiveShareKey," ");
 #endif
 }
 
@@ -1022,7 +1024,6 @@ vncServer::SockConnect(BOOL On)
 	{
 		// *** JNW - Trying to fix up a lock-up when the listening socket closes
 #ifndef HORIZONLIVE
-	
 		KillAuthClients();
 		KillUnauthClients();
 		WaitUntilAuthEmpty();

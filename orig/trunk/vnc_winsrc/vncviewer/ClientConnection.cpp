@@ -865,7 +865,7 @@ void ClientConnection::ReadHandshakingCaps()
 
 //
 // In the protocol version 3.130, the server informs us about supported
-// protocol messages. Here we read this information.
+// protocol messages and encodings. Here we read this information.
 //
 
 void ClientConnection::ReadInteractionCaps()

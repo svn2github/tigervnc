@@ -1887,8 +1887,8 @@ FileTransfer::ClearFTButtons()
 	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_SERVERRENAME), FALSE);
 	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_CLIENTDELETE), FALSE);
 	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_SERVERDELETE), FALSE);
-	SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
-	EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), FALSE);
+	SetWindowText(GetDlgItem(m_hwndFileTransfer, IDC_FTCOPY), noactionText);
+	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCOPY), FALSE);
 }
 
 void

@@ -748,6 +748,13 @@ class vncCanvas extends Canvas
     if (width * height == 0)
       return;
 
+    // Ignore cursor shape data if requested by user.
+
+    if (v.options.ignoreCursorUpdates) {
+      rfb.is.skipBytes(width * height + bytesMaskData);
+      return;
+    }
+
     // Read cursor pixel data.
 
     rcSource = new byte[width * height];

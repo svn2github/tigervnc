@@ -1219,6 +1219,22 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 					return 0;
 				}
 			break;
+		case WM_KILLFOCUS:
+			CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
+								  ID_CONN_ALTDOWN, MF_BYCOMMAND|MF_UNCHECKED);
+			SendMessage(_this->hToolBar,TB_SETSTATE,(WPARAM)ID_CONN_ALTDOWN,
+								(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
+			CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
+									ID_CONN_CTLDOWN, MF_BYCOMMAND|MF_UNCHECKED);
+			SendMessage(_this->hToolBar,TB_SETSTATE,(WPARAM)ID_CONN_CTLDOWN,
+								(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
+			_this->SendKeyEvent(XK_Alt_L,     false);
+			_this->SendKeyEvent(XK_Control_L, false);
+			_this->SendKeyEvent(XK_Shift_L,   false);
+			_this->SendKeyEvent(XK_Alt_R,     false);
+			_this->SendKeyEvent(XK_Control_R, false);
+			_this->SendKeyEvent(XK_Shift_R,   false);
+			return 0;
 		case WM_GETMINMAXINFO:
 			RECT workrect;
 			RECT rtb;

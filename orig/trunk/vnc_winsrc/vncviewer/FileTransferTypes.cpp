@@ -40,5 +40,5 @@ Time70ToFiletime(unsigned int time70, FILETIME *pftime)
 {
     LONGLONG ll = Int32x32To64(time70, 10000000) + 116444736000000000;
     pftime->dwLowDateTime = (DWORD) ll;
-    pftime->dwHighDateTime = (ll >> 32);
+    pftime->dwHighDateTime = (DWORD) (ll >> 32);
 }

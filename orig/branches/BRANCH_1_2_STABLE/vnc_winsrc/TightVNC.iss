@@ -60,8 +60,8 @@ Name: "{group}\Documentation\What's New (Summary)";   FileName: "{app}\Web\Whats
 
 [Tasks]
 Name: associate; Description: "&Associate .vnc files with TightVNC Viewer"; GroupDescription: "File associations:"; Components: viewer
-Name: installservice; Description: "&Register TightVNC Server as a system service"; GroupDescription: "Server configuration:"; Components: server
-Name: startservice; Description: "&Start or restart TightVNC service"; GroupDescription: "Server configuration:"; Components: server; MinVersion: 0,1
+Name: installservice; Description: "&Register TightVNC Server as a system service"; GroupDescription: "Server configuration:"; Components: server; Flags: unchecked
+Name: startservice; Description: "&Start or restart TightVNC service"; GroupDescription: "Server configuration:"; Components: server; Flags: unchecked; MinVersion: 0,1
 
 [Registry]
 Root: HKCR; Subkey: ".vnc"; ValueType: string; ValueName: ""; ValueData: "VncViewer.Config"; Flags: uninsdeletevalue; Tasks: associate

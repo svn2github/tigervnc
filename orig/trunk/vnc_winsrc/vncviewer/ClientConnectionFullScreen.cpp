@@ -131,7 +131,7 @@ DisableButton::DisableButton(VNCviewerApp *pApp, ClientConnection * CConn)
 	m_pApp = pApp;
 	m_CConn = CConn;
 	m_ButtonDown = FALSE;
-	m_ButtonUp = TRUE;
+	m_hOldCap = NULL;
 
 	//Creating button window.
 	WNDCLASSEX wcex;
@@ -184,7 +184,7 @@ DisableButton::DisableButton(VNCviewerApp *pApp, ClientConnection * CConn)
 void DisableButton::ShowButton(BOOL show)
 {
 	if (show) {
-		ShowWindow(m_hwndButton, SW_SHOW);
+		ShowWindow(m_hwndButton, SW_SHOWNA);
 	} else {
 		ShowWindow(m_hwndButton, SW_HIDE);
 	}
@@ -207,8 +207,6 @@ LRESULT CALLBACK DisableButton::DisableProc(HWND hwnd, UINT iMsg,
 		}
 		break; 
 	case WM_MOUSEMOVE:
-		_this->m_ButtonDown = FALSE;
-		if (!_this->m_ButtonUp)
 		{
 			POINTS ptsMousePoint=MAKEPOINTS(lParam);
 			POINT ptMousePoint;
@@ -217,36 +215,40 @@ LRESULT CALLBACK DisableButton::DisableProc(HWND hwnd, UINT iMsg,
 			ClientToScreen(hwnd,&ptMousePoint);
 			RECT wrect;
 			GetWindowRect(hwnd, &wrect);
-			POINT newpos;
-			newpos.x = wrect.left - (_this->m_MousePoint.x - ptMousePoint.x);
-			newpos.y = wrect.top - (_this->m_MousePoint.y - ptMousePoint.y);
-			if (newpos.x != wrect.left || newpos.y != wrect.top)
-				MoveWindow(hwnd,newpos.x, newpos.y, 24,24, TRUE);
-			_this->m_MousePoint.x = ptMousePoint.x;
-			_this->m_MousePoint.y = ptMousePoint.y;
+			HWND hOld = GetCapture();
+			if (hOld != hwnd) {
+				_this->m_hOldCap = hOld;
+				GetClipCursor(&_this->m_rectOldCur);
+				SetCapture(hwnd);
+			} else if (!PtInRect(&wrect, ptMousePoint)) {
+				SetCapture(_this->m_hOldCap);
+				ClipCursor(&_this->m_rectOldCur);
+			}
+			
+			if (_this->m_ButtonDown)
+			{				
+				POINT newpos;
+				newpos.x = wrect.left - (_this->m_MousePoint.x - ptMousePoint.x);
+				newpos.y = wrect.top - (_this->m_MousePoint.y - ptMousePoint.y);
+				if (newpos.x != wrect.left || newpos.y != wrect.top)
+					MoveWindow(hwnd,newpos.x, newpos.y, 24,24, TRUE);
+				_this->m_MousePoint.x = ptMousePoint.x;
+				_this->m_MousePoint.y = ptMousePoint.y;
+			}
 		}
 		break;
 	case WM_LBUTTONDBLCLK:
 		_this->m_CConn->SetFullScreenMode(false);
-		_this->m_ButtonDown = FALSE;
 		break;
 	case WM_LBUTTONDOWN:
-		_this->m_ButtonUp = FALSE;
 		_this->m_ButtonDown = TRUE;
-		SetCapture(hwnd);
 		POINTS ptsMousePoint = MAKEPOINTS(lParam);
 		_this->m_MousePoint.x = ptsMousePoint.x;
 		_this->m_MousePoint.y = ptsMousePoint.y;
 		ClientToScreen(hwnd,&_this->m_MousePoint);
 		break;	
 	case WM_LBUTTONUP:
-		if (!_this->m_ButtonDown) {
-			ReleaseCapture();
-			ClipCursor(NULL);
-		} else {
-			_this->m_ButtonDown = FALSE;
-		}
-		_this->m_ButtonUp = TRUE;
+		_this->m_ButtonDown = FALSE;
 		break;
 	case WM_DESTROY: 
 		// Destroy compatible bitmap, 

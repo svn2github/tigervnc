@@ -431,11 +431,12 @@ protected:
 	VNCviewerApp *m_pApp;
 	ClientConnection * m_CConn;
 	HWND m_hwndButton;
+	HWND m_hOldCap;
 	POINT m_MousePoint;
 	HDC m_hdcCompat;
 	HBITMAP m_hbmp;
 	BOOL m_ButtonDown;
-	BOOL m_ButtonUp;
+	RECT m_rectOldCur;
 };
 
 // Colour decoding utility functions

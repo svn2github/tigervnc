@@ -176,6 +176,10 @@ SOURCE=.\FileTransferItemInfo.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\GracePeriod.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\IncomingConnectionsControls.cpp
 # End Source File
 # Begin Source File
@@ -441,6 +445,10 @@ SOURCE=.\d3des.h
 # Begin Source File
 
 SOURCE=.\FileTransferItemInfo.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\GracePeriod.h
 # End Source File
 # Begin Source File
 

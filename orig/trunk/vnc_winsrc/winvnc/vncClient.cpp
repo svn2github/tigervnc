@@ -2000,13 +2000,12 @@ vncClient::SendUpdate()
   }
   
   toBeSent.Clear();
-  if (!m_full_rgn.IsEmpty())	{
+  if (!m_full_rgn.IsEmpty()) {
     m_incr_rgn.Clear();
     m_copyrect_set = false;
-    toBeSent.Combine(m_full_rgn);	
+    toBeSent.Combine(m_full_rgn);
     m_changed_rgn.Clear();
     m_full_rgn.Clear();
-    
   } else {
     if (!m_incr_rgn.IsEmpty()) {
       // Get region to send from vncDesktop
@@ -2014,17 +2013,26 @@ vncClient::SendUpdate()
       
       // Mouse stuff for the case when cursor shape updates are off
       if (!m_cursor_update_sent && !m_cursor_update_pending) {
+        // If the mouse hasn't moved, see if its position is in the rect
+        // we're sending. If so, make sure the full mouse rect is sent.
         if (!m_mousemoved) {
           vncRegion tmpMouseRgn;
           tmpMouseRgn.AddRect(m_oldmousepos);
           tmpMouseRgn.Intersect(toBeSent);
           if (!tmpMouseRgn.IsEmpty()) 
-            m_mousemoved = true;
+            m_mousemoved = TRUE;
         }
+        // If the mouse has moved (or otherwise needs an update):
         if (m_mousemoved) {
-          m_oldmousepos = m_buffer->GrabMouse();
+          // Include an update for its previous position
           if (IntersectRect(&m_oldmousepos, &m_oldmousepos, &m_server->GetSharedRect())) 
             toBeSent.AddRect(m_oldmousepos);
+          // Update the cached mouse position
+          m_oldmousepos = m_buffer->GrabMouse();
+          // Include an update for its current position
+          if (IntersectRect(&m_oldmousepos, &m_oldmousepos, &m_server->GetSharedRect())) 
+            toBeSent.AddRect(m_oldmousepos);
+          // Indicate the move has been handled
           m_mousemoved = FALSE;
         }
       }
@@ -2043,7 +2051,7 @@ vncClient::SendUpdate()
     {
       numsubrects = m_buffer->GetNumCodedRects(*i);
       
-      // Skip rest rectangles if an encoder will use LastRect extension.
+      // Skip remaining rectangles if an encoder will use LastRect extension.
       if (numsubrects == 0) {
         numrects = 0xFFFF;
         break;

@@ -112,18 +112,18 @@ BEGIN
     GROUPBOX        "Misc",IDC_STATIC,7,119,123,43
     GROUPBOX        "Mouse",IDC_STATIC,139,7,155,37
     GROUPBOX        "Display",IDC_STATIC,139,102,155,60
-    LTEXT           "Use encoding",IDC_STATIC,15,20,45,12
-    LTEXT           "%",IDC_STATIC,237,149,10,8
-    LTEXT           "fast",IDC_STATIC,22,66,15,8
-    LTEXT           "best",IDC_STATIC,103,66,14,8
-    LTEXT           "poor",IDC_STATIC,22,99,15,8
-    LTEXT           "best",IDC_STATIC,103,99,15,8
-    LTEXT           "level:",IDC_STATIC,49,66,16,8
-    LTEXT           "quality:",IDC_STATIC,48,99,23,8
+    LTEXT           "Use encoding",IDC_STATIC_ENCODING,15,20,45,12
+    LTEXT           "%",IDC_STATIC_P,237,149,10,8
+    LTEXT           "fast",IDC_STATIC_FAST,22,66,15,8
+    LTEXT           "best",IDC_STATIC_BEST,103,66,14,8
+    LTEXT           "poor",IDC_STATIC_POOR,22,99,15,8
+    LTEXT           "best",IDC_STATIC_QBEST,103,99,15,8
+    LTEXT           "level:",IDC_STATIC_TEXT_LEVEL,49,66,16,8
+    LTEXT           "quality:",IDC_STATIC_TEXT_QUALITY,48,99,23,8
     CONTROL         "1",IDC_STATIC_LEVEL,"Static",SS_SIMPLE | WS_GROUP,70,66,
                     9,8
     LTEXT           "1",IDC_STATIC_QUALITY,73,99,11,8
-    LTEXT           "Scale:",IDC_STATIC,167,147,20,10
+    LTEXT           "Scale:",IDC_STATIC_SCALE,167,147,20,10
 END
 
 IDD_FTBROWSE_DLG DIALOGEX 0, 0, 164, 215
@@ -189,7 +189,7 @@ BEGIN
     PUSHBUTTON      "&Options...",IDC_OPTIONBUTTON,189,25,57,14
     PUSHBUTTON      "Cancel",IDCANCEL,189,43,57,14
     PUSHBUTTON      "&Listening mode",IDC_LIST_MODE,189,64,57,14
-    LTEXT           "VNC server:",IDC_STATIC,7,9,39,8
+    LTEXT           "VNC server:",IDC_STATIC_SERVER,7,9,39,8
     GROUPBOX        "Connection profile",IDC_CONN_PROF,51,24,129,54
     CONTROL         108,IDC_STATIC,"Static",SS_BITMAP,9,28,32,30
 END
@@ -233,15 +233,16 @@ BEGIN
                     ES_NUMBER
     PUSHBUTTON      "Clear the list of connections",IDC_BUTTON_CLEAR_LIST,
                     183,40,97,15
-    LTEXT           "Amount of connections in the list",IDC_STATIC,17,43,108,
-                    9
+    LTEXT           "Amount of connections in the list",IDC_STATIC_LIST,17,
+                    43,108,9
     CHECKBOX        "Log to file",IDC_CHECK_LOG_FILE,17,74,45,11
     EDITTEXT        IDC_EDIT_LOG_FILE,95,86,96,15,ES_AUTOHSCROLL
     GROUPBOX        "Interface options",IDC_STATIC,7,7,289,54
     GROUPBOX        "Logging",IDC_STATIC,7,62,289,45
-    LTEXT           "Name log file (full path):",IDC_STATIC,17,90,77,8
+    LTEXT           "Name log file (full path):",IDC_STATIC_LOG_FILE,17,90,
+                    77,8
     EDITTEXT        IDC_EDIT_LOG_LEVEL,235,87,23,14,ES_AUTOHSCROLL
-    LTEXT           "Log level:",IDC_STATIC,199,89,35,8
+    LTEXT           "Log level:",IDC_STATIC_LOG_LEVEL,199,89,35,8
     CONTROL         "Spin1",IDC_SPIN1,"msctls_updown32",UDS_ALIGNRIGHT | 
                     UDS_ARROWKEYS,165,41,11,13
     CONTROL         "Spin2",IDC_SPIN2,"msctls_updown32",UDS_ALIGNRIGHT | 
@@ -256,10 +257,10 @@ BEGIN
     GROUPBOX        "Listen mode",IDC_STATIC,7,135,289,27
     EDITTEXT        IDC_LISTEN_PORT,134,143,50,15,ES_AUTOHSCROLL | ES_NUMBER | 
                     WS_GROUP
-    LTEXT           "Port for listen  reverse connections:",IDC_STATIC,17,
-                    146,113,10
+    LTEXT           "Port for listen  reverse connections:",IDC_STATIC_PORT,
+                    17,146,113,10
     CONTROL         "Spin3",IDC_SPIN3,"msctls_updown32",UDS_ALIGNRIGHT | 
-                    UDS_ARROWKEYS,189,143,11,14
+                    UDS_ARROWKEYS,189,147,11,14
 END
 
 IDD_HELP DIALOG DISCARDABLE  0, 0, 224, 170
@@ -594,6 +595,8 @@ BEGIN
     IDC_SHARED              "Request shared session"
     IDC_ENCODING            "Encoding refers to the representation of graphics sent over the network. Encodings differ at the required bandwidth and CPU usage. Use Hextile encoding on fast networks, and Tight over slow connections. Raw encoding means no compression at all."
     IDC_SCALE_EDIT          "Scaling"
+    IDC_DOTCURSOR_RADIO     "Dotcursor"
+    IDC_NOCURSOR_RADIO      "Nocursor"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -624,7 +627,13 @@ STRINGTABLE DISCARDABLE
 BEGIN
     IDC_TAB                 "Property Sheet"
     IDC_LOAD                "Load connection info from a file, assuming it was saved earlier by choosing ""Save connection info as..."" in the viewer's system menu."
+    IDC_LISTEN_PORT         "Listen port"
     IDC_CONN_PROF           "Choosing a connection profile allows you to select connection  options suitable for a particular network environment."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDC_NORMALCURSOR_RADIO  "Normalcursor"
 END
 
 #endif    // English (U.S.) resources

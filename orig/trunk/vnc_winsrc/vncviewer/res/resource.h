@@ -118,8 +118,22 @@
 #define IDC_CONN_PROF                   1095
 #define IDC_BUTTON4                     1096
 #define IDC_CLIENTRELOAD                1096
+#define IDC_STATIC_TEXT_LEVEL           1096
 #define IDC_BUTTON5                     1097
 #define IDC_CLIENTUP                    1097
+#define IDC_STATIC_FAST                 1097
+#define IDC_STATIC_BEST                 1098
+#define IDC_STATIC_TEXT_QUALITY         1099
+#define IDC_STATIC_QBEST                1100
+#define IDC_STATIC_POOR                 1101
+#define IDC_STATIC_ENCODING             1102
+#define IDC_STATIC_SCALE                1103
+#define IDC_STATIC_P                    1104
+#define IDC_STATIC_SERVER               1105
+#define IDC_STATIC_LIST                 1106
+#define IDC_STATIC_LOG_FILE             1107
+#define IDC_STATIC_LOG_LEVEL            1108
+#define IDC_STATIC_PORT                 1109
 #define ID_SESSION_SET_CRECT            32777
 #define IDC_ALLOW_COMPRESSLEVEL         32778
 #define IDC_ALLOW_JPEG                  32779
@@ -137,7 +151,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        244
 #define _APS_NEXT_COMMAND_VALUE         40011
-#define _APS_NEXT_CONTROL_VALUE         1096
+#define _APS_NEXT_CONTROL_VALUE         1110
 #define _APS_NEXT_SYMED_VALUE           154
 #endif
 #endif

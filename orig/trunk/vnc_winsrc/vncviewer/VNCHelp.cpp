@@ -40,6 +40,43 @@ void VNCHelp::Popup(LPARAM lParam)
 		popup.pt.x = -1;
 		popup.pt.y = -1;
 
+		switch  (hlp->iCtrlId) {
+		case IDC_STATIC_LEVEL:
+		case IDC_STATIC_TEXT_LEVEL:
+		case IDC_STATIC_FAST:
+		case IDC_STATIC_BEST:
+			popup.idString = IDC_COMPRESSLEVEL;
+			break;
+		case IDC_STATIC_QUALITY:
+		case IDC_STATIC_TEXT_QUALITY:
+		case IDC_STATIC_POOR:
+		case IDC_STATIC_QBEST:
+			popup.idString = IDC_QUALITYLEVEL;
+			break;
+		case IDC_STATIC_ENCODING:
+			popup.idString = IDC_ENCODING;
+			break;
+		case IDC_STATIC_SCALE:
+		case IDC_STATIC_P:
+			popup.idString = IDC_SCALE_EDIT;
+			break;
+		case IDC_STATIC_SERVER:
+			popup.idString = IDC_HOSTNAME_EDIT;
+			break;
+		case IDC_STATIC_LIST:
+			popup.idString = IDC_EDIT_AMOUNT_LIST;
+			break;
+		case IDC_STATIC_LOG_FILE:
+			popup.idString = IDC_EDIT_LOG_FILE;
+			break;
+		case IDC_STATIC_LOG_LEVEL:
+			popup.idString = IDC_EDIT_LOG_LEVEL;
+			break;
+		case IDC_STATIC_PORT:
+			popup.idString = IDC_LISTEN_PORT;
+			break;
+		}
+
 		HtmlHelp((HWND)hlp->hItemHandle,
 					NULL,
 					HH_DISPLAY_TEXT_POPUP,

@@ -195,9 +195,9 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 				_this->m_pOpt->m_UseEnc[3] = false;
 				_this->m_pOpt->m_PreferredEncoding = rfbEncodingTight - 2;
 				_this->m_pOpt->m_useCompressLevel = false;
-				_this->m_pOpt->m_compressLevel = 1;
+				_this->m_pOpt->m_compressLevel = 6;
 				_this->m_pOpt->m_enableJpegCompression = false;
-				_this->m_pOpt->m_jpegQualityLevel = 1;
+				_this->m_pOpt->m_jpegQualityLevel = 6;
 					
 				return TRUE;						
 			}				

@@ -350,6 +350,7 @@ private:
 	int m_cliwidth, m_cliheight;
 	// The size of a window needed to hold entire screen without scrollbars
 	int m_fullwinwidth, m_fullwinheight;
+	int m_winwidth, m_winheight;	
 	// The size of the CE CommandBar
 	int m_barheight;
 

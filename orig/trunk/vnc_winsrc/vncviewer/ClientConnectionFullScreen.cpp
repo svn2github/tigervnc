@@ -79,7 +79,7 @@ void ClientConnection::RealiseFullScreenMode(bool suppressPrompt)
 		
 		SetWindowLong(m_hwnd1, GWL_STYLE, style);
 		SetWindowPos(m_hwnd1, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-		ShowWindow(m_hwnd1, SW_NORMAL);
+		ShowWindow(m_hwnd1, SW_NORMAL);		
 		CheckMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_FULLSCREEN, MF_BYCOMMAND|MF_UNCHECKED);
 
 	}

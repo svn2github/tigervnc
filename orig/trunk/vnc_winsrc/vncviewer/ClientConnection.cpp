@@ -605,7 +605,7 @@ HWND ClientConnection::CreateToolbar()
 	assert(numButtons <= MAX_TOOLBAR_BUTTONS);
 
 	return CreateToolbarEx(m_hwnd1,
-		WS_CHILD | WS_MAXIMIZE | WS_DLGFRAME | TBSTYLE_TOOLTIPS |
+		WS_CHILD | TBSTYLE_TOOLTIPS |
 		WS_CLIPSIBLINGS | TBSTYLE_FLAT,
 		ID_TOOLBAR, 12, m_pApp->m_instance,
 		IDB_BITMAP1, but, numButtons, 0, 0, 0, 0, sizeof(TBBUTTON));
@@ -1491,31 +1491,50 @@ void ClientConnection::SizeWindow(bool centered)
 		fullwinrect.bottom = fullwinrect.bottom + rtb.bottom - rtb.top - 3;
 	}
 
-	int winwidth  = min(fullwinrect.right - fullwinrect.left,  workwidth);
-	int winheight = min(fullwinrect.bottom - fullwinrect.top, workheight);
+	m_winwidth  = min(fullwinrect.right - fullwinrect.left,  workwidth);
+	m_winheight = min(fullwinrect.bottom - fullwinrect.top, workheight);
 
 	int x,y;
-	
+	WINDOWPLACEMENT winplace;
+	GetWindowPlacement(m_hwnd1, &winplace);
 	if (centered) {
-		x = (workwidth - winwidth) / 2;		
-		y = (workheight - winheight) / 2;		
+		x = (workwidth - m_winwidth) / 2;		
+		y = (workheight - m_winheight) / 2;		
 	} else {
 		// Try to preserve current position if possible
-		RECT tmprect;
-		if (GetWindowRect(m_hwnd1, &tmprect)) {
+		GetWindowPlacement(m_hwnd1, &winplace);
+		if ((winplace.showCmd == SW_SHOWMAXIMIZED) || (winplace.showCmd == SW_SHOWMINIMIZED)) {
+			x = winplace.rcNormalPosition.left;
+			y = winplace.rcNormalPosition.top;
+		} else {
+			RECT tmprect;
+			GetWindowRect(m_hwnd1, &tmprect);
 			x = tmprect.left;
 			y = tmprect.top;
-			if (x + winwidth > workrect.right)
-				x = workrect.right - winwidth;
-			if (y + winheight > workrect.bottom)
-				y = workrect.bottom - winheight;
 		}
-	}	
-	SetWindowPos(m_hwnd1, HWND_TOP, x, y, winwidth, winheight,
-				SWP_SHOWWINDOW);
-	
+		if (x + m_winwidth > workrect.right)
+			x = workrect.right - m_winwidth;
+		if (y + m_winheight > workrect.bottom)
+			y = workrect.bottom - m_winheight;
+	}
+	winplace.rcNormalPosition.top = y;
+	winplace.rcNormalPosition.left = x;
+	winplace.rcNormalPosition.right = x + m_winwidth;
+	winplace.rcNormalPosition.bottom = y + m_winheight;
+	SetWindowPlacement(m_hwnd1, &winplace);
+	switch (winplace.showCmd) {
+	case SW_SHOWNORMAL:
+		SetWindowPos(m_hwnd1, HWND_TOP, x, y, m_winwidth, m_winheight,
+					SWP_SHOWWINDOW);
+		break;	
+	case  SW_SHOWMAXIMIZED:
+		ShowWindow(m_hwnd1, SW_MAXIMIZE);
+		break;
+	case SW_SHOWMINIMIZED:
+		ShowWindow(m_hwnd1, SW_SHOWNORMAL);
+		break;
+	}
 	SetForegroundWindow(m_hwnd1);
-
 	PositionChildWindow();
 }
 
@@ -1987,7 +2006,7 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 		case SC_MINIMIZE:
 			_this->SetDormant(true);
 			break;
-		case SC_RESTORE:
+		case SC_RESTORE:			
 			_this->SetDormant(false);
 			break;
 		case ID_NEWCONN:
@@ -2004,12 +2023,8 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 			} else {
 				CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
 					ID_TOOLBAR, MF_BYCOMMAND|MF_CHECKED);
-			}
-			if (GetWindowLong(hwnd, GWL_STYLE) & WS_MAXIMIZE) {
-				_this->PositionChildWindow();
-			} else {
-				_this->SizeWindow(false);
-			}
+			}			
+			_this->SizeWindow(false);			
 			return 0;
 		case ID_CONN_SAVE_AS:			
 			_this->SaveConnection();
@@ -2028,8 +2043,6 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 						// Resize the window if scaling factors were changed
 						_this->SizeWindow(false);
 						InvalidateRect(_this->m_hwnd, NULL, FALSE);
-						// Make the window correspond to the requested state
-						_this->RealiseFullScreenMode(true);
 					}
 				}
 				

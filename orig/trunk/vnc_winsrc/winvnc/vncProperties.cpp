@@ -548,7 +548,7 @@ BOOL CALLBACK vncProperties::IncomingDlgProc(HWND hwnd, UINT uMsg,
 		case IDC_PORTNO_AUTO:
 		case IDC_SPECDISPLAY:
 		case IDC_SPECPORT:
-			_this->m_incConnCtrl->Validate();
+			_this->m_incConnCtrl->Validate(FALSE);
 			return TRUE;      
 		case IDC_APPLY:
 			_this->m_incConnCtrl->Apply();

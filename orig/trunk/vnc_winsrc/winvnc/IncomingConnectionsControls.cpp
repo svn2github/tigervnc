@@ -16,7 +16,7 @@ IncomingConnectionsControls::IncomingConnectionsControls(HWND hwnd, vncServer *s
 	Init();
 }
 
-void IncomingConnectionsControls::Validate()
+void IncomingConnectionsControls::Validate(BOOL init)
 {
 	BOOL bAccept = IsChecked(IDC_CONNECT_SOCK);
 	BOOL bAuto = IsChecked(IDC_PORTNO_AUTO);
@@ -30,23 +30,12 @@ void IncomingConnectionsControls::Validate()
 	Enable(IDC_SPECDISPLAY, bAccept);
 	Enable(IDC_SPECPORT, bAccept);
 		
-	if (bAuto) {
+	if (bAuto && !init) {
 		SetDlgItemText(m_hwnd, IDC_PORTRFB, "");
 		SetDlgItemText(m_hwnd, IDC_PORTHTTP, "");
 		SetDlgItemText(m_hwnd, IDC_DISPLAYNO, "");
 	} else {
-		UINT port_rfb = m_server->GetPort();
-		UINT port_http = m_server->GetHttpPort();
-		int d1 = PORT_TO_DISPLAY(port_rfb);
-		int d2 = HPORT_TO_DISPLAY(port_http);
-		BOOL bValidDisplay = (d1 == d2 && d1 >= 0 && d1 <= 99);
-		if (bValidDisplay) {
-			SetDlgItemInt(m_hwnd, IDC_DISPLAYNO, d1, FALSE);
-		} else {
-			SetDlgItemText(m_hwnd, IDC_DISPLAYNO, "");
-		}
-		SetDlgItemInt(m_hwnd, IDC_PORTRFB, port_rfb, FALSE);
-		SetDlgItemInt(m_hwnd, IDC_PORTHTTP, port_http, FALSE);
+		InitPortSettings();
 	}
 	Enable(IDC_DISPLAY_LABEL, bAccept && bDisplay);
 	Enable(IDC_DISPLAYNO, bAccept && bDisplay);	
@@ -134,6 +123,8 @@ void IncomingConnectionsControls::Apply()
 	
 	// Enabling/disabling file transfers
 	m_server->EnableFileTransfers(IsChecked(IDC_ENABLE_FILE_TRANSFERS));
+	
+	InitPortSettings();
 }
 
 void IncomingConnectionsControls::Init()
@@ -165,8 +156,25 @@ void IncomingConnectionsControls::Init()
 
 	SetFocus(GetDlgItem(m_hwnd, IDC_CONNECT_SOCK));
 	
-	Validate();
+	Validate(TRUE);
 }
+
+void IncomingConnectionsControls::InitPortSettings()
+{
+	UINT port_rfb = m_server->GetPort();
+	UINT port_http = m_server->GetHttpPort();
+	int d1 = PORT_TO_DISPLAY(port_rfb);
+	int d2 = HPORT_TO_DISPLAY(port_http);
+	BOOL bValidDisplay = (d1 == d2 && d1 >= 0 && d1 <= 99);
+	if (bValidDisplay) {
+		SetDlgItemInt(m_hwnd, IDC_DISPLAYNO, d1, FALSE);
+	} else {
+		SetDlgItemText(m_hwnd, IDC_DISPLAYNO, "");
+	}
+	SetDlgItemInt(m_hwnd, IDC_PORTRFB, port_rfb, FALSE);
+	SetDlgItemInt(m_hwnd, IDC_PORTHTTP, port_http, FALSE);
+}
+
 IncomingConnectionsControls::~IncomingConnectionsControls()
 {
 	

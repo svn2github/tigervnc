@@ -468,8 +468,13 @@ class vncCanvas extends Canvas
       filter_id = rfb.is.readUnsignedByte();
       if (filter_id == rfb.TightFilterPalette) {
         numColors = rfb.is.readUnsignedByte() + 1; // Must be 2.
+        if (numColors != 2) {
+          throw new IOException("Incorrect tight palette size: " + numColors);
+        }
         palette[0] = rfb.is.readByte();
         palette[1] = rfb.is.readByte();
+      } else if (filter_id != TightFilterCopy) {
+        throw new IOException("Incorrect tight filter id: " + filter_id);
       }
     }
 
@@ -480,10 +485,10 @@ class vncCanvas extends Canvas
       // Handle bi-color rectangles.
 
       int rowSize = (w + 7) / 8;
-      int bicolorDataSize = h * rowSize;
-      byte[] bicolorData = new byte[bicolorDataSize];
-      if (bicolorDataSize < rfb.TightMinToCompress) {
-        rfb.is.readFully(bicolorData, 0, bicolorDataSize);
+      int bicolorDataLen = h * rowSize;
+      byte[] bicolorData = new byte[bicolorDataLen];
+      if (bicolorDataLen < rfb.TightMinToCompress) {
+        rfb.is.readFully(bicolorData, 0, bicolorDataLen);
       } else {
         int compressedDataLen = rfb.readCompactLen();
         byte[] compressedData = new byte[compressedDataLen];
@@ -495,8 +500,7 @@ class vncCanvas extends Canvas
         tightInflaters[stream_id].setInput(compressedData, 0,
                                            compressedDataLen);
         try {
-          tightInflaters[stream_id].inflate(bicolorData, 0,
-                                            bicolorDataSize);
+          tightInflaters[stream_id].inflate(bicolorData, 0, bicolorDataLen);
         }
         catch(DataFormatException dfe) {
           throw new IOException(dfe.toString());

@@ -80,7 +80,7 @@ is the full list of parameters supported in TightVNC Java viewer:
     This parameter has higher priority over the "PASSWORD" parameter. DO NOT
     EVER USE THIS PARAMETER, unless you really know what you are doing. It's
     extremely dangerous from the security point of view, and encryption does
-    not actually help here sinse the decryption key is known.
+    not actually help here since the decryption key is always known.
 
 --> "Encoding"
 

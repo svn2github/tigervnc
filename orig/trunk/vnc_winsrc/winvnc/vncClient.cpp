@@ -162,26 +162,33 @@ vncClientThread::InitAuthenticate()
 		verified = m_server->VerifyHost(m_socket->GetPeerName());
 	}
 	
+	/*
 	// If necessary, query the connection with a timed dialog
+	int dialog_accept = 0;
 	if (verified == vncServer::aqrQuery) {
-		vncAcceptDialog *acceptDlg;
-		int res;
-		acceptDlg = new vncAcceptDialog(m_server->QueryTimeout(),
-										m_server->QueryAccept(), m_server->QueryAllowNoPass(),
-										m_socket->GetPeerName());
-		if (acceptDlg)
-			res = acceptDlg->DoDialog();
-		if ((acceptDlg == 0) || !res)
+			// rjr - modified to allow an ACCEPT default
+		vncAcceptDialog *acceptDlg = new vncAcceptDialog(m_server->QueryTimeout(), 
+				m_server->QueryAccept(), m_server->QueryAllowNoPass(),
+				m_socket->GetPeerName());
+		if (acceptDlg == 0)
 		{
-			vnclog.Print(LL_CLIENTS, VNCLOG("user rejected client in accept dialog\n"));
-			return FALSE;
-		}
-		if (auth_failed && (res != 2))  // must accept with no password if pwd failed!
+			if (m_server->QueryAccept())
+				verified = vncServer::aqrAccept;
+			else
+				verified = vncServer::aqrReject;
+		} else
 		{
-			vnclog.Print(LL_CLIENTS, VNCLOG("user rejected client (failed auth) in accept dialog\n"));
-			return FALSE;
+			dialog_accept = acceptDlg->DoDialog(); 
+			if (dialog_accept)
+				verified = vncServer::aqrAccept;
+			else
+				verified = vncServer::aqrReject;
+			delete acceptDlg;
+			// Adjust to indicate whether we should Accept without password
+			dialog_accept = (dialog_accept == 2);
 		}
 	}
+	*/
 
 	if (verified == vncServer::aqrReject) {
 		CARD32 auth_val = Swap32IfLE(rfbConnFailed);
@@ -347,12 +354,20 @@ vncClientThread::InitAuthenticate()
 	// If necessary, query the connection with a timed dialog
 	if (verified == vncServer::aqrQuery) {
 		vncAcceptDialog *acceptDlg;
+		int res;
 		acceptDlg = new vncAcceptDialog(m_server->QueryTimeout(),
-										m_server->QueryAccept(),
+										m_server->QueryAccept(), m_server->QueryAllowNoPass(),
 										m_socket->GetPeerName());
-		if ((acceptDlg == 0) || (!(acceptDlg->DoDialog())))
+		if (acceptDlg)
+			res = acceptDlg->DoDialog();
+		if ((acceptDlg == 0) || !res)
 		{
 			vnclog.Print(LL_CLIENTS, VNCLOG("user rejected client in accept dialog\n"));
+			return FALSE;
+		}
+		if (auth_failed && (res != 2))  // must accept with no password if pwd failed!
+		{
+			vnclog.Print(LL_CLIENTS, VNCLOG("user rejected client (failed auth) in accept dialog\n"));
 			return FALSE;
 		}
 	}

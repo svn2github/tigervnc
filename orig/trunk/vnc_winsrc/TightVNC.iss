@@ -36,6 +36,7 @@ Source: "vncviewer.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: vie
 Source: "README.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LICENCE.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "TightVNC.url"; DestDir: "{app}"; Flags: ignoreversion
+Source: "TightVNC-donate.url"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Web\*"; DestDir: "{app}\Web"; Flags: ignoreversion; Components: webdoc
 Source: "Web\images\*"; DestDir: "{app}\Web\images"; Flags: ignoreversion; Components: webdoc
 Source: "Web\logo\*"; DestDir: "{app}\Web\logo"; Flags: ignoreversion; Components: webdoc
@@ -55,9 +56,10 @@ Name: "{group}\Administration\Show Default Settings"; FileName: "{app}\WinVNC.ex
 Name: "{group}\Documentation\About VNC and TightVNC"; FileName: "{app}\Web\index.html";                                WorkingDir: "{app}\Web"; Components: webdoc
 Name: "{group}\Documentation\Installation and Getting Started"; FileName: "{app}\Web\winst.html";                      WorkingDir: "{app}\Web"; Components: webdoc
 Name: "{group}\Documentation\Licensing Terms";        FileName: "{app}\LICENCE.txt";                                   WorkingDir: "{app}"
+Name: "{group}\Documentation\Make a Donation";        FileName: "{app}\TightVNC-donate.url"
 Name: "{group}\Documentation\TightVNC Web Site";      FileName: "{app}\TightVNC.url"
 Name: "{group}\Documentation\What's New (Detailed Log)"; FileName: "{app}\Web\changelog-win32.html";                   WorkingDir: "{app}\Web"; Components: webdoc
-Name: "{group}\Documentation\What's New (Summary)";   FileName: "{app}\Web\whatsnew-devel.html";                             WorkingDir: "{app}\Web"; Components: webdoc
+Name: "{group}\Documentation\What's New (Summary)";   FileName: "{app}\Web\whatsnew-devel.html";                       WorkingDir: "{app}\Web"; Components: webdoc
 
 [Tasks]
 Name: associate; Description: "&Associate .vnc files with TightVNC Viewer"; GroupDescription: "File associations:"; Components: viewer

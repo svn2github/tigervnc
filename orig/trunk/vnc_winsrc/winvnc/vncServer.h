@@ -88,6 +88,9 @@ public:
 	virtual void KillUnauthClients();
 	virtual void WaitUntilUnauthEmpty();
 
+	// Has at least one client had a remote event?
+	virtual BOOL RemoteEventReceived();
+
 	// Client info retrieval/setup
 	virtual vncClient* GetClient(vncClientId clientid);
 	virtual vncClientList ClientList();

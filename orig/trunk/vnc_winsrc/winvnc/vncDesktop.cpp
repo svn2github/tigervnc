@@ -195,7 +195,6 @@ vncDesktopThread::run_undetached(void *arg)
 		{
 			// Save the cursor ID
 			m_desktop->SetCursor((HCURSOR) msg.wParam);
-			m_desktop->m_cursormoved = TRUE;
 		}
 		else if (msg.message == RFB_LOCAL_KEYBOARD)
 		{
@@ -311,7 +310,6 @@ vncDesktop::vncDesktop()
 	m_timerid = 0;
 	m_hnextviewer = NULL;
 	m_hcursor = NULL;
-	m_cursormoved = TRUE;
 
 	m_displaychanged = FALSE;
 
@@ -2343,14 +2341,13 @@ vncDesktop::PerformPolling()
 void
 vncDesktop::PollWindow(HWND hwnd)
 {
-	BOOL poll = TRUE;
-
 	// Are we set to low-load polling?
 	if (m_server->PollOnEventOnly())
 	{
 		// Yes, so only poll if the remote user has done something
-		if (!m_cursormoved)
-			poll = FALSE;
+		if (!m_server->RemoteEventReceived()) {
+			return;
+		}
 	}
 
 	// Does the client want us to poll only console windows?
@@ -2359,20 +2356,20 @@ vncDesktop::PollWindow(HWND hwnd)
 		char classname[20];
 
 		// Yes, so check that this is a console window...
-		if (GetClassName(hwnd, classname, sizeof(classname)))
+		if (GetClassName(hwnd, classname, sizeof(classname))) {
 			if ((strcmp(classname, "tty") != 0) &&
-				(strcmp(classname, "ConsoleWindowClass") != 0))
-				poll = FALSE;
+				(strcmp(classname, "ConsoleWindowClass") != 0)) {
+				return;
+			}
+		}
 	}
 
-	// Are we still wanting to poll this window?
-	if (poll) {
-		RECT full_rect = m_server->GetSharedRect();
-		RECT rect;
+	RECT full_rect = m_server->GetSharedRect();
+	RECT rect;
 
-		// Get the rectangle
-		if (GetWindowRect(hwnd, &rect)) {
-			IntersectRect(&rect, &rect, &full_rect);
+	// Get the rectangle
+	if (GetWindowRect(hwnd, &rect)) {
+		if (IntersectRect(&rect, &rect, &full_rect)) {
 			PollArea(rect);
 		}
 	}

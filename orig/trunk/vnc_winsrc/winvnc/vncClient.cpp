@@ -1750,9 +1750,6 @@ vncClient::TriggerUpdate()
 		// Check if cursor shape update has to be sent
 		m_cursor_update_pending = m_buffer->IsCursorUpdatePending();
 
-		// Clear the remote event flag
-		m_remoteevent = FALSE;
-
 		// Send an update if one is waiting
 		if (!m_changed_rgn.IsEmpty() ||
 			!m_full_rgn.IsEmpty() ||

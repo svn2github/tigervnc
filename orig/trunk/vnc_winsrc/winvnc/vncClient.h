@@ -93,6 +93,13 @@ public:
 	virtual void UpdateClipText(LPSTR text);
 	virtual void UpdatePalette();
 
+	// Has the client sent an input event?
+	virtual BOOL RemoteEventReceived() {
+		BOOL result = m_remoteevent;
+		m_remoteevent = FALSE;
+		return result;
+	};
+
 	// Functions for setting & getting the client settings
 	virtual void EnableKeyboard(BOOL enable) { m_keyboardenabled = enable; }
 	virtual void EnablePointer(BOOL enable)  { m_pointerenabled = enable;  }
@@ -190,7 +197,7 @@ protected:
 	// When the local display is palettized, it sometimes changes...
 	BOOL			m_palettechanged;
 
-	// FIXME: It looks like this is an unused variable.
+	// Information used in polling mode!
 	BOOL			m_remoteevent;
 
 	BOOL			m_use_NewFBSize;
@@ -202,20 +209,20 @@ private:
 	void SendFileDownloadData(unsigned int mTime);
 	void SendFileUploadCancel(unsigned short reasonLen, char *reason);
 	void SendFileDownloadFailed(unsigned short reasonLen, char *reason);
-  void CloseUndoneFileTransfer();
+	void CloseUndoneFileTransfer();
 	BOOL m_bUploadStarted;
 	BOOL m_bDownloadStarted;
-  HANDLE m_hFileToRead;
-  HANDLE m_hFileToWrite;
-  char m_UploadFilename[MAX_PATH];
-  char m_DownloadFilename[MAX_PATH];
+	HANDLE m_hFileToRead;
+	HANDLE m_hFileToWrite;
+	char m_UploadFilename[MAX_PATH];
+	char m_DownloadFilename[MAX_PATH];
 	void Time70ToFiletime(unsigned int mTime, FILETIME *pFiletime);
-  unsigned int m_modTime;
-  unsigned int beginUploadTime;
-  unsigned int endUploadTime;
-  DWORD m_rfbBlockSize;
+	unsigned int m_modTime;
+	unsigned int beginUploadTime;
+	unsigned int endUploadTime;
+	DWORD m_rfbBlockSize;
 public:
-  void SendFileDownloadPortion();
+	void SendFileDownloadPortion();
 };
 
 #endif

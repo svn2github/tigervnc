@@ -473,6 +473,21 @@ vncServer::WaitUntilUnauthEmpty()
 	}
 }
 
+BOOL
+vncServer::RemoteEventReceived()
+{
+	vncClientList::iterator i;
+	BOOL result = FALSE;
+	omni_mutex_lock l(m_clientsLock);
+
+	// Iterate over the authorised clients
+	for (i = m_authClients.begin(); i != m_authClients.end(); i++)
+	{
+		result = result || GetClient(*i)->RemoteEventReceived();
+	}
+	return result;
+}
+
 // Client info retrieval/setup
 vncClient*
 vncServer::GetClient(vncClientId clientid)

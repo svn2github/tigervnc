@@ -44,7 +44,7 @@ VNCOptions::VNCOptions()
 	m_FullScreen = false;
 	m_toolbar = true;
 	m_listServer=32;
-	m_skipprompt=true;
+	m_skipprompt=false;
 	m_Use8Bit = false;
 	m_PreferredEncoding = rfbEncodingTight;
 	m_SwapMouse = false;
@@ -1115,7 +1115,7 @@ BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,
 		SendMessage(hNormalCursor, BM_SETCHECK,cursor, 0);
 
 		HWND hMessage = GetDlgItem(hwnd, IDC_CHECK_MESSAGE);
- 		SendMessage(hMessage, BM_SETCHECK, pApp->m_options.m_skipprompt, 0);
+ 		SendMessage(hMessage, BM_SETCHECK, !pApp->m_options.m_skipprompt, 0);
 
 		HWND hToolbar = GetDlgItem(hwnd, IDC_CHECK_TOOLBAR);
  		SendMessage(hToolbar, BM_SETCHECK, pApp->m_options.m_toolbar, 0);
@@ -1278,11 +1278,11 @@ BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,
 					(CONST BYTE *)&buffer,
 					4 );
 				if (SendMessage(hMessage,BM_GETCHECK,0,0)==0){
-					pApp->m_options.m_skipprompt=false;
-					buffer = 0;
-				}else{
 					pApp->m_options.m_skipprompt=true;
 					buffer = 1;
+				}else{
+					pApp->m_options.m_skipprompt=false;
+					buffer = 0;
 				}
 				RegSetValueEx( hRegKey,"SkipFullScreenPrompt" , 
 					NULL,REG_DWORD , 

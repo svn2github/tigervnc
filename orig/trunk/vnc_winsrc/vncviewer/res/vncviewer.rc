@@ -28,8 +28,8 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,4,0,0
- PRODUCTVERSION 1,4,0,0
+ FILEVERSION 1,2,0,0
+ PRODUCTVERSION 1,2,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -47,29 +47,29 @@ BEGIN
             VALUE "Comments", "by Quentin Stafford-Fraser\0"
             VALUE "CompanyName", "AT&T Laboratories Cambridge\0"
             VALUE "FileDescription", "vncviewer\0"
-            VALUE "FileVersion", "1, 4, 0, 0\0"
+            VALUE "FileVersion", "3, 3, 3, 9\0"
             VALUE "InternalName", "vncviewer\0"
             VALUE "LegalCopyright", "Copyright © 1999\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "vncviewer.exe\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "AT&T vncviewer\0"
-            VALUE "ProductVersion", "1, 4, 0, 0\0"
+            VALUE "ProductVersion", "3, 3, 3, 9\0"
             VALUE "SpecialBuild", "\0"
         END
         BLOCK "040904b0"
         BEGIN
-            VALUE "Comments", "TridiaVNC Win32 viewer\0"
-            VALUE "CompanyName", "Tridia Corporation\0"
+            VALUE "Comments", "Based on TridiaVNC by Tridia Corporation\0"
+            VALUE "CompanyName", "Const Kaplinsky\0"
             VALUE "FileDescription", "vncviewer\0"
-            VALUE "FileVersion", "1, 4, 0, 0\0"
+            VALUE "FileVersion", "1, 2, 0, 0\0"
             VALUE "InternalName", "vncviewer\0"
-            VALUE "LegalCopyright", "Copyright © 2000\0"
+            VALUE "LegalCopyright", "Copyright © 2000, 2001 [many holders]\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "vncviewer.exe\0"
             VALUE "PrivateBuild", "\0"
-            VALUE "ProductName", "Tridia Corporation vncviewer\0"
-            VALUE "ProductVersion", "1, 4, 0, 0\0"
+            VALUE "ProductName", "TightVNC Win32 Viewer\0"
+            VALUE "ProductVersion", "1, 2, 0, 0\0"
             VALUE "SpecialBuild", "\0"
         END
     END
@@ -142,17 +142,16 @@ END
 // Dialog
 //
 
-IDD_AUTH_DIALOG DIALOG DISCARDABLE  0, 0, 220, 47
+IDD_AUTH_DIALOG DIALOG DISCARDABLE  0, 0, 230, 47
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "VNC Authentication"
 FONT 8, "MS Sans Serif"
 BEGIN
-    EDITTEXT        IDC_PASSWD_EDIT,101,14,54,14,ES_PASSWORD | 
-                    ES_AUTOHSCROLL
-    DEFPUSHBUTTON   "&OK",IDOK,163,7,50,14
-    PUSHBUTTON      "&Cancel",IDCANCEL,163,24,50,14
-    RTEXT           "Session password:",IDC_STATIC,33,17,62,8
-    CONTROL         108,IDC_STATIC,"Static",SS_BITMAP,7,12,21,20
+    EDITTEXT        IDC_PASSWD_EDIT,111,7,54,14,ES_PASSWORD | ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "&OK",IDOK,173,7,50,14
+    PUSHBUTTON      "&Cancel",IDCANCEL,173,24,50,14
+    RTEXT           "Session password:",IDC_STATIC,43,10,62,8
+    CONTROL         108,IDC_STATIC,"Static",SS_BITMAP,7,7,32,30
 END
 
 IDD_OPTIONDIALOG DIALOGEX 0, 0, 312, 194
@@ -230,20 +229,21 @@ BEGIN
                     WS_VISIBLE,98,55,32,10
 END
 
-IDD_SESSION_DLG DIALOG DISCARDABLE  0, 0, 250, 63
+IDD_SESSION_DLG DIALOG DISCARDABLE  0, 0, 272, 63
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Connection details"
 FONT 8, "MS Sans Serif"
 BEGIN
-    COMBOBOX        IDC_HOSTNAME_EDIT,83,11,115,66,CBS_DROPDOWN | 
+    COMBOBOX        IDC_HOSTNAME_EDIT,90,7,126,66,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    DEFPUSHBUTTON   "OK",IDOK,203,7,40,14
-    PUSHBUTTON      "Cancel",IDCANCEL,203,24,40,14
-    PUSHBUTTON      "Options...",IDC_OPTIONBUTTON,203,42,40,14
-    LTEXT           "VNC server:",IDC_STATIC,39,13,39,8
-    CONTROL         108,IDC_STATIC,"Static",SS_BITMAP,7,7,21,20
-    LTEXT           "Use host:display\ne.g. snoopy:2",IDC_STATIC,86,30,88,17
-    LTEXT           "(Display defaults to 0 if not given)",IDC_STATIC,86,48,
+    DEFPUSHBUTTON   "OK",IDOK,225,7,40,14
+    PUSHBUTTON      "Cancel",IDCANCEL,225,24,40,14
+    PUSHBUTTON      "Options...",IDC_OPTIONBUTTON,225,42,40,14
+    LTEXT           "VNC server:",IDC_STATIC,46,9,39,8
+    CONTROL         108,IDC_STATIC,"Static",SS_BITMAP,7,7,32,30
+    LTEXT           "Use host:display format\ne.g. snoopy:2",IDC_STATIC,90,
+                    26,88,17
+    LTEXT           "(Display defaults to 0 if not given)",IDC_STATIC,90,44,
                     105,8
 END
 
@@ -257,22 +257,19 @@ BEGIN
                     ES_AUTOHSCROLL | ES_READONLY
 END
 
-IDD_APP_ABOUT DIALOG DISCARDABLE  0, 0, 236, 103
+IDD_APP_ABOUT DIALOG DISCARDABLE  0, 0, 332, 122
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About VNCviewer"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,179,82,50,14
-    CONTROL         106,IDC_STATIC,"Static",SS_BITMAP | SS_SUNKEN,7,7,81,66
-    LTEXT           "Viewer version 1.4.0.0",IDC_STATIC,110,7,119,11
-    LTEXT           "Copyright (C) 1999\nAT&&T Laboratories Cambridge",
-                    IDC_STATIC,110,41,119,18
-    LTEXT           "For more information see\nhttp://www.tridiavnc.com/",
-                    IDC_STATIC,110,60,119,19
-    LTEXT           "Virtual Network Computing from Tridia",IDC_STATIC,7,82,
-                    144,10
-    LTEXT           "Copyright (C) 2000 Tridia Corporation",IDC_STATIC,110,
-                    26,119,12
+    DEFPUSHBUTTON   "OK",IDOK,135,100,50,14
+    CONTROL         106,IDC_STATIC,"Static",SS_BITMAP | SS_SUNKEN,19,7,81,66
+    LTEXT           "TightVNC Viewer version 1.2.0\nCopyright (C) 2000, 2001 Const Kaplinsky\nhttp://www.tightvnc.com/",
+                    IDC_STATIC,135,7,190,27
+    LTEXT           "Includes code from TridiaVNC 1.4.0\nCopyright (C) 2000, 2001 Tridia Corporation\nhttp://www.tridiavnc.com/",
+                    IDC_STATIC,135,66,190,28
+    LTEXT           "Based on VNC Viewer 3.3.3r3 by Quentin Stafford-Fraser\nCopyright (C) 1999 AT&&T Laboratories Cambridge\nhttp://www.uk.research.att.com/vnc/",
+                    IDC_STATIC,135,36,190,29
 END
 
 
@@ -287,7 +284,7 @@ BEGIN
     IDD_AUTH_DIALOG, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 213
+        RIGHTMARGIN, 223
         TOPMARGIN, 7
         BOTTOMMARGIN, 40
         HORZGUIDE, 21
@@ -308,7 +305,7 @@ BEGIN
     IDD_SESSION_DLG, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 243
+        RIGHTMARGIN, 265
         TOPMARGIN, 7
         BOTTOMMARGIN, 56
         HORZGUIDE, 17
@@ -324,11 +321,11 @@ BEGIN
 
     IDD_APP_ABOUT, DIALOG
     BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 229
-        VERTGUIDE, 110
+        LEFTMARGIN, 19
+        RIGHTMARGIN, 325
+        VERTGUIDE, 135
         TOPMARGIN, 7
-        BOTTOMMARGIN, 96
+        BOTTOMMARGIN, 114
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -352,8 +349,8 @@ END
 // Bitmap
 //
 
-IDB_VNCBITMAP           BITMAP  DISCARDABLE     "vnc.bmp"
-IDB_VNC32               BITMAP  DISCARDABLE     "vnc32.BMP"
+IDB_VNCBITMAP           BITMAP  DISCARDABLE     "tightvnc.bmp"
+IDB_VNC32               BITMAP  DISCARDABLE     "tightvnc48.BMP"
 
 /////////////////////////////////////////////////////////////////////////////
 //

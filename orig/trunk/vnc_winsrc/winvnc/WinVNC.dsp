@@ -2039,11 +2039,19 @@ SOURCE=.\res\RecordingFrame.class
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\ReloginPanel.class
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\RfbProto.class
 # End Source File
 # Begin Source File
 
 SOURCE=.\res\SessionRecorder.class
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\SocketFactory.class
 # End Source File
 # Begin Source File
 

@@ -535,6 +535,8 @@ IDR_BUTTONPANEL_CLASS   JAVACLASS DISCARDABLE   "res\\ButtonPanel.class"
 IDR_DESCIPHER_CLASS     JAVACLASS DISCARDABLE   "res\\DesCipher.class"
 IDR_RECFRAME_CLASS      JAVACLASS DISCARDABLE   "res\\RecordingFrame.class"
 IDR_SESSIONREC_CLASS    JAVACLASS DISCARDABLE   "res\\SessionRecorder.class"
+IDR_RELOGINPANEL_CLASS  JAVACLASS DISCARDABLE   "res\\ReloginPanel.class"
+IDR_SOCKFACTORY_CLASS   JAVACLASS DISCARDABLE   "res\\SocketFactory.class"
 
 /////////////////////////////////////////////////////////////////////////////
 //

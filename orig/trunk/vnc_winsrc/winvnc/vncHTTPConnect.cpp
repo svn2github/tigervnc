@@ -98,8 +98,10 @@ const FileMap filemapping []	={
 	{"/ButtonPanel.class", "JavaClass", IDR_BUTTONPANEL_CLASS},
 	{"/RecordingFrame.class", "JavaClass", IDR_RECFRAME_CLASS},
 	{"/SessionRecorder.class", "JavaClass", IDR_SESSIONREC_CLASS}
+	{"/ReloginPanel.class", "JavaClass", IDR_RELOGINPANEL_CLASS},
+	{"/SocketFactory.class", "JavaClass", IDR_SOCKFACTORY_CLASS},
 	};
-const int filemappingsize		= 11;
+const int filemappingsize		= 13;
 
 //
 // Connection thread -- one per each client connection.

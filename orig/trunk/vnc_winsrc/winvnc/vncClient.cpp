@@ -1785,6 +1785,8 @@ vncClient::UpdateMouse()
 
 		m_mousemoved = TRUE;
 	} else if (m_use_PointerPos) {
+		omni_mutex_lock l(m_regionLock);
+
 		m_cursor_pos_changed = TRUE;
 	}
 }

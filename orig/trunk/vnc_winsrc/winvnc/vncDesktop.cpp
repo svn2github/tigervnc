@@ -147,12 +147,7 @@ vncDesktopThread::run_undetached(void *arg)
 
 	RECT rect;
 	if (m_server->WindowShared()) {
-		if (!m_server->GetBlackRgn()) {
-			GetWindowRect(m_server->GetWindowShared(), &rect);
-		} else {
-			rect = m_desktop->m_bmrect;
-		}
-
+		GetWindowRect(m_server->GetWindowShared(), &rect);
 	} else if (m_server->ScreenAreaShared()) {
 		rect = m_server->GetScreenAreaRect();
 	} else {
@@ -1534,7 +1529,7 @@ vncDesktop::CaptureScreen(RECT &rect, BYTE *scrBuff)
 	// Capture screen into bitmap
 	BOOL blitok;
 
-	if (m_server->WindowShared() && m_server->GetBlackRgn()) {
+	if (m_server->GetApplication()) {
 		vncRegion capturergn, blackrgn;
 		capturergn.Clear();
 		blackrgn.Clear();
@@ -2178,28 +2173,25 @@ vncDesktop::CheckUpdates()
 		wasWindowIconic = false ;
 #else
 		HWND hwnd = m_server->GetWindowShared();
-		BOOL success = (hwnd != NULL) && GetWindowRect(hwnd, &new_rect);
-		if (!success) {
-			// Disconnect clients if the shared window has dissapeared.
-			// FIXME: Make this behavior configurable.
-			MessageBox(NULL, "You have exited an application that is being\n"
-					   "viewed/controlled from a remote PC. Exiting this\n"
-					   "application will terminate the session with the remote PC.",
-					   "Warning", MB_ICONWARNING | MB_OK);
-			vnclog.Print(LL_CONNERR, VNCLOG("shared window not found - disconnecting clients\n"));
-			m_server->KillAuthClients();
-			return FALSE;
-		}
+		GetWindowRect(hwnd, &new_rect);
 #endif
-		if (m_server->GetBlackRgn()) {
-			new_rect = m_bmrect;
-		}
 	} else if (m_server->ScreenAreaShared()) {
 		new_rect = m_server->GetScreenAreaRect();
 	} else {
 		new_rect = m_bmrect;
 	}
-	
+	if ((m_server->WindowShared() || m_server->GetApplication()) &&
+		m_server->GetWindowShared() == NULL) {
+		// Disconnect clients if the shared window has dissapeared.
+		// FIXME: Make this behavior configurable.
+		MessageBox(NULL, "You have exited an application that is being\n"
+				   "viewed/controlled from a remote PC. Exiting this\n"
+				   "application will terminate the session with the remote PC.",
+				   "Warning", MB_ICONWARNING | MB_OK);
+		vnclog.Print(LL_CONNERR, VNCLOG("shared window not found - disconnecting clients\n"));
+		m_server->KillAuthClients();
+		return FALSE;
+	}
 	// intersect the shared rect with the desktop rect
 	IntersectRect(&new_rect, &new_rect, &m_bmrect);
 

@@ -191,22 +191,22 @@ BEGIN
     PUSHBUTTON      "&Apply",IDC_APPLY,249,193,50,14
 END
 
-IDD_SHARED_DESKTOP_AREA DIALOG DISCARDABLE  0, 0, 235, 95
+IDD_SHARED_DESKTOP_AREA DIALOG DISCARDABLE  0, 0, 287, 97
 STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE
 FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "Full desktop",IDC_FULLSCREEN,"Button",
-                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,7,6,100,13
-    CONTROL         "Window:",IDC_WINDOW,"Button",BS_AUTORADIOBUTTON | 
-                    WS_TABSTOP,7,23,44,13
+                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,7,6,100,16
+    CONTROL         "Window",IDC_WINDOW,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,112,6,44,16
     CONTROL         "Rectangular area",IDC_SCREEN,"Button",
-                    BS_AUTORADIOBUTTON | WS_TABSTOP,7,39,100,13
-    CONTROL         139,IDC_BMPCURSOR,"Static",SS_BITMAP,63,21,21,17
-    EDITTEXT        IDC_NAME_APPLI,91,23,137,12,ES_AUTOHSCROLL | ES_READONLY
-    GROUPBOX        "When sharing one window",IDC_STATIC_SHARING_ONE,7,57,
-                    221,32
-    CONTROL         "Hide windows of other applications",IDC_CHECK_BLACK_RGN,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,70,205,11
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,7,23,88,15
+    CONTROL         139,IDC_BMPCURSOR,"Static",SS_BITMAP,29,64,21,17
+    EDITTEXT        IDC_NAME_APPLI,63,66,192,12,ES_AUTOHSCROLL | ES_READONLY
+    GROUPBOX        "Choice of a shared window or application",
+                    IDC_STATIC_SHARING_ONE,7,47,273,44,BS_CENTER
+    CONTROL         "Application",IDC_APPLICATION,"Button",
+                    BS_AUTORADIOBUTTON,112,22,86,16
 END
 
 IDD_INCOMING DIALOG DISCARDABLE  0, 0, 288, 166
@@ -362,7 +362,7 @@ STYLE DS_MODALFRAME | DS_CENTER | DS_CONTEXTHELP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Control Panel"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     CONTROL         "List1",IDC_LIST_CONNECTIONS,"SysListView32",LVS_REPORT | 
                     LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | LVS_NOSORTHEADER | 
@@ -544,9 +544,12 @@ BEGIN
     IDD_SHARED_DESKTOP_AREA, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 228
+        RIGHTMARGIN, 280
+        VERTGUIDE, 112
         TOPMARGIN, 6
-        BOTTOMMARGIN, 89
+        BOTTOMMARGIN, 91
+        HORZGUIDE, 22
+        HORZGUIDE, 38
     END
 
     IDD_INCOMING, DIALOG
@@ -982,7 +985,6 @@ BEGIN
     IDC_STATIC_ADMINISTR    "Administration settings."
     IDC_STATIC_DISPLAY_PORT "Here you can specify which TCP ports should be used for incoming client connections."
     IDC_DONT_USE_DRIVER     "Don't ever try to use mirror display driver. Use this option for troubleshooting purposes. Note that toggling this option does not take immediate effect if there is at least one viewer connected."
-    IDC_CHECK_BLACK_RGN     "Hide windows of other applications"
     IDC_LIST_CONNECTIONS    "Authorised clients list"
     IDC_DISABLE_CLIENTS     "Disable new clients button"
 END
@@ -1051,13 +1053,14 @@ BEGIN
     IDC_ACTION              "Action"
     IDC_STATIC_INPUT_HANDLING "Input handling"
     IDC_STATIC_INCOMING     "Incoming connections"
-    IDC_STATIC_SHARING_ONE  "When sharing one window"
+    IDC_STATIC_SHARING_ONE  "Choice of a shared window or application"
     IDC_STATIC_POLLING_MODES "Polling modes"
     IDC_STATIC_TROUBLESHOOTING "Troubleshooting"
     IDC_STATIC_DRIVER_STATUS "Mirror driver status"
     IDC_STATIC_WINDOW_POLLING "Window polling"
     IDC_STATIC_DISCONNECTS  "When last client disconnects"
     IDC_STATIC_SELECTED_KLIENTS "Control of selected clients"
+    IDC_APPLICATION         "Shared application"
 END
 
 STRINGTABLE DISCARDABLE 

@@ -181,6 +181,7 @@
 #define IDC_STATIC_DISCONNECTS          1147
 #define IDC_STATIC_KLIENTS_LIST         1148
 #define IDC_STATIC_SELECTED_KLIENTS     1149
+#define IDC_APPLICATION                 1150
 #define ID_PROPERTIES                   40001
 #define ID_CLOSE                        40002
 #define ID_KILLCLIENTS                  40003
@@ -196,7 +197,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        156
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1150
+#define _APS_NEXT_CONTROL_VALUE         1151
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

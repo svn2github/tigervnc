@@ -1123,7 +1123,7 @@ vncClientThread::run(void *arg)
 				if (m_client->IsKeyboardEnabled() && !m_client->IsInputBlocked())
 				{
 					BOOL allow = TRUE;
-					if (m_server->WindowShared() && m_server->GetBlackRgn()) {				
+					if (m_server->GetApplication()) {				
 						allow = FALSE;
 						HWND hwnd = GetForegroundWindow();
 						if (hwnd != NULL) {
@@ -1174,7 +1174,7 @@ vncClientThread::run(void *arg)
 					msg.pe.x = msg.pe.x + coord.left;
 					msg.pe.y = msg.pe.y + coord.top;
 					bool isblack = false;
-					if (m_server->WindowShared() && m_server->GetBlackRgn()) {				
+					if (m_server->GetApplication()) {				
 						if (!m_server->GetBlackRegion()->IsEmpty()) {
 							rectlist blackrects;
 							m_server->GetBlackRegion()->Rectangles(blackrects);

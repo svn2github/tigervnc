@@ -38,7 +38,7 @@ public:
 					  vncProperties *vncprop, vncServer *server);
 	bool ApplySharedControls();
 	void FullScreen();
-	void SharedWindow();
+	void SharedWindow(BOOL Application);
 	void SharedScreen();
 	virtual ~SharedDesktopArea();
 
@@ -51,6 +51,7 @@ private:
 	void SetupMatchWindow();
 	static void DrawFrameAroundWindow(HWND hWnd);
 	static LRESULT CALLBACK BmpWndProc(HWND, UINT, WPARAM, LPARAM);
+	void EnableControls(BOOL enable);
 
 	HWND m_hwnd;
 	LONG m_OldBmpWndProc;

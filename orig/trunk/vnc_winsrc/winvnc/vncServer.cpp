@@ -109,7 +109,7 @@ vncServer::vncServer()
 
 	m_full_screen = TRUE;
 	m_WindowShared= FALSE;
-	m_BlackRgn = FALSE;
+	m_Application = FALSE;
 	m_BlackRegion.Clear();
 	m_hwndShared = NULL;
 	m_idwindowproc = 0;
@@ -132,7 +132,7 @@ vncServer::vncServer()
 #ifdef HORIZONLIVE
 	m_full_screen = FALSE;
 	m_WindowShared= TRUE;
-	m_BlackRgn = FALSE;
+	m_Application = FALSE;
 	m_BlackRegion.Clear();
 	m_local_input_priority = TRUE;
 	m_remote_mouse = 1;
@@ -1653,7 +1653,7 @@ vncServer::GetWindowShared()
 	if (idProcess == m_idwindowproc && style & WS_VISIBLE)
 		return m_hwndShared;
 	m_hwndShared = NULL;
-	if (GetBlackRgn()) {
+	if (GetApplication()) {
 		HWND hforegr = GetForegroundWindow();
 		while (hforegr != NULL) {
 			style = GetWindowLong(hforegr, GWL_STYLE);

@@ -660,7 +660,11 @@ BOOL CALLBACK vncProperties::SharedDlgProc(HWND hwnd, UINT uMsg,
 			return TRUE;
 			
 		case IDC_WINDOW:
-			_this->m_shareddtarea->SharedWindow();
+			_this->m_shareddtarea->SharedWindow(TRUE);
+			return TRUE;
+
+		case IDC_APPLICATION:
+			_this->m_shareddtarea->SharedWindow(FALSE);
 			return TRUE;
 			
 		case IDC_SCREEN:
@@ -990,7 +994,7 @@ vncProperties::Load(BOOL usersettings)
 	m_allowproperties = TRUE;
 	m_pref_FullScreen = TRUE;
 	m_pref_WindowShared = FALSE;
-	m_pref_BlackRgn = FALSE;
+	m_pref_Application = FALSE;
 	m_pref_ScreenAreaShared = FALSE;
 	m_pref_PriorityTime = 3;
 	m_pref_LocalInputPriority = FALSE;
@@ -1111,7 +1115,7 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	// screen area sharing prefs
 	m_pref_FullScreen = m_server->FullScreen();
 	m_pref_WindowShared = m_server->WindowShared();
-	m_pref_BlackRgn = m_server->GetBlackRgn();
+	m_pref_Application = m_server->GetApplication();
 	m_pref_ScreenAreaShared = m_server->ScreenAreaShared();
 
 	m_pref_LocalInputPriority=LoadInt(appkey, "LocalInputsPriority", m_pref_LocalInputPriority);
@@ -1169,7 +1173,7 @@ vncProperties::ApplyUserPrefs()
 
 	m_server->FullScreen(m_pref_FullScreen);
 	m_server->WindowShared(m_pref_WindowShared);
-	m_server->SetBlackRgn(m_pref_BlackRgn);
+	m_server->SetApplication(m_pref_Application);
 	m_server->ScreenAreaShared(m_pref_ScreenAreaShared);
 
 	m_server->LocalInputPriority(m_pref_LocalInputPriority);

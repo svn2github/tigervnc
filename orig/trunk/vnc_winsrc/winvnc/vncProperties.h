@@ -89,12 +89,12 @@ public:
 	BOOL AllowEditClients() {return m_alloweditclients;};
 
 	BOOL GetPrefWindowShared() {return m_pref_WindowShared;};
-	BOOL GetPrefBlackRgn() {return m_pref_BlackRgn;};
+	BOOL GetPrefApplication() {return m_pref_Application;};
 	BOOL GetPrefFullScreen() {return m_pref_FullScreen;};
 	BOOL GetPrefScreenAreaShared() {return m_pref_ScreenAreaShared;};
 
 	void SetPrefWindowShared(BOOL set) {m_pref_WindowShared = set;};
-	void SetPrefBlackRgn(BOOL set) {m_pref_BlackRgn = set;};
+	void SetPrefApplication(BOOL set) {m_pref_Application = set;};
 	void SetPrefFullScreen(BOOL set) {m_pref_FullScreen = set;};
 	void SetPrefScreenAreaShared(BOOL set) {m_pref_ScreenAreaShared = set;};
 
@@ -169,7 +169,7 @@ protected:
 	BOOL m_pref_DontSetHooks;
 	BOOL m_pref_DontUseDriver;
 	BOOL m_pref_WindowShared;
-	BOOL m_pref_BlackRgn;
+	BOOL m_pref_Application;
 	BOOL m_pref_FullScreen;
 	BOOL m_pref_ScreenAreaShared;
 	UINT m_pref_PriorityTime;

@@ -724,16 +724,22 @@ class VncCanvas extends Canvas
 	decodeGradientData(x, y, w, h, buf);
       } else {
 	// Raw truecolor data.
-	byte[] buf = new byte[w * 3];
-	int i, offset;
-	for (int dy = y; dy < y + h; dy++) {
-	  rfb.is.readFully(buf);
-	  offset = dy * rfb.framebufferWidth + x;
-	  for (i = 0; i < w; i++) {
-	    pixels24[offset + i] =
-	      (buf[i * 3] & 0xFF) << 16 |
-	      (buf[i * 3 + 1] & 0xFF) << 8 |
-	      (buf[i * 3 + 2] & 0xFF);
+	if (bytesPixel == 1) {
+	  for (int dy = y; dy < y + h; dy++) {
+	    rfb.is.readFully(pixels8, dy * rfb.framebufferWidth + x, w);
+	  }
+	} else {
+	  byte[] buf = new byte[w * 3];
+	  int i, offset;
+	  for (int dy = y; dy < y + h; dy++) {
+	    rfb.is.readFully(buf);
+	    offset = dy * rfb.framebufferWidth + x;
+	    for (i = 0; i < w; i++) {
+	      pixels24[offset + i] =
+		(buf[i * 3] & 0xFF) << 16 |
+		(buf[i * 3 + 1] & 0xFF) << 8 |
+		(buf[i * 3 + 2] & 0xFF);
+	    }
 	  }
 	}
       }
@@ -771,22 +777,28 @@ class VncCanvas extends Canvas
 	    }
 	  }
 	} else if (useGradient) {
-	  // Compressed "Gradient"-processed data
+	  // Compressed "Gradient"-filtered data (assuming bytesPixel == 4).
 	  byte[] buf = new byte[w * h * 3];
 	  myInflater.inflate(buf);
 	  decodeGradientData(x, y, w, h, buf);
 	} else {
 	  // Compressed truecolor data.
-	  byte[] buf = new byte[w * 3];
-	  int i, offset;
-	  for (int dy = y; dy < y + h; dy++) {
-	    myInflater.inflate(buf);
-	    offset = dy * rfb.framebufferWidth + x;
-	    for (i = 0; i < w; i++) {
-	      pixels24[offset + i] =
-		(buf[i * 3] & 0xFF) << 16 |
-		(buf[i * 3 + 1] & 0xFF) << 8 |
-		(buf[i * 3 + 2] & 0xFF);
+	  if (bytesPixel == 1) {
+	    for (int dy = y; dy < y + h; dy++) {
+	      myInflater.inflate(pixels8, dy * rfb.framebufferWidth + x, w);
+	    }
+	  } else {
+	    byte[] buf = new byte[w * 3];
+	    int i, offset;
+	    for (int dy = y; dy < y + h; dy++) {
+	      myInflater.inflate(buf);
+	      offset = dy * rfb.framebufferWidth + x;
+	      for (i = 0; i < w; i++) {
+		pixels24[offset + i] =
+		  (buf[i * 3] & 0xFF) << 16 |
+		  (buf[i * 3 + 1] & 0xFF) << 8 |
+		  (buf[i * 3 + 2] & 0xFF);
+	      }
 	    }
 	  }
 	}
@@ -1108,8 +1120,10 @@ class VncCanvas extends Canvas
       // Read foreground and background colors of the cursor.
       byte[] rgb = new byte[6];
       rfb.is.readFully(rgb);
-      int[] colors = { (0xFF000000 | rgb[3] << 16 | rgb[4] << 8 | rgb[5]),
-		       (0xFF000000 | rgb[0] << 16 | rgb[1] << 8 | rgb[2]) };
+      int[] colors = { (0xFF000000 | (rgb[3] & 0xFF) << 16 |
+			(rgb[4] & 0xFF) << 8 | (rgb[5] & 0xFF)),
+		       (0xFF000000 | (rgb[0] & 0xFF) << 16 |
+			(rgb[1] & 0xFF) << 8 | (rgb[2] & 0xFF)) };
 
       // Read pixel and mask data.
       byte[] pixBuf = new byte[bytesMaskData];

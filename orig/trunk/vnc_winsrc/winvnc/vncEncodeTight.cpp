@@ -183,21 +183,10 @@ vncEncodeTight::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest,
 	int w_best, h_best;
 	int dx, dy, dw, dh;
 
-	FILE *log = fopen("d:\\winvnc.log", "a");
-	fprintf(log,
-			"DBG: sending rectangle: (%d,%d)-(%d,%d)\n",
-			rect.left, rect.top, rect.right, rect.bottom);
-	fclose(log);
-
 	for (dy = y; dy < y + h; dy += 16) {
 		dh = (dy + 16 <= y + h) ? 16 : y + h - dy;
 		for (dx = x; dx < x + w; dx += 16) {
 			dw = (dx + 16 <= x + w) ? 16 : x + w - dx;
-			log = fopen("d:\\winvnc.log", "a");
-			fprintf(log,
-					"DBG: checking area: (%d,%d)-(%d,%d)\n",
-					dx, dy, dw, dh);
-			fclose(log);
 			if (CheckSolidTile(source, dx, dy, dw, dh, &colorValue, FALSE)) {
 
 				// Get dimensions of solid-color area.
@@ -212,12 +201,6 @@ vncEncodeTight::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest,
 					 w_best * h_best < MIN_SOLID_SUBRECT_SIZE )
 					continue;
 
-				log = fopen("d:\\winvnc.log", "a");
-				fprintf(log,
-						"DBG: solid-color area found: (%d,%d)-(%d,%d)\n",
-						dx, dy, dx + w_best, dy + h_best);
-				fclose(log);
-
 				// Send solid rectangle.
 
 				RECT onePixel;
@@ -231,7 +214,8 @@ vncEncodeTight::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest,
 				transmittedSize += m_hdrBufferBytes;
 				outConn->SendExact((char *)dest, size);
 				transmittedSize += size;
-				encodedSize += size + m_hdrBufferBytes - sz_rfbFramebufferUpdateRectHeader;
+				encodedSize += (size + m_hdrBufferBytes -
+								sz_rfbFramebufferUpdateRectHeader);
 
 				// Send surrounding rectangles.
 
@@ -241,18 +225,9 @@ vncEncodeTight::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest,
 				SetRect(&rects[2], dx + w_best, dy, x + w, dy + h_best);
 				SetRect(&rects[3], x, dy + h_best, x + w, y + h);
 				for (int i = 0; i < 4; i++) {
-					log = fopen("d:\\winvnc.log", "a");
-					fprintf(log,
-							"DBG: rectangle: (%d,%d)-(%d,%d)\n",
-							rects[i].left, rects[i].top, rects[i].right, rects[i].bottom);
-					fclose(log);
-					if (rects[i].left == rects[i].right || rects[i].top == rects[i].bottom)
+					if ( rects[i].left == rects[i].right ||
+						 rects[i].top == rects[i].bottom )
 						continue;
-					log = fopen("d:\\winvnc.log", "a");
-					fprintf(log,
-							"DBG: about to send rectangle: (%d,%d)-(%d,%d)\n",
-							rects[i].left, rects[i].top, rects[i].right, rects[i].bottom);
-					fclose(log);
 					size = EncodeRect(source, outConn, dest, rects[i]);
 					outConn->SendExact((char *)dest, size);
 					transmittedSize += size;

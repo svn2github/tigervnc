@@ -1182,7 +1182,7 @@ vncProperties::Load(BOOL usersettings)
 	m_pref_PollUnderCursor=FALSE;
 	m_pref_PollForeground=TRUE;
 	m_pref_PollFullScreen=TRUE;
-	m_pref_DontSetHooks=TRUE;
+	m_pref_DontSetHooks=FALSE;
 	m_pref_PollConsoleOnly=TRUE;
 	m_pref_PollOnEventOnly=FALSE;
 	m_allowshutdown = TRUE;

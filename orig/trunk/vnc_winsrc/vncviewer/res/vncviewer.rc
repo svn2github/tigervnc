@@ -122,6 +122,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 
 IDB_VNCBITMAP           BITMAP  DISCARDABLE     "tightvnc.bmp"
 IDB_VNC32               BITMAP  DISCARDABLE     "tightvnc48.bmp"
+IDB_DISABLE_FS          BITMAP  DISCARDABLE     "DisableFS.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -400,15 +401,6 @@ BEGIN
     LTEXT           "",IDC_STATUS_STATIC,7,21,196,10,NOT WS_GROUP
 END
 
-IDD_FULL_SCREEN_DISABLE DIALOGEX 0, 0, 68, 28
-STYLE WS_CHILD | WS_VISIBLE | WS_CAPTION
-EXSTYLE WS_EX_TOOLWINDOW
-CAPTION "Full screen mode"
-FONT 8, "MS Sans Serif"
-BEGIN
-    PUSHBUTTON      "Disable",IDC_DISABLE,3,3,61,21
-END
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -557,14 +549,6 @@ BEGIN
         RIGHTMARGIN, 203
         TOPMARGIN, 7
         BOTTOMMARGIN, 54
-    END
-
-    IDD_FULL_SCREEN_DISABLE, DIALOG
-    BEGIN
-        LEFTMARGIN, 3
-        RIGHTMARGIN, 64
-        TOPMARGIN, 3
-        BOTTOMMARGIN, 24
     END
 END
 #endif    // APSTUDIO_INVOKED

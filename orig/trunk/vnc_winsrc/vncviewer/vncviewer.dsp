@@ -108,6 +108,10 @@ SOURCE=.\res\deletedi.ico
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\DisableFS.bmp
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\filereload.ico
 # End Source File
 # Begin Source File

@@ -131,7 +131,7 @@ void ClientConnection::Init(VNCviewerApp *pApp)
 	m_hwnd1 = NULL;
 	m_hwndscroll = NULL;
 	m_hToolbar = NULL;
-	m_hdisable = NULL;
+	m_DisButton = NULL;
 	m_desktopName = NULL;
 	m_port = -1;
 	m_serverInitiated = false;
@@ -513,6 +513,8 @@ void ClientConnection::CreateDisplay()
 					ID_TOOLBAR, MF_BYCOMMAND|MF_CHECKED);
 	}
 	SaveListConnection();
+
+	m_DisButton = new DisableButton(m_pApp, this);
 	
 	// record which client created this window
 	
@@ -1915,6 +1917,7 @@ ClientConnection::~ClientConnection()
 		DeleteObject(m_hBitmap);
 	if (m_hPalette != NULL)
 		DeleteObject(m_hPalette);
+	delete m_DisButton;
 	
 	m_pApp->DeregisterConnection(this);
 }

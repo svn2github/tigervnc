@@ -59,6 +59,8 @@ extern const UINT fileTransferUploadMessage;
 class ClientConnection;
 typedef void (ClientConnection:: *tightFilterFunc)(int);
 
+class DisableButton;
+
 class ClientConnection  : public omni_thread
 {
 public:
@@ -72,6 +74,7 @@ public:
 	void CopyOptions(ClientConnection *source);
 	int  LoadConnection(char *fname, bool sess);
 	void UnloadConnection() { m_opts.m_configSpecified = false; }
+	void SetFullScreenMode(bool enable);
 	int m_port;
     TCHAR m_host[MAX_HOST_NAME_LEN];
 	HWND m_hSess;
@@ -94,7 +97,7 @@ private:
 	SOCKET m_sock;
 	bool m_serverInitiated;
 	HWND m_hwnd, m_hbands, m_hwnd1, 
-		 m_hToolbar, m_hwndscroll, m_hdisable;
+		 m_hToolbar, m_hwndscroll;
 		
 	void Init(VNCviewerApp *pApp);
 	void InitCapabilities();
@@ -220,7 +223,6 @@ private:
 	void SoftCursorToScreen(RECT *screenArea, POINT *cursorOffset);
 
 	// ClientConnectionFullScreen.cpp
-	void SetFullScreenMode(bool enable);
 	bool InFullScreenMode();
 	void RealiseFullScreenMode(bool suppressPrompt);
 	bool BumpScroll(int x, int y);
@@ -379,6 +381,8 @@ private:
 	int m_emulateButtonPressedX;
 	int m_emulateButtonPressedY;
 
+	DisableButton *m_DisButton;
+
 };
 
 // Some handy classes for temporary GDI object selection
@@ -413,6 +417,23 @@ public:
 	operator HDC() {return m_hdc;};
 	HDC m_hdc;
 	HWND m_hwnd;
+};
+
+class DisableButton
+{
+public:
+	DisableButton(VNCviewerApp *pApp, ClientConnection * CConn);
+	void ShowButton(BOOL show);
+	virtual ~DisableButton();
+protected:
+	static LRESULT CALLBACK DisableProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
+	
+	VNCviewerApp *m_pApp;
+	ClientConnection * m_CConn;
+	HWND m_hwndButton;
+	POINT m_MousePoint;
+	HDC hdcCompat;
+	HBITMAP hbmp;
 };
 
 // Colour decoding utility functions

@@ -47,35 +47,6 @@ void ClientConnection::SetFullScreenMode(bool enable)
 	RealiseFullScreenMode(false);
 }
 
-LRESULT CALLBACK ClientConnection::DisableDlgProc(HWND hwnd, UINT iMsg,
-												  WPARAM wParam, LPARAM lParam)
-{
-	// We use the dialog-box's USERDATA to store a _this pointer
-	// This is set only once WM_INITDIALOG has been recieved, though!
-	ClientConnection *_this = (ClientConnection *) GetWindowLong(hwnd, GWL_USERDATA);
-
-	switch (iMsg) {
-	case WM_INITDIALOG: 
-		{
-			// Retrieve the Dialog box parameter and use it as a pointer
-			// to the calling VNCOptions object
-			SetWindowLong(hwnd, GWL_USERDATA, lParam);
-			ClientConnection *_this = (ClientConnection *) lParam;
-		}
-		return TRUE;
-	case WM_COMMAND:
-		switch (LOWORD(wParam))	{
-		case IDC_DISABLE:
-			_this->SetFullScreenMode(false);
-			DestroyWindow(_this->m_hdisable);
-			_this->m_hdisable = NULL;
-			return TRUE;
-		}
-		return FALSE;
-	}
-	return 0;
-}
-
 // If the options have been changed other than by calling 
 // SetFullScreenMode, you need to call this to make it happen.
 void ClientConnection::RealiseFullScreenMode(bool suppressPrompt)
@@ -100,9 +71,9 @@ void ClientConnection::RealiseFullScreenMode(bool suppressPrompt)
 		int cy = GetSystemMetrics(SM_CYSCREEN);
 		SetWindowPos(m_hwnd1, HWND_TOPMOST, -1, -1, cx + 3, cy + 3, SWP_FRAMECHANGED);
 		CheckMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_FULLSCREEN, MF_BYCOMMAND|MF_CHECKED);
-		m_hdisable = CreateDialogParam(pApp->m_instance, MAKEINTRESOURCE(IDD_FULL_SCREEN_DISABLE),
-					m_hwndscroll, (DLGPROC)DisableDlgProc, (LONG)this);
+		m_DisButton->ShowButton(TRUE);
 	} else {
+		m_DisButton->ShowButton(FALSE);
 		ShowWindow(m_hToolbar, SW_SHOW);
 		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_TOOLBAR, MF_BYCOMMAND|MF_ENABLED);
 		style |= (WS_DLGFRAME | WS_THICKFRAME);
@@ -111,7 +82,6 @@ void ClientConnection::RealiseFullScreenMode(bool suppressPrompt)
 		SetWindowPos(m_hwnd1, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 		ShowWindow(m_hwnd1, SW_NORMAL);		
 		CheckMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_FULLSCREEN, MF_BYCOMMAND|MF_UNCHECKED);
-
 	}
 }
 
@@ -153,4 +123,141 @@ bool ClientConnection::BumpScroll(int x, int y)
 		} 
 	}
 	return false;
+}
+
+//Methods of DisableButton class.
+DisableButton::DisableButton(VNCviewerApp *pApp, ClientConnection * CConn)
+{
+	m_pApp = pApp;
+	m_CConn = CConn;
+
+	//Creating button window.
+	WNDCLASSEX wcex;
+
+	wcex.cbSize = sizeof(WNDCLASSEX); 
+
+	wcex.style			= CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW;
+	wcex.lpfnWndProc	= (WNDPROC)DisableButton::DisableProc;
+	wcex.cbClsExtra		= 0;
+	wcex.cbWndExtra		= 0;
+	wcex.hInstance		= NULL;
+	wcex.hIcon			= NULL;
+	wcex.hCursor		= NULL;
+	wcex.hbrBackground	= (HBRUSH) GetSysColorBrush(COLOR_ACTIVEBORDER);
+	wcex.lpszMenuName	= NULL;
+	wcex.lpszClassName	= "DisableButtonClass";
+	wcex.hIconSm		= NULL;
+
+	RegisterClassEx(&wcex);
+
+	m_hwndButton = CreateWindowEx(WS_EX_TOPMOST|WS_EX_TOOLWINDOW,			//dwExStyle
+		"DisableButtonClass",		//pointer to registered class name
+  		"Disable Button",			// pointer to window name
+  		WS_POPUP,					// window style
+		12,							// horizontal position of window
+		13,							// vertical position of window
+		24,							// window width
+		24,							// window height
+		NULL,						// handle to parent or owner window
+		NULL,						// handle to menu, or child-window identifier
+		NULL,						// handle to application instance
+		NULL						// pointer to window-creation data
+	);
+  	
+	SetWindowLong(m_hwndButton, GWL_USERDATA, (LONG)this);
+	ShowButton(FALSE);
+
+	// Load the bitmap resource. 	
+	hbmp = LoadBitmap(m_pApp->m_instance, MAKEINTRESOURCE(IDB_DISABLE_FS));
+	
+	// Create a device context (DC) to hold the bitmap. 
+	// The bitmap is copied from this DC to the window's DC 
+	// whenever it must be drawn. 	
+	HDC hdc = GetDC(m_hwndButton); 
+	hdcCompat = CreateCompatibleDC(hdc); 
+	SelectObject(hdcCompat, hbmp);
+	ReleaseDC(m_hwndButton, hdc);
+}
+
+void DisableButton::ShowButton(BOOL show)
+{
+	if (show) {
+		ShowWindow(m_hwndButton, SW_SHOW);
+	} else {
+		ShowWindow(m_hwndButton, SW_HIDE);
+	}
+}
+
+LRESULT CALLBACK DisableButton::DisableProc(HWND hwnd, UINT iMsg,
+									WPARAM wParam, LPARAM lParam)
+{
+	DisableButton *_this = (DisableButton*)GetWindowLong(hwnd,GWL_USERDATA);
+
+	switch (iMsg)
+	{
+	case WM_PAINT:
+		{
+			PAINTSTRUCT ps;
+			BeginPaint(hwnd, &ps); 
+			Rectangle(ps.hdc, 0, 0, 24, 24); 
+			StretchBlt(ps.hdc, 0, 0, 24, 24, _this->hdcCompat, 
+						0, 0, 24, 24, SRCCOPY); 
+			EndPaint(hwnd, &ps);
+		}
+		break; 
+	case WM_MOUSEMOVE:
+		if (GetCapture() == hwnd)
+		{
+			POINTS ptsMousePoint=MAKEPOINTS(lParam);
+			POINT ptMousePoint;
+			ptMousePoint.x = ptsMousePoint.x;
+			ptMousePoint.y = ptsMousePoint.y;
+			ClientToScreen(hwnd,&ptMousePoint);
+			RECT wrect;
+			GetWindowRect(hwnd, &wrect);
+			POINT newpos;
+			newpos.x = wrect.left - (_this->m_MousePoint.x - ptMousePoint.x);
+			newpos.y = wrect.top - (_this->m_MousePoint.y - ptMousePoint.y);
+			if (newpos.x != wrect.left || newpos.y != wrect.top)
+				SetWindowPos(hwnd, NULL,
+							newpos.x, newpos.y,
+							24,24, SWP_SHOWWINDOW);
+			_this->m_MousePoint.x = ptMousePoint.x;
+			_this->m_MousePoint.y = ptMousePoint.y;
+		}
+		break;
+	case WM_WINDOWPOSCHANGED:
+	case WM_MOVE:
+		UpdateWindow(hwnd);
+		break;
+	case WM_LBUTTONDBLCLK:
+		_this->m_CConn->SetFullScreenMode(false);
+		ReleaseCapture();
+		ClipCursor(NULL);
+		break;
+	case WM_LBUTTONDOWN:
+		SetCapture(hwnd);
+		POINTS ptsMousePoint = MAKEPOINTS(lParam);
+		_this->m_MousePoint.x = ptsMousePoint.x;
+		_this->m_MousePoint.y = ptsMousePoint.y;
+		ClientToScreen(hwnd,&_this->m_MousePoint);
+		break;	
+	case WM_LBUTTONUP:
+		ReleaseCapture();
+		ClipCursor(NULL);
+	case WM_DESTROY: 
+		// Destroy compatible bitmap, 
+		// and the bitmap.  
+		DeleteDC(_this->hdcCompat); 
+		DeleteObject(_this->hbmp);  
+		break; 
+	default:
+		return DefWindowProc(hwnd, iMsg, wParam, lParam);
+	}
+	return 0;
+}
+
+DisableButton::~DisableButton()
+{
+	DestroyWindow(m_hwndButton);
 }

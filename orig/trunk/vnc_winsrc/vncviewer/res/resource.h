@@ -5,7 +5,6 @@
 #define IDR_TRAY                        101
 #define IDD_HELP                        101
 #define ID_CONN_CTLESC                  102
-#define IDD_FULL_SCREEN_DISABLE         102
 #define IDR_TRAYMENU                    103
 #define ID_CONN_ABOUT                   103
 #define IDI_MAINICON                    104
@@ -49,6 +48,7 @@
 #define IDI_RENAME                      249
 #define IDD_FTCANCELING                 251
 #define IDD_FTCONFIRM                   252
+#define IDB_DISABLE_FS                  253
 #define IDC_HOSTNAME_EDIT               1000
 #define IDC_DPYNUM_EDIT                 1001
 #define IDC_BELLDEICONIFY               1002
@@ -175,7 +175,6 @@
 #define IDC_DELETE                      1154
 #define ID_FTYESTOALL                   1155
 #define IDC_FTCONFIRMTEXT               1156
-#define IDC_DISABLE                     1157
 #define ID_SESSION_SET_CRECT            32777
 #define IDC_ALLOW_COMPRESSLEVEL         32778
 #define IDC_ALLOW_JPEG                  32779
@@ -190,7 +189,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        253
+#define _APS_NEXT_RESOURCE_VALUE        254
 #define _APS_NEXT_COMMAND_VALUE         40011
 #define _APS_NEXT_CONTROL_VALUE         1158
 #define _APS_NEXT_SYMED_VALUE           244

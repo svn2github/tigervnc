@@ -80,7 +80,7 @@ VNCOptions::VNCOptions()
 
 	m_useCompressLevel = false;
 	m_compressLevel = 6;
-	m_enableJpegCompression = false;
+	m_enableJpegCompression = true;
 	m_jpegQualityLevel = 6;
 	m_requestShapeUpdates = true;
 	m_ignoreShapeUpdates = false;
@@ -824,16 +824,20 @@ BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,
 			EnableWindow( hAllowJpeg, (_this->m_PreferredEncoding==rfbEncodingTight));
 
 			HWND hCompressLevel = GetDlgItem(hwnd, IDC_COMPRESSLEVEL);
-			SendMessage(hCompressLevel,TBM_SETRANGE ,TRUE,(LPARAM) MAKELONG(0, 9)); 
+			SendMessage(hCompressLevel,TBM_SETRANGE ,TRUE,(LPARAM) MAKELONG(1, 9)); 
 			SendMessage(hCompressLevel,TBM_SETPOS ,TRUE, _this->m_compressLevel);
+
+			SetDlgItemInt(hwnd, IDC_STATIC_LEVEL,_this->m_compressLevel,FALSE);
 
 			EnableWindow(hCompressLevel, (((_this->m_PreferredEncoding==rfbEncodingTight)||
 				(_this->m_PreferredEncoding==rfbEncodingZlib)||
 			(_this->m_PreferredEncoding==rfbEncodingZlibHex))&&_this->m_useCompressLevel));
 
 			HWND hJpeg = GetDlgItem(hwnd, IDC_QUALITYLEVEL);
-			SendMessage(hJpeg,TBM_SETRANGE ,TRUE,(LPARAM) MAKELONG(0, 9));
+			SendMessage(hJpeg,TBM_SETRANGE ,TRUE,(LPARAM) MAKELONG(1, 9));
 			SendMessage(hJpeg,TBM_SETPOS ,TRUE, _this->m_jpegQualityLevel);
+
+			SetDlgItemInt(hwnd, IDC_STATIC_QUALITY,_this->m_jpegQualityLevel,FALSE);
 
 			EnableWindow(hJpeg, ((_this->m_PreferredEncoding==rfbEncodingTight)&&
 				_this->m_enableJpegCompression));
@@ -936,6 +940,22 @@ BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,
 			}
 		return 0;
 		}
+		}
+		return 0;
+	}
+	case WM_HSCROLL: {
+
+		DWORD dwPos ;    // current position of slider 
+		
+		HWND hCompressLevel = GetDlgItem(hwnd, IDC_COMPRESSLEVEL);
+		HWND hJpeg = GetDlgItem(hwnd, IDC_QUALITYLEVEL);
+		if (HWND(lParam)==hCompressLevel) {
+			dwPos = SendMessage(hCompressLevel,TBM_GETPOS ,0,0);
+			SetDlgItemInt(hwnd, IDC_STATIC_LEVEL,dwPos,FALSE);
+		}
+		if (HWND(lParam)==hJpeg) {
+			dwPos = SendMessage(hJpeg,TBM_GETPOS ,0,0);
+			SetDlgItemInt(hwnd, IDC_STATIC_QUALITY,dwPos,FALSE);
 		}
 		return 0;
 	}

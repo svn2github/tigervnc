@@ -226,9 +226,9 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 							_this->m_pOpt->m_UseEnc[3] = false;
 							_this->m_pOpt->m_PreferredEncoding = rfbEncodingTight-2;
 							_this->m_pOpt->m_useCompressLevel = false;
-							_this->m_pOpt->m_compressLevel = 0;
+							_this->m_pOpt->m_compressLevel = 1;
 							_this->m_pOpt->m_enableJpegCompression = false;
-							_this->m_pOpt->m_jpegQualityLevel = 0;
+							_this->m_pOpt->m_jpegQualityLevel = 1;
 			
 							return TRUE;
 						}
@@ -265,7 +265,7 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 							_this->m_pOpt->m_PreferredEncoding = rfbEncodingTight;
 							_this->m_pOpt->m_useCompressLevel = false;
 							_this->m_pOpt->m_compressLevel = 6;
-							_this->m_pOpt->m_enableJpegCompression = false;
+							_this->m_pOpt->m_enableJpegCompression = true;
 							_this->m_pOpt->m_jpegQualityLevel = 6;
 					
 							return TRUE;
@@ -359,7 +359,11 @@ int SessionDialog::cmp()
 	if(m_pOpt->m_UseEnc[3] != false)a=0;
 	if(m_pOpt->m_PreferredEncoding != rfbEncodingTight)a=0;
 	if(m_pOpt->m_useCompressLevel != false)a=0;
-	if(m_pOpt->m_enableJpegCompression != false)a=0;
+	if(m_pOpt->m_enableJpegCompression != true){
+		a=0;
+	}else{
+		if(m_pOpt->m_jpegQualityLevel != 6)a=0;
+	}
 		
 	return a;
 }

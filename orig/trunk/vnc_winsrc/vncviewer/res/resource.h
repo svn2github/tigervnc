@@ -83,6 +83,8 @@
 #define IDC_NOCURSOR_RADIO              1071
 #define IDC_NORMALCURSOR_RADIO          1072
 #define IDC_EDIT_HELP                   1076
+#define IDC_STATIC_LEVEL                1078
+#define IDC_STATIC_QUALITY              1079
 #define ID_SESSION_SET_CRECT            32777
 #define IDC_ALLOW_COMPRESSLEVEL         32778
 #define IDC_ALLOW_JPEG                  32779
@@ -99,7 +101,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        164
 #define _APS_NEXT_COMMAND_VALUE         40010
-#define _APS_NEXT_CONTROL_VALUE         1078
+#define _APS_NEXT_CONTROL_VALUE         1080
 #define _APS_NEXT_SYMED_VALUE           154
 #endif
 #endif

@@ -100,14 +100,11 @@ BEGIN
     CONTROL         "Full-screen mode",IDC_FULLSCREEN,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,148,137,69,8
     CHECKBOX        "Scale by",IDC_SCALING,148,148,43,10
-    LTEXT           "level (1=fast, 9=best)",IDC_STATIC,35,57,70,8,NOT 
-                    WS_GROUP
-    LTEXT           "quality (0=poor, 9=best)",IDC_STATIC,32,89,75,8
     LTEXT           "(experimental)",IDC_STATIC,250,148,44,8
     GROUPBOX        "Preferred encoding",IDC_STATIC,7,7,123,107
     GROUPBOX        "Misc",IDC_STATIC,7,119,123,44
     GROUPBOX        "Mouse",IDC_STATIC,139,7,153,37
-    GROUPBOX        "Mouse cursor",IDC_STATIC,139,49,154,48
+    GROUPBOX        "Mouse cursor",IDC_STATIC,139,50,154,48
     GROUPBOX        "Display",IDC_STATIC,139,102,155,60
     LTEXT           "Custom compression level:",IDC_STATIC,27,46,85,8
     LTEXT           "Allow JPEG compression:",IDC_STATIC,27,79,85,10
@@ -115,12 +112,21 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Use encoding",IDC_STATIC,15,20,45,12
     CONTROL         "Slider1",IDC_QUALITYLEVEL,"msctls_trackbar32",
-                    TBS_AUTOTICKS | WS_TABSTOP,23,97,92,11
+                    TBS_AUTOTICKS | WS_GROUP | WS_TABSTOP,23,89,92,9
     CONTROL         "Slider2",IDC_COMPRESSLEVEL,"msctls_trackbar32",
-                    TBS_AUTOTICKS | WS_TABSTOP,23,65,92,11
+                    TBS_AUTOTICKS | WS_TABSTOP,23,57,92,9
     COMBOBOX        IDC_SCALE_EDIT,195,145,37,66,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "%",IDC_STATIC,237,149,10,7
+    LTEXT           "%",IDC_STATIC,237,149,10,8
+    LTEXT           "fast",IDC_STATIC,22,66,15,8
+    LTEXT           "best",IDC_STATIC,103,66,14,8
+    LTEXT           "poor",IDC_STATIC,22,99,15,8
+    LTEXT           "best",IDC_STATIC,103,99,15,8
+    LTEXT           "level:",IDC_STATIC,49,66,16,8
+    LTEXT           "quality:",IDC_STATIC,48,99,23,8
+    CONTROL         "1",IDC_STATIC_LEVEL,"Static",SS_SIMPLE | WS_GROUP,70,66,
+                    9,8
+    LTEXT           "1",IDC_STATIC_QUALITY,73,99,11,8
 END
 
 IDD_SESSION_DLG DIALOGEX 0, 0, 256, 85
@@ -245,6 +251,8 @@ BEGIN
         VERTGUIDE, 148
         TOPMARGIN, 7
         BOTTOMMARGIN, 163
+        HORZGUIDE, 74
+        HORZGUIDE, 107
     END
 
     IDD_SESSION_DLG, DIALOG

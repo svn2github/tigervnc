@@ -18,6 +18,14 @@ PollControls::PollControls(HWND hwnd, vncServer *server)
 	SetChecked(IDC_DONT_USE_DRIVER, m_server->DontUseDriver());
 	SetDlgItemInt(m_hwnd, IDC_POLLING_CYCLE, m_server->GetPollingCycle(), FALSE);
 
+	if (m_server->DesktopActive()) {
+		if (m_server->DriverActive()) {
+			SetDlgItemText(hwnd, IDC_STATIC_DRVINFO, "Driver is in use");
+		} else {
+			SetDlgItemText(hwnd, IDC_STATIC_DRVINFO, "Driver is not used");
+		}
+	}
+
 	Validate();
 }
 

@@ -1667,3 +1667,8 @@ vncServer::GetWindowShared()
 	}
 	return m_hwndShared;
 }
+
+BOOL
+vncServer::DriverActive() {
+	return (m_desktop != NULL) ? m_desktop->DriverActive() : FALSE;
+}

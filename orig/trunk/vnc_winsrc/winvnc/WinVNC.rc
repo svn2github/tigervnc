@@ -286,14 +286,14 @@ BEGIN
                     WS_GROUP
     GROUPBOX        "Window polling",IDC_STATIC,147,5,136,43
     CONTROL         "Poll console windows only",IDC_CONSOLE_ONLY,"Button",
-                    BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,155,16,123,
+                    BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,155,16,125,
                     12
     CONTROL         "Poll on event received only",IDC_ONEVENT_ONLY,"Button",
-                    BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,155,31,123,
+                    BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,155,31,125,
                     12
     GROUPBOX        "Mirror driver status",IDC_STATIC,147,52,136,27
-    LTEXT           "( unknown )",IDC_STATIC_DRVINFO,155,62,123,12,
-                    SS_CENTERIMAGE
+    LTEXT           "No information - no clients connected",
+                    IDC_STATIC_DRVINFO,155,62,125,12,SS_CENTERIMAGE
     GROUPBOX        "Troubleshooting",IDC_STATIC,5,83,278,44
     CONTROL         "Don't use VNCHooks.DLL while polling full screen",
                     IDC_DONT_SET_HOOKS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
@@ -566,7 +566,7 @@ BEGIN
         VERTGUIDE, 133
         VERTGUIDE, 147
         VERTGUIDE, 155
-        VERTGUIDE, 278
+        VERTGUIDE, 280
         TOPMARGIN, 5
         BOTTOMMARGIN, 127
         HORZGUIDE, 22

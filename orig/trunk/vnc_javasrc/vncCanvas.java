@@ -1,4 +1,5 @@
 //
+//  Copyright (C) 2001 HorizonLive.com, Inc.  All Rights Reserved.
 //  Copyright (C) 2001 Const Kaplinsky.  All Rights Reserved.
 //  Copyright (C) 2000 Tridia Corporation.  All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge.  All Rights Reserved.
@@ -35,13 +36,14 @@ class vncCanvas extends Canvas
   rfbProto rfb;
   ColorModel cm;
   Color[] colors;
+
   Image rawPixelsImage;
   MemoryImageSource pixelsSource;
   byte[] pixels;
+
   byte[] zlibBuf;
   int zlibBufLen = 0;
   Inflater zlibInflater;
-  Graphics sg, sg2;
 
   final static int tightZlibBufferSize = 512;
   Inflater[] tightInflaters;
@@ -81,6 +83,7 @@ class vncCanvas extends Canvas
   }
 
   public void update(Graphics g) {
+    g.drawImage(rawPixelsImage, 0, 0, this);
   }
 
   public void paint(Graphics g) {
@@ -96,8 +99,6 @@ class vncCanvas extends Canvas
 
     rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
 				      rfb.framebufferHeight, false);
-
-    sg = getGraphics();
 
     //
     // main dispatch loop
@@ -351,9 +352,6 @@ class vncCanvas extends Canvas
     int rx = rfb.updateRectX, ry = rfb.updateRectY;
     int rw = rfb.updateRectW, rh = rfb.updateRectH;
 
-    // This call is redundant, but it decreases drawing delays.
-    sg.copyArea(sx, sy, rw, rh, rx - sx, ry - sy);
-
     int y0, y1, delta;
     if (sy > ry) {
       y0 = 0; y1 = rh; delta = 1;
@@ -448,9 +446,6 @@ class vncCanvas extends Canvas
     // Handle solid rectangles.
     if (comp_ctl == rfb.TightFill) {
       int bg = rfb.is.readUnsignedByte();
-
-      sg.setColor(colors[bg]);	// This two calls are redundant,
-      sg.fillRect(x, y, w, h);	// but they decrease drawing delays.
 
       fillLargeArea(x, y, w, h, (byte)bg);
       handleUpdatedPixels(x, y, w, h);
@@ -553,22 +548,8 @@ class vncCanvas extends Canvas
 
     pixelsSource.newPixels(x, y, w, h);
 
-    try {
-      sg.setClip(x, y, w, h);
-    } catch (NoSuchMethodError e) {
-      sg2 = sg.create();
-      sg.clipRect(x, y, w, h);
-    }
-
-    sg.drawImage(rawPixelsImage, 0, 0, this);
-
-    if (sg2 == null) {
-      sg.setClip(0, 0, rfb.framebufferWidth, rfb.framebufferHeight);
-    } else {
-      sg.dispose();    // reclaims resources more quickly
-      sg = sg2;
-      sg2 = null;
-    }
+    // Request repaint delayed by 10 milliseconds.
+    repaint(10, x, y, w, h);
   }
 
 
@@ -611,6 +592,16 @@ class vncCanvas extends Canvas
   }
 
 
+  //
+  // Override the ImageObserver interface method.
+  // FIXME: In theory, empty imageUpdate() is not absolutely correct.
+  //
+
+  public boolean imageUpdate(Image img, int infoflags,
+                             int x, int y, int width, int height) {
+    return true;
+  }
+ 
   //
   // Handle events.
   //

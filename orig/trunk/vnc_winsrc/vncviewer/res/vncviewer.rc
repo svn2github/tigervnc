@@ -172,7 +172,7 @@ IDD_SESSION_DLG DIALOGEX 0, 0, 253, 85
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Connection details"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     COMBOBOX        IDC_HOSTNAME_EDIT,51,7,109,66,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -644,16 +644,16 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDC_STATIC_FORMAT       "Format and encoding."
-    IDC_STATIC_RESTRICTIONS "Restrictions."
-    IDC_STATIC_DISPLAY      "Display."
-    IDC_STATIC_MOUSE        "Mouse."
-    IDC_STATIC_MCURSOR      "Mouse cursor."
+    IDC_STATIC_FORMAT       "Protocol options affecting pixel format and compression."
+    IDC_STATIC_RESTRICTIONS "Disabling particular protocol features."
+    IDC_STATIC_DISPLAY      "Client-side display options."
+    IDC_STATIC_MOUSE        "Mouse configuration."
+    IDC_STATIC_MCURSOR      "Handling of remote mouse cursor."
     IDC_STATIC_IOPTIONS     "Interface options."
     IDC_STATIC_LOGGING      "Logging."
     IDC_STATIC_LCURSOR      "Local cursor."
     IDC_STATIC_LMODE        "Listen mode."
-    IDC_STATIC_PICTURE      "Picture."
+    IDC_STATIC_PICTURE      "TightVNC is an enhanced version of VNC. Visit http://www.tightvnc.com/ for more information."
 END
 
 #endif    // English (U.S.) resources

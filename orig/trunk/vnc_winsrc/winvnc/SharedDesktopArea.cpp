@@ -178,9 +178,7 @@ bool SharedDesktopArea::ApplySharedControls()
 										   BM_GETCHECK, 0, 0) == BST_CHECKED);
 				
 	if (m_vncprop->GetPrefScreenAreaShared()) {
-		int left,right,top,bottom;
-		m_pMatchWindow->GetPosition(left,top,right,bottom);
-		m_server->SetMatchSizeFields(left,top,right,bottom);
+		m_pMatchWindow->SetServerScreenArea();
 	}
 
 	if (m_vncprop->GetPrefFullScreen()) {

@@ -1,3 +1,4 @@
+//  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
 //  This file is part of the VNC system.
@@ -16,6 +17,12 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 //  USA.
+//
+// For the latest source code, please check:
+//
+// http://www.DevelopVNC.org/
+//
+// or send email to: feedback@developvnc.org.
 //
 // If the source code for the VNC system is not available from the place 
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
@@ -66,4 +73,16 @@ public:
 	ErrorException(const char *info = NULL);
 	virtual void Report();
 	virtual ~ErrorException();
+};
+
+// This indicates something the user should be told about.
+// In situations of ambiguity, the 'close' parameter can be used
+// to specify whether or not the connection is closed as a result.
+// In general it will be.
+// Report() will display a message box
+class AuthException : public WarningException {
+public:
+	AuthException(const char *info = NULL, bool close = true);
+	virtual void Report();
+	virtual ~AuthException();
 };

@@ -17,6 +17,12 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 //  USA.
 //
+// For the latest source code, please check:
+//
+// http://www.DevelopVNC.org/
+//
+// or send email to: feedback@developvnc.org.
+//
 // If the source code for the VNC system is not available from the place 
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
 // the authors on vnc@uk.research.att.com for information on obtaining it.
@@ -70,33 +76,84 @@ VNCviewerApp32::VNCviewerApp32(HINSTANCE hInstance, PSTR szCmdLine) :
 	// These should maintain a list of connections.
 
 void VNCviewerApp32::NewConnection() {
-	ClientConnection *pcc = new ClientConnection(this);
-	try {
-		pcc->Run();
-	} catch (Exception &e) {
-		e.Report();	
-		delete pcc;
-	} 
+	bool keepTrying = true;
+	ClientConnection *pcc;
+	ClientConnection *old_pcc;
+
+	pcc = new ClientConnection(this);
+	while ( keepTrying ) {
+		try {
+			pcc->Run();
+			keepTrying = false;
+		} catch (AuthException &e) {
+			e.Report();
+			// If the connection count drops to zero, the app exits.
+			old_pcc = pcc;
+			pcc = new ClientConnection(this);
+			// Get the previous options for the next try.
+			pcc->CopyOptions(old_pcc);
+			delete old_pcc;
+		} catch (Exception &e) {
+			e.Report();	
+			delete pcc;
+			keepTrying = false;
+		}
+	}
+
 }
 
 void VNCviewerApp32::NewConnection(TCHAR *host, int port) {
-	ClientConnection *pcc = new ClientConnection(this, host,port);
-	try {
-		pcc->Run();
-	} catch (Exception &e) {
-		e.Report();	
-		delete pcc;
-	} 
+	bool keepTrying = true;
+	ClientConnection *pcc;
+	ClientConnection *old_pcc;
+
+	pcc = new ClientConnection(this, host, port);
+	while ( keepTrying ) {
+		try {
+			pcc->Run();
+			keepTrying = false;
+		} catch (AuthException &e) {
+			e.Report();
+			// If the connection count drops to zero, the app exits.
+			old_pcc = pcc;
+			pcc = new ClientConnection(this, host, port);
+			// Get the previous options for the next try.
+			pcc->CopyOptions(old_pcc);
+			delete old_pcc;
+		} catch (Exception &e) {
+			e.Report();	
+			delete pcc;
+			keepTrying = false;
+		}
+	}
+
 }
 
 void VNCviewerApp32::NewConnection(SOCKET sock) {
-	ClientConnection *pcc = new ClientConnection(this, sock);
-	try {
-		pcc->Run();
-	} catch (Exception &e) {
-		e.Report();	
-		delete pcc;
-	} 
+	bool keepTrying = true;
+	ClientConnection *pcc;
+	ClientConnection *old_pcc;
+
+	pcc = new ClientConnection(this, sock);
+	while ( keepTrying ) {
+		try {
+			pcc->Run();
+			keepTrying = false;
+		} catch (AuthException &e) {
+			e.Report();
+			// If the connection count drops to zero, the app exits.
+			old_pcc = pcc;
+			pcc = new ClientConnection(this, sock);
+			// Get the previous options for the next try.
+			pcc->CopyOptions(old_pcc);
+			delete old_pcc;
+		} catch (Exception &e) {
+			e.Report();	
+			delete pcc;
+			keepTrying = false;
+		}
+	}
+
 }
 
 // Register the Bell sound event

@@ -7,9 +7,7 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#define IDC_STATIC (-1)
-#include "windows.h"
-
+#include "afxres.h"
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
@@ -229,7 +227,7 @@ FONT 8, "MS Sans Serif"
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,179,82,50,14
     CONTROL         106,IDC_STATIC,"Static",SS_BITMAP | SS_SUNKEN,7,7,81,66
-    LTEXT           "Viewer version 1.0.1.2",IDC_STATIC,110,7,119,11
+    LTEXT           "Viewer version 1.1.2.0",IDC_STATIC,110,7,119,11
     LTEXT           "Copyright (C) 1999\nAT&&T Laboratories Cambridge",
                     IDC_STATIC,110,41,119,18
     LTEXT           "For more information see\nhttp://www.tridiavnc.com/",

@@ -109,6 +109,7 @@ private:
 	void PerformAuthenticationOld();
 	void Authenticate(CARD32 authScheme);
 	bool AuthenticateVNC(char *errBuf, int errBufSize, bool *again);
+	bool AuthenticateUnixLogin(char *errBuf, int errBufSize, bool *again);
 	void ReadServerInit();
 	void ReadInteractionCaps();
 	void ReadCapabilityList(CapsContainer *caps, int count);

@@ -96,11 +96,11 @@ SOURCE=.\res\cursor1.cur
 # End Source File
 # Begin Source File
 
-SOURCE=.\res\fileup.ico
+SOURCE=.\res\filereload.ico
 # End Source File
 # Begin Source File
 
-SOURCE=.\res\filereload.ico
+SOURCE=.\res\fileup.ico
 # End Source File
 # Begin Source File
 
@@ -290,6 +290,14 @@ SOURCE=.\Log.cpp
 # Begin Source File
 
 SOURCE=.\Log.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\LoginAuthDialog.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\LoginAuthDialog.h
 # End Source File
 # Begin Source File
 

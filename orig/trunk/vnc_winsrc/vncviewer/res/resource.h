@@ -25,6 +25,7 @@
 #define IDD_SESSION_DLG                 135
 #define IDD_SERVINFO_DLG                137
 #define IDD_AUTH_DIALOG                 138
+#define IDD_LOGIN_AUTH_DIALOG           139
 #define IDD_OPTIONDIALOG                151
 #define IDT_EMULATE3BUTTONSTIMER        152
 #define ID_CONN_SAVE_AS                 153
@@ -44,6 +45,7 @@
 #define IDC_BELLDEICONIFY               1001
 #define IDC_SERVINFO_EDIT               1005
 #define IDC_VIEWONLY                    1005
+#define IDC_LOGIN_EDIT                  1008
 #define IDC_PASSWD_EDIT                 1009
 #define IDC_OPTIONBUTTON                1012
 #define IDC_8BITCHECK                   1013
@@ -165,6 +167,6 @@
 #define _APS_NEXT_RESOURCE_VALUE        244
 #define _APS_NEXT_COMMAND_VALUE         40011
 #define _APS_NEXT_CONTROL_VALUE         1121
-#define _APS_NEXT_SYMED_VALUE           154
+#define _APS_NEXT_SYMED_VALUE           244
 #endif
 #endif

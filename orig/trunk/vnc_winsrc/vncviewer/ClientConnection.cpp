@@ -47,6 +47,7 @@
 #include "ClientConnection.h"
 #include "SessionDialog.h"
 #include "AuthDialog.h"
+#include "LoginAuthDialog.h"
 #include "AboutBox.h"
 #include "FileTransfer.h"
 #include "commctrl.h"
@@ -179,6 +180,8 @@ void ClientConnection::InitCapabilities()
 	// Supported authentication methods
 	m_authCaps.Add(rfbVncAuth, rfbStandardVendor, sig_rfbVncAuth,
 				   "Standard VNC password authentication");
+	m_authCaps.Add(rfbUnixLoginAuth, rfbTightVncVendor, sig_rfbUnixLoginAuth,
+				   "Login-style Unix authentication");
 
 	// Known server->client message types
 	m_serverMsgCaps.Add(rfbFileListData, rfbTightVncVendor,
@@ -840,11 +843,17 @@ void ClientConnection::PerformAuthenticationNew()
 		vnclog.Print(0, _T("No authentication needed\n"));
 	} else {
 		ReadCapabilityList(&m_authCaps, caps.nAuthTypes);
+		if (!m_authCaps.NumEnabled()) {
+			vnclog.Print(0, _T("No suitable authentication schemes offered by the server\n"));
+			throw ErrorException("Incompatible authentication schemes on the server!");
+		}
 
-		// Request the standard VNC authentication.
-		CARD32 authScheme = Swap32IfLE(rfbVncAuth);
+		// Use server's preferred authentication scheme.
+		CARD32 authScheme = m_authCaps.GetByOrder(0);
+		authScheme = Swap32IfLE(authScheme);
 		WriteExact((char *)&authScheme, sizeof(authScheme));
-		Authenticate(rfbVncAuth);
+		authScheme = Swap32IfLE(authScheme);	// convert it back
+		Authenticate(authScheme);
 	}
 }
 
@@ -876,20 +885,37 @@ void ClientConnection::PerformAuthenticationOld()
     }
 }
 
-// This should be a wrapper function for different authentication schemes.
-// Currently, only the standard VNC authentication is supported.
+// The definition of a function implementing some authentication scheme.
+
+typedef bool (ClientConnection::*AuthFunc)(char *, int, bool *);
+
+// A wrapper function for different authentication schemes.
 
 void ClientConnection::Authenticate(CARD32 authScheme)
 {
-	if (authScheme != rfbVncAuth) {
+	AuthFunc authFuncPtr;
+
+	switch(authScheme) {
+	case rfbVncAuth:
+		authFuncPtr = AuthenticateVNC;
+		break;
+	case rfbUnixLoginAuth:
+		authFuncPtr = AuthenticateUnixLogin;
+		break;
+	default:
 		vnclog.Print(0, _T("Unknown authentication scheme: %d\n"),
 					 (int)authScheme);
 		throw ErrorException("Unknown authentication scheme!");
 	}
 
-	char errorMsg[256];
+	vnclog.Print(0, _T("Authentication scheme: %s\n"),
+				 m_authCaps.GetDescription(authScheme));
+
+	const int errorMsgSize = 256;
+	CheckBufferSize(errorMsgSize);
+	char *errorMsg = m_netbuf;
 	bool tryAgain;
-	if (!AuthenticateVNC(errorMsg, 256, &tryAgain)) {
+	if (!(this->*authFuncPtr)(errorMsg, errorMsgSize, &tryAgain)) {
 		vnclog.Print(0, _T("%s\n"), errorMsg);
 		if (tryAgain) {
 			throw AuthException(errorMsg);
@@ -897,7 +923,7 @@ void ClientConnection::Authenticate(CARD32 authScheme)
 			throw ErrorException(errorMsg);
 		}
 	} else {
-		vnclog.Print(0, _T("VNC authentication succeeded\n"));
+		vnclog.Print(0, _T("Authentication succeeded\n"));
 	}
 }
 
@@ -920,6 +946,7 @@ bool ClientConnection::AuthenticateVNC(char *errBuf, int errBufSize, bool *again
 #ifndef UNDER_CE
 		strcpy(passwd, ad.m_passwd);
 #else
+		// FIXME: Move wide-character translations to a separate class
 		int origlen = _tcslen(ad.m_passwd);
 		int newlen = WideCharToMultiByte(
 			CP_ACP,    // code page
@@ -967,6 +994,85 @@ bool ClientConnection::AuthenticateVNC(char *errBuf, int errBufSize, bool *again
 		break;
 	default:
 		_snprintf(errBuf, errBufSize, "Unknown VNC authentication result: %u",
+				  (unsigned int)authResult);
+		*again = false;
+		break;
+	}
+	return false;
+}
+
+bool ClientConnection::AuthenticateUnixLogin(char *errBuf, int errBufSize, bool *again)
+{
+	char username[256];
+	char passwd[256];
+
+	LoginAuthDialog ad;
+	ad.DoDialog();	
+#ifndef UNDER_CE
+	strcpy(username, ad.m_username);
+	strcpy(passwd, ad.m_passwd);
+#else
+	// FIXME: Move wide-character translations to a separate class
+	int origlen = _tcslen(ad.m_username);
+	int newlen = WideCharToMultiByte(
+		CP_ACP,			// code page
+		0,				// performance and mapping flags
+		ad.m_username,	// address of wide-character string
+		origlen,		// number of characters in string
+		username,		// address of buffer for new string
+		255,			// size of buffer
+		NULL, NULL);
+	username[newlen]= '\0';
+	origlen = _tcslen(ad.m_passwd);
+	newlen = WideCharToMultiByte(
+		CP_ACP,			// code page
+		0,				// performance and mapping flags
+		ad.m_passwd,	// address of wide-character string
+		origlen,		// number of characters in string
+		passwd,			// address of buffer for new string
+		255,			// size of buffer
+		NULL, NULL);
+	passwd[newlen]= '\0';
+#endif
+	if (strlen(username) == 0) {
+		_snprintf(errBuf, errBufSize, "Empty user name");
+		*again = true;
+		return false;
+	}
+	if (strlen(passwd) == 0) {
+		_snprintf(errBuf, errBufSize, "Empty password");
+		*again = true;
+		return false;
+	}
+
+	CARD32 usernameLen = Swap32IfLE((CARD32)strlen(username));
+	CARD32 passwdLen = Swap32IfLE((CARD32)strlen(passwd));
+
+	WriteExact((char *)&usernameLen, sizeof(usernameLen));
+	WriteExact((char *)&passwdLen, sizeof(passwdLen));
+	WriteExact(username, strlen(username));
+	WriteExact(passwd, strlen(passwd));
+
+	/* Lose the password from memory */
+	memset(passwd, '\0', strlen(passwd));
+
+	CARD32 authResult;
+	ReadExact((char *) &authResult, 4);
+	authResult = Swap32IfLE(authResult);
+
+	switch (authResult) {
+	case rfbVncAuthOK:
+		return true;
+	case rfbVncAuthFailed:
+		_snprintf(errBuf, errBufSize, "Authentication failed");
+		*again = true;
+		break;
+	case rfbVncAuthTooMany:
+		_snprintf(errBuf, errBufSize, "Authentication failed - too many tries");
+		*again = false;
+		break;
+	default:
+		_snprintf(errBuf, errBufSize, "Unknown authentication result: %u",
 				  (unsigned int)authResult);
 		*again = false;
 		break;

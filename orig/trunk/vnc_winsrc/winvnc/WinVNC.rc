@@ -191,22 +191,25 @@ BEGIN
     PUSHBUTTON      "&Apply",IDC_APPLY,249,193,50,14
 END
 
-IDD_SHARED_DESKTOP_AREA DIALOG DISCARDABLE  0, 0, 287, 97
+IDD_SHARED_DESKTOP_AREA DIALOG DISCARDABLE  0, 0, 288, 137
 STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE
 FONT 8, "MS Sans Serif"
 BEGIN
+    GROUPBOX        "Shared desktop area",IDC_SHARINGAREA_BORDER,5,5,278,70
     CONTROL         "Full desktop",IDC_FULLSCREEN,"Button",
-                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,7,6,100,16
-    CONTROL         "Window",IDC_WINDOW,"Button",BS_AUTORADIOBUTTON | 
-                    WS_TABSTOP,112,6,44,16
+                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,13,16,261,12
     CONTROL         "Rectangular area",IDC_SCREEN,"Button",
-                    BS_AUTORADIOBUTTON | WS_TABSTOP,7,23,88,15
-    CONTROL         139,IDC_BMPCURSOR,"Static",SS_BITMAP,29,64,21,17
-    EDITTEXT        IDC_NAME_APPLI,63,66,192,12,ES_AUTOHSCROLL | ES_READONLY
-    GROUPBOX        "Choice of a shared window or application",
-                    IDC_STATIC_SHARING_ONE,7,47,273,44,BS_CENTER
-    CONTROL         "Application",IDC_APPLICATION,"Button",
-                    BS_AUTORADIOBUTTON,112,22,86,16
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,13,30,261,12
+    CONTROL         "One window (use the window locator, below)",IDC_WINDOW,
+                    "Button",BS_AUTORADIOBUTTON | WS_TABSTOP,13,44,261,12
+    CONTROL         "All windows of an application (use the window locator, below)",
+                    IDC_APPLICATION,"Button",BS_AUTORADIOBUTTON,13,58,261,12
+    GROUPBOX        "Window locator",IDC_BORDER_WNDLOCATOR,5,79,278,53
+    LTEXT           "Drag the target image to choose a window or application to share:",
+                    IDC_STATIC_WNDLOCATOR,13,91,261,12
+    CONTROL         139,IDC_BMPCURSOR,"Static",SS_BITMAP,13,106,21,17
+    EDITTEXT        IDC_NAME_APPLI,41,108,233,12,ES_AUTOHSCROLL | 
+                    ES_READONLY
 END
 
 IDD_INCOMING DIALOG DISCARDABLE  0, 0, 288, 166
@@ -543,13 +546,13 @@ BEGIN
 
     IDD_SHARED_DESKTOP_AREA, DIALOG
     BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 280
-        VERTGUIDE, 112
-        TOPMARGIN, 6
-        BOTTOMMARGIN, 91
-        HORZGUIDE, 22
-        HORZGUIDE, 38
+        LEFTMARGIN, 5
+        RIGHTMARGIN, 283
+        VERTGUIDE, 13
+        VERTGUIDE, 274
+        TOPMARGIN, 5
+        BOTTOMMARGIN, 132
+        HORZGUIDE, 79
     END
 
     IDD_INCOMING, DIALOG
@@ -1002,12 +1005,12 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDC_SHARINGAREA_BORDER  "Select Sharing Area"
+    IDC_SHARINGAREA_BORDER  "Select which parts of the desktop should be visible to connected viewers."
     IDC_LIVESHARE_BORDER    "Connect with AppShare Key"
     IDC_NAME_APPLI          "Window name. You cannot enter the text here. To choose a window to share, drag the ""target"" icon to the selected window."
     IDC_LIVESHARE           "AppShare Key:"
     IDC_BMPCURSOR           "To choose a window to share, drag this ""target"" to the selected window."
-    IDC_WINDOW              "Share one partucular window. To choose a window to share, drag the ""target"" icon to the selected window."
+    IDC_WINDOW              "Share one partucular window. Use the window locator to choose the window you would like to share."
     IDC_SCREEN              "Share a rectangular part of the desktop."
     IDC_FULLSCREEN          "Share the whole desktop of this computer."
     IDC_DISABLE_TIME        "Specify how many seconds should pass between local keyboard or mouse activity and enabling remote input."
@@ -1053,14 +1056,15 @@ BEGIN
     IDC_ACTION              "Action"
     IDC_STATIC_INPUT_HANDLING "Input handling"
     IDC_STATIC_INCOMING     "Incoming connections"
-    IDC_STATIC_SHARING_ONE  "Choice of a shared window or application"
+    IDC_BORDER_WNDLOCATOR   "Window locator is used to select a window or an application to share."
     IDC_STATIC_POLLING_MODES "Polling modes"
     IDC_STATIC_TROUBLESHOOTING "Troubleshooting"
     IDC_STATIC_DRIVER_STATUS "Mirror driver status"
     IDC_STATIC_WINDOW_POLLING "Window polling"
     IDC_STATIC_DISCONNECTS  "When last client disconnects"
     IDC_STATIC_SELECTED_KLIENTS "Control of selected clients"
-    IDC_APPLICATION         "Shared application"
+    IDC_APPLICATION         "Share all windows of one partucular application. Use the window locator to choose any window of the application you would like to share."
+    IDC_STATIC_WNDLOCATOR   "Drag the target image to choose a window or application to share."
 END
 
 STRINGTABLE DISCARDABLE 

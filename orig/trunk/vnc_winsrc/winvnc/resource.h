@@ -173,7 +173,7 @@
 #define IDC_ACTION                      1139
 #define IDC_STATIC_INPUT_HANDLING       1140
 #define IDC_STATIC_INCOMING             1141
-#define IDC_STATIC_SHARING_ONE          1142
+#define IDC_BORDER_WNDLOCATOR           1142
 #define IDC_STATIC_POLLING_MODES        1143
 #define IDC_STATIC_TROUBLESHOOTING      1144
 #define IDC_STATIC_DRIVER_STATUS        1145
@@ -182,6 +182,7 @@
 #define IDC_STATIC_KLIENTS_LIST         1148
 #define IDC_STATIC_SELECTED_KLIENTS     1149
 #define IDC_APPLICATION                 1150
+#define IDC_STATIC_WNDLOCATOR           1151
 #define ID_PROPERTIES                   40001
 #define ID_CLOSE                        40002
 #define ID_KILLCLIENTS                  40003
@@ -197,7 +198,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        156
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1151
+#define _APS_NEXT_CONTROL_VALUE         1152
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

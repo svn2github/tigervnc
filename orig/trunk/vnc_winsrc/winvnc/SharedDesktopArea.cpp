@@ -379,9 +379,7 @@ void SharedDesktopArea::EnableControls(BOOL enable)
 	HBITMAP hOldImage = (HBITMAP)::SendMessage(bmp_hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
 	DeleteObject(hOldImage);
 
-	// set window text name
 	EnableWindow(m_hWindowName, enable);
-
-	HWND htitle = GetDlgItem(m_hwnd, IDC_STATIC_SHARING_ONE);
-	EnableWindow(htitle, enable);
+	EnableWindow(GetDlgItem(m_hwnd, IDC_BORDER_WNDLOCATOR), enable);
+	EnableWindow(GetDlgItem(m_hwnd, IDC_STATIC_WNDLOCATOR), enable);
 }

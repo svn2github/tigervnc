@@ -132,6 +132,7 @@
 #define IDC_STATIC_DISPLAY_PORT         1095
 #define IDC_POLCYCLMS_LABEL             1096
 #define IDC_LIVESHARE_LABEL             1097
+#define IDC_DONT_USE_DRIVER             1098
 #define ID_PROPERTIES                   40001
 #define ID_CLOSE                        40002
 #define ID_KILLCLIENTS                  40003
@@ -146,7 +147,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        156
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1098
+#define _APS_NEXT_CONTROL_VALUE         1099
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

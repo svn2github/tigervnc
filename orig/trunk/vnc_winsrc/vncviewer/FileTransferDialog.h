@@ -72,6 +72,9 @@ public:
 	void endCancelingDlg(BOOL result);
 	bool m_bEndFTDlgOnYes;
 
+	char *getLocalPath() { return m_szLocalPath; };
+	char *getRemotePath() { return m_szRemotePath; };
+
 private:
 	FileTransfer *m_pFileTransfer;
 

@@ -1475,7 +1475,7 @@ vncClientThread::run(void *arg)
 					m_socket->ReadExact(NULL, msg.fdr.fNameSize);
 					char reason[] = "Size of filename for download large than 255 bytes";
 					int reasonLen = strlen(reason);
-					m_client->SendFileDownloadFailed(reasonLen, reason);
+					m_client->SendLastRequestFailed(rfbFileDownloadRequest, reasonLen, 0, reason);
 					break;
 				}
 				char path_file[MAX_PATH];
@@ -1679,7 +1679,9 @@ vncClientThread::run(void *arg)
 				m_socket->ReadExact(dirName, msg.fcdr.dNameLen);
 				dirName[msg.fcdr.dNameLen] = '\0';
 				dirName = m_client->ConvertPath(dirName);
-				CreateDirectory((LPCTSTR) dirName, NULL);
+				if (!CreateDirectory((LPCTSTR) dirName, NULL)) {
+					m_client->SendLastRequestFailed(rfbFileCreateDirRequest, 0, GetLastError(), "");
+				}
 				delete [] dirName;
 			}
 			break;

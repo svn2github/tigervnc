@@ -169,6 +169,9 @@ FileTransfer::uploadFilePortion()
 				m_fileReader.close();
 				m_bUpload = false;
 				m_pFileTransferDlg->m_pStatusBox->setStatusText("Upload Completed");
+				if (strcmp(m_fileTransferInfoEx.getRemPathAt(0), m_pFileTransferDlg->getRemotePath()) == 0) {
+					m_pFileTransferDlg->reloadRemoteFileList();
+				}
 				m_fileTransferInfoEx.deleteAt(0);
 				PostMessage(m_pCC->m_hwnd, (UINT) WM_FT_CHECKTRANSFERQUEUE, (WPARAM) 0, (LPARAM) 0);
 				return;
@@ -337,6 +340,9 @@ FileTransfer::checkTransferQueue()
 						PostMessage(m_pCC->m_hwnd, (UINT) WM_FT_CHECKTRANSFERQUEUE, (WPARAM) 0, (LPARAM) 0);
 						return;
 					}
+				}
+				if (strcmp(m_fileTransferInfoEx.getLocPathAt(0), m_pFileTransferDlg->getLocalPath()) == 0) {
+					m_pFileTransferDlg->reloadLocalFileList();
 				}
 				char *pPath = m_fileTransferInfoEx.getFullRemPathAt(0);
 				m_fileTransferInfoEx.setFlagsAt(0, (m_fileTransferInfoEx.getFlagsAt(0) | FT_ATTR_FLR_DOWNLOAD_ADD));
@@ -889,11 +895,13 @@ FileTransfer::procFLRUpload(unsigned short numFiles, FileInfo *pFI)
 	if (flags & FT_ATTR_FLR_UPLOAD_CHECK) {
 		int num = isExistName(pFI, m_fileTransferInfoEx.getRemNameAt(0));
 		if (num >= 0) { 
-			if ((flags & FT_ATTR_FILE) ||
-				((m_fileLastRqstFailedMsgs.getFlagsAt(m_fileLastRqstFailedMsgs.getNumEntries() - 1) == rfbFileCreateDirRequest) &&
+			if (strcmp(m_fileTransferInfoEx.getRemPathAt(0), m_pFileTransferDlg->getRemotePath()) == 0) {
+				m_pFileTransferDlg->reloadRemoteFileList();
+			}
+			if ((flags & FT_ATTR_FILE) || 
+				((flags & FT_ATTR_FOLDER) && (flags & FT_ATTR_FOLDER_EXISTS)) &&
 				//(!(flags & FT_ATTR_COPY_OVERWRITE)) && 
-				(!m_bOverwriteAll))) {
-				m_fileLastRqstFailedMsgs.deleteAt(m_fileLastRqstFailedMsgs.getNumEntries() - 1);
+				(!m_bOverwriteAll)) {
 				FILEINFO fiStruct;
 				fiStruct.info.data = m_fileTransferInfoEx.getDataAt(0);
 				fiStruct.info.size = m_fileTransferInfoEx.getSizeAt(0);
@@ -1078,6 +1086,9 @@ FileTransfer::procFileDownloadDataMsg()
 		m_fileWriter.setTime(mTime);
 		m_fileWriter.close();
 		m_pFileTransferDlg->m_pStatusBox->setStatusText("Download Completed");
+		if (strcmp(m_fileTransferInfoEx.getLocPathAt(0), m_pFileTransferDlg->getLocalPath()) == 0) {
+			m_pFileTransferDlg->reloadLocalFileList();
+		}
 		m_fileTransferInfoEx.deleteAt(0);
 		PostMessage(m_pCC->m_hwnd, (UINT) WM_FT_CHECKTRANSFERQUEUE, (WPARAM) 0, (LPARAM) 0);
 		return true;
@@ -1203,6 +1214,14 @@ FileTransfer::procFileLastRqstFailedMsg()
 	case rfbFileDeleteRequest:
 		if (flrf.reasonLen >= (MAX_PATH - 1)) pReason[MAX_PATH - 1] = '\0';
 		m_fileLastRqstFailedMsgs.add(pReason, flrf.sysError, 0, flrf.typeOfRequest);
+		break;
+	case rfbFileCreateDirRequest:
+		{
+			if (flrf.sysError == ERROR_ALREADY_EXISTS) {
+				unsigned int flags = (m_fileTransferInfoEx.getFlagsAt(0) | FT_ATTR_FOLDER_EXISTS);
+				m_fileTransferInfoEx.setFlagsAt(0, flags);
+			}
+		}
 		break;
 	}
 

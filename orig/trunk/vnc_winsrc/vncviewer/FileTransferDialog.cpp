@@ -141,7 +141,6 @@ FileTransferDialog::processDlgMessage(HWND hwnd)
 	if (hwnd == NULL) hwnd = m_hwndFileTransfer;
 
 	MSG msg;
-//	while(PeekMessage(&msg, hwnd, 0, 0, PM_REMOVE) != 0) {
 	while(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) != 0) {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
@@ -366,6 +365,7 @@ FileTransferDialog::fileTransferDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 		_this->closeFileTransferDialog();
 		return FALSE;
 	}
+//	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 	return FALSE;
 }
 
@@ -465,6 +465,10 @@ FileTransferDialog::onFTCopy()
 				sprintf(pBuf, "%s%s, ", pBuf, fi.getNameAt(i));
 			}
 			sprintf(pBuf, "%s\n\nTo: Remote Computer %s\\", pBuf, m_szRemotePath);
+			if (strlen(pBuf) > 2048) {
+				sprintf(pBuf, "%sFrom: Local Computer %s\\\n\nTo: Remote Computer %s\\\n\nTotal %d file(s)/folder(s)",
+						prefix, m_szLocalPath, m_szRemotePath, numSel);
+			}
 			if (MessageBox(m_hwndFileTransfer, pBuf, "Copy Selected Files and Folders", MB_OKCANCEL) == IDOK) {
 				m_pFileTransfer->addTransferQueue(m_szLocalPath, m_szRemotePath, &fi, FT_ATTR_COPY_UPLOAD);
 			}
@@ -482,6 +486,10 @@ FileTransferDialog::onFTCopy()
 					sprintf(pBuf, "%s%s, ", pBuf, fi.getNameAt(i));
 				}
 				sprintf(pBuf, "%s\n\nTo: Local Computer %s\\", pBuf, m_szLocalPath);
+				if (strlen(pBuf) > 2048) {
+					sprintf(pBuf, "%sFrom: Remote Computer %s\\\n\nTo: Local Computer %s\\\n\nTotal %d file(s)/folder(s)",
+							prefix, m_szRemotePath, m_szLocalPath, numSel);
+				}
 				if (MessageBox(m_hwndFileTransfer, pBuf, "Copy Selected Files and Folders", MB_OKCANCEL) == IDOK) {
 					m_pFileTransfer->addTransferQueue(m_szLocalPath, m_szRemotePath, &fi, FT_ATTR_COPY_DOWNLOAD);
 				}
@@ -687,8 +695,8 @@ FileTransferDialog::endCancelingDlg(BOOL result)
 		m_hwndFTCanceling = NULL;
 		if (result) {
 			m_pFileTransfer->m_bFTCancel = true;
+			if (m_bEndFTDlgOnYes) endFileTransferDialog();
 		}
-		if (m_bEndFTDlgOnYes) endFileTransferDialog();
 	}
 }
 

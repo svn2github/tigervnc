@@ -429,36 +429,60 @@ vncClientThread::InitAuthenticateVNC()
 BOOL
 vncClientThread::SendInteractionCaps()
 {
-	const int NCAPS = 14;	/* update this on changing capability lists! */
+	// Update these constants on changing capability lists!
+	const int N_SMSG_CAPS = 4;
+	const int N_CMSG_CAPS = 6;
+	const int N_ENC_CAPS = 14;
 
+	// Create the header structure sent prior to capability lists
 	rfbInteractionCapsMsg intr_caps;
-	intr_caps.nServerMessageTypes = Swap16IfLE(0);
-	intr_caps.nClientMessageTypes = Swap16IfLE(0);
-	intr_caps.nEncodingTypes = Swap16IfLE(NCAPS);
+	intr_caps.nServerMessageTypes = Swap16IfLE(N_SMSG_CAPS);
+	intr_caps.nClientMessageTypes = Swap16IfLE(N_CMSG_CAPS);
+	intr_caps.nEncodingTypes = Swap16IfLE(N_ENC_CAPS);
 	intr_caps.pad = 0;
 
-	rfbCapabilityInfo capinfo[NCAPS];
+	// Supported server->client message types
+	rfbCapabilityInfo smsg_list[N_SMSG_CAPS];
+	SetCapInfo(&smsg_list[0], rfbFileListData,           rfbTightVncVendor);
+	SetCapInfo(&smsg_list[1], rfbFileDownloadData,       rfbTightVncVendor);
+	SetCapInfo(&smsg_list[2], rfbFileUploadCancel,       rfbTightVncVendor);
+	SetCapInfo(&smsg_list[3], rfbFileDownloadFailed,     rfbTightVncVendor);
 
-	// Basic encoding types
-	SetCapInfo(&capinfo[0],  rfbEncodingCopyRect,       rfbStandardVendor);
-	SetCapInfo(&capinfo[1],  rfbEncodingRRE,            rfbStandardVendor);
-	SetCapInfo(&capinfo[2],  rfbEncodingCoRRE,          rfbStandardVendor);
-	SetCapInfo(&capinfo[3],  rfbEncodingHextile,        rfbStandardVendor);
-	SetCapInfo(&capinfo[4],  rfbEncodingZlib,           rfbTridiaVncVendor);
-	SetCapInfo(&capinfo[5],  rfbEncodingZlibHex,        rfbTridiaVncVendor);
-	SetCapInfo(&capinfo[6],  rfbEncodingTight,          rfbTightVncVendor);
+	// Supported client->server message types
+	rfbCapabilityInfo cmsg_list[N_CMSG_CAPS];
+	SetCapInfo(&cmsg_list[0], rfbFileListRequest,        rfbTightVncVendor);
+	SetCapInfo(&cmsg_list[1], rfbFileDownloadRequest,    rfbTightVncVendor);
+	SetCapInfo(&cmsg_list[2], rfbFileUploadRequest,      rfbTightVncVendor);
+	SetCapInfo(&cmsg_list[3], rfbFileUploadData,         rfbTightVncVendor);
+	SetCapInfo(&cmsg_list[4], rfbFileDownloadCancel,     rfbTightVncVendor);
+	SetCapInfo(&cmsg_list[5], rfbFileUploadFailed,       rfbTightVncVendor);
 
-	// "Fake" encoding types
-	SetCapInfo(&capinfo[7],  rfbEncodingCompressLevel0, rfbTightVncVendor);
-	SetCapInfo(&capinfo[8],  rfbEncodingQualityLevel0,  rfbTightVncVendor);
-	SetCapInfo(&capinfo[9],  rfbEncodingXCursor,        rfbTightVncVendor);
-	SetCapInfo(&capinfo[10], rfbEncodingRichCursor,     rfbTightVncVendor);
-	SetCapInfo(&capinfo[11], rfbEncodingPointerPos,     rfbTightVncVendor);
-	SetCapInfo(&capinfo[12], rfbEncodingLastRect,       rfbTightVncVendor);
-	SetCapInfo(&capinfo[13], rfbEncodingNewFBSize,      rfbTightVncVendor);
+	// Encoding types
+	rfbCapabilityInfo enc_list[N_ENC_CAPS];
+	SetCapInfo(&enc_list[0],  rfbEncodingCopyRect,       rfbStandardVendor);
+	SetCapInfo(&enc_list[1],  rfbEncodingRRE,            rfbStandardVendor);
+	SetCapInfo(&enc_list[2],  rfbEncodingCoRRE,          rfbStandardVendor);
+	SetCapInfo(&enc_list[3],  rfbEncodingHextile,        rfbStandardVendor);
+	SetCapInfo(&enc_list[4],  rfbEncodingZlib,           rfbTridiaVncVendor);
+	SetCapInfo(&enc_list[5],  rfbEncodingZlibHex,        rfbTridiaVncVendor);
+	SetCapInfo(&enc_list[6],  rfbEncodingTight,          rfbTightVncVendor);
+	SetCapInfo(&enc_list[7],  rfbEncodingCompressLevel0, rfbTightVncVendor);
+	SetCapInfo(&enc_list[8],  rfbEncodingQualityLevel0,  rfbTightVncVendor);
+	SetCapInfo(&enc_list[9],  rfbEncodingXCursor,        rfbTightVncVendor);
+	SetCapInfo(&enc_list[10], rfbEncodingRichCursor,     rfbTightVncVendor);
+	SetCapInfo(&enc_list[11], rfbEncodingPointerPos,     rfbTightVncVendor);
+	SetCapInfo(&enc_list[12], rfbEncodingLastRect,       rfbTightVncVendor);
+	SetCapInfo(&enc_list[13], rfbEncodingNewFBSize,      rfbTightVncVendor);
 
-	return (m_socket->SendExact((char *)&intr_caps, sz_rfbInteractionCapsMsg) &&
-			m_socket->SendExact((char *)&capinfo[0], sz_rfbCapabilityInfo * NCAPS));
+	// Send header and capability lists
+	return (m_socket->SendExact((char *)&intr_caps,
+								sz_rfbInteractionCapsMsg) &&
+			m_socket->SendExact((char *)&smsg_list[0],
+								sz_rfbCapabilityInfo * N_SMSG_CAPS) &&
+			m_socket->SendExact((char *)&cmsg_list[0],
+								sz_rfbCapabilityInfo * N_CMSG_CAPS) &&
+			m_socket->SendExact((char *)&enc_list[0],
+								sz_rfbCapabilityInfo * N_ENC_CAPS));
 }
 
 void

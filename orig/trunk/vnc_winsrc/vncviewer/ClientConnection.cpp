@@ -178,12 +178,33 @@ void ClientConnection::Init(VNCviewerApp *pApp)
 
 void ClientConnection::InitCapabilities()
 {
-	// FIXME: Move signatures into one place, to make them available
-	//        both for the server and viewer parts?
-
 	// Supported authentication methods
 	m_authCaps.Add(rfbVncAuth, rfbStandardVendor, sig_rfbVncAuth,
 				   "Standard VNC password authentication");
+
+	// Known server->client message types
+	m_serverMsgCaps.Add(rfbFileListData, rfbTightVncVendor,
+						sig_rfbFileListData, "File list data");
+	m_serverMsgCaps.Add(rfbFileDownloadData, rfbTightVncVendor,
+						sig_rfbFileDownloadData, "File download data");
+	m_serverMsgCaps.Add(rfbFileUploadCancel, rfbTightVncVendor,
+						sig_rfbFileUploadCancel, "File upload cancel request");
+	m_serverMsgCaps.Add(rfbFileDownloadFailed, rfbTightVncVendor,
+						sig_rfbFileDownloadFailed, "File download failure notification");
+
+	// Known client->server message types
+	m_clientMsgCaps.Add(rfbFileListRequest, rfbTightVncVendor,
+						sig_rfbFileListRequest, "File list request");
+	m_clientMsgCaps.Add(rfbFileDownloadRequest, rfbTightVncVendor,
+						sig_rfbFileDownloadRequest, "File download request");
+	m_clientMsgCaps.Add(rfbFileUploadRequest, rfbTightVncVendor,
+						sig_rfbFileUploadRequest, "File upload request");
+	m_clientMsgCaps.Add(rfbFileUploadData, rfbTightVncVendor,
+						sig_rfbFileUploadData, "File upload data");
+	m_clientMsgCaps.Add(rfbFileDownloadCancel, rfbTightVncVendor,
+						sig_rfbFileDownloadCancel, "File download cancel request");
+	m_clientMsgCaps.Add(rfbFileUploadFailed, rfbTightVncVendor,
+						sig_rfbFileUploadFailed, "File upload failure notification");
 
 	// Supported encoding types
 	m_encodingCaps.Add(rfbEncodingCopyRect, rfbStandardVendor,
@@ -260,8 +281,14 @@ void ClientConnection::Run()
 	ReadServerInit();
 
 	// Only for protocol version 3.130
-	if (m_minorVersion >= 130)
+	if (m_minorVersion >= 130) {
 		ReadInteractionCaps();
+		if (m_clientMsgCaps.IsEnabled(rfbFileListRequest)) {
+			// Enable file transfers if the server supports this feature.
+			EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), IDD_FILETRANSFER,
+						   MF_BYCOMMAND | MF_ENABLED);
+		}
+	}
 
 	CreateLocalFramebuffer();
 	
@@ -385,7 +412,7 @@ void ClientConnection::CreateDisplay()
 			ID_CONN_SAVE_AS,	                            _T("&Save connection info as...	Ctrl-Alt-Shift-S"));
 	}
     AppendMenu(hsysmenu, MF_SEPARATOR, NULL, NULL);
-	AppendMenu(hsysmenu, MF_STRING, IDD_FILETRANSFER, _T("File Transfer"));
+	AppendMenu(hsysmenu, MF_STRING | MF_GRAYED, IDD_FILETRANSFER, _T("File Transfer"));
 
     AppendMenu(hsysmenu, MF_SEPARATOR, NULL, NULL);
 	AppendMenu(hsysmenu, MF_STRING, IDD_APP_ABOUT,		    _T("&About VNCviewer..."));
@@ -1297,9 +1324,11 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 					ShowAboutBox();
 					return 0;
 				case IDD_FILETRANSFER:
-					if (!_this->m_FileTransferEnable) {
-						_this->m_FileTransferEnable = true;
-						_this->m_pFileTransfer->CreateFileTransferDialog();
+					if (_this->m_clientMsgCaps.IsEnabled(rfbFileListRequest)) {
+						if (!_this->m_FileTransferEnable) {
+							_this->m_FileTransferEnable = true;
+							_this->m_pFileTransfer->CreateFileTransferDialog();
+						}
 					}
 					return 0;
 				case ID_CONN_ABOUT:

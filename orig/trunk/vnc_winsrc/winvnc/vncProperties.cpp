@@ -1195,6 +1195,7 @@ vncProperties::Load(BOOL usersettings)
 	m_pref_PollForeground=TRUE;
 	m_pref_PollFullScreen=TRUE;
 	m_pref_DontSetHooks=FALSE;
+	m_pref_DontUseDriver=FALSE;
 	m_pref_PollConsoleOnly=TRUE;
 	m_pref_PollOnEventOnly=FALSE;
 	m_allowshutdown = TRUE;
@@ -1260,6 +1261,7 @@ vncProperties::Load(BOOL usersettings)
 	m_pref_PollConsoleOnly=TRUE;
 	m_pref_PollOnEventOnly=FALSE;
 	m_pref_DontSetHooks=FALSE;
+	m_pref_DontUseDriver=FALSE;
 	m_pref_RemoveWallpaper=TRUE;
 	m_pref_EnableFileTransfers = TRUE;
 	m_alloweditclients = TRUE;
@@ -1392,6 +1394,7 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	m_pref_PollConsoleOnly=LoadInt(appkey, "OnlyPollConsole", m_pref_PollConsoleOnly);
 	m_pref_PollOnEventOnly=LoadInt(appkey, "OnlyPollOnEvent", m_pref_PollOnEventOnly);
 	m_pref_DontSetHooks=LoadInt(appkey, "DontSetHooks", m_pref_DontSetHooks);
+	m_pref_DontUseDriver=LoadInt(appkey, "DontUseDriver", m_pref_DontUseDriver);
 
 	// screen area sharing prefs
 	m_pref_FullScreen = m_server->FullScreen();
@@ -1450,6 +1453,7 @@ vncProperties::ApplyUserPrefs()
 	m_server->PollConsoleOnly(m_pref_PollConsoleOnly);
 	m_server->PollOnEventOnly(m_pref_PollOnEventOnly);
 	m_server->DontSetHooks(m_pref_DontSetHooks);
+	m_server->DontUseDriver(m_pref_DontUseDriver);
 
 	m_server->FullScreen(m_pref_FullScreen);
 	m_server->WindowShared(m_pref_WindowShared);
@@ -1613,6 +1617,7 @@ vncProperties::SaveUserPrefs(HKEY appkey)
 	SaveInt(appkey, "PollingCycle", m_server->GetPollingCycle());
 
 	SaveInt(appkey, "DontSetHooks", m_server->DontSetHooks());
+	SaveInt(appkey, "DontUseDriver", m_server->DontUseDriver());
 
 	SaveInt(appkey, "LocalInputsPriority", m_server->LocalInputPriority());
 }

@@ -82,6 +82,7 @@ vncServer::vncServer()
 	m_poll_consoleonly = TRUE;
 
 	m_dont_set_hooks = FALSE;
+	m_dont_use_driver = FALSE;
 
 	// General options
 	m_loopbackOnly = FALSE;
@@ -825,6 +826,14 @@ vncServer::DontSetHooks(BOOL enable)
 	m_dont_set_hooks = enable;
 	if (m_desktop != NULL)
 		m_desktop->TryActivateHooks();
+}
+
+// Changing use driver settings
+
+void
+vncServer::DontUseDriver(BOOL enable)
+{
+	m_dont_use_driver = enable;
 }
 
 // Name and port number handling

@@ -15,6 +15,7 @@ PollControls::PollControls(HWND hwnd, vncServer *server)
 	SetChecked(IDC_CONSOLE_ONLY, m_server->PollConsoleOnly());
 	SetChecked(IDC_ONEVENT_ONLY, m_server->PollOnEventOnly());
 	SetChecked(IDC_DONT_SET_HOOKS, m_server->DontSetHooks());
+	SetChecked(IDC_DONT_USE_DRIVER, m_server->DontUseDriver());
 	SetDlgItemInt(m_hwnd, IDC_POLLING_CYCLE, m_server->GetPollingCycle(), FALSE);
 
 	Validate();
@@ -25,7 +26,7 @@ void PollControls::Validate()
 	BOOL full_polling =
 		IsChecked(IDC_POLL_FULLSCREEN);
 	BOOL window_polling =
-		IsChecked(IDC_POLL_FOREGROUND) || IsChecked(IDC_POLL_UNDER_CURSOR);
+		IsChecked(IDC_POLL_FOREGROUND) || IsChecked(IDC_POLL_UNDER_CURSOR);	
 
 	Enable(IDC_POLL_FOREGROUND,   !full_polling);
 	Enable(IDC_POLL_UNDER_CURSOR, !full_polling);
@@ -50,6 +51,7 @@ void PollControls::Apply()
 
 	// This should appear AFTER calling m_server->PollFullScreen(...)
 	m_server->DontSetHooks(IsChecked(IDC_DONT_SET_HOOKS));
+	m_server->DontUseDriver(IsChecked(IDC_DONT_USE_DRIVER));
 
 	BOOL success;
 	UINT pollingCycle = GetDlgItemInt(m_hwnd, IDC_POLLING_CYCLE, &success, TRUE);

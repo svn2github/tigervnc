@@ -161,6 +161,7 @@ protected:
 	BOOL m_pref_PollOnEventOnly;
 	BOOL m_pref_PollingCycle;
 	BOOL m_pref_DontSetHooks;
+	BOOL m_pref_DontUseDriver;
 	BOOL m_pref_WindowShared;
 	BOOL m_pref_FullScreen;
 	BOOL m_pref_ScreenAreaShared;

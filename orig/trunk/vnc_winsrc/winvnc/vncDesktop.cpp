@@ -1169,18 +1169,20 @@ vncDesktop::InitBitmap()
 {
 	// Get the device context for the whole screen and find it's size
 	m_hrootdc = ::GetDC(NULL);
-	if (m_hrootdc == NULL)
+	if (m_hrootdc == NULL) {
+		vnclog.Print(LL_INTERR, VNCLOG("GetDC() failed, error=%d\n"), GetLastError());
 		return FALSE;
 
 	m_bmrect.left = m_bmrect.top = 0;
 	m_bmrect.right = GetDeviceCaps(m_hrootdc, HORZRES);
 	m_bmrect.bottom = GetDeviceCaps(m_hrootdc, VERTRES);
-	vnclog.Print(LL_INTINFO, VNCLOG("bitmap dimensions are %d x %d\n"), m_bmrect.right, m_bmrect.bottom);
+	vnclog.Print(LL_INTINFO, VNCLOG("bitmap dimensions are %dx%d\n"), m_bmrect.right, m_bmrect.bottom);
 
 	// Create a compatible memory DC
 	m_hmemdc = CreateCompatibleDC(m_hrootdc);
 	if (m_hmemdc == NULL) {
-		vnclog.Print(LL_INTERR, VNCLOG("failed to create compatibleDC(%d)\n"), GetLastError());
+		vnclog.Print(LL_INTERR, VNCLOG("CreateCompatibleDC() failed, error=%d\n"),
+					 GetLastError());
 		return FALSE;
 	}
 
@@ -1211,7 +1213,8 @@ vncDesktop::InitBitmap()
 	// Create the bitmap to be compatible with the ROOT DC!!!
 	m_membitmap = CreateCompatibleBitmap(m_hrootdc, m_bmrect.right, m_bmrect.bottom);
 	if (m_membitmap == NULL) {
-		vnclog.Print(LL_INTERR, VNCLOG("failed to create memory bitmap(%d)\n"), GetLastError());
+		vnclog.Print(LL_INTERR, VNCLOG("failed to create memory bitmap, error=%d\n"),
+					 GetLastError());
 		return FALSE;
 	}
 	vnclog.Print(LL_INTINFO, VNCLOG("created memory bitmap\n"));

@@ -168,7 +168,7 @@ vncService::CurrentUser(char *buffer, UINT size)
 				else
 				{
 					// Genuine error...
-					vnclog.Print(LL_INTERR, VNCLOG("getusername error %d\n"), GetLastError());
+					vnclog.Print(LL_INTERR, VNCLOG("GetUserName() failed, error=%d\n"), GetLastError());
 					return FALSE;
 				}
 			}
@@ -251,13 +251,13 @@ vncService::SelectHDESK(HDESK new_desktop)
 
 		// Switch the desktop
 		if(!SetThreadDesktop(new_desktop)) {
-			vnclog.Print(LL_INTERR, VNCLOG("unable to SetThreadDesktop\n"), GetLastError());
+			vnclog.Print(LL_INTERR, VNCLOG("unable to SetThreadDesktop(), error=%d\n"), GetLastError());
 			return FALSE;
 		}
 
 		// Switched successfully - destroy the old desktop
 		if (!CloseDesktop(old_desktop))
-			vnclog.Print(LL_INTERR, VNCLOG("SelectHDESK failed to close old desktop %x (Err=%d)\n"), old_desktop, GetLastError());
+			vnclog.Print(LL_INTERR, VNCLOG("SelectHDESK failed to close old desktop %x, error=%d\n"), old_desktop, GetLastError());
 
 		return TRUE;
 	}
@@ -299,7 +299,7 @@ vncService::SelectDesktop(char *name)
 
 		// Did we succeed?
 		if (desktop == NULL) {
-			vnclog.Print(LL_INTERR, VNCLOG("unable to open desktop:%d\n"), GetLastError());
+			vnclog.Print(LL_INTERR, VNCLOG("unable to open desktop, error=%d\n"), GetLastError());
 			return FALSE;
 		}
 
@@ -308,7 +308,7 @@ vncService::SelectDesktop(char *name)
 			// Failed to enter the new desktop, so free it!
 			vnclog.Print(LL_INTERR, VNCLOG("SelectDesktop() failed to select desktop\n"));
 			if (!CloseDesktop(desktop))
-				vnclog.Print(LL_INTERR, VNCLOG("SelectDesktop failed to close desktop:%d\n"), GetLastError());
+				vnclog.Print(LL_INTERR, VNCLOG("SelectDesktop failed to close desktop, error=%d\n"), GetLastError());
 			return FALSE;
 		}
 
@@ -595,7 +595,7 @@ vncService::ProcessUserHelperMessage(WPARAM wParam, LPARAM lParam) {
 	// - Open the specified process
 	HANDLE processHandle = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, (DWORD)lParam);
 	if (processHandle == NULL) {
-		vnclog.Print(LL_INTERR, VNCLOG("failed to open specified process, error = %d\n"),
+		vnclog.Print(LL_INTERR, VNCLOG("failed to open specified process, error=%d\n"),
 					 GetLastError());
 		return FALSE;
 	}
@@ -603,7 +603,7 @@ vncService::ProcessUserHelperMessage(WPARAM wParam, LPARAM lParam) {
 	// - Get the token for the given process
 	HANDLE userToken = NULL;
 	if (!OpenProcessToken(processHandle, TOKEN_QUERY | TOKEN_DUPLICATE | TOKEN_IMPERSONATE, &userToken)) {
-		vnclog.Print(LL_INTERR, VNCLOG("failed to get user token, error = %d\n"),
+		vnclog.Print(LL_INTERR, VNCLOG("failed to get user token, error=%d\n"),
 					 GetLastError());
 		CloseHandle(processHandle);
 		return FALSE;
@@ -612,7 +612,7 @@ vncService::ProcessUserHelperMessage(WPARAM wParam, LPARAM lParam) {
 
 	// - Set this thread to impersonate them
 	if (!ImpersonateLoggedOnUser(userToken)) {
-		vnclog.Print(LL_INTERR, VNCLOG("failed to impersonate user, error = %d\n"),
+		vnclog.Print(LL_INTERR, VNCLOG("failed to impersonate user, error=%d\n"),
 					 GetLastError());
 		CloseHandle(userToken);
 		return FALSE;

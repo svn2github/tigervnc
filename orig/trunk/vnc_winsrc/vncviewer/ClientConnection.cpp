@@ -2124,7 +2124,7 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 			if (_this->m_clientMsgCaps.IsEnabled(rfbFileListRequest)) {
 				if (!_this->m_fileTransferDialogShown) {
 					_this->m_fileTransferDialogShown = true;
-					_this->m_pFileTransfer->CreateFileTransferDialog();
+					_this->m_pFileTransfer->createFileTransfer();
 				}
 			}
 			return 0;
@@ -2230,12 +2230,12 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 	case WM_CLOSE:		
 		// Close the worker thread as well
 		if (_this->m_fileTransferDialogShown) {
-			if (_this->m_pFileTransfer->IsTransferEnable()) {
+			if (_this->m_pFileTransfer->isTransferEnable()) {
 				if (MessageBox(hwnd, 
 					_T("File Transfer is active. Are you sure you want to disconnect? This will result in active file transfer operation being discontinued."),
 					_T("Closing Active File Transfer"),
 					MB_YESNO | MB_ICONQUESTION) == IDYES) {
-					_this->m_pFileTransfer->CloseUndoneFileTransfers();
+					_this->m_pFileTransfer->closeUndoneTransfer();
 				} else {
 					return 1;
 				}
@@ -2276,10 +2276,6 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 		// The thread probably hasn't been started yet,
 		}	
 		return 0;						 
-	}
-	if ((iMsg == fileTransferUploadMessage) && (_this->m_pFileTransfer != NULL)){
-		_this->m_pFileTransfer->UploadFilePortion();
-		return 0;
 	}
 	return DefWindowProc(hwnd, iMsg, wParam, lParam);
 }	
@@ -2489,6 +2485,19 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 		}
 	
 #endif
+	case WM_FT_UPLOADFILEPORTION:
+		_this->m_pFileTransfer->uploadFilePortion();
+		return 0;
+	case WM_FT_CHECKTRANSFERQUEUE:
+		_this->m_pFileTransfer->checkTransferQueue();
+		return 0;
+	case WM_FT_CHECKRENAMEQUEUE:
+		_this->m_pFileTransfer->checkRenameQueue();
+		return 0;
+	case WM_FT_CHECKDELETEQUEUE:
+		_this->m_pFileTransfer->checkDeleteQueue();
+		return 0;
+
 	}
 	return DefWindowProc(hwnd, iMsg, wParam, lParam);
 }
@@ -2944,12 +2953,12 @@ void* ClientConnection::run_undetached(void* arg) {
 			  omni_mutex_lock l(m_readMutex);  // we need this if we're not using ReadExact
 			  int bytes = recv(m_sock, (char *) &msgType, 1, MSG_PEEK);
 			  if (bytes == 0) {
-                m_pFileTransfer->CloseUndoneFileTransfers();
+                m_pFileTransfer->closeUndoneTransfer();
 			    vnclog.Print(0, _T("Connection closed\n") );
 			    throw WarningException(_T("Connection closed"));
 			  }
 			  if (bytes < 0) {
-                m_pFileTransfer->CloseUndoneFileTransfers();
+                m_pFileTransfer->closeUndoneTransfer();
 			    vnclog.Print(3, _T("Socket error reading message: %d\n"), WSAGetLastError() );
 			    throw WarningException("Error while waiting for server message");
 			  }
@@ -2970,23 +2979,25 @@ void* ClientConnection::run_undetached(void* arg) {
 				ReadServerCutText();
 				break;
 			case rfbFileListData:
-				m_pFileTransfer->ProcessFLRMessage();
+				m_pFileTransfer->procFileListDataMsg();
 				break;
 			case rfbFileDownloadData:
-				m_pFileTransfer->DownloadFilePortion();
+				m_pFileTransfer->procFileDownloadDataMsg();
 				break;
 			case rfbFileUploadCancel:
+				m_pFileTransfer->procFileUploadCancelMsg();
 				break;
 			case rfbFileDownloadFailed:
+				m_pFileTransfer->procFileDownloadFailedMsg();
 				break;
 			case rfbFileDirSizeData:
-				m_pFileTransfer->ProcessFDSDMessage();
+				m_pFileTransfer->procFileDirSizeDataMsg();
 				break;
 			case rfbFileLastRequestFailed:
-				m_pFileTransfer->ProcessFLRFMessage();
+				m_pFileTransfer->procFileLastRqstFailedMsg();
 				break;
 			case rfbFileSpecDirData:
-				m_pFileTransfer->ProcessFSDDMessage();
+				m_pFileTransfer->procFileSpecDirDataMsg();
 				break;
 			default:
 				vnclog.Print(3, _T("Unknown message type x%02x\n"), msgType );

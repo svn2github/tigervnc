@@ -1,4 +1,4 @@
-//  Copyright (C) 2003 Dennis Syrovatsky. All Rights Reserved.
+//  Copyright (C) 2003-2004 Dennis Syrovatsky. All Rights Reserved.
 //
 //  This file is part of the VNC system.
 //
@@ -26,237 +26,130 @@
 #if !defined(FILETRANSFER)
 #define FILETRANSFER
 
-#include "windows.h"
-#include "shlobj.h"
-#include "commctrl.h"
+#include "vncviewer.h"
 #include "ClientConnection.h"
-#include "FileTransferItemInfo.h"
-
-#define FT_FLR_DEST_MAIN     100
-#define FT_FLR_DEST_BROWSE   101
-#define FT_FLR_DEST_DOWNLOAD 102
-#define FT_FLR_DEST_UPLOAD   103
-#define FT_FLR_DEST_DELETE   104
-
-#define FT_FDSR_DEST_MAIN     200
-#define FT_FDSR_DEST_DOWNLOAD 201
-#define FT_FDSR_DEST_UPLOAD   202
-
-
-#define FT_ID_MYCOMPUTER 0
-#define FT_ID_MYDOCUMENTS 1
-#define FT_ID_MYPICTURES 2
-#define FT_ID_MYMUSIC 3
-#define FT_ID_MYDESKTOP 4 
-
+#include "FileInfo.h"
+#include "FileInfoEx.h"
+#include "FileWriter.h"
+#include "FileReader.h"
+#include "FileTransferDialog.h"
+#include "FileTransferTypes.h"
 
 class ClientConnection;
 
 class FileTransfer  
 {
-private:
-	static const char delimeter[];
-	static const char uploadText[];
-	static const char downloadText[];
-	static const char noactionText[];
-	static const char myComputerText[];
-	static const char myDocumentsText[];
-	static const char myPicturesText[];
-	static const char myMusicText[];
-	static const char myDesktopText[];
-
 public:
 	FileTransfer(ClientConnection * pCC, VNCviewerApp * pApp);
 	~FileTransfer();
 
-	void FTInsertColumn(HWND hwnd, char *iText, int iOrder, int xWidth, int alignFmt);
-	void CreateFileTransferDialog();
-	void ShowListViewItems(HWND hwnd, FileTransferItemInfo *ftii);
-	void ConvertPath(char *path);
-	void ConvertFromNetPath(char *path);
-	void ProcessListViewDBLCLK(HWND hwnd, char *Path, char *PathTmp, int iItem);
-	void ProcessFLRMessage();
-	void ProcessFDSDMessage();
-	void ProcessFLRFMessage();
-	void ProcessFSDDMessage();
-	void SendFileListRequestMessage(char *filename, unsigned char flags, int dest);
-	void ShowServerItems();
-	void ShowClientItems(char *path);
-	void ShowClientSpecFolder(int idFolder);
-	void ProcessDlgMessage(HWND hwnd);
-	void ShowTreeViewItems(HWND hwnd, LPNMTREEVIEW m_lParam);
-	void CreateFTBrowseDialog(BOOL status);
-	void StrInvert(char *str);
-	void GetTVPath(HWND hwnd, HTREEITEM hTItem, char *path);
-	char m_ServerPath[MAX_PATH];
-	char m_ClientPath[MAX_PATH];
-	char m_ServerPathTmp[MAX_PATH];
-	char m_ClientPathTmp[MAX_PATH];
-	char m_ServerFilename[MAX_PATH];
-	char m_ClientFilename[MAX_PATH];
-	char m_UploadFilename[MAX_PATH];
-	char m_DownloadFilename[MAX_PATH];
-	void OnGetDispClientInfo(NMLVDISPINFO *plvdi); 
-	void OnGetDispServerInfo(NMLVDISPINFO *plvdi); 
-	static LRESULT CALLBACK FileTransferDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-	static BOOL CALLBACK FTBrowseDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-	static BOOL CALLBACK FTCreateDirDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-	static BOOL CALLBACK FTRenameDirDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-	static BOOL CALLBACK FTCancelingDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-	static INT_PTR CALLBACK FTConfirmDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-	void CloseUndoneFileTransfers();
-	void DownloadFilePortion();
-	BOOL UploadFilePortion();
-	BOOL IsTransferEnable() { return m_bTransferEnable; };
-	ClientConnection * m_clientconn;
-	VNCviewerApp * m_pApp; 
-	
+	void createFileTransfer();
+
+	bool sendFileListRqstMsg(unsigned short dirNameSize, char *pDirName,
+							 int dest, unsigned char flags);
+	bool sendFileDownloadRqstMsg(unsigned short filenameLen, char *pFilename, 
+								 unsigned int position);
+	bool sendFileUploadRqstMsg(unsigned short filenameLen, char *pFilename, 
+							   unsigned int position);
+	bool sendFileUploadDataMsg(unsigned short dataSize, char *pData);
+	bool sendFileUploadDataMsg(unsigned int modTime);
+	bool sendFileDownloadCancelMsg(unsigned short reasonLen, char *pReason);
+	bool sendFileUploadFailedMsg(unsigned short reasonLen, char *pReason);
+	bool sendFileCreateDirRqstMsg(unsigned short dirNameLen, char *pDirName);
+	bool sendFileDirSizeRqstMsg(unsigned short dirNameLen, char *pDirName, int dest);
+	bool sendFileRenameRqstMsg(unsigned short oldNameLen, unsigned short newNameLen, 
+							   char *pOldName, char *pNewName);
+	bool sendFileDeleteRqstMsg(unsigned short nameLen, char *pName);
+	bool sendFileSpecDirRqstMsg(unsigned short specFlags);
+
+	bool procFileListDataMsg();
+	bool procFileSpecDirDataMsg();
+	bool procFileDownloadDataMsg();
+	bool procFileUploadCancelMsg();
+	bool procFileDownloadFailedMsg();
+	bool procFileDirSizeDataMsg();
+	bool procFileLastRqstFailedMsg();
+
+	bool isTransferEnable() { return m_bFileTransfer; };
+
+	void setFTDlgStatus(bool status);
+
+	void deleteLocal(char *pPathPrefix, FileInfo *pFI);
+	void deleteRemote(char *pPathPrefix, FileInfo *pFI);
+	void checkDeleteQueue();
+
+	void renameLocal(char *pPath, char *pNewName, FILEINFO *pFIStruct);
+	void renameRemote(char *pPath, char *pNewName, FILEINFO *pFIStruct);
+	void checkRenameQueue();
+
+	char *getHostName();
+
+	void addTransferQueue(char *pLocalPath, char *pRemotePath, FileInfo *pFI, unsigned int attr);
+	void checkTransferQueue();
+
+	void uploadFile();
+	void uploadFilePortion();
+
+	void downloadFile();
+	void downloadFilePortion();
+
+	void closeUndoneTransfer();
+
+	bool m_bFTCancel;
+
 private:
-//	int m_sizeDownloadFile;
-	int m_FLRDest;
-	int m_FDSRDest;
-	int m_NumReqDirSize;
+	int convertToUnixPath(char *path);
+	int convertFromUnixPath(char *path);
 
-	DWORD m_dwFileSize;
-	DWORD m_dwFileBlockSize;
-	DWORD m_dwModTime;
-	DWORD m_dwNumItemsSel;
-	DWORD m_dwSelFileSize64;
+	bool createFileInfo(unsigned int numFiles, FileInfo *fi, SIZEDATAINFO *pSDInfo, 
+						char *pFilenames);
+	bool createFileInfo(unsigned int numFiles, FileInfo *fi, SIZEDATAFLAGSINFO *pSDFInfo, 
+						char *pFilenames);
 
-	unsigned int FiletimeToTime70(FILETIME ftime);
-	void Time70ToFiletime(unsigned int time70, FILETIME *pftime);
-	void SendFileUploadDataMessage(unsigned short size, char *pFile);
-	void SendFileUploadDataMessage(unsigned int mTime);
-	void SendFileDownloadCancelMessage(unsigned short reasonLen, char *reason);
-	void SendFileCreateDirRequestMessage(unsigned short dNameLen, char *dName);
-	void SendFileDownloadRequestMessage(unsigned short dNameLen, char *dName);
-	void SendFileDirSizeRequestMessage(unsigned short pathLen, char *path, int dest);
-	void SendFileRenameRequestMessage(char *pOldName, char *pNewName);
-	void SendFileDeleteRequestMessage(char *path);
-	void SendFileSpecDirRequestMessage(unsigned char flags, unsigned short specFlags);
-	void CreateItemInfoList(FileTransferItemInfo *pftii, FTSIZEDATA *ftsd, int ftsdNum, char *pfnames, int fnamesSize);
-	void InitFTIcons();
-	void DestroyFTIcons();
-	void InitProgressBar(int nPosition);
-	void InitFTProgressBar(int nPosition);
-	void IncreaseProgBarPos(int pos);
-	void SetIcon(HWND hwnd, int dest, int idIcon);
-	void ClientCreateDir();
-	void ServerCreateDir();
-	void ClientDeleteDir();
-	void ServerDeleteDir();
-	void ClientRenameDir();
-	void ServerRenameDir();
-	BOOL CreateRenameDirDlg(HWND hwnd);
-	BOOL CreateTransferConfDlg();
-	BOOL CreateFTCancelingDlg();
-	BOOL CreateFTConfirmDlg(char *pText);
+	bool procFLRMain(unsigned short numFiles, FileInfo *pFI);
+	bool procFLRBrowse(unsigned short numFiles, FileInfo *pFI);
+	bool procFLRUpload(unsigned short numFiles, FileInfo *pFI);
+	bool procFLRDownload(unsigned short numFiles, FileInfo *pFI);
+	bool procFLRDelete(unsigned short numFiles, FileInfo *pFI);
+	bool procFLRRename(unsigned short numFiles, FileInfo *pFI);
 
-	void SetDefaultBlockSize() { m_dwFileBlockSize = 8192; };
-	void FTClientDelete(FileTransferItemInfo *ftfi);
-
-	DWORD64 GetSelectedFileSize(char *path, FileTransferItemInfo *pFTFI);
-
-	void CloseFileTransferDialog();
-	void SetStatusText(LPCSTR format,...);
-	void ClearStatusText() { SetWindowText(m_hwndFTStatus, ""); };
-	void MakeStatusText(char *prefix, char *path1, char *path2, char *name);
+	int isExistName(FileInfo *pFI, char *pName);
 	
-	void FileTransferUpload();
-	void CheckUploadQueue();
-	void MakeUploadQueue();
-	BOOL UploadFile(int num);
+	void resizeTotalSize64();
+	void setFTBoolean(bool status);
 
-	void ClearFTControls();
-	void ClearFTButtons();
-	void CheckClientLV();
-	void CheckServerLV();
+	ClientConnection *m_pCC;
+	VNCviewerApp *m_pApp;
 
-	void FileTransferDownload();
-	void CheckDownloadQueue();
-	void DownloadFile(int num);
+	FileTransferDialog *m_pFileTransferDlg;
 
-	void ProcessFLRUpload();
-	void ProcessFLRDownload();
-	void ProcessFLRDelete();
-	void ProcessFDSDMain(DWORD64 dSize);
+	FileInfo m_fileListRequestQueue;
+	FileInfo m_fileLastRqstFailedMsgs;
 
-	void SetEndTransfer(char *statusText);
-	void CheckCantTransferInfo();
-	void EndFTCancelDlg(BOOL result);
-	void SetFTDlgCursor(LPCTSTR cursorType);
+	FileInfoEx m_fileTransferInfoEx;
+	FileInfoEx m_fileDelInfoEx;
+	FileInfoEx m_fileRenInfoEx;
 
-	void CutLastName(char *path, char *lastName);
-	int IsExistName(FileTransferItemInfo *ftii, char *name);
+	FileReader m_fileReader;
+	FileWriter m_fileWriter;
 
-	int GetSelectedItems(HWND hwnd, FileTransferItemInfo *pFTII);
+	DWORD m_dwNumFTError;
+	DWORD m_dwNumRenError;
+	DWORD m_dwNumDelError;
 
-	DWORD m_dwProgBarValue;
-	DWORD m_dwProgBarPercent;
-	DWORD64 m_dwFTProgBarValue64;
-	DWORD m_dwFTProgBarPercent;
-	DWORD m_dwNumDelItems;
-	DWORD m_dwNumUndel;
-	DWORD m_dwNumDelFiles;
-	DWORD m_dwNumDelFolders;
+	DWORD m_dwDirSizeRqstNum;
 
-	HWND m_hwndFileTransfer;
-	HWND m_hwndFTClientList;
-	HWND m_hwndFTServerList;
-	HWND m_hwndFTClientPath;
-	HWND m_hwndFTServerPath;
-	HWND m_hwndFTCanceling;
-	HWND m_hwndFTProgress;
-	HWND m_hwndProgress;
-	HWND m_hwndFTStatus;
-	HWND m_hwndFTBrowse;
-	
-	BOOL m_bFTCOPY;
-	BOOL m_bFirstStart;
-    BOOL m_bUploadStarted;
-    BOOL m_bDownloadStarted;
-	BOOL m_bTransferEnable;
-	BOOL m_bServerBrowseRequest;
-	BOOL m_bClientRefresh;
-	BOOL m_bServerRefresh;
-	BOOL m_bEndFTDlgOnYes;
-	BOOL m_bOverwriteAll;
+	DWORD64 m_dw64TotalSize;
 
-	HANDLE m_hFiletoWrite;
-    HANDLE m_hFiletoRead;
-	HTREEITEM m_hTreeItem;
-	HINSTANCE m_FTInstance;
-    HIMAGELIST m_hImageList;
+	bool m_bFTDlgStatus;
 
-	HANDLE m_hIconCopyGray;
-	HANDLE m_hIconUpload;
-	HANDLE m_hIconDownload;
-	HANDLE m_hIconDelete;
-	HANDLE m_hIconDeleteGray;
-	HANDLE m_hIconRename;
-	HANDLE m_hIconRenameGray;
-	HANDLE m_hIconCreateLocFolder;
-	HANDLE m_hIconCreateRemFolder;
-	HANDLE m_hIconCreateFolderGray;
-	HANDLE m_hIconCancel;
-	HANDLE m_hIconCancelGray;
-
-	FileTransferItemInfo m_FTClientItemInfo;
-	FileTransferItemInfo m_FTServerItemInfo;
-	FileTransferItemInfo m_TransferInfo;
-	FileTransferItemInfo m_CantTransferInfo;
-	FileTransferItemInfo m_DeleteInfo;
-
-	char m_szLocalMyDocPath[MAX_PATH];
-	char m_szRemoteMyDocPath[MAX_PATH];
-	char m_szCreateDirName[MAX_PATH];
-	char m_szLastRelTransPath[MAX_PATH];
-	char m_szLocalTransPath[MAX_PATH];
-	char m_szRemoteTransPath[MAX_PATH];
-
-	char m_szRenameDlgText1[MAX_PATH];
-	char m_szRenameDlgText2[MAX_PATH];
-	char m_szRenameDlgText3[MAX_PATH];
+	bool m_bUpload;
+	bool m_bDownload;
+	bool m_bFileTransfer;
+	bool m_bGettingTotalSize;
+	bool m_bResizeNeeded;
+	bool m_bOverwriteAll;
+	bool m_bOverwrite0;
 };
 
 #endif // !defined(FILETRANSFER)

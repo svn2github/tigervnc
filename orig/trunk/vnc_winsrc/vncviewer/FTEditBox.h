@@ -1,4 +1,4 @@
-//  Copyright (C) 2003 Dennis Syrovatsky. All Rights Reserved.
+//  Copyright (C) 2003-2004 Dennis Syrovatsky. All Rights Reserved.
 //
 //  This file is part of the VNC system.
 //
@@ -23,45 +23,24 @@
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
-#if !defined(FILETRANSFERITEMINFO_H)
-#define FILETRANSFERITEMINFO_H
+#if !defined(FTEDITBOX)
+#define FTEDITBOX
 
 #include "windows.h"
+#include "commctrl.h"
 
-typedef struct tagFTITEMINFO
-{
-    char Name[MAX_PATH];
-    char Size[16];
-	unsigned int Data;
-} FTITEMINFO;
-
-typedef struct tagFTSIZEDATA
-{
-	unsigned int size;
-	unsigned int data;
-} FTSIZEDATA;
-
-class FileTransferItemInfo  
+class FTEditBox
 {
 public:
-	int GetIntSizeAt(int Number);
-	static const char folderText[];
-	int GetNumEntries();
-	char * GetSizeAt(int Number);
-	char * GetNameAt(int Number);
-	unsigned int GetDataAt(int Number);
-	void Sort();
-	void Free();
-	void Add(char *Name, char *Size, unsigned int Data);
-	void Add(char *Name, int Size, int Data);
-	void DeleteAt(int Number);
-	FileTransferItemInfo();
-	virtual ~FileTransferItemInfo();
+	FTEditBox(HWND editBox);
+	~FTEditBox();
+
+	HWND getHandle() { return m_hEditBox; };
+
+	bool setText(char *pText);
 
 private:
-	int ConvertCharToInt(char *pStr);
-	FTITEMINFO * m_pEntries;
-	int m_NumEntries;
+	HWND m_hEditBox;
 };
 
-#endif // !defined(FILETRANSFERITEMINFO_H)
+#endif // !defined(FTEDITBOX)

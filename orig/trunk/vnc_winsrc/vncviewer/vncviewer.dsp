@@ -96,7 +96,7 @@ SOURCE=.\res\cancelft.ico
 # End Source File
 # Begin Source File
 
-SOURCE=.\res\cancelgr.ico
+SOURCE=.\res\closedlg.ico
 # End Source File
 # Begin Source File
 
@@ -104,23 +104,11 @@ SOURCE=.\res\copygray.ico
 # End Source File
 # Begin Source File
 
-SOURCE=.\res\createdi.ico
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\createdir.ico
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\crtlcfgr.ico
+SOURCE=.\res\crtfldgr.ico
 # End Source File
 # Begin Source File
 
 SOURCE=.\res\crtlcfld.ico
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\crtrfgra.ico
 # End Source File
 # Begin Source File
 
@@ -133,14 +121,6 @@ SOURCE=.\res\cursor1.cur
 # Begin Source File
 
 SOURCE=.\res\del.ico
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\deletedi.ico
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\delgray.ico
 # End Source File
 # Begin Source File
 
@@ -168,10 +148,6 @@ SOURCE=.\res\ftfile.ico
 # End Source File
 # Begin Source File
 
-SOURCE=.\res\icon1.ico
-# End Source File
-# Begin Source File
-
 SOURCE=.\res\idr_tray.ico
 # End Source File
 # Begin Source File
@@ -181,14 +157,6 @@ SOURCE=.\res\nocursor.cur
 # Begin Source File
 
 SOURCE=.\res\ren.ico
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\rename.ico
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\rengray.ico
 # End Source File
 # Begin Source File
 
@@ -337,11 +305,43 @@ SOURCE=.\Daemon.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\DirManager.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\DirManager.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\Exception.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=.\Exception.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\FileInfo.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\FileInfo.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\FileInfoEx.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\FileInfoEx.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\FileReader.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\FileReader.h
 # End Source File
 # Begin Source File
 
@@ -353,11 +353,27 @@ SOURCE=.\FileTransfer.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\FileTransferItemInfo.cpp
+SOURCE=.\FileTransferDialog.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\FileTransferItemInfo.h
+SOURCE=.\FileTransferDialog.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\FileTransferTypes.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\FileTransferTypes.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\FileWriter.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\FileWriter.h
 # End Source File
 # Begin Source File
 
@@ -366,6 +382,38 @@ SOURCE=.\Flasher.cpp
 # Begin Source File
 
 SOURCE=.\Flasher.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\FTEditBox.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\FTEditBox.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\FTListView.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\FTListView.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\FTStatusBox.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\FTStatusBox.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\FTToolBar.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\FTToolBar.h
 # End Source File
 # Begin Source File
 
@@ -410,6 +458,14 @@ SOURCE=.\LoginAuthDialog.cpp
 # Begin Source File
 
 SOURCE=.\LoginAuthDialog.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ProgressControls.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ProgressControls.h
 # End Source File
 # Begin Source File
 

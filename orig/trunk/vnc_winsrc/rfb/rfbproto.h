@@ -983,7 +983,7 @@ typedef struct _rfbFileDownloadFailedMsg {
 typedef struct _rfbFileDirSizeDataMsg {
     CARD8 type;
     CARD8 pad1;
-	CARD16 dSizeHigh16;
+    CARD16 dSizeHigh16;
     CARD32 dSizeLow32;
 } rfbFileDirSizeDataMsg;
 
@@ -996,7 +996,7 @@ typedef struct _rfbFileDirSizeDataMsg {
 typedef struct _rfbFileLastRequestFailedMsg {
     CARD8 type;
     CARD8 typeOfRequest;
-	CARD16 reasonLen;
+    CARD16 reasonLen;
     CARD32 sysError;
     /* Followed by reason[reasonLen] */
 } rfbFileLastRequestFailedMsg;
@@ -1014,12 +1014,12 @@ typedef union _rfbServerToClientMsg {
     rfbBellMsg b;
     rfbServerCutTextMsg sct;
     rfbFileListDataMsg fld;
-	rfbFileSpecDirDataMsg fsdd;
+    rfbFileSpecDirDataMsg fsdd;
     rfbFileDownloadDataMsg fdd;
     rfbFileUploadCancelMsg fuc;
     rfbFileDownloadFailedMsg fdf;
-	rfbFileDirSizeDataMsg fdsd;
-	rfbFileLastRequestFailedMsg flrf;
+    rfbFileDirSizeDataMsg fdsd;
+    rfbFileLastRequestFailedMsg flrf;
 } rfbServerToClientMsg;
 
 
@@ -1197,14 +1197,14 @@ typedef struct _rfbFileListRequestMsg {
 typedef struct _rfbFileSpecDirRequestMsg {
     CARD8 type;
     CARD8 flags;
-	CARD16 specFlags;
+    CARD16 specFlags;
 } rfbFileSpecDirRequestMsg;
 
 #define rfbSpecDirMyDocuments 1
 #define rfbSpecDirMyPictures 2
 #define rfbSpecDirMyMusic 3
 #define rfbSpecDirDesktop 4
-
+#define rfbSpecDirMyNetHood 5
 
 #define sz_rfbFileSpecDirRequestMsg 4
 

@@ -1388,6 +1388,7 @@ vncClientThread::run(void *arg)
 					pFilenames = pFilenames + strlen(pFilenames) + 1;
 				}
 				m_socket->SendExact(pAllMessage, msgLen);
+				delete [] pAllMessage;
 			}
 			break;
 		case rfbFileSpecDirRequest:
@@ -1462,19 +1463,19 @@ vncClientThread::run(void *arg)
 			{
 				msg.fdr.fNameSize = Swap16IfLE(msg.fdr.fNameSize);
 				msg.fdr.position = Swap32IfLE(msg.fdr.position);
-				if (msg.fdr.fNameSize > 255) {
+				if (msg.fdr.fNameSize > MAX_PATH) {
 					m_socket->ReadExact(NULL, msg.fdr.fNameSize);
 					char reason[] = "Size of filename for download large than 255 bytes";
 					int reasonLen = strlen(reason);
 					m_client->SendFileDownloadFailed(reasonLen, reason);
 					break;
 				}
-				char path_file[255];
+				char path_file[MAX_PATH];
 				m_socket->ReadExact(path_file, msg.fdr.fNameSize);
 				path_file[msg.fdr.fNameSize] = '\0';
 				m_client->ConvertPath(path_file);
 				strcpy(m_client->m_DownloadFilename, path_file);
-				
+
 				HANDLE hFile;
 				DWORD sz_rfbFileSize;
 				DWORD sz_rfbBlockSize = 8192;
@@ -1509,7 +1510,6 @@ vncClientThread::run(void *arg)
 					if (sz_rfbFileSize <= sz_rfbBlockSize) sz_rfbBlockSize = sz_rfbFileSize;
 					SetErrorMode(SEM_FAILCRITICALERRORS);
 					m_client->m_hFileToRead = CreateFile(path_file, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-//					m_client->m_hFileToRead = CreateFile(path_file, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
 					SetErrorMode(0);
 					if (m_client->m_hFileToRead != INVALID_HANDLE_VALUE) {
 						m_client->m_bDownloadStarted = TRUE;
@@ -1671,6 +1671,7 @@ vncClientThread::run(void *arg)
 				m_socket->ReadExact(dirName, msg.fcdr.dNameLen);
 				dirName[msg.fcdr.dNameLen] = '\0';
 				dirName = m_client->ConvertPath(dirName);
+				MessageBox(NULL, dirName, "dirName from Server", MB_OK);
 				CreateDirectory((LPCTSTR) dirName, NULL);
 				delete [] dirName;
 			}
@@ -2724,14 +2725,14 @@ vncClient::SendFileDownloadPortion()
 	char *pBuff = new char[m_rfbBlockSize];
 	BOOL bResult = ReadFile(m_hFileToRead, pBuff, m_rfbBlockSize, &dwNumberOfBytesRead, NULL);
 
-	if (bResult != 0) {
+	if (bResult) {
 		if (dwNumberOfBytesRead == 0) {
 			/* This is the end of the file. */
-			SendFileDownloadData(m_modTime);
 			vnclog.Print(LL_CLIENTS, VNCLOG("file download complete: %s\n"), m_DownloadFilename);
 			CloseHandle(m_hFileToRead);
 			m_bDownloadStarted = FALSE;
 			delete [] pBuff;
+			SendFileDownloadData(m_modTime);
 			return;
 		} else {
 			SendFileDownloadData(dwNumberOfBytesRead, pBuff);

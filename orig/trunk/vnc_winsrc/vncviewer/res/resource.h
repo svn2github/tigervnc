@@ -64,6 +64,7 @@
 #define IDI_CANCELFT                    266
 #define IDI_CANCELFTGRAY                267
 #define IDB_DISABLE_FS                  268
+#define IDI_CLOSEDIALOG                 269
 #define IDC_HOSTNAME_EDIT               1000
 #define IDC_DPYNUM_EDIT                 1001
 #define IDC_BELLDEICONIFY               1002
@@ -187,7 +188,9 @@
 #define IDC_MAINTEXT                    1151
 #define IDC_FTDELETE                    1154
 #define ID_FTYESTOALL                   1155
+#define IDC_CONFIRM_YESTOALL            1155
 #define IDC_FTCONFIRMTEXT               1156
+#define IDC_CONFIRM_TEXT                1156
 #define IDC_DISABLE                     1157
 #define IDC_CREATEFLD                   1160
 #define IDC_STATIC_CURRENT_FILE         1161
@@ -206,9 +209,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        269
+#define _APS_NEXT_RESOURCE_VALUE        270
 #define _APS_NEXT_COMMAND_VALUE         40011
-#define _APS_NEXT_CONTROL_VALUE         1163
+#define _APS_NEXT_CONTROL_VALUE         1165
 #define _APS_NEXT_SYMED_VALUE           244
 #endif
 #endif

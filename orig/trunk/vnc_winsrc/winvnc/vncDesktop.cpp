@@ -1408,7 +1408,7 @@ vncDesktop::CaptureMouse(BYTE *scrBuff, UINT scrBuffSize)
 		0,0,										// width of the icon 
 		0,											// index of frame in animated cursor 
 		NULL,										// handle to background brush 
-		DI_NORMAL | DI_COMPAT						// icon-drawing flags 
+		DI_NORMAL									// icon-drawing flags 
 		);
 
 	// Select the old bitmap back into the memory DC
@@ -1452,7 +1452,7 @@ vncDesktop::GetRichCursorData(BYTE *databuf, HCURSOR hcursor, int width, int hei
 	}
 
 	// Draw the cursor
-	DrawIconEx(m_hmemdc, 0, 0, hcursor, 0, 0, 0, NULL, DI_NORMAL | DI_COMPAT);
+	DrawIconEx(m_hmemdc, 0, 0, hcursor, 0, 0, 0, NULL, DI_IMAGE);
 	SelectObject(m_hmemdc, oldbitmap);
 
 	// Prepare BITMAPINFO structure (copy most m_bminfo fields)

@@ -146,9 +146,12 @@ int FileTransferItemInfo::GetNumEntries()
 
 int FileTransferItemInfo::GetIntSizeAt(int Number)
 {
-	char *pSizeStr = GetSizeAt(Number);
-	if (pSizeStr == NULL) return 0;
-	return ConvertCharToInt(pSizeStr);
+	if ((Number >= 0) && (Number <= m_NumEntries)) {
+		char *pSizeStr = GetSizeAt(Number);
+		if (pSizeStr == NULL) return 0;
+		return ConvertCharToInt(pSizeStr);
+	}
+	return 0;
 }
 
 void FileTransferItemInfo::DeleteAt(int Number)

@@ -433,12 +433,13 @@ FileTransfer::CloseFileTransferDialog()
 		CreateFTCancelingDlg();
 		return;
 	}
-	m_clientconn->m_fileTransferDialogShown = false;
+	ListView_DeleteAllItems(m_hwndFTClientList);
+	ListView_DeleteAllItems(m_hwndFTServerList);
 	m_FTClientItemInfo.Free();
 	m_FTServerItemInfo.Free();
 	DestroyFTIcons();
 	EndDialog(m_hwndFileTransfer, TRUE);
-	return;
+	m_clientconn->m_fileTransferDialogShown = false;
 }
 
 void 

@@ -959,9 +959,9 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDC_STATIC_ACTION       "Default action determines what should be done if the confirmation dialog was timed out with no user input."
-    IDC_STATIC_TEMPORARY    "Temporary"
-    IDC_STATIC_CONN_PRIOR   "Connection Priority"
-    IDC_STATIC_ADMINISTR    "Administration"
+    IDC_STATIC_TEMPORARY    "Configuration of the built-in HTTP server."
+    IDC_STATIC_CONN_PRIOR   "Connection priority determines what to do if a VNC viewer requests non-shared session, and there is another connection active."
+    IDC_STATIC_ADMINISTR    "Administration settings."
     IDC_STATIC_DISPLAY_PORT "Here you can specify which TCP ports should be used for incoming client connections."
     IDC_DONT_USE_DRIVER     "Don't ever try to use mirror display driver. Use this option for troubleshooting purposes. Note that toggling this option does not take immediate effect if there is at least one viewer connected."
 END
@@ -1000,15 +1000,15 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDQUERYTIMEOUT          "Wait for the specified number of seconds, before the confirmation dialog will be closed and the default action will be performed."
-    IDREQUIREAUTH           "Disable empty passwords"
+    IDREQUIREAUTH           "Normally, authentication is always required and empty passwords are not allowed. By unchecking this option, it's possible to allow VNC access without authentication. Note that passwordless access can be a security risk."
     IDQUERYALLOWNOPASS      "Normally, authentication is required if the connection is accepted. Setting this option activates additional button to accept connection without authentication (remote user is not asked for a password)."
-    IDONLYLOOPBACK          "Allow only loopback connections"
-    IDLOGLOTS               "Log detailed debugging information"
-    IDALLOWLOOPBACK         "Allow loopback connections"
-    IDLOG                   "Log information to WinVNC.log"
-    IDPRIORITY0             "Disconnect existing connections"
-    IDPRIORITY2             "Refuse concurrent connections"
-    IDPRIORITY1             "Automatic shared sessions"
+    IDONLYLOOPBACK          "If set, don't allow any connections unless they are originated from the same machine. This can be used for testing purposes, or with port forwarding programs like SSH."
+    IDLOGLOTS               "Check this to increase amount of the information in the log file. There may be a lot of unnecessary data in the log, but this mode can be very useful for debugging and troubleshooting purposes."
+    IDALLOWLOOPBACK         "Normally, connections from the same machine are disabled. Checking this option allows such connections. This can be used for testing purposes, or with port forwarding programs like SSH."
+    IDLOG                   "Check this to enable logging. The log file is called WinVNC.log (created in the current folder). If the TightVNC Server is running as a system service, the file is typically found in the Windows system folder."
+    IDPRIORITY0             "Disconnect existing connections, accept new connections."
+    IDPRIORITY2             "Preserve existing connections, refuse new connections."
+    IDPRIORITY1             "Preserve existing connections, accept new connections."
     IDENABLEHTTPD           "Enable built-in Web server which can deliver Java viewer to Web clients."
 END
 

@@ -53,6 +53,7 @@ vncServer::vncServer()
 	m_desktop = NULL;
 	m_name = NULL;
 	m_port = DISPLAY_TO_PORT(0);
+	m_port_http = DISPLAY_TO_HPORT(0);
 	m_autoportselect = TRUE;
 	m_passwd_required = TRUE;
 	m_beepConnect = FALSE;
@@ -878,30 +879,19 @@ vncServer::SetName(const char * name)
 }
 
 void
-vncServer::SetPort(const UINT port)
+vncServer::SetPorts(const UINT port_rfb, const UINT port_http)
 {
-    if (m_port != port)
-    {
-	/////////////////////////////////
-	// Adjust the listen socket
+	if (m_port != port_rfb || m_port_http != port_http) {
+		// Set port numbers to use
+		m_port = port_rfb;
+		m_port_http = port_http;
 
-	// Set the port number to use
-	m_port = port;
-
-	// If there is already a listening socket then close and re-open it...
-	BOOL socketon = SockConnected();
-
-	SockConnect(FALSE);
-	if (socketon)
-	    SockConnect(TRUE);
-
+		// If there is already a listening socket then close and re-open it...
+		BOOL socketon = SockConnected();
+		SockConnect(FALSE);
+		if (socketon)
+			SockConnect(TRUE);
     }
-}
-
-UINT
-vncServer::GetPort()
-{
-	return m_port;
 }
 
 void
@@ -979,9 +969,10 @@ vncServer::SockConnect(BOOL On)
 				BOOL ok = FALSE;
 
 				// Yes, so cycle through the ports, looking for a free one!
-				for (int i=0; i < 99; i++)
+				for (int i = 0; i < 99; i++)
 				{
 					m_port = DISPLAY_TO_PORT(i);
+					m_port_http = DISPLAY_TO_HPORT(i);
 
 					vnclog.Print(LL_CLIENTS, VNCLOG("trying port number %d\n"), m_port);
 
@@ -1019,16 +1010,12 @@ vncServer::SockConnect(BOOL On)
 			}
 
 			// Now let's start the HTTP connection stuff
-			if (m_httpConn == NULL && m_httpd_enabled)
-			{
+			if (m_httpConn == NULL && m_httpd_enabled) {
 				m_httpConn = new vncHTTPConnect;
-				if (m_httpConn != NULL)
-				{
+				if (m_httpConn != NULL) {
 					// Start up the HTTP server
-					if (!m_httpConn->Init(this,
-					    PORT_TO_DISPLAY(m_port) + HTTP_PORT_OFFSET,
-						m_httpd_params_enabled))
-					{
+					if (!m_httpConn->Init(this, m_port_http,
+										  m_httpd_params_enabled)) {
 						delete m_httpConn;
 						m_httpConn = NULL;
 						return FALSE;

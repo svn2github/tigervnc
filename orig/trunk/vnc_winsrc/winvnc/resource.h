@@ -9,11 +9,7 @@
 #define IDR_RECFRAME_CLASS              117
 #define IDR_SESSIONREC_CLASS            118
 #define IDR_AUTHPANEL_CLASS             119
-#define IDR_BLOCKCIPHER_CLASS           120
-#define IDR_CIPHER_CLASS                121
 #define IDR_CLIPBOARDFRAME_CLASS        122
-#define IDR_CRYPTOUTILS_CLASS           123
-#define IDR_IDEACIPHER_CLASS            124
 #define IDR_OPTIONSFRAME_CLASS          125
 #define IDR_RFBPROTO_CLASS              126
 #define IDR_VNCCANVAS_CLASS             127
@@ -34,17 +30,14 @@
 #define IDI_LIVESHARE                   140
 #define IDB_BITMAP2                     140
 #define IDC_CURSOR1                     141
-#define IDI_LIVESHARENC                 142
 #define IDB_BITMAP3                     142
 #define IDI_LIVESHARE_CON               144
 #define IDI_LIVESHARE_NOCON             145
-#define IDD_ACCEPT_REVERSE              148
-#define IDC_CONNECT_BORDER              1003
+#define IDD_ACCEPT_REVERSE              146
 #define IDC_CONNECT_SOCK                1004
-#define IDC_CONNECT_CORBA               1005
-#define IDC_PORTNO_LABEL                1006
+#define IDC_CONNECT_HTTP                1006
 #define IDC_PASSWORD_LABEL              1007
-#define IDC_PORTNO                      1008
+#define IDC_DISPLAYNO                   1008
 #define IDC_PASSWORD                    1009
 #define IDC_UPDATE_BORDER               1010
 #define IDC_POLL_FULLSCREEN             1011
@@ -54,13 +47,9 @@
 #define IDC_ONEVENT_ONLY                1015
 #define IDC_VNCLOGO                     1016
 #define IDC_REMOTE_DISABLE              1016
-#define IDC_VERSION                     1017
-#define IDC_NAME                        1018
-#define IDC_EMAIL                       1019
-#define IDC_VNC                         1020
-#define IDC_ATT                         1021
-#define IDC_WWW                         1022
-#define IDC_COPYRIGHT                   1023
+#define IDC_PORTHTTP                    1017
+#define IDC_PORTRFB                     1018
+#define IDC_URLPARAMS                   1019
 #define IDC_DISABLE_INPUTS              1024
 #define IDC_APPLY                       1025
 #define IDC_PORTNO_AUTO                 1026
@@ -74,13 +63,9 @@
 #define IDC_ACCEPT_IP                   1033
 #define IDC_STATIC_TEXT                 1034
 #define IDC_ACCEPT_TIMEOUT              1035
-#define IDC_TRADEMARK                   1036
 #define IDACCEPT_NOPASS                 1036
 #define IDADVANCED                      1037
-#define IDQUERYACCEPT                   1038
 #define IDQUERY                         1039
-#define IDC_QUERY_BORDER                1040
-#define IDQUERYTIMEOUT_LABEL            1041
 #define IDQUERYTIMEOUT                  1042
 #define IDREQUIREAUTH                   1043
 #define IDQUERYALLOWNOPASS              1044
@@ -88,7 +73,6 @@
 #define IDLOGLOTS                       1047
 #define IDALLOWLOOPBACK                 1048
 #define IDLOG                           1050
-#define IDPRIORITY                      1051
 #define IDPRIORITY0                     1052
 #define IDPRIORITY2                     1053
 #define IDPRIORITY1                     1054
@@ -105,6 +89,10 @@
 #define IDC_DISABLE_TIME                1064
 #define IDC_TIMEOUT_LABEL               1065
 #define IDC_SECONDS_LABEL               1066
+#define IDC_SPECDISPLAY                 1071
+#define IDC_SPECPORT                    1072
+#define IDC_ACTION_REFUSE               1074
+#define IDC_ACTION_ACCEPT               1075
 #define ID_PROPERTIES                   40001
 #define ID_CLOSE                        40002
 #define ID_KILLCLIENTS                  40003
@@ -117,9 +105,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        146
+#define _APS_NEXT_RESOURCE_VALUE        147
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1069
+#define _APS_NEXT_CONTROL_VALUE         1082
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

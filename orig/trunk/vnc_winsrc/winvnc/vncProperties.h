@@ -61,7 +61,6 @@ public:
 	// If usersettings is TRUE then the per-user settings come up
 	// If usersettings is FALSE then the default system settings come up
 	void Show(BOOL show, BOOL usersettings);
-	void EnableControls(BOOL state, HWND hwnd, vncProperties *_this);
 
 	// Loading & saving of preferences
 	void Load(BOOL usersettings);
@@ -113,6 +112,7 @@ protected:
 	BOOL m_pref_SockConnect;
 	BOOL m_pref_AutoPortSelect;
 	LONG m_pref_PortNumber;
+	LONG m_pref_HttpPortNumber;
 	BOOL m_pref_BeepConnect;
 	BOOL m_pref_BeepDisconnect;
 	char m_pref_passwd[MAXPWLEN];
@@ -140,7 +140,9 @@ protected:
 #ifdef HORIZONLIVE	
 	char m_pref_LiveShareKey[_MAX_PATH];
 #endif
+
 private:
+void InitPortSettings(HWND hwnd);
 static  void DrawFrameAroundWindow(HWND hWnd);
 static  LRESULT CALLBACK BmpWndProc(HWND, UINT, WPARAM, LPARAM);
 		LONG m_OldBmpWndProc;

@@ -45,8 +45,10 @@ typedef unsigned char  CARD8;
 #define HTTP_PORT_OFFSET 5800
 #define RFB_PORT_OFFSET 5900
 
-#define PORT_TO_DISPLAY(p) ( (p) - RFB_PORT_OFFSET )
-#define DISPLAY_TO_PORT(d) ( (d) + RFB_PORT_OFFSET )
+#define PORT_TO_DISPLAY(p)  ( (p) - RFB_PORT_OFFSET )
+#define HPORT_TO_DISPLAY(p) ( (p) - HTTP_PORT_OFFSET )
+#define DISPLAY_TO_PORT(d)  ( (d) + RFB_PORT_OFFSET )
+#define DISPLAY_TO_HPORT(d) ( (d) + HTTP_PORT_OFFSET )
 
 // include the protocol spec
 #include "rfbproto.h"

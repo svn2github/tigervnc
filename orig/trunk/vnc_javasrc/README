@@ -239,6 +239,57 @@ is the full list of parameters supported in TightVNC Java viewer:
     there is no mouse and keyboard activity on the client side.
 
 
+RECORDING VNC SESSIONS
+======================
+
+Current version of the TightVNC Java viewer is able to record VNC (RFB)
+sessions in files for later playback. The data format in saved session files
+is compatible with the rfbproxy program written by Tim Waugh. Most important
+thing about session recording is that it's supported only if Java security
+manager allows access to local filesystem. Typically, it would not work for
+unsigned applets. To use this feature, either use TightVNC Java viewer as a
+standalone application (Java Runtime Environment or Java Development Kit
+should be installed), or as a signed applet. The code checks if it's possible
+to support session recording, and if everything's fine, the new "Record"
+button should appear in the button panel. Pressing this button opens new
+window which controls session recording. The GUI is pretty self-explained.
+
+Other important facts about session recording:
+
+--> All sessions are recorded in the 24-bit color format. If you use
+    restricted colors (8-bit format), it will be temporarly switched to
+    24-bit mode during session recording.
+
+--> All sessions are recorded with cursor shape updates turned off. This is
+    necessary to represent remote cursor movements in recorded sessions.
+
+--> Closing and re-opening the recording control window does not affect the
+    recording. It's not necessary to keep that window open during recording a
+    session.
+
+--> Avoid using Zlib encoding when recording sessions. It's ok if you started
+    recording BEFORE the connection to the VNC server has been established,
+    but if you started recording during an active session, all Zlib sessions
+    will be saved Raw-encoded (that is, without compression at all). Zlib
+    decoding depends on the pixel data received earlier, thus saving the data
+    received from the server at an arbitrary moment is not sufficient to
+    decompress it correctly. And there is no way to say Zlib decoder to reset
+    decompressor's state -- that's a limitation of the Zlib encoder. The
+    viewer could re-compress raw pixel data again before saving Zlib-encoded
+    sessions, but unfortunately Java API does not allow to flush zlib data
+    streams making it impossible to save Zlib-encoded RFB pixel data without
+    using native code.
+
+--> Usually, Tight encoding is most suitable for session recording, but some
+    of the issues described above for the Zlib encoding affect the Tight
+    encoding as well. Unlike Zlib sessions, Tight-encoded sessions are always
+    saved Tight-encoded, but the viewer has to re-compress parts of data to
+    synchronize encoder's and decoder's zlib streams. If you want to achieve
+    the best possible performance, turn recording on BEFORE connecting to the
+    VNC server, otherwise CPU usage and compression ratios may be notably
+    less efficient.
+
+
 HINTS
 =====
 

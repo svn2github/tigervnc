@@ -40,33 +40,37 @@ class vncEncodeTight;
 // changed, doing so will break compatibility with existing clients.
 #define TIGHT_MIN_TO_COMPRESS 12
 
-// Maximum size of one tight rectangle. This value may be changed.
-#define TIGHT_MAX_RECT_SIZE  65536
+// Default compression level for the tight encoder (1..9). This value
+// may be changed.
+#define TIGHT_DEFAULT_COMPRESSION  6
 
-// C-style structures to store palette entries.
+// C-style structures to store palette entries and compression paramentes.
 // Such code probably should be converted into C++ classes.
 
-typedef struct COLOR_LIST_s {
-	struct COLOR_LIST_s *next;
+struct COLOR_LIST {
+	COLOR_LIST *next;
 	int idx;
 	CARD32 rgb;
-} COLOR_LIST;
+};
 
-typedef struct PALETTE_ENTRY_s {
+struct PALETTE_ENTRY {
 	COLOR_LIST *listNode;
 	int numPixels;
-} PALETTE_ENTRY;
+};
 
-typedef struct PALETTE_s {
+struct PALETTE {
 	PALETTE_ENTRY entry[256];
 	COLOR_LIST *hash[256];
 	COLOR_LIST list[256];
-} PALETTE;
+};
 
-typedef struct PALETTE8_s {
-	CARD8 pixelValue[2];
-	CARD8 colorIdx[256];
-} PALETTE8;
+struct TIGHT_CONF {
+	int maxRectSize, maxRectWidth;
+	int monoMinRectSize, gradientMinRectSize;
+	int idxZlibLevel, monoZlibLevel, rawZlibLevel, gradientZlibLevel;
+	int gradientThreshold, gradientThreshold24;
+	int idxMaxColorsDivisor;
+};
 
 
 // Class definition
@@ -91,13 +95,13 @@ public:
 
 // Implementation
 protected:
-	int m_paletteMaxColors;
-	int m_paletteNumColors;
+	int m_paletteNumColors, m_paletteMaxColors;
+	CARD32 m_monoBackground, m_monoForeground;
 	PALETTE m_palette;
-	PALETTE8 m_palette8;
 
 	z_stream m_zsStruct[4];
 	bool m_zsActive[4];
+	int m_zsLevel[4];
 
 	BYTE *m_hdrBuffer;
 	int m_hdrBufferBytes;
@@ -107,27 +111,54 @@ protected:
 
 	bool m_usePixelFormat24;
 
+	// Compression level stuff. The following array contains various
+	// encoder parameters for each of 10 compression levels (0..9).
+	//
+	// NOTE: m_conf[9].maxRectSize should be >= m_conf[i].maxRectSize,
+	// where i in [0..8]. RequiredBuffSize() method depends on this.
+
+	static const TIGHT_CONF m_conf[10] = {
+		{  1024,   64,   6, 65536, 0, 0, 0, 0,   0,   0,   4 },
+		{  2048,  128,   6, 65536, 1, 1, 1, 0,   0,   0,  12 },
+		{  6144,  256,   8, 65536, 3, 3, 2, 0,   0,   0,  24 },
+		{ 10240, 1024,  12, 65536, 5, 5, 3, 0,   0,   0,  32 },
+		{ 16384, 2048,  12, 65536, 6, 6, 4, 0,   0,   0,  32 },
+		{ 32768, 2048,  12,  4096, 7, 7, 5, 4, 150, 380,  32 },
+		{ 65536, 2048,  16,  4096, 7, 7, 6, 4, 170, 420,  48 },
+		{ 65536, 2048,  16,  4096, 8, 8, 7, 5, 180, 450,  64 },
+		{ 65536, 2048,  32,  8192, 9, 9, 8, 6, 190, 475,  64 },
+		{ 65536, 2048,  32,  8192, 9, 9, 9, 6, 200, 500,  96 }
+	};
+
+	int m_compressLevel;
+
+	// Protected member functions.
+
 	UINT EncodeSubrect(BYTE *source, VSocket *outConn, BYTE *dest,
 					   int x, int y, int w, int h);
 	int SendSolidRect(BYTE *dest, int w, int h);
+	int SendMonoRect(BYTE *dest, int w, int h);
 	int SendIndexedRect(BYTE *dest, int w, int h);
 	int SendFullColorRect(BYTE *dest, int w, int h);
 	int SendGradientRect(BYTE *dest, int w, int h);
-	int CompressData(BYTE *dest, int streamId, int dataLen);
+	int CompressData(BYTE *dest, int streamId, int dataLen,
+					 int zlibLevel, int zlibStrategy);
 
-	void FillPalette8(int w, int h);
-	void FillPalette16(int w, int h);
-	void FillPalette32(int w, int h);
+	void FillPalette8(int count);
+	void FillPalette16(int count);
+	void FillPalette32(int count);
 
 	void PaletteReset(void);
-	int PaletteFind(CARD32 rgb);
-	int PaletteInsert(CARD32 rgb, int numPixels);
+	int PaletteInsert(CARD32 rgb, int numPixels, int bpp);
 
 	void Pack24(BYTE *buf, int count);
 
-	void EncodeIndexedRect8(BYTE *buf, int w, int h);
-	void EncodeIndexedRect16(BYTE *buf, int w, int h);
-	void EncodeIndexedRect32(BYTE *buf, int w, int h);
+	void EncodeIndexedRect16(BYTE *buf, int count);
+	void EncodeIndexedRect32(BYTE *buf, int count);
+
+	void EncodeMonoRect8(BYTE *buf, int w, int h);
+	void EncodeMonoRect16(BYTE *buf, int w, int h);
+	void EncodeMonoRect32(BYTE *buf, int w, int h);
 
 	void FilterGradient24(BYTE *buf, int w, int h);
 	void FilterGradient16(CARD16 *buf, int w, int h);

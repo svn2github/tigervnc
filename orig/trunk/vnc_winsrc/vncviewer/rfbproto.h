@@ -305,6 +305,27 @@ typedef struct {
 #define rfbEncodingTight 7
 #define rfbEncodingZlibHex 8
 
+/*
+ * Special encoding numbers:
+ *   0xFFFFFF00 .. 0xFFFFFF0F -- encoding-specific compression levels;
+ *   0xFFFFFF10 .. 0xFFFFFF1F -- mouse cursor shape data;
+ *   0xFFFFFF20 .. 0xFFFFFFEF -- not allocated yet;
+ *   0xFFFFFFF0 .. 0xFFFFFFFF -- cross-encoding compression levels.
+ */
+
+#define rfbEncodingCompressLevel0  0xFFFFFF00
+#define rfbEncodingCompressLevel1  0xFFFFFF01
+#define rfbEncodingCompressLevel2  0xFFFFFF02
+#define rfbEncodingCompressLevel3  0xFFFFFF03
+#define rfbEncodingCompressLevel4  0xFFFFFF04
+#define rfbEncodingCompressLevel5  0xFFFFFF05
+#define rfbEncodingCompressLevel6  0xFFFFFF06
+#define rfbEncodingCompressLevel7  0xFFFFFF07
+#define rfbEncodingCompressLevel8  0xFFFFFF08
+#define rfbEncodingCompressLevel9  0xFFFFFF09
+
+#define rfbEncodingXCursor         0xFFFFFF10
+#define rfbEncodingRichCursor      0xFFFFFF11
 
 
 /*****************************************************************************
@@ -467,7 +488,7 @@ typedef struct {
 
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
- * ``Tight'' Encoding.  FIXME: Add more documentation.
+ * Tight Encoding.  FIXME: Add more documentation.
  */
 
 #define rfbTightExplicitFilter         0x04
@@ -478,6 +499,51 @@ typedef struct {
 #define rfbTightFilterCopy             0x00
 #define rfbTightFilterPalette          0x01
 #define rfbTightFilterGradient         0x02
+
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * XCursor encoding. This is a special encoding used to transmit X-style
+ * cursor shapes from server to clients. Note that for this encoding,
+ * coordinates in rfbFramebufferUpdateRectHeader structure hold hotspot
+ * position (r.x, r.y) and cursor size (r.w, r.h). If (w * h != 0), two RGB
+ * samples are sent after header in the rfbXCursorColors structure. They
+ * denote foreground and background colors of the cursor. If a client
+ * supports only black-and-white cursors, it should ignore these colors and
+ * assume that foreground is black and background is white. Next, two bitmaps
+ * (1 bits per pixel) follow: first one with actual data (value 0 denotes
+ * background color, value 1 denotes foreground color), second one with
+ * transparency data (bits with zero value mean that these pixels are
+ * transparent). Both bitmaps represent cursor data in a byte stream, from
+ * left to right, from top to bottom, and each row is byte-aligned. Most
+ * significant bits correspond to leftmost pixels. The number of bytes in
+ * each row can be calculated as ((w + 7) / 8). If (w * h == 0), cursor
+ * should be hidden (or default local cursor should be set by the client).
+ */
+
+typedef struct {
+    CARD8 foreRed;
+    CARD8 foreGreen;
+    CARD8 foreBlue;
+    CARD8 backRed;
+    CARD8 backGreen;
+    CARD8 backBlue;
+} rfbXCursorColors;
+
+#define sz_rfbXCursorColors 6
+
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * RichCursor encoding. This is a special encoding used to transmit cursor
+ * shapes from server to clients. It is similar to the XCursor encoding but
+ * uses client pixel format instead of two RGB colors to represent cursor
+ * image. For this encoding, coordinates in rfbFramebufferUpdateRectHeader
+ * structure hold hotspot position (r.x, r.y) and cursor size (r.w, r.h).
+ * After header, two pixmaps follow: first one with cursor image in current
+ * client pixel format (like in raw encoding), second with transparency data
+ * (1 bit per pixel, exactly the same format as used for transparency bitmap
+ * in the XCursor encoding). If (w * h == 0), cursor should be hidden (or
+ * default local cursor should be set by the client).
+ */
 
 
 /*-----------------------------------------------------------------------------

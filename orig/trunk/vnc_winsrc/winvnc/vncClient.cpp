@@ -1328,6 +1328,8 @@ vncClientThread::run(void *arg)
 
 		default:
 			// Unknown message, so fail!
+			vnclog.Print(LL_CLIENTS, VNCLOG("invalid message received : %d\n"),
+						 (int)msg.type);
 			connected = FALSE;
 		}
 	}

@@ -44,7 +44,7 @@
  *   as plaintext.
  */
 
-unsigned char fixedkey[8] = {23,82,107,6,35,78,88,7};
+static unsigned char s_fixedkey[8] = {23,82,107,6,35,78,88,7};
 
 /*
  *   Encrypt a password and store it in a file.
@@ -67,7 +67,7 @@ vncEncryptPasswd(char *passwd, char *encryptedPasswd)
     /* Do encryption in-place - this way we overwrite our copy of the plaintext
        password */
 
-    deskey(fixedkey, EN0);
+    deskey(s_fixedkey, EN0);
     des(encryptedPasswd, encryptedPasswd);
 
     return 8;
@@ -83,7 +83,7 @@ vncDecryptPasswd(char *inouttext)
 {
     unsigned char *passwd = (unsigned char *)malloc(9);
 
-    deskey(fixedkey, DE1);
+    deskey(s_fixedkey, DE1);
     des(inouttext, passwd);
 
     passwd[8] = 0;

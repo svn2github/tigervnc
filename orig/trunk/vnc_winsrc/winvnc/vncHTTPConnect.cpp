@@ -36,19 +36,39 @@
 #include <omnithread.h>
 #include "resource.h"
 
-// HTTP messages/message formats
-const char HTTP_MSG_OK []			="HTTP/1.0 200 OK\n\n";
-const char HTTP_FMT_INDEX[]			="<HTML><TITLE>TightVNC desktop [%.256s]</TITLE>\n"
-	"<APPLET CODE=VncViewer.class ARCHIVE=VncViewer.jar WIDTH=%d HEIGHT=%d>\n"
-	"<param name=PORT value=%d><param name=ENCODING value=Tight></APPLET>\n"
-	"<BR>\n"
-	"<A href=\"http://www.tightvnc.com/\">www.TightVNC.com</A></HTML>\n";
-const char HTTP_MSG_NOSOCKCONN []	="<HTML><TITLE>TightVNC desktop</TITLE>\n"
-	"<BODY>The requested desktop is not configured to accept incoming connections.</BODY>\n"
-	"</HTML>\n";
-const char HTTP_MSG_NOSUCHFILE []	="HTTP/1.0 404 Not found\n\n"
-    "<HEAD><TITLE>File Not Found</TITLE></HEAD>\n"
-    "<BODY><H1>The requested file could not be found</H1></BODY>\n";
+// HTTP messages / message formats
+const char HTTP_MSG_OK[] = "HTTP/1.0 200 OK\n\n";
+
+const char HTTP_FMT_INDEX[] =
+"<HTML>\n"
+"  <HEAD><TITLE>TightVNC desktop [%.256s]</TITLE></HEAD>\n"
+"  <BODY>\n"
+"    <APPLET CODE=VncViewer.class ARCHIVE=VncViewer.jar WIDTH=%d HEIGHT=%d>\n"
+"      <PARAM NAME=PORT VALUE=%d>\n"
+"      <PARAM NAME=ENCODING VALUE=Tight>\n"
+"    </APPLET><BR>\n"
+"    <A HREF=\"http://www.tightvnc.com/\">www.TightVNC.com</A>\n"
+"  </BODY>\n"
+"</HTML>\n";
+
+const char HTTP_MSG_NOSOCKCONN [] =
+"<HTML>\n"
+"  <HEAD><TITLE>TightVNC desktop</TITLE></HEAD>\n"
+"  <BODY>\n"
+"    <H1>Connections Disabled</H1>\n"
+"    The requested desktop is not configured to accept incoming connections.\n"
+"  </BODY>\n"
+"</HTML>\n";
+
+const char HTTP_MSG_NOSUCHFILE [] =
+"HTTP/1.0 404 Not Found\n\n"
+"<HTML>\n"
+"  <HEAD><TITLE>404 Not Found</TITLE></HEAD>\n"
+"  <BODY>\n"
+"    <H1>Not Found</H1>\n"
+"    The requested file could not be found.\n"
+"  </BODY>\n"
+"</HTML>\n";
 
 // Filename to resource ID mappings for the Java class files:
 typedef struct _FileToResourceMap {

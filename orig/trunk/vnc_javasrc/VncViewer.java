@@ -195,18 +195,15 @@ public class VncViewer extends java.applet.Applet
       vc.processNormalProtocol();
 
     } catch (NoRouteToHostException e) {
-      e.printStackTrace();
-      fatalError("Network error: no route to server: " + host);
+      fatalError("Network error: no route to server: " + host, e);
     } catch (UnknownHostException e) {
-      e.printStackTrace();
-      fatalError("Network error: server name unknown: " + host);
+      fatalError("Network error: server name unknown: " + host, e);
     } catch (ConnectException e) {
-      e.printStackTrace();
       fatalError("Network error: could not connect to server: " +
-		 host + ":" + port);
+		 host + ":" + port, e);
     } catch (EOFException e) {
-      e.printStackTrace();
       if (showOfflineDesktop) {
+	e.printStackTrace();
 	System.out.println("Network error: remote side closed connection");
 	if (vc != null) {
 	  vc.enableInput(false);
@@ -214,10 +211,8 @@ public class VncViewer extends java.applet.Applet
 	if (inSeparateFrame) {
 	  vncFrame.setTitle(rfb.desktopName + " [disconnected]");
 	}
-	if (rfb != null) {
+	if (rfb != null && !rfb.closed())
 	  rfb.close();
-	  rfb = null;
-	}
 	if (showControls && buttonPanel != null) {
 	  buttonPanel.disableButtonsOnDisconnect();
 	  if (inSeparateFrame) {
@@ -227,23 +222,21 @@ public class VncViewer extends java.applet.Applet
 	  }
 	}
       } else {
-	fatalError("Network error: remote side closed connection");
+	fatalError("Network error: remote side closed connection", e);
       }
     } catch (IOException e) {
       String str = e.getMessage();
-      e.printStackTrace();
       if (str != null && str.length() != 0) {
-	fatalError("Network Error: " + str);
+	fatalError("Network Error: " + str, e);
       } else {
-	fatalError(e.toString());
+	fatalError(e.toString(), e);
       }
     } catch (Exception e) {
       String str = e.getMessage();
-      e.printStackTrace();
       if (str != null && str.length() != 0) {
-	fatalError("Error: " + str);
+	fatalError("Error: " + str, e);
       } else {
-	fatalError(e.toString());
+	fatalError(e.toString(), e);
       }
     }
     
@@ -657,15 +650,11 @@ public class VncViewer extends java.applet.Applet
   // disconnect() - close connection to server.
   //
 
-  boolean disconnectRequested = false;
-
   synchronized public void disconnect() {
-    disconnectRequested = true;
-    if (rfb != null) {
-      rfb.close();
-      rfb = null;
-    }
     System.out.println("Disconnect");
+
+    if (rfb != null && !rfb.closed())
+      rfb.close();
     options.dispose();
     clipboard.dispose();
     if (rec != null)
@@ -682,7 +671,6 @@ public class VncViewer extends java.applet.Applet
       } else {
 	validate();
       }
-      rfbThread.stop();
     } else {
       System.exit(0);
     }
@@ -693,18 +681,31 @@ public class VncViewer extends java.applet.Applet
   //
 
   synchronized public void fatalError(String str) {
-    if (rfb != null) {
-      rfb.close();
-      rfb = null;
-    }
     System.out.println(str);
 
-    if (disconnectRequested) {
-      // Not necessary to show error message if the error was caused
-      // by I/O problems after the disconnect() method call.
-      disconnectRequested = false;
-      return;
+    if (inAnApplet) {
+      // vncContainer null, applet not inited,
+      // can not present the error to the user.
+      Thread.currentThread().stop();
+    } else {
+      System.exit(1);
     }
+  }
+
+  synchronized public void fatalError(String str, Exception e) {
+ 
+    if (rfb != null) {
+      // Not necessary to show error message if the error was caused
+      // by I/O problems after the rfb.close() method call.
+      if (rfb.closed()) {
+	System.out.println("RFB thread finished");
+	return;
+      }
+      rfb.close();
+    }
+
+    e.printStackTrace();
+    System.out.println(str);
 
     if (inAnApplet) {
       vncContainer.removeAll();
@@ -717,24 +718,23 @@ public class VncViewer extends java.applet.Applet
       } else {
 	validate();
       }
-      Thread.currentThread().stop();
     } else {
       System.exit(1);
     }
   }
-
 
   //
   // This method is called before the applet is destroyed.
   //
 
   public void destroy() {
+    System.out.println("Destroying applet");
     vncContainer.removeAll();
     options.dispose();
     clipboard.dispose();
     if (rec != null)
       rec.dispose();
-    if (rfb != null)
+    if (rfb != null && !rfb.closed())
       rfb.close();
     if (inSeparateFrame)
       vncFrame.dispose();
@@ -746,6 +746,7 @@ public class VncViewer extends java.applet.Applet
   //
 
   public void windowClosing(WindowEvent evt) {
+    System.out.println("Closing window");
     if (rfb != null)
       disconnect();
 

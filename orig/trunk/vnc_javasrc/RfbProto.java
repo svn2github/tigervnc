@@ -111,6 +111,9 @@ class RfbProto {
   // playback.
   int numUpdatesInSession;
 
+  // If true, informs that the RFB socket was closed.
+  private boolean closed;
+
   //
   // Constructor. Make TCP connection to RFB server.
   //
@@ -141,9 +144,11 @@ class RfbProto {
   }
 
 
-  void close() {
+  synchronized void close() {
     try {
       sock.close();
+      closed = true;
+      System.out.println("RFB socket closed");
       if (rec != null) {
 	rec.close();
 	rec = null;
@@ -151,6 +156,10 @@ class RfbProto {
     } catch (Exception e) {
       e.printStackTrace();
     }
+  }
+
+  synchronized boolean closed() {
+    return closed;
   }
 
   //

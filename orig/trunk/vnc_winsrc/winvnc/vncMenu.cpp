@@ -242,9 +242,6 @@ vncMenu::vncMenu(vncServer *server)
 	m_hmenu = LoadMenu(hAppInstance, MAKEINTRESOURCE(IDR_TRAYMENU));
 #endif
 
-	// Install the tray icon!
-	AddTrayIcon();
-
 	// Initialise the properties dialog object
 	if (!m_properties.Init(m_server))
 	{
@@ -252,6 +249,9 @@ vncMenu::vncMenu(vncServer *server)
 		PostQuitMessage(0);
 		return;
 	}
+
+	// Install the tray icon!
+	AddTrayIcon();
 }
 
 vncMenu::~vncMenu()

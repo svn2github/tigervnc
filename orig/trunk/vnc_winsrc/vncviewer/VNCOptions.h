@@ -43,6 +43,9 @@
 #define NORMALCURSOR 2
 #define SMALLCURSOR 3
 #define MAX_LEN_COMBO 7
+
+#define KEY_VNCVIEWER_HISTORI _T("Software\\ORL\\VNCviewer\\History")
+
 struct COMBOSTRING {
 		TCHAR NameString[20];
 		int rfbEncoding;

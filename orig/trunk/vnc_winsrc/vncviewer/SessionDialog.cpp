@@ -41,7 +41,7 @@ SessionDialog::SessionDialog(VNCOptions *pOpt,ClientConnection *cc)
 	DWORD dispos;
 
 	RegCreateKeyEx(HKEY_CURRENT_USER,
-		"Software\\ORL\\VNCviewer\\History", 0, NULL, 
+		KEY_VNCVIEWER_HISTORI, 0, NULL, 
 		REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS,
 		NULL, &m_hRegKey, &dispos);
     
@@ -103,7 +103,7 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 			if (_this->m_pOpt->m_display[0] == '\0') {
 				SendMessage(hcombo, CB_SETCURSEL, 0, 0);
 				SendMessage(hcombo, CB_GETLBTEXT, 0, (LPARAM)(int FAR*)buffer );
-				_this->m_pOpt->LoadOpt(buffer, "Software\\ORL\\VNCviewer\\History");
+				_this->m_pOpt->LoadOpt(buffer, KEY_VNCVIEWER_HISTORI);
 			} else {
 				SetDlgItemText(hwnd, IDC_HOSTNAME_EDIT, _this->m_pOpt->m_display);
 			}
@@ -134,7 +134,7 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 				{
 					int a = (int)SendMessage(hcombo, CB_GETCURSEL, 0, 0L);
 					SendMessage(hcombo, CB_GETLBTEXT, a, (LPARAM)(int FAR*)buffer );
-					_this->m_pOpt->LoadOpt(buffer,"Software\\ORL\\VNCviewer\\History");
+					_this->m_pOpt->LoadOpt(buffer,KEY_VNCVIEWER_HISTORI);
 					
 					_this->cmp(hwnd);
 					
@@ -159,7 +159,7 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 				return TRUE;
 			}
 		case IDC_LIST_MODE: 
-			pApp->m_options.LoadOpt(".listen", "Software\\ORL\\VNCviewer\\History");
+			pApp->m_options.LoadOpt(".listen", KEY_VNCVIEWER_HISTORI);
 			pApp->m_options.m_listening=true;
 			pApp->ListenMode();
 			EndDialog(hwnd, FALSE);

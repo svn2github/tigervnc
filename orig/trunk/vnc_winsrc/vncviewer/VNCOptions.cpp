@@ -209,7 +209,7 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 	_tcscpy(CommLine, szCmdLine);
 
 	if (_tcsstr( CommLine, "/listen") != NULL) {
-		LoadOpt(".listen", "Software\\ORL\\VNCviewer\\History");
+		LoadOpt(".listen", KEY_VNCVIEWER_HISTORI);
 		f = 1;
 	}
 	TCHAR *cmd = new TCHAR[cmdlinelen + 1];
@@ -255,7 +255,7 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 	TCHAR phost[256];
 	if (ParseDisplay(args[j], phost, 255, &m_port) && (f == 0) &&
 		(_tcsstr( args[j], "/") == NULL))
-	LoadOpt(args[j], "Software\\ORL\\VNCviewer\\History");
+	LoadOpt(args[j], KEY_VNCVIEWER_HISTORI);
 	}
 	bool hostGiven = false, portGiven = false;
 	// take in order.
@@ -1232,11 +1232,11 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 				DWORD index=0;
 				
 				RegOpenKey(HKEY_CURRENT_USER,
-					"Software\\ORL\\VNCviewer\\History", &hRegKey);
+					KEY_VNCVIEWER_HISTORI, &hRegKey);
 				
 				while (RegEnumValue(hRegKey, index, value, &valuesize,
 					NULL, NULL, (LPBYTE)data, &datasize) == ERROR_SUCCESS) {
-					pApp->m_options.delkey(data, "Software\\ORL\\VNCviewer\\History");
+					pApp->m_options.delkey(data, KEY_VNCVIEWER_HISTORI);
 					RegDeleteValue(hRegKey, value);
 					valuesize = 80;
 					datasize = 80;

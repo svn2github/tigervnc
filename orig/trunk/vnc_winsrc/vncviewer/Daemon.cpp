@@ -211,7 +211,7 @@ LRESULT CALLBACK Daemon::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lPa
 			break;
 		case IDC_OPTIONBUTTON:
 			pApp->m_options.DoDialog();
-			pApp->m_options.SaveOpt(".listen", "Software\\ORL\\VNCviewer\\History");
+			pApp->m_options.SaveOpt(".listen", KEY_VNCVIEWER_HISTORI);
 			break;
 		case ID_CLOSEDAEMON:
 			PostQuitMessage(0);

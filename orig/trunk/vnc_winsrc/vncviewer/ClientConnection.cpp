@@ -257,7 +257,7 @@ void ClientConnection::Run()
 	} else {
 		if (m_pApp->m_options.m_listening) {
 			m_opts.LoadOpt(m_opts.m_display, 
-							"Software\\ORL\\VNCviewer\\History");
+							KEY_VNCVIEWER_HISTORI);
 		}
 	}
 	// Connect if we're not already connected
@@ -587,7 +587,7 @@ void ClientConnection::SaveListConnection()
 				
 		itoa(maxEntries, list, 10);
 		RegCreateKeyEx(HKEY_CURRENT_USER,
-					"Software\\ORL\\VNCviewer\\History", 0, NULL, 
+					KEY_VNCVIEWER_HISTORI, 0, NULL, 
 					REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, 
 					NULL, &m_hRegKey, &dispos);
 		_tcscpy(buf1, m_opts.m_display);
@@ -617,11 +617,11 @@ void ClientConnection::SaveListConnection()
 			RegQueryValueEx( m_hRegKey, (LPTSTR)valname, 
 						NULL, NULL, 
 						(LPBYTE)buf, (LPDWORD)&dwbuflen);
-			m_opts.delkey(buf, "Software\\ORL\\VNCviewer\\History");
+			m_opts.delkey(buf, KEY_VNCVIEWER_HISTORI);
 		}
 		RegCloseKey(m_hRegKey);
 		m_opts.SaveOpt(m_opts.m_display,
-						"Software\\ORL\\VNCviewer\\History");
+						KEY_VNCVIEWER_HISTORI);
 	}		
 }
 
@@ -1609,10 +1609,10 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 				
 				if (_this->m_serverInitiated) {
 					_this->m_opts.SaveOpt(".listen", 
-										"Software\\ORL\\VNCviewer\\History");
+										KEY_VNCVIEWER_HISTORI);
 				} else {
 					_this->m_opts.SaveOpt(_this->m_opts.m_display,
-										"Software\\ORL\\VNCviewer\\History");
+										KEY_VNCVIEWER_HISTORI);
 				}
 				_this->EnableFullControlOptions();
 				return 0;
@@ -1754,10 +1754,10 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 #endif
 		if (_this->m_serverInitiated) {
 			_this->m_opts.SaveOpt(".listen", 
-								"Software\\ORL\\VNCviewer\\History");
+								KEY_VNCVIEWER_HISTORI);
 		} else {
 			_this->m_opts.SaveOpt(_this->m_opts.m_display,
-								"Software\\ORL\\VNCviewer\\History");
+								KEY_VNCVIEWER_HISTORI);
 		}
 		if (_this->m_waitingOnEmulateTimer) {
 			

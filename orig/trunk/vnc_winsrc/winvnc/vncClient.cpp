@@ -1320,26 +1320,31 @@ vncClientThread::run(void *arg)
 				}
 				sz_rfbFileSize = FindFileData.nFileSizeLow;
 				FindClose(hFile);
-				if (sz_rfbFileSize <= sz_rfbBlockSize) sz_rfbBlockSize = sz_rfbFileSize;
-				SetErrorMode(SEM_FAILCRITICALERRORS);
-				HANDLE hFiletoRead = CreateFile(path_file, GENERIC_READ, FILE_SHARE_READ, NULL,	OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);				// handle to file with attributes to copy  
-				SetErrorMode(0);
-				m_client->m_bDownloadEnable = TRUE;
-				char *pBuff = new char[sz_rfbBlockSize];
-				if (hFiletoRead != INVALID_HANDLE_VALUE) {
-					while(m_client->m_bDownloadEnable) {
-						bResult = ReadFile(hFiletoRead, pBuff, sz_rfbBlockSize, &dwNumberOfBytesRead, NULL);
-						if (bResult && dwNumberOfBytesRead == 0) {
-							/* This is the end of the file. */
-							unsigned int mTime = m_client->FiletimeToTime70(FindFileData.ftLastWriteTime);
-							m_client->SendFileDownloadData(mTime);
-							CloseHandle(hFiletoRead);
-							delete [] pBuff;
-							vnclog.Print(LL_CLIENTS, VNCLOG("file download complete: %s\n"),
-										 path_file);
-							break;
+				if (sz_rfbFileSize == 0) {
+					unsigned int mTime = m_client->FiletimeToTime70(FindFileData.ftLastWriteTime);
+					m_client->SendFileDownloadData(mTime);
+				} else {
+					if (sz_rfbFileSize <= sz_rfbBlockSize) sz_rfbBlockSize = sz_rfbFileSize;
+					SetErrorMode(SEM_FAILCRITICALERRORS);
+					HANDLE hFiletoRead = CreateFile(path_file, GENERIC_READ, FILE_SHARE_READ, NULL,	OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);				// handle to file with attributes to copy  
+					SetErrorMode(0);
+					m_client->m_bDownloadEnable = TRUE;
+					char *pBuff = new char[sz_rfbBlockSize];
+					if (hFiletoRead != INVALID_HANDLE_VALUE) {
+						while(m_client->m_bDownloadEnable) {
+							bResult = ReadFile(hFiletoRead, pBuff, sz_rfbBlockSize, &dwNumberOfBytesRead, NULL);
+							if (bResult && dwNumberOfBytesRead == 0) {
+								/* This is the end of the file. */
+								unsigned int mTime = m_client->FiletimeToTime70(FindFileData.ftLastWriteTime);
+								m_client->SendFileDownloadData(mTime);
+								CloseHandle(hFiletoRead);
+								delete [] pBuff;
+								vnclog.Print(LL_CLIENTS, VNCLOG("file download complete: %s\n"),
+											 path_file);
+								break;
+							}
+							m_client->SendFileDownloadData(dwNumberOfBytesRead, pBuff);
 						}
-						m_client->SendFileDownloadData(dwNumberOfBytesRead, pBuff);
 					}
 				}
 			}

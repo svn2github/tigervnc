@@ -1138,8 +1138,10 @@ vncProperties::SaveUserPrefs(HKEY appkey)
 	SaveInt(appkey, "IdleTimeout", m_server->AutoIdleDisconnectTimeout());
 
 	// Connection querying settings
-	SaveInt(appkey, "QuerySetting", m_server->QuerySetting());
-	SaveInt(appkey, "QueryTimeout", m_server->QueryTimeout());
+	// FIXME: Currently query settings are saved in vncAdvancedProperties,
+	//        but actually here is a better place.
+	// SaveInt(appkey, "QuerySetting", m_server->QuerySetting());
+	// SaveInt(appkey, "QueryTimeout", m_server->QueryTimeout());
 
 	// Lock settings
 	SaveInt(appkey, "LockSetting", m_server->LockSettings());

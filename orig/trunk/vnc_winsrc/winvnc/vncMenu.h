@@ -43,7 +43,6 @@ class vncMenu;
 #include "vncProperties.h"
 #include "vncAbout.h"
 #include "ControlPanel.h"
-#include "WallpaperUtils.h"
 
 // Constants
 extern const UINT MENU_SERVER_SHAREWINDOW;

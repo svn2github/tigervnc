@@ -41,6 +41,7 @@
 #include "rectlist.h"
 #include "vncDesktop.h"
 #include "vncService.h"
+#include "WallpaperUtils.h"
 
 #ifndef HORIZONLIVE
 #include <fstream.h>
@@ -160,6 +161,10 @@ vncDesktopThread::run_undetached(void *arg)
 	// Succeeded to initialise ok
 	ReturnVal(TRUE);
 
+	WallpaperUtils wputils;
+	if (m_server->RemoveWallpaperEnabled())
+		wputils.KillWallpaper();
+
 	// START PROCESSING DESKTOP MESSAGES
 
 	// We set a flag inside the desktop handler here, to indicate it's now safe
@@ -267,6 +272,8 @@ vncDesktopThread::run_undetached(void *arg)
 			}
 		}	
 	}
+
+	wputils.RestoreWallpaper();
 
 	m_desktop->SetClipboardActive(FALSE);
 	

@@ -33,12 +33,21 @@
 #include "WinVNC.h"
 #include "Log.h"
 
-// kill backgrounds
-void KillActiveDesktop() ;
-void KillWallpaper( void ) ;
+class WallpaperUtils
+{
+public:
+	WallpaperUtils();
+	~WallpaperUtils();
 
-// restore backgrounds
-void RestoreActiveDesktop( void ) ;
-void RestoreWallpaper( void ) ;
+	void KillWallpaper();
+	void RestoreWallpaper();
+
+protected:
+	void KillActiveDesktop();
+	void RestoreActiveDesktop();
+
+	bool m_restore_ActiveDesktop;
+	bool m_restore_wallpaper;
+};
 
 #endif // __WALLPAPERUTILS_H

@@ -122,13 +122,18 @@ public:
 	void SetFromCommandLine(LPTSTR szCmdLine);
 
 
-	static BOOL CALLBACK DlgProc1(  HWND hwndDlg,  UINT uMsg, 
+	static BOOL CALLBACK DlgProc(HWND hwndDlg, UINT uMsg,
+		WPARAM wParam, LPARAM lParam);
+	static BOOL CALLBACK DlgProc1(  HWND hwnd,  UINT uMsg, 
 		WPARAM wParam, LPARAM lParam );
-	static BOOL CALLBACK DlgProc2(  HWND hwndDlg,  UINT uMsg, 
+	static BOOL CALLBACK DlgProc2(  HWND hwnd,  UINT uMsg, 
 		WPARAM wParam, LPARAM lParam );
 
 	// Register() makes this viewer the app invoked for .vnc files
 	static void Register();
+	HWND m_hPageConnection;
+	HWND m_hPageGeneral;
+	HWND m_hTab;
 
 private:
     void ShowUsage(LPTSTR info = NULL);

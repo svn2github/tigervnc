@@ -14,6 +14,7 @@
 #define ID_CONN_ALTDOWN                 106
 #define IDD_GENERAL_OPTION              106
 #define ID_CONN_ALTUP                   107
+#define IDD_PARENT                      107
 #define IDB_VNC32                       108
 #define ID_CONN_CTLALTDEL               108
 #define IDD_APP_ABOUT                   109
@@ -104,6 +105,7 @@
 #define IDC_FTABOUT                     1088
 #define IDC_FTCANCEL                    1089
 #define IDC_EXIT                        1090
+#define IDC_TAB                         1090
 #define IDC_FTPROGRESS                  1091
 #define IDC_FTBROWSEEDIT                1092
 #define IDC_FTSTATUS                    1093
@@ -132,7 +134,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        244
 #define _APS_NEXT_COMMAND_VALUE         40011
-#define _APS_NEXT_CONTROL_VALUE         1089
+#define _APS_NEXT_CONTROL_VALUE         1091
 #define _APS_NEXT_SYMED_VALUE           154
 #endif
 #endif

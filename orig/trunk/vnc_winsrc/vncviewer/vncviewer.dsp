@@ -344,6 +344,14 @@ SOURCE=.\vncauth.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\VNCHelp.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\VNCHelp.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\VNCOptions.cpp
 # End Source File
 # Begin Source File

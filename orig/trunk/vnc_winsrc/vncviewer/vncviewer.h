@@ -32,6 +32,7 @@
 #include "res\resource.h"
 #include "VNCviewerApp.h"
 #include "Log.h"
+#include "VNCHelp.h"
 
 #define WM_SOCKEVENT WM_USER+1
 #define WM_TRAYNOTIFY WM_SOCKEVENT+1
@@ -42,6 +43,8 @@ extern VNCviewerApp *pApp;
 
 // Global logger - may be used by anything
 extern Log vnclog;
+
+extern VNCHelp help;
 
 // Display given window in centre of screen
 void CentreWindow(HWND hwnd);

@@ -36,6 +36,7 @@
 
 // All logging is done via the log object
 Log vnclog;
+VNCHelp help;
 HWND hwndd;
 HACCEL hAccel;
 ACCEL Accel[7];
@@ -96,10 +97,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
    
 	try {
 		while ( GetMessage(&msg, NULL, 0,0) ) {
-			if(!hAccel||!TranslateAccelerator(hwndd,hAccel,&msg)){
+			if(!TranslateAccelerator(hwndd,hAccel,&msg)&&
+					!help.TransMess( (DWORD)&msg)){
 				TranslateMessage(&msg);
+				DispatchMessage(&msg);
 			}
-			DispatchMessage(&msg);
 		} 
 	} catch (WarningException &e) {
 		e.Report();

@@ -125,24 +125,7 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 		}
 		case WM_HELP:
 		{
-			LPHELPINFO hlp = (LPHELPINFO)lParam;
-			if (hlp->iCtrlId != 0) {
-				HH_POPUP popup;
-				popup.cbStruct = sizeof(popup);
-				popup.hinst = pApp->m_instance;
-				popup.idString = (UINT)hlp->iCtrlId;
-				SetRect(&popup.rcMargins, -1, -1, -1, -1);
-				popup.pszFont = "MS Sans Serif,8";
-				popup.clrForeground = -1;
-				popup.clrBackground = -1;
-				popup.pt.x = -1;
-				popup.pt.y = -1;
-
-				HtmlHelp((HWND)hlp->hItemHandle,
-						 NULL,
-						 HH_DISPLAY_TEXT_POPUP,
-						 (DWORD)&popup);
-			}
+			help.Popup(lParam);
 			return 0;
 		}
 		case WM_ACTIVATE:

@@ -66,15 +66,22 @@ BEGIN
 END
 
 IDD_OPTIONDIALOG DIALOG DISCARDABLE  0, 0, 301, 170
-STYLE DS_MODALFRAME | WS_POPUP
+STYLE DS_CONTROL | WS_CHILD
 FONT 8, "MS Sans Serif"
 BEGIN
+    COMBOBOX        IDC_ENCODING,68,17,56,79,CBS_DROPDOWNLIST | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Allow CopyRect encoding",ID_SESSION_SET_CRECT,"Button",
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,15,34,97,10
-    CHECKBOX        "",IDC_ALLOW_COMPRESSLEVEL,15,46,10,8
-    CHECKBOX        "",IDC_ALLOW_JPEG,15,78,10,8
+    CHECKBOX        "Custom compression level:",IDC_ALLOW_COMPRESSLEVEL,15,
+                    46,96,8
+    CONTROL         "Slider2",IDC_COMPRESSLEVEL,"msctls_trackbar32",
+                    TBS_AUTOTICKS | WS_TABSTOP,23,57,92,9
+    CHECKBOX        "Allow JPEG compression:",IDC_ALLOW_JPEG,15,78,96,8
+    CONTROL         "Slider1",IDC_QUALITYLEVEL,"msctls_trackbar32",
+                    TBS_AUTOTICKS | WS_TABSTOP,23,89,92,9
     CONTROL         "Request shared session",IDC_SHARED,"Button",
-                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,15,128,91,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,128,91,10
     CONTROL         "Deiconify on Bell",IDC_BELLDEICONIFY,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,15,140,85,8
     CONTROL         "Disable clipboard transfer",IDC_DISABLECLIPBOARD,"Button",
@@ -100,23 +107,14 @@ BEGIN
     CONTROL         "Full-screen mode",IDC_FULLSCREEN,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,148,137,69,8
     CHECKBOX        "Scale by",IDC_SCALING,148,148,43,10
-    LTEXT           "(experimental)",IDC_STATIC,250,148,44,8
-    GROUPBOX        "Preferred encoding",IDC_STATIC,7,7,123,107
-    GROUPBOX        "Misc",IDC_STATIC,7,119,123,44
-    GROUPBOX        "Mouse",IDC_STATIC,139,7,153,37
-    GROUPBOX        "Mouse cursor",IDC_STATIC,139,50,154,48
-    GROUPBOX        "Display",IDC_STATIC,139,102,155,60
-    LTEXT           "Custom compression level:",IDC_STATIC,27,46,85,8
-    LTEXT           "Allow JPEG compression:",IDC_STATIC,27,79,85,10
-    COMBOBOX        IDC_ENCODING,68,17,56,79,CBS_DROPDOWNLIST | 
-                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Use encoding",IDC_STATIC,15,20,45,12
-    CONTROL         "Slider1",IDC_QUALITYLEVEL,"msctls_trackbar32",
-                    TBS_AUTOTICKS | WS_GROUP | WS_TABSTOP,23,89,92,9
-    CONTROL         "Slider2",IDC_COMPRESSLEVEL,"msctls_trackbar32",
-                    TBS_AUTOTICKS | WS_TABSTOP,23,57,92,9
     COMBOBOX        IDC_SCALE_EDIT,195,145,37,66,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Mouse cursor",IDC_STATIC,139,50,155,48
+    GROUPBOX        "Preferred encoding",IDC_STATIC,7,7,123,107
+    GROUPBOX        "Misc",IDC_STATIC,7,119,123,43
+    GROUPBOX        "Mouse",IDC_STATIC,139,7,155,37
+    GROUPBOX        "Display",IDC_STATIC,139,102,155,60
+    LTEXT           "Use encoding",IDC_STATIC,15,20,45,12
     LTEXT           "%",IDC_STATIC,237,149,10,8
     LTEXT           "fast",IDC_STATIC,22,66,15,8
     LTEXT           "best",IDC_STATIC,103,66,14,8
@@ -235,7 +233,7 @@ BEGIN
 END
 
 IDD_GENERAL_OPTION DIALOG DISCARDABLE  0, 0, 294, 161
-STYLE DS_MODALFRAME | WS_POPUP | WS_DISABLED
+STYLE DS_CONTROL | WS_CHILD
 FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "message at start of a full screen mode",
@@ -278,6 +276,17 @@ BEGIN
     DEFPUSHBUTTON   "&OK",IDOK,87,149,50,14
     EDITTEXT        IDC_EDIT_HELP,7,7,210,134,ES_MULTILINE | ES_AUTOVSCROLL | 
                     ES_READONLY | ES_WANTRETURN | WS_VSCROLL
+END
+
+IDD_PARENT DIALOGEX 0, 0, 309, 212
+STYLE DS_MODALFRAME | DS_CONTEXTHELP | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP | WS_EX_CONTROLPARENT
+CAPTION "Property Page"
+FONT 8, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "Cancel",IDCANCEL,225,195,66,15
+    PUSHBUTTON      "OK",IDOK,135,195,69,15
+    CONTROL         "Tab1",IDC_TAB,"SysTabControl32",WS_TABSTOP,0,0,309,192
 END
 
 
@@ -386,6 +395,14 @@ BEGIN
         RIGHTMARGIN, 217
         TOPMARGIN, 7
         BOTTOMMARGIN, 163
+    END
+
+    IDD_PARENT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 302
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 205
     END
 END
 #endif    // APSTUDIO_INVOKED

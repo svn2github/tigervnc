@@ -13,7 +13,7 @@ DefaultDirName={pf}\TightVNC
 DefaultGroupName=TightVNC
 AllowNoIcons=yes
 AlwaysCreateUninstallIcon=no
-LicenseFile=LICENCE.txt
+InfoBeforeFile=InstInfo.rtf
 Compression=zip/9
 WindowVisible=no
 DisableStartupPrompt=yes
@@ -31,7 +31,7 @@ Name: "webdoc"; Description: "Web pages and documentation"; Types: full custom;
 Source: "WinVNC.exe"; DestDir: "{app}"; CopyMode: alwaysoverwrite; Flags: restartreplace; Components: server
 Source: "VNCHooks.dll"; DestDir: "{app}"; CopyMode: alwaysoverwrite; Flags: restartreplace; Components: server
 Source: "vncviewer.exe"; DestDir: "{app}"; CopyMode: alwaysoverwrite; Components: viewer
-Source: "README.txt"; DestDir: "{app}"; CopyMode: alwaysoverwrite; Flags: isreadme
+Source: "README.txt"; DestDir: "{app}"; CopyMode: alwaysoverwrite
 Source: "LICENCE.txt"; DestDir: "{app}"; CopyMode: alwaysoverwrite
 Source: "TightVNC.url"; DestDir: "{app}"; CopyMode: alwaysoverwrite
 Source: "Web\*"; DestDir: "{app}\Web"; CopyMode: alwaysoverwrite; Components: webdoc

@@ -1568,7 +1568,7 @@ void ClientConnection::PositionChildWindow()
 		ShowWindow(m_hToolbar, SW_HIDE);
 	}
 	
-	SetWindowPos(m_hwndscroll, HWND_TOP, rparent.left - 1, rparent.top,
+	SetWindowPos(m_hwndscroll, HWND_TOP, rparent.left - 1, rparent.top - 1,
 					parentwidth + 2, parentheight + 2, SWP_SHOWWINDOW);
 	
 	if (InFullScreenMode()) {				

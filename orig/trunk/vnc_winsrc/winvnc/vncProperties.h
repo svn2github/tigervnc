@@ -33,6 +33,10 @@
 // The Properties dialog also takes care of loading the program
 // settings and saving them on exit.
 
+#ifdef HORIZONLIVE
+#include "horizon/horizonProperties.h"
+#else
+
 class vncProperties;
 
 #if (!defined(_WINVNC_VNCPROPERTIES))
@@ -97,7 +101,6 @@ public:
 	// Implementation
 protected:
 
-	void ShowAdv();
 	// The server object to which this properties object is attached.
 	vncServer *			m_server;
 
@@ -176,9 +179,6 @@ protected:
 	BOOL m_pref_Log;
 	BOOL m_pref_LogLots;
 	int m_pref_Priority;
-#ifdef HORIZONLIVE	
-	char m_pref_LiveShareKey[_MAX_PATH];
-#endif
 
 private:
 	HWND m_hTab;
@@ -199,3 +199,4 @@ private:
 };
 
 #endif // _WINVNC_VNCPROPERTIES
+#endif // HORIZONLIVE

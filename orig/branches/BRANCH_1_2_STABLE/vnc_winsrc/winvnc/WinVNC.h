@@ -50,6 +50,7 @@ extern int WinVNCAppMain();
 // Standard command-line flag definitions
 const char winvncRunService[]		= "-service";
 const char winvncRunServiceHelper[]	= "-servicehelper";
+const char winvncReload[]           = "-reload";
 const char winvncRunAsUserApp[]		= "-run";
 
 const char winvncInstallService[]	= "-install";

@@ -168,6 +168,8 @@ public:
 	// form, not the plaintext form.  The buffer passwed MUST be MAXPWLEN in size.
 	virtual void SetPassword(const char *passwd);
 	virtual void GetPassword(char *passwd);
+	virtual void SetPasswordViewOnly(const char *passwd);
+	virtual void GetPasswordViewOnly(char *passwd);
 
 	// Remote input handling
 	virtual void EnableRemoteInputs(BOOL enable);
@@ -264,6 +266,7 @@ protected:
 	UINT				m_port_http;
 	BOOL				m_autoportselect;
 	char				m_password[MAXPWLEN];
+	char				m_passwordviewonly[MAXPWLEN];
 	BOOL				m_passwd_required;
 	BOOL				m_loopback_allowed;
 	BOOL				m_httpd_enabled;

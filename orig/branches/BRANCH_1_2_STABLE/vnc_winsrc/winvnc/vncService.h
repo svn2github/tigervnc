@@ -67,6 +67,7 @@ public:
 	// Routine to post a message to the currently running WinVNC server
 	// to pass it a handle to the current user
 	static BOOL PostUserHelperMessage();
+	static BOOL PostReloadMessage();
 	// Routine to process a user helper message
 	static BOOL ProcessUserHelperMessage(WPARAM wParam, LPARAM lParam);
 

@@ -63,6 +63,7 @@ vncServer::vncServer()
 	{
 	    vncPasswd::FromClear clearPWD;
 	    memcpy(m_password, clearPWD, MAXPWLEN);
+	    memcpy(m_passwordviewonly, clearPWD, MAXPWLEN);
 	}
 	m_querysetting = 2;
 	m_querytimeout = 10;
@@ -881,6 +882,18 @@ void
 vncServer::GetPassword(char *passwd)
 {
 	memcpy(passwd, m_password, MAXPWLEN);
+}
+
+void
+vncServer::SetPasswordViewOnly(const char *passwd)
+{
+	memcpy(m_passwordviewonly, passwd, MAXPWLEN);
+}
+
+void
+vncServer::GetPasswordViewOnly(char *passwd)
+{
+	memcpy(passwd, m_passwordviewonly, MAXPWLEN);
 }
 
 // Remote input handling

@@ -1755,7 +1755,7 @@ SOURCE=.\res\icon1.ico
 # End Source File
 # Begin Source File
 
-SOURCE=.\res\vnc.bmp
+SOURCE=.\res\tightvnc.bmp
 # End Source File
 # Begin Source File
 

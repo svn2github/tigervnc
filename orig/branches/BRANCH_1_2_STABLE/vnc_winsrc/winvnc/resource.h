@@ -41,6 +41,8 @@
 #define IDC_VNCLOGO                     1016
 #define IDC_PORTHTTP                    1017
 #define IDC_PORTRFB                     1018
+#define IDC_PASSWORD_LABELVO            1019
+#define IDC_PASSWORDVO                  1020
 #define IDC_DISABLE_INPUTS              1024
 #define IDC_APPLY                       1025
 #define IDC_PORTNO_AUTO                 1026

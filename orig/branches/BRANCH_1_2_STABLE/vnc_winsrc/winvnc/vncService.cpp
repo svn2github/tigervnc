@@ -562,6 +562,28 @@ vncService::PostUserHelperMessage()
 	return retries;
 }
 
+BOOL
+vncService::PostReloadMessage()
+{
+	// - Check the platform type
+	if (!IsWinNT())
+		return TRUE;
+
+	// - Get the current process ID
+	DWORD processId = GetCurrentProcessId();
+
+	// - Post it to the existing WinVNC
+	int retries = 6;
+	while (!PostToWinVNC(MENU_RELOAD_MSG, 0, (LPARAM)processId) && retries--)
+		omni_thread::sleep(10);
+
+	// - Wait until it's been used
+	omni_thread::sleep(5);
+
+	return retries;
+}
+
+
 // ROUTINE TO PROCESS AN INCOMING INSTANCE OF THE ABOVE MESSAGE
 BOOL
 vncService::ProcessUserHelperMessage(WPARAM wParam, LPARAM lParam) {
@@ -611,6 +633,7 @@ vncService::ProcessUserHelperMessage(WPARAM wParam, LPARAM lParam) {
 	vnclog.Print(LL_INTINFO, VNCLOG("impersonating logged on user\n"));
 	return TRUE;
 }
+
 
 // SERVICE MAIN ROUTINE
 int

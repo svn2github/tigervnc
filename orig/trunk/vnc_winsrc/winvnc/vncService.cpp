@@ -494,14 +494,21 @@ vncService::ShowProperties()
 HWND
 vncService::GetSharedWindow(char * titlewindow)
 {
-	TCHAR title[80];			
+	TCHAR title[80];
+	DWORD style;
 	HWND hWindowShared = GetForegroundWindow();
 	while (hWindowShared != NULL) {
 		GetWindowText(hWindowShared, title, 80);
 		for (int i = 0; i < strlen(title); i++) {
 			title[i] = tolower(title[i]);
 		}
-		if (strstr(title, titlewindow) != NULL) break;
+		style = GetWindowLong(hWindowShared, GWL_STYLE);
+		if ((strstr(title, titlewindow) != NULL) && 
+			((style & WS_VISIBLE) == WS_VISIBLE)) {
+			SendMessage(hWindowShared, WM_SYSCOMMAND, SC_RESTORE, 0);	
+			SetForegroundWindow(hWindowShared);
+			break;
+		}
 			hWindowShared = GetNextWindow(hWindowShared, GW_HWNDNEXT);				
 	}
 	return hWindowShared;

@@ -638,8 +638,7 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 		if (iMsg == MENU_SERVER_SHAREWINDOW)
 		{
 			HWND hWindowShared = (HWND)wParam;
-
-			if ((hWindowShared != 0) && (IsIconic(hWindowShared) == 0)) {
+			if (hWindowShared != NULL) {
 			_this->m_server->SetWindowShared(hWindowShared);
 			_this->m_server->FullScreen(false);
 			_this->m_server->ScreenAreaShared(false);

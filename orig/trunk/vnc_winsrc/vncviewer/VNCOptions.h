@@ -116,10 +116,12 @@ public:
 	static BOOL CALLBACK OptDlgProc(  HWND hwndDlg,  UINT uMsg, 
 		WPARAM wParam, LPARAM lParam );
 
+	// Register() makes this viewer the app invoked for .vnc files
+	static void Register();
+
 private:
     void ShowUsage(LPTSTR info = NULL);
 	void FixScaling();
-	void Register();
 
 	// Just for temporary use
 	bool m_running;

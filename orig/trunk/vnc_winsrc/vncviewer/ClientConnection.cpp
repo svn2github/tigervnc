@@ -1478,7 +1478,8 @@ void ClientConnection::SizeWindow(bool centered)
 	m_fullwinheight = fullwinrect.bottom - fullwinrect.top;
 
 	AdjustWindowRectEx(&fullwinrect, 
-			   GetWindowLong(m_hwndscroll, GWL_STYLE ) & ~WS_HSCROLL & ~WS_VSCROLL, 
+			   GetWindowLong(m_hwndscroll, GWL_STYLE ) & ~WS_HSCROLL & 
+			   ~WS_VSCROLL & ~WS_BORDER, 
 			   FALSE, GetWindowLong(m_hwndscroll, GWL_EXSTYLE));
 	AdjustWindowRectEx(&fullwinrect, 
 			   GetWindowLong(m_hwnd1, GWL_STYLE ), 
@@ -1568,7 +1569,7 @@ void ClientConnection::PositionChildWindow()
 	}
 	
 	SetWindowPos(m_hwndscroll, HWND_TOP, rparent.left - 1, rparent.top,
-					parentwidth + 2, parentheight + 1, SWP_SHOWWINDOW);
+					parentwidth + 2, parentheight + 2, SWP_SHOWWINDOW);
 	
 	if (InFullScreenMode()) {				
 		ShowScrollBar(m_hwndscroll, SB_HORZ, FALSE);

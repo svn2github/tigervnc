@@ -100,6 +100,7 @@ public:
 	virtual BOOL IsKeyboardEnabled() {return m_keyboardenabled;};
 	virtual BOOL IsPointerEnabled() {return m_pointerenabled;};
 	virtual const char *GetClientName();
+	virtual const char *GetServerName();
 	virtual vncClientId GetClientId() {return m_id;};
 
 	BOOL SetNewFBSize(BOOL sendnewfb);
@@ -142,6 +143,7 @@ protected:
 	// The socket
 	VSocket			*m_socket;
 	char			*m_client_name;
+	char			*m_server_name;
 
 	// The client thread
 	omni_thread		*m_thread;

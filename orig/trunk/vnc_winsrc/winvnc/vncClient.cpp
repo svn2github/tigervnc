@@ -1584,6 +1584,7 @@ vncClient::vncClient()
 
 	m_socket = NULL;
 	m_client_name = 0;
+	m_server_name = 0;
 	m_buffer = NULL;
 
 	m_copyrect_use = FALSE;
@@ -1628,6 +1629,10 @@ vncClient::~vncClient()
 		free(m_client_name);
 		m_client_name = 0;
 	}
+	if (m_server_name != 0) {
+		free(m_server_name);
+		m_server_name = 0;
+	}
 
 	// If we have a socket then kill it
 	if (m_socket != NULL)
@@ -1662,13 +1667,20 @@ vncClient::Init(vncServer *server,
 	// Save the socket
 	m_socket = socket;
 
-	// Save the name of the connecting client
+	// Save the name/ip of the connecting client
 	char *name = m_socket->GetPeerName();
 	if (name != 0)
 		m_client_name = strdup(name);
 	else
 		m_client_name = strdup("<unknown>");
-	
+
+	// Save the server name/ip
+	name = m_socket->GetSockName();
+	if (name != 0)
+		m_server_name = strdup(name);
+	else
+		m_server_name = strdup("<unknown>");
+
 	// Save the client id
 	m_id = newid;
 
@@ -1896,7 +1908,13 @@ vncClient::UpdatePalette()
 const char*
 vncClient::GetClientName()
 {
-	return m_client_name;
+	return (m_client_name != NULL) ? m_client_name : "[unknown]";
+}
+
+const char*
+vncClient::GetServerName()
+{
+	return (m_server_name != NULL) ? m_server_name : "[unknown]";
 }
 
 // Internal methods

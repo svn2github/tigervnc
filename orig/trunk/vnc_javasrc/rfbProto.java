@@ -290,8 +290,8 @@ class rfbProto {
       portion = is.readUnsignedByte();
       len |= (portion & 0x7F) << 7;
       if ((portion & 0x80) != 0) {
-        portion = is.readUnsignedByte();
-        len |= (portion & 0xFF) << 14;
+	portion = is.readUnsignedByte();
+	len |= (portion & 0xFF) << 14;
       }
     }
     return len;

@@ -32,6 +32,12 @@
 
 #pragma once
 
+// The idea here was to use a slider control.  However, that seems
+// to require MFC, which has not been used up to this point.  I 
+// wonder why not?  WinCE compatibility maybe?
+// #include <afxcmn.h>
+
+
 #define LASTENCODING rfbEncodingZlibHex
 
 #define NOCURSOR 0
@@ -71,6 +77,7 @@ public:
 	int     m_localCursor;
 	bool	m_scaling;
 	int		m_scale_num, m_scale_den; // Numerator & denominator
+	int		m_zlibLevel;
 
 	// Keyboard can be specified on command line as 8-digit hex
 	TCHAR	m_kbdname[9];

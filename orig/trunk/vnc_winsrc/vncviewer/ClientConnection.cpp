@@ -58,7 +58,7 @@ extern "C" {
 }
 
 #define INITIALNETBUFSIZE 4096
-#define MAX_ENCODINGS 10
+#define MAX_ENCODINGS 20
 #define VWR_WND_CLASS_NAME _T("VNCviewer")
 
 const rfbPixelFormat vnc8bitFormat = {8, 8, 1, 1, 7,7,3, 0,3,6,0,0};
@@ -751,6 +751,11 @@ void ClientConnection::SetFormatAndEncodings()
 		if (m_opts.m_PreferredEncoding == i) {
 			if (m_opts.m_UseEnc[i]) {
 				encs[se->nEncodings++] = Swap32IfLE(i);
+				if ((i == rfbEncodingZlib) ||
+					(i == rfbEncodingZlibHex)) {
+					encs[se->nEncodings++] = Swap32IfLE( m_opts.m_zlibLevel +
+														 rfbEncodingZlibLevel0 );
+				}
 			} else {
 				m_opts.m_PreferredEncoding--;
 			}
@@ -766,6 +771,11 @@ void ClientConnection::SetFormatAndEncodings()
 			 (m_opts.m_UseEnc[i]))
 		{
 			encs[se->nEncodings++] = Swap32IfLE(i);
+			if ((i == rfbEncodingZlib) ||
+				(i == rfbEncodingZlibHex)) {
+				encs[se->nEncodings++] = Swap32IfLE( m_opts.m_zlibLevel +
+													 rfbEncodingZlibLevel0 );
+			}
 		}
 	}
 

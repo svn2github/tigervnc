@@ -88,13 +88,6 @@ BOOL CALLBACK vncAcceptReverseDlg::vncAcceptReverseDlgProc(HWND hwnd,
 			// access to the parent C++ object
 
             SetWindowLong(hwnd, GWL_USERDATA, lParam);
-            vncAcceptReverseDlg *_this = (vncAcceptReverseDlg *) lParam;
-
-			
-			// Set the IP-address string to text dialog box
-			char temp[256];
-			sprintf(temp, "Would you like to share your computer now via LiveShare at http://%s", (_this->m_ipAddress));
-			SetDlgItemText(hwnd, IDC_STATIC_TEXT2, temp);
 
 			SetForegroundWindow(hwnd);
 

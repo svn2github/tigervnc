@@ -17,9 +17,9 @@ OBJS=d3des.obj vncauth.obj Log.obj MinMax.obj RectList.obj stdhdrs.obj \
 	vncRegion.obj vncServer.obj vncService.obj vncSockConnect.obj \
 	vncTimedMsgBox.obj VSocket.obj vncAdvancedProperties.obj WinVNC.obj \
 	MatchWindow.obj InputHandlingControls.obj PollControls.obj \
-	IncomingConnectionsControls.obj \
-	SharedDesktopArea.obj FileTransferItemInfo.obj \
-	omnithread\omnithread.obj
+	IncomingConnectionsControls.obj QuerySettingsControls.obj \
+	AdministrationControls.obj SharedDesktopArea.obj \
+	FileTransferItemInfo.obj omnithread\omnithread.obj
 
 LIBS=zlib\zlib.lib libjpeg\libjpeg.lib VNCHooks\VNCHooks.lib
 

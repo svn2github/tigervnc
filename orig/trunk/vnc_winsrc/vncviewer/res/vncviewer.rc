@@ -170,27 +170,27 @@ BEGIN
     LTEXT           "",IDC_FTSTATUS,7,252,354,14,SS_CENTERIMAGE
 END
 
-IDD_SESSION_DLG DIALOGEX 0, 0, 268, 85
+IDD_SESSION_DLG DIALOGEX 0, 0, 253, 85
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Connection details"
 FONT 8, "MS Sans Serif"
 BEGIN
-    COMBOBOX        IDC_HOSTNAME_EDIT,51,7,125,66,CBS_DROPDOWN | 
+    COMBOBOX        IDC_HOSTNAME_EDIT,51,7,109,66,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "...",IDC_LOAD,180,7,16,13
-    CONTROL         "     Low-&bandwidth connection",IDC_MODEM_RADIO,"Button",
-                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,58,36,132,10
-    CONTROL         "     &Default connection options",IDC_CUSTOM_RADIO,
-                    "Button",BS_AUTORADIOBUTTON,58,49,132,10
-    CONTROL         "     &High-speed network",IDC_LOC_NET_RADIO,"Button",
-                    BS_AUTORADIOBUTTON,58,62,132,10
-    DEFPUSHBUTTON   "&Connect",IDC_OK,205,7,56,14,WS_GROUP
-    PUSHBUTTON      "&Options...",IDC_OPTIONBUTTON,205,25,56,14
-    PUSHBUTTON      "Cancel",IDCANCEL,205,43,56,14
-    PUSHBUTTON      "&Listening mode",IDC_LIST_MODE,205,64,56,14
+    PUSHBUTTON      "...",IDC_LOAD,164,7,16,13
+    CONTROL         "Low-&bandwidth connection",IDC_MODEM_RADIO,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,58,36,116,10
+    CONTROL         "&Default connection options",IDC_CUSTOM_RADIO,"Button",
+                    BS_AUTORADIOBUTTON,58,49,116,10
+    CONTROL         "&High-speed network",IDC_LOC_NET_RADIO,"Button",
+                    BS_AUTORADIOBUTTON,58,62,116,10
+    DEFPUSHBUTTON   "&Connect",IDC_OK,189,7,57,14,WS_GROUP
+    PUSHBUTTON      "&Options...",IDC_OPTIONBUTTON,189,25,57,14
+    PUSHBUTTON      "Cancel",IDCANCEL,189,43,57,14
+    PUSHBUTTON      "&Listening mode",IDC_LIST_MODE,189,64,57,14
     LTEXT           "VNC server:",IDC_STATIC,7,9,39,8
-    GROUPBOX        "Connection profile",IDC_CONN_PROF,51,24,145,54
+    GROUPBOX        "Connection profile",IDC_CONN_PROF,51,24,129,54
     CONTROL         108,IDC_STATIC,"Static",SS_BITMAP,9,28,32,30
 END
 
@@ -337,13 +337,13 @@ BEGIN
     IDD_SESSION_DLG, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 261
+        RIGHTMARGIN, 246
         VERTGUIDE, 51
         VERTGUIDE, 58
-        VERTGUIDE, 176
-        VERTGUIDE, 190
-        VERTGUIDE, 196
-        VERTGUIDE, 205
+        VERTGUIDE, 160
+        VERTGUIDE, 174
+        VERTGUIDE, 180
+        VERTGUIDE, 189
         TOPMARGIN, 7
         BOTTOMMARGIN, 78
     END
@@ -557,7 +557,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDC_OPTIONBUTTON        "Edit connection-specific options for the specified VNC server, or change general configuration of the viewer."
+    IDC_OPTIONBUTTON        "Edit connection-specific options for the specified VNC server, or change the configuration of the viewer."
     IDC_8BITCHECK           "Set this if you don't care about image quality, but want to minimize the amount of pixel data sent over the network."
 END
 
@@ -624,7 +624,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     IDC_TAB                 "Property Sheet"
     IDC_LOAD                "Load connection info from a file, assuming it was saved earlier by choosing ""Save connection info as..."" in the viewer's system menu."
-    IDC_CONN_PROF           "Connection profile"
+    IDC_CONN_PROF           "Choosing a connection profile allows you to select connection  options suitable for a particular network environment."
 END
 
 #endif    // English (U.S.) resources

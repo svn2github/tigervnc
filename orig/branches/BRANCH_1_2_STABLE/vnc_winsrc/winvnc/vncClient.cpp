@@ -576,15 +576,19 @@ vncClientThread::run(void *arg)
 			m_client->m_buffer->EnableXCursor(FALSE);
 			m_client->m_buffer->EnableRichCursor(FALSE);
 			m_client->m_buffer->EnableLastRect(FALSE);
+			m_client->m_use_PointerPos = FALSE;
 
 			m_client->m_cursor_update_pending = FALSE;
 			m_client->m_cursor_update_sent = FALSE;
+			m_client->m_cursor_pos_changed = FALSE;
 
 			// Read in the preferred encodings
 			msg.se.nEncodings = Swap16IfLE(msg.se.nEncodings);
 			{
 				int x;
 				BOOL encoding_set = FALSE;
+				BOOL shapeupdates_requested = FALSE;
+				BOOL pointerpos_requested = FALSE;
 
 				{	omni_mutex_lock l(m_client->m_regionLock);
 					// By default, don't use copyrect!
@@ -613,6 +617,7 @@ vncClientThread::run(void *arg)
 					// Is this an XCursor encoding request?
 					if (Swap32IfLE(encoding) == rfbEncodingXCursor) {
 						m_client->m_buffer->EnableXCursor(TRUE);
+						shapeupdates_requested = TRUE;
 						vnclog.Print(LL_INTINFO, VNCLOG("X-style cursor shape updates enabled\n"));
 						continue;
 					}
@@ -620,6 +625,7 @@ vncClientThread::run(void *arg)
 					// Is this a RichCursor encoding request?
 					if (Swap32IfLE(encoding) == rfbEncodingRichCursor) {
 						m_client->m_buffer->EnableRichCursor(TRUE);
+						shapeupdates_requested = TRUE;
 						vnclog.Print(LL_INTINFO, VNCLOG("Full-color cursor shape updates enabled\n"));
 						continue;
 					}
@@ -646,6 +652,12 @@ vncClientThread::run(void *arg)
 						continue;
 					}
 
+					// Is this a PointerPos encoding request?
+					if (Swap32IfLE(encoding) == rfbEncodingPointerPos) {
+						pointerpos_requested = TRUE;
+						continue;
+					}
+
 					// Is this a LastRect encoding request?
 					if (Swap32IfLE(encoding) == rfbEncodingLastRect) {
 						m_client->m_buffer->EnableLastRect(TRUE);
@@ -663,7 +675,16 @@ vncClientThread::run(void *arg)
 					}
 				}
 
+				// Enable CursorPos encoding only if cursor shape updates were
+				// requested by the client.
+				if (shapeupdates_requested && pointerpos_requested) {
+					m_client->m_use_PointerPos = TRUE;
+					m_client->m_cursor_pos_changed = TRUE;
+					vnclog.Print(LL_INTINFO, VNCLOG("PointerPos protocol extension enabled\n"));
+				}
+
 				// If no encoding worked then default to RAW!
+				// FIXME: Protocol extensions won't work in this case.
 				if (!encoding_set)
 				{
 					omni_mutex_lock l(m_client->m_regionLock);
@@ -754,6 +775,10 @@ vncClientThread::run(void *arg)
 					msg.pe.x = Swap16IfLE(msg.pe.x);
 					msg.pe.y = Swap16IfLE(msg.pe.y);
 
+					// Remember cursor position for this client
+					m_client->m_cursor_pos.x = msg.pe.x;
+					m_client->m_cursor_pos.y = msg.pe.y;
+
 					// Work out the flags for this event
 					DWORD flags = MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE;
 					if ( (msg.pe.buttonMask & rfbButton1Mask) != 
@@ -811,6 +836,7 @@ vncClientThread::run(void *arg)
 					m_client->m_remoteevent = TRUE;
 
 					// Flag that the mouse moved
+					// FIXME: Is it necessary?
 					m_client->UpdateMouse();
 
 					// Trigger an update
@@ -881,6 +907,9 @@ vncClient::vncClient()
 
 	m_cursor_update_pending = FALSE;
 	m_cursor_update_sent = FALSE;
+	m_cursor_pos_changed = FALSE;
+	m_cursor_pos.x = -1;
+	m_cursor_pos.y = -1;
 
 	m_thread = NULL;
 	m_updatewanted = FALSE;
@@ -1067,7 +1096,8 @@ vncClient::TriggerUpdate()
 		if (!m_changed_rgn.IsEmpty() ||
 			!m_full_rgn.IsEmpty() ||
 			m_copyrect_set ||
-			m_cursor_update_pending)
+			m_cursor_update_pending ||
+			m_cursor_pos_changed)
 		{
 			// Has the palette changed?
 			if (m_palettechanged)
@@ -1086,14 +1116,15 @@ vncClient::TriggerUpdate()
 void
 vncClient::UpdateMouse()
 {
-	if (!m_mousemoved && !m_cursor_update_sent)
-	{
+	if (!m_mousemoved && !m_cursor_update_sent) {
 		omni_mutex_lock l(m_regionLock);
 
 		if (IntersectRect(&m_oldmousepos, &m_oldmousepos, &m_fullscreen))
 			m_changed_rgn.AddRect(m_oldmousepos);
 
 		m_mousemoved = TRUE;
+	} else if (m_use_PointerPos) {
+		m_cursor_pos_changed = TRUE;
 	}
 }
 
@@ -1330,11 +1361,27 @@ vncClient::SendUpdate()
 	rectlist toBeSentList;		// List of rectangles to actually send
 	vncRegion toBeDone;			// Region to check
 
+	// Prepare to send cursor position update if necessary
+	if (m_cursor_pos_changed) {
+		POINT cursor_pos;
+		if (!GetCursorPos(&cursor_pos)) {
+			cursor_pos.x = 0;
+			cursor_pos.y = 0;
+		}
+		if (cursor_pos.x == m_cursor_pos.x && cursor_pos.y == m_cursor_pos.y) {
+			m_cursor_pos_changed = FALSE;
+		} else {
+			m_cursor_pos.x = cursor_pos.x;
+			m_cursor_pos.y = cursor_pos.y;
+		}
+	}
+
 	// If there is nothing to send then exit
 	if (m_changed_rgn.IsEmpty() &&
 		m_full_rgn.IsEmpty() &&
 		!m_copyrect_set &&
-		!m_cursor_update_pending)
+		!m_cursor_update_pending &&
+		!m_cursor_pos_changed)
 		return FALSE;
 
 	// Check that the copyrect region doesn't intersect the full update region
@@ -1355,7 +1402,7 @@ vncClient::SendUpdate()
 		m_buffer->CopyRect(m_copyrect_rect, m_copyrect_src);
 
 	// *** Currently, we only check for changes when there isn't a CopyRect to do
-	if (!m_copyrect_set)
+	if (!m_copyrect_set && (!m_changed_rgn.IsEmpty() || !m_full_rgn.IsEmpty()))
 	{
 		// GRAB THE SCREEN DATA
 
@@ -1451,10 +1498,12 @@ vncClient::SendUpdate()
 	}
 
 	if (numrects != 0xFFFF) {
-		// Count cursor shape update
+		// Count cursor shape and cursor position updates.
 		if (m_cursor_update_pending)
 			numrects++;
-		// Handle the copyrect region
+		if (m_cursor_pos_changed)
+			numrects++;
+		// Count the copyrect region
 		if (m_copyrect_set)
 			numrects++;
 		// If there are no rectangles then return
@@ -1471,6 +1520,12 @@ vncClient::SendUpdate()
 	// Send mouse cursor shape update
 	if (m_cursor_update_pending) {
 		if (!SendCursorShapeUpdate())
+			return TRUE;
+	}
+
+	// Send cursor position update
+	if (m_cursor_pos_changed) {
+		if (!SendCursorPosUpdate())
 			return TRUE;
 	}
 
@@ -1641,5 +1696,20 @@ vncClient::SendCursorShapeUpdate()
 
 	m_cursor_update_sent = TRUE;
 	return TRUE;
+}
+
+BOOL
+vncClient::SendCursorPosUpdate()
+{
+	m_cursor_pos_changed = FALSE;
+
+	rfbFramebufferUpdateRectHeader hdr;
+	hdr.encoding = Swap32IfLE(rfbEncodingPointerPos);
+	hdr.r.x = Swap16IfLE(m_cursor_pos.x);
+	hdr.r.y = Swap16IfLE(m_cursor_pos.y);
+	hdr.r.w = Swap16IfLE(0);
+	hdr.r.h = Swap16IfLE(0);
+
+	return m_socket->SendQueued((char *)&hdr, sizeof(hdr));
 }
 

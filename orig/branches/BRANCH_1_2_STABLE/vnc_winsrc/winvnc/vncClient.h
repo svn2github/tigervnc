@@ -117,6 +117,7 @@ protected:
 	BOOL SendRectangle(RECT &rect);
 	BOOL SendCopyRect(RECT &dest, POINT &source);
 	BOOL SendCursorShapeUpdate();
+	BOOL SendCursorPosUpdate();
 	BOOL SendLastRect();
 	BOOL SendPalette();
 
@@ -157,7 +158,9 @@ protected:
 	// Support for cursor shape updates (XCursor, RichCursor encodings)
 	BOOL			m_cursor_update_pending;
 	BOOL			m_cursor_update_sent;
+	BOOL			m_cursor_pos_changed;
 	HCURSOR			m_hcursor;
+	POINT			m_cursor_pos;
 
 	// Region structures used when preparing updates
 	// - region of rects which may have changed since last update
@@ -182,6 +185,8 @@ protected:
 	RECT			m_qtrscreen;
 	UINT			m_pollingcycle;
 	BOOL			m_remoteevent;
+
+	BOOL			m_use_PointerPos;
 };
 
 #endif

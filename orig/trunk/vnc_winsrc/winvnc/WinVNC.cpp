@@ -245,25 +245,35 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 		if (strncmp(&szCmdLine[i], winvncShareWindow, arglen) == 0 &&
 			arglen == strlen(winvncShareWindow))
 		{
+			// Find a window to share, by its title
 			i += arglen;
-			int start, end, current;
-			start=i;
-			while ((szCmdLine[start] != '"') && (start < strlen(szCmdLine))) start++;
-			start = start++;
-			end = start;
-			for (current = start; current < strlen(szCmdLine); current++) {
-				if (szCmdLine[current] == '"') end = current - 1;
+
+			int start = i, end;
+			while (szCmdLine[start] <= ' ') start++;
+			if (szCmdLine[start] == '"') {
+				start++;
+				char *ptr = strchr(&szCmdLine[start], '"');
+				if (ptr == NULL) {
+					end = strlen(szCmdLine);
+					i = end;
+				} else {
+					end = ptr - szCmdLine;
+					i = end + 1;
+				}
+			} else {
+				end = start;
+				while (szCmdLine[end] > ' ') end++;
+				i = end;
 			}
-			if (end-start > 0) {
-				char *title = new char[end-start+1];
+			if (end - start > 0) {
+				char *title = new char[end - start + 1];
 				if (title != 0) {
-					strncpy(title, &(szCmdLine[start]), end - start  );
-					title[end-start] = 0;					
-					vncService::SharedWindow(vncService::GetSharedWindow(title));
+					strncpy(title, &szCmdLine[start], end - start);
+					title[end - start] = 0;
+					vncService::SharedWindow(vncService::FindWindowByTitle(title));
 				}
 				delete [] title;
 			}
-			i=end+2;
 			continue;
 		}
 

@@ -933,7 +933,7 @@ BEGIN
     IDC_POLL_FOREGROUND     "Poll foreground window"
     IDC_POLL_UNDER_CURSOR   "Poll window under cursor"
     IDC_ONEVENT_ONLY        "Poll on event received only"
-    IDC_REMOTE_DISABLE      "Disable remote keyboard and pointer on local activity"
+    IDC_REMOTE_DISABLE      "Set this option to give higher priority to local keyboard and pointer. This blocks remote input while local keyboard or mouse is in use."
     IDC_PORTHTTP            "TCP port of the built-in Web server serving the Java viewer applet."
     IDC_PORTRFB             "TCP port used for VNC data exchange (pixel data, input events, file transfers etc.)"
     IDC_PASSWORD_VIEWONLY   "Users authenticated with view-only password are allowed to view the server's desktop, but cannot control it with their mouse and keyboard. Note that only first 8 characters of passwords are used in the standard VNC authentication."
@@ -968,11 +968,11 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDC_DISABLE_INPUTS      "Disable remote keyboard and pointer (all clients view only"
+    IDC_DISABLE_INPUTS      "If set, no keyboard or mouse control will be allowed to remote VNC viewers."
     IDC_APPLY               "Apply the changes but do not close the dialog box."
     IDC_PORTNO_AUTO         "When this option is set, the server will automatically find available port numbers, starting from port 5900 (corresponding to display 0). If built-in Web server is enabled, HTTP port will be set to VNC port minus 100."
     IDC_DISABLE_LOCAL_INPUTS 
-                            "Disable local keyboard and pointer during client sessions"
+                            "If set, local keyboard and mouse will be blocked while at least one VNC viewer is connected to this computer."
     IDADVANCED              "Advanced ..."
     IDQUERY                 "Query console on incoming connections"
 END
@@ -987,7 +987,7 @@ BEGIN
     IDC_WINDOW              "Window:"
     IDC_SCREEN              "Rectangular area"
     IDC_FULLSCREEN          "Full desktop"
-    IDC_DISABLE_TIME        "Input enabled after timeout:"
+    IDC_DISABLE_TIME        "Specify how many seconds should pass between local keyboard or mouse activity and enabling remote input."
     IDC_SPECDISPLAY         "Specify a display number. The VNC port is calculated as 5900 plus display, the HTTP port is 5800 plus display."
 END
 

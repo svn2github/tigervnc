@@ -120,6 +120,8 @@ public:
 	virtual vncClientId GetClientId() {return m_id;};
 	char*	getStartTime() { return ctime(&startTime); }
 	void	setStartTime(time_t start) {startTime = start;}
+	void	setStopUpdate(BOOL stop) {m_stopupdate = stop;}
+	BOOL	getStopUpdate() {return m_stopupdate;}
 	BOOL SetNewFBSize(BOOL sendnewfb);
 	BOOL IncrRgnRequested(){return !m_incr_rgn.IsEmpty();};
 	BOOL FullRgnRequested(){return !m_full_rgn.IsEmpty();};
@@ -164,6 +166,7 @@ protected:
 	char			*m_server_name;
 	
 	time_t startTime;
+	BOOL m_stopupdate;
 
 	// The client thread
 	omni_thread		*m_thread;

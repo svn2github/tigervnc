@@ -92,10 +92,14 @@ void ControlPanel::UpdateListView()
 		strcpy(ItemString[0], m_server->GetClient(*ci)->GetClientName());
 		strcpy(ItemString[1], m_server->GetClient(*ci)->getStartTime());
 		ItemString[1][24] = '\0';
-		if (m_server->GetClient(*ci)->IsInputEnabled()) {
-			strcpy(ItemString[2], "Full Control");
+		if (m_server->GetClient(*ci)->getStopUpdate()) {
+			strcpy(ItemString[2], "Stop updating");
 		} else {
-			strcpy(ItemString[2], "View-only");
+			if (m_server->GetClient(*ci)->IsInputEnabled()) {
+				strcpy(ItemString[2], "Full Control");
+			} else {
+				strcpy(ItemString[2], "View-only");
+			}
 		}
 		InsertListViewItem(i, ItemString);
 		vncClientList::iterator si;
@@ -189,9 +193,23 @@ BOOL CALLBACK ControlPanel::DialogProc(HWND hwnd, UINT uMsg,
 				for (ci = selconn.begin(); ci != selconn.end(); ci++) {
 					_this->m_server->GetClient(*ci)->EnableKeyboard(control);
 					_this->m_server->GetClient(*ci)->EnablePointer(control);
+					_this->m_server->GetClient(*ci)->setStopUpdate(FALSE);
 				}
 				_this->UpdateListView();
 			}   				
+			return false;
+		case IDC_STOP_UPDATE:
+			{
+				vncClientList selconn;
+				_this->getSelectedConn(&selconn);
+				vncClientList::iterator ci;
+				for (ci = selconn.begin(); ci != selconn.end(); ci++) {
+					_this->m_server->GetClient(*ci)->EnableKeyboard(FALSE);
+					_this->m_server->GetClient(*ci)->EnablePointer(FALSE);
+					_this->m_server->GetClient(*ci)->setStopUpdate(TRUE);
+				}
+				_this->UpdateListView();
+			} 
 			return false;
 		case IDCANCEL:
 			EndDialog(hwnd, 0);

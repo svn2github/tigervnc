@@ -1630,6 +1630,7 @@ vncClient::vncClient()
 	m_keyboardenabled = FALSE;
 	m_pointerenabled = FALSE;
 	m_inputblocked = FALSE;
+	m_stopupdate = FALSE;
 
 	m_copyrect_use = FALSE;
 
@@ -1768,7 +1769,7 @@ vncClient::TriggerUpdate()
 	if (!m_protocol_ready)
 		return;
 
-	if (m_updatewanted)
+	if (m_updatewanted && !m_stopupdate)
 	{
 		// Check if cursor shape update has to be sent
 		m_cursor_update_pending = m_buffer->IsCursorUpdatePending();

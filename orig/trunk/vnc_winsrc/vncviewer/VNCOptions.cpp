@@ -1191,16 +1191,9 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 			SendMessage(hSpin3, UDM_SETBUDDY, (WPARAM) (HWND)hListenPort, 0);
 			
 			HWND hlevel = GetDlgItem(hwnd, IDC_STATIC_LOG_LEVEL);
+			HWND hLogBrowse = GetDlgItem(hwnd, IDC_LOG_BROWSE);
 			SendMessage(hChec, BM_SETCHECK, pApp->m_options.m_logToFile, 0);
-			if (SendMessage(hChec, BM_GETCHECK, 0, 0) == 0) {
-				EnableWindow(hEditFile, FALSE);
-				EnableWindow(hEditLevel, FALSE);
-				EnableWindow(hlevel, FALSE);
-			} else {
-				EnableWindow(hEditFile, TRUE);
-				EnableWindow(hEditLevel, TRUE);
-				EnableWindow(hlevel, TRUE);
-			}
+			_this->EnableLog(hwnd, !(SendMessage(hChec, BM_GETCHECK, 0, 0) == 0));				
 			SetDlgItemInt( hwnd, IDC_EDIT_LOG_LEVEL, pApp->m_options.m_logLevel, FALSE);
 			SetDlgItemText( hwnd, IDC_EDIT_LOG_FILE, pApp->m_options.m_logFilename);
 			return TRUE;
@@ -1230,6 +1223,11 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 				Lim(hwnd, IDC_EDIT_LOG_LEVEL, 1, 12);				
 				return 0;
 			}
+			return 0;
+		case IDC_LOG_BROWSE:
+			_this->BrowseLogFile();
+			SetDlgItemText(hwnd, IDC_EDIT_LOG_FILE,
+						_this->m_logFilename);
 			return 0;
 		case IDC_BUTTON_CLEAR_LIST: 
 			{
@@ -1309,21 +1307,13 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 			}
 		case IDC_CHECK_LOG_FILE:
 			switch (HIWORD(wParam)) {
-			case BN_CLICKED:
-				HWND hlevel = GetDlgItem(hwnd, IDC_STATIC_LOG_LEVEL);
-				HWND hChec = GetDlgItem(hwnd, IDC_CHECK_LOG_FILE);
-				HWND hEditFile = GetDlgItem(hwnd, IDC_EDIT_LOG_FILE);
-				HWND hEditLevel = GetDlgItem(hwnd, IDC_EDIT_LOG_LEVEL);
-
+			case BN_CLICKED:				
+				HWND hChec = GetDlgItem(hwnd, IDC_CHECK_LOG_FILE);				
 				if (SendMessage(hChec, BM_GETCHECK, 0, 0) == 0){
-					EnableWindow(hEditFile, TRUE);
-					EnableWindow(hEditLevel, TRUE);
-					EnableWindow(hlevel, TRUE);
+					_this->EnableLog(hwnd, TRUE);					
 					SendMessage(hChec, BM_SETCHECK, TRUE, 0);
 				} else {
-					EnableWindow(hEditFile, FALSE);
-					EnableWindow(hEditLevel, FALSE);
-					EnableWindow(hlevel, FALSE);
+					_this->EnableLog(hwnd, FALSE);
 					SendMessage(hChec, BM_SETCHECK, FALSE, 0);
 				} 
 				return 0;
@@ -1366,6 +1356,18 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 		}
 	}
 	return 0;
+}
+void VNCOptions::EnableLog(HWND hwnd, bool enable)
+{
+	HWND hlevel = GetDlgItem(hwnd, IDC_STATIC_LOG_LEVEL);
+	HWND hEditFile = GetDlgItem(hwnd, IDC_EDIT_LOG_FILE);
+	HWND hEditLevel = GetDlgItem(hwnd, IDC_EDIT_LOG_LEVEL);
+	HWND hLogBrowse = GetDlgItem(hwnd, IDC_LOG_BROWSE);
+	
+	EnableWindow(hEditFile, enable);
+	EnableWindow(hEditLevel, enable);
+	EnableWindow(hlevel, enable);
+	EnableWindow(hLogBrowse, enable);
 }
 void VNCOptions::Lim(HWND hwnd, int control, DWORD min, DWORD max)
 {
@@ -1531,7 +1533,7 @@ void VNCOptions::LoadGenOpt()
 				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
 			m_listenPort = buffer;
 		}
-		TCHAR buf[80];
+		TCHAR buf[_MAX_PATH];
 		buffersize=_MAX_PATH;
 		if (RegQueryValueEx( hRegKey, "LogFileName", NULL, &valtype, 
 				(LPBYTE) &buf, &buffersize) == ERROR_SUCCESS) {
@@ -1602,4 +1604,39 @@ void VNCOptions::SaveGenOpt()
 					4);
 				
 	RegCloseKey(hRegKey);
+}
+
+void VNCOptions::BrowseLogFile()
+{
+	OPENFILENAME ofn;
+	char filter[] = "Log files (*.log)\0*.log\0" \
+						   "All files (*.*)\0*.*\0";
+	char tname[_MAX_FNAME + _MAX_EXT];
+	memset((void *) &ofn, 0, sizeof(OPENFILENAME));
+	ofn.lStructSize = sizeof(OPENFILENAME);
+	ofn.lpstrFilter = filter;
+	ofn.nMaxFile = _MAX_PATH;
+	ofn.nMaxFileTitle = _MAX_FNAME + _MAX_EXT;
+	ofn.lpstrDefExt = "log";	
+	ofn.hwndOwner = m_hParent;
+	ofn.lpstrFile = pApp->m_options.m_logFilename;
+	ofn.lpstrFileTitle = tname;
+	ofn.lpstrTitle = "Log file";
+	ofn.Flags = OFN_HIDEREADONLY;
+	if (!GetSaveFileName(&ofn)) {
+		DWORD err = CommDlgExtendedError();
+		char msg[1024]; 
+		switch(err) {
+		case 0:	// user cancelled
+			break;
+		case FNERR_INVALIDFILENAME:
+			strcpy(msg, "Invalid filename");
+			MessageBox(m_hParent, msg, "Error log file", MB_ICONERROR | MB_OK);
+			break;
+		default:
+			vnclog.Print(0, "Error %d from GetSaveFileName\n", err);
+			break;
+		}
+		return;
+	}
 }

@@ -1,4 +1,17 @@
 
+TightVNC 1.1p8 Source Distribution for Windows platforms
+========================================================
+
+This distribution is mostly TridiaVNC 1.4.0 with new low-bandwidth
+optimizations such as "tight" encoding with optional JPEG compression,
+"local cursor" feature etc. These changes will be included in future
+TridiaVNC releases. The only change between this release and TridiaVNC
+CVS tree is re-inclusion of HTTP server serving Java viewer applet to
+Web clients. Java viewer included in this version supports both tight
+encoding and cursor shape updates ("local cursor" feature).
+
+Below is the original text found in the TridiaVNC distribution.
+
 TridiaVNC 1.4.0 Source Distribution for Windows platforms
 =========================================================
 

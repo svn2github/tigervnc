@@ -185,7 +185,7 @@ vncDesktopThread::run_undetached(void *arg)
 				break;
 			}
 		}
-		else if (msg.message == WM_TIMER && msg.wParam == 2)
+		else if (msg.message == WM_TIMER && msg.wParam == (WPARAM)2)
 		{
 			SystemParametersInfo(SPI_SETPOWEROFFACTIVE, 1, NULL, 0);
 			SendMessage(GetDesktopWindow(), WM_SYSCOMMAND, SC_MONITORPOWER, (LPARAM)2);
@@ -2634,12 +2634,13 @@ void
 vncDesktop::BlankScreen(BOOL set)
 {
 	if (set && m_server->AuthClientCount() != 0 &&
-		m_server->GetBlankScreen() && m_timer_blank_screen == 0) {
-		m_timer_blank_screen = SetTimer(Window(), 2, 50, NULL);				
+		m_server->GetBlankScreen()) {
+		if (m_timer_blank_screen == 0)
+			m_timer_blank_screen = SetTimer(Window(), 2, 50, NULL);				
 	} else {
-		if (m_timer_blank_screen) {
-			m_timer_blank_screen = 0;
+		if (m_timer_blank_screen != 0) {
 			KillTimer(Window(), m_timer_blank_screen);
+			m_timer_blank_screen = 0;
 			SystemParametersInfo(SPI_SETPOWEROFFACTIVE, 0, NULL, 0);
 			SendMessage(GetDesktopWindow(), WM_SYSCOMMAND, SC_MONITORPOWER, (LPARAM)-1);
 		}

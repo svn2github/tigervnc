@@ -69,7 +69,7 @@ public:
 
     // Change or set the logging filename.  This enables ToFile mode if
     // not already enabled.
-    void SetFile(char *filename, bool append = false);
+    void SetFile(const char *filename, bool append = false);
 
 	virtual ~Log();
 

@@ -32,9 +32,6 @@ Log::Log(int mode, int level, char *filename, bool append)
     SetFile(filename, append);
     SetMode(mode);
 	SetLevel(level);
-#ifdef HORIZONLIVE
-	SetStyle(TIME_INLINE);
-#endif
 
 	// If the compiler returns full path names in __FILE__,
 	// remember the path prefix, to remove it from the log messages.
@@ -94,7 +91,7 @@ int Log::GetStyle() {
 	return m_style;
 }
 
-void Log::SetFile(char *filename, bool append)
+void Log::SetFile(const char *filename, bool append)
 {
 	CloseFile();
 	if (m_filename != NULL)

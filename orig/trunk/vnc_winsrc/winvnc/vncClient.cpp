@@ -103,8 +103,10 @@ public:
 	virtual BOOL NegotiateAuthentication(int authType);
 	virtual BOOL AuthenticateVNC();
 	virtual BOOL AuthenticateExternal();
-	virtual BOOL VerifyExternalAuth(char *username, char *password,
-									char *local_ip, char *remote_ip);
+	virtual BOOL VerifyExternalAuth(const char *username,
+									const char *password,
+									const char *local_ip,
+									const char *remote_ip);
 	virtual BOOL ReadClientInit();
 	virtual BOOL SendInteractionCaps();
 
@@ -546,11 +548,9 @@ vncClientThread::AuthenticateExternal()
 	memset(buf, '\0', len);
 	delete[] buf;
 
-	char *sockName = strdup(m_socket->GetSockName());
-	char *peerName = strdup(m_socket->GetPeerName());
-	BOOL auth_ok = VerifyExternalAuth(username, password, sockName, peerName);
-	free(sockName);
-	free(peerName);
+	BOOL auth_ok = VerifyExternalAuth(username, password,
+									  m_client->GetServerName(),
+									  m_client->GetClientName());
 
 	memset(username, '\0', strlen(username));
 	memset(password, '\0', strlen(password));
@@ -573,8 +573,8 @@ vncClientThread::AuthenticateExternal()
 }
 
 BOOL
-vncClientThread::VerifyExternalAuth(char *username, char *password,
-									char *local_ip, char *remote_ip)
+vncClientThread::VerifyExternalAuth(const char *username, const char *password,
+									const char *local_ip, const char *remote_ip)
 {
 	return (strcmp(username, "testuser") == 0 &&
 			strcmp(password, "testpassword") == 0);

@@ -626,11 +626,35 @@ SOURCE=.\WinVNC.h
 # PROP Default_Filter ""
 # Begin Source File
 
+SOURCE=.\res\bitmap1.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\cursor1.cur
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\ico00001.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\ico00002.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\ico00003.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\ico00004.ico
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\icon1.ico
 # End Source File
 # Begin Source File
 
-SOURCE=.\res\vnc.bmp
+SOURCE=.\res\tightvnc.bmp
 # End Source File
 # Begin Source File
 
@@ -695,39 +719,11 @@ SOURCE=.\res\VncViewer.jar
 # End Group
 # Begin Source File
 
-SOURCE=.\res\bitmap1.bmp
-# End Source File
-# Begin Source File
-
 SOURCE=.\BUILDING.txt
 # End Source File
 # Begin Source File
 
-SOURCE=.\res\cursor1.cur
-# End Source File
-# Begin Source File
-
 SOURCE=.\History.txt
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\ico00001.ico
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\ico00002.ico
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\ico00003.ico
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\ico00004.ico
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\tightvnc.bmp
 # End Source File
 # End Target
 # End Project

@@ -1,4 +1,4 @@
-BUILDING vncviewer and WinVNC (TightVNC 1.2.3 release)
+BUILDING vncviewer and WinVNC (TightVNC 1.2.4 release)
 ======================================================
 
 This distibution requires two third-party libraries for successfull
@@ -7,7 +7,7 @@ and JPEG libraries freely available in the source form from following
 locations:
 
   ftp://ftp.uu.net/graphics/jpeg/jpegsrc.v6b.tar.gz
-  ftp://ftp.uu.net/graphics/png/src/zlib-1.1.3.tar.gz
+  http://prdownloads.sourceforge.net/libpng/zlib-1.1.4.tar.gz
 
 Please download these libraries prior to compilation. Note that these
 archives are in tar+gzip format not very popular in Windows

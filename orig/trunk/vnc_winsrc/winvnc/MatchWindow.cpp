@@ -39,10 +39,9 @@ int iCornerNumber;
 
 
 CMatchWindow::CMatchWindow(vncServer* pServer,int left,int top,int right,int bottom)
+	: m_pServer( pServer ), m_timer_id( 0 ), m_bSized( FALSE ),  
+		m_bMouseCaptured( false ), m_bWindowMoving( false )
 {
-	m_bSized=FALSE;
-	m_pServer=pServer;
-
 	WNDCLASSEX wcex;
 
 	wcex.cbSize = sizeof(WNDCLASSEX); 
@@ -79,13 +78,15 @@ CMatchWindow::CMatchWindow(vncServer* pServer,int left,int top,int right,int bot
 	ModifyPosition(left,top,right,bottom);
 
 	CanModify(FALSE);
-	
 }
 
 CMatchWindow::~CMatchWindow()
 {
-	DestroyWindow(m_hWnd);
+	// stop the timer
+	StopUpdateServerTimer();
 
+	// destroy the window
+	DestroyWindow(m_hWnd);
 }
 
 LRESULT CALLBACK CMatchWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -97,12 +98,27 @@ LRESULT CALLBACK CMatchWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, L
 
 	switch (message)
 	{
+	case WM_TIMER:
+	{
+		if ( 
+			pMatchWnd->m_timer_id == wParam			// the right timer
+			&& pMatchWnd->m_bMouseCaptured == false 	// mouse is not down
+			&& pMatchWnd->m_bWindowMoving == false 		// window is not moving
+		)
+		{
+			// update the server screen area
+			pMatchWnd->SetServerScreenArea();
+		}
+
+		break;
+	}
+	
 	case WM_MOUSEMOVE:
 	
 		if (!pMatchWnd->m_bSized)
 			break;
 				
-		if (GetCapture()==hWnd)
+		if ( GetCapture() == hWnd )
 		{
 			// Resize Window
 			POINTS ptsMousePoint=MAKEPOINTS(lParam);
@@ -144,6 +160,7 @@ LRESULT CALLBACK CMatchWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, L
 				wRect.left=ptMousePoint.x;
 				break;
 			}
+
 			SetWindowPos(hWnd,NULL,wRect.left,wRect.top,wRect.right-wRect.left,wRect.bottom-wRect.top,0);
             pMatchWnd->ChangeRegion();
 			pMatchWnd->ArrangeHits();
@@ -191,16 +208,34 @@ LRESULT CALLBACK CMatchWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, L
 	
 		if (pMatchWnd->m_bSized) 
 		{
+			// reset the selected corner
+			iCornerNumber = -1 ;
+
 			POINT ptHitTest;
 			ptHitTest.x=LOWORD(lParam);  
 			ptHitTest.y=HIWORD(lParam);
 			int i=pMatchWnd->HitTest(ptHitTest);
 		
+			// constrain the mouse movements
 			if (i > -1)
 			{
+				// capture mouse movements
+				::SetCapture(hWnd);
+
+				//				
+				// intersect the matchwindow and the desktop
+				// to help us determine on-screen bounds
+				//
+				
+				RECT wDesktopRect;
+				::GetWindowRect( ::GetDesktopWindow(), &wDesktopRect );
+			
 				RECT wRect;
-				GetWindowRect(hWnd,&wRect);
-				SetCapture(hWnd);
+				::GetWindowRect( hWnd, &wRect );
+				
+				::IntersectRect( &wRect, &wRect, &wDesktopRect );
+				
+				// remember the new selected corner
 				iCornerNumber=i;
 
 				switch (iCornerNumber)
@@ -254,6 +289,7 @@ LRESULT CALLBACK CMatchWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, L
 					wRect.right-=MW_WIDTH*3;
 					break;
 				}
+
 				ClipCursor(&wRect);
 			}
 			else
@@ -265,8 +301,8 @@ LRESULT CALLBACK CMatchWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, L
 	
 	case WM_LBUTTONUP: 
 		
-		if (GetCapture()==hWnd)
-		{
+		if ( GetCapture() == hWnd )
+		{		
 			ReleaseCapture();
 			ClipCursor(NULL);
 		}
@@ -299,23 +335,39 @@ LRESULT CALLBACK CMatchWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, L
 		EndPaint(hWnd, &ps);
 		break;
 		
-	// WM_EXITSIZEMOVE was added to handle the case
-	// where windows moves the matchwindow back on screen
-	// when the user attempts to position it off the top
-	// of the desktop
+
+	case WM_CAPTURECHANGED:
+	{
+		// remember whether or not the mouse is being captured
+		pMatchWnd->m_bMouseCaptured = ( GetCapture() == hWnd );
+	
+		// set the screen area
+		pMatchWnd->SetServerScreenArea();
+
+		break;	
+	}
+	
+	case WM_ENTERSIZEMOVE:
+	{
+		// the window has started moving
+		pMatchWnd->m_bWindowMoving = true;
+		
+		// set the screen area
+		pMatchWnd->SetServerScreenArea();
+
+		break;
+	}
 
 	case WM_EXITSIZEMOVE:
-	case WM_CAPTURECHANGED:
+	{
+		// the window has stopped moving
+		pMatchWnd->m_bWindowMoving = false;
 
-		if (pMatchWnd->m_bSized && GetCapture()!=hWnd)
-		{
-			int left,right,top,bottom;
-			pMatchWnd->GetPosition(left,top,right,bottom);
-
-			if (pMatchWnd->m_pServer!=NULL)
-				pMatchWnd->m_pServer->SetMatchSizeFields(left,top,right,bottom);
-		}
+		// set the screen area
+		pMatchWnd->SetServerScreenArea();
+	
 		break;
+	}
 
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
@@ -441,4 +493,46 @@ void CMatchWindow::GetPosition(int &left,int &top, int &right,int &bottom)
 	top=wpl.rcNormalPosition.top+MW_WIDTH;
 	right=wpl.rcNormalPosition.right-MW_WIDTH;
 	bottom=wpl.rcNormalPosition.bottom-MW_WIDTH;
+}
+
+bool
+CMatchWindow::StartUpdateServerTimer( void )
+{
+	if ( m_timer_id != 0 )
+		return true;
+
+	m_timer_id = ::SetTimer( m_hWnd, 1, 500, NULL );
+
+	if ( m_timer_id == 0 )
+		return false;
+
+	return true;
+}
+
+bool
+CMatchWindow::StopUpdateServerTimer( void )
+{
+	if ( m_timer_id != 0 )
+	{
+		::KillTimer( m_hWnd, m_timer_id );
+		m_timer_id = 0;
+	}
+	
+	return true;
+}
+
+bool
+CMatchWindow::SetServerScreenArea( void )
+{
+	if ( m_pServer == NULL )
+		return false;
+	
+	RECT rect ;
+	::GetWindowRect( m_hWnd, &rect );
+	
+	// set server shared-area, accounting for the matchwindow border
+	m_pServer->SetMatchSizeFields( rect.left + MW_WIDTH, rect.top + MW_WIDTH, 
+		rect.right - MW_WIDTH, rect.bottom - MW_WIDTH );
+
+	return true;
 }

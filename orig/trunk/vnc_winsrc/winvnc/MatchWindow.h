@@ -50,6 +50,17 @@ public:
 	void CanModify(BOOL);
 	static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
     vncServer* m_pServer;
+
+	bool StartUpdateServerTimer( void );
+	bool StopUpdateServerTimer( void );
+
+	bool SetServerScreenArea( void );
+	
+protected:
+	bool m_bMouseCaptured;
+	bool m_bWindowMoving;
+
+	UINT m_timer_id;
 };
 
 #endif // __MATCHWINDOW_H

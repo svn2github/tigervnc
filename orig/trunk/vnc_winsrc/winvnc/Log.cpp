@@ -130,7 +130,8 @@ void Log::ReallyPrint(LPSTR format, va_list ap)
 
 	// - Write the log message
 	TCHAR line[LINE_BUFFER_SIZE];
-    vsprintf(line, format, ap);
+	_vsnprintf(line, sizeof(line)-sizeof(TCHAR), format, ap);
+	line[LINE_BUFFER_SIZE-1] = (TCHAR)'\0';
 	ReallyPrintLine(line);
 }
 

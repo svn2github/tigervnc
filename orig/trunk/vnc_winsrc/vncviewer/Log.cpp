@@ -130,7 +130,7 @@ void Log::CloseFile() {
 void Log::ReallyPrint(LPTSTR format, va_list ap) 
 {
     TCHAR line[LINE_BUFFER_SIZE];
-    _vstprintf(line, format, ap);
+    _vsntprintf(line, sizeof(line) - sizeof(TCHAR), format, ap);
     if (m_todebug) OutputDebugString(line);
 
     if (m_toconsole) {
@@ -152,7 +152,7 @@ void Log::ReallyPrint(LPTSTR format, va_list ap)
 void Log::ReallyPrint(LPTSTR format, va_list ap) 
 {
     TCHAR line[LINE_BUFFER_SIZE];
-    _vstprintf(line, format, ap);
+    _vsntprintf(line, sizeof(line) - sizeof(TCHAR), format, ap);
     if (m_todebug) OutputDebugString(line);
 
     if (m_tofile && (hlogfile != NULL)) {

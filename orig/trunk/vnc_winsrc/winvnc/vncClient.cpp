@@ -75,7 +75,7 @@ public:
 
 	// Sub-Init routines
 	virtual BOOL InitVersion();
-	virtual BOOL InitCapabilities();
+	virtual BOOL InitHandshakingCaps();
 	virtual BOOL InitTunneling();
 	virtual BOOL InitAuthenticate();
 	virtual BOOL InitAuthenticateVNC();
@@ -150,22 +150,22 @@ vncClientThread::InitVersion()
 }
 
 BOOL
-vncClientThread::InitCapabilities()
+vncClientThread::InitHandshakingCaps()
 {
-	rfbTunnelAuthOptionList cap_list;
-	cap_list.nTunnelOptions = Swap16IfLE(0);
-	cap_list.nAuthOptions = Swap16IfLE(1);
-	if (!m_socket->SendExact((char *)&cap_list, sz_rfbTunnelAuthOptionList))
+	rfbHandshakingCapsMsg init_caps;
+	init_caps.nTunnelTypes = Swap16IfLE(0);
+	init_caps.nAuthenticationTypes = Swap16IfLE(1);
+	if (!m_socket->SendExact((char *)&init_caps, sz_rfbHandshakingCapsMsg))
 		return FALSE;
 
 	// Inform the client that we do support the standard VNC authentication.
 	// FIXME: Move to a separate class e.g. vncCapsContainer.
-	rfbOptionInfo cap;
+	rfbCapabilityInfo cap;
 	cap.code = Swap32IfLE(rfbVncAuth);
-	memcpy(cap.vendorSignature, rfbStandardVendor, sz_rfbOptionInfoVendor);
-	memcpy(cap.nameSignatire, rfbVncAuthSignature, sz_rfbOptionInfoName);
+	memcpy(cap.vendorSignature, rfbStandardVendor, sz_rfbCapabilityInfoVendor);
+	memcpy(cap.nameSignatire, rfbVncAuthSignature, sz_rfbCapabilityInfoName);
 
-	return m_socket->SendExact((char *)&cap, sz_rfbOptionInfo);
+	return m_socket->SendExact((char *)&cap, sz_rfbCapabilityInfo);
 }
 
 BOOL
@@ -467,7 +467,7 @@ vncClientThread::run(void *arg)
 	vnclog.Print(LL_INTINFO, VNCLOG("negotiated protocol version\n"));
 
 	// ADVERTISE OUR TUNNELING AND AUTHENTICATION CAPABILITIES (protocol 3.130)
-	if (!InitCapabilities())
+	if (!InitHandshakingCaps())
 	{
 		m_server->RemoveClient(m_client->GetClientId());
 		return;
@@ -542,13 +542,13 @@ vncClientThread::run(void *arg)
 	}
 	vnclog.Print(LL_INTINFO, VNCLOG("sent pixel format to client\n"));
 
-	// Inform the client about our capabilities (protocol 3.130)
+	// Inform the client about our interaction capabilities (protocol 3.130)
 	// NOTE: Currently we support only 3.3 message types, so both counts
 	//       are 0, and Swap16IfLE() is there only for future convenience.
-	rfbServerCapabilitiesMsg server_caps;
-	server_caps.nServerMessageTypes = Swap16IfLE(0);
-	server_caps.nClientMessageTypes = Swap16IfLE(0);
-	if (!m_socket->SendExact((char *)&server_caps, sizeof(server_caps)))
+	rfbInteractionCapsMsg intr_caps;
+	intr_caps.nServerMessageTypes = Swap16IfLE(0);
+	intr_caps.nClientMessageTypes = Swap16IfLE(0);
+	if (!m_socket->SendExact((char *)&intr_caps, sz_rfbInteractionCapsMsg))
 	{
 		m_server->RemoveClient(m_client->GetClientId());
 		return;

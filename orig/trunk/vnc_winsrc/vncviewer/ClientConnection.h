@@ -101,11 +101,11 @@ private:
 	void Connect();
 	void SetSocketOptions();
 	void NegotiateProtocolVersion();
-	void ReadInitCapabilities();
+	void ReadHandshakingCaps();
 	void SetupTunneling();
 	void Authenticate();
 	void ReadServerInit();
-	void ReadServerCapabilities();
+	void ReadInteractionCaps();
 	void ReadCapabilitiesList(int count);
 	void SendClientInit();
 	void CreateLocalFramebuffer();

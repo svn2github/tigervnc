@@ -126,17 +126,17 @@ typedef struct _rfbPixelFormat {
  * authentication schemes and message types (protocol version 3.130).
  */
 
-typedef struct _rfbOptionInfo {
+typedef struct _rfbCapabilityInfo {
 
 	CARD32 code;				/* numeric identifier */
 	CARD8 vendorSignature[4];	/* vendor identification */
 	CARD8 nameSignatire[8];		/* abbreviated option name */
 
-} rfbOptionInfo;
+} rfbCapabilityInfo;
 
-#define sz_rfbOptionInfoVendor 4
-#define sz_rfbOptionInfoName 8
-#define sz_rfbOptionInfo 16
+#define sz_rfbCapabilityInfoVendor 4
+#define sz_rfbCapabilityInfoName 8
+#define sz_rfbCapabilityInfo 16
 
 /*
  * Vendors known by TightVNC: standard VNC/RealVNC, and TightVNC.
@@ -188,24 +188,24 @@ typedef char rfbProtocolVersionMsg[13];	/* allow extra byte for null */
 
 
 /*-----------------------------------------------------------------------------
- * Negotiation of Protocol Options
+ * Negotiation of Handshaking Capabilities
  *
  * Once the protocol version has been decided, the server then sends two lists
  * of supported protocol extensions. First list tells the client what tunneling
  * methods can be used, the second list provides information about supported
- * authentication schemes. Each list is an array of rfbOptionInfo structures.
+ * authentication schemes. Each list is an array of rfbCapabilityInfo structures.
  * Before sending the lists, the server sends two 16-bit words with number of
  * elements in each one.
  */
 
-typedef struct _rfbTunnelAuthOptionList {
-	CARD16 nTunnelOptions;
-	CARD16 nAuthOptions;
-	/* followed by nTunnelOptions * rfbOptionInfo structures */
-	/* followed by nAuthOptions * rfbOptionInfo structures */
-} rfbTunnelAuthOptionList;
+typedef struct _rfbHandshakingCapsMsg {
+	CARD16 nTunnelTypes;
+	CARD16 nAuthenticationTypes;
+	/* followed by nTunnelTypes * rfbCapabilityInfo structures */
+	/* followed by nAuthenticationTypes * rfbCapabilityInfo structures */
+} rfbHandshakingCapsMsg;
 
-#define sz_rfbTunnelAuthOptionList 4
+#define sz_rfbHandshakingCapsMsg 4
 
 
 /*-----------------------------------------------------------------------------
@@ -287,21 +287,21 @@ typedef struct _rfbServerInitMsg {
 
 
 /*-----------------------------------------------------------------------------
- * Server Capabilities Message (protocol version 3.130)
+ * Server Interaction Capabilities Message (protocol version 3.130)
  *
  * In the protocol version 3.130, the server informs the client what message
  * types it supports in addition to ones defined in the protocol version 3.3.
  * This data immediately follows the server initialisation message.
  */
 
-typedef struct _rfbServerCapabilitiesMsg {
+typedef struct _rfbInteractionCapsMsg {
 	CARD16 nServerMessageTypes;
 	CARD16 nClientMessageTypes;
-	/* followed by nServerMessageTypes * rfbOptionInfo structures */
-	/* followed by nClientMessageTypes * rfbOptionInfo structures */
-} rfbServerCapabilitiesMsg;
+	/* followed by nServerMessageTypes * rfbCapabilityInfo structures */
+	/* followed by nClientMessageTypes * rfbCapabilityInfo structures */
+} rfbInteractionCapsMsg;
 
-#define sz_rfbServerCapabilitiesMsg 4
+#define sz_rfbInteractionCapsMsg 4
 
 
 /*

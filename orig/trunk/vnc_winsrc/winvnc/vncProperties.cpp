@@ -553,7 +553,6 @@ BOOL CALLBACK vncProperties::ConnectionsAccessDlgProc(HWND hwnd, UINT uMsg,
     case WM_COMMAND:		
 		switch (LOWORD(wParam))
 		{
-		case IDOK:
 		case IDC_APPLY:
 			_this->m_ConnAccessCtrl->Apply();
 			return TRUE;
@@ -612,8 +611,6 @@ BOOL CALLBACK vncProperties::PollDlgProc(HWND hwnd, UINT uMsg,
 		case IDC_POLL_FULLSCREEN:
 			_this->m_pollcontrols->Validate();
 			return TRUE;
-
-		case IDOK:
 		case IDC_APPLY:
 			_this->m_pollcontrols->Apply();
 			return TRUE;
@@ -670,8 +667,6 @@ BOOL CALLBACK vncProperties::SharedDlgProc(HWND hwnd, UINT uMsg,
 			return TRUE;
 
 		case IDC_APPLY:
-		case IDOK:
-
 			_this->m_shareddtarea->ApplySharedControls();
 			return TRUE;
 		}

@@ -1485,17 +1485,6 @@ vncClient::SendUpdate()
 		}
 	}
 
-	// Check if we really need to send cursor position update
-	if (m_cursor_pos_changed) {
-		POINT cursor_pos;
-		if (!GetCursorPos(&cursor_pos)) {
-			cursor_pos.x = 0;
-			cursor_pos.y = 0;
-		}
-		if (cursor_pos.x == m_cursor_pos.x && cursor_pos.y == m_cursor_pos.y)
-			m_cursor_pos_changed = FALSE;
-	}
-
 	// If there is nothing to send then exit
 	if (m_changed_rgn.IsEmpty() &&
 		m_full_rgn.IsEmpty() &&

@@ -76,7 +76,7 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,249,80,80,20
     CONTROL         132,IDC_VNCLOGO,"Static",SS_BITMAP | SS_CENTERIMAGE | 
                     SS_SUNKEN,4,5,82,65
-    LTEXT           "WinVNC Version 1.1.2.0",IDC_VERSION,92,10,116,10
+    LTEXT           "WinVNC version 1.2.1.0",IDC_VERSION,92,10,116,10
     LTEXT           "Copyright (C) 2000 Tridia Corporation",IDC_NAME,92,60,
                     116,10
     LTEXT           "Virtual Network Computing",IDC_VNC,92,20,116,10
@@ -226,8 +226,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,3,3,7
- PRODUCTVERSION 3,3,3,7
+ FILEVERSION 1,2,1,0
+ PRODUCTVERSION 1,2,1,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -245,14 +245,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "Tridia Corporation\0"
             VALUE "FileDescription", "VNC Server for  Win32\0"
-            VALUE "FileVersion", "1, 1, 2, 0\0"
+            VALUE "FileVersion", "1, 2, 1, 0\0"
             VALUE "InternalName", "WinVNC\0"
             VALUE "LegalCopyright", "Copyright © 2000 Tridia Corporation\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "WinVNC.exe\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "Tridia Corporation WinVNC\0"
-            VALUE "ProductVersion", "1, 1, 2, 0\0"
+            VALUE "ProductVersion", "1, 2, 1, 0\0"
             VALUE "SpecialBuild", "\0"
         END
         BLOCK "080904b0"
@@ -260,14 +260,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "AT&T Research Labs Cambridge\0"
             VALUE "FileDescription", "VNC server for Win32\0"
-            VALUE "FileVersion", "3, 3, 3, 7\0"
+            VALUE "FileVersion", "1, 2, 1, 0\0"
             VALUE "InternalName", "WinVNC\0"
             VALUE "LegalCopyright", "Copyright AT&T Research Labs Cambridge© 1998-2000\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "WinVNC.exe\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "AT&T Research Labs Cambridge - WinVNC\0"
-            VALUE "ProductVersion", "3, 3, 3, 7\0"
+            VALUE "ProductVersion", "1, 2, 1, 0\0"
             VALUE "SpecialBuild", "\0"
         END
     END
@@ -366,27 +366,6 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// JAVAARCHIVE
-//
-
-IDR_VNCVIEWER_JAR       JAVAARCHIVE DISCARDABLE "res\\vncviewer.jar"
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// JAVACLASS
-//
-
-IDR_AUTHPANEL_CLASS     JAVACLASS DISCARDABLE   "res\\authenticationPanel.class"
-IDR_CLIPBOARDFRAME_CLASS JAVACLASS DISCARDABLE   "res\\clipboardFrame.class"
-IDR_OPTIONSFRAME_CLASS  JAVACLASS DISCARDABLE   "res\\optionsFrame.class"
-IDR_RFBPROTO_CLASS      JAVACLASS DISCARDABLE   "res\\rfbProto.class"
-IDR_VNCCANVAS_CLASS     JAVACLASS DISCARDABLE   "res\\vncCanvas.class"
-IDR_VNCVIEWER_CLASS     JAVACLASS DISCARDABLE   "res\\vncviewer.class"
-IDR_ANIMMEMIMAGESRC_CLASS JAVACLASS DISCARDABLE   "res\\animatedMemoryImageSource.class"
-IDR_DESCIPHER_CLASS     JAVACLASS DISCARDABLE   "res\\DesCipher.class"
 #endif    // English (U.K.) resources
 /////////////////////////////////////////////////////////////////////////////
 

@@ -1,3 +1,4 @@
+//  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
 //  This file is part of the VNC system.
@@ -16,6 +17,12 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 //  USA.
+//
+// For the latest source code, please check:
+//
+// http://www.DevelopVNC.org/
+//
+// or send email to: feedback@developvnc.org.
 //
 // If the source code for the VNC system is not available from the place 
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
@@ -52,6 +59,9 @@ public:
 	// Initialisation
 	virtual void Init();
 
+	// Central method for outputing encoding statistics
+	virtual void LogStats();
+
 	// Encoder stats used by the buffer object
 	virtual UINT RequiredBuffSize(UINT width, UINT height);
 	virtual UINT NumCodedRects(RECT &rect);
@@ -63,6 +73,7 @@ public:
 	//    into a contiguous region of the buffer.
 	virtual void Translate(BYTE *source, BYTE *dest, const RECT &rect);
 	virtual UINT EncodeRect(BYTE *source, BYTE *dest, const RECT &rect);
+	virtual UINT EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest, const RECT &rect);
 
 	// Translation handling
 	BOOL SetLocalFormat(rfbPixelFormat &pixformat, int width, int height);
@@ -83,6 +94,10 @@ protected:
 	rfbPixelFormat		m_remoteformat;			// Client pixel format info
 	rfbPixelFormat		m_transformat;			// Internal format used for translation (usually == client format)
 	int					m_bytesPerRow;			// Number of bytes per row locally
+	int					dataSize;				// Total size of raw data encoded
+	int					rectangleOverhead;		// Total size of rectangle header data
+	int					encodedSize;			// Total size of encoded data
+	int					transmittedSize;		// Total amount of data sent
 };
 
 #endif // vncENCODER_DEFINED

@@ -18,6 +18,12 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 //  USA.
 //
+// For the latest source code, please check:
+//
+// http://www.DevelopVNC.org/
+//
+// or send email to: feedback@developvnc.org.
+//
 // If the source code for the VNC system is not available from the place 
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
 // the authors on vnc@uk.research.att.com for information on obtaining it.
@@ -61,6 +67,13 @@ void
 vncEncodeZlib::Init()
 {
 	vncEncoder::Init();
+}
+
+void
+vncEncodeZlib::LogStats()
+{
+	log.Print(LL_INTINFO, VNCLOG("Zlib (pure) encoder stats: dataSize=%d, rectangleOverhead=%d, encodedSize=%d, transmittedSize=%d, efficiency=%.3f\n"),
+				dataSize, rectangleOverhead, encodedSize, transmittedSize, ((((float)dataSize-transmittedSize)*100)/dataSize));
 }
 
 UINT
@@ -140,7 +153,6 @@ vncEncodeZlib::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest, const RECT
 
 		partialSize = EncodeOneRect( source, dest, partialRect );
 		totalSize += partialSize;
-		// dest += partialSize;
 
 		linesRemaining -= linesToComp;
 		partialRect.top += linesToComp;
@@ -150,10 +162,12 @@ vncEncodeZlib::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest, const RECT
 		{
 			// Send the encoded data
 			outConn->SendExact( (char *)dest, partialSize );
+			transmittedSize += partialSize;
 		}
 
 
 	}
+	transmittedSize += partialSize;
 
 	return partialSize;
 
@@ -187,6 +201,9 @@ vncEncodeZlib::EncodeOneRect(BYTE *source, BYTE *dest, const RECT &rect)
 	surh->r.w = Swap16IfLE(surh->r.w);
 	surh->r.h = Swap16IfLE(surh->r.h);
 	surh->encoding = Swap32IfLE(rfbEncodingZlib);
+
+	dataSize += ( rectW * rectH * m_remoteformat.bitsPerPixel) / 8;
+	rectangleOverhead += sz_rfbFramebufferUpdateRectHeader;
 	
 	// create a space big enough for the Zlib encoded pixels
 	if (m_bufflen < rawDataSize)
@@ -256,7 +273,8 @@ vncEncodeZlib::EncodeOneRect(BYTE *source, BYTE *dest, const RECT &rect)
 	zlibh->nBytes = Swap32IfLE(totalCompDataLen);
 
 	// Log some statistics
-	log.Print(LL_INTINFO, VNCLOG("rawSize=%d compSize=%d totalRaw=%d totalComp=%d\n"), rawDataSize, totalCompDataLen, compStream.total_in, compStream.total_out);
+	// log.Print(LL_INTINFO, VNCLOG("rawSize=%d compSize=%d totalRaw=%d totalComp=%d\n"), rawDataSize, totalCompDataLen, compStream.total_in, compStream.total_out);
+	encodedSize += sz_rfbZlibHeader + totalCompDataLen;
 
 	// Return the amount of data sent	
 	return sz_rfbFramebufferUpdateRectHeader +

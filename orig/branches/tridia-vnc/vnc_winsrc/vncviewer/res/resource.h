@@ -25,6 +25,7 @@
 #define IDT_EMULATE3BUTTONSTIMER        152
 #define ID_CONN_SAVE_AS                 153
 #define IDC_NOCURSOR                    153
+#define IDR_VERSION2                    154
 #define IDC_HOSTNAME_EDIT               1000
 #define IDC_SHARED                      1000
 #define IDC_DPYNUM_EDIT                 1001
@@ -41,10 +42,12 @@
 #define IDC_CORRERADIO                  1022
 #define IDC_HEXTILERADIO                1023
 #define IDC_ZLIBRADIO                   1024
-#define IDC_EMULATECHECK                1025
-#define IDC_FULLSCREEN                  1027
-#define IDC_DISABLECLIPBOARD            1028
-#define IDC_SCALING                     1029
+#define IDC_TIGHTRADIO                  1025
+#define IDC_ZLIBHEXRADIO                1026
+#define IDC_EMULATECHECK                1027
+#define IDC_FULLSCREEN                  1028
+#define IDC_DISABLECLIPBOARD            1029
+#define IDC_SCALING                     1030
 #define IDC_SCALE_NUM                   1031
 #define IDC_SCALE_DEN                   1032
 #define ID_SESSION_SET_CRECT            32777
@@ -58,7 +61,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        154
+#define _APS_NEXT_RESOURCE_VALUE        155
 #define _APS_NEXT_COMMAND_VALUE         40010
 #define _APS_NEXT_CONTROL_VALUE         1032
 #define _APS_NEXT_SYMED_VALUE           154

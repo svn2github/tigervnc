@@ -220,7 +220,6 @@ protected:
 	// Connection servers
 	vncSockConnect		*m_socketConn;
 	vncCorbaConnect		*m_corbaConn;
-	vncHTTPConnect		*m_httpConn;
 
 	// The desktop handler
 	vncDesktop			*m_desktop;

@@ -1,3 +1,4 @@
+//  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
 //  This file is part of the VNC system.
@@ -16,6 +17,12 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 //  USA.
+//
+// For the latest source code, please check:
+//
+// http://www.DevelopVNC.org/
+//
+// or send email to: feedback@developvnc.org.
 //
 // If the source code for the VNC system is not available from the place 
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
@@ -521,7 +528,7 @@ vncClientThread::run(void *arg)
 				}
 
 				for (x=0; x<msg.se.nEncodings; x++)
-				{
+				{ omni_mutex_lock l(m_client->m_regionLock);
 					CARD32 encoding;
 
 					// Read an encoding in
@@ -533,7 +540,7 @@ vncClientThread::run(void *arg)
 
 					// Is this the CopyRect encoding (a special case)?
 					if (Swap32IfLE(encoding) == rfbEncodingCopyRect)
-					{	omni_mutex_lock l(m_client->m_regionLock);
+					{	// omni_mutex_lock l(m_client->m_regionLock);
 
 						// Client wants us to use CopyRect
 						m_client->m_copyrect_use = TRUE;
@@ -542,7 +549,7 @@ vncClientThread::run(void *arg)
 
 					// Have we already found a suitable encoding?
 					if (!encoding_set)
-					{	omni_mutex_lock l(m_client->m_regionLock);
+					{	// omni_mutex_lock l(m_client->m_regionLock);
 
 						// No, so try the buffer to see if this encoding will work...
 						if (m_client->m_buffer->SetEncoding(Swap32IfLE(encoding)))

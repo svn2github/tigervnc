@@ -18,6 +18,12 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 //  USA.
 //
+// For the latest source code, please check:
+//
+// http://www.DevelopVNC.org/
+//
+// or send email to: feedback@developvnc.org.
+//
 // If the source code for the VNC system is not available from the place 
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
 // the authors on vnc@uk.research.att.com for information on obtaining it.
@@ -63,6 +69,17 @@ vncEncoder::~vncEncoder()
 void
 vncEncoder::Init()
 {
+	dataSize = 0;
+	rectangleOverhead = 0;
+	encodedSize = 0;
+	transmittedSize = 0;
+}
+
+void
+vncEncoder::LogStats()
+{
+	log.Print(LL_INTINFO, VNCLOG("Raw encoder stats: dataSize=%d, rectangleOverhead=%d, encodedSize=%d, transmittedSize=%d, efficiency=%.3f\n"),
+				dataSize, rectangleOverhead, encodedSize, transmittedSize, ((((float)dataSize-transmittedSize)*100)/dataSize));
 }
 
 UINT
@@ -101,24 +118,51 @@ vncEncoder::Translate(BYTE *source, BYTE *dest, const RECT &rect)
 inline UINT
 vncEncoder::EncodeRect(BYTE *source, BYTE *dest, const RECT &rect)
 {
+
+	const rectW = rect.right - rect.left;
+	const rectH = rect.bottom - rect.top;
+
+
 	// Create the header for the update in the destination area
 	rfbFramebufferUpdateRectHeader *surh = (rfbFramebufferUpdateRectHeader *)dest;
 	surh->r.x = (CARD16) rect.left;
 	surh->r.y = (CARD16) rect.top;
-	surh->r.w = (CARD16) (rect.right-rect.left);
-	surh->r.h = (CARD16) (rect.bottom-rect.top);
+	surh->r.w = (CARD16) rectW;
+	surh->r.h = (CARD16) rectH;
 	surh->r.x = Swap16IfLE(surh->r.x);
 	surh->r.y = Swap16IfLE(surh->r.y);
 	surh->r.w = Swap16IfLE(surh->r.w);
 	surh->r.h = Swap16IfLE(surh->r.h);
 	surh->encoding = Swap32IfLE(rfbEncodingRaw);
 
+	// Update raw encoding statistics
+	rectangleOverhead += sz_rfbFramebufferUpdateRectHeader;
+	dataSize += ( rectW * rectH * m_remoteformat.bitsPerPixel) / 8;
+	encodedSize += ( rectW * rectH * m_remoteformat.bitsPerPixel) / 8;
+	transmittedSize += sz_rfbFramebufferUpdateRectHeader + ( rectW * rectH * m_remoteformat.bitsPerPixel) / 8;
+
 	// Translate the data in place in the output buffer
 	Translate(source, dest + sz_rfbFramebufferUpdateRectHeader, rect);
 
 	// Return the buffer size
 	return sz_rfbFramebufferUpdateRectHeader +
-		((rect.right-rect.left)*(rect.bottom-rect.top)*m_remoteformat.bitsPerPixel) / 8;
+		(rectW*rectH*m_remoteformat.bitsPerPixel) / 8;
+}
+
+// Encode a rectangle directly to the output stream.
+// This implementation may not be the best, but it will work with all
+// of the existing EncodeRect(BYTE *, BYTE *, const RECT &) implementations.
+// Note, that the returned value is that of any data in the dest buffer that
+// was not yet transmitted on the outConn.
+// The primary justification for adding this method is to allow encodings to
+// transmit partial data during the encoding process.  This can improve
+// performance considerably for slower (more complex) encoding algorithms.
+inline UINT
+vncEncoder::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest, const RECT &rect)
+{
+
+	return EncodeRect(source, dest, rect);
+
 }
 
 BOOL

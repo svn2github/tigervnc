@@ -18,6 +18,12 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 //  USA.
 //
+// For the latest source code, please check:
+//
+// http://www.DevelopVNC.org/
+//
+// or send email to: feedback@developvnc.org.
+//
 // If the source code for the VNC system is not available from the place 
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
 // the authors on vnc@uk.research.att.com for information on obtaining it.
@@ -35,6 +41,7 @@
 #include "vncEncodeCoRRE.h"
 #include "vncEncodeHexT.h"
 #include "vncEncodeZlib.h"
+#include "vncEncodeZlibHex.h"
 #include "MinMax.h"
 
 #include "vncBuffer.h"
@@ -48,6 +55,8 @@ vncBuffer::vncBuffer(vncDesktop *desktop)
 	m_encoder = NULL;
 	zlib_encoder_in_use = false;
 	m_hold_zlib_encoder = NULL;
+	zlibhex_encoder_in_use = false;
+	m_hold_zlibhex_encoder = NULL;
 
 	m_mainbuff = NULL;
 	m_backbuff = NULL;
@@ -63,6 +72,7 @@ vncBuffer::vncBuffer(vncDesktop *desktop)
 
 vncBuffer::~vncBuffer()
 {
+
 	if (m_freemainbuff) {
 		// We need to free the slow-blit buffer
 		if (m_mainbuff != NULL)
@@ -80,15 +90,27 @@ vncBuffer::~vncBuffer()
 	{
 		if (m_hold_zlib_encoder != NULL)
 		{
+			m_hold_zlib_encoder->LogStats();
 			delete m_hold_zlib_encoder;
 			m_hold_zlib_encoder = NULL;
 		}
 	}
+	if (m_hold_zlibhex_encoder != m_encoder)
+	{
+		if (m_hold_zlibhex_encoder != NULL)
+		{
+			m_hold_zlibhex_encoder->LogStats();
+			delete m_hold_zlibhex_encoder;
+			m_hold_zlibhex_encoder = NULL;
+		}
+	}
 	if (m_encoder != NULL)
 	{
+		m_encoder->LogStats();
 		delete m_encoder;
 		m_encoder = NULL;
 		m_hold_zlib_encoder = NULL;
+		m_hold_zlibhex_encoder = NULL;
 	}
 	if (m_clientbuff != NULL)
 	{
@@ -410,6 +432,10 @@ vncBuffer::SetEncoding(CARD32 encoding)
 		{
 			m_hold_zlib_encoder = m_encoder;
 		}
+		else if ( zlibhex_encoder_in_use )
+		{
+			m_hold_zlibhex_encoder = m_encoder;
+		}
 		else
 		{
 			delete m_encoder;
@@ -417,7 +443,10 @@ vncBuffer::SetEncoding(CARD32 encoding)
 		m_encoder = NULL;
 	}
 
+	// Expect to not use the zlib encoder below.  However, this
+	// is overriden if zlib was selected.
 	zlib_encoder_in_use = false;
+	zlibhex_encoder_in_use = false;
 
 	// Returns FALSE if the desired encoding cannot be used
 	switch(encoding)
@@ -483,6 +512,26 @@ vncBuffer::SetEncoding(CARD32 encoding)
 		zlib_encoder_in_use = true;
 		break;
 
+	case rfbEncodingZlibHex:
+
+		log.Print(LL_INTINFO, VNCLOG("ZlibHex encoder requested\n"));
+
+		// Create a ZlibHex encoder, if needed.
+		// If a ZlibHex encoder was used previously, then reuse it here
+		// to maintain zlib dictionary synchronization with the viewer.
+		if ( m_hold_zlibhex_encoder == NULL )
+		{
+			m_encoder = new vncEncodeZlibHex;
+		}
+		else
+		{
+			m_encoder = m_hold_zlibhex_encoder;
+		}
+		if (m_encoder == NULL)
+			return FALSE;
+		zlibhex_encoder_in_use = true;
+		break;
+
 	default:
 		// An unknown encoding was specified
 		log.Print(LL_INTERR, VNCLOG("unknown encoder requested\n"));
@@ -534,21 +583,19 @@ vncBuffer::Clear(RECT &rect)
 UINT
 vncBuffer::TranslateRect(const RECT &rect, VSocket *outConn)
 {
+	int result;
+
 	if (!FastCheckMainbuffer())
 		return 0;
 
-	if ( zlib_encoder_in_use )
-	{
-		return ((vncEncodeZlib *)m_encoder)->EncodeRect(m_mainbuff, outConn, m_clientbuff, rect);
-	}
-	else
-	{
-		return m_encoder->EncodeRect(m_mainbuff, m_clientbuff, rect);
-	}
-
-
 	// Call the encoder to encode the rectangle into the client buffer...
-//	return m_encoder->EncodeRect(m_mainbuff, m_clientbuff, rect);
+	result = m_encoder->EncodeRect(m_mainbuff, outConn, m_clientbuff, rect);
+
+	// Output statistics, if logging level high enough.
+	// This is overkill outside of developer testing.  Needed during close/shutdown.
+	// m_encoder->LogStats();
+
+	return result;
 }
 
 // Verify that the fast blit buffer hasn't changed

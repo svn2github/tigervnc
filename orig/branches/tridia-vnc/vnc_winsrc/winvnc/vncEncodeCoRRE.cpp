@@ -1,3 +1,4 @@
+//  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
 //  This file is part of the VNC system.
@@ -16,6 +17,12 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 //  USA.
+//
+// For the latest source code, please check:
+//
+// http://www.DevelopVNC.org/
+//
+// or send email to: feedback@developvnc.org.
 //
 // If the source code for the VNC system is not available from the place 
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
@@ -71,6 +78,13 @@ vncEncodeCoRRE::~vncEncodeCoRRE()
 void vncEncodeCoRRE::Init()
 {
 	vncEncoder::Init();
+}
+
+void
+vncEncodeCoRRE::LogStats()
+{
+	log.Print(LL_INTINFO, VNCLOG("CoRRE encoder stats: dataSize=%d, rectangleOverhead=%d, encodedSize=%d, transmittedSize=%d, efficiency=%.3f\n"),
+				dataSize, rectangleOverhead, encodedSize, transmittedSize, ((((float)dataSize-transmittedSize)*100)/dataSize));
 }
 
 UINT vncEncodeCoRRE::RequiredBuffSize(UINT width, UINT height)
@@ -297,7 +311,7 @@ vncEncodeCoRRE::EncodeSmallRect(BYTE *source, BYTE *dest, const RECT &rect)
 	surh->r.w = Swap16IfLE(surh->r.w);
 	surh->r.h = Swap16IfLE(surh->r.h);
 	surh->encoding = Swap32IfLE(rfbEncodingCoRRE);
-	
+
 	// create a space big enough for the CoRRE encoded pixels
 	if (m_bufflen < (rectW*rectH*m_remoteformat.bitsPerPixel / 8))
 	{
@@ -359,6 +373,12 @@ vncEncodeCoRRE::EncodeSmallRect(BYTE *source, BYTE *dest, const RECT &rect)
 	rfbRREHeader *rreh=(rfbRREHeader *)(dest+sz_rfbFramebufferUpdateRectHeader);
 	rreh->nSubrects = Swap32IfLE(subrects);
 
+	// Update the statistics for this rectangle.
+	encodedSize += sz_rfbRREHeader + rreAfterBufLen;
+	rectangleOverhead += sz_rfbFramebufferUpdateRectHeader;
+	dataSize += ( rectW * rectH * m_remoteformat.bitsPerPixel) / 8;
+	transmittedSize += sz_rfbFramebufferUpdateRectHeader + sz_rfbRREHeader + rreAfterBufLen;
+	
 	// Calculate the size of the buffer produced
 	return sz_rfbFramebufferUpdateRectHeader + sz_rfbRREHeader + rreAfterBufLen;
 }

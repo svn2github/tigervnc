@@ -28,8 +28,8 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,3,3,2
- PRODUCTVERSION 3,3,3,2
+ FILEVERSION 1,2,1,0
+ PRODUCTVERSION 1,2,1,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -47,14 +47,51 @@ BEGIN
             VALUE "Comments", "by Quentin Stafford-Fraser\0"
             VALUE "CompanyName", "AT&T Laboratories Cambridge\0"
             VALUE "FileDescription", "vncviewer\0"
-            VALUE "FileVersion", "3, 3, 3, 2\0"
+            VALUE "FileVersion", "1, 2, 1, 0\0"
             VALUE "InternalName", "vncviewer\0"
             VALUE "LegalCopyright", "Copyright © 1999\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "vncviewer.exe\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "AT&T vncviewer\0"
-            VALUE "ProductVersion", "3, 3, 3, 2\0"
+            VALUE "ProductVersion", "1, 2, 1, 0\0"
+            VALUE "SpecialBuild", "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+IDR_VERSION2 VERSIONINFO
+ FILEVERSION 1,2,1,0
+ PRODUCTVERSION 1,2,1,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "Comments", "TridiaVNC Win32 viewer\0"
+            VALUE "CompanyName", "Tridia Corporation\0"
+            VALUE "FileDescription", "vncviewer\0"
+            VALUE "FileVersion", "1, 2, 1, 0\0"
+            VALUE "InternalName", "vncviewer\0"
+            VALUE "LegalCopyright", "Copyright © 2000\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "vncviewer.exe\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "Tridia Corporation vncviewer\0"
+            VALUE "ProductVersion", "1, 2, 1, 0\0"
             VALUE "SpecialBuild", "\0"
         END
     END
@@ -140,12 +177,12 @@ BEGIN
     CONTROL         108,IDC_STATIC,"Static",SS_BITMAP,7,12,21,20
 END
 
-IDD_OPTIONDIALOG DIALOGEX 0, 0, 293, 150
+IDD_OPTIONDIALOG DIALOGEX 0, 0, 293, 151
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Connection Options..."
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
-    GROUPBOX        "Preferred encoding",IDC_STATIC,7,7,110,88
+    GROUPBOX        "Preferred encoding",IDC_STATIC,7,7,110,90
     CONTROL         "Hextile",IDC_HEXTILERADIO,"Button",BS_AUTORADIOBUTTON,
                     15,19,37,10
     CONTROL         "CoRRE",IDC_CORRERADIO,"Button",BS_AUTORADIOBUTTON,15,42,
@@ -156,13 +193,13 @@ BEGIN
                     WS_GROUP,15,66,31,10
     CONTROL         "Allow CopyRect encoding",ID_SESSION_SET_CRECT,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,15,79,97,10
-    GROUPBOX        "Misc",IDC_STATIC,7,97,110,46
+    GROUPBOX        "Misc",IDC_STATIC,7,103,110,41
     CONTROL         "Request shared session",IDC_SHARED,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,15,106,91,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,112,91,10
     CONTROL         "Deiconify on Bell",IDC_BELLDEICONIFY,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,15,117,85,8
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,123,85,8
     CONTROL         "Disable clipboard transfer",IDC_DISABLECLIPBOARD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,15,127,95,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,133,95,10
     CONTROL         "Emulate 3 Buttons (with 2-button click)",
                     IDC_EMULATECHECK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
                     134,17,137,10
@@ -180,17 +217,21 @@ BEGIN
     EDITTEXT        IDC_SCALE_NUM,177,93,15,12,ES_AUTOHSCROLL | ES_NUMBER
     CTEXT           "/",IDC_STATIC,193,95,8,8,0,WS_EX_TRANSPARENT
     EDITTEXT        IDC_SCALE_DEN,202,93,14,12,ES_AUTOHSCROLL | ES_NUMBER
-    DEFPUSHBUTTON   "OK",IDOK,180,129,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,236,129,50,14
+    DEFPUSHBUTTON   "OK",IDOK,180,130,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,236,130,50,14
     CONTROL         "CopyRect",IDC_CRECTRADIO,"Button",BS_AUTORADIOBUTTON | 
-                    NOT WS_VISIBLE,55,66,47,10
+                    NOT WS_VISIBLE,57,66,47,10
     CONTROL         "RBS",IDC_RBSRADIO,"Button",BS_AUTORADIOBUTTON | NOT 
-                    WS_VISIBLE,55,54,31,10
+                    WS_VISIBLE,57,54,31,10
     GROUPBOX        "Display",IDC_STATIC,125,48,161,60
     GROUPBOX        "Mouse",IDC_STATIC,125,7,161,37
     LTEXT           "(experimental)",IDC_STATIC,223,95,44,8
-    CONTROL         "zlib (compression)",IDC_ZLIBRADIO,"Button",
-                    BS_AUTORADIOBUTTON,15,30,71,10
+    CONTROL         "zlib (pure)",IDC_ZLIBRADIO,"Button",BS_AUTORADIOBUTTON,
+                    57,31,46,10
+    CONTROL         "zlibHex (mix)",IDC_ZLIBHEXRADIO,"Button",
+                    BS_AUTORADIOBUTTON,57,19,55,10
+    CONTROL         "tight",IDC_TIGHTRADIO,"Button",BS_AUTORADIOBUTTON | NOT 
+                    WS_VISIBLE,15,31,29,10
 END
 
 IDD_SESSION_DLG DIALOG DISCARDABLE  0, 0, 250, 63
@@ -227,7 +268,7 @@ FONT 8, "MS Sans Serif"
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,179,82,50,14
     CONTROL         106,IDC_STATIC,"Static",SS_BITMAP | SS_SUNKEN,7,7,81,66
-    LTEXT           "Viewer version 1.1.2.0",IDC_STATIC,110,7,119,11
+    LTEXT           "Viewer version 1.2.1.0",IDC_STATIC,110,7,119,11
     LTEXT           "Copyright (C) 1999\nAT&&T Laboratories Cambridge",
                     IDC_STATIC,110,41,119,18
     LTEXT           "For more information see\nhttp://www.tridiavnc.com/",
@@ -265,7 +306,7 @@ BEGIN
         VERTGUIDE, 125
         VERTGUIDE, 134
         TOPMARGIN, 7
-        BOTTOMMARGIN, 143
+        BOTTOMMARGIN, 144
     END
 
     IDD_SESSION_DLG, DIALOG

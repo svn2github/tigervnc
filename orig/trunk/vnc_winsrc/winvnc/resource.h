@@ -4,7 +4,6 @@
 //
 #define IDI_WINVNC                      102
 #define IDR_TRAYMENU                    104
-#define IDD_OLE_PROPPAGE_LARGE          105
 #define IDD_PROPERTIES_PARENT           107
 #define IDR_VNCVIEWER_JAR               116
 #define IDR_RECFRAME_CLASS              117

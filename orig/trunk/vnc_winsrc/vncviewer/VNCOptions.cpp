@@ -896,7 +896,7 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 		case IDC_SCALE_EDIT:
 			switch (HIWORD(wParam)) {
 			case CBN_EDITCHANGE:
-				Lim(hwnd, IDC_SCALE_EDIT, 25, 150);
+				Lim(hwnd, IDC_SCALE_EDIT, 1, 150);
 				return 0;
 			}
 			return 0;
@@ -1335,13 +1335,14 @@ void VNCOptions::Lim(HWND hwnd, int control, DWORD min, DWORD max)
 					NULL, FALSE);
 	if (buf > max) {
 		buf = max;
+		SetDlgItemInt(hwnd, control,
+					buf, FALSE);
 	}
 	if (buf < min) {
 		buf = min;
-	}
-	SetDlgItemInt(hwnd, control,
+		SetDlgItemInt(hwnd, control,
 					buf, FALSE);
-	
+	}
 }
 void VNCOptions::LoadOpt(char subkey[256], char keyname[256])
 {

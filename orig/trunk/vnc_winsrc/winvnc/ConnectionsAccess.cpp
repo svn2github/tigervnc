@@ -238,46 +238,43 @@ BOOL ConnectionsAccess::InitListViewColumns()
 
 BOOL ConnectionsAccess::FormatPattern(BOOL toList, TCHAR strpattern[256])
 {
-	char *cut_ptr = strpattern;
+	char parts[4][5] = {"*", ".*", ".*", ".*"};
 	int num_components = 0;
-	int num_asterisks = 0;
+	int num_numbers = 0;
 
 	if (strpattern[0] != '\0') {
 		char *component = strpattern;
 		for (;;) {
 			int len = strcspn(component, ".");
-			if (++num_components > 4) {
-				return FALSE;		// too many components in IP pattern
-			}
 			if (len == 1 && component[0] == '*') {
-				num_asterisks++;
-			} else if (num_asterisks != 0) {
+				// The component is single "*" - it's ok, do nothing.
+			} else if (num_components != num_numbers) {
 				return FALSE;		// non-'*' found after there was '*'
 			} else {
-				if ( len < 1 || len > 3 ||
-					strspn(component, "0123456789") != len ||
-					atoi(component) > 255 ) {
-					return FALSE;	// not a number from the range 0..255
-				}
-				cut_ptr = &component[len];
+				if (len < 1 || strspn(component, "0123456789") != len)
+					return FALSE;	// not a non-negative number
+				int value = atoi(component);
+				if (value > 255)
+					return FALSE;	// not a number in the range 0..255
+				sprintf(parts[num_numbers], "%s%d",
+						(num_numbers == 0) ? "" : ".", value);
+				num_numbers++;
 			}
 			if (component[len] == '\0')
 				break;
+			if (++num_components > 4)
+				return FALSE;		// too many components in IP pattern
 			component += len + 1;
 		}
 	}
 
 	// Now we are sure the format is correct.
 
-	*cut_ptr = '\0';
-	if (toList) {
-		if (cut_ptr == strpattern) {
-			strcpy(strpattern, "*.*.*.*");
-		} else {
-			num_asterisks = 4 - (num_components - num_asterisks);
-			strncat(strpattern, ".*.*.*", num_asterisks * 2);
-		}
-	}
+	int num_parts = (toList) ? 4 : num_numbers;
+	strpattern[0] = '\0';
+	for (int i = 0; i < num_parts; i++)
+		strcat(strpattern, parts[i]);
+
 	return TRUE;
 }
 

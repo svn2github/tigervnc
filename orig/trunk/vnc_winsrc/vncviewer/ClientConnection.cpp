@@ -1340,7 +1340,7 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 			try {
 				void *p;
 				_this->join(&p);  // After joining, _this is no longer valid
-			} catch (omni_thread_invalid& e) {
+			} catch (omni_thread_invalid) {
 				// The thread probably hasn't been started yet,
 			}	
 			return 0;
@@ -1348,16 +1348,14 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 	}
 	return DefWindowProc(hwnd, iMsg, wParam, lParam);
 }	
-	// We know about an unused variable here.
 
-
-	// We know about an unused variable here.
 LRESULT CALLBACK ClientConnection::Proc(HWND hwnd, UINT iMsg,
 										WPARAM wParam, LPARAM lParam)
 {
 	return DefWindowProc(hwnd, iMsg, wParam, lParam);
 
 }
+
 LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg, 
 					   WPARAM wParam, LPARAM lParam) {
 	
@@ -1723,20 +1721,15 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 				::SendMessage(_this->m_hwndNextViewer, WM_CHANGECBCHAIN, 
 				(WPARAM) hWndRemove,  (LPARAM) hWndNext );  
 			return 0;
-
 		}
 	
 #endif
 	case WM_DESTROY:
 		return 0;
-}
+	}
 
 	return DefWindowProc(hwnd, iMsg, wParam, lParam);
-	
-	// We know about an unused variable here.
-
 }
-
 
 
 // ProcessPointerEvent handles the delicate case of emulating 3 buttons

@@ -1456,31 +1456,40 @@ void ClientConnection::SizeWindow(bool centered)
 
 	m_fullwinwidth1 = fullwinrect.right - fullwinrect.left;
 	m_fullwinheight1 = fullwinrect.bottom - fullwinrect.top;
-	m_winwidth1 = min(m_fullwinwidth1,  workwidth);
-	m_winheight1 = min(m_fullwinheight1, workheight);
 
-	DWORD style = 0;
-	if (!centered) {
-		style |= SWP_NOMOVE;
-	}
 	if (GetMenuState(GetSystemMenu(m_hwnd1, FALSE),
 					 ID_TOOLBAR, MF_BYCOMMAND) == MF_CHECKED) {
 		RECT rtb;
 		GetWindowRect(m_hToolbar, &rtb);
-		SetWindowPos(m_hwnd1, HWND_TOP,
-					 (workwidth - m_winwidth1) / 2,
-					 (workheight - min(m_winheight1 + int(rtb.bottom - rtb.top) - 4, workheight)) / 2,
-					 m_winwidth1,
-					 min(m_winheight1 + int(rtb.bottom - rtb.top) - 4, workheight),
-					 style);
-	} else {
-		SetWindowPos(m_hwnd1, HWND_TOP, 
-					 (workwidth - m_winwidth1) / 2,
-					 (workheight - min(m_winheight1, workheight)) / 2,
-					 m_winwidth1,
-					 min(m_winheight1, workheight),
-					 style);
+		m_fullwinheight1 = m_fullwinheight1 + rtb.bottom - rtb.top - 4;
 	}
+
+	m_winwidth1 = min(m_fullwinwidth1,  workwidth);
+	m_winheight1 = min(m_fullwinheight1, workheight);
+
+	int x,y;
+	
+	if (centered) {
+		x = (workwidth - m_winwidth1) / 2;		
+		y = (workheight - m_winheight1) / 2;		
+	} else {
+		// Try to preserve current position if possible
+		RECT tmprect;
+		if (GetWindowRect(m_hwnd1, &tmprect)) {
+			x = tmprect.left;
+			y = tmprect.top;
+			if (x + m_winwidth1 > workrect.right)
+				x = workrect.right - m_winwidth1;
+			if (y + m_winheight1 > workrect.bottom)
+				y = workrect.bottom - m_winheight1;
+		}
+	}	
+	SetWindowPos(m_hwnd1, HWND_TOP, 
+					 x,
+					 y,
+					 m_winwidth1,
+					 m_winheight1,
+					 SWP_SHOWWINDOW);	
 	SetForegroundWindow(m_hwnd1);
 }
 

@@ -36,6 +36,8 @@
 #define IDC_CURSOR1                     141
 #define IDI_LIVESHARENC                 142
 #define IDB_BITMAP3                     142
+#define IDI_LIVESHARE_CON               144
+#define IDI_LIVESHARE_NOCON             145
 #define IDD_ACCEPT_REVERSE              148
 #define IDC_CONNECT_BORDER              1003
 #define IDC_CONNECT_SOCK                1004
@@ -115,7 +117,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        144
+#define _APS_NEXT_RESOURCE_VALUE        146
 #define _APS_NEXT_COMMAND_VALUE         40008
 #define _APS_NEXT_CONTROL_VALUE         1069
 #define _APS_NEXT_SYMED_VALUE           101

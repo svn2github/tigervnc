@@ -111,13 +111,13 @@ vncMenu::vncMenu(vncServer *server)
 
 	// Load the icons for the tray
 #ifdef HORIZONLIVE
-	m_winvnc_normal_icon = LoadIcon(hAppInstance, MAKEINTRESOURCE(IDI_LIVESHARENC));
-	m_flash_icon = LoadIcon(hAppInstance, MAKEINTRESOURCE(IDI_LIVESHARE));
+	m_winvnc_normal_icon = LoadIcon(hAppInstance, MAKEINTRESOURCE(IDI_LIVESHARE_NOCON));
+	m_flash_icon = LoadIcon(hAppInstance, MAKEINTRESOURCE(IDI_LIVESHARE_CON));
 #else
 	m_winvnc_normal_icon = LoadIcon(hAppInstance, MAKEINTRESOURCE(IDI_WINVNC));
 	m_winvnc_disabled_icon = LoadIcon(hAppInstance, MAKEINTRESOURCE(IDI_DISABLED));
 	m_flash_icon = LoadIcon(hAppInstance, MAKEINTRESOURCE(IDI_FLASH));
-#endif	
+#endif
 	m_winvnc_icon = m_winvnc_normal_icon;
 
 	// Load the popup menu

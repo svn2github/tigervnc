@@ -472,7 +472,8 @@ IDI_WINVNC              ICON    DISCARDABLE     "res\\WinVNC.ico"
 IDI_FLASH               ICON    DISCARDABLE     "res\\icon1.ico"
 IDI_DISABLED            ICON    DISCARDABLE     "res\\ico00001.ico"
 IDI_LIVESHARE           ICON    DISCARDABLE     "res\\ico00002.ico"
-IDI_LIVESHARENC         ICON    DISCARDABLE     "res\\ico00003.ico"
+IDI_LIVESHARE_NOCON     ICON    DISCARDABLE     "res\\ico00003.ico"
+IDI_LIVESHARE_CON       ICON    DISCARDABLE     "res\\ico00004.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

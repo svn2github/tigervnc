@@ -670,6 +670,33 @@ SOURCE=.\vncAcceptDialog.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\vncAcceptReverseDlg.cpp
+
+!IF  "$(CFG)" == "WinVNC - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 Debug"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 Purify"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 No_CORBA"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 Profile"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\vncAcceptReverseDlg.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\vncAdvancedProperties.cpp
 
 !IF  "$(CFG)" == "WinVNC - Win32 Release"
@@ -2058,6 +2085,10 @@ SOURCE=.\res\ico00002.ico
 # Begin Source File
 
 SOURCE=.\res\ico00003.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\ico00004.ico
 # End Source File
 # Begin Source File
 

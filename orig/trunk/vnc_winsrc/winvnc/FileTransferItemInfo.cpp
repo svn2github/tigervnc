@@ -28,25 +28,6 @@
 #include "stdio.h"
 #include "string.h"
 
-const char FileTransferItemInfo::folderText[] = "<Folder>";
-
-int 
-CompareFTItemInfo(const void *F, const void *S)
-{
-	if (strcmp(((FTITEMINFO *)F)->Size, ((FTITEMINFO *)S)->Size) == 0) {
-		return stricmp(((FTITEMINFO *)F)->Name, ((FTITEMINFO *)S)->Name);
-	} else {
-		if (strcmp(((FTITEMINFO *)F)->Size, FileTransferItemInfo::folderText) == 0) return -1;
-		if (strcmp(((FTITEMINFO *)S)->Size, FileTransferItemInfo::folderText) == 0) {
-			return 1;
-		} else {
-		return stricmp(((FTITEMINFO *)F)->Name, ((FTITEMINFO *)S)->Name);
-		}
-	}
-	return 0;
-}
-
-
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -62,13 +43,13 @@ FileTransferItemInfo::~FileTransferItemInfo()
 	Free();
 }
 
-void FileTransferItemInfo::Add(char *Name, char *Size, unsigned int Data)
+void FileTransferItemInfo::Add(char *Name, unsigned int Size, unsigned int Data)
 {
 	FTITEMINFO *pTemporary = new FTITEMINFO[m_NumEntries + 1];
 	if (m_NumEntries != 0) 
 		memcpy(pTemporary, m_pEntries, m_NumEntries * sizeof(FTITEMINFO));
 	strcpy(pTemporary[m_NumEntries].Name, Name);
-	strcpy(pTemporary[m_NumEntries].Size, Size);
+	pTemporary[m_NumEntries].Size = Size;
 	pTemporary[m_NumEntries].Data = Data;
 	if (m_pEntries != NULL) {
 		delete [] m_pEntries;
@@ -88,11 +69,6 @@ void FileTransferItemInfo::Free()
 	m_NumEntries = 0;
 }
 
-void FileTransferItemInfo::Sort()
-{
-	qsort(m_pEntries, m_NumEntries, rfbMAX_PATH + 16 + sizeof(unsigned int), CompareFTItemInfo);
-}
-
 char * FileTransferItemInfo::GetNameAt(int Number)
 {
 	if ((Number >= 0) && (Number <= m_NumEntries))
@@ -100,7 +76,7 @@ char * FileTransferItemInfo::GetNameAt(int Number)
 	return NULL;
 }
 
-char * FileTransferItemInfo::GetSizeAt(int Number)
+unsigned int FileTransferItemInfo::GetSizeAt(int Number)
 {
 	if ((Number >= 0) && (Number <= m_NumEntries)) 
 		return m_pEntries[Number].Size; 
@@ -111,9 +87,18 @@ unsigned int FileTransferItemInfo::GetDataAt(int Number)
 {
 	if ((Number >= 0) && (Number <= m_NumEntries)) 
 		return m_pEntries[Number].Data; 
+	return NULL;
 }
 
 int FileTransferItemInfo::GetNumEntries()
 {
 	return m_NumEntries;
+}
+
+int FileTransferItemInfo::GetSummaryNamesLength()
+{
+	int sumLen = 0;
+	for (int i = 0; i < m_NumEntries; i++)
+		sumLen += strlen(m_pEntries[i].Name);
+	return sumLen;
 }

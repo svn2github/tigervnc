@@ -947,7 +947,8 @@ typedef struct {
     CARD16 numFiles;
     CARD16 dataSize;
     CARD16 compressedSize;
-    /* Followed by FilenamesArray[compressedSize] */
+    /* Followed by SizeData[numFiles] */
+    /* Followed by Filenames[compressedSize] */
 } rfbFileListDataMsg;
 
 #define sz_rfbFileListDataMsg 8
@@ -1185,7 +1186,7 @@ typedef struct {
     CARD8 type;
 	CARD8 compressedLevel;
     CARD16 fNameSize;
-	CARD32 position
+	CARD32 position;
     /* Followed by char Filename[fNameSize] */
 } rfbFileDownloadRequestMsg;
 
@@ -1215,7 +1216,6 @@ typedef struct {
     CARD8 compressedLevel;
     CARD16 realSize;
     CARD16 compressedSize;
-    CARD16 num;
     /* Followed by File[compressedSize]   */
 } rfbFileUploadDataMsg;
 

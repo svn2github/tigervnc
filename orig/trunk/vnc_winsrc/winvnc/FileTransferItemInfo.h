@@ -31,7 +31,7 @@
 typedef struct tagFTITEMINFO
 {
     char Name[rfbMAX_PATH];
-    char Size[16];
+    unsigned int Size;
 	unsigned int Data;
 } FTITEMINFO;
 
@@ -44,14 +44,13 @@ typedef struct tagFTSIZEDATA
 class FileTransferItemInfo  
 {
 public:
-	static const char folderText[];
 	int GetNumEntries();
-	char * GetSizeAt(int Number);
 	char * GetNameAt(int Number);
+	unsigned int GetSizeAt(int Number);
 	unsigned int GetDataAt(int Number);
-	void Sort();
 	void Free();
-	void Add(char *Name, char *Size, unsigned int Data);
+	void Add(char *Name, unsigned int Size, unsigned int Data);
+	int GetSummaryNamesLength();
 	FileTransferItemInfo();
 	virtual ~FileTransferItemInfo();
 

@@ -195,11 +195,14 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 					SetWindowText(_this->m_hwndFTStatus, buffer);
 					rfbFileDownloadRequestMsg fdr;
 					fdr.type = rfbFileDownloadRequest;
+					fdr.compressedLevel = 0;
+					fdr.position = Swap32IfLE(0);
 					sprintf(path, "%s\\%s", _this->m_ServerPath, _this->m_ServerFilename);
 					_this->ConvertPath(path);
-					fdr.fnamesize = strlen(path);
+					int len = strlen(path);
+					fdr.fNameSize = Swap16IfLE(len);
 					_this->m_clientconn->WriteExact((char *)&fdr, sz_rfbFileDownloadRequestMsg);
-					_this->m_clientconn->WriteExact(path, fdr.fnamesize);
+					_this->m_clientconn->WriteExact(path, len);
 				}
 				return TRUE;
 			case IDC_FTCANCEL:
@@ -308,6 +311,7 @@ FileTransfer::OnGetDispServerInfo(NMLVDISPINFO *plvdi)
 void 
 FileTransfer::FileTransferUpload()
 {
+/*
 	DWORD sz_rfbFileSize;
 	DWORD sz_rfbBlockSize= 8192;
 	DWORD dwNumberOfBytesRead = 0;
@@ -392,11 +396,13 @@ FileTransfer::FileTransferUpload()
 	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
 	delete [] pBuff;
 	SendFileListRequestMessage(m_ServerPath);
+*/
 }
 
 void 
 FileTransfer::FileTransferDownload()
 {
+/*
 	rfbFileDownloadDataMsg fdd;
 	m_clientconn->ReadExact((char *)&fdd, sz_rfbFileDownloadDataMsg);
 	fdd.size = Swap16IfLE(fdd.size);
@@ -439,6 +445,7 @@ FileTransfer::FileTransferDownload()
 		BlockingFileTransferDialog(TRUE);
 	}
 	delete [] pBuff;
+*/
 }
 
 void 
@@ -470,7 +477,7 @@ FileTransfer::ShowClientItems(char *path)
 					{
 						char txt[16];
 						strcpy(txt, m_FTClientItemInfo.folderText);
-						m_FTClientItemInfo.Add(DriveName, txt);
+						m_FTClientItemInfo.Add(DriveName, txt, 0);
 						break;
 					}
 				}
@@ -514,10 +521,15 @@ FileTransfer::ShowClientItems(char *path)
 		       (strcmp(m_FindFileData.cFileName, "..") != 0)) {
 				if (!(m_FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
 					sprintf(buffer, "%d", m_FindFileData.nFileSizeLow);
+					LARGE_INTEGER li;
+					li.LowPart = m_FindFileData.ftLastWriteTime.dwLowDateTime;
+					li.HighPart = m_FindFileData.ftLastWriteTime.dwHighDateTime;
+					li.QuadPart = (li.QuadPart - 116444736000000000) / 10000000;
+					m_FTClientItemInfo.Add(m_FindFileData.cFileName, buffer, li.LowPart);
 				} else {
 					strcpy(buffer, m_FTClientItemInfo.folderText);
+					m_FTClientItemInfo.Add(m_FindFileData.cFileName, buffer, 0);
 				}
-				m_FTClientItemInfo.Add(m_FindFileData.cFileName, buffer);
 			}
 			if (!FindNextFile(m_handle, &m_FindFileData)) break;
 		}
@@ -771,16 +783,17 @@ FileTransfer::BlockingFileTransferDialog(BOOL status)
 void 
 FileTransfer::ShowServerItems()
 {
-	char filename[rfbMAX_PATH + 1];
 	rfbFileListDataMsg fld;
 	m_clientconn->ReadExact((char *) &fld, sz_rfbFileListDataMsg);
-	fld.amount = Swap16IfLE(fld.amount);
-	fld.num = Swap16IfLE(fld.num);
-	fld.attr = Swap16IfLE(fld.attr);
-	fld.size = Swap32IfLE(fld.size);
-	m_clientconn->ReadExact(filename, fld.fnamesize);
-	filename[fld.fnamesize] = '\0';
+	fld.numFiles = Swap16IfLE(fld.numFiles);
+	fld.dataSize = Swap16IfLE(fld.dataSize);
+	fld.compressedSize = Swap16IfLE(fld.compressedSize);
+	FTSIZEDATA *pftSD = new FTSIZEDATA[fld.numFiles];
+	char *pFilenames = new char[fld.dataSize];
+	m_clientconn->ReadExact((char *)pftSD, fld.numFiles * 8);
+	m_clientconn->ReadExact(pFilenames, fld.dataSize);
 	if (!m_bServerBrowseRequest) {
+/*
 		if (fld.attr == 0x0002) {
 			BlockingFileTransferDialog(TRUE);
 			return;
@@ -795,37 +808,25 @@ FileTransfer::ShowServerItems()
 			strcpy(m_ServerPath, m_ServerPathTmp);
 			SetWindowText(m_hwndFTServerPath, m_ServerPath);
 		}
-		if (fld.num == 0) {
+*/
+		if (fld.numFiles == 0) {
+			BlockingFileTransferDialog(TRUE);
+			strcpy(m_ServerPath, m_ServerPathTmp);
+			SetWindowText(m_hwndFTServerPath, m_ServerPath);
+			ListView_DeleteAllItems(m_hwndFTServerList); 
+			return;
+		} else {
 			m_FTServerItemInfo.Free();
 			ListView_DeleteAllItems(m_hwndFTServerList); 
-		}
-		char ItemServerName[rfbMAX_PATH];
-		strcpy(ItemServerName, filename);
-		switch (fld.attr)
-			{
-			case 0x0000:
-				{
-				char buffer_[16];
-				sprintf(buffer_, "%d", fld.size);
-				m_FTServerItemInfo.Add(ItemServerName, buffer_);
-				break;
-				}
-			case 0x0001:
-				{
-				char buffer_[16];
-				strcpy(buffer_, m_FTServerItemInfo.folderText);
-				m_FTServerItemInfo.Add(ItemServerName, buffer_);
-				break;
-				}
-			default:
-				m_FTServerItemInfo.Add(ItemServerName, "Unknown");
-			}
-		if (fld.num == fld.amount - 1) {
+			CreateServerItemInfoList(&m_FTServerItemInfo, pftSD, fld.numFiles, pFilenames, fld.dataSize);
 			m_FTServerItemInfo.Sort();
 			ShowListViewItems(m_hwndFTServerList, &m_FTServerItemInfo);
+			delete [] pftSD;
+			delete [] pFilenames;
 		}
 	} else {
-		if (fld.num == 0) {
+/*
+		if (fld.numFiles == 0) {
 			while (TreeView_GetChild(GetDlgItem(m_hwndFTBrowse, IDC_FTBROWSETREE), m_hTreeItem) != NULL) {
 				TreeView_DeleteItem(GetDlgItem(m_hwndFTBrowse, IDC_FTBROWSETREE), TreeView_GetChild(GetDlgItem(m_hwndFTBrowse, IDC_FTBROWSETREE), m_hTreeItem));
 			}
@@ -853,6 +854,7 @@ FileTransfer::ShowServerItems()
 				}
 			break;
 		}
+*/
 	}
 	BlockingFileTransferDialog(TRUE);
 }
@@ -868,7 +870,8 @@ FileTransfer::SendFileListRequestMessage(char *filename)
 	len = strlen(_filename);
 	rfbFileListRequestMsg flr;
 	flr.type = rfbFileListRequest;
-	flr.dnamesize = len;
+	flr.dirNameSize = Swap16IfLE(len);
+	flr.flags = 0;
 	m_clientconn->WriteExact((char *)&flr, sz_rfbFileListRequestMsg);
 	m_clientconn->WriteExact(_filename, len);
 }
@@ -941,4 +944,21 @@ void FileTransfer::InitProgressBar(int nPosition, int nMinRange, int nMaxRange, 
 	SendMessage(m_hwndFTProgress, PBM_SETPOS, (WPARAM) nPosition, (LPARAM) 0);
     SendMessage(m_hwndFTProgress, PBM_SETRANGE, (WPARAM) 0, MAKELPARAM(nMinRange, nMaxRange)); 
 	SendMessage(m_hwndFTProgress, PBM_SETSTEP, (WPARAM) nStep, 0); 
+}
+
+void FileTransfer::CreateServerItemInfoList(FileTransferItemInfo *pftii, 
+											FTSIZEDATA *ftsd, int ftsdNum,
+											char *pfnames, int fnamesSize)
+{
+	int pos = 0;
+	for (int i = 0; i < ftsdNum; i++) {
+		char buf[16];
+		if (ftsd[i].size == -1) {
+			strcpy(buf, FileTransferItemInfo::folderText);
+		} else {
+			sprintf(buf, "%d", ftsd[i].size);
+		}
+		pftii->Add(pfnames + pos, buf, ftsd[i].data);
+		pos += strlen(pfnames + pos) + 1;
+	}
 }

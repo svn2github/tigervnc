@@ -75,6 +75,7 @@ public:
 	VNCviewerApp * m_pApp; 
 	
 private:
+	void CreateServerItemInfoList(FileTransferItemInfo *pftii, FTSIZEDATA *ftsd, int ftsdNum, char *pfnames, int fnamesSize);
 	void InitProgressBar(int nPosition, int nMinRange, int nMaxRange, int nStep);
 	HWND m_hwndFileTransfer;
 	HWND m_hwndFTClientList;

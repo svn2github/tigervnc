@@ -56,6 +56,8 @@
 #include "vncAcceptDialog.h"
 #include "vncKeymap.h"
 
+#include "FileTransferItemInfo.h"
+
 //
 // Normally, using macros is no good, but this macro saves us from
 // writing constants twice -- it constructs signature names from codes.
@@ -1145,6 +1147,77 @@ vncClientThread::run(void *arg)
 			}
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileListRequestMsg-1))
 			{
+				msg.flr.dirNameSize = Swap16IfLE(msg.flr.dirNameSize);
+				if (msg.flr.dirNameSize > 255) break;
+				char path[255 + 1];
+				m_socket->ReadExact(path, msg.flr.dirNameSize);
+				ConvertPath(path);
+				FileTransferItemInfo ftii;
+				if (strlen(path) == 0) {
+					TCHAR szDrivesList[256];
+					char drive[] = "?:\\\0";
+					if (GetLogicalDriveStrings(256, szDrivesList) == 0) break;
+					for (int i = 0; i < 256; i++) {
+						drive[0] = szDrivesList[i];
+						switch (GetDriveType((LPCTSTR) drive))
+							case DRIVE_REMOVABLE:
+							case DRIVE_FIXED:
+							case DRIVE_REMOTE:
+							case DRIVE_CDROM:
+							{
+								drive[2] = '\0';
+								ftii.Add(drive, -1, 0);
+								strcpy(drive, "?:\\");
+							}
+						i += 3;
+						if (szDrivesList[i+1] == '\0') break;
+					}
+				} else {
+					strcat(path, "\\*");
+					HANDLE FLRhandle;
+ 					WIN32_FIND_DATA FindFileData;
+					SetErrorMode(SEM_FAILCRITICALERRORS);
+ 					FLRhandle = FindFirstFile(path, &FindFileData);
+					DWORD LastError = GetLastError();
+					SetErrorMode(0);
+					if (FLRhandle != INVALID_HANDLE_VALUE) {
+						do {
+							if (strcmp(FindFileData.cFileName, ".") != 0 &&
+								strcmp(FindFileData.cFileName, "..") != 0) {
+								LARGE_INTEGER li;
+								li.LowPart = FindFileData.ftLastWriteTime.dwLowDateTime;
+								li.HighPart = FindFileData.ftLastWriteTime.dwHighDateTime;							
+								li.QuadPart = (li.QuadPart - 1164444736000000000) / 10000000;
+								ftii.Add(FindFileData.cFileName, FindFileData.nFileSizeLow, li.HighPart);
+							}
+
+						} while (FindNextFile(FLRhandle, &FindFileData));
+					}
+ 					FindClose(FLRhandle);	
+					if(ftii.GetNumEntries == 0) break;
+				}
+				if (ftii.GetNumEntries != 0) {
+					int dsSize = ftii.GetNumEntries() * 8;
+					int msgLen = sz_rfbFileListDataMsg + dsSize + ftii.GetSummaryNamesLength() + ftii.GetNumEntries();
+					char *pAllMessage = new char [msgLen];
+					rfbFileListDataMsg *pFLD = (rfbFileListDataMsg *) pAllMessage;
+					FTSIZEDATA *pftsd = (FTSIZEDATA *) &pAllMessage[sz_rfbFileListDataMsg];
+					char *pFilenames = &pAllMessage[sz_rfbFileListDataMsg + dsSize];
+					pFLD->type = rfbFileListData;
+					pFLD->flags = msg.flr.flags;
+					pFLD->numFiles = Swap16IfLE(ftii.GetNumEntries());
+					pFLD->dataSize = Swap16IfLE(ftii.GetSummaryNamesLength() + ftii.GetNumEntries());
+					pFLD->compressedSize = Swap16IfLE(msgLen);
+					for (int i = 0; i < ftii.GetNumEntries(); i++) {
+						pftsd[i].size = ftii.GetSizeAt(i);
+						pftsd[i].data = ftii.GetDataAt(i);
+						strcpy(pFilenames, ftii.GetNameAt(i));
+						pFilenames = pFilenames + strlen(pFilenames + 1);
+					}
+					m_socket->SendExact(pAllMessage, msgLen);
+				}
+
+/*
 				const UINT size = msg.flr.dnamesize;
 				char path[255 + 1];
 				char drive[4];
@@ -1249,17 +1322,21 @@ vncClientThread::run(void *arg)
 					FindClose(FLRhandle);
 				}
 				delete [] pAllMessage;
+*/
 			}
 			break;
 
 		case rfbFileDownloadRequest:
+/*
 			if (!m_server->FileTransfersEnabled() ||
 				(!m_client->m_keyboardenabled && !m_client->m_pointerenabled)) {
 				connected = FALSE;
 				break;
 			}
+*/
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileDownloadRequestMsg-1))
 			{
+/*
 				const UINT size = msg.fdr.fnamesize;
 				WIN32_FIND_DATA FindFileData;
 				HANDLE hFile;
@@ -1311,23 +1388,28 @@ vncClientThread::run(void *arg)
 				delete [] pBuff;
 				vnclog.Print(LL_CLIENTS, VNCLOG("file download complete: %s\n"),
 							 path_file);
+*/
 			}
 			break;
 
 		case rfbFileUploadRequest:
+/*
 			if (!m_server->FileTransfersEnabled() ||
 				(!m_client->m_keyboardenabled && !m_client->m_pointerenabled)) {
 				connected = FALSE;
 				break;
 			}
+*/
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileUploadRequestMsg-1))
 			{
+/*
 				m_socket->ReadExact(m_FullFilename, msg.fupr.fnamesize);
 				m_FullFilename[msg.fupr.fnamesize] = '\0';
 				ConvertPath(m_FullFilename);
 				vnclog.Print(LL_CLIENTS, VNCLOG("file upload requested: %s\n"),
 							 m_FullFilename);
 				m_hFiletoWrite = CreateFile(m_FullFilename, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+*/
 			}				
 			break;
 
@@ -1339,6 +1421,7 @@ vncClientThread::run(void *arg)
 			}
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileUploadDataMsg-1))
 			{
+/*
 				msg.fud.amount = Swap16IfLE(msg.fud.amount);
 				msg.fud.num = Swap16IfLE(msg.fud.num);
 				msg.fud.size = Swap16IfLE(msg.fud.size);
@@ -1353,6 +1436,7 @@ vncClientThread::run(void *arg)
 								 m_FullFilename);
 				}
 				delete [] pBuff;
+*/
 			}
 			break;
 

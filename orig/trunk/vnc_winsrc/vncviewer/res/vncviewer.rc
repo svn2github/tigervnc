@@ -256,7 +256,7 @@ BEGIN
     CONTROL         "Progress1",IDC_PROGRESS,"msctls_progress32",WS_BORDER,
                     370,244,128,10
     LTEXT           "",IDC_FTSTATUS,7,261,426,14,SS_CENTERIMAGE
-    PUSHBUTTON      "&Close",IDC_EXIT,483,261,50,14
+    PUSHBUTTON      "&Close",IDC_EXIT,473,261,50,14
     LTEXT           "File Transfer",IDC_STATIC_FILE_TRANSFER,7,245,43,8
     CONTROL         "Progress1",IDC_FTPROGRESS,"msctls_progress32",WS_BORDER,
                     55,244,128,10
@@ -264,11 +264,6 @@ BEGIN
     LTEXT           "Current File",IDC_STATIC,323,245,36,8
     CTEXT           "0%",IDC_CURRENTFILEPERCENT,505,245,18,8
     COMBOBOX        IDC_CLIENTPATH,7,21,156,93,CBS_DROPDOWN | 
-                    55,244,133,10
-    CTEXT           "0%",IDC_FILETRANSFERPERCENT,195,245,18,8
-    LTEXT           "Current File",IDC_STATIC_CURRENT_FILE,327,245,36,8
-    CTEXT           "0%",IDC_CURRENTFILEPERCENT,515,245,18,8
-    COMBOBOX        IDC_CLIENTPATH,7,21,161,93,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_SERVERPATH,323,21,156,93,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -279,7 +274,7 @@ BEGIN
                     SS_REALSIZEIMAGE
     ICON            "",IDC_CREATEFLD,215,49,20,20,SS_NOTIFY | 
                     SS_REALSIZEIMAGE
-    ICON            "",IDC_FTCANCEL,220,175,20,20,SS_NOTIFY | 
+    ICON            "",IDC_FTCANCEL,215,175,20,20,SS_NOTIFY | 
                     SS_REALSIZEIMAGE
 END
 
@@ -864,8 +859,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDC_FTDELETE            "Delete button"
-    IDC_CREATEREMFLD        "Create remote file/dir"
-    IDC_CREATELOCFLD        "Create local file/dir"
+    IDC_CREATEFLD           "Create local/remote file/dir"
 END
 
 #endif    // English (U.S.) resources

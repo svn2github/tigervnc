@@ -178,14 +178,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 			// First, we have to parse the command line to get the hostname to use
 			int start, end;
 			start=i;
-			while (szCmdLine[start] <= ' ') start++;
+			while (szCmdLine[start] && szCmdLine[start] <= ' ') start++;
 			end = start;
 			while (szCmdLine[end] > ' ') end++;
 
 			// Was there a hostname (and optionally a port number) given?
 			if (end-start > 0) {
 				char *name = new char[end-start+1];
-				if (name != 0) {
+				if (name != NULL) {
 					strncpy(name, &(szCmdLine[start]), end-start);
 					name[end-start] = 0;
 
@@ -207,9 +207,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 					}
 					delete [] name;
 				}
-				i=end;
-				continue;
+			} else {
+				// Tell the server to show the Add New Client dialog
+				vncService::PostAddNewClient(0, 0);
 			}
+			i = end;
+			continue;
 		}
 
 		// Either the user gave the -help option or there is something odd on the cmd-line!

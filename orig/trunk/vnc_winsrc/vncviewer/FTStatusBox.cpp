@@ -45,8 +45,9 @@ bool
 FTStatusBox::setText(char *pText)
 {
 	LRESULT lRes = SendMessage(m_hStatusBox, (UINT) CB_INSERTSTRING, (WPARAM) 0, (LPARAM) pText);
-	
-	SetWindowText(m_hStatusBox, pText);
+	if ((lRes != CB_ERR) && (lRes != CB_ERRSPACE)) {
+		lRes = SendMessage(m_hStatusBox, (UINT) CB_SETCURSEL, (WPARAM) lRes, (LPARAM) 0);
+	}
 
 	m_dwNumStrings++;
 	if (m_dwNumStrings > FT_MAX_STATUS_STRINGS) {

@@ -154,23 +154,23 @@ FileTransferDialog::addAllLVColumns()
 	RECT Rect;
 	GetClientRect(m_pLocalLV->getWndHandle(), &Rect);
 	Rect.right -= GetSystemMetrics(SM_CXHSCROLL);
-	int xwidth0 = (int) (0.37 * Rect.right);
+	int xwidth0 = (int) (0.35 * Rect.right);
 	int xwidth1 = (int) (0.22 * Rect.right);
 	int xwidth2 = (int) (0.43 * Rect.right);
 
 	m_pLocalLV->addColumn("Name", 0, xwidth0, LVCFMT_LEFT);
 	m_pLocalLV->addColumn("Size", 1, xwidth1, LVCFMT_RIGHT);
-	m_pLocalLV->addColumn("Data", 2, xwidth2, LVCFMT_RIGHT);
+	m_pLocalLV->addColumn("Data", 2, xwidth2, LVCFMT_LEFT);
 
 	GetClientRect(m_pRemoteLV->getWndHandle(), &Rect);
 	Rect.right -= GetSystemMetrics(SM_CXHSCROLL);
-	xwidth0 = (int) (0.37 * Rect.right);
+	xwidth0 = (int) (0.35 * Rect.right);
 	xwidth1 = (int) (0.22 * Rect.right);
 	xwidth2 = (int) (0.43 * Rect.right);
 	
 	m_pRemoteLV->addColumn("Name", 0, xwidth0, LVCFMT_LEFT);
 	m_pRemoteLV->addColumn("Size", 1, xwidth1, LVCFMT_RIGHT);
-	m_pRemoteLV->addColumn("Data", 2, xwidth2, LVCFMT_RIGHT);
+	m_pRemoteLV->addColumn("Data", 2, xwidth2, LVCFMT_LEFT);
 
 	return true;
 }

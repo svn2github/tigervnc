@@ -1441,6 +1441,16 @@ vncClientThread::run(void *arg)
 						m_client->SendLastRequestFailed(typeOfRequest, reasonLen, 0, reason);
 					}
 					break;
+				case rfbSpecDirMyNetHood:
+					if (SHGetSpecialFolderPath(NULL, path, CSIDL_NETHOOD, bCreate)) {
+						m_client->SendFileSpecDirData(msg.fsdr.flags, msg.fsdr.specFlags, path);
+					} else {
+						CARD8 typeOfRequest = rfbFileSpecDirRequest;
+						char reason[] = "Can't get MyNetHood folder path";
+						CARD16 reasonLen = strlen(reason);
+						m_client->SendLastRequestFailed(typeOfRequest, reasonLen, 0, reason);
+					}
+					break;
 				default:
 					{
 						CARD8 typeOfRequest = rfbFileSpecDirRequest;
@@ -1992,7 +2002,15 @@ void
 vncClient::Kill()
 {
 	// Close file transfer
-	CloseUndoneFileTransfer();
+	if ((m_bDownloadStarted) || (m_bUploadStarted)) {
+		if (MessageBox(NULL, 
+			"File Transfer is active. Are you sure you want to disconnect? This will result in active file transfer operation being discontinued.",
+			"File Transfer Canceling", MB_OKCANCEL) == IDOK) {
+			CloseUndoneFileTransfer();
+		} else {
+			return;
+		}
+	}
 
 	// Close the socket
 	if (m_socket != NULL)

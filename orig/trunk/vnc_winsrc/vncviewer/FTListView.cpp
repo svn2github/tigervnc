@@ -77,21 +77,32 @@ FTListView::onGetDispInfo(NMLVDISPINFO *pDI)
 		break;
 	case 2:
 		{
-			char szData[32];
-			FILETIME ft;
 			unsigned int data = m_fileInfo.getDataAt(pDI->item.iItem);
 			if (data == 0) {
 				pDI->item.pszText = "Unspecified";
 			} else {
+				FILETIME ft;
 				Time70ToFiletime(data, &ft);
 				SYSTEMTIME st;
 				FileTimeToSystemTime(&ft, &st);
-				if (st.wHour > 12) {
-					sprintf(szData, "%d/%d/%d %d:%d PM", st.wDay, st.wMonth, st.wYear, st.wHour - 12, st.wMinute);
-				} else {
-					sprintf(szData, "%d/%d/%d %d:%d AM", st.wDay, st.wMonth, st.wYear, st.wHour, st.wMinute);
-				}
-				pDI->item.pszText = szData;
+/*		
+				TIME_ZONE_INFORMATION timeZoneInformation;
+				GetTimeZoneInformation(&timeZoneInformation);
+				DWORD timeBias = timeZoneInformation.Bias;
+*/
+				char pDateTimeStr[1024];
+				char timeFmt[128];
+				GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_STIMEFORMAT, timeFmt, 128);
+				char dateFmt[128];
+				GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_SSHORTDATE, dateFmt, 128);
+
+				char timeStr[128];
+				GetTimeFormat(LOCALE_USER_DEFAULT, TIME_NOSECONDS, &st, timeFmt, timeStr, 128);
+				char dateStr[128];
+				GetDateFormat(LOCALE_USER_DEFAULT, 0, &st, dateFmt, dateStr, 128);
+
+				sprintf(pDateTimeStr, "%s %s", dateStr, timeStr);
+				pDI->item.pszText = pDateTimeStr;
 			}
 		}
 		break;

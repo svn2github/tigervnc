@@ -1231,7 +1231,7 @@ FileTransfer::setFTBoolean(bool status)
 bool 
 FileTransfer::setErrorString(char *pPrefix, DWORD error)
 {
-	LPVOID pErrStr = formatErrorString(error);
+	LPVOID pErrStr = NULL;//formatErrorString(error);
 
 	if (pErrStr != NULL) {
 		char *pStr = strdup((LPTSTR) pErrStr);

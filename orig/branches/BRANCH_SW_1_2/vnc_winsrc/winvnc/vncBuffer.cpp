@@ -339,7 +339,9 @@ vncBuffer::GetChangedRegion(vncRegion &rgn, RECT &rect)
 					new_rect.right = blockright;
 					new_rect.bottom = blockbottom;
 					rgn.AddRect(new_rect);
-
+					//o_block_ptr = o_row_ptr;
+					//n_block_ptr = n_row_ptr;
+					
 					// Copy the changes to the back buffer
 					for (by = ay; by < blockbottom; by++)
 					{

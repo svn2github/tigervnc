@@ -33,6 +33,7 @@
 #include "WinVNC.h"
 #include "vncService.h"
 #include "vncConnDialog.h"
+#include "vncAcceptReversDlg.h"
 #include <lmcons.h>
 
 // Header
@@ -216,7 +217,7 @@ vncMenu::SendTrayMsg(DWORD msg, BOOL flash)
 	m_nid.hWnd = m_hwnd;
 	m_nid.cbSize = sizeof(m_nid);
 	m_nid.uID = IDI_WINVNC;			// never changes after construction
-	m_nid.hIcon = flash ? m_flash_icon : m_winvnc_icon;
+	m_nid.hIcon = m_winvnc_icon;
 	m_nid.uFlags = NIF_ICON | NIF_MESSAGE;
 	m_nid.uCallbackMessage = WM_TRAYNOTIFY;
 
@@ -229,21 +230,13 @@ vncMenu::SendTrayMsg(DWORD msg, BOOL flash)
 	// Try to add the server's IP addresses to the tip string, if possible
 	if (m_nid.uFlags & NIF_TIP)
 	{
-	    strncat(m_nid.szTip, " - ", (sizeof(m_nid.szTip)-1)-strlen(m_nid.szTip));
+	    strncat(m_nid.szTip, " : ", (sizeof(m_nid.szTip)-1)-strlen(m_nid.szTip));
 
-	    if (m_server->SockConnected())
-	    {
-		unsigned long tiplen = strlen(m_nid.szTip);
-		char *tipptr = ((char *)&m_nid.szTip) + tiplen;
-
-		GetIPAddrString(tipptr, sizeof(m_nid.szTip) - tiplen);
-	 		if (m_server->ClientsDisabled())
-				strncat(m_nid.szTip, " (Not listening)", (sizeof(m_nid.szTip)-1)-strlen(m_nid.szTip));
-	    }
-	    else
-	    {
-		strncat(m_nid.szTip, "Not listening", (sizeof(m_nid.szTip)-1)-strlen(m_nid.szTip));
-	    }
+	    if (m_server->AuthClientCount() != 0)
+			strncat(m_nid.szTip, "Connected", (sizeof(m_nid.szTip)-1)-strlen(m_nid.szTip));
+		else
+	    	strncat(m_nid.szTip, "Not Connected", (sizeof(m_nid.szTip)-1)-strlen(m_nid.szTip));
+	    
 	}
 
 	// Send the message
@@ -363,7 +356,7 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 				//_this->m_server->SockConnect(FALSE);
 				_this->m_server->DisableClients(TRUE);
 				CheckMenuItem(_this->m_hmenu, ID_DISABLE_CONN, MF_CHECKED);
-				_this->m_winvnc_icon = _this->m_winvnc_disabled_icon;
+				//_this->m_winvnc_icon = _this->m_winvnc_disabled_icon;
 			}
 			// Update the icon
 			_this->FlashTrayIcon(_this->m_server->AuthClientCount() != 0);
@@ -566,6 +559,11 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 			if (nameDup == 0)
 				return 0;
 
+			vncAcceptReversDlg *newdlg = new vncAcceptReversDlg(_this, name);
+			//if (newdlg)
+			if (!newdlg->DoDialog())
+				return 0;
+		
 			// Attempt to create a new socket
 			VSocket *tmpsock;
 			tmpsock = new VSocket;

@@ -265,20 +265,22 @@ LRESULT CALLBACK CMatchWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, L
 					} 
 		}
 		break;
-
 	case WM_LBUTTONUP: 
-		if (GetCapture() == hWnd)
-        {
-			ReleaseCapture();
-			ClipCursor(NULL);
-			if (pMatchWnd != NULL) {
-				int left, right, top, bottom;
-				pMatchWnd->GetPosition(left, top, right, bottom);
-				if (pMatchWnd->m_pServer != NULL)
-					pMatchWnd->m_pServer->SetMatchSizeFields(left, top, right, bottom);
-			}
-		}
-		break;
+            if (GetCapture()==hWnd)
+            {
+                ReleaseCapture();
+                ClipCursor(NULL);
+				if ( pMatchWnd!=NULL )
+				{
+					int left,right,top,bottom;
+					pMatchWnd->GetPosition(left,top,right,bottom);
+					if (pMatchWnd->m_pServer!=NULL)
+						pMatchWnd->m_pServer->SetMatchSizeFields(left,top,right,bottom);
+				}		
+
+            }
+            break;
+			
 				
 	case WM_PAINT:
 			hdc = BeginPaint(hWnd, &ps);
@@ -311,15 +313,14 @@ LRESULT CALLBACK CMatchWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, L
 			EndPaint(hWnd, &ps);
 		break;
         
-	case WM_WINDOWPOSCHANGED:
-		if (pMatchWnd != NULL && GetCapture() != hWnd &&
-			pMatchWnd->m_pServer->ScreenAreaShared())
-		{
-			int left, right, top, bottom;
-			pMatchWnd->GetPosition(left, top, right, bottom);
-			if (pMatchWnd->m_pServer!=NULL)
-				pMatchWnd->m_pServer->SetMatchSizeFields(left, top, right, bottom);
-		}		
+			case WM_WINDOWPOSCHANGED:
+				if ( pMatchWnd!=NULL && GetCapture()!=hWnd && pMatchWnd->m_pServer->ScreenAreaShared())
+				{
+					int left,right,top,bottom;
+					pMatchWnd->GetPosition(left,top,right,bottom);
+					if (pMatchWnd->m_pServer!=NULL)
+						pMatchWnd->m_pServer->SetMatchSizeFields(left,top,right,bottom);
+				}		
 		break;
 		
 	default:

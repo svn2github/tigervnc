@@ -200,7 +200,7 @@ vncClientThread::InitAuthenticate()
 	}
 
 	// By default we disallow passwordless workstations!
-	if ((strlen(plain) == 0) && m_server->AuthRequired())
+	/*if ((strlen(plain) == 0) && m_server->AuthRequired())
 	{
 		vnclog.Print(LL_CONNERR, VNCLOG("no password specified for server - client rejected\n"));
 
@@ -218,7 +218,7 @@ vncClientThread::InitAuthenticate()
 		m_socket->SendExact(errmsg, strlen(errmsg));
 
 		return FALSE;
-	}
+	}*/
 
 	// By default we filter out local loop connections, because they're pointless
 	// (would like to allow this if "Allow No Password" is pressed on query)
@@ -765,17 +765,20 @@ vncClientThread::run(void *arg)
 					msg.pe.x = Swap16IfLE(msg.pe.x);
 					msg.pe.y = Swap16IfLE(msg.pe.y);
 
-					// If we share only one window...
-					RECT coord;
-					if (m_server->WindowShared()) {
-						GetWindowRect(m_server->GetWindowShared(), &coord);
-						m_server->SetMatchSizeFields(coord.left, coord.top, coord.right, coord.bottom);  
-						coord = m_server->getSharedRect();
+				     // if we share only one window...
+			     	
+					 RECT coord;
+					 if ( m_server->WindowShared() ) {
+						GetWindowRect( m_server->GetWindowShared(), &coord );
+						m_server->SetMatchSizeFields( coord.left, coord.top, coord.right, coord.bottom);  
 					
-						// Put position relative to screen
-						msg.pe.x = msg.pe.x + coord.left;
-						msg.pe.y = msg.pe.y + coord.top;
-					}
+
+					 coord = m_server->getSharedRect();
+					
+					// to put position relative to screen
+					msg.pe.x = msg.pe.x + coord.left;
+					msg.pe.y = msg.pe.y + coord.top;
+				 }
 
 					// Work out the flags for this event
 					DWORD flags = MOUSEEVENTF_ABSOLUTE;
@@ -812,7 +815,7 @@ vncClientThread::run(void *arg)
 					// Generate coordinate values
 			
 					HWND bureau = GetDesktopWindow();
-					GetWindowRect(bureau, &coord);
+					GetWindowRect(bureau,&coord);
 
 					unsigned long x = (msg.pe.x *  65535) / (coord.right - coord.left);
 					unsigned long y = (msg.pe.y * 65535) / (coord.bottom - coord.top);
@@ -1034,7 +1037,7 @@ vncClient::PollWindow(HWND hwnd)
 		{
 			if (m_server->WindowShared()) {
 				GetWindowRect(m_server->GetWindowShared(), &trect);
-				m_server->SetMatchSizeFields(rect.left, rect.top, rect.right, rect.bottom);  
+				m_server->SetMatchSizeFields( rect.left, rect.top, rect.right, rect.bottom);  
 			} 
 				
 			trect = m_server->getSharedRect();
@@ -1045,6 +1048,7 @@ vncClient::PollWindow(HWND hwnd)
 			rect.bottom -= trect.top;
 		}
 		m_changed_rgn.AddRect(rect);
+	
 	}
 }
 
@@ -1101,7 +1105,8 @@ vncClient::TriggerUpdate()
 
 		// Clear the remote event flag
 		m_remoteevent = FALSE;
-
+	
+	
 		// Send an update if one is waiting
 		if (!m_changed_rgn.IsEmpty() ||
 			!m_full_rgn.IsEmpty() ||
@@ -1730,7 +1735,7 @@ vncClient::SetNewDS()
 	m_buffer->EnableLastRect(m_use_lastrect);
 	m_full_rgn.Clear();
 	m_incr_rgn.Clear();
-	// m_changed_rgn.Clear();
+	//m_changed_rgn.Clear();
 	m_full_rgn.AddRect(m_fullscreen);
 	UpdateDesktopSize(FALSE);
 	m_ReadyChangeDS = FALSE;

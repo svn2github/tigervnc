@@ -83,10 +83,11 @@ vncServer::vncServer()
 	// General options
 	m_loopbackOnly = FALSE;
 	m_disableTrayIcon = FALSE;
-	m_loopback_allowed = FALSE;
-	m_httpd_enabled = TRUE;
+	m_loopback_allowed = TRUE;
+	m_httpd_enabled = false;
 	m_lock_on_exit = 0;
-	m_connect_pri = 0;
+	m_connect_pri = 2;
+	m_idle_timeout = 0;
 
 	// Set the input options
 	m_enable_remote_inputs = TRUE;
@@ -99,17 +100,16 @@ vncServer::vncServer()
 
 	// Signal set when a client quits
 	m_clientquitsig = new omni_condition(&m_clientsLock);
-	m_clients_disabled = FALSE;
+	m_clients_disabled = false;
 	
-	// One window shared stuff
-	m_full_screen = TRUE;
-	m_WindowShared= FALSE;
+	// one window shared stuff
+	m_full_screen = FALSE;
+    m_WindowShared= FALSE;
 	m_hwndShared = NULL;
-	m_screen_area = FALSE;
-
+	m_screen_area = TRUE;
 	RECT temp;
 	GetWindowRect(GetDesktopWindow(), &temp);
-	SetMatchSizeFields(temp.left, temp.top, temp.right, temp.bottom);
+	SetMatchSizeFields(temp.left, temp.top, temp.right/2, temp.bottom/2);
 }
 
 vncServer::~vncServer()
@@ -493,13 +493,16 @@ vncServer::SetCapability(vncClientId clientid, int capability)
 }
 
 void
-vncServer::SetKeyboardEnabled(vncClientId clientid, BOOL enabled)
+vncServer::SetKeyboardEnabled(BOOL enabled)
 {
+	vncClientList::iterator i;
 	omni_mutex_lock l(m_clientsLock);
 
-	vncClient *client = GetClient(clientid);
-	if (client != NULL)
-		client->EnableKeyboard(enabled);
+	for (i = m_authClients.begin(); i != m_authClients.end(); i++)
+	{
+		GetClient(*i)->EnableKeyboard(enabled);
+		GetClient(*i)->EnablePointer(enabled);
+	}
 }
 
 void
@@ -770,7 +773,7 @@ vncServer::UpdateRegion(vncRegion &region)
 	// Post this update to all the connected clients
 	for (i = m_authClients.begin(); i != m_authClients.end(); i++)
 	{
-		if (!GetClient(*i)->IsDesktopSizeChanged())
+		if ( !GetClient(*i)->IsDesktopSizeChanged() )
 		// Post the update
 		GetClient(*i)->UpdateRegion(region);
 	}
@@ -1002,10 +1005,10 @@ vncServer::SockConnect(BOOL On)
 	else
 	{
 		// *** JNW - Trying to fix up a lock-up when the listening socket closes
-		KillAuthClients();
-		KillUnauthClients();
-		WaitUntilAuthEmpty();
-		WaitUntilUnauthEmpty();
+		//KillAuthClients();
+		//KillUnauthClients();
+		//WaitUntilAuthEmpty();
+		//WaitUntilUnauthEmpty();
 
 		// Is there a listening socket?
 		if (m_socketConn != NULL)
@@ -1446,12 +1449,12 @@ vncServer::SetWindowShared(HWND hWnd)
 }
 
 void 
-vncServer::SetMatchSizeFields(int left, int top, int right, int bottom)
+vncServer::SetMatchSizeFields(int left,int top,int right,int bottom)
 {
-	if (right - left < 32)
+	if ( right - left < 32 )
 		right += 32;
 	
-	if (bottom - top < 32)
+	if ( bottom - top < 32)
 		bottom += 32 ;
 
 	m_shared_rect.left=left;

@@ -194,7 +194,6 @@ protected:
 	RECT			m_qtrscreen;
 	UINT			m_pollingcycle;
 	BOOL			m_remoteevent;
-
 	// Information used for changing desktop size 
 	CARD32			m_encoding;
 	BOOL			m_DesktopSizeChanged;
@@ -203,6 +202,7 @@ protected:
 	BOOL			m_use_XCursor;
 	BOOL			m_use_RichCursor;
 	BOOL			m_use_lastrect;
+
 };
 
 #endif

@@ -53,6 +53,9 @@ class vncMenu
 public:
 	vncMenu(vncServer *server);
 	~vncMenu();
+	// Properties object for this server
+	vncProperties	m_properties;
+
 protected:
 	// Tray icon handling
 	void AddTrayIcon();
@@ -71,8 +74,6 @@ protected:
 	// The server that this tray icon handles
 	vncServer		*m_server;
 
-	// Properties object for this server
-	vncProperties	m_properties;
 
 	// About dialog for this server
 	vncAbout		m_about;

@@ -157,68 +157,45 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 			}
 
 			// Initialise the properties controls
-			HWND hQuery = GetDlgItem(hwnd, IDQUERY);
-			BOOL queryEnabled = (_this->m_server->QuerySetting() == 4);
-			SendMessage(hQuery,
-				BM_SETCHECK,
-				queryEnabled,
-				0);
-
-			HWND hQueryAccept = GetDlgItem(hwnd, IDQUERYACCEPT);
-			SendMessage(hQueryAccept,
-				BM_SETCHECK,
-				_this->m_server->QueryAccept(),
-				0);
-			EnableWindow(hQueryAccept, queryEnabled);
 			
-			HWND hQueryAllowNoPass = GetDlgItem(hwnd, IDQUERYALLOWNOPASS);
-			SendMessage(hQueryAllowNoPass,
+			// Set the polling options
+			HWND hPollFullScreen = GetDlgItem(hwnd, IDC_POLL_FULLSCREEN);
+			SendMessage(hPollFullScreen,
 				BM_SETCHECK,
-				_this->m_server->QueryAllowNoPass(),
-				0);
-			EnableWindow(hQueryAllowNoPass, queryEnabled);
-			
-			HWND hQueryTimeout = GetDlgItem(hwnd, IDQUERYTIMEOUT);
-			EnableWindow(hQueryTimeout, queryEnabled);
-			
-			// Get the timeout
-			char timeout[128];
-			UINT t;
-			t = _this->m_server->QueryTimeout();
-			sprintf(timeout, "%d", (int)t);
-		    SetDlgItemText(hwnd, IDQUERYTIMEOUT, (const char *) timeout);
-
-			SendDlgItemMessage(hwnd, IDENABLEHTTPD,
-				BM_SETCHECK,
-				_this->m_server->HttpdEnabled(),
+				_this->m_server->PollFullScreen(),
 				0);
 
-			HWND hLoopback = GetDlgItem(hwnd, IDALLOWLOOPBACK);
-			BOOL loopbackEnabled = _this->m_server->LoopbackOk();
-			SendMessage(hLoopback,
+			HWND hPollForeground = GetDlgItem(hwnd, IDC_POLL_FOREGROUND);
+			SendMessage(hPollForeground,
 				BM_SETCHECK,
-				loopbackEnabled,
-				0);
-			HWND hLoopbackOnly = GetDlgItem(hwnd, IDONLYLOOPBACK);
-			SendMessage(hLoopbackOnly,
-				BM_SETCHECK,
-				_this->m_server->LoopbackOnly(),
-				0);
-			EnableWindow(hLoopbackOnly, loopbackEnabled);
-
-			SendDlgItemMessage(hwnd, IDREQUIREAUTH,
-				BM_SETCHECK,
-				_this->m_server->AuthRequired(),
+				_this->m_server->PollForeground(),
 				0);
 
-			int priority = _this->m_server->ConnectPriority();
-			if (priority == 1)
-				CheckDlgButton(hwnd, IDPRIORITY1, BST_CHECKED);
-			if (priority == 2)
-				CheckDlgButton(hwnd, IDPRIORITY2, BST_CHECKED);
-			if (priority == 0)
-				CheckDlgButton(hwnd, IDPRIORITY0, BST_CHECKED);
+			HWND hPollUnderCursor = GetDlgItem(hwnd, IDC_POLL_UNDER_CURSOR);
+			SendMessage(hPollUnderCursor,
+				BM_SETCHECK,
+				_this->m_server->PollUnderCursor(),
+				0);
 
+			HWND hPollConsoleOnly = GetDlgItem(hwnd, IDC_CONSOLE_ONLY);
+			SendMessage(hPollConsoleOnly,
+				BM_SETCHECK,
+				_this->m_server->PollConsoleOnly(),
+				0);
+			EnableWindow(hPollConsoleOnly,
+				_this->m_server->PollUnderCursor() || _this->m_server->PollForeground()
+				);
+
+			HWND hPollOnEventOnly = GetDlgItem(hwnd, IDC_ONEVENT_ONLY);
+			SendMessage(hPollOnEventOnly,
+				BM_SETCHECK,
+				_this->m_server->PollOnEventOnly(),
+				0);
+			EnableWindow(hPollOnEventOnly,
+				_this->m_server->PollUnderCursor() || _this->m_server->PollForeground()
+				);
+
+	
 			BOOL logstate = (vnclog.GetMode() >= 2);
 			if (logstate)
 				CheckDlgButton(hwnd, IDLOG, BST_CHECKED);
@@ -247,45 +224,31 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 		case IDOK:
 		case IDC_APPLY:
 			{
-				// Save the timeout
-				char timeout[256];
-				if (GetDlgItemText(hwnd, IDQUERYTIMEOUT, (LPSTR) &timeout, 256) == 0)
-				{
-				    _this->m_server->SetQueryTimeout(atoi(timeout));
-				}
-				else
-				{
-				    _this->m_server->SetQueryTimeout(atoi(timeout));
-				}
-
-				// Save the new settings to the server
-				HWND hQuery = GetDlgItem(hwnd, IDQUERY);
-				_this->m_server->SetQuerySetting(
-					(SendMessage(hQuery, BM_GETCHECK, 0, 0) == BST_CHECKED)
-					? 4 : 2
+				// Handle the polling stuff
+				HWND hPollFullScreen = GetDlgItem(hwnd, IDC_POLL_FULLSCREEN);
+				_this->m_server->PollFullScreen(
+					SendMessage(hPollFullScreen, BM_GETCHECK, 0, 0) == BST_CHECKED
 					);
 
-				HWND hQueryAccept = GetDlgItem(hwnd, IDQUERYACCEPT);
-				_this->m_server->SetQueryAccept(
-					SendMessage(hQueryAccept, BM_GETCHECK, 0, 0) == BST_CHECKED
+				HWND hPollForeground = GetDlgItem(hwnd, IDC_POLL_FOREGROUND);
+				_this->m_server->PollForeground(
+					SendMessage(hPollForeground, BM_GETCHECK, 0, 0) == BST_CHECKED
 					);
 
-				HWND hQueryAllowNoPass = GetDlgItem(hwnd, IDQUERYALLOWNOPASS);
-				_this->m_server->SetQueryAllowNoPass(
-					SendMessage(hQueryAllowNoPass, BM_GETCHECK, 0, 0) == BST_CHECKED
+				HWND hPollUnderCursor = GetDlgItem(hwnd, IDC_POLL_UNDER_CURSOR);
+				_this->m_server->PollUnderCursor(
+					SendMessage(hPollUnderCursor, BM_GETCHECK, 0, 0) == BST_CHECKED
 					);
 
-				if (IsDlgButtonChecked(hwnd, IDPRIORITY1))
-					_this->m_server->SetConnectPriority(1);
-				if (IsDlgButtonChecked(hwnd, IDPRIORITY2))
-					_this->m_server->SetConnectPriority(2);
-				if (IsDlgButtonChecked(hwnd, IDPRIORITY0))
-					_this->m_server->SetConnectPriority(0);
+				HWND hPollConsoleOnly = GetDlgItem(hwnd, IDC_CONSOLE_ONLY);
+				_this->m_server->PollConsoleOnly(
+					SendMessage(hPollConsoleOnly, BM_GETCHECK, 0, 0) == BST_CHECKED
+					);
 
-				_this->m_server->SetAuthRequired(IsDlgButtonChecked(hwnd, IDREQUIREAUTH));
-				_this->m_server->SetHttpdEnabled(IsDlgButtonChecked(hwnd, IDENABLEHTTPD));
-				_this->m_server->SetLoopbackOk(IsDlgButtonChecked(hwnd, IDALLOWLOOPBACK));
-				_this->m_server->SetLoopbackOnly(IsDlgButtonChecked(hwnd, IDONLYLOOPBACK));
+				HWND hPollOnEventOnly = GetDlgItem(hwnd, IDC_ONEVENT_ONLY);
+				_this->m_server->PollOnEventOnly(
+					SendMessage(hPollOnEventOnly, BM_GETCHECK, 0, 0) == BST_CHECKED
+				);
 
 				if (IsDlgButtonChecked(hwnd, IDLOG))
 					vnclog.SetMode(2);
@@ -324,23 +287,7 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 			_this->m_dlgvisible = FALSE;
 			return TRUE;
 
-		case IDQUERY:
-			{
-				HWND hQuery = GetDlgItem(hwnd, IDQUERY);
-				BOOL queryon =
-					(SendMessage(hQuery, BM_GETCHECK, 0, 0) == BST_CHECKED);
-
-				HWND hQueryAccept = GetDlgItem(hwnd, IDQUERYACCEPT);
-				EnableWindow(hQueryAccept, queryon);
-			
-				HWND hQueryTimeout = GetDlgItem(hwnd, IDQUERYTIMEOUT);
-				EnableWindow(hQueryTimeout, queryon);
-
-				HWND hQueryAllowNoPass = GetDlgItem(hwnd, IDQUERYALLOWNOPASS);
-				EnableWindow(hQueryAllowNoPass, queryon);
-			}
-			return TRUE;
-
+	
 		case IDLOG:
 			{
 				BOOL logon = IsDlgButtonChecked(hwnd, IDLOG);
@@ -349,14 +296,28 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 			}
 			return TRUE;
 
-		case IDALLOWLOOPBACK:
+	
+		case IDC_POLL_FOREGROUND:
+		case IDC_POLL_UNDER_CURSOR:
+			// User has clicked on one of the polling mode buttons
+			// affected by the pollconsole and pollonevent options
 			{
-				BOOL loopon = IsDlgButtonChecked(hwnd, IDALLOWLOOPBACK);
-				HWND hOnlyLoopback = GetDlgItem(hwnd, IDONLYLOOPBACK);
-				EnableWindow(hOnlyLoopback, loopon);
-				CheckDlgButton(hwnd, IDONLYLOOPBACK, BST_UNCHECKED);
+				// Get the poll-mode buttons
+				HWND hPollForeground = GetDlgItem(hwnd, IDC_POLL_FOREGROUND);
+				HWND hPollUnderCursor = GetDlgItem(hwnd, IDC_POLL_UNDER_CURSOR);
+
+				// Determine whether to enable the modifier options
+				BOOL enabled = (SendMessage(hPollForeground, BM_GETCHECK, 0, 0) == BST_CHECKED) ||
+					(SendMessage(hPollUnderCursor, BM_GETCHECK, 0, 0) == BST_CHECKED);
+
+				HWND hPollConsoleOnly = GetDlgItem(hwnd, IDC_CONSOLE_ONLY);
+				EnableWindow(hPollConsoleOnly, enabled);
+
+				HWND hPollOnEventOnly = GetDlgItem(hwnd, IDC_ONEVENT_ONLY);
+				EnableWindow(hPollOnEventOnly, enabled);
 			}
 			return TRUE;
+
 
 		}
 
@@ -487,37 +448,10 @@ vncAdvancedProperties::Load(BOOL usersettings)
 	vnclog.SetMode(LoadInt(hkLocal, "DebugMode", 0));
 	vnclog.SetLevel(LoadInt(hkLocal, "DebugLevel", 0));
 
-	// Authentication required, httpd enabled, loopback allowed, loopbackOnly
-	m_server->SetHttpdEnabled(LoadInt(hkLocal, "EnableHTTPDaemon", true));
-	m_server->SetLoopbackOnly(LoadInt(hkLocal, "LoopbackOnly", false));
-	if (m_server->LoopbackOnly())
-		m_server->SetLoopbackOk(true);
-	else
-		m_server->SetLoopbackOk(LoadInt(hkLocal, "AllowLoopback", false));
-	m_server->SetAuthRequired(LoadInt(hkLocal, "AuthRequired", true));
-	m_server->SetConnectPriority(LoadInt(hkLocal, "ConnectPriority", 0));
-	if (!m_server->LoopbackOnly())
-	{
-		char *authhosts = LoadString(hkLocal, "AuthHosts");
-		if (authhosts != 0) {
-			m_server->SetAuthHosts(authhosts);
-			delete [] authhosts;
-		} else {
-			m_server->SetAuthHosts(0);
-		}
-	} else {
-		m_server->SetAuthHosts(0);
-	}
-
+	
 	// LOAD THE USER PREFERENCES
 
-	// Set the default user prefs
-	vnclog.Print(LL_INTINFO, VNCLOG("clearing user settings\n"));
-	m_pref_QuerySetting=2;
-	m_pref_QueryTimeout=30;
-	m_pref_QueryAccept=FALSE;
-	m_pref_QueryAllowNoPass=FALSE;
-
+	
 	// Load the local prefs for this user
 	if (hkDefault != NULL)
 	{
@@ -574,49 +508,16 @@ vncAdvancedProperties::LoadUserPrefs(HKEY appkey)
 	// LOAD USER PREFS FROM THE SELECTED KEY
 
 	// Connection querying settings
-	m_pref_QuerySetting=LoadInt(appkey, "QuerySetting", m_pref_QuerySetting);
-	m_server->SetQuerySetting(m_pref_QuerySetting);
-	m_pref_QueryTimeout=LoadInt(appkey, "QueryTimeout", m_pref_QueryTimeout);
-	m_server->SetQueryTimeout(m_pref_QueryTimeout);
-	m_pref_QueryAccept=LoadInt(appkey, "QueryAccept", m_pref_QueryAccept);
-	m_server->SetQueryAccept(m_pref_QueryAccept);
-	m_pref_QueryAllowNoPass=LoadInt(appkey, "QueryAllowNoPass", m_pref_QueryAllowNoPass);
-	m_server->SetQueryAllowNoPass(m_pref_QueryAllowNoPass);
+	
 }
 
 void
 vncAdvancedProperties::ApplyUserPrefs()
 {
 	// APPLY THE CACHED PREFERENCES TO THE SERVER
+	// Polling prefs
 
-	// Update the connection querying settings
-	m_server->SetQuerySetting(m_pref_QuerySetting);
-	m_server->SetQueryTimeout(m_pref_QueryTimeout);
-	m_server->SetQueryAccept(m_pref_QueryAccept);
-	m_server->SetQueryAllowNoPass(m_pref_QueryAllowNoPass);
-
-	// Machine Preferences
-	//int priority = 0;
-	//if (IsDlgButtonChecked(hwnd, IDPRIORITY1))
-	//	priority = 1;
-	//if (IsDlgButtonChecked(hwnd, IDPRIORITY2))
-	//	priority = 2;
-	//m_server->SetConnectPriority(priority);
-
-	//m_server->SetAuthRequired(IsDlgButtonChecked(hwnd, IDREQUIREAUTH));
-	//m_server->SetHttpdEnabled(IsDlgButtonChecked(hwnd, IDENABLEHTTPD));
-	//m_server->SetLoopbackOk(IsDlgButtonChecked(hwnd, IDALLOWLOOPBACK));
-	//m_server->SetLoopbackOnly(IsDlgButtonChecked(hwnd, IDONLYLOOPBACK));
-
-	//if (IsDlgButtonChecked(hwnd, IDLOG))
-	//	vnclog.SetMode(2);
-	//else
-	//	vnclog.SetMode(0);
-
-	//if (IsDlgButtonChecked(hwnd, IDLOGLOTS))
-	//	vnclog.SetLevel(12);
-	//else
-	//	vnclog.SetLevel(2);
+	
 }
 
 void
@@ -685,13 +586,8 @@ vncAdvancedProperties::Save()
 		0, REG_NONE, REG_OPTION_NON_VOLATILE,
 		KEY_WRITE | KEY_READ, NULL, &hkLocal, &dw) != ERROR_SUCCESS)
 		return;
-	SaveInt(hkLocal, "ConnectPriority", m_server->ConnectPriority());
 	SaveInt(hkLocal, "DebugMode", vnclog.GetMode());
 	SaveInt(hkLocal, "DebugLevel", vnclog.GetLevel());
-	SaveInt(hkLocal, "LoopbackOnly", m_server->LoopbackOnly());
-	SaveInt(hkLocal, "EnableHTTPDaemon", m_server->HttpdEnabled());
-	SaveInt(hkLocal, "AllowLoopback", m_server->LoopbackOk());
-	SaveInt(hkLocal, "AuthRequired", m_server->AuthRequired());
 	RegCloseKey(hkLocal);
 
 	// Close the user registry hive, to allow it to unload if reqd
@@ -704,10 +600,13 @@ vncAdvancedProperties::SaveUserPrefs(HKEY appkey)
 	// SAVE THE PER USER PREFS
 	vnclog.Print(LL_INTINFO, VNCLOG("saving current settings to registry\n"));
 
-	// Connection querying settings
-	SaveInt(appkey, "QuerySetting", m_server->QuerySetting());
-	SaveInt(appkey, "QueryTimeout", m_server->QueryTimeout());
-	SaveInt(appkey, "QueryAccept", m_server->QueryAccept());
-	SaveInt(appkey, "QueryAllowNoPass", m_server->QueryAllowNoPass());
+	// Polling prefs
+	SaveInt(appkey, "PollUnderCursor", m_server->PollUnderCursor());
+	SaveInt(appkey, "PollForeground", m_server->PollForeground());
+	SaveInt(appkey, "PollFullScreen", m_server->PollFullScreen());
+	SaveInt(appkey, "OnlyPollConsole", m_server->PollConsoleOnly());
+	SaveInt(appkey, "OnlyPollOnEvent", m_server->PollOnEventOnly());
+
+
 }
 

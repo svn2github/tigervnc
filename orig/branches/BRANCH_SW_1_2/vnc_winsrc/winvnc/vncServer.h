@@ -95,7 +95,7 @@ public:
 
 	virtual void SetTeleport(vncClientId client, BOOL teleport);
 	virtual void SetCapability(vncClientId client, int capability);
-	virtual void SetKeyboardEnabled(vncClientId client, BOOL enabled);
+	virtual void SetKeyboardEnabled(BOOL enabled);
 	virtual void SetPointerEnabled(vncClientId client, BOOL enabled);
 
 	virtual BOOL IsTeleport(vncClientId client);

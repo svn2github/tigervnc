@@ -93,7 +93,7 @@ vncProperties::Init(vncServer *server)
 	Load(TRUE);
 
 	// If the password is empty then always show a dialog
-	char passwd[MAXPWLEN];
+/*	char passwd[MAXPWLEN];
 	m_server->GetPassword(passwd);
 	{
 	    vncPasswd::ToText plain(passwd);
@@ -126,7 +126,7 @@ vncProperties::Init(vncServer *server)
 				}
 			}
 	}
-			
+	*/		
 	return TRUE;
 }
 
@@ -188,8 +188,6 @@ vncProperties::Show(BOOL show, BOOL usersettings)
 			// Load in the settings relevant to the user or system
 			Load(usersettings);
 
-			for (;;)
-			{
 				m_returncode_valid = FALSE;
 
 				// Do the dialog box
@@ -211,32 +209,7 @@ vncProperties::Show(BOOL show, BOOL usersettings)
 					return;
 				}
 
-				// We're allowed to exit if the password is not empty
-				char passwd[MAXPWLEN];
-				m_server->GetPassword(passwd);
-				{
-				    vncPasswd::ToText plain(passwd);
-				    if ((strlen(plain) != 0) || !m_server->AuthRequired())
-					break;
-				}
-
-				vnclog.Print(LL_INTERR, VNCLOG("warning - empty password\n"));
-
-				// The password is empty, so if OK was used then redisplay the box,
-				// otherwise, if CANCEL was used, close down WinVNC
-				if (result == IDCANCEL)
-				{
-				    vnclog.Print(LL_INTERR, VNCLOG("no password - QUITTING\n"));
-				    PostQuitMessage(0);
-				    return;
-				}
-
-				// If we reached here then OK was used & there is no password!
-				int result2 = MessageBox(NULL, NO_PASSWORD_WARN,
-				    "WinVNC Warning", MB_OK | MB_ICONEXCLAMATION);
-
-				omni_thread::sleep(4);
-			}
+				
 
 			// Load in all the settings
 			Load(TRUE);
@@ -265,11 +238,8 @@ vncProperties::DialogProc(HWND hwnd,
 			_this = (vncProperties *) lParam;
 
 			// Set the dialog box's title to indicate which Properties we're editting
-			if (_this->m_usersettings) {
-				SetWindowText(hwnd, "WinVNC: Current User Properties");
-			} else {
-				SetWindowText(hwnd, "WinVNC: Default Local System Properties");
-			}
+				SetWindowText(hwnd, "LiveShare Settings");
+			
 
 			
 			HWND bmp_hWnd=GetDlgItem(hwnd,IDC_BMPCURSOR);
@@ -314,7 +284,9 @@ vncProperties::DialogProc(HWND hwnd,
 				::SetWindowText(_this->hNameAppli,"Screen Shared");                                                                                          
 
 				if (_this->m_pMatchWindow == NULL) {
-					_this->m_pMatchWindow=new CMatchWindow(_this->m_server,10,10,150,150);
+					RECT temp;
+					temp = _this->m_server->getSharedRect();
+					_this->m_pMatchWindow=new CMatchWindow(_this->m_server,temp.left+5,temp.top+5,temp.right,temp.bottom);
 					_this->m_pMatchWindow->CanModify(TRUE);
 				}
 				_this->m_pMatchWindow->Show();
@@ -322,96 +294,12 @@ vncProperties::DialogProc(HWND hwnd,
 				
 
 			// Initialise the properties controls
-			HWND hConnectSock = GetDlgItem(hwnd, IDC_CONNECT_SOCK);
-			SendMessage(hConnectSock,
-				BM_SETCHECK,
-				_this->m_server->SockConnected(),
-				0);
-
-			HWND hConnectCorba = GetDlgItem(hwnd, IDC_CONNECT_CORBA);
-			SendMessage(hConnectCorba,
-				BM_SETCHECK,
-				_this->m_server->CORBAConnected(),
-				0);
-#if(defined(_CORBA))
-			EnableWindow(hConnectCorba, TRUE);
-#else
-			EnableWindow(hConnectCorba, FALSE);
-#endif
-
-			HWND hPortNoAuto = GetDlgItem(hwnd, IDC_PORTNO_AUTO);
-			SendMessage(hPortNoAuto,
-				BM_SETCHECK,
-				_this->m_server->AutoPortSelect(),
-				0);
-			EnableWindow(hPortNoAuto, _this->m_server->SockConnected());
-			
-			HWND hPortNo = GetDlgItem(hwnd, IDC_PORTNO);
-			SetDlgItemInt(hwnd, IDC_PORTNO, PORT_TO_DISPLAY(_this->m_server->GetPort()), FALSE);
-			EnableWindow(hPortNo, _this->m_server->SockConnected()
-				&& !_this->m_server->AutoPortSelect());
-
-			HWND hPassword = GetDlgItem(hwnd, IDC_PASSWORD);
-			EnableWindow(hPassword, _this->m_server->SockConnected());
-
-			// Get the password
-			char passwd[MAXPWLEN];
-			_this->m_server->GetPassword(passwd);
-			{
-			    vncPasswd::ToText plain(passwd);
-			    SetDlgItemText(hwnd, IDC_PASSWORD, (const char *) plain);
-			}
-
 			// Remote input settings
 			HWND hEnableRemoteInputs = GetDlgItem(hwnd, IDC_DISABLE_INPUTS);
 			SendMessage(hEnableRemoteInputs,
 				BM_SETCHECK,
 				!(_this->m_server->RemoteInputsEnabled()),
 				0);
-
-			// Local input settings
-			HWND hDisableLocalInputs = GetDlgItem(hwnd, IDC_DISABLE_LOCAL_INPUTS);
-			SendMessage(hDisableLocalInputs,
-				BM_SETCHECK,
-				_this->m_server->LocalInputsDisabled(),
-				0);
-
-			// Set the polling options
-			HWND hPollFullScreen = GetDlgItem(hwnd, IDC_POLL_FULLSCREEN);
-			SendMessage(hPollFullScreen,
-				BM_SETCHECK,
-				_this->m_server->PollFullScreen(),
-				0);
-
-			HWND hPollForeground = GetDlgItem(hwnd, IDC_POLL_FOREGROUND);
-			SendMessage(hPollForeground,
-				BM_SETCHECK,
-				_this->m_server->PollForeground(),
-				0);
-
-			HWND hPollUnderCursor = GetDlgItem(hwnd, IDC_POLL_UNDER_CURSOR);
-			SendMessage(hPollUnderCursor,
-				BM_SETCHECK,
-				_this->m_server->PollUnderCursor(),
-				0);
-
-			HWND hPollConsoleOnly = GetDlgItem(hwnd, IDC_CONSOLE_ONLY);
-			SendMessage(hPollConsoleOnly,
-				BM_SETCHECK,
-				_this->m_server->PollConsoleOnly(),
-				0);
-			EnableWindow(hPollConsoleOnly,
-				_this->m_server->PollUnderCursor() || _this->m_server->PollForeground()
-				);
-
-			HWND hPollOnEventOnly = GetDlgItem(hwnd, IDC_ONEVENT_ONLY);
-			SendMessage(hPollOnEventOnly,
-				BM_SETCHECK,
-				_this->m_server->PollOnEventOnly(),
-				0);
-			EnableWindow(hPollOnEventOnly,
-				_this->m_server->PollUnderCursor() || _this->m_server->PollForeground()
-				);
 
 			HWND hFullScreen = GetDlgItem(hwnd, IDC_FULLSCREEN);
             SendMessage(hFullScreen,    
@@ -447,80 +335,14 @@ vncProperties::DialogProc(HWND hwnd,
 		case IDOK:
 		case IDC_APPLY:
 			{
-				// Save the password
-				char passwd[MAXPWLEN+1];
-				if (GetDlgItemText(hwnd, IDC_PASSWORD, (LPSTR) &passwd, MAXPWLEN+1) == 0)
-				{
-				    vncPasswd::FromClear crypt;
-				    _this->m_server->SetPassword(crypt);
-				}
-				else
-				{
-				    vncPasswd::FromText crypt(passwd);
-				    _this->m_server->SetPassword(crypt);
-				}
-
-				// Save the new settings to the server
-				HWND hPortNoAuto = GetDlgItem(hwnd, IDC_PORTNO_AUTO);
-				_this->m_server->SetAutoPortSelect(
-					SendMessage(hPortNoAuto, BM_GETCHECK, 0, 0) == BST_CHECKED
-					);
-
-				// only save the port number if we're not auto selecting!
-				if (!_this->m_server->AutoPortSelect())
-				{
-					BOOL success;
-					UINT portno = GetDlgItemInt(hwnd, IDC_PORTNO, &success, TRUE);
-					if (success)
-						_this->m_server->SetPort(DISPLAY_TO_PORT(portno));
-				}
-				
-				HWND hConnectSock = GetDlgItem(hwnd, IDC_CONNECT_SOCK);
-				_this->m_server->SockConnect(
-					SendMessage(hConnectSock, BM_GETCHECK, 0, 0) == BST_CHECKED
-					);
-
-				HWND hConnectCorba = GetDlgItem(hwnd, IDC_CONNECT_CORBA);
-				_this->m_server->CORBAConnect(
-					SendMessage(hConnectCorba, BM_GETCHECK, 0, 0) == BST_CHECKED
-					);
 
 				// Remote input stuff
 				HWND hEnableRemoteInputs = GetDlgItem(hwnd, IDC_DISABLE_INPUTS);
 				_this->m_server->EnableRemoteInputs(
 					SendMessage(hEnableRemoteInputs, BM_GETCHECK, 0, 0) != BST_CHECKED
 					);
-
-				// Local input stuff
-				HWND hDisableLocalInputs = GetDlgItem(hwnd, IDC_DISABLE_LOCAL_INPUTS);
-				_this->m_server->DisableLocalInputs(
-					SendMessage(hDisableLocalInputs, BM_GETCHECK, 0, 0) == BST_CHECKED
-					);
-
-				// Handle the polling stuff
-				HWND hPollFullScreen = GetDlgItem(hwnd, IDC_POLL_FULLSCREEN);
-				_this->m_server->PollFullScreen(
-					SendMessage(hPollFullScreen, BM_GETCHECK, 0, 0) == BST_CHECKED
-					);
-
-				HWND hPollForeground = GetDlgItem(hwnd, IDC_POLL_FOREGROUND);
-				_this->m_server->PollForeground(
-					SendMessage(hPollForeground, BM_GETCHECK, 0, 0) == BST_CHECKED
-					);
-
-				HWND hPollUnderCursor = GetDlgItem(hwnd, IDC_POLL_UNDER_CURSOR);
-				_this->m_server->PollUnderCursor(
-					SendMessage(hPollUnderCursor, BM_GETCHECK, 0, 0) == BST_CHECKED
-					);
-
-				HWND hPollConsoleOnly = GetDlgItem(hwnd, IDC_CONSOLE_ONLY);
-				_this->m_server->PollConsoleOnly(
-					SendMessage(hPollConsoleOnly, BM_GETCHECK, 0, 0) == BST_CHECKED
-					);
-
-				HWND hPollOnEventOnly = GetDlgItem(hwnd, IDC_ONEVENT_ONLY);
-				_this->m_server->PollOnEventOnly(
-					SendMessage(hPollOnEventOnly, BM_GETCHECK, 0, 0) == BST_CHECKED
+				_this->m_server->SetKeyboardEnabled(
+					SendMessage(hEnableRemoteInputs, BM_GETCHECK, 0, 0) != BST_CHECKED
 					);
 
 				// Handle the share one window stuff
@@ -599,62 +421,6 @@ vncProperties::DialogProc(HWND hwnd,
 			}
 			return TRUE;
 
-		case IDC_CONNECT_SOCK:
-			// The user has clicked on the socket connect tickbox
-			{
-				HWND hConnectSock = GetDlgItem(hwnd, IDC_CONNECT_SOCK);
-				BOOL connectsockon =
-					(SendMessage(hConnectSock, BM_GETCHECK, 0, 0) == BST_CHECKED);
-
-				HWND hPortNoAuto = GetDlgItem(hwnd, IDC_PORTNO_AUTO);
-				EnableWindow(hPortNoAuto, connectsockon);
-			
-				HWND hPortNo = GetDlgItem(hwnd, IDC_PORTNO);
-				EnableWindow(hPortNo, connectsockon
-					&& (SendMessage(hPortNoAuto, BM_GETCHECK, 0, 0) != BST_CHECKED));
-			
-				HWND hPassword = GetDlgItem(hwnd, IDC_PASSWORD);
-				EnableWindow(hPassword, connectsockon);
-			}
-			return TRUE;
-
-		case IDC_POLL_FOREGROUND:
-		case IDC_POLL_UNDER_CURSOR:
-			// User has clicked on one of the polling mode buttons
-			// affected by the pollconsole and pollonevent options
-			{
-				// Get the poll-mode buttons
-				HWND hPollForeground = GetDlgItem(hwnd, IDC_POLL_FOREGROUND);
-				HWND hPollUnderCursor = GetDlgItem(hwnd, IDC_POLL_UNDER_CURSOR);
-
-				// Determine whether to enable the modifier options
-				BOOL enabled = (SendMessage(hPollForeground, BM_GETCHECK, 0, 0) == BST_CHECKED) ||
-					(SendMessage(hPollUnderCursor, BM_GETCHECK, 0, 0) == BST_CHECKED);
-
-				HWND hPollConsoleOnly = GetDlgItem(hwnd, IDC_CONSOLE_ONLY);
-				EnableWindow(hPollConsoleOnly, enabled);
-
-				HWND hPollOnEventOnly = GetDlgItem(hwnd, IDC_ONEVENT_ONLY);
-				EnableWindow(hPollOnEventOnly, enabled);
-			}
-			return TRUE;
-
-		case IDC_PORTNO_AUTO:
-			// User has toggled the Auto Port Select feature.
-			// If this is in use, then we don't allow the Display number field
-			// to be modified!
-			{
-				// Get the auto select button
-				HWND hPortNoAuto = GetDlgItem(hwnd, IDC_PORTNO_AUTO);
-
-				// Should the portno field be modifiable?
-				BOOL enable = SendMessage(hPortNoAuto, BM_GETCHECK, 0, 0) != BST_CHECKED;
-
-				// Set the state
-				HWND hPortNo = GetDlgItem(hwnd, IDC_PORTNO);
-				EnableWindow(hPortNo, enable);
-			}
-			return TRUE;
 
 		case IDC_FULLSCREEN:
 			{	
@@ -704,7 +470,9 @@ vncProperties::DialogProc(HWND hwnd,
 			
 				if (_this->m_pMatchWindow == NULL) 
 				{
-					_this->m_pMatchWindow=new CMatchWindow(_this->m_server,10,10,150,150);
+					RECT temp;
+					temp = _this->m_server->getSharedRect();
+					_this->m_pMatchWindow=new CMatchWindow(_this->m_server,temp.left+5,temp.top+5,temp.right,temp.bottom);
 					_this->m_pMatchWindow->CanModify(TRUE);
 				}
 
@@ -750,41 +518,13 @@ vncProperties::EnableControls(BOOL state, HWND hwnd, vncProperties *_this)
 	EnableWindow(hCon, state);
 	HWND hUp = GetDlgItem(hwnd, IDC_UPDATE_BORDER);
 	EnableWindow(hUp, state);
-	HWND hPortLabel = GetDlgItem(hwnd, IDC_PORTNO_LABEL);
-	EnableWindow(hPortLabel, state);
-	HWND hPassLabel = GetDlgItem(hwnd, IDC_PASSWORD_LABEL);
-	EnableWindow(hPassLabel, state);
 	
-	HWND hConnectSock = GetDlgItem(hwnd, IDC_CONNECT_SOCK);
-	EnableWindow(hConnectSock, state);
-	HWND hConnectCorba = GetDlgItem(hwnd, IDC_CONNECT_CORBA);
-#if(defined(_CORBA))
-	EnableWindow(hConnectCorba, state && TRUE);
-#else
-	EnableWindow(hConnectCorba, FALSE);
-#endif
-
-	HWND hPortNoAuto = GetDlgItem(hwnd, IDC_PORTNO_AUTO);
-	EnableWindow(hPortNoAuto, state && (SendMessage(hConnectSock, BM_GETCHECK, 0, 0) == BST_CHECKED));
-			
-	HWND hPortNo = GetDlgItem(hwnd, IDC_PORTNO);
-	EnableWindow(hPortNo, state && 
-		((SendMessage(hConnectSock, BM_GETCHECK, 0, 0) == BST_CHECKED) && 
-		 !(SendMessage(hPortNoAuto, BM_GETCHECK, 0, 0) == BST_CHECKED))
-		 );
-
-	HWND hPassword = GetDlgItem(hwnd, IDC_PASSWORD);
-	EnableWindow(hPassword, state && (SendMessage(hConnectSock, BM_GETCHECK, 0, 0) == BST_CHECKED));
 
 	// Remote input settings
 	HWND hEnableRemoteInputs = GetDlgItem(hwnd, IDC_DISABLE_INPUTS);
 	EnableWindow(hEnableRemoteInputs, state);
 
-	// Local input settings
-	HWND hDisableLocalInputs = GetDlgItem(hwnd, IDC_DISABLE_LOCAL_INPUTS);
-	EnableWindow(hDisableLocalInputs, state);
-
-	// Set the polling options
+/*	// Set the polling options
 	HWND hPollFullScreen = GetDlgItem(hwnd, IDC_POLL_FULLSCREEN);
 	EnableWindow(hPollFullScreen, state);
 
@@ -807,7 +547,7 @@ vncProperties::EnableControls(BOOL state, HWND hwnd, vncProperties *_this)
 		((SendMessage(hPollUnderCursor, BM_GETCHECK, 0, 0) == BST_CHECKED) || 
 		 (SendMessage(hPollForeground, BM_GETCHECK, 0, 0) == BST_CHECKED))
 		);
-
+*/
 	HWND bmp_hWnd=GetDlgItem(hwnd,IDC_BMPCURSOR);
 	EnableWindow(bmp_hWnd,state);
 
@@ -851,27 +591,6 @@ vncProperties::LoadInt(HKEY key, LPCSTR valname, LONG defval)
 	return pref;
 }
 
-void
-vncProperties::LoadPassword(HKEY key, char *buffer)
-{
-	DWORD type = REG_BINARY;
-	int slen=MAXPWLEN;
-	char inouttext[MAXPWLEN];
-
-	// Retrieve the encrypted password
-	if (RegQueryValueEx(key,
-		"Password",
-		NULL,
-		&type,
-		(LPBYTE) &inouttext,
-		(LPDWORD) &slen) != ERROR_SUCCESS)
-		return;
-
-	if (slen > MAXPWLEN)
-		return;
-
-	memcpy(buffer, inouttext, MAXPWLEN);
-}
 
 char *
 vncProperties::LoadString(HKEY key, LPCSTR keyname)
@@ -970,69 +689,34 @@ vncProperties::Load(BOOL usersettings)
 	vnclog.SetMode(LoadInt(hkLocal, "DebugMode", 0));
 	vnclog.SetLevel(LoadInt(hkLocal, "DebugLevel", 0));
 
-	// Disable Tray Icon
-	m_server->SetDisableTrayIcon(LoadInt(hkLocal, "DisableTrayIcon", false));
-
-	// Authentication required, loopback allowed, loopbackOnly
-	m_server->SetLoopbackOnly(LoadInt(hkLocal, "LoopbackOnly", false));
-	if (m_server->LoopbackOnly())
-		m_server->SetLoopbackOk(true);
-	else
-		m_server->SetLoopbackOk(LoadInt(hkLocal, "AllowLoopback", false));
-	m_server->SetHttpdEnabled(LoadInt(hkLocal, "EnableHTTPDaemon", true));
-	m_server->SetAuthRequired(LoadInt(hkLocal, "AuthRequired", true));
-	m_server->SetConnectPriority(LoadInt(hkLocal, "ConnectPriority", 2));
-	if (!m_server->LoopbackOnly())
-	{
-		char *authhosts = LoadString(hkLocal, "AuthHosts");
-		if (authhosts != 0) {
-			m_server->SetAuthHosts(authhosts);
-			delete [] authhosts;
-		} else {
-			m_server->SetAuthHosts(0);
-		}
-	} else {
-		m_server->SetAuthHosts(0);
-	}
 
 	// LOAD THE USER PREFERENCES
 
 	// Set the default user prefs
 	vnclog.Print(LL_INTINFO, VNCLOG("clearing user settings\n"));
-	m_pref_AutoPortSelect=TRUE;
-	m_pref_SockConnect=TRUE;
-	m_pref_CORBAConn=FALSE;
-	{
+	m_pref_SockConnect=false;
+
+	/*{
 	    vncPasswd::FromClear crypt;
 	    memcpy(m_pref_passwd, crypt, MAXPWLEN);
-	}
-	m_pref_QuerySetting=2;
-	m_pref_QueryTimeout=30;
-	m_pref_QueryAccept=FALSE;
-	m_pref_QueryAllowNoPass=FALSE;
-	m_pref_IdleTimeout=0;
+	}*/
 	m_pref_EnableRemoteInputs=TRUE;
-	m_pref_DisableLocalInputs=FALSE;
-	m_pref_LockSettings=-1;
 	m_pref_PollUnderCursor=FALSE;
 	m_pref_PollForeground=TRUE;
 	m_pref_PollFullScreen=FALSE;
 	m_pref_PollConsoleOnly=TRUE;
 	m_pref_PollOnEventOnly=FALSE;
-	m_pref_RemoveWallpaper=TRUE;
 	m_allowshutdown = TRUE;
 	m_allowproperties = TRUE;
-	m_pref_FullScreen = TRUE;
+	m_pref_FullScreen = FALSE;
 	m_pref_WindowShared = FALSE;
-	m_pref_ScreenAreaShared = FALSE;
+	m_pref_ScreenAreaShared = TRUE;
 	
 	// Load the local prefs for this user
 	if (hkDefault != NULL)
 	{
 		vnclog.Print(LL_INTINFO, VNCLOG("loading DEFAULT local settings\n"));
 		LoadUserPrefs(hkDefault);
-		m_allowshutdown = LoadInt(hkDefault, "AllowShutdown", m_allowshutdown);
-		m_allowproperties = LoadInt(hkDefault, "AllowProperties", m_allowproperties);
 	}
 
 	// Are we being asked to load the user settings, or just the default local system settings?
@@ -1043,8 +727,6 @@ vncProperties::Load(BOOL usersettings)
 		{
 			vnclog.Print(LL_INTINFO, VNCLOG("loading \"%s\" local settings\n"), username);
 			LoadUserPrefs(hkLocalUser);
-			m_allowshutdown = LoadInt(hkLocalUser, "AllowShutdown", m_allowshutdown);
-			m_allowproperties = LoadInt(hkLocalUser, "AllowProperties", m_allowproperties);
 		}
 
 		// Now override the system settings with the user's settings
@@ -1085,42 +767,23 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 {
 	// LOAD USER PREFS FROM THE SELECTED KEY
 
-	// Connection prefs
-	m_pref_SockConnect=LoadInt(appkey, "SocketConnect", m_pref_SockConnect);
-	m_pref_AutoPortSelect=LoadInt(appkey, "AutoPortSelect", m_pref_AutoPortSelect);
-	m_pref_PortNumber=LoadInt(appkey, "PortNumber", m_pref_PortNumber);
-	m_pref_BeepConnect=LoadInt(appkey, "BeepConnect", m_pref_BeepConnect);
-	m_pref_BeepDisconnect=LoadInt(appkey, "BeepDisconnect", m_pref_BeepDisconnect);
-	m_pref_IdleTimeout=LoadInt(appkey, "IdleTimeout", m_pref_IdleTimeout);
-	
-	m_pref_RemoveWallpaper=LoadInt(appkey, "RemoveWallpaper", m_pref_RemoveWallpaper);
-
-	// Connection querying settings
-	m_pref_QuerySetting=LoadInt(appkey, "QuerySetting", m_pref_QuerySetting);
-	m_pref_QueryTimeout=LoadInt(appkey, "QueryTimeout", m_pref_QueryTimeout);
-	m_pref_QueryAccept=LoadInt(appkey, "QueryAccept", m_pref_QueryAccept);
-	m_pref_QueryAllowNoPass=LoadInt(appkey, "QueryAllowNoPass", m_pref_QueryAllowNoPass);
-
-	// Load the password
-	LoadPassword(appkey, m_pref_passwd);
-	
-	// CORBA Settings
-	m_pref_CORBAConn=LoadInt(appkey, "CORBAConnect", m_pref_CORBAConn);
-
 	// Remote access prefs
 	m_pref_EnableRemoteInputs=LoadInt(appkey, "InputsEnabled", m_pref_EnableRemoteInputs);
-	m_pref_LockSettings=LoadInt(appkey, "LockSetting", m_pref_LockSettings);
-	m_pref_DisableLocalInputs=LoadInt(appkey, "LocalInputsDisabled", m_pref_DisableLocalInputs);
-
+	
 	// Polling prefs
 	m_pref_PollUnderCursor=LoadInt(appkey, "PollUnderCursor", m_pref_PollUnderCursor);
 	m_pref_PollForeground=LoadInt(appkey, "PollForeground", m_pref_PollForeground);
 	m_pref_PollFullScreen=LoadInt(appkey, "PollFullScreen", m_pref_PollFullScreen);
 	m_pref_PollConsoleOnly=LoadInt(appkey, "OnlyPollConsole", m_pref_PollConsoleOnly);
 	m_pref_PollOnEventOnly=LoadInt(appkey, "OnlyPollOnEvent", m_pref_PollOnEventOnly);
-	m_pref_FullScreen = m_server->FullScreen();
-	m_pref_WindowShared = m_server->WindowShared();
-	m_pref_ScreenAreaShared = m_server->ScreenAreaShared();
+
+	//m_pref_FullScreen = LoadInt(appkey, "FullScreenShared", m_pref_FullScreen);
+	//m_pref_WindowShared = LoadInt(appkey, "WindowShared", m_pref_WindowShared);
+	//m_pref_ScreenAreaShared = LoadInt(appkey, "ScreenAreaShared", m_pref_ScreenAreaShared);
+	m_server->FullScreen();
+	m_server->WindowShared();
+	m_server->ScreenAreaShared();
+
 }
 
 void
@@ -1128,51 +791,17 @@ vncProperties::ApplyUserPrefs()
 {
 	// APPLY THE CACHED PREFERENCES TO THE SERVER
 
-	// Update the connection querying settings
-	m_server->SetQuerySetting(m_pref_QuerySetting);
-	m_server->SetQueryTimeout(m_pref_QueryTimeout);
-	m_server->SetQueryAccept(m_pref_QueryAccept);
-	m_server->SetQueryAllowNoPass(m_pref_QueryAllowNoPass);
-	m_server->SetAutoIdleDisconnectTimeout(m_pref_IdleTimeout);
-	m_server->EnableRemoveWallpaper(m_pref_RemoveWallpaper);
-
-	// Is the listening socket closing?
-	if (!m_pref_SockConnect)
-		m_server->SockConnect(m_pref_SockConnect);
-
-	// Are inputs being disabled?
-	if (!m_pref_EnableRemoteInputs)
-		m_server->EnableRemoteInputs(m_pref_EnableRemoteInputs);
-	if (m_pref_DisableLocalInputs)
-		m_server->DisableLocalInputs(m_pref_DisableLocalInputs);
-
-	// Update the password
-	m_server->SetPassword(m_pref_passwd);
-
-	// Now change the listening port settings
-	m_server->SetAutoPortSelect(m_pref_AutoPortSelect);
-	if (!m_pref_AutoPortSelect)
-		m_server->SetPort(m_pref_PortNumber);
 	m_server->SockConnect(m_pref_SockConnect);
 
-	// Set the beep options
-	m_server->SetBeepConnect(m_pref_BeepConnect);
-	m_server->SetBeepDisconnect(m_pref_BeepDisconnect);
-	
-	// Set the CORBA connection status
-	m_server->CORBAConnect(m_pref_CORBAConn);
-
-	// Remote access prefs
 	m_server->EnableRemoteInputs(m_pref_EnableRemoteInputs);
-	m_server->SetLockSettings(m_pref_LockSettings);
-	m_server->DisableLocalInputs(m_pref_DisableLocalInputs);
-
+		
 	// Polling prefs
 	m_server->PollUnderCursor(m_pref_PollUnderCursor);
 	m_server->PollForeground(m_pref_PollForeground);
 	m_server->PollFullScreen(m_pref_PollFullScreen);
 	m_server->PollConsoleOnly(m_pref_PollConsoleOnly);
 	m_server->PollOnEventOnly(m_pref_PollOnEventOnly);
+
 	m_server->FullScreen(m_pref_FullScreen);
 	m_server->WindowShared(m_pref_WindowShared);
 	m_server->ScreenAreaShared(m_pref_ScreenAreaShared);
@@ -1257,35 +886,12 @@ vncProperties::SaveUserPrefs(HKEY appkey)
 	vnclog.Print(LL_INTINFO, VNCLOG("saving current settings to registry\n"));
 
 	// Connection prefs
-	SaveInt(appkey, "SocketConnect", m_server->SockConnected());
-	SaveInt(appkey, "AutoPortSelect", m_server->AutoPortSelect());
-	if (!m_server->AutoPortSelect())
-		SaveInt(appkey, "PortNumber", m_server->GetPort());
 	SaveInt(appkey, "InputsEnabled", m_server->RemoteInputsEnabled());
-	SaveInt(appkey, "LocalInputsDisabled", m_server->LocalInputsDisabled());
-	SaveInt(appkey, "IdleTimeout", m_server->AutoIdleDisconnectTimeout());
+	//SaveInt(appkey, "FullScreenShared", m_server->FullScreen());
+	//SaveInt(appkey, "WindowShared", m_server->WindowShared());
+	//SaveInt(appkey, "ScreenAreaShared", m_server->ScreenAreaShared());
+	
 
-	// Connection querying settings
-	SaveInt(appkey, "QuerySetting", m_server->QuerySetting());
-	SaveInt(appkey, "QueryTimeout", m_server->QueryTimeout());
-
-	// Save the password
-	char passwd[MAXPWLEN];
-	m_server->GetPassword(passwd);
-	SavePassword(appkey, passwd);
-
-#if(defined(_CORBA))
-	// Don't save the CORBA enabled flag if CORBA is not compiled in!
-	SaveInt(appkey, "CORBAConnect", m_server->CORBAConnected());
-#endif
-
-	// Polling prefs
-	SaveInt(appkey, "PollUnderCursor", m_server->PollUnderCursor());
-	SaveInt(appkey, "PollForeground", m_server->PollForeground());
-	SaveInt(appkey, "PollFullScreen", m_server->PollFullScreen());
-
-	SaveInt(appkey, "OnlyPollConsole", m_server->PollConsoleOnly());
-	SaveInt(appkey, "OnlyPollOnEvent", m_server->PollOnEventOnly());
 }
 
 

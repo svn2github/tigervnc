@@ -31,6 +31,7 @@
 #define IDB_BITMAP3                     142
 #define IDR_SCHEDULER_CLASS             143
 #define IDR_MUTEX_CLASS                 144
+#define IDD_ACCEPT_REVERS               148
 #define IDC_CONNECT_BORDER              1003
 #define IDC_CONNECT_SOCK                1004
 #define IDC_CONNECT_CORBA               1005
@@ -91,6 +92,8 @@
 #define IDC_WINDOW                      1061
 #define IDC_SCREEN                      1062
 #define IDC_FULLSCREEN                  1063
+#define IDC_STATIC_TEXT2                1063
+#define IDSETTINGS                      1064
 #define ID_PROPERTIES                   40001
 #define ID_CLOSE                        40002
 #define ID_KILLCLIENTS                  40003
@@ -103,9 +106,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        145
+#define _APS_NEXT_RESOURCE_VALUE        149
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1064
+#define _APS_NEXT_CONTROL_VALUE         1065
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -93,9 +93,9 @@ BOOL vncService::GetNoSettings()
 #endif
 
 
-// CurrentUser - fills a buffer with the name of the current user!
+// GetCurrentUser - fills a buffer with the name of the current user!
 BOOL
-vncService::CurrentUser(char *buffer, UINT size)
+vncService::GetCurrentUser(char *buffer, UINT size)
 {
 	// How to obtain the name of the current user depends upon the OS being used
 	if ((g_platform_id == VER_PLATFORM_WIN32_NT) && vncService::RunningAsService())
@@ -178,6 +178,16 @@ vncService::CurrentUser(char *buffer, UINT size)
 
 	// OS was not recognised!
 	return FALSE;
+}
+
+BOOL
+vncService::CurrentUser(char *buffer, UINT size)
+{
+  BOOL result = GetCurrentUser(buffer, size);
+  if (result && (strcmp(buffer, "") == 0) && !vncService::RunningAsService()) {
+    strncpy(buffer, "Default", size);
+  }
+  return result;
 }
 
 // IsWin95 - returns a BOOL indicating whether the current OS is Win95
@@ -566,12 +576,14 @@ vncService::PostUserHelperMessage()
 	DWORD processId = GetCurrentProcessId();
 
 	// - Post it to the existing WinVNC
-	if (!PostToWinVNC(MENU_SERVICEHELPER_MSG, 0, (LPARAM)processId))
-		return FALSE;
+	int retries = 6;
+	while (!PostToWinVNC(MENU_SERVICEHELPER_MSG, 0, (LPARAM)processId) && retries--)
+		omni_thread::sleep(10);
 
 	// - Wait until it's been used
 	omni_thread::sleep(5);
-	return TRUE;
+
+	return retries;
 }
 
 // ROUTINE TO PROCESS AN INCOMING INSTANCE OF THE ABOVE MESSAGE

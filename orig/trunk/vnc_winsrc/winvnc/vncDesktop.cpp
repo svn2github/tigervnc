@@ -248,7 +248,7 @@ vncDesktopThread::run_undetached(void *arg)
 
 			// TRIGGER THE UPDATE
 
-			//Update screen size if required
+			// Update screen size if required
 	
 			RECT old_rect, new_rect;
 
@@ -268,11 +268,11 @@ vncDesktopThread::run_undetached(void *arg)
 				bool sendnewfb = false;
 
 				if ( old_rect.right - old_rect.left != new_rect.right - new_rect.left ||
-					old_rect.bottom - old_rect.top != new_rect.bottom - new_rect.top ) 
+					 old_rect.bottom - old_rect.top != new_rect.bottom - new_rect.top ) 
 				{
 					sendnewfb = true;
-					m_desktop->m_qtrscreen.right = (new_rect.right-new_rect.left)/2;
-					m_desktop->m_qtrscreen.bottom = (new_rect.bottom - new_rect.top) /2;
+					m_desktop->m_qtrscreen.right = (new_rect.right - new_rect.left) / 2;
+					m_desktop->m_qtrscreen.bottom = (new_rect.bottom - new_rect.top) / 2;
 				}
 
 				m_server->SetNewFBSize(sendnewfb);
@@ -291,49 +291,17 @@ vncDesktopThread::run_undetached(void *arg)
 				}
 			}
 
+			// If we have incremental update requests
 			if (m_server->IncrRgnRequested()) {
-				// Use videodriver if we have 
+
+				// Use either a mirror video driver, or perform polling
 				if (m_desktop->m_videodriver != NULL) {
 					if (m_desktop->m_videodriver->driver)
 						m_desktop->HandleDriverChanges();
 				} else {
-					// Perform polling
 					if (m_server->GetPollingFlag() || m_desktop->m_polling_phase != 0) {
 						m_server->SetPollingFlag(false);
-
-						// Request update for all parts of screen
-						if (m_desktop->m_polling_phase != 3)
-							m_desktop->RequestUpdate();
-
-						RECT rect;
-						rect.left = (m_desktop->m_polling_phase % 2) * m_desktop->m_qtrscreen.right+old_rect.left;
-						rect.right = rect.left + m_desktop->m_qtrscreen.right;
-						rect.top = (m_desktop->m_polling_phase / 2) * m_desktop->m_qtrscreen.bottom+old_rect.top;
-						rect.bottom = rect.top + m_desktop->m_qtrscreen.bottom;
-
-						if (m_server->PollFullScreen())	{
-							// Polling full screen
-							m_desktop->m_changed_rgn.AddRect(rect);
-						} else {
-							// Polling a window
-							if (m_server->PollForeground())	{
-								// Get the window rectangle for the currently selected window
-								HWND hwnd = GetForegroundWindow();
-								if (hwnd != NULL)
-									m_desktop->PollWindow(hwnd, rect);
-							}
-							if (m_server->PollUnderCursor()) {
-								// Find the mouse position
-								POINT mousepos;
-								if (GetCursorPos(&mousepos)) {
-									// Find the window under the mouse
-									HWND hwnd = WindowFromPoint(mousepos);
-									if (hwnd != NULL)
-										m_desktop->PollWindow(hwnd, rect);
-								}
-							}
-						}
-						m_desktop->m_polling_phase = (m_desktop->m_polling_phase + 1) % 4;
+						m_desktop->PerformPolling();
 					}
 				}
 
@@ -2258,6 +2226,46 @@ vncDesktop::HandleDriverChanges()
 
 	m_videodriver->oldaantal = counter;
 	return TRUE;
+}
+
+void
+vncDesktop::PerformPolling()
+{
+	// Request update for all parts of screen
+	if (m_polling_phase != 3)
+		RequestUpdate();
+
+	RECT full_rect = m_server->GetSharedRect();
+
+	RECT rect;
+	rect.left = (m_polling_phase % 2) * m_qtrscreen.right + full_rect.left;
+	rect.right = rect.left + m_qtrscreen.right;
+	rect.top = (m_polling_phase / 2) * m_qtrscreen.bottom + full_rect.top;
+	rect.bottom = rect.top + m_qtrscreen.bottom;
+
+	if (m_server->PollFullScreen())	{
+		// Poll full screen
+		m_changed_rgn.AddRect(rect);
+	} else {
+		// Poll a window
+		if (m_server->PollForeground())	{
+			// Get the window rectangle for the currently selected window
+			HWND hwnd = GetForegroundWindow();
+			if (hwnd != NULL)
+				PollWindow(hwnd, rect);
+		}
+		if (m_server->PollUnderCursor()) {
+			// Find the mouse position
+			POINT mousepos;
+			if (GetCursorPos(&mousepos)) {
+				// Find the window under the mouse
+				HWND hwnd = WindowFromPoint(mousepos);
+				if (hwnd != NULL)
+					PollWindow(hwnd, rect);
+			}
+		}
+	}
+	m_polling_phase = (m_polling_phase + 1) % 4;
 }
 
 void

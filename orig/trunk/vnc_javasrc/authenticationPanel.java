@@ -84,6 +84,23 @@ class authenticationPanel extends Panel {
   }
 
   //
+  // Override Component.show() to get the focus set properly.
+  //
+
+  public void show() {
+    password.requestFocus();
+    super.show();
+  }
+
+  //
+  // Get reference to password text field object.
+  //
+
+  public TextField getPasswordField() {
+    return password;
+  }
+
+  //
   // action() is called when a button is pressed or return is pressed in the
   // password text field.
   //

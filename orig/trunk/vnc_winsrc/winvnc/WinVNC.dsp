@@ -324,30 +324,6 @@ SOURCE=.\vncDesktop.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\vncDesktopDX.cpp
-
-!IF  "$(CFG)" == "WinVNC - Win32 Release"
-
-# PROP Exclude_From_Build 1
-
-!ELSEIF  "$(CFG)" == "WinVNC - Win32 Debug"
-
-# PROP Exclude_From_Build 1
-
-!ELSEIF  "$(CFG)" == "WinVNC - Win32 Profile"
-
-# PROP Exclude_From_Build 1
-
-!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
-
-# PROP BASE Exclude_From_Build 1
-# PROP Exclude_From_Build 1
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
 SOURCE=.\vncEncodeCoRRE.cpp
 # End Source File
 # Begin Source File

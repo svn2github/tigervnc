@@ -4,6 +4,7 @@
 
 #include "IncomingConnectionsControls.h"
 #include "WinVNC.h"
+
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -120,8 +121,8 @@ void IncomingConnectionsControls::Apply()
 				if (ok1 && ok2)
 					m_server->SetPorts(port_rfb, port_http);
 			} else {
-				MessageBox(NULL, "WARNING:RFB and HTTP ports should be different",
-							szAppName, MB_ICONEXCLAMATION | MB_OK);
+				MessageBox(NULL, "Warning: RFB and HTTP ports should be different",
+						   szAppName, MB_ICONEXCLAMATION | MB_OK);
 			}
 		}
 	}

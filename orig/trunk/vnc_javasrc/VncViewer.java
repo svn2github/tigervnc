@@ -63,7 +63,7 @@ public class VncViewer extends java.applet.Applet
   AuthPanel authenticator;
   VncCanvas vc;
   OptionsFrame options;
-  RecordingFrame recording;
+  RecordingFrame rec;
   ClipboardFrame clipboard;
 
   // Variables read from parameter values.
@@ -98,7 +98,7 @@ public class VncViewer extends java.applet.Applet
     }
 
     options = new OptionsFrame(this);
-    recording = new RecordingFrame(this);
+    rec = new RecordingFrame(this);
     clipboard = new ClipboardFrame(this);
     authenticator = new AuthPanel();
 
@@ -448,6 +448,28 @@ public class VncViewer extends java.applet.Applet
 
 
   //
+  // Start session recording.
+  // FIXME: It's a temporary hack.
+  //
+
+  void startRecording(String fname) {
+    sessionFileName = fname;
+    options.choices[options.cursorUpdatesIndex].select("Disable");
+    options.setEncodings();
+    options.choices[options.eightBitColorsIndex].select("No");
+    options.setColorFormat();
+  }
+
+  //
+  // Stop session recording.
+  // FIXME: It's a temporary hack.
+  //
+
+  void stopRecording() {
+    sessionFileName = null;
+  }
+
+  //
   // readParameters() - read parameters from the html source or from the
   // command line.  On the command line, the arguments are just a sequence of
   // param_name/param_value pairs where the names and values correspond to
@@ -561,7 +583,7 @@ public class VncViewer extends java.applet.Applet
     }
     System.out.println("Disconnect");
     options.dispose();
-    recording.dispose();
+    rec.dispose();
     clipboard.dispose();
 
     if (inAnApplet) {
@@ -617,7 +639,7 @@ public class VncViewer extends java.applet.Applet
   public void destroy() {
     vncContainer.removeAll();
     options.dispose();
-    recording.dispose();
+    rec.dispose();
     clipboard.dispose();
     if (rfb != null) {
       rfb.close();

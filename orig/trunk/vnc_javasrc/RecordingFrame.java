@@ -217,6 +217,8 @@ class RecordingFrame extends Frame
     recordButton.setLabel("Stop recording");
 
     recording = true;
+
+    viewer.startRecording(fnameField.getText());
   }
 
   //
@@ -230,6 +232,8 @@ class RecordingFrame extends Frame
     recordButton.setLabel("Record");
 
     recording = false;
+
+    viewer.stopRecording();
   }
 
   //

@@ -118,7 +118,7 @@ class ButtonPanel extends Panel implements ActionListener {
       viewer.options.setVisible(!viewer.options.isVisible());
 
     } else if (evt.getSource() == recordButton) {
-      viewer.recording.setVisible(!viewer.recording.isVisible());
+      viewer.rec.setVisible(!viewer.rec.isVisible());
 
     } else if (evt.getSource() == clipboardButton) {
       viewer.clipboard.setVisible(!viewer.clipboard.isVisible());

@@ -655,7 +655,7 @@ BOOL CALLBACK VNCOptions::DlgProc(HWND hwndDlg, UINT uMsg,
 			item.mask = TCIF_TEXT; 
 			item.pszText="Connection";
 			TabCtrl_InsertItem(_this->m_hTab, 0, &item);
-			item.pszText = "General";
+			item.pszText = "Globals";
 			TabCtrl_InsertItem(_this->m_hTab, 1, &item);
 
 			_this->m_hPageConnection = CreateDialogParam(pApp->m_instance,
@@ -667,7 +667,7 @@ BOOL CALLBACK VNCOptions::DlgProc(HWND hwndDlg, UINT uMsg,
 			_this->m_hPageGeneral = CreateDialogParam(pApp->m_instance, 
 				MAKEINTRESOURCE(IDD_GENERAL_OPTION),
 				hwndDlg,
-				(DLGPROC)_this->DlgProcSettings,
+				(DLGPROC)_this->DlgProcGlobalOptions,
 				(LONG)_this);
 
 			// Position child dialogs, to fit the Tab control's display area
@@ -1107,8 +1107,8 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 	return 0;
 }
 
-BOOL CALLBACK VNCOptions::DlgProcSettings(HWND hwnd, UINT uMsg,
-										  WPARAM wParam, LPARAM lParam)
+BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
+											   WPARAM wParam, LPARAM lParam)
 {
 	VNCOptions *_this = (VNCOptions *) GetWindowLong(hwnd, GWL_USERDATA);
 	

@@ -151,7 +151,8 @@ protected:
 
 	BOOL CheckUpdates();
 	void PerformPolling();
-	void PollWindow(HWND hwnd, RECT &rect);
+	void PollWindow(HWND hwnd);
+	void PollArea(RECT &rect);
 	void CheckRects(vncRegion &rgn, rectlist &rects);
 	void GetChangedRegion(vncRegion &rgn, const RECT &rect);
 	void UpdateChangedRect(vncRegion &rgn, const RECT &rect);
@@ -217,10 +218,7 @@ protected:
 	BYTE			*m_mainbuff;
 	BYTE			*m_backbuff;
 	BOOL			m_freemainbuff;
-
 	BOOL			m_formatmunged;
-	RECT			m_qtrscreen;
-	UINT			m_polling_phase;
 
 	DEVMODE			*lpDevMode; // *** used for res changes - Jeremy Peaks
 	long			origPelsWidth; // *** To set the original resolution

@@ -141,9 +141,6 @@ vncDesktopThread::run_undetached(void *arg)
 
 	IntersectRect(&rect, &rect, &m_desktop->m_bmrect);
 	m_server->SetSharedRect(rect);
-	m_desktop->m_qtrscreen.right = (rect.right - rect.left) / 2;
-	m_desktop->m_qtrscreen.bottom = (rect.bottom - rect.top) / 2;
-	m_desktop->m_polling_phase = 0;
 
 	// START PROCESSING DESKTOP MESSAGES
 
@@ -1970,12 +1967,8 @@ vncDesktop::CheckUpdates()
 		bool sendnewfb = false;
 
 		if ( rect.right - rect.left != new_rect.right - new_rect.left ||
-			 rect.bottom - rect.top != new_rect.bottom - new_rect.top ) 
-		{
+			 rect.bottom - rect.top != new_rect.bottom - new_rect.top )
 			sendnewfb = true;
-			m_qtrscreen.right = (new_rect.right - new_rect.left) / 2;
-			m_qtrscreen.bottom = (new_rect.bottom - new_rect.top) / 2;
-		}
 
 		// FIXME: We should not send NewFBSize if a client
 		//        did not send framebuffer update request.
@@ -2007,7 +2000,7 @@ vncDesktop::CheckUpdates()
 			if (m_videodriver->driver)
 				m_videodriver->HandleDriverChanges(m_changed_rgn);
 		} else {
-			if (m_server->GetPollingFlag() || m_polling_phase != 0) {
+			if (m_server->GetPollingFlag()) {
 				m_server->SetPollingFlag(false);
 				PerformPolling();
 			}
@@ -2290,28 +2283,17 @@ vncDesktop::UpdateChangedSubRect(vncRegion &rgn, const RECT &rect)
 void
 vncDesktop::PerformPolling()
 {
-	// Request update for all parts of screen
-	if (m_polling_phase != 3)
-		RequestUpdate();
-
-	RECT full_rect = m_server->GetSharedRect();
-
-	RECT rect;
-	rect.left = (m_polling_phase % 2) * m_qtrscreen.right + full_rect.left;
-	rect.right = rect.left + m_qtrscreen.right;
-	rect.top = (m_polling_phase / 2) * m_qtrscreen.bottom + full_rect.top;
-	rect.bottom = rect.top + m_qtrscreen.bottom;
-
 	if (m_server->PollFullScreen())	{
 		// Poll full screen
-		m_changed_rgn.AddRect(rect);
+		RECT full_rect = m_server->GetSharedRect();
+		PollArea(full_rect);
 	} else {
 		// Poll a window
 		if (m_server->PollForeground())	{
 			// Get the window rectangle for the currently selected window
 			HWND hwnd = GetForegroundWindow();
 			if (hwnd != NULL)
-				PollWindow(hwnd, rect);
+				PollWindow(hwnd);
 		}
 		if (m_server->PollUnderCursor()) {
 			// Find the mouse position
@@ -2320,15 +2302,14 @@ vncDesktop::PerformPolling()
 				// Find the window under the mouse
 				HWND hwnd = WindowFromPoint(mousepos);
 				if (hwnd != NULL)
-					PollWindow(hwnd, rect);
+					PollWindow(hwnd);
 			}
 		}
 	}
-	m_polling_phase = (m_polling_phase + 1) % 4;
 }
 
 void
-vncDesktop::PollWindow(HWND hwnd, RECT &qtrrect)
+vncDesktop::PollWindow(HWND hwnd)
 {
 	BOOL poll = TRUE;
 
@@ -2353,18 +2334,27 @@ vncDesktop::PollWindow(HWND hwnd, RECT &qtrrect)
 	}
 
 	// Are we still wanting to poll this window?
-	if (poll)
-	{
+	if (poll) {
+		RECT full_rect = m_server->GetSharedRect();
 		RECT rect;
 
 		// Get the rectangle
 		if (GetWindowRect(hwnd, &rect)) {
-			IntersectRect(&rect,&rect,&qtrrect);
-			m_changed_rgn.AddRect(rect);
+			IntersectRect(&rect, &rect, &full_rect);
+			PollArea(rect);
 		}
 	}
 }
 
+//
+// Implementation of the polling algorithm.
+//
+
+void
+vncDesktop::PollArea(RECT &rect)
+{
+	m_changed_rgn.AddRect(rect);
+}
 
 void
 vncDesktop::CopyRect(RECT &dest, POINT &source)

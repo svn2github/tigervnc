@@ -112,6 +112,10 @@ SOURCE=.\res\nocursor.cur
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\smalldot.cur
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\tightvnc.bmp
 # End Source File
 # Begin Source File

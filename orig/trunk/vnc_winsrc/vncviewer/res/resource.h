@@ -40,6 +40,7 @@
 #define IDD_FILETRANSFER_ABOUT          233
 #define IDI_FILEUP                      239
 #define IDI_FILERELOAD                  241
+#define IDC_SMALLDOT                    244
 #define IDC_HOSTNAME_EDIT               1000
 #define IDC_DPYNUM_EDIT                 1001
 #define IDC_BELLDEICONIFY               1001
@@ -149,6 +150,7 @@
 #define IDC_BUTTON1                     1120
 #define IDC_FTCOPY                      1120
 #define IDC_LOG_BROWSE                  1120
+#define IDC_SMALLDOTCURSOR_RADIO        1121
 #define ID_SESSION_SET_CRECT            32777
 #define IDC_ALLOW_COMPRESSLEVEL         32778
 #define IDC_ALLOW_JPEG                  32779
@@ -164,9 +166,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        244
+#define _APS_NEXT_RESOURCE_VALUE        245
 #define _APS_NEXT_COMMAND_VALUE         40011
-#define _APS_NEXT_CONTROL_VALUE         1121
+#define _APS_NEXT_CONTROL_VALUE         1122
 #define _APS_NEXT_SYMED_VALUE           244
 #endif
 #endif

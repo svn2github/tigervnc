@@ -1193,6 +1193,9 @@ void
 vncServer::SetAuthHosts(const char*hostlist) {
 	omni_mutex_lock l(m_clientsLock);
 
+	if (m_auth_hosts != 0)
+		free(m_auth_hosts);
+
 	if (hostlist == 0) {
 		vnclog.Print(LL_INTINFO, VNCLOG("authhosts cleared\n"));
 		m_auth_hosts = 0;
@@ -1200,9 +1203,6 @@ vncServer::SetAuthHosts(const char*hostlist) {
 	}
 
 	vnclog.Print(LL_INTINFO, VNCLOG("authhosts set to \"%s\"\n"), hostlist);
-	if (m_auth_hosts != 0)
-		free(m_auth_hosts);
-
 	m_auth_hosts = strdup(hostlist);
 }
 

@@ -27,21 +27,22 @@ void ConnectionsAccess::Apply()
 	char *authosts = m_server->AuthHosts();
 	for (int i = 0; i < count; i++) {
 		GetListViewItem(i, ItemString);
-		if (strcmp(ItemString[2], "Allow") == 0) {
+		TransformPattern(FALSE, '*', ItemString[0]);
+		if (strcmp(ItemString[1], "Allow") == 0) {
 			if (i == 0) {
 				strcpy(authosts, "+");
 			} else {
 				strcat(authosts, "+");
 			}
 		}
-		if (strcmp(ItemString[2], "Deny") == 0) {
+		if (strcmp(ItemString[1], "Deny") == 0) {
 			if (i == 0) {
 				strcpy(authosts, "-");
 			} else {
 				strcat(authosts, "-");
 			}
 		}
-		if (strcmp(ItemString[2], "Query") == 0) {
+		if (strcmp(ItemString[1], "Query") == 0) {
 			if (i == 0) {
 				strcpy(authosts, "?");
 			} else {
@@ -64,17 +65,21 @@ void ConnectionsAccess::Init()
 		while (1) {
 			if ((authosts[authHostsPos] == ':') ||
 				(authosts[authHostsPos] == '\0')) {
-				ItemString[0][authHostsPos - startPattern] = '\0';
-				InsertListViewItem(number, ItemString);
+				if (startPattern != 0) {
+					ItemString[0][authHostsPos - startPattern] = '\0';
+					TransformPattern(TRUE, '*', ItemString[0]);
+					InsertListViewItem(number, ItemString);
+				}
 				break;
 			}
 			if (authosts[authHostsPos] == '+') {				
-				ItemString[0][authHostsPos - startPattern] = '\0';
 				if (authHostsPos != 0) {
+					ItemString[0][authHostsPos - startPattern] = '\0';
+					TransformPattern(TRUE, '*', ItemString[0]);
 					InsertListViewItem(number, ItemString);
 					number++;
 				}
-				strcpy(ItemString[2], "Allow");
+				strcpy(ItemString[1], "Allow");
 				authHostsPos++;
 				startPattern = authHostsPos;
 				continue;
@@ -82,10 +87,11 @@ void ConnectionsAccess::Init()
 			if (authosts[authHostsPos] == '-') {
 				if (authHostsPos != 0) {
 					ItemString[0][authHostsPos - startPattern] = '\0';
+					TransformPattern(TRUE, '*', ItemString[0]);
 					InsertListViewItem(number, ItemString);
 					number++;
 				}
-				strcpy(ItemString[2], "Deny");
+				strcpy(ItemString[1], "Deny");
 				authHostsPos++;
 				startPattern = authHostsPos;
 				continue;
@@ -93,10 +99,11 @@ void ConnectionsAccess::Init()
 			if (authosts[authHostsPos] == '?') {
 				if (authHostsPos != 0) {
 					ItemString[0][authHostsPos - startPattern] = '\0';
+					TransformPattern(TRUE, '*', ItemString[0]);
 					InsertListViewItem(number, ItemString);
 					number++;
 				}
-				strcpy(ItemString[2], "Query");
+				strcpy(ItemString[1], "Query");
 				authHostsPos++;
 				startPattern = authHostsPos;
 				continue;
@@ -174,7 +181,6 @@ void ConnectionsAccess::Edit()
 
 DWORD ConnectionsAccess::DoEditDialog()
 {
-	//if m_edit_dialog_visible
 	return DialogBoxParam(hAppInstance, MAKEINTRESOURCE(IDD_CONN_HOST), 
 		NULL, (DLGPROC) EditDlgProc, (LONG) this);
 }
@@ -204,17 +210,16 @@ int ConnectionsAccess::GetSelectedItem()
 	}
 		return numbersel;
 }
-void ConnectionsAccess::GetListViewItem(int Numbe, TCHAR ItemString[3][256])
+void ConnectionsAccess::GetListViewItem(int Numbe, TCHAR ItemString[2][20])
 {
-	for (int i =0;i < 3; i++) {
+	for (int i =0;i < 2; i++) {
 		ListView_GetItemText(GetDlgItem(m_hwnd, IDC_LIST_HOSTS),
 							Numbe, i, ItemString[i], 256);							
 	}
 }
 
-BOOL ConnectionsAccess::InsertListViewItem(int Numbe, TCHAR ItemString[3][256])
+BOOL ConnectionsAccess::InsertListViewItem(int Numbe, TCHAR ItemString[2][20])
 {
-	int i;
 	LVITEM lvI;
 	lvI.mask = LVIF_TEXT| LVIF_STATE; 
 	lvI.state = 0; 
@@ -225,12 +230,11 @@ BOOL ConnectionsAccess::InsertListViewItem(int Numbe, TCHAR ItemString[3][256])
 	
 	if(ListView_InsertItem(GetDlgItem(m_hwnd, IDC_LIST_HOSTS), &lvI) == -1)
 		return NULL;
-	
-	for (i =1;i < 3; i++) {	
-		ListView_SetItemText(
+		
+	ListView_SetItemText(
 			GetDlgItem(m_hwnd, IDC_LIST_HOSTS), 
-			Numbe, i, ItemString[i]);
-	}
+			Numbe, 1, ItemString[1]);
+	
 	return TRUE;
 }
 
@@ -244,13 +248,12 @@ BOOL ConnectionsAccess::InitListViewColumns()
     
 	TCHAR *ColumnsStrings[] = {
 		"IP Adress Pattern",
-		"Mask",
-		"Access Status"
+		"Action"
 	};
 	
 	lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM; 
 	
-	for (iCol = 0; iCol < 3; iCol++) { 
+	for (iCol = 0; iCol < 2; iCol++) { 
 		lvc.iSubItem = iCol;
 		lvc.pszText = szText;	
 		lvc.cx = 97;           
@@ -261,6 +264,44 @@ BOOL ConnectionsAccess::InitListViewColumns()
 			return FALSE; 
 	} 
 	return TRUE; 
+}
+
+BOOL ConnectionsAccess::MatchStringToPattern(char *strpattern)
+{
+	char *tmp = strdup(strpattern);
+	if (!TransformPattern(TRUE, '0', tmp))
+		return FALSE;
+	return inet_addr(tmp) != INADDR_NONE; 			
+}
+BOOL ConnectionsAccess::TransformPattern(BOOL add, char IPpart, char *strpattern)
+{
+	int point = 0;
+	int prev = 0;
+	int i = 0;
+	int lenpattern = strlen(strpattern);
+	if (lenpattern == 0)
+		return FALSE;
+	if (add) {
+		for (i = 0; i < lenpattern; i++) {
+			if (strpattern[i] == '.') {
+				if (i == 0 || i == lenpattern - 1 || i - prev == 1)
+					return FALSE;
+				prev = i;
+				point++;
+			}
+		}
+		for (i = 0; i < 3 - point; i++) {
+			strpattern[lenpattern++] = '.';
+			strpattern[lenpattern++] = IPpart;
+			strpattern[lenpattern] = '\0';
+		}
+	} else {
+		for (i = lenpattern; i >= 0; i--) {
+			if (strpattern[i] == IPpart && strpattern[i - 1] == '.')
+				strpattern[i - 1] = '\0';
+		}
+	}
+	return TRUE;
 }
 
 BOOL CALLBACK ConnectionsAccess::EditDlgProc(HWND hwnd,
@@ -284,11 +325,12 @@ BOOL CALLBACK ConnectionsAccess::EditDlgProc(HWND hwnd,
 			_this->m_hwnd_edit_dialog = hwnd;
 			if (_this->m_edit) {
 				SendDlgItemMessage(hwnd, IDC_RADIO_ALLOW, BM_SETCHECK,
-					(strcmp(_this->ItemString[2], "Allow") == 0), 0);
+					(strcmp(_this->ItemString[1], "Allow") == 0), 0);
 				SendDlgItemMessage(hwnd, IDC_RADIO_DENY, BM_SETCHECK,
-					(strcmp(_this->ItemString[2], "Deny") == 0), 0);
+					(strcmp(_this->ItemString[1], "Deny") == 0), 0);
 				SendDlgItemMessage(hwnd, IDC_RADIO_QUERY, BM_SETCHECK,
-					(strcmp(_this->ItemString[2], "Query") == 0), 0);
+					(strcmp(_this->ItemString[1], "Query") == 0), 0);
+				_this->TransformPattern(FALSE, '*', _this->ItemString[0]);
 				SetDlgItemText(hwnd, IDC_HOST_PATTERN, _this->ItemString[0]);
 			} else {
 				SendDlgItemMessage(hwnd, IDC_RADIO_ALLOW, BM_SETCHECK, TRUE, 0);
@@ -303,12 +345,24 @@ BOOL CALLBACK ConnectionsAccess::EditDlgProc(HWND hwnd,
 		{
 		case IDOK:
 			GetDlgItemText(hwnd, IDC_HOST_PATTERN, _this->ItemString[0], 80);
+			if (!_this->MatchStringToPattern(_this->ItemString[0])) {
+				MessageBox(
+							NULL,
+							"The pattern is incorrectly entered. The pattern should be \n"
+							"a.b.c.d or a.b.c or a.b or a, where each element should \n"
+							"have unsigned numerical value smaller than 255",
+							szAppName,
+							MB_ICONWARNING | MB_OK
+							);
+				return TRUE;
+			}
+			_this->TransformPattern(TRUE, '*', _this->ItemString[0]);
 			if (SendDlgItemMessage(hwnd, IDC_RADIO_ALLOW, BM_GETCHECK, 0, 0) == BST_CHECKED)
-				strcpy(_this->ItemString[2], "Allow");
+				strcpy(_this->ItemString[1], "Allow");
 			if (SendDlgItemMessage(hwnd, IDC_RADIO_DENY, BM_GETCHECK, 0, 0) == BST_CHECKED)
-				strcpy(_this->ItemString[2], "Deny");
+				strcpy(_this->ItemString[1], "Deny");
 			if (SendDlgItemMessage(hwnd, IDC_RADIO_QUERY, BM_GETCHECK, 0, 0) == BST_CHECKED)
-				strcpy(_this->ItemString[2], "Query");
+				strcpy(_this->ItemString[1], "Query");
 			EndDialog(hwnd, IDOK);
 			_this->m_hwnd_edit_dialog = NULL;
 			return TRUE;

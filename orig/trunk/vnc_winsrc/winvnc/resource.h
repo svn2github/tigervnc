@@ -158,7 +158,6 @@
 #define IDC_HOST_DOWN                   1123
 #define IDC_HOST_EDIT                   1124
 #define IDC_HOST_PATTERN                1127
-#define IDC_HOST_MASK                   1128
 #define IDC_RADIO_ALLOW                 1129
 #define IDC_RADIO_DENY                  1130
 #define IDC_RADIO_QUERY                 1131

@@ -27,9 +27,11 @@ public:
 	void Edit();
 	virtual ~ConnectionsAccess();
 protected:
+	BOOL TransformPattern(BOOL add, char IPpart, char * strpattern);
+	BOOL MatchStringToPattern(char * strpattern);
 	DWORD DoEditDialog();
-    BOOL InsertListViewItem(int Numbe, TCHAR ItemString[3][256]);
-	void GetListViewItem(int Numbe, TCHAR ItemString[3][256]);
+    BOOL InsertListViewItem(int Numbe, TCHAR ItemString[2][20]);
+	void GetListViewItem(int Numbe, TCHAR ItemString[2][20]);
     BOOL InitListViewColumns();
 	int	GetSelectedItem();
 	void SetSelectedItem(int number);
@@ -38,7 +40,7 @@ protected:
 
 	HWND m_hwnd;
     vncServer* m_server;
-	TCHAR ItemString[3][256];
+	TCHAR ItemString[2][20];
 	BOOL m_edit;
 	HWND m_hwnd_edit_dialog;
 };

@@ -966,12 +966,14 @@ vncService::InstallService(BOOL silent)
 			RegCloseKey(runservices);
 
 			// We have successfully installed the service!
-			vncTimedMsgBox::Do(
-				"The WinVNC service was successfully installed\n"
-				"The service will start now and will automatically\n"
-				"be run the next time this machine is reset",
-				szAppName,
-				MB_ICONINFORMATION | MB_OK);
+			if (!silent) {
+				vncTimedMsgBox::Do(
+					"The WinVNC service was successfully installed\n"
+					"The service will start now and will automatically\n"
+					"be run the next time this machine is reset",
+					szAppName,
+					MB_ICONINFORMATION | MB_OK);
+			}
 
 			// Run the service...
 			STARTUPINFO si;
@@ -1090,12 +1092,14 @@ vncService::InstallService(BOOL silent)
 			}
 
 			// Everything went fine
-			vncTimedMsgBox::Do(
-				"The WinVNC service was successfully registered\n"
-				"The service may be started from the Control Panel, and will\n"
-				"automatically be run the next time this machine is reset",
-				szAppName,
-				MB_ICONINFORMATION | MB_OK);
+			if (!silent) {
+				vncTimedMsgBox::Do(
+					"The WinVNC service was successfully registered\n"
+					"The service may be started from the Control Panel, and will\n"
+					"automatically be run the next time this machine is reset",
+					szAppName,
+					MB_ICONINFORMATION | MB_OK);
+			}
 		}
 		break;
 	};
@@ -1152,7 +1156,9 @@ vncService::RemoveService(BOOL silent)
 			}
 
 			// We have successfully removed the service!
-			vncTimedMsgBox::Do("The WinVNC service has been unregistered", szAppName, MB_ICONINFORMATION | MB_OK);
+			if (!silent) {
+				vncTimedMsgBox::Do("The WinVNC service has been unregistered", szAppName, MB_ICONINFORMATION | MB_OK);
+			}
 		}
 		break;
 
@@ -1211,8 +1217,10 @@ vncService::RemoveService(BOOL silent)
 					}
 
 					// Now remove the service from the SCM
-					if(DeleteService(hservice)) {
-						vncTimedMsgBox::Do("The WinVNC service has been unregistered", szAppName, MB_ICONINFORMATION | MB_OK);
+					if (DeleteService(hservice)) {
+						if (!silent) {
+							vncTimedMsgBox::Do("The WinVNC service has been unregistered", szAppName, MB_ICONINFORMATION | MB_OK);
+						}
 					} else {
 						DWORD error = GetLastError();
 						if (error == ERROR_SERVICE_MARKED_FOR_DELETE) {

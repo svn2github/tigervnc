@@ -140,8 +140,9 @@ void ClientConnection::Init(VNCviewerApp *pApp)
 	m_hPalette = NULL;
 	m_encPasswd[0] = '\0';
 
+	m_enableFileTransfers = false;
+	m_fileTransferDialogShown = false;
 	m_pFileTransfer = new FileTransfer(this, m_pApp);
-	m_FileTransferEnable = false;
 
 	// We take the initial conn options from the application defaults
 	m_opts = m_pApp->m_options;
@@ -286,7 +287,7 @@ void ClientConnection::Run()
 		// Determine which protocol messages and encodings are supported.
 		ReadInteractionCaps();
 		// Enable file transfers if the server supports this feature.
-		m_FileTransferControl = (m_clientMsgCaps.IsEnabled(rfbFileListRequest));
+		m_enableFileTransfers = m_clientMsgCaps.IsEnabled(rfbFileListRequest);
 	}
 
 	EnableFullControlOptions();
@@ -609,50 +610,32 @@ void ClientConnection::EnableFullControlOptions()
 {
 	if (m_opts.m_ViewOnly) {
 		SwitchOffKey();
-		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), IDD_FILETRANSFER,
-						   MF_BYCOMMAND | MF_GRAYED);
-		SendMessage(hToolBar, TB_SETSTATE, (WPARAM)IDD_FILETRANSFER,
-						(LPARAM)MAKELONG(TBSTATE_INDETERMINATE,0));
-		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_CONN_CTLALTDEL,
-						   MF_BYCOMMAND | MF_GRAYED);
-		SendMessage(hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_CTLALTDEL,
-						(LPARAM)MAKELONG(TBSTATE_INDETERMINATE,0));
-		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_CONN_CTLDOWN,
-						   MF_BYCOMMAND | MF_GRAYED);
-		SendMessage(hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_CTLDOWN,
-						(LPARAM)MAKELONG(TBSTATE_INDETERMINATE,0));
-		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_CONN_ALTDOWN,
-						   MF_BYCOMMAND | MF_GRAYED);
-		SendMessage(hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_ALTDOWN,
-						(LPARAM)MAKELONG(TBSTATE_INDETERMINATE,0));
-		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_CONN_CTLESC,
-						   MF_BYCOMMAND | MF_GRAYED);
-		SendMessage(hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_CTLESC,
-						(LPARAM)MAKELONG(TBSTATE_INDETERMINATE,0));
+		EnableAction(IDD_FILETRANSFER, false);
+		EnableAction(ID_CONN_CTLALTDEL, false);
+		EnableAction(ID_CONN_CTLDOWN, false);
+		EnableAction(ID_CONN_ALTDOWN, false);
+		EnableAction(ID_CONN_CTLESC, false);
 	} else {
-		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_CONN_CTLALTDEL,
-						   MF_BYCOMMAND | MF_ENABLED);
-		SendMessage(hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_CTLALTDEL,
-						(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
-		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_CONN_CTLDOWN,
-						   MF_BYCOMMAND | MF_ENABLED);
-		SendMessage(hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_CTLDOWN,
-						(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
-		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_CONN_ALTDOWN,
-						   MF_BYCOMMAND | MF_ENABLED);
-		SendMessage(hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_ALTDOWN,
-						(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
-		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_CONN_CTLESC,
-						   MF_BYCOMMAND | MF_ENABLED);
-		SendMessage(hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_CTLESC,
-						(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
-		if (m_FileTransferControl) {
-			EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), IDD_FILETRANSFER,
-						   MF_BYCOMMAND | MF_ENABLED);
-			SendMessage(hToolBar, TB_SETSTATE, (WPARAM)IDD_FILETRANSFER,
-						(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
-		}
-	
+		EnableAction(IDD_FILETRANSFER, m_enableFileTransfers);
+		EnableAction(ID_CONN_CTLALTDEL, true);
+		EnableAction(ID_CONN_CTLDOWN, true);
+		EnableAction(ID_CONN_ALTDOWN, true);
+		EnableAction(ID_CONN_CTLESC, true);
+	}
+}
+
+void ClientConnection::EnableAction(int id, bool enable)
+{
+	if (enable) {
+		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), id,
+					   MF_BYCOMMAND | MF_ENABLED);
+		SendMessage(hToolBar, TB_SETSTATE, (WPARAM)id,
+					(LPARAM)MAKELONG(TBSTATE_ENABLED, 0));
+	} else {
+		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), id,
+					   MF_BYCOMMAND | MF_GRAYED);
+		SendMessage(hToolBar, TB_SETSTATE, (WPARAM)id,
+					(LPARAM)MAKELONG(TBSTATE_INDETERMINATE, 0));
 	}
 }
 
@@ -1621,8 +1604,8 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 			return 0;
 		case IDD_FILETRANSFER:
 			if (_this->m_clientMsgCaps.IsEnabled(rfbFileListRequest)) {
-				if (!_this->m_FileTransferEnable) {
-					_this->m_FileTransferEnable = true;
+				if (!_this->m_fileTransferDialogShown) {
+					_this->m_fileTransferDialogShown = true;
 					_this->m_pFileTransfer->CreateFileTransferDialog();
 				}
 			}

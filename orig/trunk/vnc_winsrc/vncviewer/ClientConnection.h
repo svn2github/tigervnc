@@ -88,10 +88,10 @@ private:
 	void DoBlit();
 	VNCviewerApp *m_pApp;
 
+	bool m_enableFileTransfers;
+	bool m_fileTransferDialogShown;
 	friend class FileTransfer;
-	bool m_FileTransferEnable;
 	FileTransfer *m_pFileTransfer;
-	bool m_FileTransferControl;
 
 	SOCKET m_sock;
 	bool m_serverInitiated;
@@ -140,6 +140,7 @@ private:
 	bool ScrollScreen(int dx, int dy);
 	void UpdateScrollbars();
 	void EnableFullControlOptions();
+	void EnableAction(int id, bool enable);
 
 	void InvalidateScreenRect(const RECT *pRect);
 

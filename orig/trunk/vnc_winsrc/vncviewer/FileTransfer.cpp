@@ -130,7 +130,7 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 				}
 			break;
 			case IDC_EXIT:
-				_this->m_clientconn->m_FileTransferEnable = false;
+				_this->m_clientconn->m_fileTransferDialogShown = false;
 				_this->ClearFTItemInfo(_this->m_FTClientItemInfo);
 				_this->ClearFTItemInfo(_this->m_FTServerItemInfo);
 				EndDialog(hwnd, TRUE);
@@ -258,7 +258,7 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 		break;
 	case WM_CLOSE:
 	case WM_DESTROY:
-		_this->m_clientconn->m_FileTransferEnable = false;
+		_this->m_clientconn->m_fileTransferDialogShown = false;
 		_this->ClearFTItemInfo(_this->m_FTClientItemInfo);
 		_this->ClearFTItemInfo(_this->m_FTServerItemInfo);
 		EndDialog(hwnd, FALSE);

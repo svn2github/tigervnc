@@ -47,6 +47,7 @@
 #define IDI_DELETE                      248
 #define IDI_RENAME                      249
 #define IDD_FTCANCELING                 251
+#define IDD_FTCONFIRM                   252
 #define IDC_HOSTNAME_EDIT               1000
 #define IDC_DPYNUM_EDIT                 1001
 #define IDC_BELLDEICONIFY               1002
@@ -171,6 +172,8 @@
 #define IDC_PROGRESS                    1147
 #define IDC_MAINTEXT                    1151
 #define IDC_DELETE                      1154
+#define ID_FTYESTOALL                   1155
+#define IDC_FTCONFIRMTEXT               1156
 #define ID_SESSION_SET_CRECT            32777
 #define IDC_ALLOW_COMPRESSLEVEL         32778
 #define IDC_ALLOW_JPEG                  32779
@@ -185,9 +188,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        252
+#define _APS_NEXT_RESOURCE_VALUE        253
 #define _APS_NEXT_COMMAND_VALUE         40011
-#define _APS_NEXT_CONTROL_VALUE         1155
+#define _APS_NEXT_CONTROL_VALUE         1157
 #define _APS_NEXT_SYMED_VALUE           244
 #endif
 #endif

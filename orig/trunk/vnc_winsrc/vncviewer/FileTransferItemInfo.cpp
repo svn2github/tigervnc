@@ -151,24 +151,24 @@ int FileTransferItemInfo::GetIntSizeAt(int Number)
 
 void FileTransferItemInfo::DeleteAt(int Number)
 {
-  if ((Number >= m_NumEntries) || (Number < 0)) return;
-
-  FTITEMINFO *pTemporary = new FTITEMINFO[m_NumEntries - 1];
-
-  if (Number == 0) {
-    memcpy(pTemporary, &m_pEntries[1], (m_NumEntries - 1) * sizeof(FTITEMINFO));
-  } else {
-    memcpy(pTemporary, m_pEntries, Number * sizeof(FTITEMINFO));
-    if (Number != (m_NumEntries - 1)) memcpy(&pTemporary[Number], &m_pEntries[Number + 1], (m_NumEntries - Number - 1) * sizeof(FTITEMINFO));
-  }
-  
-  if (m_pEntries != NULL) {
-    delete [] m_pEntries;
-    m_pEntries = NULL;
-  }
-  m_pEntries = pTemporary;
-  pTemporary = NULL;
-  m_NumEntries = m_NumEntries - 1;
+	if ((Number >= m_NumEntries) || (Number < 0)) return;
+	
+	FTITEMINFO *pTemporary = new FTITEMINFO[m_NumEntries - 1];
+	
+	if (Number == 0) {
+		memcpy(pTemporary, &m_pEntries[1], (m_NumEntries - 1) * sizeof(FTITEMINFO));
+	} else {
+		memcpy(pTemporary, m_pEntries, Number * sizeof(FTITEMINFO));
+		if (Number != (m_NumEntries - 1)) memcpy(&pTemporary[Number], &m_pEntries[Number + 1], (m_NumEntries - Number - 1) * sizeof(FTITEMINFO));
+	}
+	
+	if (m_pEntries != NULL) {
+		delete [] m_pEntries;
+		m_pEntries = NULL;
+	}
+	m_pEntries = pTemporary;
+	pTemporary = NULL;
+	m_NumEntries = m_NumEntries - 1;
 }
 
 int FileTransferItemInfo::ConvertCharToInt(char *pStr)

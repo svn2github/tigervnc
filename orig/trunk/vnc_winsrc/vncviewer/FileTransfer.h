@@ -37,6 +37,10 @@
 #define FT_FLR_DEST_DOWNLOAD 102
 #define FT_FLR_DEST_UPLOAD   103
 
+#define FT_FDSR_DEST_MAIN     200
+#define FT_FDSR_DEST_DOWNLOAD 201
+
+
 #define FT_ID_MYCOMPUTER 0
 #define FT_ID_MYDOCUMENTS 1
 #define FT_ID_MYPICTURES 2
@@ -97,6 +101,7 @@ public:
 	static BOOL CALLBACK FTCreateDirDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static BOOL CALLBACK FTRenameDirDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static BOOL CALLBACK FTCancelingDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	static INT_PTR CALLBACK FTConfirmDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	void CloseUndoneFileTransfers();
 	void UploadFilePortion();
 	void DownloadFilePortion();
@@ -107,6 +112,7 @@ public:
 private:
 //	int m_sizeDownloadFile;
 	int m_FLRDest;
+	int m_FDSRDest;
 	int m_NumReqDirSize;
 
 	DWORD m_dwFileSize;
@@ -122,7 +128,7 @@ private:
 	void SendFileDownloadCancelMessage(unsigned short reasonLen, char *reason);
 	void SendFileCreateDirRequestMessage(unsigned short dNameLen, char *dName);
 	void SendFileDownloadRequestMessage(unsigned short dNameLen, char *dName);
-	void SendFileDirSizeRequestMessage(unsigned short pathLen, char *path);
+	void SendFileDirSizeRequestMessage(unsigned short pathLen, char *path, int dest);
 	void SendFileRenameRequestMessage(char *pOldName, char *pNewName);
 	void SendFileDeleteRequestMessage(char *path);
 	void SendFileSpecDirRequestMessage(unsigned char flags, unsigned short specFlags);
@@ -140,6 +146,7 @@ private:
 	BOOL CreateRenameDirDlg(HWND hwnd);
 	BOOL CreateTransferConfDlg();
 	BOOL CreateFTCancelingDlg();
+	BOOL CreateFTConfirmDlg(char *pText);
 
 	void SetDefaultBlockSize() { m_dwFileBlockSize = 8192; };
 	void FTClientDelete(FileTransferItemInfo *ftfi);
@@ -164,6 +171,7 @@ private:
 	void CheckDownloadQueue();
 	void ProcessFLRDownload();
 	void DownloadFile(int num);
+	void ProcessFDSDMain(DWORD dSize);
 
 	void EndFTCancelDlg(BOOL result);
 	void SetFTDlgCursor(LPCTSTR cursorType);

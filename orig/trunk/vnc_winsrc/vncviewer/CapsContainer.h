@@ -24,13 +24,13 @@
 #if (!defined(_VNC_CAPSCONTAINER))
 #define _VNC_CAPSCONTAINER
 
+// Disable warnings about truncated names caused by #include <map>
+#pragma warning(disable: 4786)
+
 #include "stdhdrs.h"
 #include "rfb.h"
 
-// Disable warnings about truncated names caused by #include <map>
-#pragma warning(disable:4786)
 #include <map>
-#pragma warning(default:4786)
 
 class CapsContainer
 {

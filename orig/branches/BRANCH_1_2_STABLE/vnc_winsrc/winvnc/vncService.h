@@ -61,6 +61,7 @@ public:
 	// SERVICE SUPPORT FUNCTIONS
 
 	// Routine to establish and return the currently logged in user name
+	static BOOL GetCurrentUser(char *buffer, UINT size);
 	static BOOL CurrentUser(char *buffer, UINT size);
 
 	// Routine to post a message to the currently running WinVNC server

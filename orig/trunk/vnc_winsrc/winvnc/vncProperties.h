@@ -44,6 +44,7 @@ class vncProperties;
 #include "MatchWindow.h"
 #include "PollControls.h"
 #include "InputHandlingControls.h" 
+#include "SharedDesktopArea.h"
 
 // The vncProperties class itself
 class vncProperties
@@ -72,6 +73,14 @@ public:
 	BOOL AllowProperties() {return m_allowproperties;};
 	BOOL AllowShutdown() {return m_allowshutdown;};
 	BOOL AllowEditClients() {return m_alloweditclients;};
+
+	BOOL GetPrefWindowShared() {return m_pref_WindowShared;};
+	BOOL GetPrefFullScreen() {return m_pref_FullScreen;};
+	BOOL GetPrefScreenAreaShared() {return m_pref_ScreenAreaShared;};
+
+	void SetPrefWindowShared(BOOL set) {m_pref_WindowShared = set;};
+	void SetPrefFullScreen(BOOL set) {m_pref_FullScreen = set;};
+	void SetPrefScreenAreaShared(BOOL set) {m_pref_ScreenAreaShared = set;};
 
 	// Implementation
 protected:
@@ -139,7 +148,6 @@ protected:
 	BOOL m_pref_PollingCycle;
 	BOOL m_pref_DontSetHooks;
 	BOOL m_pref_WindowShared;
-	HWND hNameAppli;
 	BOOL m_pref_FullScreen;
 	BOOL m_pref_ScreenAreaShared;
 	UINT m_pref_PriorityTime;
@@ -149,15 +157,12 @@ protected:
 #endif
 
 private:
-void InitPortSettings(HWND hwnd);
-static  void DrawFrameAroundWindow(HWND hWnd);
-static  LRESULT CALLBACK BmpWndProc(HWND, UINT, WPARAM, LPARAM);
-		LONG m_OldBmpWndProc;
-		BOOL m_bCaptured;
-		HWND m_KeepHandle;
-		CMatchWindow* m_pMatchWindow;
-		PollControls* m_pollcontrols;
-		InputHandlingControls* m_inputhandcontr;
+	void InitPortSettings(HWND hwnd);
+
+	CMatchWindow* m_pMatchWindow;
+	PollControls* m_pollcontrols;
+	InputHandlingControls* m_inputhandcontr;
+	SharedDesktopArea* m_shareddtarea;
 };
 
 #endif // _WINVNC_VNCPROPERTIES

@@ -184,6 +184,10 @@ SOURCE=.\RectList.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\SharedDesktopArea.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\stdhdrs.cpp
 # End Source File
 # Begin Source File
@@ -453,6 +457,10 @@ SOURCE=.\rfb.h
 # Begin Source File
 
 SOURCE=..\rfb\rfbproto.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SharedDesktopArea.h
 # End Source File
 # Begin Source File
 

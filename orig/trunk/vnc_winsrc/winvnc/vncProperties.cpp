@@ -69,11 +69,7 @@ vncProperties::vncProperties()
 	m_allowshutdown = TRUE;
 	m_dlgvisible = FALSE;
 	m_usersettings = TRUE;
-	m_inadvanced = FALSE;
-	m_bCaptured= FALSE;
-	m_KeepHandle = NULL;
-	m_pMatchWindow = NULL;
-
+	m_inadvanced = FALSE;	
 }
 
 vncProperties::~vncProperties()
@@ -315,12 +311,10 @@ vncProperties::DialogProc(HWND hwnd,
 			_this = (vncProperties *) lParam;
 			_this->m_dlgvisible = TRUE;
 
-			HWND bmp_hWnd=GetDlgItem(hwnd,IDC_BMPCURSOR);
-			_this->m_OldBmpWndProc=GetWindowLong(bmp_hWnd,GWL_WNDPROC);
-			SetWindowLong(bmp_hWnd,GWL_WNDPROC,(LONG)BmpWndProc);
-			SetWindowLong(bmp_hWnd, GWL_USERDATA, (LONG)_this);
-			HBITMAP hNewImage,hOldImage;
-			_this->hNameAppli = GetDlgItem(hwnd, IDC_NAME_APPLI);
+			_this->m_shareddtarea = new SharedDesktopArea(hwnd,
+														_this->m_pMatchWindow,
+														_this,
+														_this->m_server);
 
 #ifdef HORIZONLIVE
 			// Set the dialog box's title
@@ -387,73 +381,13 @@ vncProperties::DialogProc(HWND hwnd,
 				BM_SETCHECK,
 				TRUE,
 				0);
-
+			
 			// Set the polling options
 			_this->m_pollcontrols = new PollControls(hwnd, _this->m_server);
 			
 #endif
 	
-			if (_this->m_pref_FullScreen) {
-				// Hide shared area window
-				if (_this->m_pMatchWindow!=NULL) 
-					_this->m_pMatchWindow->Hide();
-
-				// Disable window select stuff
-				EnableWindow(bmp_hWnd,FALSE);
-				hNewImage=LoadBitmap(hAppInstance,MAKEINTRESOURCE(IDB_BITMAP3));
-				hOldImage=(HBITMAP)::SendMessage(bmp_hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
-				DeleteObject(hOldImage);
-				::SetWindowText(_this->hNameAppli,"Full Desktop Selected");                                                                                                  
-			}
-
-			if(_this->m_pref_WindowShared) {
-
-				EnableWindow(bmp_hWnd,TRUE);
-				hNewImage=LoadBitmap(hAppInstance,MAKEINTRESOURCE(IDB_BITMAP1));
-				hOldImage=(HBITMAP)::SendMessage(bmp_hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
-				DeleteObject(hOldImage);	
-				_this->SetWindowCaption(_this->m_server->GetWindowShared());
-
-				if (_this->m_pMatchWindow!=NULL) 
-					_this->m_pMatchWindow->Hide();
-	
-			}
 			
-			if (_this->m_pref_ScreenAreaShared) { 
-				EnableWindow(bmp_hWnd,FALSE);
-				hNewImage=LoadBitmap(hAppInstance,MAKEINTRESOURCE(IDB_BITMAP3));
-				hOldImage=(HBITMAP)::SendMessage(bmp_hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
-				DeleteObject(hOldImage);
-				::SetWindowText(_this->hNameAppli,"Screen Area Selected");
-
-				if (_this->m_pMatchWindow == NULL) {
-					RECT temp;
-					temp = _this->m_server->getSharedRect();
-					_this->m_pMatchWindow=new CMatchWindow(_this->m_server,temp.left+5,temp.top+5,temp.right,temp.bottom);
-					_this->m_pMatchWindow->CanModify(TRUE);
-				}
-				_this->m_pMatchWindow->Show();
-			}
-				
-
-			HWND hFullScreen = GetDlgItem(hwnd, IDC_FULLSCREEN);
-            SendMessage(hFullScreen,    
-			    BM_SETCHECK,
-                _this->m_pref_FullScreen,   0);
-
-			EnableWindow(_this->hNameAppli,(_this->m_pref_WindowShared));
-
-			HWND hWindowCaption = GetDlgItem(hwnd, IDC_WINDOW);
-			SendMessage(hWindowCaption,
-				BM_SETCHECK, 
-				_this->m_pref_WindowShared,0);
-
-			HWND hScreenCaption = GetDlgItem(hwnd, IDC_SCREEN);
-			SendMessage(hScreenCaption,
-				BM_SETCHECK, 
-				(_this->m_pref_ScreenAreaShared),0);
-
-			SetForegroundWindow(hwnd);
 
 #ifdef HORIZONLIVE
 			return TRUE;
@@ -551,6 +485,9 @@ vncProperties::DialogProc(HWND hwnd,
 					_this->m_server->SetLockSettings(0);
 				}
 
+				if(_this->m_shareddtarea->ApplySharedControls(hwnd) == true)
+					return true;
+
 				// Handle the polling stuff
 				_this->m_pollcontrols->ApplyControlsContents(hwnd);
 				
@@ -558,43 +495,7 @@ vncProperties::DialogProc(HWND hwnd,
 				_this->m_server->SetLiveShareKey(_this->m_pref_LiveShareKey);
 #endif
 
-				if ( _this->m_pref_WindowShared && (_this->m_server->GetWindowShared() == NULL) )
-				{	
-					MessageBox(NULL,
-							   "You have not yet selected a window to share.\n"
-							   "Please first select a window with the 'Window Target'\n"
-							   "icon, and try again.", "No Window Selected",
-							   MB_OK | MB_ICONEXCLAMATION);
-					return true;
-				}
-
-				// Handle the share one window stuff
-			    HWND hFullScreen = GetDlgItem(hwnd, IDC_FULLSCREEN);
-			    _this->m_server->FullScreen(
-					SendMessage(hFullScreen, BM_GETCHECK, 0, 0) == BST_CHECKED);
-				  				
-				HWND hWindowCapture = GetDlgItem(hwnd, IDC_WINDOW);
-			    _this->m_server->WindowShared(
-					SendMessage(hWindowCapture, BM_GETCHECK, 0, 0) == BST_CHECKED);
-
-				HWND hScreenArea = GetDlgItem(hwnd, IDC_SCREEN);
-			    _this->m_server->ScreenAreaShared(
-					SendMessage(hScreenArea, BM_GETCHECK, 0, 0) == BST_CHECKED);
 				
-				if ( _this->m_pref_ScreenAreaShared) {
-					int left,right,top,bottom;
-		            if (_this->m_pMatchWindow!=NULL) {
-						_this->m_pMatchWindow->GetPosition(left,top,right,bottom);
-						_this->m_server->SetMatchSizeFields(left,top,right,bottom);
-					}
-				}
-
-				if (_this->m_pref_FullScreen) {
-					RECT temp;
-					GetWindowRect(GetDesktopWindow(), &temp);
-					_this->m_server->SetMatchSizeFields(temp.left, temp.top, temp.right, temp.bottom);
-				}
-
 				// And to the registry
 				_this->Save();
 
@@ -645,6 +546,7 @@ vncProperties::DialogProc(HWND hwnd,
 #endif					
 					
 					// Yes, so close the dialog
+					delete _this->m_shareddtarea;
 					delete _this->m_pollcontrols;
 					delete _this->m_inputhandcontr;
 					vnclog.Print(LL_INTINFO, VNCLOG("enddialog (OK)\n"));
@@ -659,6 +561,7 @@ vncProperties::DialogProc(HWND hwnd,
 			}
 
 		case IDCANCEL:
+			delete _this->m_shareddtarea;
 			delete _this->m_pollcontrols;
 			delete _this->m_inputhandcontr;
 			vnclog.Print(LL_INTINFO, VNCLOG("enddialog (CANCEL)\n"));
@@ -815,74 +718,21 @@ vncProperties::DialogProc(HWND hwnd,
 #endif
 
 		case IDC_FULLSCREEN:
-			{	
-				HWND bmp_hWnd=GetDlgItem(hwnd,IDC_BMPCURSOR);
-			    HBITMAP hNewImage,hOldImage;
 
-				_this->m_pref_FullScreen = TRUE;
-				_this->m_pref_WindowShared = FALSE;
-				_this->m_pref_ScreenAreaShared = FALSE;
-				_this->hNameAppli = GetDlgItem(hwnd, IDC_NAME_APPLI);
-				EnableWindow(_this->hNameAppli, FALSE);
-				::SetWindowText(_this->hNameAppli,"Full Desktop Selected");
-			
-				EnableWindow(bmp_hWnd,FALSE);
-				hNewImage=LoadBitmap(hAppInstance,MAKEINTRESOURCE(IDB_BITMAP3));
-				hOldImage=(HBITMAP)::SendMessage(bmp_hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
-				DeleteObject(hOldImage);
-				
-				if (_this->m_pMatchWindow!=NULL) 
-					_this->m_pMatchWindow->Hide();
-			}
+			_this->m_shareddtarea->FullScreen(hwnd);
 		
 			return TRUE;
 	
 		case IDC_WINDOW:
-			{
-				HWND bmp_hWnd=GetDlgItem(hwnd,IDC_BMPCURSOR);
-				HBITMAP hNewImage,hOldImage;
-				EnableWindow(bmp_hWnd,TRUE);
-				hNewImage=LoadBitmap(hAppInstance,MAKEINTRESOURCE(IDB_BITMAP1));
-				hOldImage=(HBITMAP)::SendMessage(bmp_hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
-				DeleteObject(hOldImage);	
-				if (_this->m_pMatchWindow!=NULL) 
-					_this->m_pMatchWindow->Hide();
-			   
-				_this->SetWindowCaption(_this->m_server->GetWindowShared());
-				EnableWindow(GetDlgItem(hwnd,IDC_NAME_APPLI),TRUE);
-				_this->m_pref_FullScreen = FALSE;
-				_this->m_pref_WindowShared = TRUE;
-				_this->m_pref_ScreenAreaShared = FALSE;
-			
-			}
+
+			_this->m_shareddtarea->SharedWindow(hwnd);
+
 			return TRUE;
 
 		case IDC_SCREEN:
-			{
-			
-				if (_this->m_pMatchWindow == NULL) 
-				{
-					RECT temp;
-					temp = _this->m_server->getSharedRect();
-					_this->m_pMatchWindow=new CMatchWindow(_this->m_server,temp.left+5,temp.top+5,temp.right,temp.bottom);
-					_this->m_pMatchWindow->CanModify(TRUE);
-				}
 
-				HWND bmp_hWnd=GetDlgItem(hwnd,IDC_BMPCURSOR);
-			    HBITMAP hNewImage,hOldImage;
-				::SetWindowText(_this->hNameAppli,"Screen Area Selected");
-				_this->m_pref_WindowShared = FALSE;
-				EnableWindow(bmp_hWnd,FALSE);
-				hNewImage=LoadBitmap(hAppInstance,MAKEINTRESOURCE(IDB_BITMAP3));
-				hOldImage=(HBITMAP)::SendMessage(bmp_hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
-				DeleteObject(hOldImage);
-				if (_this->m_pMatchWindow!=NULL) 
-					_this->m_pMatchWindow->Show();
-				EnableWindow(GetDlgItem(hwnd,IDC_NAME_APPLI),FALSE);
-				_this->m_pref_FullScreen = FALSE;
-				_this->m_pref_WindowShared = FALSE;
-				_this->m_pref_ScreenAreaShared = TRUE;
-			}
+			_this->m_shareddtarea->SharedScreen(hwnd);
+
 			return TRUE;
 
 		}
@@ -1468,131 +1318,4 @@ vncProperties::SaveUserPrefs(HKEY appkey)
 #endif
 }
 
-LRESULT CALLBACK vncProperties::BmpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	HBITMAP hNewImage,hOldImage;
-	HCURSOR hNewCursor,hOldCursor;
-	vncProperties* pDialog=(vncProperties*) GetWindowLong(hWnd,GWL_USERDATA);
-
-	switch (message)
-	{
-	
-	case WM_SETCURSOR :
-		if (HIWORD(lParam)==WM_LBUTTONDOWN)
-		{
-			SetCapture(hWnd);
-			hNewImage=LoadBitmap(hAppInstance,MAKEINTRESOURCE(IDB_BITMAP2));
-			hOldImage=(HBITMAP)::SendMessage(hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
-			DeleteObject(hOldImage);
-			hNewCursor=(HCURSOR)LoadImage(hAppInstance,MAKEINTRESOURCE(IDC_CURSOR1),IMAGE_CURSOR,32,32,LR_DEFAULTCOLOR);
-			hOldCursor=SetCursor(hNewCursor);
-			DestroyCursor(hOldCursor);
-			pDialog->m_bCaptured=TRUE;
-		}
-		break;
-	
-	case WM_LBUTTONUP:
-		ReleaseCapture();
-		
-		if (pDialog->m_KeepHandle!=NULL)
-		{
-			// We need to remove frame
-			DrawFrameAroundWindow(pDialog->m_KeepHandle);
-			pDialog->m_server->SetWindowShared(pDialog->m_KeepHandle);
-			// No more need
-			pDialog->m_KeepHandle=NULL;
-		} else {
-			pDialog->m_server->SetWindowShared(NULL);
-		}
-		
-		hNewImage=LoadBitmap(hAppInstance,MAKEINTRESOURCE(IDB_BITMAP1));
-		hOldImage=(HBITMAP)::SendMessage(hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
-		DeleteObject(hOldImage);
-		hNewCursor=LoadCursor(hAppInstance,MAKEINTRESOURCE(IDC_ARROW));
-		hOldCursor=SetCursor(hNewCursor);
-		DestroyCursor(hOldCursor);
-		pDialog->m_bCaptured=FALSE;
-		break;
-	
-	case WM_MOUSEMOVE:
-		if (pDialog->m_bCaptured)
-		{
-			HWND hParent=::GetParent(hWnd);
-			POINTS pnt;
-			POINT pnt1;
-			pnt=MAKEPOINTS(lParam);
-			pnt1.x=pnt.x;
-			pnt1.y=pnt.y;
-			ClientToScreen(hWnd,&pnt1);
-			HWND hMouseWnd=::WindowFromPoint(pnt1);
-			if (pDialog->m_KeepHandle!=hMouseWnd)
-			{
-				// New Windows Handle
-				// Was KeepHndle A Real Window ?
-				if (pDialog->m_KeepHandle!=NULL)
-				{
-					// We need to remove frame
-					vncProperties::DrawFrameAroundWindow(pDialog->m_KeepHandle);
-				}
-				pDialog->m_KeepHandle=hMouseWnd;
-				if (!IsChild(hParent,hMouseWnd) && (hMouseWnd!=hParent))
-				{
-					pDialog->SetWindowCaption(hMouseWnd);
-					vncProperties::DrawFrameAroundWindow(hMouseWnd);
-				} else {	// My Window
-					pDialog->m_KeepHandle=NULL;
-					pDialog->SetWindowCaption(NULL);					}
-				}
-			}
-			break;
-	case WM_PAINT:
-	case STM_SETIMAGE:
-		
-		return CallWindowProc( (WNDPROC) pDialog->m_OldBmpWndProc,  hWnd, message, wParam, lParam);
-	
-	default:
-		return DefWindowProc( hWnd, message, wParam, lParam);
-	}
-	return 0;
-}
-
-
-void vncProperties::DrawFrameAroundWindow(HWND hWnd)
-{
-	HDC hWindowDc=::GetWindowDC(hWnd);
-	HBRUSH hBrush=CreateSolidBrush(RGB(0,0,0));
-	HRGN Rgn=CreateRectRgn(0,0,1,1);
-	int iRectResult=GetWindowRgn(hWnd,Rgn);
-	if (iRectResult==ERROR || iRectResult==NULLREGION || Rgn==NULL)
-	{
-		RECT rect;
-		GetWindowRect(hWnd,&rect);
-		OffsetRect(&rect,-rect.left,-rect.top);
-		Rgn=CreateRectRgn(rect.left,rect.top,rect.right,rect.bottom);
-	}
-	
-	SetROP2(hWindowDc,R2_MERGEPENNOT);
-	FrameRgn(hWindowDc,Rgn,hBrush,3,3);
-	::DeleteObject(Rgn);
-	::DeleteObject(hBrush);
-    ::ReleaseDC(hWnd,hWindowDc);
-}
-
-void vncProperties::SetWindowCaption(HWND hWnd)
-{
-	char strWindowText[256];
-	if (hWnd == NULL) 
-	{
-		strcpy(strWindowText, "* No Window Selected *");
-	} else {
-		GetWindowText(hWnd, strWindowText, sizeof(strWindowText));
-		if (!strWindowText[0]) 
-		{
-			int bytes = sprintf(strWindowText, "0x%x ", hWnd);
-			GetClassName(hWnd, strWindowText + bytes,
-				sizeof(strWindowText) - bytes);
-		}
-	}
-	::SetWindowText(hNameAppli, strWindowText);
-}
 

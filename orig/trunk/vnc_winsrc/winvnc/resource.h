@@ -5,7 +5,9 @@
 #define IDI_WINVNC                      102
 #define IDD_PROPERTIES                  102
 #define IDR_TRAYMENU                    104
-#define IDR_VNCVIEWER_JAR               118
+#define IDR_VNCVIEWER_JAR               116
+#define IDR_RECFRAME_CLASS              117
+#define IDR_SESSIONREC_CLASS            118
 #define IDR_AUTHPANEL_CLASS             119
 #define IDR_BLOCKCIPHER_CLASS           120
 #define IDR_CIPHER_CLASS                121

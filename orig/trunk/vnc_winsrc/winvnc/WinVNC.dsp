@@ -1787,7 +1787,15 @@ SOURCE=.\res\OptionsFrame.class
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\RecordingFrame.class
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\RfbProto.class
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\SessionRecorder.class
 # End Source File
 # Begin Source File
 

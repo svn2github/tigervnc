@@ -486,7 +486,13 @@
 				RelativePath=".\res\OptionsFrame.class">
 			</File>
 			<File
+				RelativePath=".\res\RecordingFrame.class">
+			</File>
+			<File
 				RelativePath=".\res\RfbProto.class">
+			</File>
+			<File
+				RelativePath=".\res\SessionRecorder.class">
 			</File>
 			<File
 				RelativePath=".\res\VncCanvas.class">

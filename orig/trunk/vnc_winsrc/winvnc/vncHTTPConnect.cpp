@@ -95,9 +95,11 @@ const FileMap filemapping []	={
 	{"/RfbProto.class", "JavaClass", IDR_RFBPROTO_CLASS},
 	{"/VncCanvas.class", "JavaClass", IDR_VNCCANVAS_CLASS},
 	{"/VncViewer.class", "JavaClass", IDR_VNCVIEWER_CLASS},
-	{"/ButtonPanel.class", "JavaClass", IDR_BUTTONPANEL_CLASS}
+	{"/ButtonPanel.class", "JavaClass", IDR_BUTTONPANEL_CLASS},
+	{"/RecordingFrame.class", "JavaClass", IDR_RECFRAME_CLASS},
+	{"/SessionRecorder.class", "JavaClass", IDR_SESSIONREC_CLASS}
 	};
-const int filemappingsize		= 9;
+const int filemappingsize		= 11;
 
 //
 // Connection thread -- one per each client connection.

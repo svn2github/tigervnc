@@ -379,13 +379,15 @@ IDR_VNCVIEWER_JAR       JAVAARCHIVE DISCARDABLE "res\\VncViewer.jar"
 //
 
 IDR_AUTHPANEL_CLASS     JAVACLASS DISCARDABLE   "res\\AuthPanel.class"
-IDR_CLIPBOARDFRAME_CLASS JAVACLASS DISCARDABLE   "res\\ClipboardFrame.class"
+IDR_CLIPBOARDFRAME_CLASS JAVACLASS DISCARDABLE  "res\\ClipboardFrame.class"
 IDR_OPTIONSFRAME_CLASS  JAVACLASS DISCARDABLE   "res\\OptionsFrame.class"
 IDR_RFBPROTO_CLASS      JAVACLASS DISCARDABLE   "res\\RfbProto.class"
 IDR_VNCCANVAS_CLASS     JAVACLASS DISCARDABLE   "res\\VncCanvas.class"
 IDR_VNCVIEWER_CLASS     JAVACLASS DISCARDABLE   "res\\VncViewer.class"
 IDR_BUTTONPANEL_CLASS   JAVACLASS DISCARDABLE   "res\\ButtonPanel.class"
 IDR_DESCIPHER_CLASS     JAVACLASS DISCARDABLE   "res\\DesCipher.class"
+IDR_RECFRAME_CLASS      JAVACLASS DISCARDABLE   "res\\RecordingFrame.class"
+IDR_SESSIONREC_CLASS    JAVACLASS DISCARDABLE   "res\\SessionRecorder.class"
 
 /////////////////////////////////////////////////////////////////////////////
 //

@@ -1354,7 +1354,7 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	// Load the view-only password, default to the primary one
 	memcpy(m_pref_passwd_viewonly, m_pref_passwd, MAXPWLEN);
 	LoadPassword(appkey, m_pref_passwd_viewonly, "PasswordViewOnly");
-	// External authentication
+	// External authentication (disabled in the public version)
 	// m_pref_externalAuth=LoadInt(appkey, "ExternalAuth", m_pref_externalAuth);
 	// CORBA Settings
 	m_pref_CORBAConn=LoadInt(appkey, "CORBAConnect", m_pref_CORBAConn);

@@ -206,7 +206,7 @@ vncClientThread::InitAuthenticate()
 	if (secType == rfbSecTypeInvalid)
 		return FALSE;
 
-	if (m_client->m_protocol_minor_version == rfbProtocolMinorVersion) {
+	if (m_client->m_protocol_minor_version >= 7) {
 		CARD8 list[3];
 		list[0] = (CARD8)2;					// number of security types
 		list[1] = (CARD8)secType;			// primary security type
@@ -361,7 +361,7 @@ vncClientThread::GetAuthenticationType()
 void
 vncClientThread::SendConnFailedMessage(const char *reasonString)
 {
-	if (m_client->m_protocol_minor_version == rfbProtocolMinorVersion) {
+	if (m_client->m_protocol_minor_version >= 7) {
 		CARD8 zeroCount = 0;
 		if (!m_socket->SendExact((char *)&zeroCount, sizeof(zeroCount)))
 			return;
@@ -396,9 +396,8 @@ vncClientThread::NegotiateTunneling()
 			return FALSE;
 		tunnelType = Swap32IfLE(tunnelType);
 		// We cannot do tunneling yet.
-		if (tunnelType != 0)
-			vnclog.Print(LL_CONNERR, VNCLOG("unsupported tunneling type requested\n"));
-			return FALSE;
+		vnclog.Print(LL_CONNERR, VNCLOG("unsupported tunneling type requested\n"));
+		return FALSE;
 	}
 
 	vnclog.Print(LL_INTINFO, VNCLOG("negotiated tunneling type\n"));
@@ -427,7 +426,7 @@ vncClientThread::NegotiateAuthentication(int authType)
 		return FALSE;
 
 	if (authType == rfbAuthVNC || authType == rfbAuthExternal) {
-		// Inform the client that we support only the standard VNC authentication.
+		// Inform the client about supported authentication types.
 		rfbCapabilityInfo cap;
 		if (authType == rfbAuthVNC) {
 			SetCapInfo(&cap, rfbAuthVNC, rfbStandardVendor);
@@ -574,6 +573,8 @@ BOOL
 vncClientThread::VerifyExternalAuth(const char *username, const char *password,
 									const char *local_ip, const char *remote_ip)
 {
+	// This should be replaced with some real authentication code.
+	// Note that this authentication scheme is disabled in the public version.
 	return (strcmp(username, "testuser") == 0 &&
 			strcmp(password, "testpassword") == 0);
 }

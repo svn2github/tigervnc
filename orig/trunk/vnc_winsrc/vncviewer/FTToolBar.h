@@ -23,8 +23,8 @@
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
-#if !defined(FTTOOLBAR)
-#define FTTOOLBAR
+#ifndef FTTOOLBAR_H__
+#define FTTOOLBAR_H__
 
 #include "FileTransferTypes.h"
 
@@ -52,4 +52,4 @@ private:
     HIMAGELIST m_hImageList;
 };
 
-#endif // !defined(FTTOOLBAR)
+#endif // FTTOOLBAR_H__

@@ -23,8 +23,8 @@
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
-#if !defined(FILEWRITER)
-#define FILEWRITER
+#ifndef FILEWRITER_H__
+#define FILEWRITER_H__
 
 class FileWriter
 {
@@ -48,4 +48,4 @@ private:
 	DWORD m_dwLastError;
 };
 
-#endif // !defined(FILEWRITER)
+#endif // FILEWRITER_H__

@@ -23,7 +23,8 @@
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
-#include "windows.h"
+#include "stdhdrs.h"
+#include "vncviewer.h"
 
 #include "FileWriter.h"
 #include "FileTransferTypes.h"

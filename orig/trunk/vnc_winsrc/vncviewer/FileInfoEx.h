@@ -23,10 +23,8 @@
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
-#if !defined(FILEINFOEX_H)
-#define FILEINFOEX_H
-
-#include "windows.h"
+#ifndef FILEINFOEX_H__
+#define FILEINFOEX_H__
 
 #include "FileInfo.h"
 #include "FileTransferTypes.h"
@@ -81,4 +79,4 @@ private:
 	char m_szFullRemPath[MAX_PATH];
 };
 
-#endif // !defined(FILEINFOEX_H)
+#endif // FILEINFOEX_H__

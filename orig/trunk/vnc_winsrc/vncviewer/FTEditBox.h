@@ -23,11 +23,8 @@
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
-#if !defined(FTEDITBOX)
-#define FTEDITBOX
-
-#include "windows.h"
-#include "commctrl.h"
+#ifndef FTEDITBOX_H__
+#define FTEDITBOX_H__
 
 class FTEditBox
 {
@@ -43,4 +40,4 @@ private:
 	HWND m_hEditBox;
 };
 
-#endif // !defined(FTEDITBOX)
+#endif // FTEDITBOX_H__

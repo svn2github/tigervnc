@@ -23,10 +23,9 @@
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
-#if !defined(FILETRANSFERDIALOG)
-#define FILETRANSFERDIALOG
+#ifndef _VNC_FILETRANSFERDIALOG_H__
+#define _VNC_FILETRANSFERDIALOG_H__
 
-#include "windows.h"
 #include "FileInfo.h"
 #include "FTListView.h"
 #include "FTEditBox.h"
@@ -141,4 +140,4 @@ private:
 	static const char myNetHood[];
 };
 
-#endif // !defined(FILETRANSFERDIALOG)
+#endif // FILETRANSFERDIALOG_H__

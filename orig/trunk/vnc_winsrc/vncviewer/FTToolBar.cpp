@@ -26,7 +26,9 @@
 //#include "windows.h"
 //#include "commctrl.h"
 
+#include "stdhdrs.h"
 #include "vncviewer.h"
+
 #include "FTToolBar.h"
 
 FTToolBar::FTToolBar(HINSTANCE hInst, HWND hParent)

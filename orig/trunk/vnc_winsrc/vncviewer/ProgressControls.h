@@ -23,11 +23,8 @@
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
-#if !defined(PROGRESSCONTROLS)
-#define PROGRESSCONTROLS
-
-#include "windows.h"
-#include "commctrl.h"
+#ifndef PROGRESSCONTROLS_H__
+#define PROGRESSCONTROLS_H__
 
 class ProgressControls
 {
@@ -60,4 +57,4 @@ private:
 
 };
 
-#endif // !defined(PROGRESSCONTROLS)
+#endif // PROGRESSCONTROLS_H__

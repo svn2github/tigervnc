@@ -23,10 +23,9 @@
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
-#if !defined(FILETRANSFER)
-#define FILETRANSFER
+#ifndef FILETRANSFER_H__
+#define FILETRANSFER_H__
 
-#include "vncviewer.h"
 #include "ClientConnection.h"
 #include "FileInfo.h"
 #include "FileInfoEx.h"
@@ -155,4 +154,4 @@ private:
 	bool m_bOverwrite0;
 };
 
-#endif // !defined(FILETRANSFER)
+#endif // FILETRANSFER_H__

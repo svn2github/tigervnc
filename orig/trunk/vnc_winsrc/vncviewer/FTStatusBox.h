@@ -23,8 +23,8 @@
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
-#if !defined(FTSTATUSBOX)
-#define FTSTATUSBOX
+#ifndef FTSTATUSBOX_H__
+#define FTSTATUSBOX_H__
 
 class FTStatusBox
 {
@@ -47,4 +47,4 @@ private:
 	static const char delimeter[];
 };
 
-#endif // !defined(FTSTATUSBOX)
+#endif // FTSTATUSBOX_H__

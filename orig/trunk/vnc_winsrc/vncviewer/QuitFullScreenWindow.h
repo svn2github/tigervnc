@@ -20,12 +20,8 @@
 // QuitFullScreenWindow.h: interface for the QuitFullScreenWindow class.
 
 
-#ifndef AFX_QUITFULLSCREENWINDOW_H__
-#define AFX_QUITFULLSCREENWINDOW_H__
-
-
-#pragma once
-
+#ifndef QUITFULLSCREENWINDOW_H__
+#define QUITFULLSCREENWINDOW_H__
 
 class QuitFullScreenWindow
 {
@@ -46,4 +42,4 @@ protected:
 	BOOL m_DblClick;
 };
 
-#endif // !defined(AFX_QUITFULLSCREENWINDOW_H__)
+#endif // QUITFULLSCREENWINDOW_H__

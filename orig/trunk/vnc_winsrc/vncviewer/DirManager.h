@@ -23,10 +23,9 @@
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
-#if !defined(DIRMANAGER)
-#define DIRMANAGER
+#ifndef DIRMANAGER_H__
+#define DIRMANAGER_H__
 
-#include "stdio.h"
 #include "shlobj.h"
 
 #include "FileInfo.h"
@@ -68,4 +67,4 @@ private:
 	char m_szTempName[MAX_PATH];
 };
 
-#endif // !defined(DIRMANAGER)
+#endif // DIRMANAGER_H__

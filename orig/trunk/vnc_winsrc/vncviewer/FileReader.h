@@ -23,10 +23,9 @@
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
-#if !defined(FILEREADER)
-#define FILEREADER
+#ifndef FILEREADER_H__
+#define FILEREADER_H__
 
-#include "windows.h"
 #include "FileTransferTypes.h"
 
 class FileReader
@@ -52,4 +51,4 @@ private:
 	DWORD m_dwLastError;
 };
 
-#endif // !defined(FILEREADER)
+#endif // FILEREADER_H__

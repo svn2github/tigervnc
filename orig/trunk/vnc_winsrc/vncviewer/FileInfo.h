@@ -23,10 +23,8 @@
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
-#if !defined(FILEINFO_H)
-#define FILEINFO_H
-
-#include "windows.h"
+#ifndef FILEINFO_H__
+#define FILEINFO_H__
 
 #include "FileTransferTypes.h"
 
@@ -66,4 +64,4 @@ private:
 	unsigned int m_numEntries;
 };
 
-#endif // !defined(FILEINFO_H)
+#endif // FILEINFO_H__

@@ -23,10 +23,9 @@
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
-#if !defined(FTLISTVIEW)
-#define FTLISTVIEW
+#ifndef FTLISTVIEW_H__
+#define FTLISTVIEW_H__
 
-#include "windows.h"
 #include "commctrl.h"
 
 #include "FileInfo.h"
@@ -59,4 +58,4 @@ private:
 	void Time70ToFiletime(unsigned int time70, FILETIME *pftime);
 };
 
-#endif // !defined(FTLISTVIEW)
+#endif // FTLISTVIEW_H__

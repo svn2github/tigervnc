@@ -23,10 +23,8 @@
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
-#if !defined(FILETRANSFERTYPES_H)
-#define FILETRANSFERTYPES_H
-
-#include "windows.h"
+#ifndef FILETRANSFERTYPES_H__
+#define FILETRANSFERTYPES_H__
 
 #define WM_FT_CHECKTRANSFERQUEUE WM_USER+130
 #define WM_FT_CHECKDELETEQUEUE   WM_USER+131
@@ -105,4 +103,4 @@ typedef struct tagFILEINFOEX
 unsigned int FiletimeToTime70(FILETIME ftime);
 void Time70ToFiletime(unsigned int time70, FILETIME *pftime);
 
-#endif // !defined(FILETRANSFERTYPES_H)
+#endif // FILETRANSFERTYPES_H__

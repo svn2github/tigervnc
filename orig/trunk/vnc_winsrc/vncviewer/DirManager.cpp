@@ -23,7 +23,9 @@
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
+#include "stdhdrs.h"
 #include "vncviewer.h"
+
 #include "DirManager.h"
 
 DirManager::DirManager()

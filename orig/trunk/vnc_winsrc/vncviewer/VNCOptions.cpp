@@ -457,7 +457,7 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 		} else {
 			TCHAR phost[256];
 			if (!ParseDisplay(args[j], phost, 255, &m_port)) {
-				ShowHelpBox(_T("Error: Invalid VNC server specified."));
+				ArgError(_T("Invalid VNC server specified."));
 				continue;
 			} else {
 				_tcscpy(m_host, phost);

@@ -168,6 +168,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 			i+=strlen(winvncShowAbout);
 			continue;
 		}
+		if (strncmp(&szCmdLine[i], winvncKillAllClients, strlen(winvncKillAllClients)) == 0)
+		{
+			// NB : This flag MUST be parsed BEFORE "-kill", otherwise it will match
+			// the wrong option!
+
+			// Kill all connected clients
+			vncService::KillAllClients();
+			i+=strlen(winvncKillAllClients);
+			continue;
+		}
 		if (strncmp(&szCmdLine[i], winvncKillRunningCopy, strlen(winvncKillRunningCopy)) == 0)
 		{
 			// Kill any already running copy of WinVNC

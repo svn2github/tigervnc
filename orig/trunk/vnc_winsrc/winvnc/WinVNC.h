@@ -65,6 +65,7 @@ const char winvncKillRunningCopy[]	= "-kill";
 const char winvncShareWindow[]		= "-sharewindow";
 
 const char winvncAddNewClient[]		= "-connect";
+const char winvncKillAllClients[]	= "-killallclients";
 
 const char winvncShowHelp[]			= "-help";
 

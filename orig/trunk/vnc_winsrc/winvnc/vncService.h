@@ -127,6 +127,10 @@ public:
 	// Routine to make an already running copy of WinVNC form an outgoing
 	// connection to a new VNC client
 	static BOOL PostAddNewClient(unsigned long ipaddress, unsigned short port);
+
+	// Routine to make an already running copy of WinVNC disconnect all
+	// connected clients
+	static BOOL KillAllClients();
 };
 
 #endif

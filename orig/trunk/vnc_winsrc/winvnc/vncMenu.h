@@ -47,6 +47,7 @@ extern const UINT MENU_ABOUTBOX_SHOW;
 extern const UINT MENU_SERVICEHELPER_MSG;
 extern const UINT MENU_RELOAD_MSG;
 extern const UINT MENU_ADD_CLIENT_MSG;
+extern const UINT MENU_KILL_ALL_CLIENTS_MSG;
 extern const char *MENU_CLASS_NAME;
 
 // The tray menu class itself

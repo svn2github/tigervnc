@@ -575,6 +575,22 @@ vncService::PostAddNewClient(unsigned long ipaddress, unsigned short port)
 	return TRUE;
 }
 
+// Static routine to tell a locally-running instance of the server
+// to disconnect all connected clients.
+
+BOOL
+vncService::KillAllClients()
+{
+	// Post to the WinVNC menu window
+	if (!PostToWinVNC(MENU_KILL_ALL_CLIENTS_MSG, 0, 0))
+	{
+		MessageBox(NULL, "No existing instance of WinVNC could be contacted", szAppName, MB_ICONEXCLAMATION | MB_OK);
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
 // SERVICE-MODE ROUTINES
 
 // Service-mode defines:

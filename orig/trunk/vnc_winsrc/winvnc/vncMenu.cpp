@@ -55,7 +55,7 @@ const UINT MENU_ABOUTBOX_SHOW = RegisterWindowMessage("WinVNC.AboutBox.Show");
 const UINT MENU_SERVICEHELPER_MSG = RegisterWindowMessage("WinVNC.ServiceHelper.Message");
 const UINT MENU_RELOAD_MSG = RegisterWindowMessage("WinVNC.Reload.Message");
 const UINT MENU_ADD_CLIENT_MSG = RegisterWindowMessage("WinVNC.AddClient.Message");
-const UINT MENU_REMOVE_CLIENTS_MSG = RegisterWindowMessage("WinVNC.RemoveClients.Message");
+const UINT MENU_KILL_ALL_CLIENTS_MSG = RegisterWindowMessage("WinVNC.KillAllClients.Message");
 const char *MENU_CLASS_NAME = "WinVNC Tray Icon";
 
 bool g_restore_ActiveDesktop = false;
@@ -761,7 +761,7 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 
 #endif
 		}
-		if (iMsg == MENU_REMOVE_CLIENTS_MSG)
+		if (iMsg == MENU_KILL_ALL_CLIENTS_MSG)
 		{
 			// Kill all connected clients
 			_this->m_server->KillAuthClients();

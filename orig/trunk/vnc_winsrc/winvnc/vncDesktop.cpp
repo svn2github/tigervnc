@@ -2016,14 +2016,19 @@ vncDesktop::CheckUpdates()
 
 	// TRIGGER THE UPDATE
 
-	RECT rect;
-	rect = m_server->GetSharedRect();
+	RECT rect = m_server->GetSharedRect();
 
 	RECT new_rect;
 	if (m_server->WindowShared()) {
-		if (!m_server->GetBlackRgn()) {
-			GetWindowRect(m_server->GetWindowShared(), &new_rect);
-		} else {
+		BOOL success = GetWindowRect(m_server->GetWindowShared(), &new_rect);
+		if (!success) {
+			// Disconnect clients if the shared window has dissapeared.
+			// FIXME: Make this behavior configurable.
+			vnclog.Print(LL_CONNERR, VNCLOG("shared window not found - disconnecting clients\n"));
+			m_server->KillAuthClients();
+			return FALSE;
+		}
+		if (m_server->GetBlackRgn()) {
 			new_rect = m_bmrect;
 		}
 	} else if (m_server->ScreenAreaShared()) {
@@ -2032,6 +2037,15 @@ vncDesktop::CheckUpdates()
 		new_rect = m_bmrect;
 	}
 	IntersectRect(&new_rect, &new_rect, &m_bmrect);
+
+	// Disconnect clients if the shared window is empty (dissapeared).
+	// FIXME: Make this behavior configurable.
+	if ( new_rect.right - new_rect.left == 0 ||
+		 new_rect.bottom - new_rect.top == 0 ) {
+		vnclog.Print(LL_CONNERR, VNCLOG("shared window empty - disconnecting clients\n"));
+		m_server->KillAuthClients();
+		return FALSE;
+	}
 
 	// Update screen size if required
 	if (!EqualRect(&new_rect, &rect)) {
@@ -2046,7 +2060,6 @@ vncDesktop::CheckUpdates()
 		//        did not send framebuffer update request.
 		m_server->SetNewFBSize(sendnewfb);
 		m_changed_rgn.Clear();
-		rect = new_rect;
 		return TRUE;
 	}
 

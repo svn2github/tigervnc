@@ -78,31 +78,27 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
     HWND hcombo=GetDlgItem(  hwnd, IDC_HOSTNAME_EDIT);
 	
 	switch (uMsg) {
-
-	case WM_INITDIALOG:
-		{
+		case WM_INITDIALOG:{
+		
             SetWindowLong(hwnd, GWL_USERDATA, lParam);
             SessionDialog *_this = (SessionDialog *) lParam;
             CentreWindow(hwnd);
 			
             // Set up recently-used list
-			
-            
             int dwbuflen=255;
 			TCHAR valname[256];
 			TCHAR buf[256];
 			int k=pApp->m_options.m_listServer;
 
-			for ( i = 0; i <k; i++) 
-			{
-			itoa(i,valname,10);
-            dwbuflen=255;
-            if(RegQueryValueEx( _this->m_hRegKey,(LPTSTR)valname , 
+			for ( i = 0; i <k; i++){ 
+				itoa(i,valname,10);
+				dwbuflen=255;
+				if(RegQueryValueEx( _this->m_hRegKey,(LPTSTR)valname , 
 					NULL, NULL, 
 					(LPBYTE) buf,(LPDWORD) &dwbuflen)!=ERROR_SUCCESS){
-			break;
-			}
-			SendMessage(hcombo, CB_INSERTSTRING,(WPARAM)i,(LPARAM)(int FAR*)buf);
+					break;
+				}
+				SendMessage(hcombo, CB_INSERTSTRING,(WPARAM)i,(LPARAM)(int FAR*)buf);
 			}
 
             SendMessage(hcombo, CB_SETCURSEL,0,0);
@@ -111,53 +107,53 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 
 			b=_this->cmp();
 			if(b==3){
-			SendMessage(hCustomRadio, BM_CLICK, 0, 0);
+				SendMessage(hCustomRadio, BM_CLICK, 0, 0);
 			}
 			if(b==1){
-			SendMessage(hModemRadio, BM_CLICK, 0, 0);
+				SendMessage(hModemRadio, BM_CLICK, 0, 0);
 			}
 			if(b==2){
-			SendMessage(hLocNetRadio, BM_CLICK, 0, 0);
+				SendMessage(hLocNetRadio, BM_CLICK, 0, 0);
 			}
 			if(b==0){
-			SendMessage(hLocNetRadio, BM_SETCHECK, 0, 0L);
-			SendMessage(hModemRadio, BM_SETCHECK,0, 0L);
-			SendMessage(hCustomRadio, BM_SETCHECK,0, 0L);
+				SendMessage(hLocNetRadio, BM_SETCHECK, 0, 0L);
+				SendMessage(hModemRadio, BM_SETCHECK,0, 0L);
+				SendMessage(hCustomRadio, BM_SETCHECK,0, 0L);
 			}
 
 			SetFocus(hcombo);
             return TRUE;
 		}
-	case WM_HELP:
+		case WM_HELP:
 	
-		HELPINFO hlp;
-		HH_POPUP popup;
+			HELPINFO hlp;
+			HH_POPUP popup;
 
-		hlp=*(LPHELPINFO) lParam;
+			hlp=*(LPHELPINFO) lParam;
 		
-		popup.cbStruct=sizeof(hlp);
-		popup.hinst=pApp->m_instance;
-		popup.idString=(UINT)hlp.iCtrlId;
-		popup.rcMargins.top=-1;
-		popup.rcMargins.left=-1;
-		popup.rcMargins.top=-1;
-		popup.rcMargins.bottom=-1;
-		popup.rcMargins.right=-1;
-		popup.pszFont="MS Sans Serif,8,,";
-		popup.clrForeground =-1;
-		popup.clrBackground=-1;
-		popup.pt.x=-1;
-		popup.pt.y=-1;
+			popup.cbStruct=sizeof(hlp);
+			popup.hinst=pApp->m_instance;
+			popup.idString=(UINT)hlp.iCtrlId;
+			popup.rcMargins.top=-1;
+			popup.rcMargins.left=-1;
+			popup.rcMargins.top=-1;
+			popup.rcMargins.bottom=-1;
+			popup.rcMargins.right=-1;
+			popup.pszFont="MS Sans Serif,8,,";
+			popup.clrForeground =-1;
+			popup.clrBackground=-1;
+			popup.pt.x=-1;
+			popup.pt.y=-1;
 
-		HtmlHelp(
-         (HWND)hlp.hItemHandle,
-         NULL,
-         HH_DISPLAY_TEXT_POPUP,
-         (DWORD)&popup) ;
+			HtmlHelp(
+				(HWND)hlp.hItemHandle,
+				NULL,
+				HH_DISPLAY_TEXT_POPUP,
+				(DWORD)&popup) ;
 		
 			return 0;
-	case WM_ACTIVATE:
-	case WM_ACTIVATEAPP:
+		case WM_ACTIVATE:
+		case WM_ACTIVATEAPP:
 			if((pApp->m_options.m_listening)||(FindWindow("VNCviewer Daemon",0)!=NULL))
 			{
 				EnableWindow( hListMode,FALSE);
@@ -166,196 +162,171 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 			{
 				EnableWindow( hListMode,TRUE);
 			}
-		return 0;
-		
-	case WM_COMMAND:{
-		
-		
-		switch (LOWORD(wParam)) {
-			case IDC_HOSTNAME_EDIT:{
-				switch (HIWORD(wParam)) {
-				case  CBN_SELCHANGE:{
-					int a=(int)SendMessage(hcombo,CB_GETCURSEL,0,0L);
-					SendMessage(hcombo, CB_GETLBTEXT, a, (LPARAM)(int FAR*)buffer );
-					_this->m_pOpt->LoadOpt(buffer,"Software\\ORL\\VNCviewer\\MRU1");
+		return 0;		
+		case WM_COMMAND:{
+			switch (LOWORD(wParam)) {
+				case IDC_HOSTNAME_EDIT:{
+					switch (HIWORD(wParam)) {
+						case  CBN_SELCHANGE:{
+							int a=(int)SendMessage(hcombo,CB_GETCURSEL,0,0L);
+							SendMessage(hcombo, CB_GETLBTEXT, a, (LPARAM)(int FAR*)buffer );
+							_this->m_pOpt->LoadOpt(buffer,"Software\\ORL\\VNCviewer\\MRU1");
 				
-					b=_this->cmp();
-					if(b==3){
-					SendMessage(hCustomRadio, BM_CLICK, 0, 0);
+							b=_this->cmp();
+							if(b==3){
+								SendMessage(hCustomRadio, BM_CLICK, 0, 0);
+							}
+							if(b==1){
+								SendMessage(hModemRadio, BM_CLICK, 0, 0);
+							}
+							if(b==2){
+								SendMessage(hLocNetRadio, BM_CLICK, 0, 0);
+							}
+							if(b==0){
+								SendMessage(hLocNetRadio, BM_SETCHECK, 0, 0L);
+								SendMessage(hModemRadio, BM_SETCHECK,0, 0L);
+								SendMessage(hCustomRadio, BM_SETCHECK,0, 0L);
+							}
+							SetFocus(hcombo);
+							return TRUE;
+						}
 					}
-					if(b==1){
-					SendMessage(hModemRadio, BM_CLICK, 0, 0);
-					}
-					if(b==2){
-					SendMessage(hLocNetRadio, BM_CLICK, 0, 0);
-					}
-					if(b==0){
-					SendMessage(hLocNetRadio, BM_SETCHECK, 0, 0L);
-					SendMessage(hModemRadio, BM_SETCHECK,0, 0L);
-					SendMessage(hCustomRadio, BM_SETCHECK,0, 0L);
-					}
-
-					SetFocus(hcombo);
-				return TRUE;
-
-								  }
-			}
-				
-			return TRUE; }
-		case IDC_LIST_MODE:{
-				pApp->m_options.LoadOpt(".listen","Software\\ORL\\VNCviewer\\MRU1");
-				pApp->m_options.m_listening=true;
-				pApp->ListenMode();
-				EndDialog(hwnd, FALSE);
-				return TRUE; }
-		case IDC_OK:
-            {
-				TCHAR display[256];
-			
-				GetDlgItemText(hwnd, IDC_HOSTNAME_EDIT, display, 256);
-			 
-				if(_tcslen(display)==0)
-				{
-				 EndDialog(hwnd, TRUE);
-				return TRUE;}
-
-				if (!ParseDisplay(display, tmphost, 255, &_this->m_port))
-				{
-                MessageBox(NULL, 
-                    _T("Invalid VNC server specified.\n\r")
-                    _T("Server should be of the form host:display."), 
-                    _T("Connection setup"), MB_OK | MB_ICONEXCLAMATION );
-				return TRUE;
-				}else{
-                _tcscpy(_this->m_host, tmphost);
-				_tcscpy(_this->m_pOpt->m_display, display);
+					return TRUE;
 				}
-				EndDialog(hwnd, TRUE);
-				return TRUE;
-			}
-		
-		case IDCANCEL:{
-			
-			EndDialog(hwnd, FALSE);
-			
-			return TRUE;
+				case IDC_LIST_MODE:{
+					pApp->m_options.LoadOpt(".listen","Software\\ORL\\VNCviewer\\MRU1");
+					pApp->m_options.m_listening=true;
+					pApp->ListenMode();
+					EndDialog(hwnd, FALSE);
+					return TRUE; 
 				}
-		case IDC_LOC_NET_RADIO:
-			{
-				switch (HIWORD(wParam)) {
-				case   BN_CLICKED:{
-					
-					for (int i = rfbEncodingRaw; i<= LASTENCODING; i++)
-					_this->m_pOpt->m_UseEnc[i] = true;
+				case IDC_OK:{            
+					TCHAR display[256];			
+					GetDlgItemText(hwnd, IDC_HOSTNAME_EDIT, display, 256);			 
+					if(_tcslen(display)==0){				
+						EndDialog(hwnd, TRUE);
+						return TRUE;
+					}
+					if (!ParseDisplay(display, tmphost, 255, &_this->m_port)){
+						MessageBox(NULL, 
+							_T("Invalid VNC server specified.\n\r")
+							_T("Server should be of the form host:display."), 
+							_T("Connection setup"), MB_OK | MB_ICONEXCLAMATION );
+						return TRUE;
+					}else{
+						_tcscpy(_this->m_host, tmphost);
+						_tcscpy(_this->m_pOpt->m_display, display);
+					}
+					EndDialog(hwnd, TRUE);
+					return TRUE;
+				}		
+				case IDCANCEL:{			
+					EndDialog(hwnd, FALSE);			
+					return TRUE;
+				}
+				case IDC_LOC_NET_RADIO:{
+					switch (HIWORD(wParam)) {
+						case   BN_CLICKED:{
+							for (int i = rfbEncodingRaw; i<= LASTENCODING; i++)
+								_this->m_pOpt->m_UseEnc[i] = true;
 
-					_this->m_pOpt->m_UseEnc[3] = false;
-					_this->m_pOpt->m_PreferredEncoding = rfbEncodingTight-2;
-					_this->m_pOpt->m_useCompressLevel = false;
-					_this->m_pOpt->m_compressLevel = 0;
-					_this->m_pOpt->m_enableJpegCompression = false;
-					_this->m_pOpt->m_jpegQualityLevel = 0;
+							_this->m_pOpt->m_UseEnc[3] = false;
+							_this->m_pOpt->m_PreferredEncoding = rfbEncodingTight-2;
+							_this->m_pOpt->m_useCompressLevel = false;
+							_this->m_pOpt->m_compressLevel = 0;
+							_this->m_pOpt->m_enableJpegCompression = false;
+							_this->m_pOpt->m_jpegQualityLevel = 0;
 			
-					return TRUE;}
+							return TRUE;
 						}
-				
-				return TRUE; }
-		case IDC_MODEM_RADIO:
-			{
-				switch (HIWORD(wParam)) {
-				case   BN_CLICKED:{
+					}				
+					return TRUE;
+				}
+				case IDC_MODEM_RADIO:{			
+					switch (HIWORD(wParam)) {
+						case   BN_CLICKED:{
 					
-					for ( i = rfbEncodingRaw; i<= LASTENCODING; i++)
-					_this->m_pOpt->m_UseEnc[i] = true;
+							for ( i = rfbEncodingRaw; i<= LASTENCODING; i++)
+								_this->m_pOpt->m_UseEnc[i] = true;
 	
-					_this->m_pOpt->m_UseEnc[3] = false;
-					_this->m_pOpt->m_PreferredEncoding = rfbEncodingTight;
-					_this->m_pOpt->m_useCompressLevel = true;
-					_this->m_pOpt->m_compressLevel = 6;
-					_this->m_pOpt->m_enableJpegCompression = true;
-					_this->m_pOpt->m_jpegQualityLevel = 6;
+							_this->m_pOpt->m_UseEnc[3] = false;
+							_this->m_pOpt->m_PreferredEncoding = rfbEncodingTight;
+							_this->m_pOpt->m_useCompressLevel = true;
+							_this->m_pOpt->m_compressLevel = 6;
+							_this->m_pOpt->m_enableJpegCompression = true;
+							_this->m_pOpt->m_jpegQualityLevel = 6;
 					
-				return TRUE;}
+							return TRUE;
 						}
-				
-			return TRUE; }
-		case IDC_CUSTOM_RADIO:
-			{
-				switch (HIWORD(wParam)) {
-				case   BN_CLICKED:{
+					}				
+					return TRUE; 
+				}
+				case IDC_CUSTOM_RADIO:{			
+					switch (HIWORD(wParam)) {
+						case   BN_CLICKED:{
 					
-					for ( i = rfbEncodingRaw; i<= LASTENCODING; i++)
-					_this->m_pOpt->m_UseEnc[i] = true;
+							for ( i = rfbEncodingRaw; i<= LASTENCODING; i++)
+								_this->m_pOpt->m_UseEnc[i] = true;
 	
-					_this->m_pOpt->m_UseEnc[3] = false;
-					_this->m_pOpt->m_PreferredEncoding = rfbEncodingTight;
-					_this->m_pOpt->m_useCompressLevel = false;
-					_this->m_pOpt->m_compressLevel = 6;
-					_this->m_pOpt->m_enableJpegCompression = false;
-					_this->m_pOpt->m_jpegQualityLevel = 6;
+							_this->m_pOpt->m_UseEnc[3] = false;
+							_this->m_pOpt->m_PreferredEncoding = rfbEncodingTight;
+							_this->m_pOpt->m_useCompressLevel = false;
+							_this->m_pOpt->m_compressLevel = 6;
+							_this->m_pOpt->m_enableJpegCompression = false;
+							_this->m_pOpt->m_jpegQualityLevel = 6;
 					
-				return TRUE;}
+							return TRUE;
 						}
-				
-				return TRUE; }
+					}				
+					return TRUE; 
+				}
 								  
-		case IDC_OPTIONBUTTON:
-			{	
-				HWND hOptionButton = GetDlgItem(hwnd, IDC_OPTIONBUTTON);
-				_this->m_pOpt->DoDialog();
-				int n=SendMessage(hcombo, CB_GETCURSEL,0,0);
-				SendMessage(hcombo, CB_RESETCONTENT,0,0);
-
-				int dwbuflen=255;
-				TCHAR valname[256];
-				TCHAR buf[256];
-				int k=pApp->m_options.m_listServer;
-				if (n>k)n=0;
-				for ( i = 0; i <k; i++) 
-				{
-					itoa(i,valname,10);
-					dwbuflen=255;
-					if(RegQueryValueEx( _this->m_hRegKey,(LPTSTR)valname , 
-					NULL, NULL, 
-					(LPBYTE) buf,(LPDWORD) &dwbuflen)!=ERROR_SUCCESS)break;
-				
-					SendMessage(hcombo, CB_INSERTSTRING,(WPARAM)i,(LPARAM)(int FAR*)buf);
+				case IDC_OPTIONBUTTON:{	
+					HWND hOptionButton = GetDlgItem(hwnd, IDC_OPTIONBUTTON);
+					_this->m_pOpt->DoDialog();
+					int n=SendMessage(hcombo, CB_GETCURSEL,0,0);
+					SendMessage(hcombo, CB_RESETCONTENT,0,0);
+					int dwbuflen=255;
+					TCHAR valname[256];
+					TCHAR buf[256];
+					int k=pApp->m_options.m_listServer;
+					if (n>k){
+						n=0;
+					}
+					for ( i = 0; i <k; i++){ 				
+						itoa(i,valname,10);
+						dwbuflen=255;
+						if(RegQueryValueEx( _this->m_hRegKey,(LPTSTR)valname , NULL, NULL, 
+							(LPBYTE) buf,(LPDWORD) &dwbuflen)!=ERROR_SUCCESS){
+							break;
+						}
+						SendMessage(hcombo, CB_INSERTSTRING,(WPARAM)i,(LPARAM)(int FAR*)buf);
+					}
+					SendMessage(hcombo, CB_SETCURSEL,n,0);
+					b=_this->cmp();
+					if(b==3){				
+						SendMessage(hCustomRadio, BM_CLICK, 0, 0);
+					}
+					if(b==1){				
+						SendMessage(hModemRadio, BM_CLICK, 0, 0);
+					}
+					if(b==2){				
+						SendMessage(hLocNetRadio, BM_CLICK, 0, 0);
+					}
+					if(b==0){				
+						SendMessage(hLocNetRadio, BM_SETCHECK, 0, 0L);
+						SendMessage(hModemRadio, BM_SETCHECK,0, 0L);
+						SendMessage(hCustomRadio, BM_SETCHECK,0, 0L);
+					}								
+					SetFocus(hOptionButton);
+					return TRUE;
 				}
-
-				SendMessage(hcombo, CB_SETCURSEL,n,0);
-				
-				
-				b=_this->cmp();
-				if(b==3)
-				{
-				SendMessage(hCustomRadio, BM_CLICK, 0, 0);
-				}
-				if(b==1)
-				{
-				SendMessage(hModemRadio, BM_CLICK, 0, 0);
-				}
-				if(b==2)
-				{
-				SendMessage(hLocNetRadio, BM_CLICK, 0, 0);
-				}
-				if(b==0)
-				{
-				SendMessage(hLocNetRadio, BM_SETCHECK, 0, 0L);
-				SendMessage(hModemRadio, BM_SETCHECK,0, 0L);
-				SendMessage(hCustomRadio, BM_SETCHECK,0, 0L);
-				}
-				
-				
-				SetFocus(hOptionButton);
-				return TRUE;
 			}
 		}
-		break;
-	}
-	case WM_DESTROY:
-		EndDialog(hwnd, FALSE);
-		return TRUE;
-	}
-	
+		case WM_DESTROY:
+			EndDialog(hwnd, FALSE);
+			return TRUE;
+	}	
 	return 0;
 }
 
@@ -365,42 +336,39 @@ int SessionDialog::cmp()
 	int a=1;
 
 	for (int i = rfbEncodingRaw; i<= LASTENCODING; i++)
-			if((m_pOpt->m_UseEnc[i] != true)&&(i!=3))a=0;
-			if(m_pOpt->m_UseEnc[3] != false)a=0;
-	
-		if(m_pOpt->m_PreferredEncoding != rfbEncodingTight)a=0;		     
-		if(m_pOpt->m_useCompressLevel != true){
+		if((m_pOpt->m_UseEnc[i] != true)&&(i!=3))a=0;
+	if(m_pOpt->m_UseEnc[3] != false)a=0;
+	if(m_pOpt->m_PreferredEncoding != rfbEncodingTight)a=0;		     
+	if(m_pOpt->m_useCompressLevel != true){
 		a=0;
-		}else{
+	}else{
 		if(m_pOpt->m_compressLevel != 6)a=0;
-		}
-		if(m_pOpt->m_enableJpegCompression != true){
+	}
+	if(m_pOpt->m_enableJpegCompression != true){
 		a=0;
-		}else{
+	}else{
 		if(m_pOpt->m_jpegQualityLevel != 6)a=0;
-		}
+	}
 
-		if(a==1)return a;
+	if(a==1)return a;
 
-		a=2;
-		for (i = rfbEncodingRaw; i<= LASTENCODING; i++)
-			if((m_pOpt->m_UseEnc[i] != true)&&(i!=3))a=0;
-			if(m_pOpt->m_UseEnc[3] != false)a=0;
-	
-		if(m_pOpt->m_PreferredEncoding != (rfbEncodingTight-2))a=0;
+	a=2;
+	for (i = rfbEncodingRaw; i<= LASTENCODING; i++)
+		if((m_pOpt->m_UseEnc[i] != true)&&(i!=3))a=0;
+	if(m_pOpt->m_UseEnc[3] != false)a=0;
+	if(m_pOpt->m_PreferredEncoding != (rfbEncodingTight-2))a=0;
 		
-		if(a==2)	return a;
+	if(a==2)return a;
 
-		a=3;
-		for (i = rfbEncodingRaw; i<= LASTENCODING; i++)
-			if((m_pOpt->m_UseEnc[i] != true)&&(i!=3))a=0;
-			if(m_pOpt->m_UseEnc[3] != false)a=0;
-	
-		if(m_pOpt->m_PreferredEncoding != rfbEncodingTight)a=0;
-		if(m_pOpt->m_useCompressLevel != false)a=0;
-		if(m_pOpt->m_enableJpegCompression != false)a=0;
+	a=3;
+	for (i = rfbEncodingRaw; i<= LASTENCODING; i++)
+		if((m_pOpt->m_UseEnc[i] != true)&&(i!=3))a=0;
+	if(m_pOpt->m_UseEnc[3] != false)a=0;
+	if(m_pOpt->m_PreferredEncoding != rfbEncodingTight)a=0;
+	if(m_pOpt->m_useCompressLevel != false)a=0;
+	if(m_pOpt->m_enableJpegCompression != false)a=0;
 		
-		return a;
+	return a;
 }
  
 	

@@ -95,13 +95,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 	Accel[6].key=0x54;
 	Accel[6].cmd=ID_TOOLBAR;
 
-
-   hAccel=CreateAcceleratorTable((LPACCEL)Accel,7);
+	hAccel=CreateAcceleratorTable((LPACCEL)Accel,7);
    
 	try {
 		while ( GetMessage(&msg, NULL, 0,0) ) {
 			if(!hAccel||!TranslateAccelerator(hwndd,hAccel,&msg)){
-				TranslateMessage(&msg);}
+				TranslateMessage(&msg);
+			}
 			DispatchMessage(&msg);
 		} 
 	} catch (WarningException &e) {

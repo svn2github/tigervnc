@@ -184,7 +184,7 @@ void ClientConnection::Run()
 		GetConnectDetails();
 	}else{
 		if(m_pApp->m_options.m_listening)
-	m_opts.LoadOpt(m_opts.m_display,"Software\\ORL\\VNCviewer\\MRU1");
+			m_opts.LoadOpt(m_opts.m_display,"Software\\ORL\\VNCviewer\\MRU1");
 	}
 	// Connect if we're not already connected
 	if (m_sock == INVALID_SOCKET) 
@@ -219,11 +219,11 @@ void ClientConnection::CreateDisplay()
 	// Create the window
 	
 	WNDCLASS wndclass1;
-	//wndclass1.cbSize = sizeof(WNDCLASSEX);
+	
 	wndclass1.style			= 0;
 	wndclass1.lpfnWndProc	= ClientConnection::Proc;
-	wndclass1.cbClsExtra		= 0;
-	wndclass1.cbWndExtra		= 0;
+	wndclass1.cbClsExtra	= 0;
+	wndclass1.cbWndExtra	= 0;
 	wndclass1.hInstance		= m_pApp->m_instance;
 	wndclass1.hIcon			= (HICON)LoadIcon(m_pApp->m_instance, MAKEINTRESOURCE(IDI_MAINICON));
 	wndclass1.hCursor		= LoadCursor(NULL,IDC_ARROW);
@@ -233,8 +233,8 @@ void ClientConnection::CreateDisplay()
 
 	RegisterClass(&wndclass1);
 
-WNDCLASS wndclass;
-	//wndclass.cbSize = sizeof(WNDCLASSEX); 
+	WNDCLASS wndclass;
+	 
 	wndclass.style			= 0;
 	wndclass.lpfnWndProc	= ClientConnection::Proc;
 	wndclass.cbClsExtra		= 0;
@@ -243,14 +243,14 @@ WNDCLASS wndclass;
 	wndclass.hIcon			= (HICON)LoadIcon(NULL, IDI_APPLICATION);;
 	switch (m_pApp->m_options.m_localCursor) {
 	case NOCURSOR:
-		wndclass.hCursor		= LoadCursor(m_pApp->m_instance, MAKEINTRESOURCE(IDC_NOCURSOR));
+		wndclass.hCursor	= LoadCursor(m_pApp->m_instance, MAKEINTRESOURCE(IDC_NOCURSOR));
 		break;
 	case NORMALCURSOR:
-		wndclass.hCursor		=LoadCursor(NULL,IDC_ARROW);
+		wndclass.hCursor	=LoadCursor(NULL,IDC_ARROW);
 		break;
 	case DOTCURSOR:
 	default:
-		wndclass.hCursor		= LoadCursor(m_pApp->m_instance, MAKEINTRESOURCE(IDC_DOTCURSOR));
+		wndclass.hCursor	= LoadCursor(m_pApp->m_instance, MAKEINTRESOURCE(IDC_DOTCURSOR));
 	}
 	wndclass.hbrBackground	= (HBRUSH) GetStockObject(BLACK_BRUSH);
     wndclass.lpszMenuName	= (LPCTSTR)NULL;
@@ -332,68 +332,69 @@ WNDCLASS wndclass;
 	}
 	DrawMenuBar(m_hwnd1);
 
-static TBBUTTON but[15];
-	but[0].fsStyle=TBSTYLE_SEP;
+	static TBBUTTON but[15];
+	but[0].fsStyle		= TBSTYLE_SEP;
 
-	but[1].iBitmap=0;
-	but[1].idCommand=IDC_OPTIONBUTTON;
-	but[1].fsState=TBSTATE_ENABLED;
-	but[1].fsStyle=TBSTYLE_BUTTON;
+	but[1].iBitmap		= 0;
+	but[1].idCommand	= IDC_OPTIONBUTTON;
+	but[1].fsState		= TBSTATE_ENABLED;
+	but[1].fsStyle		= TBSTYLE_BUTTON;
 
-	but[2].iBitmap=9;
-	but[2].idCommand=ID_CONN_ABOUT;
-	but[2].fsState=TBSTATE_ENABLED;
-	but[2].fsStyle=TBSTYLE_BUTTON;
+	but[2].iBitmap		= 9;
+	but[2].idCommand	= ID_CONN_ABOUT;
+	but[2].fsState		= TBSTATE_ENABLED;
+	but[2].fsStyle		= TBSTYLE_BUTTON;
 
-	but[3].fsStyle=TBSTYLE_SEP;
+	but[3].fsStyle		= TBSTYLE_SEP;
 
-	but[4].iBitmap=3;
-	but[4].idCommand=ID_FULLSCREEN;
-	but[4].fsState=TBSTATE_ENABLED;
-	but[4].fsStyle=TBSTYLE_BUTTON;
+	but[4].iBitmap		= 3;
+	but[4].idCommand	= ID_FULLSCREEN;
+	but[4].fsState		= TBSTATE_ENABLED;
+	but[4].fsStyle		= TBSTYLE_BUTTON;
 
-	but[5].iBitmap=1;
-	but[5].idCommand=ID_REQUEST_REFRESH;
-	but[5].fsState=TBSTATE_ENABLED;
-	but[5].fsStyle=TBSTYLE_BUTTON;
+	but[5].iBitmap		= 1;
+	but[5].idCommand	= ID_REQUEST_REFRESH;
+	but[5].fsState		= TBSTATE_ENABLED;
+	but[5].fsStyle		= TBSTYLE_BUTTON;
 
-	but[6].fsStyle=TBSTYLE_SEP;
+	but[6].fsStyle		= TBSTYLE_SEP;
 
-	but[7].iBitmap=8;
-	but[7].idCommand=ID_CONN_CTLALTDEL;
-	but[7].fsState=TBSTATE_ENABLED;
-	but[7].fsStyle=TBSTYLE_BUTTON;
+	but[7].iBitmap		= 8;
+	but[7].idCommand	= ID_CONN_CTLALTDEL;
+	but[7].fsState		= TBSTATE_ENABLED;
+	but[7].fsStyle		= TBSTYLE_BUTTON;
 
-	but[8].iBitmap=4;
-	but[8].idCommand=ID_CONN_CTLDOWN;
-	but[8].fsState=TBSTATE_ENABLED;
-	but[8].fsStyle=TBSTYLE_CHECK;
+	but[8].iBitmap		= 4;
+	but[8].idCommand	= ID_CONN_CTLDOWN;
+	but[8].fsState		= TBSTATE_ENABLED;
+	but[8].fsStyle		= TBSTYLE_CHECK;
 
-	but[9].iBitmap=5;
-	but[9].idCommand=ID_CONN_ALTDOWN;
-	but[9].fsState=TBSTATE_ENABLED;
-	but[9].fsStyle=TBSTYLE_CHECK;
+	but[9].iBitmap		= 5;
+	but[9].idCommand	= ID_CONN_ALTDOWN;
+	but[9].fsState		= TBSTATE_ENABLED;
+	but[9].fsStyle		= TBSTYLE_CHECK;
 
-	but[10].fsStyle=TBSTYLE_SEP;
+	but[10].fsStyle		= TBSTYLE_SEP;
 
-	but[11].iBitmap=10;
-	but[11].idCommand=ID_NEWCONN;
-	but[11].fsState=TBSTATE_ENABLED;
-	but[11].fsStyle=TBSTYLE_BUTTON	;
+	but[11].iBitmap		= 10;
+	but[11].idCommand	= ID_NEWCONN;
+	but[11].fsState		= TBSTATE_ENABLED;
+	but[11].fsStyle		= TBSTYLE_BUTTON	;
 
-	but[12].iBitmap=2;
-	but[12].idCommand=ID_CONN_SAVE_AS;
-	but[12].fsState=TBSTATE_ENABLED;
-	but[12].fsStyle=TBSTYLE_BUTTON;
+	but[12].iBitmap		= 2;
+	but[12].idCommand	= ID_CONN_SAVE_AS;
+	but[12].fsState		= TBSTATE_ENABLED;
+	but[12].fsStyle		= TBSTYLE_BUTTON;
 
-	but[13].fsStyle=TBSTYLE_SEP;
+	but[13].fsStyle		= TBSTYLE_SEP;
 
-	but[14].iBitmap=11;
-	but[14].idCommand=ID_DISCONNECT;
-	but[14].fsState=TBSTATE_ENABLED;
-	but[14].fsStyle=TBSTYLE_BUTTON;
+	but[14].iBitmap		= 11;
+	but[14].idCommand	= ID_DISCONNECT;
+	but[14].fsState		= TBSTATE_ENABLED;
+	but[14].fsStyle		= TBSTYLE_BUTTON;
 
-	hToolBar=CreateToolbarEx(m_hwnd1,WS_CHILD|WS_MAXIMIZE|WS_DLGFRAME|TBSTYLE_TOOLTIPS ,
+	hToolBar=CreateToolbarEx(m_hwnd1,
+		WS_CHILD|WS_MAXIMIZE|WS_DLGFRAME|TBSTYLE_TOOLTIPS ,
 		ID_TOOLBAR,13,m_pApp->m_instance,
 		IDB_BITMAP1,but,15,0,0,0,0,sizeof(TBBUTTON));
 
@@ -414,7 +415,8 @@ static TBBUTTON but[15];
 	SetWindowLong(m_hwnd, GWL_USERDATA, (LONG) this);
 	SetWindowLong(m_hwnd, GWL_WNDPROC	, (LONG)ClientConnection::WndProc);
 	
-	if(pApp->m_options.m_toolbar)CheckMenuItem(GetSystemMenu(m_hwnd1, FALSE),
+	if(pApp->m_options.m_toolbar)
+		CheckMenuItem(GetSystemMenu(m_hwnd1, FALSE),
 					ID_TOOLBAR, MF_BYCOMMAND|MF_CHECKED);
 	
 	// record which client created this window
@@ -1044,12 +1046,8 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 	// dealing with.  But we've stored a 'pseudo-this' in the window data.
 	ClientConnection *_this = (ClientConnection *) GetWindowLong(hwnd, GWL_USERDATA);
 		
-
-
-	
-switch (iMsg) {
-
-	case WM_NOTIFY:{
+	switch (iMsg) {
+		case WM_NOTIFY:{
 
 			LPTOOLTIPTEXT TTStr;
 			TTStr=(LPTOOLTIPTEXT)lParam;
@@ -1057,91 +1055,85 @@ switch (iMsg) {
 			if(TTStr->hdr.code!=TTN_NEEDTEXT) return 0;
 
 			switch (TTStr->hdr.idFrom){
-			case ID_CONN_ABOUT:
-			TTStr->lpszText="Connection info";
+				case ID_CONN_ABOUT:
+					TTStr->lpszText="Connection info";
+					return 0;
+				case IDC_OPTIONBUTTON:
+					TTStr->lpszText="Connection options";
+					return 0;
+				case ID_FULLSCREEN:
+					TTStr->lpszText="Full screen";
+					return 0;
+				case ID_CONN_CTLALTDEL:
+					TTStr->lpszText="Send Ctrl-Alt-Del";
+					return 0;
+				case ID_CONN_CTLDOWN:
+					TTStr->lpszText="Key Ctrl";
+					return 0;
+      			case ID_CONN_ALTDOWN:
+					TTStr->lpszText="Key Alt";
+					return 0;
+				case ID_NEWCONN:
+					TTStr->lpszText="New connection";
+					return 0;
+				case ID_REQUEST_REFRESH:
+					TTStr->lpszText="Request screen refresh";
+					return 0;
+				case ID_DISCONNECT:
+					TTStr->lpszText="Disconnect";
+					return 0;
+				case ID_CONN_SAVE_AS:
+					TTStr->lpszText="Save connection info as...";
+					return 0;
+			}
 			return 0;
-			case IDC_OPTIONBUTTON:
-			TTStr->lpszText="Connection options";
+		}
+		case WM_SETFOCUS:
+			hwndd=hwnd;
 			return 0;
-			case ID_FULLSCREEN:
-			TTStr->lpszText="Full screen";
-			return 0;
-			case ID_CONN_CTLALTDEL:
-			TTStr->lpszText="Send Ctrl-Alt-Del";
-			return 0;
-			case ID_CONN_CTLDOWN:
-			TTStr->lpszText="Key Ctrl";
-			return 0;
-      		case ID_CONN_ALTDOWN:
-			TTStr->lpszText="Key Alt";
-			return 0;
-			case ID_NEWCONN:
-			TTStr->lpszText="New connection";
-			return 0;
-			case ID_REQUEST_REFRESH:
-			TTStr->lpszText="Request screen refresh";
-			return 0;
-			case ID_DISCONNECT:
-			TTStr->lpszText="Disconnect";
-			return 0;
-			case ID_CONN_SAVE_AS:
-			TTStr->lpszText="Save connection info as...";
-			return 0;
-				   }
-			return 0;
-				}
-	case WM_SETFOCUS:
-		hwndd=hwnd;
-		return 0;
-	case WM_COMMAND:
-	case WM_SYSCOMMAND:
-		
+		case WM_COMMAND:
+		case WM_SYSCOMMAND:
 			switch (LOWORD(wParam)) {
-			case SC_MINIMIZE:
-				_this->SetDormant(true);
-				break;
-			case SC_RESTORE:
-				_this->SetDormant(false);
-				break;
-            case ID_NEWCONN:
-				_this->m_pApp->NewConnection();
-				return 0;
-			case ID_DISCONNECT:
-			SendMessage(hwnd,WM_CLOSE,0,0);
-				return 0;
-			case ID_TOOLBAR:
-				RECT win;
-				GetClientRect(hwnd,&win);
+				case SC_MINIMIZE:
+					_this->SetDormant(true);
+					break;
+				case SC_RESTORE:
+					_this->SetDormant(false);
+					break;
+				case ID_NEWCONN:
+					_this->m_pApp->NewConnection();
+					return 0;
+				case ID_DISCONNECT:
+					SendMessage(hwnd,WM_CLOSE,0,0);
+					return 0;
+				case ID_TOOLBAR:
+					RECT win;
+					GetClientRect(hwnd,&win);
 				
-				if(GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
-					ID_TOOLBAR,MF_BYCOMMAND)==MF_CHECKED){
-					CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
-						ID_TOOLBAR, MF_BYCOMMAND|MF_UNCHECKED);
-					if ((win.bottom-win.top)>_this->m_fullwinheight)
-					{
-						SetWindowPos(hwnd,HWND_TOP,0,0,
-						_this->m_winwidth1,_this->m_winheight1,
-						SWP_NOMOVE|SWP_SHOWWINDOW);
+					if(GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
+									ID_TOOLBAR,MF_BYCOMMAND)==MF_CHECKED){
+						CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
+									ID_TOOLBAR, MF_BYCOMMAND|MF_UNCHECKED);
+						if ((win.bottom-win.top)>_this->m_fullwinheight){
+							SetWindowPos(hwnd,HWND_TOP,0,0,
+										_this->m_winwidth1,_this->m_winheight1,
+										SWP_NOMOVE|SWP_SHOWWINDOW);
+						}
+					}else{
+						CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
+									ID_TOOLBAR, MF_BYCOMMAND|MF_CHECKED);
 					}
-				}else{
-					CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
-						ID_TOOLBAR, MF_BYCOMMAND|MF_CHECKED);
-				}
-				SendMessage(hwnd,WM_SIZE,0,0);
-			
-				
-				
-				return 0;
-            case ID_CONN_SAVE_AS:
-				_this->SaveConnection();
-				return 0;
-			case IDC_OPTIONBUTTON: 
-				{
+					SendMessage(hwnd,WM_SIZE,0,0);
+					return 0;
+				case ID_CONN_SAVE_AS:
+					_this->SaveConnection();
+					return 0;
+				case IDC_OPTIONBUTTON:{ 
 					int prev_scale_num = _this->m_opts.m_scale_num;
 					int prev_scale_den = _this->m_opts.m_scale_den;
 
 					if (_this->m_opts.DoDialog(true)) {
-						_this->m_pendingFormatChange = true;
+							_this->m_pendingFormatChange = true;
 
 						if (prev_scale_num != _this->m_opts.m_scale_num ||
 							prev_scale_den != _this->m_opts.m_scale_den) {
@@ -1152,132 +1144,122 @@ switch (iMsg) {
 							_this->RealiseFullScreenMode(true);
 						}
 					}
-				}
-				if (_this->m_serverInitiated) {
-					_this->m_opts.SaveOpt(".listen",
-										  "Software\\ORL\\VNCviewer\\MRU1");
-				}
-				return 0;
-			case IDD_APP_ABOUT:
-				ShowAboutBox();
-				return 0;
-			case ID_CONN_ABOUT:
-				_this->ShowConnInfo();
-				return 0;
-			case ID_FULLSCREEN:
-				
-				
-				// Toggle full screen mode
-				_this->SetFullScreenMode(!_this->InFullScreenMode());
-				
-				return 0;
-			case ID_REQUEST_REFRESH: 
-				// Request a full-screen update
-				_this->SendFullFramebufferUpdateRequest();
-				return 0;
-
-			case ID_CONN_CTLALTDEL:
-				_this->SendKeyEvent(XK_Control_L, true);
-				_this->SendKeyEvent(XK_Alt_L,     true);
-				_this->SendKeyEvent(XK_Delete,    true);
-				_this->SendKeyEvent(XK_Delete,    false);
-				_this->SendKeyEvent(XK_Alt_L,     false);
-				_this->SendKeyEvent(XK_Control_L, false);
-				return 0;
-            case ID_CONN_CTLDOWN:
-				if(GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
-						ID_CONN_CTLDOWN,MF_BYCOMMAND)==MF_CHECKED)
-				{
-				_this->SendKeyEvent(XK_Control_L, false);
-				CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
-						ID_CONN_CTLDOWN, MF_BYCOMMAND|MF_UNCHECKED);
-				SendMessage(_this->hToolBar,TB_SETSTATE,(WPARAM)ID_CONN_CTLDOWN,
-						(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
-				}else{
-				CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
-						ID_CONN_CTLDOWN, MF_BYCOMMAND|MF_CHECKED);
-				SendMessage(_this->hToolBar,TB_SETSTATE,(WPARAM)ID_CONN_CTLDOWN,
-						(LPARAM)MAKELONG(TBSTATE_CHECKED|TBSTATE_ENABLED,0));
-				_this->SendKeyEvent(XK_Control_L, true);
-				}
-				return 0;
-			case ID_CONN_ALTDOWN:
-				if(GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
-						ID_CONN_ALTDOWN,MF_BYCOMMAND)==MF_CHECKED){
-                _this->SendKeyEvent(XK_Alt_L, false);
-				CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
-					ID_CONN_ALTDOWN, MF_BYCOMMAND|MF_UNCHECKED);
-				SendMessage(_this->hToolBar,TB_SETSTATE,(WPARAM)ID_CONN_ALTDOWN,
-					(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
-				}else{
-				CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
-					ID_CONN_ALTDOWN, MF_BYCOMMAND|MF_CHECKED);
-				SendMessage(_this->hToolBar,TB_SETSTATE,(WPARAM)ID_CONN_ALTDOWN,
-					(LPARAM)MAKELONG(TBSTATE_CHECKED|TBSTATE_ENABLED,0));
-                _this->SendKeyEvent(XK_Alt_L, true);
+					if (_this->m_serverInitiated) {
+						_this->m_opts.SaveOpt(".listen","Software\\ORL\\VNCviewer\\MRU1");
 					}
-                return 0;
-			case ID_CLOSEDAEMON:
-				if (MessageBox(NULL, _T("Are you sure you want to exit?"), 
-						_T("Closing VNCviewer"), 
-						MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2) == IDYES)
+					return 0;
+				}
+				case IDD_APP_ABOUT:
+					ShowAboutBox();
+					return 0;
+				case ID_CONN_ABOUT:
+					_this->ShowConnInfo();
+					return 0;
+				case ID_FULLSCREEN:
+					// Toggle full screen mode
+					_this->SetFullScreenMode(!_this->InFullScreenMode());
+					return 0;
+				case ID_REQUEST_REFRESH: 
+					// Request a full-screen update
+					_this->SendFullFramebufferUpdateRequest();
+					return 0;
+				case ID_CONN_CTLALTDEL:
+					_this->SendKeyEvent(XK_Control_L, true);
+					_this->SendKeyEvent(XK_Alt_L,     true);
+					_this->SendKeyEvent(XK_Delete,    true);
+					_this->SendKeyEvent(XK_Delete,    false);
+					_this->SendKeyEvent(XK_Alt_L,     false);
+					_this->SendKeyEvent(XK_Control_L, false);
+					return 0;
+				case ID_CONN_CTLDOWN:
+					if(GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
+							ID_CONN_CTLDOWN,MF_BYCOMMAND)==MF_CHECKED){
+						_this->SendKeyEvent(XK_Control_L, false);
+						CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
+									ID_CONN_CTLDOWN, MF_BYCOMMAND|MF_UNCHECKED);
+						SendMessage(_this->hToolBar,TB_SETSTATE,(WPARAM)ID_CONN_CTLDOWN,
+								(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
+					}else{
+						CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
+									ID_CONN_CTLDOWN, MF_BYCOMMAND|MF_CHECKED);
+						SendMessage(_this->hToolBar,TB_SETSTATE,(WPARAM)ID_CONN_CTLDOWN,
+								(LPARAM)MAKELONG(TBSTATE_CHECKED|TBSTATE_ENABLED,0));
+						_this->SendKeyEvent(XK_Control_L, true);
+					}
+					return 0;
+				case ID_CONN_ALTDOWN:
+					if(GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
+								ID_CONN_ALTDOWN,MF_BYCOMMAND)==MF_CHECKED){
+						_this->SendKeyEvent(XK_Alt_L, false);
+						CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
+								  ID_CONN_ALTDOWN, MF_BYCOMMAND|MF_UNCHECKED);
+						SendMessage(_this->hToolBar,TB_SETSTATE,(WPARAM)ID_CONN_ALTDOWN,
+								(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
+					}else{
+						CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
+								  ID_CONN_ALTDOWN, MF_BYCOMMAND|MF_CHECKED);
+						SendMessage(_this->hToolBar,TB_SETSTATE,(WPARAM)ID_CONN_ALTDOWN,
+								(LPARAM)MAKELONG(TBSTATE_CHECKED|TBSTATE_ENABLED,0));
+						_this->SendKeyEvent(XK_Alt_L, true);
+					}
+					return 0;
+				case ID_CLOSEDAEMON:
+					if (MessageBox(NULL, _T("Are you sure you want to exit?"), 
+								_T("Closing VNCviewer"), 
+								MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2) == IDYES){
 						DestroyAcceleratorTable(hAccel);
-					PostQuitMessage(0);
-				return 0;
-			}
-			
-		
-		break;
+						PostQuitMessage(0);
+					}
+					return 0;
+				}
+			break;
 		case WM_GETMINMAXINFO:
 			RECT workrect;
 			RECT rtb;
 			MINMAXINFO win;
+
 			SystemParametersInfo(SPI_GETWORKAREA, 0, &workrect, 0);
 			GetWindowRect(_this->hToolBar,&rtb);
 			win =*(LPMINMAXINFO) lParam;
 			if(_this->InFullScreenMode()){
-			win.ptMaxSize.x=_this->m_fullwinwidth+8;
-			win.ptMaxSize.y=_this->m_fullwinheight+8;
-			win.ptMaxTrackSize.x=_this->m_fullwinwidth+8;
-			win.ptMaxTrackSize.y=_this->m_fullwinheight+8;
+				win.ptMaxSize.x=_this->m_fullwinwidth+8;
+				win.ptMaxSize.y=_this->m_fullwinheight+8;
+				win.ptMaxTrackSize.x=_this->m_fullwinwidth+8;
+				win.ptMaxTrackSize.y=_this->m_fullwinheight+8;
 			}else{
 				if(GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
-					ID_TOOLBAR,MF_BYCOMMAND)==MF_CHECKED){
-				win.ptMaxSize.x=_this->m_winwidth1;
-				win.ptMaxSize.y=min((_this->m_winheight1+rtb.bottom-rtb.top-4),
-					(workrect.bottom -  workrect.top));
-				win.ptMaxTrackSize.x=_this->m_winwidth1;
-				win.ptMaxTrackSize.y=min((_this->m_winheight1+rtb.bottom-rtb.top-4),
-					(workrect.bottom -  workrect.top));
+							ID_TOOLBAR,MF_BYCOMMAND)==MF_CHECKED){
+					win.ptMaxSize.x=_this->m_winwidth1;
+					win.ptMaxSize.y=min((_this->m_winheight1+rtb.bottom-rtb.top-4),
+						(workrect.bottom -  workrect.top));
+					win.ptMaxTrackSize.x=_this->m_winwidth1;
+					win.ptMaxTrackSize.y=min((_this->m_winheight1+rtb.bottom-rtb.top-4),
+						(workrect.bottom -  workrect.top));
 				}else{
-				win.ptMaxSize.x=_this->m_winwidth1;
-				win.ptMaxSize.y=_this->m_winheight1;
-				win.ptMaxTrackSize.x=_this->m_winwidth1;
-				win.ptMaxTrackSize.y=_this->m_winheight1;
+					win.ptMaxSize.x=_this->m_winwidth1;
+					win.ptMaxSize.y=_this->m_winheight1;
+					win.ptMaxTrackSize.x=_this->m_winwidth1;
+					win.ptMaxTrackSize.y=_this->m_winheight1;
 				}
 			}
 			*(LPMINMAXINFO) lParam=win;
 			return 0;
 		case WM_SIZE:
-			
 			RECT rwn;
 			GetClientRect(hwnd,&rwn);
 			if(GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
-					ID_TOOLBAR,MF_BYCOMMAND)==MF_CHECKED)
-			{
-			GetWindowRect(_this->hToolBar,&rtb);
-			SetWindowPos(_this->m_hwnd,HWND_TOP,0,rtb.bottom-rtb.top-4,
-			rwn.right,rwn.bottom-(rtb.bottom-rtb.top)+4,SWP_SHOWWINDOW);
-			SetWindowPos(_this->hToolBar,HWND_TOP,0,0,
-			rwn.right-rwn.left,rtb.bottom-rtb.top,SWP_SHOWWINDOW);
-			
+						ID_TOOLBAR,MF_BYCOMMAND)==MF_CHECKED){
+				GetWindowRect(_this->hToolBar,&rtb);
+				SetWindowPos(_this->m_hwnd,HWND_TOP,0,rtb.bottom-rtb.top-4,
+							rwn.right,rwn.bottom-(rtb.bottom-rtb.top)+4,SWP_SHOWWINDOW);
+				SetWindowPos(_this->hToolBar,HWND_TOP,0,0,
+							rwn.right-rwn.left,rtb.bottom-rtb.top,SWP_SHOWWINDOW);
 			}else{
-			SetWindowPos(_this->m_hwnd,HWND_TOP,0,0,
-			rwn.right,rwn.bottom,SWP_SHOWWINDOW);
+				SetWindowPos(_this->m_hwnd,HWND_TOP,0,0,
+				rwn.right,rwn.bottom,SWP_SHOWWINDOW);
 			}
 			return 0;
-			case WM_CLOSE:
-		{
+		case WM_CLOSE:{
 			if(!_this->m_serverInitiated){
 				TCHAR  valname[3];
 				int dwbuflen=255;
@@ -1288,6 +1270,7 @@ switch (iMsg) {
 				TCHAR  buf[256];
 				DWORD dispos;
 				TCHAR  buf1[256];
+
 				itoa(k,list,10);
 				RegCreateKeyEx(HKEY_CURRENT_USER,
 						"Software\\ORL\\VNCviewer\\MRU1", 0, NULL, 
@@ -1295,48 +1278,45 @@ switch (iMsg) {
 						NULL, &m_hRegKey, &dispos);
 				_tcscpy(buf1,_this->m_opts.m_display);
 				_this->m_opts.SaveOpt(_this->m_opts.m_display,
-					"Software\\ORL\\VNCviewer\\MRU1");
+									"Software\\ORL\\VNCviewer\\MRU1");
 
 				for ( i = 0; i <k; i++) {
-				j=i;
-			    itoa(i,valname,10);
-				dwbuflen=255;
-				if((RegQueryValueEx( m_hRegKey,(LPTSTR)valname , 
-						NULL, NULL, 
-						(LPBYTE) buf,(LPDWORD) &dwbuflen)!=ERROR_SUCCESS)||(
-				_tcscmp(buf,_this->m_opts.m_display)==NULL)){
-				RegSetValueEx( m_hRegKey,valname , 
-						NULL,REG_SZ , 
-						(CONST BYTE *)buf1, (_tcslen(buf1)+1) );
-					 break;
-				 }
-				RegSetValueEx(m_hRegKey,valname , 
-						NULL,REG_SZ , 
-						(CONST BYTE *)buf1, (_tcslen(buf1)+1) ); 
-				_tcscpy(buf1,buf);
-				  }
+					j=i;
+					itoa(i,valname,10);
+					dwbuflen=255;
+					if((RegQueryValueEx( m_hRegKey,(LPTSTR)valname , 
+									NULL, NULL, 
+									(LPBYTE) buf,(LPDWORD) &dwbuflen)!=ERROR_SUCCESS)||
+									(_tcscmp(buf,_this->m_opts.m_display)==NULL)){
+						RegSetValueEx( m_hRegKey,valname , 
+									NULL,REG_SZ , 
+									(CONST BYTE *)buf1, (_tcslen(buf1)+1) );
+						break;
+					}
+					RegSetValueEx(m_hRegKey,valname , 
+								NULL,REG_SZ , 
+								(CONST BYTE *)buf1, (_tcslen(buf1)+1) ); 
+					_tcscpy(buf1,buf);
+				}
 
 				if(j==k){
-				dwbuflen=255;
-				 _tcscpy(valname,list);
-				 _tcscpy(buf,"");
-				RegQueryValueEx( m_hRegKey,(LPTSTR)valname , 
-						NULL, NULL, 
-						(LPBYTE) buf,(LPDWORD) &dwbuflen);
-				 _this->m_opts.delkey(buf,"Software\\ORL\\VNCviewer\\MRU1");
-				 }
-				RegCloseKey(m_hRegKey);
+					dwbuflen=255;
+					_tcscpy(valname,list);
+					_tcscpy(buf,"");
+					RegQueryValueEx( m_hRegKey,(LPTSTR)valname , 
+							NULL, NULL, 
+							(LPBYTE) buf,(LPDWORD) &dwbuflen);
+					_this->m_opts.delkey(buf,"Software\\ORL\\VNCviewer\\MRU1");
 				}
-				// Close the worker thread as well
-				_this->KillThread();
-			
-				DestroyWindow(hwnd);
-				return 0;
-		}
+				RegCloseKey(m_hRegKey);
+			}
+			// Close the worker thread as well
+			_this->KillThread();
+			DestroyWindow(hwnd);
+			return 0;
+			}
 
-	case WM_DESTROY:
-		{
-			
+		case WM_DESTROY:{			
 #ifndef UNDER_CE
 			// Remove us from the clipboard viewer chain
 			BOOL res = ChangeClipboardChain( hwnd, _this->m_hwndNextViewer);
@@ -1356,15 +1336,10 @@ switch (iMsg) {
 				_this->join(&p);  // After joining, _this is no longer valid
 			} catch (omni_thread_invalid& e) {
 				// The thread probably hasn't been started yet,
-			}
-			
+			}	
 			return 0;
 		}
-		
-		}
-	
-
-
+	}
 	return DefWindowProc(hwnd, iMsg, wParam, lParam);
 }	
 	// We know about an unused variable here.
@@ -1746,9 +1721,7 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 		}
 	
 #endif
-		case WM_DESTROY:
-
-		
+	case WM_DESTROY:
 		return 0;
 }
 

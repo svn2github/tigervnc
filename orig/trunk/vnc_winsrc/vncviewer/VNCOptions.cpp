@@ -84,57 +84,58 @@ VNCOptions::VNCOptions()
 	m_jpegQualityLevel = 6;
 	m_requestShapeUpdates = true;
 	m_ignoreShapeUpdates = false;
-		HKEY hRegKey;
+
+	HKEY hRegKey;
 		
-		if ( RegOpenKey(HKEY_CURRENT_USER, SETTINGS_KEY_NAME, &hRegKey)  != ERROR_SUCCESS ) {
-	        hRegKey = NULL;
-		} else {
-			TCHAR buffer[80];
-			DWORD buffersize = sizeof(buffer);
-			DWORD valtype;
-			
-			if ( RegQueryValueEx( hRegKey,  "SkipFullScreenPrompt", NULL, &valtype, 
+	if ( RegOpenKey(HKEY_CURRENT_USER, SETTINGS_KEY_NAME, &hRegKey)  != 
+		ERROR_SUCCESS ) {
+		hRegKey = NULL;
+	} else {
+		TCHAR buffer[80];
+		DWORD buffersize = sizeof(buffer);
+		DWORD valtype;
+		if ( RegQueryValueEx( hRegKey,  "SkipFullScreenPrompt", NULL, &valtype, 
 				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
 			if (atoi(buffer)==0){
-					m_skipprompt=false;
-				}	
-			}
-			buffersize=80;
-			if ( RegQueryValueEx( hRegKey,  "NoToolbar", NULL, &valtype, 
-				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
-				if (atoi(buffer)==0){
-					m_toolbar=false;
-				}
-			}
-			buffersize=80;
-			if ( RegQueryValueEx( hRegKey,  "LogToFile", NULL, &valtype, 
-				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
-				if (atoi(buffer)==1){
-					m_logToFile=true;
-				}
-			}
-			buffersize=80;
-			if ( RegQueryValueEx( hRegKey,  "ListServer", NULL, &valtype, 
-				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
-					m_listServer=atoi(buffer);
-			}
-			buffersize=80;
-			if ( RegQueryValueEx( hRegKey,  "Localcursor", NULL, &valtype, 
-				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
-					m_localCursor=atoi(buffer);
-			}
-			buffersize=80;
-			if ( RegQueryValueEx( hRegKey,  "LogLevel", NULL, &valtype, 
-				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
-					m_logLevel=atoi(buffer);
-			}
-			buffersize=_MAX_PATH;
-			if (RegQueryValueEx( hRegKey,  "LogFileName", NULL, &valtype, 
-				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS){
-					strcpy(m_logFilename,buffer);
-			}
-			RegCloseKey(hRegKey);
+				m_skipprompt=false;
+			}	
 		}
+		buffersize=80;
+		if ( RegQueryValueEx( hRegKey,  "NoToolbar", NULL, &valtype, 
+				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
+			if (atoi(buffer)==0){
+				m_toolbar=false;
+			}
+		}
+		buffersize=80;
+		if ( RegQueryValueEx( hRegKey,  "LogToFile", NULL, &valtype, 
+				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
+			if (atoi(buffer)==1){
+				m_logToFile=true;
+			}
+		}
+		buffersize=80;
+		if ( RegQueryValueEx( hRegKey,  "ListServer", NULL, &valtype, 
+				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
+			m_listServer=atoi(buffer);
+		}
+		buffersize=80;
+		if ( RegQueryValueEx( hRegKey,  "Localcursor", NULL, &valtype, 
+				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
+			m_localCursor=atoi(buffer);
+		}
+		buffersize=80;
+		if ( RegQueryValueEx( hRegKey,  "LogLevel", NULL, &valtype, 
+				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
+			m_logLevel=atoi(buffer);
+		}
+		buffersize=_MAX_PATH;
+		if (RegQueryValueEx( hRegKey,  "LogFileName", NULL, &valtype, 
+				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS){
+			strcpy(m_logFilename,buffer);
+		}
+		RegCloseKey(hRegKey);
+	}
 
 #ifdef UNDER_CE
 	m_palmpc = false;
@@ -683,38 +684,35 @@ int VNCOptions::DoDialog(bool running)
     static PROPSHEETHEADER pHeader;
     static HPROPSHEETPAGE  hPage[2];
 
-	               pPage[0].dwSize=sizeof(PROPSHEETPAGE);
-				   pPage[0].hInstance = pApp->m_instance;
-				   pPage[0].dwFlags=PSP_USETITLE;
-                   pPage[0].pszTemplate =DIALOG_MAKEINTRESOURCE(IDD_OPTIONDIALOG);
-				   pPage[0].pfnDlgProc=DlgProc1;
-				   pPage[0].pszTitle="Connection options";
-				   pPage[0].lParam=(LONG)this;
+	pPage[0].dwSize=sizeof(PROPSHEETPAGE);
+	pPage[0].hInstance = pApp->m_instance;
+	pPage[0].dwFlags=PSP_USETITLE;
+    pPage[0].pszTemplate =DIALOG_MAKEINTRESOURCE(IDD_OPTIONDIALOG);
+	pPage[0].pfnDlgProc=DlgProc1;
+	pPage[0].pszTitle="Connection options";
+	pPage[0].lParam=(LONG)this;
 
-                   hPage[0] = CreatePropertySheetPage(&pPage[0]);
+    hPage[0] = CreatePropertySheetPage(&pPage[0]);
 
-				   pPage[1].dwSize=sizeof(PROPSHEETPAGE);
-				   pPage[1].hInstance = pApp->m_instance;
-				   pPage[1].dwFlags=PSP_USETITLE;
-                   pPage[1].pszTemplate =DIALOG_MAKEINTRESOURCE(IDD_GENERAL_OPTION);
-				   pPage[1].pfnDlgProc=DlgProc2;
-				   pPage[1].pszTitle="General options";
-				   pPage[1].lParam=(LONG)this;
+	pPage[1].dwSize=sizeof(PROPSHEETPAGE);
+	pPage[1].hInstance = pApp->m_instance;
+	pPage[1].dwFlags=PSP_USETITLE;
+    pPage[1].pszTemplate =DIALOG_MAKEINTRESOURCE(IDD_GENERAL_OPTION);
+	pPage[1].pfnDlgProc=DlgProc2;
+	pPage[1].pszTitle="General options";
+	pPage[1].lParam=(LONG)this;
 
+	hPage[1] = CreatePropertySheetPage(&pPage[1]);
 
-				    hPage[1] = CreatePropertySheetPage(&pPage[1]);
-
-					pHeader.dwSize=sizeof(PROPSHEETHEADER);
-				  pHeader.hInstance  =  pApp->m_instance;
-				  pHeader.dwFlags=PSH_NOAPPLYNOW;
-                  pHeader.hwndParent=NULL;
-				  pHeader.pszCaption="Options";
-				  pHeader.nPages=sizeof(pPage) / sizeof(PROPSHEETPAGE);
-				  pHeader.phpage     = (HPROPSHEETPAGE FAR  *)&hPage[0];
+	pHeader.dwSize=sizeof(PROPSHEETHEADER);
+	pHeader.hInstance  =  pApp->m_instance;
+	pHeader.dwFlags=PSH_NOAPPLYNOW;
+    pHeader.hwndParent=NULL;
+	pHeader.pszCaption="Options";
+	pHeader.nPages=sizeof(pPage) / sizeof(PROPSHEETPAGE);
+	pHeader.phpage     = (HPROPSHEETPAGE FAR  *)&hPage[0];
                   
-				  
-
-				return PropertySheet(&pHeader);
+	return PropertySheet(&pHeader);
  	
 }
 
@@ -752,8 +750,6 @@ BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,
 			strcpy(list,"ZlibHex (mix)");
 			SendMessage(hListBox, CB_INSERTSTRING,(WPARAM)6,(LPARAM)(int FAR*)list);
 			int i;
-			/*if(_this->m_PreferredEncoding==2)i=1;
-			if(_this->m_PreferredEncoding>=4)i=_this->m_PreferredEncoding-2;*/
 			switch (_this->m_PreferredEncoding)
 			{case 0:
 				i=0;
@@ -804,13 +800,13 @@ BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,
 			SendMessage(hScalEdit, CB_INSERTSTRING,(WPARAM)1,(LPARAM)(int FAR*)list);
 			strcpy(list,"75");
 			SendMessage(hScalEdit, CB_INSERTSTRING,(WPARAM)2,(LPARAM)(int FAR*)list);
-			strcpy(list,"100");
+			strcpy(list,"90");
 			SendMessage(hScalEdit, CB_INSERTSTRING,(WPARAM)3,(LPARAM)(int FAR*)list);
-			strcpy(list,"150");
+			strcpy(list,"100");
 			SendMessage(hScalEdit, CB_INSERTSTRING,(WPARAM)4,(LPARAM)(int FAR*)list);
-			strcpy(list,"200");
+			strcpy(list,"125");
 			SendMessage(hScalEdit, CB_INSERTSTRING,(WPARAM)5,(LPARAM)(int FAR*)list);
-			strcpy(list,"400");
+			strcpy(list,"150");
 			SendMessage(hScalEdit, CB_INSERTSTRING,(WPARAM)6,(LPARAM)(int FAR*)list);
 			
 			SetDlgItemInt( hwnd, IDC_SCALE_EDIT,(( _this->m_scale_num*100) / _this->m_scale_den), FALSE);
@@ -864,18 +860,15 @@ BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,
 
 			CentreWindow(GetParent(hwnd));
 			
-			return TRUE;}
-		
+			return TRUE;
+	}		
 	case WM_COMMAND:{
 		switch (LOWORD(wParam)) {
-
 		case IDC_SCALING:
 			switch (HIWORD(wParam)) {
 			case BN_CLICKED:
 				HWND hScaling = GetDlgItem(hwnd, IDC_SCALING);
 				HWND hScalEdit = GetDlgItem(hwnd, IDC_SCALE_EDIT);
-				
-
 				if (SendMessage(hScaling,BM_GETCHECK,0,0)==0){
 					EnableWindow(hScalEdit,TRUE);
 					SendMessage(hScaling,BM_SETCHECK,TRUE,0);
@@ -918,189 +911,177 @@ BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,
 				return 0;
 			}
 			return 0;
-			case IDC_ENCODING:{
-				switch (HIWORD(wParam))
-				{ case CBN_SELCHANGE:
-					{ 
-						HWND hAllowCompressLevel = GetDlgItem(hwnd, IDC_ALLOW_COMPRESSLEVEL);
-						HWND hCompressLevel = GetDlgItem(hwnd, IDC_COMPRESSLEVEL);
-						HWND hAllowJpeg = GetDlgItem(hwnd, IDC_ALLOW_JPEG);
-						HWND hJpeg = GetDlgItem(hwnd, IDC_QUALITYLEVEL);
-						HWND hListBox = GetDlgItem(hwnd, IDC_ENCODING);
-						int i=SendMessage(hListBox,CB_GETCURSEL,0,0);
-						if (i==5){
-							EnableWindow( hJpeg,
-							(SendMessage(hAllowJpeg,BM_GETCHECK,0,0)==1));
-							EnableWindow(hAllowJpeg,TRUE);
-							EnableWindow( hCompressLevel,
-							(SendMessage(hAllowCompressLevel,BM_GETCHECK,0,0)==1));
-							EnableWindow(hAllowCompressLevel,TRUE);
-								}
-						if ((i==6)||(i==4)){
-							EnableWindow( hCompressLevel,
-							(SendMessage(hAllowCompressLevel,BM_GETCHECK,0,0)==1));
-							EnableWindow(hAllowCompressLevel,TRUE);
-							EnableWindow( hJpeg,FALSE);
-							EnableWindow(hAllowJpeg,FALSE);
-								}
-						if ((i>=0)&&(i<=3)){
-							EnableWindow( hCompressLevel,FALSE);
-							EnableWindow(hAllowCompressLevel,FALSE);
-							EnableWindow( hJpeg,FALSE);
-							EnableWindow(hAllowJpeg,FALSE);
-							}
-						return 0;}
-					return 0;}
-				return 0;}
-			return 0;}
-		return 0;}
-		case WM_HELP:
-	
-		HELPINFO hlp;
-		HH_POPUP popup;
-
-		hlp=*(LPHELPINFO) lParam;
-
-		popup.cbStruct=sizeof(hlp);
-		popup.hinst=pApp->m_instance;
-		popup.idString=(UINT)hlp.iCtrlId;
-		popup.rcMargins.top=-1;
-		popup.rcMargins.left=-1;
-		popup.rcMargins.top=-1;
-		popup.rcMargins.bottom=-1;
-		popup.rcMargins.right=-1;
-		popup.pszFont="MS Sans Serif,8,,";
-		popup.clrForeground =-1;
-		popup.clrBackground=-1;
-		popup.pt.x=-1;
-		popup.pt.y=-1;
-
-		HtmlHelp(
-         (HWND)hlp.hItemHandle,
-         NULL,
-         HH_DISPLAY_TEXT_POPUP,
-         (DWORD)&popup) ;
-
-			return 0;
-		case WM_NOTIFY:{
-			
-		
-			LPNMHDR pn=(LPNMHDR)lParam;
-			switch(pn->code)
-			{
-			
-			case PSN_APPLY:
-			{
+		case IDC_ENCODING:{
+			switch (HIWORD(wParam)){
+			case CBN_SELCHANGE:{
+				HWND hAllowCompressLevel = GetDlgItem(hwnd, IDC_ALLOW_COMPRESSLEVEL);
+				HWND hCompressLevel = GetDlgItem(hwnd, IDC_COMPRESSLEVEL);
+				HWND hAllowJpeg = GetDlgItem(hwnd, IDC_ALLOW_JPEG);
+				HWND hJpeg = GetDlgItem(hwnd, IDC_QUALITYLEVEL);
 				HWND hListBox = GetDlgItem(hwnd, IDC_ENCODING);
 				int i=SendMessage(hListBox,CB_GETCURSEL,0,0);
-				switch (i)
-					{case 0:
-						_this->m_PreferredEncoding=0;
-						break;
-					case 1:
-						_this->m_PreferredEncoding=2;
-						break;
-					case 2:
-					case 3:
-					case 4:
-					case 5:
-					case 6:
-						_this->m_PreferredEncoding=i+2;
-						break;
-					}
-				HWND hScalEdit = GetDlgItem(hwnd, IDC_SCALE_EDIT);
-				int error;
-				i=GetDlgItemInt(hwnd, IDC_SCALE_EDIT,&error,FALSE);
-				if (i > 0){
+				if (i==5){
+					EnableWindow( hJpeg,
+					(SendMessage(hAllowJpeg,BM_GETCHECK,0,0)==1));
+					EnableWindow(hAllowJpeg,TRUE);
+					EnableWindow( hCompressLevel,
+					(SendMessage(hAllowCompressLevel,BM_GETCHECK,0,0)==1));
+					EnableWindow(hAllowCompressLevel,TRUE);
+				}
+				if ((i==6)||(i==4)){
+					EnableWindow( hCompressLevel,
+					(SendMessage(hAllowCompressLevel,BM_GETCHECK,0,0)==1));
+					EnableWindow(hAllowCompressLevel,TRUE);
+					EnableWindow( hJpeg,FALSE);
+					EnableWindow(hAllowJpeg,FALSE);
+				}
+				if ((i>=0)&&(i<=3)){
+					EnableWindow( hCompressLevel,FALSE);
+					EnableWindow(hAllowCompressLevel,FALSE);
+					EnableWindow( hJpeg,FALSE);
+					EnableWindow(hAllowJpeg,FALSE);
+				}
+				return 0;
+			}
+			}
+		return 0;
+		}
+		}
+		return 0;
+	}
+	case WM_HELP:
+	
+	HELPINFO hlp;
+	HH_POPUP popup;
+
+	hlp=*(LPHELPINFO) lParam;
+
+	popup.cbStruct=sizeof(hlp);
+	popup.hinst=pApp->m_instance;
+	popup.idString=(UINT)hlp.iCtrlId;
+	popup.rcMargins.top=-1;
+	popup.rcMargins.left=-1;
+	popup.rcMargins.top=-1;
+	popup.rcMargins.bottom=-1;
+	popup.rcMargins.right=-1;
+	popup.pszFont="MS Sans Serif,8,,";
+	popup.clrForeground =-1;
+	popup.clrBackground=-1;
+	popup.pt.x=-1;
+	popup.pt.y=-1;
+
+	HtmlHelp((HWND)hlp.hItemHandle,
+				NULL,
+				HH_DISPLAY_TEXT_POPUP,
+				(DWORD)&popup) ;
+	return 0;
+	case WM_NOTIFY:{					
+		LPNMHDR pn=(LPNMHDR)lParam;
+		switch(pn->code){						
+		case PSN_APPLY:{			
+			HWND hListBox = GetDlgItem(hwnd, IDC_ENCODING);
+			int i=SendMessage(hListBox,CB_GETCURSEL,0,0);
+			switch (i){
+				case 0:
+					_this->m_PreferredEncoding=0;
+					break;
+				case 1:
+					_this->m_PreferredEncoding=2;
+					break;
+				case 2:
+				case 3:
+				case 4:
+				case 5:
+				case 6:
+					_this->m_PreferredEncoding=i+2;
+					break;
+			}
+			HWND hScalEdit = GetDlgItem(hwnd, IDC_SCALE_EDIT);
+			int error;
+			i=GetDlgItemInt(hwnd, IDC_SCALE_EDIT,&error,FALSE);
+			if (i > 0){
 				_this->m_scale_num=i;
 				_this->m_scale_den=100;
-				}
+			}
 				
-				HWND hCopyRect = GetDlgItem(hwnd, ID_SESSION_SET_CRECT);
-				_this->m_UseEnc[rfbEncodingCopyRect] =
-					(SendMessage(hCopyRect, BM_GETCHECK, 0, 0) == BST_CHECKED);
+			HWND hCopyRect = GetDlgItem(hwnd, ID_SESSION_SET_CRECT);
+			_this->m_UseEnc[rfbEncodingCopyRect] =
+				(SendMessage(hCopyRect, BM_GETCHECK, 0, 0) == BST_CHECKED);
 				
-				HWND hSwap = GetDlgItem(hwnd, ID_SESSION_SWAPMOUSE);
-				_this->m_SwapMouse =
-					(SendMessage(hSwap, BM_GETCHECK, 0, 0) == BST_CHECKED);
+			HWND hSwap = GetDlgItem(hwnd, ID_SESSION_SWAPMOUSE);
+			_this->m_SwapMouse =
+				(SendMessage(hSwap, BM_GETCHECK, 0, 0) == BST_CHECKED);
 				
-				HWND hDeiconify = GetDlgItem(hwnd, IDC_BELLDEICONIFY);
-				_this->m_DeiconifyOnBell =
-					(SendMessage(hDeiconify, BM_GETCHECK, 0, 0) == BST_CHECKED);
+			HWND hDeiconify = GetDlgItem(hwnd, IDC_BELLDEICONIFY);
+			_this->m_DeiconifyOnBell =
+				(SendMessage(hDeiconify, BM_GETCHECK, 0, 0) == BST_CHECKED);
 #ifndef UNDER_CE				
-				HWND hDisableClip = GetDlgItem(hwnd, IDC_DISABLECLIPBOARD);
-				_this->m_DisableClipboard =
-					(SendMessage(hDisableClip, BM_GETCHECK, 0, 0) == BST_CHECKED);
+			HWND hDisableClip = GetDlgItem(hwnd, IDC_DISABLECLIPBOARD);
+			_this->m_DisableClipboard =
+				(SendMessage(hDisableClip, BM_GETCHECK, 0, 0) == BST_CHECKED);
 #endif
 
-				HWND h8bit = GetDlgItem(hwnd, IDC_8BITCHECK);
-				_this->m_Use8Bit =
-					(SendMessage(h8bit, BM_GETCHECK, 0, 0) == BST_CHECKED);
+			HWND h8bit = GetDlgItem(hwnd, IDC_8BITCHECK);
+			_this->m_Use8Bit =
+				(SendMessage(h8bit, BM_GETCHECK, 0, 0) == BST_CHECKED);
 				
-				HWND hShared = GetDlgItem(hwnd, IDC_SHARED);
-				_this->m_Shared =
-					(SendMessage(hShared, BM_GETCHECK, 0, 0) == BST_CHECKED);
+			HWND hShared = GetDlgItem(hwnd, IDC_SHARED);
+			_this->m_Shared =
+				(SendMessage(hShared, BM_GETCHECK, 0, 0) == BST_CHECKED);
 				
-				HWND hViewOnly = GetDlgItem(hwnd, IDC_VIEWONLY);
-				_this->m_ViewOnly = 
-					(SendMessage(hViewOnly, BM_GETCHECK, 0, 0) == BST_CHECKED);
+			HWND hViewOnly = GetDlgItem(hwnd, IDC_VIEWONLY);
+			_this->m_ViewOnly = 
+				(SendMessage(hViewOnly, BM_GETCHECK, 0, 0) == BST_CHECKED);
 
-				HWND hScaling = GetDlgItem(hwnd, IDC_SCALING);
-				_this->m_scaling = 
-					(SendMessage(hScaling, BM_GETCHECK, 0, 0) == BST_CHECKED);
+			HWND hScaling = GetDlgItem(hwnd, IDC_SCALING);
+			_this->m_scaling = 
+				(SendMessage(hScaling, BM_GETCHECK, 0, 0) == BST_CHECKED);
 
 				
 
 #ifndef UNDER_CE
-				HWND hFullScreen = GetDlgItem(hwnd, IDC_FULLSCREEN);
-				_this->m_FullScreen = 
-					(SendMessage(hFullScreen, BM_GETCHECK, 0, 0) == BST_CHECKED);
+			HWND hFullScreen = GetDlgItem(hwnd, IDC_FULLSCREEN);
+			_this->m_FullScreen = 
+				(SendMessage(hFullScreen, BM_GETCHECK, 0, 0) == BST_CHECKED);
 
- 				HWND hEmulate = GetDlgItem(hwnd, IDC_EMULATECHECK);
- 				_this->m_Emul3Buttons =
-				  (SendMessage(hEmulate, BM_GETCHECK, 0, 0) == BST_CHECKED);
+ 			HWND hEmulate = GetDlgItem(hwnd, IDC_EMULATECHECK);
+ 			_this->m_Emul3Buttons =
+				 (SendMessage(hEmulate, BM_GETCHECK, 0, 0) == BST_CHECKED);
 #endif
 
-				HWND hAllowCompressLevel = GetDlgItem(hwnd, IDC_ALLOW_COMPRESSLEVEL);
-				_this->m_useCompressLevel = 
-					(SendMessage(hAllowCompressLevel, BM_GETCHECK, 0, 0) == BST_CHECKED);
-				HWND hCompressLevel = GetDlgItem(hwnd, IDC_COMPRESSLEVEL);
-				_this->m_compressLevel = SendMessage(hCompressLevel,TBM_GETPOS ,0,0);
+			HWND hAllowCompressLevel = GetDlgItem(hwnd, IDC_ALLOW_COMPRESSLEVEL);
+			_this->m_useCompressLevel = 
+				(SendMessage(hAllowCompressLevel, BM_GETCHECK, 0, 0) == BST_CHECKED);
+			HWND hCompressLevel = GetDlgItem(hwnd, IDC_COMPRESSLEVEL);
+			_this->m_compressLevel = SendMessage(hCompressLevel,TBM_GETPOS ,0,0);
 				
 				
 
-				HWND hAllowJpeg = GetDlgItem(hwnd, IDC_ALLOW_JPEG);
-				_this->m_enableJpegCompression = 
-					(SendMessage(hAllowJpeg, BM_GETCHECK, 0, 0) == BST_CHECKED);
-				HWND hJpeg = GetDlgItem(hwnd, IDC_QUALITYLEVEL);
-				_this->m_jpegQualityLevel = SendMessage(hJpeg,TBM_GETPOS ,0,0);
+			HWND hAllowJpeg = GetDlgItem(hwnd, IDC_ALLOW_JPEG);
+			_this->m_enableJpegCompression = 
+				(SendMessage(hAllowJpeg, BM_GETCHECK, 0, 0) == BST_CHECKED);
+			HWND hJpeg = GetDlgItem(hwnd, IDC_QUALITYLEVEL);
+			_this->m_jpegQualityLevel = SendMessage(hJpeg,TBM_GETPOS ,0,0);
 				
 
-				_this->m_requestShapeUpdates = false;
-				_this->m_ignoreShapeUpdates = false;
-				HWND hRemoteCursor = GetDlgItem(hwnd, IDC_CSHAPE_ENABLE_RADIO);
+			_this->m_requestShapeUpdates = false;
+			_this->m_ignoreShapeUpdates = false;
+			HWND hRemoteCursor = GetDlgItem(hwnd, IDC_CSHAPE_ENABLE_RADIO);
+			if (SendMessage(hRemoteCursor, BM_GETCHECK, 0, 0) == BST_CHECKED) {
+				_this->m_requestShapeUpdates = true;
+			} else {
+				hRemoteCursor = GetDlgItem(hwnd, IDC_CSHAPE_IGNORE_RADIO);
 				if (SendMessage(hRemoteCursor, BM_GETCHECK, 0, 0) == BST_CHECKED) {
-						_this->m_requestShapeUpdates = true;
-				} else {
-					hRemoteCursor = GetDlgItem(hwnd, IDC_CSHAPE_IGNORE_RADIO);
-					if (SendMessage(hRemoteCursor, BM_GETCHECK, 0, 0) == BST_CHECKED) {
-						_this->m_requestShapeUpdates = true;
-						_this->m_ignoreShapeUpdates = true;
-					}
-				
-
-				
-				
-				return 0;
-				}
-				
+					_this->m_requestShapeUpdates = true;
+					_this->m_ignoreShapeUpdates = true;
+				}				
 			}
-				return 0;
-			}
-				
+			return 0;
+		}
+		}
+		return 0;
 	}
 	}
-
 	return 0;
 }
 BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,  
@@ -1112,70 +1093,70 @@ BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,
 	switch (uMsg) {
 		
 	case WM_INITDIALOG:{
+					
+		PROPSHEETPAGE pPag=*(LPPROPSHEETPAGE)lParam;
+		VNCOptions *_this = (VNCOptions *) pPag.lParam;
+		SetWindowLong(hwnd, GWL_USERDATA, (LONG)_this);
 		
-			
-			PROPSHEETPAGE pPag=*(LPPROPSHEETPAGE)lParam;
-			VNCOptions *_this = (VNCOptions *) pPag.lParam;
-			SetWindowLong(hwnd, GWL_USERDATA, (LONG)_this);
-		
-			// Initialise the controls
-			bool cursor;
-			if (pApp->m_options.m_localCursor==DOTCURSOR){
-				cursor=true;
-			}else{
-				cursor=false;
-			}
-			HWND hDotCursor = GetDlgItem(hwnd, IDC_DOTCURSOR_RADIO);
-			SendMessage(hDotCursor, BM_SETCHECK,cursor, 0);
+		// Initialise the controls
+		bool cursor;
+		if (pApp->m_options.m_localCursor==DOTCURSOR){
+			cursor=true;
+		}else{
+			cursor=false;
+		}
+		HWND hDotCursor = GetDlgItem(hwnd, IDC_DOTCURSOR_RADIO);
+		SendMessage(hDotCursor, BM_SETCHECK,cursor, 0);
 
-			if (pApp->m_options.m_localCursor==NOCURSOR){
-				cursor=true;
-			}else{
-				cursor=false;
-			}
-			HWND hNoCursor = GetDlgItem(hwnd, IDC_NOCURSOR_RADIO);
-			SendMessage(hNoCursor, BM_SETCHECK,cursor, 0);
+		if (pApp->m_options.m_localCursor==NOCURSOR){
+			cursor=true;
+		}else{
+			cursor=false;
+		}
+		HWND hNoCursor = GetDlgItem(hwnd, IDC_NOCURSOR_RADIO);
+		SendMessage(hNoCursor, BM_SETCHECK,cursor, 0);
 
-			if (pApp->m_options.m_localCursor==NORMALCURSOR){
-				cursor=true;
-			}else{
-				cursor=false;
-			}
-			HWND hNormalCursor = GetDlgItem(hwnd, IDC_NORMALCURSOR_RADIO);
-			SendMessage(hNormalCursor, BM_SETCHECK,cursor, 0);
+		if (pApp->m_options.m_localCursor==NORMALCURSOR){
+			cursor=true;
+		}else{
+			cursor=false;
+		}
+		HWND hNormalCursor = GetDlgItem(hwnd, IDC_NORMALCURSOR_RADIO);
+		SendMessage(hNormalCursor, BM_SETCHECK,cursor, 0);
 
-			HWND hMessage = GetDlgItem(hwnd, IDC_CHECK_MESSAGE);
- 			SendMessage(hMessage, BM_SETCHECK, pApp->m_options.m_skipprompt, 0);
+		HWND hMessage = GetDlgItem(hwnd, IDC_CHECK_MESSAGE);
+ 		SendMessage(hMessage, BM_SETCHECK, pApp->m_options.m_skipprompt, 0);
 
-			HWND hToolbar = GetDlgItem(hwnd, IDC_CHECK_TOOLBAR);
- 			SendMessage(hToolbar, BM_SETCHECK, pApp->m_options.m_toolbar, 0);
+		HWND hToolbar = GetDlgItem(hwnd, IDC_CHECK_TOOLBAR);
+ 		SendMessage(hToolbar, BM_SETCHECK, pApp->m_options.m_toolbar, 0);
 
-			HWND hEditList = GetDlgItem(hwnd, IDC_EDIT_AMOUNT_LIST);
-			SetDlgItemInt( hwnd,IDC_EDIT_AMOUNT_LIST,pApp->m_options.m_listServer,FALSE);
+		HWND hEditList = GetDlgItem(hwnd, IDC_EDIT_AMOUNT_LIST);
+		SetDlgItemInt( hwnd,IDC_EDIT_AMOUNT_LIST,pApp->m_options.m_listServer,FALSE);
 
-			HWND hSpin1 = GetDlgItem(hwnd, IDC_SPIN1);
-			SendMessage(hSpin1,UDM_SETBUDDY,(WPARAM) (HWND)hEditList,0);
+		HWND hSpin1 = GetDlgItem(hwnd, IDC_SPIN1);
+		SendMessage(hSpin1,UDM_SETBUDDY,(WPARAM) (HWND)hEditList,0);
 
-			HWND hChec = GetDlgItem(hwnd, IDC_CHECK_LOG_FILE);
-			HWND hEditFile = GetDlgItem(hwnd, IDC_EDIT_LOG_FILE);
-			HWND hEditLevel = GetDlgItem(hwnd, IDC_EDIT_LOG_LEVEL);
+		HWND hChec = GetDlgItem(hwnd, IDC_CHECK_LOG_FILE);
+		HWND hEditFile = GetDlgItem(hwnd, IDC_EDIT_LOG_FILE);
+		HWND hEditLevel = GetDlgItem(hwnd, IDC_EDIT_LOG_LEVEL);
 
-			HWND hSpin2 = GetDlgItem(hwnd, IDC_SPIN2);
-			SendMessage(hSpin2,UDM_SETBUDDY,(WPARAM) (HWND)hEditLevel,0);
+		HWND hSpin2 = GetDlgItem(hwnd, IDC_SPIN2);
+		SendMessage(hSpin2,UDM_SETBUDDY,(WPARAM) (HWND)hEditLevel,0);
 
-			SendMessage(hChec,BM_SETCHECK,pApp->m_options.m_logToFile,0);
-			if (SendMessage(hChec,BM_GETCHECK,0,0)==0){
-					EnableWindow(hEditFile,FALSE);
-					EnableWindow(hEditLevel,FALSE);	
-				}else{
-					EnableWindow(hEditFile,TRUE);
-					EnableWindow(hEditLevel,TRUE);	
-				}
+		SendMessage(hChec,BM_SETCHECK,pApp->m_options.m_logToFile,0);
+		if (SendMessage(hChec,BM_GETCHECK,0,0)==0){
+			EnableWindow(hEditFile,FALSE);
+			EnableWindow(hEditLevel,FALSE);	
+		}else{
+			EnableWindow(hEditFile,TRUE);
+			EnableWindow(hEditLevel,TRUE);	
+		}
 
-			SetDlgItemInt( hwnd,IDC_EDIT_LOG_LEVEL,pApp->m_options.m_logLevel,FALSE);
-			SetDlgItemText( hwnd,IDC_EDIT_LOG_FILE,pApp->m_options.m_logFilename);
-			return 0;}
-		case WM_HELP:
+		SetDlgItemInt( hwnd,IDC_EDIT_LOG_LEVEL,pApp->m_options.m_logLevel,FALSE);
+		SetDlgItemText( hwnd,IDC_EDIT_LOG_FILE,pApp->m_options.m_logFilename);
+		return 0;
+	}
+	case WM_HELP:
 	
 		HELPINFO hlp;
 		HH_POPUP popup;
@@ -1196,13 +1177,12 @@ BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,
 		popup.pt.x=-1;
 		popup.pt.y=-1;
 
-		HtmlHelp(
-         (HWND)hlp.hItemHandle,
-         NULL,
-         HH_DISPLAY_TEXT_POPUP,
-         (DWORD)&popup) ;
+		HtmlHelp((HWND)hlp.hItemHandle,
+				NULL,
+				HH_DISPLAY_TEXT_POPUP,
+				(DWORD)&popup) ;
 
-			return 0;
+		return 0;
 	case WM_COMMAND:{
 		switch (LOWORD(wParam)) {
 		case IDC_BUTTON_CLEAR_LIST:{
@@ -1226,7 +1206,7 @@ BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,
 
 			RegCloseKey(hRegKey);
 			return 0;
-								   }
+		}
 		case IDC_CHECK_LOG_FILE:
 			switch (HIWORD(wParam)) {
 			case BN_CLICKED:
@@ -1245,17 +1225,12 @@ BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,
 				}
 				return 0;
 			}
-			return 0;	
-		}
-		return 0;
-	}
-		
-		case WM_NOTIFY:{
-			
-		
+			}
+			return 0;
+		}		
+		case WM_NOTIFY:{		
 			LPNMHDR pn=(LPNMHDR)lParam;
-			switch(pn->code)
-			{
+			switch(pn->code){
 			case UDN_DELTAPOS:{
 				NMUPDOWN lpnmud = *(LPNMUPDOWN) lParam;
 				NMHDR hdr=lpnmud.hdr;
@@ -1268,11 +1243,11 @@ BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,
 				}else{
 					h=h+1;	
 				}
-				SetDlgItemInt( hwnd,ctrl,h, FALSE);
-				
-				return 0;}
-			case PSN_APPLY:
-			{
+				SetDlgItemInt( hwnd,ctrl,h, FALSE);				
+				return 0;
+			}
+			case PSN_APPLY:{
+			
 				HWND hDotCursor = GetDlgItem(hwnd, IDC_DOTCURSOR_RADIO);
 				HWND hNoCursor = GetDlgItem(hwnd, IDC_NOCURSOR_RADIO);
 				HWND hNormalCursor = GetDlgItem(hwnd, IDC_NORMALCURSOR_RADIO);
@@ -1296,33 +1271,33 @@ BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,
 				HWND hChec = GetDlgItem(hwnd, IDC_CHECK_LOG_FILE);
 
 				if (SendMessage(hChec,BM_GETCHECK,0,0)==0){
-				pApp->m_options.m_logToFile=false;
-				ch=0;
+					pApp->m_options.m_logToFile=false;
+					ch=0;
 				}else{
-				pApp->m_options.m_logToFile=true;
-				pApp->m_options.m_logLevel=GetDlgItemInt(hwnd,
-					IDC_EDIT_LOG_LEVEL,&er,FALSE);
-				GetDlgItemText(hwnd,IDC_EDIT_LOG_FILE,
-					buf,80);
-				strcpy(pApp->m_options.m_logFilename,buf);
+					pApp->m_options.m_logToFile=true;
+					pApp->m_options.m_logLevel=GetDlgItemInt(hwnd,
+						IDC_EDIT_LOG_LEVEL,&er,FALSE);
+					GetDlgItemText(hwnd,IDC_EDIT_LOG_FILE,
+						buf,80);
+					strcpy(pApp->m_options.m_logFilename,buf);
 
-				vnclog.SetLevel(pApp->m_options.m_logLevel);
-				vnclog.SetFile(pApp->m_options.m_logFilename);
-				ch=1;
+					vnclog.SetLevel(pApp->m_options.m_logLevel);
+					vnclog.SetFile(pApp->m_options.m_logFilename);
+					ch=1;
 				}
 				if (SendMessage(hMessage,BM_GETCHECK,0,0)==0){
-				pApp->m_options.m_skipprompt=false;
-				mg=0;
+					pApp->m_options.m_skipprompt=false;
+					mg=0;
 				}else{
-				pApp->m_options.m_skipprompt=true;
-				mg=1;
+					pApp->m_options.m_skipprompt=true;
+					mg=1;
 				}
 				if (SendMessage(hToolbar,BM_GETCHECK,0,0)==0){
-				pApp->m_options.m_toolbar=false;
-				tb=0;
+					pApp->m_options.m_toolbar=false;
+					tb=0;
 				}else{
-				pApp->m_options.m_toolbar=true;
-				tb=1;
+					pApp->m_options.m_toolbar=true;
+					tb=1;
 				}
 				pApp->m_options.m_listServer=GetDlgItemInt(hwnd,
 					IDC_EDIT_AMOUNT_LIST,&er,FALSE);
@@ -1363,18 +1338,16 @@ BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,
 					(CONST BYTE *)buf, (_tcslen(buf)+1) );
 				
 				RegCloseKey(hRegKey);
-
 				return 0;
 			}
 			}
-			return 0;
-					   }
+		return 0;
 	}
-return 0;
+	}
+	return 0;
 }
 void VNCOptions::LoadOpt(char subkey[256],char keyname[256])
 {
-
 	HKEY RegKey;
 	TCHAR key[80];
 	_tcscpy(key,keyname);
@@ -1409,10 +1382,8 @@ void VNCOptions::LoadOpt(char subkey[256],char keyname[256])
 		
 	m_enableJpegCompression =	read(RegKey,"enablejpeglevel",    m_enableJpegCompression   ) != 0;
 	m_jpegQualityLevel =	read(RegKey,"quality",		m_jpegQualityLevel	);
-	
-	
-		
-		RegCloseKey(RegKey);
+			
+	RegCloseKey(RegKey);
 }
 int VNCOptions::read(HKEY hkey,char *name,int retrn)
 {
@@ -1420,11 +1391,11 @@ int VNCOptions::read(HKEY hkey,char *name,int retrn)
 	TCHAR buf[5];
 	if(RegQueryValueEx(hkey ,(LPTSTR)name , 
             NULL, NULL, 
-            (LPBYTE) buf,(LPDWORD) &buflen)!=ERROR_SUCCESS)
-	{	return retrn;}
-	else
-     
-	{return atoi(buf);}
+            (LPBYTE) buf,(LPDWORD) &buflen)!=ERROR_SUCCESS){
+		return retrn;
+	}else{
+		return atoi(buf);
+	}
 }
  void VNCOptions::SaveOpt(char subkey[256],char keyname[256])
 {
@@ -1436,7 +1407,7 @@ int VNCOptions::read(HKEY hkey,char *name,int retrn)
 	_tcscat(key,subkey);
 	RegCreateKeyEx(HKEY_CURRENT_USER, key, 0, NULL, 
 		REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &RegKey, &dispos);
-for (int i = rfbEncodingRaw; i<= LASTENCODING; i++) {
+	for (int i = rfbEncodingRaw; i<= LASTENCODING; i++) {
 		char buf[128];
 		sprintf(buf, "use_encoding_%d", i);
 		save(RegKey,buf, m_UseEnc[i] );
@@ -1465,7 +1436,6 @@ for (int i = rfbEncodingRaw; i<= LASTENCODING; i++) {
 	save(RegKey,"quality",			m_jpegQualityLevel	);
 	save(RegKey,"enablejpeglevel",	m_enableJpegCompression	);
 	
-
 	RegCloseKey(RegKey);
 }
 
@@ -1482,8 +1452,6 @@ void VNCOptions::save(HKEY hkey,char *name, int value)
 {
 	char buf[4];
 	sprintf(buf, "%d", value); 
-	
-
 	RegSetValueEx( hkey,name , 
             NULL,REG_SZ , 
             (CONST BYTE *)buf, (_tcslen(buf)+1) );

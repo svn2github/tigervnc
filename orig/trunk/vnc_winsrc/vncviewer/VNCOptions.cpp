@@ -208,7 +208,8 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 	int f = 0;
 	_tcscpy(CommLine, szCmdLine);
 
-	if (_tcsstr( CommLine, "/listen") != NULL) {
+	if (_tcsstr( CommLine, "/listen") != NULL ||
+        _tcsstr( CommLine, "-listen") != NULL) {
 		LoadOpt(".listen", KEY_VNCVIEWER_HISTORI);
 		f = 1;
 	}
@@ -253,10 +254,10 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 	i++;
 	int j;
 	for (j = 0; j < i; j++) {
-	TCHAR phost[256];
-	if (ParseDisplay(args[j], phost, 255, &m_port) && (f == 0) &&
-		(_tcsstr( args[j], "/") == NULL))
-	LoadOpt(args[j], KEY_VNCVIEWER_HISTORI);
+		TCHAR phost[256];
+		if (ParseDisplay(args[j], phost, 255, &m_port) && (f == 0) &&
+			(_tcsstr( args[j], "/") == NULL))
+			LoadOpt(args[j], KEY_VNCVIEWER_HISTORI);
 	}
 	bool hostGiven = false, portGiven = false;
 	// take in order.

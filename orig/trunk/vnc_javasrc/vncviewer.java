@@ -25,11 +25,12 @@
 //
 
 import java.awt.*;
+import java.awt.event.*;
 import java.io.*;
 
 public class vncviewer extends java.applet.Applet
-		       implements java.lang.Runnable
-{
+  implements java.lang.Runnable {
+
   boolean inAnApplet = true;
 
   //
@@ -57,11 +58,7 @@ public class vncviewer extends java.applet.Applet
   rfbProto rfb;
   Thread rfbThread;
   GridBagLayout gridbag;
-  Panel buttonPanel;
-  Button disconnectButton;
-  Button optionsButton;
-  Button clipboardButton;
-  Button ctrlAltDelButton;
+  ButtonPanel buttonPanel;
   vncCanvas vc;
   optionsFrame options;
   clipboardFrame clipboard;
@@ -101,20 +98,8 @@ public class vncviewer extends java.applet.Applet
     gbc.anchor = GridBagConstraints.NORTHWEST;
 
     if (options.showControls) {
-      buttonPanel = new Panel();
+      buttonPanel = new ButtonPanel(this);
       buttonPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
-      disconnectButton = new Button("Disconnect");
-      disconnectButton.setEnabled(false);
-      buttonPanel.add(disconnectButton);
-      optionsButton = new Button("Options");
-      buttonPanel.add(optionsButton);
-      clipboardButton = new Button("Clipboard");
-      clipboardButton.setEnabled(false);
-      buttonPanel.add(clipboardButton);
-      ctrlAltDelButton = new Button("Send Ctrl-Alt-Del");
-      ctrlAltDelButton.setEnabled(false);
-      buttonPanel.add(ctrlAltDelButton);
-
       gridbag.setConstraints(buttonPanel,gbc);
       add(buttonPanel);
     }
@@ -137,11 +122,8 @@ public class vncviewer extends java.applet.Applet
 	validate();
       }
 
-      if (options.showControls) {
-        disconnectButton.setEnabled(true);
-        clipboardButton.setEnabled(true);
-        ctrlAltDelButton.setEnabled(true);
-      }
+      if (options.showControls)
+        buttonPanel.enableButtons();
 
       vc.processNormalProtocol();
 
@@ -317,77 +299,6 @@ public class vncviewer extends java.applet.Applet
 
 
   //
-  // Respond to an action i.e. button press
-  //
-
-  public synchronized boolean action(Event evt, Object what) {
-
-    if (evt.target == optionsButton) {
-
-      options.setVisible(!options.isVisible());
-
-    } else if (evt.target == disconnectButton) {
-
-      System.out.println("disconnect");
-      options.dispose();
-      clipboard.dispose();
-
-      if (inAnApplet) {
-	removeAll();
-	rfb.close();
-	rfb = null;
-	Label l = new Label("Disconnected");
-	setLayout(new FlowLayout(FlowLayout.LEFT, 30, 30));
-	add(l);
-	validate();
-	rfbThread.stop();
-      } else {
-	System.exit(1);
-      }
-
-    } else if (evt.target == clipboardButton) {
-
-      clipboard.setVisible(!clipboard.isVisible());
-
-    } else if (evt.target == ctrlAltDelButton) {
-
-      try {
-	Event ctrlAltDelEvent = new Event(null, 0, null);
-
-	ctrlAltDelEvent.key = 127;
-	ctrlAltDelEvent.modifiers = Event.CTRL_MASK | Event.ALT_MASK;
-
-	ctrlAltDelEvent.id = Event.KEY_PRESS;
-	rfb.writeKeyEvent(ctrlAltDelEvent);
-
-	ctrlAltDelEvent.id = Event.KEY_RELEASE;
-	rfb.writeKeyEvent(ctrlAltDelEvent);
-      } catch (Exception e) {
-	e.printStackTrace();
-      }
-    }
-    return false;
-  }
-
-
-  //
-  // Detect when the focus goes in and out of the applet.  See
-  // vncCanvas.handleEvent() for details of why this is necessary.
-  //
-
-  boolean gotFocus = false;
-
-  public boolean gotFocus(Event evt, Object what) {
-    gotFocus = true;
-    return true;
-  }
-  public boolean lostFocus(Event evt, Object what) {
-    gotFocus = false;
-    return true;
-  }
-
-
-  //
   // readParameters() - read parameters from the html source or from the
   // command line.  On the command line, the arguments are just a sequence of
   // param_name/param_value pairs where the names and values correspond to
@@ -434,6 +345,29 @@ public class vncviewer extends java.applet.Applet
       fatalError(name + " parameter not specified");
     }
     return null;
+  }
+
+  //
+  // disconnect() - print out a fatal error message.
+  //
+
+  public void disconnect() {
+    System.out.println("Disconnect");
+    options.dispose();
+    clipboard.dispose();
+
+    if (inAnApplet) {
+      removeAll();
+      rfb.close();
+      rfb = null;
+      Label l = new Label("Disconnected");
+      setLayout(new FlowLayout(FlowLayout.LEFT, 30, 30));
+      add(l);
+      validate();
+      rfbThread.stop();
+    } else {
+      System.exit(1);
+    }
   }
 
   //

@@ -11,11 +11,11 @@ INSTALL_DIR = /usr/local/vnc/classes
 
 CLASSES = vncviewer.class rfbProto.class authenticationPanel.class \
 	  vncCanvas.class optionsFrame.class clipboardFrame.class \
-	  DesCipher.class
+	  ButtonPanel.class DesCipher.class
 
 SOURCES = vncviewer.java rfbProto.java authenticationPanel.java \
 	  vncCanvas.java optionsFrame.java clipboardFrame.java \
-	  DesCipher.java
+	  ButtonPanel.java DesCipher.java
 
 all: $(CLASSES) $(ARCHIVE)
 

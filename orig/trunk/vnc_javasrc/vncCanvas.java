@@ -21,6 +21,7 @@
 //
 
 import java.awt.*;
+import java.awt.event.*;
 import java.awt.image.*;
 import java.io.*;
 import java.util.zip.*;
@@ -31,7 +32,8 @@ import java.util.zip.*;
 //
 
 class vncCanvas extends Canvas
-{
+  implements KeyListener, MouseListener, MouseMotionListener {
+
   vncviewer v;
   rfbProto rfb;
   ColorModel cm;
@@ -57,19 +59,22 @@ class vncCanvas extends Canvas
     rfb.writeSetPixelFormat(8, 8, false, true, 7, 7, 3, 0, 3, 6);
 
     colors = new Color[256];
-
-    for (int i = 0; i < 256; i++) {
+    for (int i = 0; i < 256; i++)
       colors[i] = new Color(cm.getRGB(i));
-    }
 
     pixels = new byte[rfb.framebufferWidth * rfb.framebufferHeight];
 
-    pixelsSource = new MemoryImageSource(rfb.framebufferWidth,
-                                         rfb.framebufferHeight, cm, pixels,
-                                         0, rfb.framebufferWidth);
+    pixelsSource =
+      new MemoryImageSource(rfb.framebufferWidth, rfb.framebufferHeight,
+                            cm, pixels, 0, rfb.framebufferWidth);
     pixelsSource.setAnimated(true);
-
     rawPixelsImage = createImage(pixelsSource);
+
+    if (!v.options.viewOnly) {
+      addKeyListener(this);
+      addMouseListener(this);
+      addMouseMotionListener(this);
+    }
 
     tightInflaters = new Inflater[4];
   }
@@ -548,7 +553,7 @@ class vncCanvas extends Canvas
   //
 
   synchronized void
-  handleUpdatedPixels(int x, int y, int w, int h) throws IOException {
+  handleUpdatedPixels(int x, int y, int w, int h) {
 
     pixelsSource.newPixels(x, y, w, h);
 
@@ -606,48 +611,68 @@ class vncCanvas extends Canvas
     return true;
   }
  
+
   //
   // Handle events.
   //
-  // Because of a "feature" in the AWT implementation over X, the vncCanvas
-  // sometimes loses focus and the only way to get it back is to call
-  // requestFocus() explicitly.  However we need to be careful when calling
-  // requestFocus() on Windows or other click-to-type systems.  What we do is
-  // call requestFocus() whenever there is mouse movement over the window,
-  // AND the focus is already in the applet.
-  //
 
-  public boolean handleEvent(Event evt) {
-    if ((rfb != null) && rfb.inNormalProtocol) {
+  public void keyPressed(KeyEvent evt) {
+    processLocalKeyEvent(evt);
+  }
+  public void keyReleased(KeyEvent evt) {
+    processLocalKeyEvent(evt);
+  }
+  public void keyTyped(KeyEvent evt) {
+    evt.consume();
+  }
+
+  public void mousePressed(MouseEvent evt) {
+    processLocalMouseEvent(evt, false);
+  }
+  public void mouseReleased(MouseEvent evt) {
+    processLocalMouseEvent(evt, false);
+  }
+  public void mouseMoved(MouseEvent evt) {
+    processLocalMouseEvent(evt, true);
+  }
+  public void mouseDragged(MouseEvent evt) {
+    processLocalMouseEvent(evt, true);
+  }
+
+  public void processLocalKeyEvent(KeyEvent evt) {
+    if (rfb != null && rfb.inNormalProtocol) {
       try {
-	switch (evt.id) {
-	case Event.MOUSE_MOVE:
-	case Event.MOUSE_DRAG:
-	  softCursorMove(evt.x, evt.y);
-	  // *** pass through ***
-	case Event.MOUSE_DOWN:
-	case Event.MOUSE_UP:
-	  if (v.gotFocus) {
-	    requestFocus();
-	  }
-	  if (!v.options.viewOnly)
-		  rfb.writePointerEvent(evt);
-	  break;
-	case Event.KEY_PRESS:
-	case Event.KEY_RELEASE:
-	case Event.KEY_ACTION:
-	case Event.KEY_ACTION_RELEASE:
-	  if (!v.options.viewOnly)
-		  rfb.writeKeyEvent(evt);
-	  break;
-	}
+        rfb.writeKeyEvent(evt);
       } catch (Exception e) {
 	e.printStackTrace();
       }
-      return true;
     }
-    return false;
+    // Don't ever pass keyboard events to AWT for default processing. 
+    // Otherwise, pressing Tab would switch focus to ButtonPanel etc.
+    evt.consume();
   }
+
+  public void processLocalMouseEvent(MouseEvent evt, boolean moved) {
+    if (rfb != null && rfb.inNormalProtocol) {
+      if (moved) {
+        softCursorMove(evt.getX(), evt.getY());
+      }
+      try {
+        rfb.writePointerEvent(evt);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
+
+  //
+  // Ignored events.
+  //
+
+  public void mouseClicked(MouseEvent evt) {}
+  public void mouseEntered(MouseEvent evt) {}
+  public void mouseExited(MouseEvent evt) {}
 
 
   //////////////////////////////////////////////////////////////////
@@ -775,7 +800,7 @@ class vncCanvas extends Canvas
   //
 
   synchronized void
-    softCursorLockArea(int x, int y, int w, int h) throws IOException {
+    softCursorLockArea(int x, int y, int w, int h) {
 
     if (!prevCursorSet)
       return;
@@ -808,7 +833,7 @@ class vncCanvas extends Canvas
   // performed since previous softCursorUnlockScreen() call.
   //
 
-  synchronized void softCursorUnlockScreen() throws IOException {
+  synchronized void softCursorUnlockScreen() {
 
     if (!prevCursorSet)
       return;
@@ -828,7 +853,7 @@ class vncCanvas extends Canvas
   // softCursorUnlockScreen() method is called.
   //
 
-  synchronized void softCursorMove(int x, int y) throws IOException {
+  synchronized void softCursorMove(int x, int y) {
 
     if (prevCursorSet && !rcCursorHidden) {
       softCursorRestoreArea();
@@ -849,7 +874,7 @@ class vncCanvas extends Canvas
   // Free all data associated with cursor.
   //
 
-  synchronized void softCursorFree() throws IOException {
+  synchronized void softCursorFree() {
 
     if (prevCursorSet) {
       softCursorRestoreArea();
@@ -901,7 +926,7 @@ class vncCanvas extends Canvas
   // Restore screen data saved in memory buffer.
   //
 
-  void softCursorRestoreArea() throws IOException {
+  void softCursorRestoreArea() {
 
     Rectangle r = new Rectangle();
     softCursorToScreen(r, null);
@@ -922,7 +947,7 @@ class vncCanvas extends Canvas
   // Draw cursor.
   //
 
-  void softCursorDraw() throws IOException {
+  void softCursorDraw() {
 
     int x, y, x0, y0;
     int offset;

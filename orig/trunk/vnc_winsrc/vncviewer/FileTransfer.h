@@ -95,6 +95,7 @@ public:
 	static BOOL CALLBACK FTBrowseDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static BOOL CALLBACK FTCreateDirDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static BOOL CALLBACK FTRenameDirDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	static BOOL CALLBACK FTCancelingDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	void CloseUndoneFileTransfers();
 	void UploadFilePortion();
 	void DownloadFilePortion();
@@ -137,6 +138,7 @@ private:
 	void ServerRenameDir();
 	BOOL CreateRenameDirDlg(HWND hwnd);
 	BOOL CreateTransferConfDlg();
+	BOOL CreateFTCancelingDlg();
 
 	void SetDefaultBlockSize() { m_dwFileBlockSize = 8192; };
 	void FTClientDelete(FileTransferItemInfo *ftfi);
@@ -162,6 +164,8 @@ private:
 	void ProcessFLRDownload();
 	void DownloadFile(int num);
 
+	void EndFTCancelDlg(BOOL result);
+
 	int GetSelectedItems(HWND hwnd, FileTransferItemInfo *pFTII);
 
 	DWORD m_dwProgBarValue;
@@ -174,6 +178,7 @@ private:
 	HWND m_hwndFTServerList;
 	HWND m_hwndFTClientPath;
 	HWND m_hwndFTServerPath;
+	HWND m_hwndFTCanceling;
 	HWND m_hwndFTProgress;
 	HWND m_hwndProgress;
 	HWND m_hwndFTStatus;
@@ -186,6 +191,7 @@ private:
 	BOOL m_bServerBrowseRequest;
 	BOOL m_bClientRefresh;
 	BOOL m_bServerRefresh;
+	BOOL m_bEndFTDlgOnYes;
 
 	HANDLE m_hFiletoWrite;
     HANDLE m_hFiletoRead;

@@ -46,6 +46,7 @@
 #define IDD_FTDIRNAME                   247
 #define IDI_DELETE                      248
 #define IDI_RENAME                      249
+#define IDD_FTCANCELING                 251
 #define IDC_HOSTNAME_EDIT               1000
 #define IDC_DPYNUM_EDIT                 1001
 #define IDC_BELLDEICONIFY               1002
@@ -157,7 +158,6 @@
 #define IDC_BUTTON3                     1133
 #define IDC_SERVERUP                    1134
 #define IDC_BUTTON4                     1135
-#define IDC_CLIENTDELETE                1135
 #define IDC_CLIENTRELOAD                1136
 #define IDC_BUTTON5                     1137
 #define IDC_RENAME                      1137
@@ -185,7 +185,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        251
+#define _APS_NEXT_RESOURCE_VALUE        252
 #define _APS_NEXT_COMMAND_VALUE         40011
 #define _APS_NEXT_CONTROL_VALUE         1155
 #define _APS_NEXT_SYMED_VALUE           244

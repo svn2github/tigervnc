@@ -77,6 +77,7 @@ FileTransfer::CreateFileTransferDialog()
 	m_hwndFTClientPath = GetDlgItem(m_hwndFileTransfer, IDC_CLIENTPATH);
 	m_hwndFTServerPath = GetDlgItem(m_hwndFileTransfer, IDC_SERVERPATH);
 	m_hwndFTStatus = GetDlgItem(m_hwndFileTransfer, IDC_FTSTATUS);
+	m_hwndFTCanceling = NULL;
 
 	ListView_SetExtendedListViewStyleEx(m_hwndFTClientList, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
 	ListView_SetExtendedListViewStyleEx(m_hwndFTServerList, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
@@ -121,6 +122,7 @@ FileTransfer::CreateFileTransferDialog()
 
 	m_bClientRefresh = FALSE;
 	m_bServerRefresh = FALSE;
+	m_bEndFTDlgOnYes = FALSE;
 
 	ShowWindow(m_hwndFileTransfer, SW_SHOW);
 	UpdateWindow(m_hwndFileTransfer);
@@ -247,14 +249,9 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 			break;
 			case IDC_EXIT:
 				if (_this->IsTransferEnable()) {
-					if (MessageBox(hwnd, 
-						_T("File Transfer is active. Are you sure you want to disconnect? This will result in active file transfer operation being discontinued."),
-						_T("Closing Active File Transfer"),
-						MB_YESNO | MB_ICONQUESTION) == IDYES) {
-						_this->CloseUndoneFileTransfers();
-					} else {
-						return FALSE;
-					}
+					_this->m_bEndFTDlgOnYes = TRUE;
+					_this->CreateFTCancelingDlg();
+					return TRUE;
 				}
 				_this->m_clientconn->m_fileTransferDialogShown = false;
 				_this->m_FTClientItemInfo.Free();
@@ -312,9 +309,9 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 				}
 				return TRUE;
 			case IDC_FTCANCEL:
-				_this->ClearFTButtons();
-				_this->m_bTransferEnable = FALSE;
-				EnableWindow(GetDlgItem(hwnd, IDC_FTCANCEL), FALSE);
+				if (_this->IsTransferEnable()) {
+					_this->CreateFTCancelingDlg();
+				}
 				return TRUE;
 			case IDC_CLIENTBROWSE_BUT:
 				_this->ClearFTControls();
@@ -415,14 +412,9 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 	case WM_CLOSE:
 	case WM_DESTROY:
 		if (_this->IsTransferEnable()) {
-			if (MessageBox(hwnd, 
-				_T("File Transfer is active. Are you sure you want to disconnect? This will result in active file transfer operation being discontinued."),
-				_T("Closing Active File Transfer"),
-				MB_YESNO | MB_ICONQUESTION) == IDYES) {
-				_this->CloseUndoneFileTransfers();
-			} else {
-				return FALSE;
-			}
+			_this->m_bEndFTDlgOnYes = TRUE;
+			_this->CreateFTCancelingDlg();
+			return TRUE;
 		}
 		_this->m_clientconn->m_fileTransferDialogShown = false;
 		_this->m_FTClientItemInfo.Free();
@@ -525,6 +517,7 @@ FileTransfer::CheckUploadQueue()
 		m_bUploadStarted = FALSE;
 		SetStatusText("Copy Operation Successfully Completed");
 		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
+		if (m_hwndFTCanceling != NULL) EndFTCancelDlg(FALSE);
 		return;
 	}
 	char buff[MAX_PATH];
@@ -569,6 +562,7 @@ FileTransfer::CheckUploadQueue()
 			m_bTransferEnable = FALSE;
 			m_bUploadStarted = FALSE;
 			SetStatusText("Copy Operation Successfully Completed");
+			if (m_hwndFTCanceling != NULL) EndFTCancelDlg(FALSE);
 			return;
 		}
 	}
@@ -635,6 +629,7 @@ FileTransfer::UploadFilePortion()
 	DWORD dwPortionRead = 0;
 	char *pBuff = new char [m_dwFileBlockSize];
 	
+	if (m_hwndFTCanceling != NULL) ProcessDlgMessage(m_hwndFTCanceling);
 	ProcessDlgMessage(m_hwndFileTransfer);
 	if (m_bTransferEnable == FALSE) {
 		SetStatusText("File transfer canceled");
@@ -735,6 +730,7 @@ void FileTransfer::CheckDownloadQueue()
 		m_bDownloadStarted = FALSE;
 		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
 		SetStatusText("Copy Operation Successfully Completed");
+		if (m_hwndFTCanceling != NULL) EndFTCancelDlg(FALSE);
 		return;
 	}
 	char path[MAX_PATH];
@@ -815,6 +811,7 @@ FileTransfer::DownloadFilePortion()
 	char * pBuff = new char [fdd.compressedSize];
 	DWORD dwNumberOfBytesWritten;
 	m_clientconn->ReadExact(pBuff, fdd.compressedSize);
+	if (m_hwndFTCanceling != NULL) ProcessDlgMessage(m_hwndFTCanceling);
 	ProcessDlgMessage(m_hwndFileTransfer);
 	if (m_bTransferEnable == FALSE) {
 		char reason [] = "User cancel download";
@@ -2198,4 +2195,71 @@ FileTransfer::CreateTransferConfDlg()
 	}
 	delete [] pBuf;
 	return TRUE;
+}
+
+BOOL 
+FileTransfer::CreateFTCancelingDlg()
+{
+	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
+	m_hwndFTCanceling = CreateDialogParam(m_pApp->m_instance, 
+										  MAKEINTRESOURCE(IDD_FTCANCELING),
+										  NULL, 
+										  (DLGPROC) FTCancelingDlgProc,
+										  (LONG) this);
+	ShowWindow(m_hwndFTCanceling, SW_SHOW);
+	UpdateWindow(m_hwndFTCanceling);
+	return TRUE;
+}
+
+BOOL CALLBACK 
+FileTransfer::FTCancelingDlgProc(HWND hwnd, 
+								 UINT uMsg, 
+								 WPARAM wParam, 
+								 LPARAM lParam)
+{
+	FileTransfer *_this = (FileTransfer *) GetWindowLong(hwnd, GWL_USERDATA);
+	switch (uMsg)
+	{
+	case WM_INITDIALOG:
+		SetWindowLong(hwnd, GWL_USERDATA, (LONG) lParam);
+		DrawIcon(GetDC(hwnd), 100, 100, LoadIcon(NULL, IDI_QUESTION));
+		SetForegroundWindow(hwnd);
+		CentreWindow(hwnd);
+		return TRUE;
+	case WM_COMMAND:
+		switch (LOWORD(wParam))
+		{
+			case IDOK:
+				_this->ClearFTButtons();
+				_this->m_bTransferEnable = FALSE;
+				EnableWindow(GetDlgItem(hwnd, IDC_FTCANCEL), FALSE);
+				_this->EndFTCancelDlg(TRUE);
+				return TRUE;
+			case IDCANCEL:
+				_this->EndFTCancelDlg(FALSE);
+				return TRUE;
+		}
+	break;
+	case WM_CLOSE:
+	case WM_DESTROY:
+		_this->EndFTCancelDlg(FALSE);
+		return TRUE;
+	}
+	return FALSE;
+}
+
+void
+FileTransfer::EndFTCancelDlg(BOOL result)
+{
+	EndDialog(m_hwndFTCanceling, result);
+	m_hwndFTCanceling = NULL;
+	if (result == FALSE) EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), TRUE);
+	if ((result) && (m_bEndFTDlgOnYes)) {
+		CloseUndoneFileTransfers();
+		m_clientconn->m_fileTransferDialogShown = false;
+		m_FTClientItemInfo.Free();
+		m_FTServerItemInfo.Free();
+		EndDialog(m_hwndFileTransfer, TRUE);
+	}
+
 }

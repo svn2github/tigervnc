@@ -96,7 +96,7 @@ vncEncodeZlib::NumCodedRects(RECT &rect)
 
 /*****************************************************************************
  *
- * Routines to implement zlib Encoding (LZW compression) by calling
+ * Routines to implement zlib Encoding (LZ+Huffman compression) by calling
  * the included zlib library.
  */
 

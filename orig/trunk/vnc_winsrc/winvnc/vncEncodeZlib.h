@@ -30,7 +30,7 @@
 
 class vncEncodeZlib;
 
-#if !defined(_WINVNC_ENCODERZLIB)
+#if !defined(_WINVNC_ENCODEZLIB)
 #define _WINVNC_ENCODEZLIB
 #pragma once
 

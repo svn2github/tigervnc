@@ -41,12 +41,13 @@
 #define IDC_CORRERADIO                  1022
 #define IDC_HEXTILERADIO                1023
 #define IDC_ZLIBRADIO                   1024
-#define IDC_EMULATECHECK                1025
-#define IDC_FULLSCREEN                  1027
-#define IDC_DISABLECLIPBOARD            1028
-#define IDC_SCALING                     1029
-#define IDC_SCALE_NUM                   1031
-#define IDC_SCALE_DEN                   1032
+#define IDC_TIGHTRADIO                  1025
+#define IDC_EMULATECHECK                1040
+#define IDC_FULLSCREEN                  1041
+#define IDC_DISABLECLIPBOARD            1042
+#define IDC_SCALING                     1043
+#define IDC_SCALE_NUM                   1044
+#define IDC_SCALE_DEN                   1045
 #define ID_SESSION_SET_CRECT            32777
 #define ID_SESSION_SWAPMOUSE            32785
 #define ID_CLOSEDAEMON                  40001
@@ -60,7 +61,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        154
 #define _APS_NEXT_COMMAND_VALUE         40010
-#define _APS_NEXT_CONTROL_VALUE         1032
+#define _APS_NEXT_CONTROL_VALUE         1050
 #define _APS_NEXT_SYMED_VALUE           154
 #endif
 #endif

@@ -981,6 +981,27 @@ NODEP_CPP_VNCENCOD=\
 # End Source File
 # Begin Source File
 
+SOURCE=.\vncEncodeTight.cpp
+
+!IF  "$(CFG)" == "WinVNC - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 Debug"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 Purify"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 No_CORBA"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 Profile"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha No_CORBA"
+
+!ELSEIF  "$(CFG)" == "WinVNC - Win32 Alpha Debug No_CORBA"
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
 SOURCE=.\vncEncodeZlib.cpp
 
 !IF  "$(CFG)" == "WinVNC - Win32 Release"
@@ -1639,6 +1660,10 @@ SOURCE=.\vncEncoder.h
 # Begin Source File
 
 SOURCE=.\vncEncodeRRE.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\vncEncodeTight.h
 # End Source File
 # Begin Source File
 

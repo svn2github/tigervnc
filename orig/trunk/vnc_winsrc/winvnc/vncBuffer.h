@@ -101,6 +101,8 @@ protected:
 	vncEncoder	   *m_encoder;
 	bool           zlib_encoder_in_use;
 	vncEncoder     *m_hold_zlib_encoder;
+	bool           tight_encoder_in_use;
+	vncEncoder     *m_hold_tight_encoder;
 };
 
 #endif // _WINVNC_VNCBUFFER

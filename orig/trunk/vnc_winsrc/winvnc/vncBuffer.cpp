@@ -35,6 +35,7 @@
 #include "vncEncodeCoRRE.h"
 #include "vncEncodeHexT.h"
 #include "vncEncodeZlib.h"
+#include "vncEncodeTight.h"
 #include "MinMax.h"
 
 #include "vncBuffer.h"
@@ -48,6 +49,8 @@ vncBuffer::vncBuffer(vncDesktop *desktop)
 	m_encoder = NULL;
 	zlib_encoder_in_use = false;
 	m_hold_zlib_encoder = NULL;
+	tight_encoder_in_use = false;
+	m_hold_tight_encoder = NULL;
 
 	m_mainbuff = NULL;
 	m_backbuff = NULL;
@@ -84,11 +87,20 @@ vncBuffer::~vncBuffer()
 			m_hold_zlib_encoder = NULL;
 		}
 	}
+	if (m_hold_tight_encoder != m_encoder)
+	{
+		if (m_hold_tight_encoder != NULL)
+		{
+			delete m_hold_tight_encoder;
+			m_hold_tight_encoder = NULL;
+		}
+	}
 	if (m_encoder != NULL)
 	{
 		delete m_encoder;
 		m_encoder = NULL;
 		m_hold_zlib_encoder = NULL;
+		m_hold_tight_encoder = NULL;
 	}
 	if (m_clientbuff != NULL)
 	{
@@ -404,11 +416,15 @@ vncBuffer::SetEncoding(CARD32 encoding)
 	// Delete the old encoder
 	if (m_encoder != NULL)
 	{
-		// If a Zlib encoder was in use, save it (with dictionary)
-		// for possible later use on this connection.
+		// If a Zlib or Tight encoders were in use, save corresponding object
+		// (with dictionaries) for possible later use on this connection.
 		if ( zlib_encoder_in_use )
 		{
 			m_hold_zlib_encoder = m_encoder;
+		}
+		else if ( zlib_encoder_in_use )
+		{
+			m_hold_tight_encoder = m_encoder;
 		}
 		else
 		{
@@ -418,6 +434,7 @@ vncBuffer::SetEncoding(CARD32 encoding)
 	}
 
 	zlib_encoder_in_use = false;
+	tight_encoder_in_use = false;
 
 	// Returns FALSE if the desired encoding cannot be used
 	switch(encoding)
@@ -483,6 +500,26 @@ vncBuffer::SetEncoding(CARD32 encoding)
 		zlib_encoder_in_use = true;
 		break;
 
+	case rfbEncodingTight:
+
+		log.Print(LL_INTINFO, VNCLOG("Tight encoder requested\n"));
+
+		// Create a Tight encoder, if needed.
+		// If a Tight encoder was used previously, then reuse it here
+		// to maintain zlib dictionaries synchronization with the viewer.
+		if ( m_hold_tight_encoder == NULL )
+		{
+			m_encoder = new vncEncodeTight;
+		}
+		else
+		{
+			m_encoder = m_hold_tight_encoder;
+		}
+		if (m_encoder == NULL)
+			return FALSE;
+		tight_encoder_in_use = true;
+		break;
+
 	default:
 		// An unknown encoding was specified
 		log.Print(LL_INTERR, VNCLOG("unknown encoder requested\n"));
@@ -540,6 +577,10 @@ vncBuffer::TranslateRect(const RECT &rect, VSocket *outConn)
 	if ( zlib_encoder_in_use )
 	{
 		return ((vncEncodeZlib *)m_encoder)->EncodeRect(m_mainbuff, outConn, m_clientbuff, rect);
+	}
+	else if ( tight_encoder_in_use )
+	{
+		return ((vncEncodeTight *)m_encoder)->EncodeRect(m_mainbuff, outConn, m_clientbuff, rect);
 	}
 	else
 	{

@@ -26,7 +26,7 @@
 
 #pragma once
 
-#define LASTENCODING rfbEncodingZlib
+#define LASTENCODING rfbEncodingTight
 
 #define NOCURSOR 0
 #define DOTCURSOR 1

@@ -111,6 +111,8 @@ void ClientConnection::Init(VNCviewerApp *pApp)
 	m_serverInitiated = false;
 	m_netbuf = NULL;
 	m_netbufsize = 0;
+	m_zlibbuf = NULL;
+	m_zlibbufsize = 0;
 	m_hwndNextViewer = NULL;	
 	m_pApp = pApp;
 	m_dormant = false;
@@ -134,6 +136,8 @@ void ClientConnection::Init(VNCviewerApp *pApp)
 	m_emulatingMiddleButton = false;
 
 	m_decompStreamInited = false;
+	for (int i = 0; i < 4; i++)
+		m_tightZlibStreamActive[i] = false;
 
 	// Create a buffer for various network operations
 	CheckBufferSize(INITIALNETBUFSIZE);
@@ -1849,6 +1853,9 @@ void ClientConnection::ReadScreenUpdate() {
 			break;
 		case rfbEncodingZlib:
 			ReadZlibRect(&surh);
+			break;
+		case rfbEncodingTight:
+			ReadTightRect(&surh);
 			break;
 		default:
 			log.Print(0, _T("Unknown encoding %d - not supported!\n"), surh.encoding);

@@ -296,6 +296,7 @@ typedef struct {
 #define rfbEncodingCoRRE 4
 #define rfbEncodingHextile 5
 #define rfbEncodingZlib 6
+#define rfbEncodingTight 7
 
 
 
@@ -454,6 +455,18 @@ typedef struct {
 } rfbZlibHeader;
 
 #define sz_rfbZlibHeader 4
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * ``Tight'' Encoding.  FIXME: Add more documentation.
+ */
+
+#define rfbTightFill  0x08
+
+/* Filters to improve compression efficiency */
+#define rfbTightFilterCopy             0x00
+#define rfbTightFilterPalette          0x01
+#define rfbTightFilterGradient         0x02
+
 
 /*-----------------------------------------------------------------------------
  * SetColourMapEntries - these messages are only sent if the pixel

@@ -239,10 +239,10 @@ vncEncodeZlib::EncodeOneRect(BYTE *source, BYTE *dest, const RECT &rect)
 		compStream.zfree = Z_NULL;
 		compStream.opaque = Z_NULL;
 
-		log.Print(LL_INTINFO, VNCLOG("calling deflateInit2 with zlib level:%d\n"), m_zliblevel);
+		log.Print(LL_INTINFO, VNCLOG("calling deflateInit2 with zlib level:%d\n"), m_compresslevel);
 
 		deflateResult = deflateInit2( &compStream,
-			                          m_zliblevel,
+			                          m_compresslevel,
 					                  Z_DEFLATED,
 					                  MAX_WBITS,
 					                  MAX_MEM_LEVEL,

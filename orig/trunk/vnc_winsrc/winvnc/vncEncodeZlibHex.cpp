@@ -186,10 +186,10 @@ vncEncodeZlibHex::zlibCompress(BYTE *from_buf, BYTE *to_buf, UINT length, struct
 		compressor->zfree = Z_NULL;
 		compressor->opaque = Z_NULL;
 
-		log.Print(LL_INTINFO, VNCLOG("calling deflateInit2 with zlib level:%d\n"), m_zliblevel);
+		log.Print(LL_INTINFO, VNCLOG("calling deflateInit2 with zlib level:%d\n"), m_compresslevel);
 
 		deflateResult = deflateInit2( compressor,
-			                          m_zliblevel,
+			                          m_compresslevel,
 					                  Z_DEFLATED,
 					                  MAX_WBITS,
 					                  MAX_MEM_LEVEL,

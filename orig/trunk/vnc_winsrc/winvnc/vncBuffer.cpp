@@ -60,7 +60,7 @@ vncBuffer::vncBuffer(vncDesktop *desktop)
 	m_hold_tight_encoder = NULL;
 	zlibhex_encoder_in_use = false;
 	m_hold_zlibhex_encoder = NULL;
-	m_zliblevel = 5;
+	m_compresslevel = 6;
 
 	m_mainbuff = NULL;
 	m_backbuff = NULL;
@@ -584,7 +584,7 @@ vncBuffer::SetEncoding(CARD32 encoding)
 			m_scrinfo.format,
 			m_scrinfo.framebufferWidth,
 			m_scrinfo.framebufferHeight);
-	m_encoder->SetZlibLevel(m_zliblevel);
+	m_encoder->SetCompressLevel(m_compresslevel);
 	if (m_clientfmtset)
 		if (!m_encoder->SetRemoteFormat(m_clientformat))
 		{
@@ -598,13 +598,13 @@ vncBuffer::SetEncoding(CARD32 encoding)
 }
 
 BOOL
-vncBuffer::SetZlibLevel(CARD32 level)
+vncBuffer::SetCompressLevel(CARD32 level)
 {
 	BOOL result = false;
 	if ((level >= 0) && (level <= 9)) {
-		m_zliblevel = level;
+		m_compresslevel = level;
 		if (m_encoder != NULL) {
-			m_encoder->SetZlibLevel(m_zliblevel);
+			m_encoder->SetCompressLevel(m_compresslevel);
 		}
 		result = true;
 	}

@@ -198,7 +198,7 @@ BEGIN
                     10
     CONTROL         "Allow CopyRect encoding",ID_SESSION_SET_CRECT,"Button",
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,15,79,97,10
-    EDITTEXT        IDC_ZLIBLEVEL,15,91,15,12,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_COMPRESSLEVEL,15,91,15,12,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "Request shared session",IDC_SHARED,"Button",
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,15,119,91,10
     CONTROL         "Deiconify on Bell",IDC_BELLDEICONIFY,"Button",

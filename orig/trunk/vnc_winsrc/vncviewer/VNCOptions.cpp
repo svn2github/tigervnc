@@ -40,6 +40,8 @@ VNCOptions::VNCOptions()
 	for (int i = rfbEncodingRaw; i<= LASTENCODING; i++)
 		m_UseEnc[i] = true;
 	
+	m_UseEnc[3] = false;
+
 	m_ViewOnly = false;
 	m_FullScreen = false;
 	m_Use8Bit = false;
@@ -80,7 +82,7 @@ VNCOptions::VNCOptions()
 	m_listening = false;
 	m_restricted = false;
 
-	m_zlibLevel = 5;
+	m_compressLevel = 6;
 
 #ifdef UNDER_CE
 	m_palmpc = false;
@@ -138,7 +140,7 @@ VNCOptions& VNCOptions::operator=(VNCOptions& s)
 	m_listening			= s.m_listening;
 	m_restricted		= s.m_restricted;
 
-	m_zlibLevel			= s.m_zlibLevel;
+	m_compressLevel		= s.m_compressLevel;
 
 #ifdef UNDER_CE
 	m_palmpc			= s.m_palmpc;
@@ -355,13 +357,13 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 				Load(m_configFilename);
 				m_configSpecified = true;
 			}
-		} else if ( SwitchMatch(args[j], _T("zliblevel") )) {
+		} else if ( SwitchMatch(args[j], _T("compresslevel") )) {
 			if (++j == i) {
-				ArgError(_T("No zliblevel specified"));
+				ArgError(_T("No compression level specified"));
 				continue;
 			}
-			if (_stscanf(args[j], _T("%d"), &m_zlibLevel) != 1) {
-				ArgError(_T("Invalid zliblevel specified"));
+			if (_stscanf(args[j], _T("%d"), &m_compressLevel) != 1) {
+				ArgError(_T("Invalid compression level specified"));
 				continue;
 			}
 		} else if ( SwitchMatch(args[j], _T("register") )) {
@@ -425,7 +427,7 @@ void VNCOptions::Save(char *fname)
 	saveInt("localcursor",			m_localCursor,		fname);
 	saveInt("scale_den",			m_scale_den,		fname);
 	saveInt("scale_num",			m_scale_num,		fname);
-	saveInt("zliblevel",			m_zlibLevel,		fname);
+	saveInt("compresslevel",		m_compressLevel,	fname);
 }
 
 void VNCOptions::Load(char *fname)
@@ -450,7 +452,7 @@ void VNCOptions::Load(char *fname)
 	m_localCursor =			readInt("localcursor",		m_localCursor,	fname);
 	m_scale_den =			readInt("scale_den",		m_scale_den,	fname);
 	m_scale_num =			readInt("scale_num",		m_scale_num,	fname);
-	m_zlibLevel =			readInt("zliblevel",		m_zlibLevel,	fname);
+	m_compressLevel =		readInt("compresslevel",	m_compressLevel, fname);
 }
 
 // Record the path to the VNC viewer and the type
@@ -589,10 +591,8 @@ BOOL CALLBACK VNCOptions::OptDlgProc(  HWND hwnd,  UINT uMsg,
  			SendMessage(hEmulate, BM_SETCHECK, _this->m_Emul3Buttons, 0);
 #endif
 
-			SetDlgItemInt( hwnd, IDC_ZLIBLEVEL, _this->m_zlibLevel, FALSE);
-			HWND hZlibLevel = GetDlgItem(hwnd, IDC_ZLIBLEVEL);
-			EnableWindow(hZlibLevel, !_this->m_running);
-			// SendMessage(hZlibLevel, BM_SETCHECK, _this->m_UseEnc[rfbEncodingCopyRect], 0);
+			SetDlgItemInt( hwnd, IDC_COMPRESSLEVEL, _this->m_compressLevel, FALSE);
+			HWND hCompressLevel = GetDlgItem(hwnd, IDC_COMPRESSLEVEL);
 			
 			CentreWindow(hwnd);
 			
@@ -662,9 +662,9 @@ BOOL CALLBACK VNCOptions::OptDlgProc(  HWND hwnd,  UINT uMsg,
 				  (SendMessage(hEmulate, BM_GETCHECK, 0, 0) == BST_CHECKED);
 #endif
 
-				_this->m_zlibLevel = GetDlgItemInt( hwnd, IDC_ZLIBLEVEL, NULL, TRUE);
-				if ( _this->m_zlibLevel < 0 ) { _this->m_zlibLevel = 0; }
-				if ( _this->m_zlibLevel > 9 ) { _this->m_zlibLevel = 9; }
+				_this->m_compressLevel = GetDlgItemInt( hwnd, IDC_COMPRESSLEVEL, NULL, TRUE);
+				if ( _this->m_compressLevel < 0 ) { _this->m_compressLevel = 0; }
+				if ( _this->m_compressLevel > 9 ) { _this->m_compressLevel = 9; }
 
 				EndDialog(hwnd, TRUE);
 				

@@ -720,29 +720,31 @@ void ClientConnection::SetupPixelFormat() {
 void ClientConnection::SetFormatAndEncodings()
 {
 	// Set pixel format to myFormat
-    
+
 	rfbSetPixelFormatMsg spf;
 
-    spf.type = rfbSetPixelFormat;
-    spf.format = m_myFormat;
-    spf.format.redMax = Swap16IfLE(spf.format.redMax);
-    spf.format.greenMax = Swap16IfLE(spf.format.greenMax);
-    spf.format.blueMax = Swap16IfLE(spf.format.blueMax);
+	spf.type = rfbSetPixelFormat;
+	spf.format = m_myFormat;
+	spf.format.redMax = Swap16IfLE(spf.format.redMax);
+	spf.format.greenMax = Swap16IfLE(spf.format.greenMax);
+	spf.format.blueMax = Swap16IfLE(spf.format.blueMax);
 	spf.format.bigEndian = 0;
 
-    WriteExact((char *)&spf, sz_rfbSetPixelFormatMsg);
+	WriteExact((char *)&spf, sz_rfbSetPixelFormatMsg);
 
-    // The number of bytes required to hold at least one pixel.
+	// The number of bytes required to hold at least one pixel.
 	m_minPixelBytes = (m_myFormat.bitsPerPixel + 7) >> 3;
 
 	// Set encodings
-    char buf[sz_rfbSetEncodingsMsg + MAX_ENCODINGS * 4];
-    rfbSetEncodingsMsg *se = (rfbSetEncodingsMsg *)buf;
-    CARD32 *encs = (CARD32 *)(&buf[sz_rfbSetEncodingsMsg]);
-    int len = 0;
-	
-    se->type = rfbSetEncodings;
-    se->nEncodings = 0;
+	char buf[sz_rfbSetEncodingsMsg + MAX_ENCODINGS * 4];
+	rfbSetEncodingsMsg *se = (rfbSetEncodingsMsg *)buf;
+	CARD32 *encs = (CARD32 *)(&buf[sz_rfbSetEncodingsMsg]);
+	int len = 0;
+
+	se->type = rfbSetEncodings;
+	se->nEncodings = 0;
+
+	bool useCompressLevel = false;
 
 	// Put the preferred encoding first, and change it if the
 	// preferred encoding is not actually usable.
@@ -751,10 +753,10 @@ void ClientConnection::SetFormatAndEncodings()
 		if (m_opts.m_PreferredEncoding == i) {
 			if (m_opts.m_UseEnc[i]) {
 				encs[se->nEncodings++] = Swap32IfLE(i);
-				if ((i == rfbEncodingZlib) ||
-					(i == rfbEncodingZlibHex)) {
-					encs[se->nEncodings++] = Swap32IfLE( m_opts.m_zlibLevel +
-														 rfbEncodingZlibLevel0 );
+				if ( i == rfbEncodingZlib ||
+					 i == rfbEncodingTight ||
+					 i == rfbEncodingZlibHex ) {
+					useCompressLevel = true;
 				}
 			} else {
 				m_opts.m_PreferredEncoding--;
@@ -771,19 +773,28 @@ void ClientConnection::SetFormatAndEncodings()
 			 (m_opts.m_UseEnc[i]))
 		{
 			encs[se->nEncodings++] = Swap32IfLE(i);
-			if ((i == rfbEncodingZlib) ||
-				(i == rfbEncodingZlibHex)) {
-				encs[se->nEncodings++] = Swap32IfLE( m_opts.m_zlibLevel +
-													 rfbEncodingZlibLevel0 );
+			if ( i == rfbEncodingZlib ||
+				 i == rfbEncodingTight ||
+				 i == rfbEncodingZlibHex ) {
+				useCompressLevel = true;
 			}
 		}
 	}
 
-    len = sz_rfbSetEncodingsMsg + se->nEncodings * 4;
-	
-    se->nEncodings = Swap16IfLE(se->nEncodings);
-	
-    WriteExact((char *) buf, len);
+
+	// Request desired compression level if applicable
+	if ( useCompressLevel &&
+		 m_opts.m_compressLevel >= 0 &&
+		 m_opts.m_compressLevel <= 9) {
+		encs[se->nEncodings++] = Swap32IfLE( rfbEncodingCompressLevel0 +
+											 m_opts.m_compressLevel );
+	}
+
+	len = sz_rfbSetEncodingsMsg + se->nEncodings * 4;
+
+	se->nEncodings = Swap16IfLE(se->nEncodings);
+
+	WriteExact((char *) buf, len);
 }
 
 // Closing down the connection.

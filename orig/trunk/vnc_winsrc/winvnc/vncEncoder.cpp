@@ -50,7 +50,7 @@ vncEncoder::vncEncoder()
 	m_transtable = NULL;
 	m_localpalette = NULL;
 	m_bytesPerRow = 0;
-	m_zliblevel = 5;
+	m_compresslevel = 6;
 }
 
 vncEncoder::~vncEncoder()
@@ -403,8 +403,8 @@ vncEncoder::SetRemoteFormat(rfbPixelFormat &pixformat)
 }
 
 BOOL
-vncEncoder::SetZlibLevel(UINT level)
+vncEncoder::SetCompressLevel(UINT level)
 {
-	m_zliblevel = level;
+	m_compresslevel = level;
 	return true;
 }

@@ -77,7 +77,7 @@ public:
 	int     m_localCursor;
 	bool	m_scaling;
 	int		m_scale_num, m_scale_den; // Numerator & denominator
-	int		m_zlibLevel;
+	int		m_compressLevel;
 
 	// Keyboard can be specified on command line as 8-digit hex
 	TCHAR	m_kbdname[9];

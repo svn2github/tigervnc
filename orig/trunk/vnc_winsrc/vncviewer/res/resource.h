@@ -50,7 +50,7 @@
 #define IDC_SCALING                     1030
 #define IDC_SCALE_NUM                   1031
 #define IDC_SCALE_DEN                   1032
-#define IDC_ZLIBLEVEL                   1034
+#define IDC_COMPRESSLEVEL               1034
 #define ID_SESSION_SET_CRECT            32777
 #define ID_SESSION_SWAPMOUSE            32785
 #define ID_CLOSEDAEMON                  40001

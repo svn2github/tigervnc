@@ -65,7 +65,7 @@ vncEncodeTight::vncEncodeTight()
 	m_hdrBuffer = new BYTE [sz_rfbFramebufferUpdateRectHeader + 8 + 256*4];
 	m_prevRowBuf = NULL;
 
-	m_compressLevel = TIGHT_DEFAULT_COMPRESSION;
+	m_compresslevel = TIGHT_DEFAULT_COMPRESSION;
 	for (int i = 0; i < 4; i++)
 		m_zsActive[i] = false;
 }
@@ -108,8 +108,8 @@ vncEncodeTight::NumCodedRects(RECT &rect)
 	const int w = rect.right - rect.left;
 	const int h = rect.bottom - rect.top;
 
-	const int maxRectSize = m_conf[m_compressLevel].maxRectSize;
-	const int maxRectWidth = m_conf[m_compressLevel].maxRectWidth;
+	const int maxRectSize = m_conf[m_compresslevel].maxRectSize;
+	const int maxRectWidth = m_conf[m_compresslevel].maxRectWidth;
 
 	if (w > maxRectWidth || w * h > maxRectSize) {
 		const int subrectMaxWidth = (w > maxRectWidth) ? maxRectWidth : w;
@@ -142,8 +142,8 @@ vncEncodeTight::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest,
 		m_usePixelFormat24 = false;
 	}
 
-	const int maxRectSize = m_conf[m_compressLevel].maxRectSize;
-	const int maxRectWidth = m_conf[m_compressLevel].maxRectWidth;
+	const int maxRectSize = m_conf[m_compresslevel].maxRectSize;
+	const int maxRectWidth = m_conf[m_compresslevel].maxRectWidth;
 
 	const int rawDataSize = maxRectSize * (m_remoteformat.bitsPerPixel / 8);
 	if (m_bufflen < rawDataSize) {
@@ -173,7 +173,7 @@ vncEncodeTight::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest,
 				partialSize = EncodeSubrect(source, outConn, dest,
 											x+dx, y+dy, rw, rh);
 				totalSize += partialSize;
-				if (dy + subrectMaxHeight < h || dx + 2048 < w)
+				if (dy + subrectMaxHeight < h || dx + maxRectWidth < w)
 					outConn->SendExact((char *)dest, partialSize);
 			}
 		}
@@ -205,9 +205,9 @@ vncEncodeTight::EncodeSubrect(BYTE *source, VSocket *outConn, BYTE *dest,
 	r.right = x + w; r.bottom = y + h;
 	Translate(source, m_buffer, r);
 
-	m_paletteMaxColors = w * h / m_conf[m_compressLevel].idxMaxColorsDivisor;
+	m_paletteMaxColors = w * h / m_conf[m_compresslevel].idxMaxColorsDivisor;
 	if ( m_paletteMaxColors < 2 &&
-		 w * h >= m_conf[m_compressLevel].monoMinRectSize ) {
+		 w * h >= m_conf[m_compresslevel].monoMinRectSize ) {
 		m_paletteMaxColors = 2;
 	}
 	switch (m_remoteformat.bitsPerPixel) {
@@ -324,7 +324,7 @@ vncEncodeTight::SendMonoRect(BYTE *dest, int w, int h)
 	}
 
 	return CompressData(dest, streamId, dataLen,
-						m_conf[m_compressLevel].monoZlibLevel,
+						m_conf[m_compresslevel].monoZlibLevel,
 						Z_DEFAULT_STRATEGY);
 }
 
@@ -378,7 +378,7 @@ vncEncodeTight::SendIndexedRect(BYTE *dest, int w, int h)
 	}
 
 	return CompressData(dest, streamId, w * h,
-						m_conf[m_compressLevel].idxZlibLevel,
+						m_conf[m_compresslevel].idxZlibLevel,
 						Z_DEFAULT_STRATEGY);
 }
 
@@ -397,7 +397,7 @@ vncEncodeTight::SendFullColorRect(BYTE *dest, int w, int h)
 		len = m_remoteformat.bitsPerPixel / 8;
 
 	return CompressData(dest, streamId, w * h * len,
-						m_conf[m_compressLevel].rawZlibLevel,
+						m_conf[m_compresslevel].rawZlibLevel,
 						Z_DEFAULT_STRATEGY);
 }
 
@@ -428,7 +428,7 @@ vncEncodeTight::SendGradientRect(BYTE *dest, int w, int h)
 	}
 
 	return CompressData(dest, streamId, w * h * len,
-						m_conf[m_compressLevel].gradientZlibLevel,
+						m_conf[m_compresslevel].gradientZlibLevel,
 						Z_FILTERED);
 }
 
@@ -449,10 +449,17 @@ vncEncodeTight::CompressData(BYTE *dest, int streamId, int dataLen,
 		pz->zfree = Z_NULL;
 		pz->opaque = Z_NULL;
 
+		log.Print(LL_INTINFO,
+				  VNCLOG("calling deflateInit2 with zlib level:%d\n"),
+				  zlibLevel);
 		int err = deflateInit2 (pz, zlibLevel, Z_DEFLATED, MAX_WBITS,
 								MAX_MEM_LEVEL, zlibStrategy);
-		if (err != Z_OK)
+		if (err != Z_OK) {
+			log.Print(LL_INTINFO,
+					  VNCLOG("deflateInit2 returned error:%d:%s\n"),
+					  err, pz->msg);
 			return -1;
+		}
 
 		m_zsActive[streamId] = true;
 		m_zsLevel[streamId] = zlibLevel;
@@ -468,7 +475,14 @@ vncEncodeTight::CompressData(BYTE *dest, int streamId, int dataLen,
 
 	// Change compression parameters if needed.
 	if (zlibLevel != m_zsLevel[streamId]) {
-		if (deflateParams (pz, zlibLevel, zlibStrategy) != Z_OK) {
+		log.Print(LL_INTINFO,
+				  VNCLOG("calling deflateParams with zlib level:%d\n"),
+				  zlibLevel);
+		int err = deflateParams (pz, zlibLevel, zlibStrategy);
+		if (err != Z_OK) {
+			log.Print(LL_INTINFO,
+					  VNCLOG("deflateParams returned error:%d:%s\n"),
+					  err, pz->msg);
 			return -1;
 		}
 		m_zsLevel[streamId] = zlibLevel;
@@ -477,6 +491,7 @@ vncEncodeTight::CompressData(BYTE *dest, int streamId, int dataLen,
 	// Actual compression.
 	if ( deflate (pz, Z_SYNC_FLUSH) != Z_OK ||
 		 pz->avail_in != 0 || pz->avail_out == 0 ) {
+		log.Print(LL_INTINFO, VNCLOG("deflate() call failed.\n"));
 		return -1;
 	}
 
@@ -951,7 +966,7 @@ int
 vncEncodeTight::DetectStillImage (int w, int h)
 {
 	if ( m_remoteformat.bitsPerPixel == 8 ||
-		 w * h < m_conf[m_compressLevel].gradientMinRectSize ||
+		 w * h < m_conf[m_compresslevel].gradientMinRectSize ||
 		 w < DETECT_MIN_WIDTH || h < DETECT_MIN_HEIGHT ) {
 		return 0;
 	}
@@ -1020,7 +1035,7 @@ vncEncodeTight::DetectStillImage24 (int w, int h)
 	}
 	avgError /= (pixelCount * 3 - diffStat[0]);
 
-	return (avgError < m_conf[m_compressLevel].gradientThreshold24);
+	return (avgError < m_conf[m_compresslevel].gradientThreshold24);
 }
 
 #define DEFINE_DETECT_FUNCTION(bpp)											  \
@@ -1098,7 +1113,7 @@ vncEncodeTight::DetectStillImage##bpp (int w, int h)						  \
 	}																		  \
 	avgError /= (pixelCount - diffStat[0]);									  \
 																			  \
-	return (avgError < m_conf[m_compressLevel].gradientThreshold);			  \
+	return (avgError < m_conf[m_compresslevel].gradientThreshold);			  \
 }
 
 DEFINE_DETECT_FUNCTION(16)

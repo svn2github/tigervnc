@@ -78,7 +78,7 @@ public:
 	// Translation handling
 	BOOL SetLocalFormat(rfbPixelFormat &pixformat, int width, int height);
 	BOOL SetRemoteFormat(rfbPixelFormat &pixformat);
-	BOOL SetZlibLevel(UINT level);
+	BOOL SetCompressLevel(UINT level);
 
 	// Colour map handling
 	BOOL GetRemotePalette(RGBQUAD *quadlist, UINT ncolours);
@@ -99,7 +99,7 @@ protected:
 	int					rectangleOverhead;		// Total size of rectangle header data
 	int					encodedSize;			// Total size of encoded data
 	int					transmittedSize;		// Total amount of data sent
-	int					m_zliblevel;			// Zlib compression level (if needed).
+	int					m_compresslevel;		// Encoding-specific compression level (if needed).
 };
 
 #endif // vncENCODER_DEFINED

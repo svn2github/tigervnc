@@ -547,14 +547,16 @@ vncClientThread::run(void *arg)
 						continue;
 					}
 
-					// Is this a ZlibLevel encoding (a special case)?
-					if ((Swap32IfLE(encoding) >= rfbEncodingZlibLevel0) &&
-						(Swap32IfLE(encoding) <= rfbEncodingZlibLevel9))
+					// Is this a CompressLevel encoding (a special case)?
+					if ((Swap32IfLE(encoding) >= rfbEncodingCompressLevel0) &&
+						(Swap32IfLE(encoding) <= rfbEncodingCompressLevel9))
 					{
 
-						// Client specified a zlib compression level
-						m_client->m_buffer->SetZlibLevel(Swap32IfLE(encoding) -
-														 rfbEncodingZlibLevel0);
+						// Client specified encoding-specific compression level
+						m_client->m_buffer->SetCompressLevel(Swap32IfLE(encoding) -
+															 rfbEncodingCompressLevel0);
+						log.Print(LL_INTINFO, VNCLOG("DBG:compression level requested: %lu\n"),
+							(CARD32)(Swap32IfLE(encoding) - rfbEncodingCompressLevel0));
 						continue;
 					}
 

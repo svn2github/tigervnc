@@ -112,7 +112,6 @@ protected:
 	bool m_usePixelFormat24;
 
 	static const TIGHT_CONF m_conf[10];
-	int m_compressLevel;
 
 	// Protected member functions.
 

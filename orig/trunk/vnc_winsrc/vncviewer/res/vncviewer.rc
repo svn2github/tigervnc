@@ -151,7 +151,7 @@ STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "RFB Server information"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,167,149,50,14
+    DEFPUSHBUTTON   "&OK",IDOK,87,149,50,14
     EDITTEXT        IDC_SERVINFO_EDIT,7,7,210,134,ES_MULTILINE | 
                     ES_AUTOHSCROLL | ES_READONLY
 END
@@ -161,7 +161,7 @@ STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About VNC Viewer"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,135,100,50,14
+    DEFPUSHBUTTON   "&OK",IDOK,135,100,50,14
     CONTROL         106,IDC_STATIC,"Static",SS_BITMAP | SS_SUNKEN,19,7,81,66
     LTEXT           "TightVNC Viewer version 1.2.6\nCopyright (C) 2000-2002 Constantin Kaplinsky\nhttp://www.tightvnc.com/",
                     IDC_STATIC,135,7,190,27
@@ -207,13 +207,14 @@ BEGIN
                     BS_AUTORADIOBUTTON,211,130,66,13
 END
 
-IDD_HELP DIALOG DISCARDABLE  0, 0, 186, 95
+IDD_HELP DIALOG DISCARDABLE  0, 0, 224, 170
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "VNC Help"
 FONT 8, "MS Sans Serif"
 BEGIN
-    EDITTEXT        IDC_EDIT_HELP,1,1,184,92,ES_MULTILINE | ES_AUTOVSCROLL | 
-                    ES_NOHIDESEL | ES_READONLY | WS_VSCROLL
+    DEFPUSHBUTTON   "&OK",IDOK,87,149,50,14
+    EDITTEXT        IDC_EDIT_HELP,7,7,210,134,ES_MULTILINE | ES_AUTOVSCROLL | 
+                    ES_READONLY | ES_WANTRETURN | WS_VSCROLL
 END
 
 
@@ -289,8 +290,10 @@ BEGIN
 
     IDD_HELP, DIALOG
     BEGIN
-        RIGHTMARGIN, 185
-        BOTTOMMARGIN, 93
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 217
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 163
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -449,7 +452,7 @@ BEGIN
     ID_CLOSEDAEMON          "Stop listening for incoming connections"
     ID_SHOWWINDOW           "Display a connection window"
     ID_NEWCONN              "Make a manual connection"
-    IDS_HELP                "vncviewer [/8bit] [/shared] [/noshared] [/swapmouse] [/belldeiconify] [/listen] [/fullscreen] [/viewonly] [/emulate3] [/scale a/b] [/config configfile] [/encoding cname] [/compresslevel n] [/quality n]   [/nocursorshape] [/noremotecursor] server[:display]              For full details see documentation. kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
+    IDS_HELP                "vncviewer [/8bit] [/shared] [/noshared] [/swapmouse] [/belldeiconify] [/listen] [/fullscreen] [/viewonly] [/emulate3] [/scale a/b] [/config configfile] [/encoding cname] [/compresslevel n] [/quality n] [/nocursorshape] [/noremotecursor] server[:display]\r\n\r\nFor full details see documentation."
 END
 
 STRINGTABLE DISCARDABLE 

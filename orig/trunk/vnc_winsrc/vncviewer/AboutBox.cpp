@@ -42,7 +42,7 @@ static LRESULT CALLBACK AboutDlgProc(HWND hwnd, UINT iMsg,
 		EndDialog(hwnd, TRUE);
 		return TRUE;
 	case WM_COMMAND:
-		if (LOWORD(wParam) == IDOK) {
+		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL) {
 			EndDialog(hwnd, TRUE);
 		}
 	}
@@ -64,16 +64,16 @@ static LRESULT CALLBACK HelpDlgProc(HWND hwnd, UINT iMsg,
 			LoadString(pApp->m_instance,IDS_HELP,buf,sizeof(buf));
 			SetDlgItemText(hwnd,IDC_EDIT_HELP,buf);
 			
-			HWND hBox=GetDlgItem(hwnd,IDC_EDIT_HELP);
-			SendMessage(hBox,EM_SETSEL ,(WPARAM)-1,-1);
-			
 			CentreWindow(hwnd);
 			return TRUE;
 		}
 	case WM_CLOSE:
 		EndDialog(hwnd, TRUE);
 		return TRUE;
-	
+	case WM_COMMAND:
+		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL) {
+			EndDialog(hwnd, TRUE);
+		}
 	}
 	return FALSE;
 }	

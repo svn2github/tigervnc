@@ -38,7 +38,7 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-LoginAuthDialog::LoginAuthDialog(char *vnchost, char *title)
+LoginAuthDialog::LoginAuthDialog(char *vnchost, char *title, char *username)
 {
 	if (title != NULL) {
 		strncpy(m_title, title, sizeof(m_title)-1);
@@ -47,7 +47,12 @@ LoginAuthDialog::LoginAuthDialog(char *vnchost, char *title)
 		m_title[0] = '\0';
 	}
 
-	m_username[0] = TEXT('\0');
+	if (username == NULL || username[0] == '\0') {
+		m_username[0] = TEXT('\0');
+	} else {
+		_tcsncpy(m_username, username, 255);
+		m_username[255] = TEXT('\0');
+	}
 	m_passwd[0] = TEXT('\0');
 	m_vnchost = (vnchost != NULL) ? vnchost : "[unknown]";
 }
@@ -79,6 +84,8 @@ BOOL CALLBACK LoginAuthDialog::DlgProc(HWND hwnd, UINT uMsg,
 		if (_this->m_title[0] != '\0')
 			SetWindowText(hwnd, _this->m_title);
 		SetDlgItemText(hwnd, IDC_VNCHOST, _this->m_vnchost);
+		if (_this->m_username != NULL)
+			SetDlgItemText(hwnd, IDC_LOGIN_EDIT, _this->m_username);
 		CentreWindow(hwnd);
 		return TRUE;
 	case WM_COMMAND:

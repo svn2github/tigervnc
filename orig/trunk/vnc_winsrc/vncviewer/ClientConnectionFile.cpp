@@ -109,6 +109,8 @@ void ClientConnection::SaveConnection()
 				WritePrivateProfileString("connection", "password_ext", bigbuf, fname);
 				delete[] bigbuf;
 			}
+		} else if (m_authScheme == rfbAuthExternal) {
+			WritePrivateProfileString("connection", "username_ext", m_usernameExt, fname);
 		}
 	}
 	m_opts.Save(fname);
@@ -152,6 +154,7 @@ int ClientConnection::LoadConnection(char *fname, bool sess)
 			m_encPasswd[i] = (unsigned char) x;
 		}
 	}
+	GetPrivateProfileString("connection", "username_ext", "", m_usernameExt, 256, fname);
 	if (GetPrivateProfileString("connection", "password_ext", "", buf, 1026, fname) >= 2) {
 		int len = strlen(buf) / 2;
 		for (int i = 0; i < len; i++)	{

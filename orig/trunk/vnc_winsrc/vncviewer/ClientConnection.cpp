@@ -141,6 +141,7 @@ void ClientConnection::Init(VNCviewerApp *pApp)
 	m_hBitmap = NULL;
 	m_hPalette = NULL;
 	m_encPasswd[0] = '\0';
+	m_usernameExt[0] = '\0';
 	memset(m_encPasswdExt, 0, 2);	// set username and password lengths to zeroes
 
 	m_connDlg = NULL;
@@ -1212,7 +1213,7 @@ bool ClientConnection::AuthenticateExternal(char *errBuf, int errBufSize, bool *
 		char username[256];
 		char passwd[256];
 
-		LoginAuthDialog ad(m_opts.m_display, "External Authentication");
+		LoginAuthDialog ad(m_opts.m_display, "External Authentication", m_usernameExt);
 		ad.DoDialog();	
 #ifndef UNDER_CE
 		strcpy(username, ad.m_username);
@@ -1272,6 +1273,7 @@ bool ClientConnection::AuthenticateExternal(char *errBuf, int errBufSize, bool *
 		// Remember encrypted username/password pair
 		m_encPasswdExt[0] = usernameLen;
 		m_encPasswdExt[1] = passwordLen;
+		strcpy(m_usernameExt, username);
 		memcpy(&m_encPasswdExt[2], buf, len);
 
 		// Lose the passwords from memory

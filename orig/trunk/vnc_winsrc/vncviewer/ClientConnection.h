@@ -331,6 +331,7 @@ private:
 
 	TCHAR *m_desktopName;
 	unsigned char m_encPasswd[8];
+	char m_usernameExt[256];
 	unsigned char m_encPasswdExt[512];
 	int m_authScheme;
 	rfbServerInitMsg m_si;

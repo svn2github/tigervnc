@@ -128,9 +128,9 @@ typedef struct _rfbPixelFormat {
 
 typedef struct _rfbCapabilityInfo {
 
-	CARD32 code;				/* numeric identifier */
-	CARD8 vendorSignature[4];	/* vendor identification */
-	CARD8 nameSignature[8];		/* abbreviated option name */
+    CARD32 code;				/* numeric identifier */
+    CARD8 vendorSignature[4];	/* vendor identification */
+    CARD8 nameSignature[8];		/* abbreviated option name */
 
 } rfbCapabilityInfo;
 
@@ -200,10 +200,10 @@ typedef char rfbProtocolVersionMsg[13];	/* allow extra byte for null */
  */
 
 typedef struct _rfbHandshakingCapsMsg {
-	CARD16 nTunnelTypes;
-	CARD16 nAuthenticationTypes;
-	/* followed by nTunnelTypes * rfbCapabilityInfo structures */
-	/* followed by nAuthenticationTypes * rfbCapabilityInfo structures */
+    CARD16 nTunnelTypes;
+    CARD16 nAuthenticationTypes;
+    /* followed by nTunnelTypes * rfbCapabilityInfo structures */
+    /* followed by nAuthenticationTypes * rfbCapabilityInfo structures */
 } rfbHandshakingCapsMsg;
 
 #define sz_rfbHandshakingCapsMsg 4
@@ -300,12 +300,12 @@ typedef struct _rfbServerInitMsg {
  */
 
 typedef struct _rfbInteractionCapsMsg {
-	CARD16 nServerMessageTypes;
-	CARD16 nClientMessageTypes;
-	CARD16 nEncodingTypes;
-	CARD16 pad;	/* reserved, must be 0 */
-	/* followed by nServerMessageTypes * rfbCapabilityInfo structures */
-	/* followed by nClientMessageTypes * rfbCapabilityInfo structures */
+    CARD16 nServerMessageTypes;
+    CARD16 nClientMessageTypes;
+    CARD16 nEncodingTypes;
+    CARD16 pad;	/* reserved, must be 0 */
+    /* followed by nServerMessageTypes * rfbCapabilityInfo structures */
+    /* followed by nClientMessageTypes * rfbCapabilityInfo structures */
 } rfbInteractionCapsMsg;
 
 #define sz_rfbInteractionCapsMsg 8
@@ -857,13 +857,13 @@ typedef struct _rfbServerCutTextMsg {
  */
 
 typedef struct {
-	CARD8 type;
-	CARD8 fnamesize;
-	CARD16 amount;
-	CARD16 num;
-	CARD16 attr;
-	CARD32 size;
-	/* Followed by Filename[fmamesize] */
+    CARD8 type;
+    CARD8 fnamesize;
+    CARD16 amount;
+    CARD16 num;
+    CARD16 attr;
+    CARD32 size;
+    /* Followed by Filename[fmamesize] */
 } rfbFileListDataMsg;
 
 #define sz_rfbFileListDataMsg 12
@@ -873,12 +873,12 @@ typedef struct {
  */
 
 typedef struct {
-	CARD8 type;
-	CARD8 unused;
-	CARD16 amount;
-	CARD16 num;
-	CARD16 size;
-	/* Followed by File[size] */
+    CARD8 type;
+    CARD8 unused;
+    CARD16 amount;
+    CARD16 num;
+    CARD16 size;
+    /* Followed by File[size] */
 } rfbFileDownloadDataMsg;
 
 #define sz_rfbFileDownloadDataMsg 8
@@ -889,10 +889,10 @@ typedef struct {
  */
 
 typedef struct {
-	CARD8 type;
-	CARD8 unused;
-	CARD16 reasonlen;
-	/* Followed by reason[reasonsize] */
+    CARD8 type;
+    CARD8 unused;
+    CARD16 reasonlen;
+    /* Followed by reason[reasonsize] */
 } rfbFileUploadCancelMsg;
 
 #define sz_rfbFileUploadCancelMsg 4
@@ -902,10 +902,10 @@ typedef struct {
  */
 
 typedef struct {
-	CARD8 type;
-	CARD8 unused;
-	CARD16 reasonlen;
-	/* Followed by reason[reasonsize] */
+    CARD8 type;
+    CARD8 unused;
+    CARD16 reasonlen;
+    /* Followed by reason[reasonsize] */
 } rfbFileDownloadFailedMsg;
 
 #define sz_rfbFileServerCancelMsg 4
@@ -1086,9 +1086,9 @@ typedef struct _rfbClientCutTextMsg {
  */
 
 typedef struct {
-	CARD8 type;
-	CARD8 dnamesize;
-	/* Followed by char Dirname[dnamesize] */
+    CARD8 type;
+    CARD8 dnamesize;
+    /* Followed by char Dirname[dnamesize] */
 } rfbFileListRequestMsg;
 
 #define sz_rfbFileListRequestMsg 2
@@ -1098,9 +1098,9 @@ typedef struct {
  */
 
 typedef struct {
-	CARD8 type;
-	CARD8 fnamesize;
-	/* Followed by char Filename[size] */
+    CARD8 type;
+    CARD8 fnamesize;
+    /* Followed by char Filename[size] */
 } rfbFileDownloadRequestMsg;
 
 #define sz_rfbFileDownloadRequestMsg 2
@@ -1110,9 +1110,9 @@ typedef struct {
  */
 
 typedef struct {
-	CARD8 type;
-	CARD8 fnamesize;
-	/* Followed by char Filename[size] */
+    CARD8 type;
+    CARD8 fnamesize;
+    /* Followed by char Filename[size] */
 } rfbFileUploadRequestMsg;
 
 #define sz_rfbFileUploadRequestMsg 2
@@ -1123,12 +1123,12 @@ typedef struct {
  */
 
 typedef struct {
-	CARD8 type;
-	CARD8 unused;
-	CARD16 size;
-	CARD16 amount;
-	CARD16 num;
-	/* Followed by File[size]   */
+    CARD8 type;
+    CARD8 unused;
+    CARD16 size;
+    CARD16 amount;
+    CARD16 num;
+    /* Followed by File[size]   */
 } rfbFileUploadDataMsg;
 
 #define sz_rfbFileUploadDataMsg 8
@@ -1138,7 +1138,7 @@ typedef struct {
  */
 
 typedef struct {
-	CARD8 type;
+    CARD8 type;
 } rfbFileDownloadCancelMsg;
 
 #define sz_rfbFileDownloadCancelMsg 1
@@ -1148,7 +1148,7 @@ typedef struct {
  */
 
 typedef struct {
-	CARD8 type;
+    CARD8 type;
 } rfbFileUploadFailedMsg;
 
 #define sz_rfbFileUploadFailedMsg 1

@@ -180,10 +180,9 @@ BEGIN
                     BS_AUTORADIOBUTTON | WS_TABSTOP,7,39,100,13
     CONTROL         139,IDC_BMPCURSOR,"Static",SS_BITMAP,63,21,21,17
     EDITTEXT        IDC_NAME_APPLI,91,23,137,12,ES_AUTOHSCROLL | ES_READONLY
-    GROUPBOX        "Option of shared window.",IDC_STATIC,7,57,221,32
-    CONTROL         "Blackout of windows which are created by other processes.",
-                    IDC_CHECK_BLACK_RGN,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,16,70,205,11
+    GROUPBOX        "When sharing one window",IDC_STATIC,7,57,221,32
+    CONTROL         "Hide windows of other applications",IDC_CHECK_BLACK_RGN,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,70,205,11
 END
 
 IDD_INCOMING DIALOG DISCARDABLE  0, 0, 281, 112

@@ -267,14 +267,12 @@ void ClientConnection::Run()
 	NegotiateProtocolVersion();
 
 	// Only for protocol version 3.130
-	if (m_minorVersion >= 130)
-		ReadTunnelingCaps();
-
-	// Only for protocol version 3.130
-	if (m_minorVersion >= 130)
+	if (m_minorVersion >= 130) {
 		SetupTunneling();
-
-	Authenticate();
+		PerformAuthenticationNew();
+	} else {
+		PerformAuthenticationOld();
+	}
 
 	// Set up windows etc 
 	CreateDisplay();
@@ -283,11 +281,12 @@ void ClientConnection::Run()
 	
 	ReadServerInit();
 
-		// Only for protocol version 3.130
+	// Only for protocol version 3.130
 	if (m_minorVersion >= 130) {
+		// Determine which protocol messages and encodings are supported.
 		ReadInteractionCaps();
-		m_FileTransferControl = (m_clientMsgCaps.IsEnabled(rfbFileListRequest));
 		// Enable file transfers if the server supports this feature.
+		m_FileTransferControl = (m_clientMsgCaps.IsEnabled(rfbFileListRequest));
 	}
 
 	EnableFullControlOptions();
@@ -789,14 +788,58 @@ void ClientConnection::NegotiateProtocolVersion()
 		rfbProtocolMajorVersion, rfbProtocolMinorVersion);
 }
 
+//
+// Setup tunneling in protocol version 3.130
+//
+
 void ClientConnection::SetupTunneling()
 {
-	// We cannot do tunneling yet.
-	CARD32 tunnelType = Swap32IfLE(0);
-	WriteExact((char *)&tunnelType, sizeof(tunnelType));
+	rfbTunnelingCapsMsg caps;
+	ReadExact((char *)&caps, sz_rfbTunnelingCapsMsg);
+	caps.nTunnelTypes = Swap16IfLE(caps.nTunnelTypes);
+
+	if (caps.connFailed)
+		throw WarningException(ReadFailureReason());
+
+	if (caps.nTunnelTypes) {
+		ReadCapabilityList(&m_tunnelCaps, caps.nTunnelTypes);
+
+		// We cannot do tunneling yet.
+		CARD32 tunnelType = Swap32IfLE(rfbNoTunneling);
+		WriteExact((char *)&tunnelType, sizeof(tunnelType));
+	}
 }
 
-void ClientConnection::Authenticate()
+//
+// Negotiate authentication scheme (protocol version 3.130)
+//
+
+void ClientConnection::PerformAuthenticationNew()
+{
+	rfbAuthenticationCapsMsg caps;
+	ReadExact((char *)&caps, sz_rfbAuthenticationCapsMsg);
+	caps.nAuthTypes = Swap16IfLE(caps.nAuthTypes);
+
+	if (caps.connFailed)
+		throw WarningException(ReadFailureReason());
+
+	if (!caps.nAuthTypes) {
+		vnclog.Print(0, _T("No authentication needed\n"));
+	} else {
+		ReadCapabilityList(&m_authCaps, caps.nAuthTypes);
+
+		// Request the standard VNC authentication.
+		CARD32 authScheme = Swap32IfLE(rfbVncAuth);
+		WriteExact((char *)&authScheme, sizeof(authScheme));
+		Authenticate(rfbVncAuth);
+	}
+}
+
+//
+// Negotiate authentication scheme (protocol version 3.3)
+//
+
+void ClientConnection::PerformAuthenticationOld()
 {
 	// Read the authentication scheme.
 	CARD32 authScheme;
@@ -804,56 +847,48 @@ void ClientConnection::Authenticate()
 	authScheme = Swap32IfLE(authScheme);
 
     switch (authScheme) {
-
     case rfbConnFailed:
-		{
-			CARD32 reasonLen;
-			ReadExact((char *)&reasonLen, sizeof(reasonLen));
-			reasonLen = Swap32IfLE(reasonLen);
-
-			CheckBufferSize(reasonLen + 1);
-			ReadString(m_netbuf, reasonLen);
-		}
-		vnclog.Print(0, _T("RFB connection failed, reason: %s\n"), m_netbuf);
-		throw WarningException(m_netbuf);
-        break;
-
+		throw WarningException(ReadFailureReason());
+		break;
     case rfbNoAuth:
 		vnclog.Print(0, _T("No authentication needed\n"));
 		break;
-
     case rfbVncAuth:
-		// Only for protocol version 3.130:
-		if (m_minorVersion >= 130) {
-			// Read the list of supported authentication types.
-			ReadAuthenticationCaps();
-			// Choose the authentication scheme.
-			authScheme = Swap32IfLE(rfbVncAuth);
-			WriteExact((char *)&authScheme, sizeof(authScheme));
-		}
-		// Perform the standard VNC authentication.
-		{
-			char errorMsg[256];
-			bool tryAgain;
-			if (!AuthenticateVNC(errorMsg, 256, &tryAgain)) {
-				vnclog.Print(0, _T("%s\n"), errorMsg);
-				if (tryAgain) {
-					throw AuthException(errorMsg);
-				} else {
-					throw ErrorException(errorMsg);
-				}
-			} else {
-				vnclog.Print(0, _T("VNC authentication succeeded\n"));
-			}
-		}
+		Authenticate(rfbVncAuth);
 		break;
-		
 	default:
 		vnclog.Print(0, _T("Unknown authentication scheme from RFB server: %d\n"),
 			(int)authScheme);
 		throw ErrorException("Unknown authentication scheme!");
     }
 }
+
+// This should be a wrapper function for different authentication schemes.
+// Currently, only the standard VNC authentication is supported.
+
+void ClientConnection::Authenticate(CARD32 authScheme)
+{
+	if (authScheme != rfbVncAuth) {
+		vnclog.Print(0, _T("Unknown authentication scheme: %d\n"),
+					 (int)authScheme);
+		throw ErrorException("Unknown authentication scheme!");
+	}
+
+	char errorMsg[256];
+	bool tryAgain;
+	if (!AuthenticateVNC(errorMsg, 256, &tryAgain)) {
+		vnclog.Print(0, _T("%s\n"), errorMsg);
+		if (tryAgain) {
+			throw AuthException(errorMsg);
+		} else {
+			throw ErrorException(errorMsg);
+		}
+	} else {
+		vnclog.Print(0, _T("VNC authentication succeeded\n"));
+	}
+}
+
+// The standard VNC authentication.
 
 bool ClientConnection::AuthenticateVNC(char *errBuf, int errBufSize, bool *again)
 {
@@ -968,38 +1003,6 @@ void ClientConnection::ReadServerInit()
 	SetWindowText(m_hwnd1, m_desktopName);	
 
 	SizeWindow(true);
-}
-
-//
-// In the protocol version 3.130, the server informs us about tunneling
-// methods supported. Here we read this information.
-//
-
-void ClientConnection::ReadTunnelingCaps()
-{
-	// Read the count of list items following
-	rfbTunnelingCapsMsg tunneling_caps;
-	ReadExact((char *)&tunneling_caps, sz_rfbTunnelingCapsMsg);
-	tunneling_caps.nTunnelTypes = Swap16IfLE(tunneling_caps.nTunnelTypes);
-
-	// Read the capability list itself
-	ReadCapabilityList(&m_tunnelCaps, tunneling_caps.nTunnelTypes);
-}
-
-//
-// In the protocol version 3.130, the server informs us about authentication
-// methods supported. Here we read this information.
-//
-
-void ClientConnection::ReadAuthenticationCaps()
-{
-	// Read the count of list items following
-	rfbAuthenticationCapsMsg auth_caps;
-	ReadExact((char *)&auth_caps, sz_rfbAuthenticationCapsMsg);
-	auth_caps.nAuthenticationTypes = Swap16IfLE(auth_caps.nAuthenticationTypes);
-
-	// Read the capability list itself
-	ReadCapabilityList(&m_authCaps, auth_caps.nAuthenticationTypes);
 }
 
 //
@@ -2715,7 +2718,6 @@ void ClientConnection::ReadBell() {
 // General utilities -------------------------------------------------
 
 // Reads the number of bytes specified into the buffer given
-
 void ClientConnection::ReadExact(char *inbuf, int wanted)
 {
 	omni_mutex_lock l(m_readMutex);
@@ -2779,6 +2781,22 @@ inline void ClientConnection::WriteExact(char *buf, int bytes)
 		}
 		i += j;
     }
+}
+
+// Read the string describing the reason for a connection failure.
+// This function reads the data into m_netbuf, and returns that pointer
+// as the beginning of the reason string.
+char *ClientConnection::ReadFailureReason()
+{
+	CARD32 reasonLen;
+	ReadExact((char *)&reasonLen, sizeof(reasonLen));
+	reasonLen = Swap32IfLE(reasonLen);
+
+	CheckBufferSize(reasonLen + 1);
+	ReadString(m_netbuf, reasonLen);
+
+	vnclog.Print(0, _T("RFB connection failed, reason: %s\n"), m_netbuf);
+	return m_netbuf;
 }
 
 // Makes sure netbuf is at least as big as the specified size.

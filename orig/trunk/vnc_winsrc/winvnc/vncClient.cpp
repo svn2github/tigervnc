@@ -1,5 +1,5 @@
+//  Copyright (C) 2001-2003 Constantin Kaplinsky. All Rights Reserved.
 //  Copyright (C) 2002 Vladimir Vologzhanin. All Rights Reserved.
-//  Copyright (C) 2001 Constantin Kaplinsky. All Rights Reserved.
 //  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
@@ -90,10 +90,11 @@ public:
 
 	// Sub-Init routines
 	virtual BOOL InitVersion();
-	virtual BOOL InitTunnelingCaps();
 	virtual BOOL InitTunneling();
-	virtual BOOL InitAuthenticationCaps();
 	virtual BOOL InitAuthenticate();
+	virtual void SendConnFailedMessage(const char *msg);
+	virtual BOOL SendNoAuthMessage();
+	virtual BOOL SendAuthenticationCaps();
 	virtual BOOL SendInteractionCaps();
 
 	// The main thread function
@@ -168,42 +169,33 @@ vncClientThread::InitVersion()
 	return TRUE;
 }
 
-BOOL
-vncClientThread::InitTunnelingCaps()
-{
-	rfbTunnelingCapsMsg tunnel_caps;
-	tunnel_caps.nTunnelTypes = Swap16IfLE(0);
-	return m_socket->SendExact((char *)&tunnel_caps, sz_rfbTunnelingCapsMsg);
-}
+//
+// Setup tunneling (protocol version 3.130).
+//
 
 BOOL
 vncClientThread::InitTunneling()
 {
-	// Read tunneling type requested by the client (protocol 3.130)
-	CARD32 tunnel_type;
-	if (!m_socket->ReadExact((char *)&tunnel_type, sizeof(tunnel_type)))
-		return FALSE;
-	tunnel_type = Swap32IfLE(tunnel_type);
+	int nTypes = 0;
 
-	// We cannot do tunneling yet.
-	if (tunnel_type != 0)
-		return FALSE;
+	// Advertise our tunneling capabilities (currently, nothing to advertise).
+	rfbTunnelingCapsMsg caps;
+	caps.connFailed = (char)false;
+	caps.nTunnelTypes = Swap16IfLE(nTypes);
+	return m_socket->SendExact((char *)&caps, sz_rfbTunnelingCapsMsg);
+
+	// Read tunneling type requested by the client (currently, not necessary).
+	if (nTypes) {
+		CARD32 tunnelType;
+		if (!m_socket->ReadExact((char *)&tunnelType, sizeof(tunnelType)))
+			return FALSE;
+		tunnelType = Swap32IfLE(tunnelType);
+		// We cannot do tunneling yet.
+		if (tunnelType != 0)
+			return FALSE;
+	}
 
 	return TRUE;
-}
-
-BOOL
-vncClientThread::InitAuthenticationCaps()
-{
-	rfbAuthenticationCapsMsg auth_caps;
-	auth_caps.nAuthenticationTypes = Swap16IfLE(1);
-	if (!m_socket->SendExact((char *)&auth_caps, sz_rfbAuthenticationCapsMsg))
-		return FALSE;
-
-	// Inform the client that we do support the standard VNC authentication.
-	rfbCapabilityInfo cap;
-	SetCapInfo(&cap, rfbVncAuth, rfbStandardVendor);
-	return m_socket->SendExact((char *)&cap, sz_rfbCapabilityInfo);
 }
 
 BOOL
@@ -220,21 +212,13 @@ vncClientThread::InitAuthenticate()
 	// By default we disallow passwordless workstations!
 	if ((strlen(plain) == 0) && m_server->AuthRequired())
 	{
-		vnclog.Print(LL_CONNERR, VNCLOG("no password specified for server - client rejected\n"));
+		vnclog.Print(LL_CONNERR,
+			VNCLOG("no password specified for server - client rejected\n"));
 
 		// Send an error message to the client
-		CARD32 auth_val = Swap32IfLE(rfbConnFailed);
-		char *errmsg =
-			"This server does not have a valid password enabled.  "
-			"Until a password is set, incoming connections cannot be accepted.";
-		CARD32 errlen = Swap32IfLE(strlen(errmsg));
-
-		if (!m_socket->SendExact((char *)&auth_val, sizeof(auth_val)))
-			return FALSE;
-		if (!m_socket->SendExact((char *)&errlen, sizeof(errlen)))
-			return FALSE;
-		m_socket->SendExact(errmsg, strlen(errmsg));
-
+		SendConnFailedMessage("This server does not have a valid password enabled.  "
+							  "Until a password is set, incoming connections cannot "
+							  "be accepted.");
 		return FALSE;
 	}
 #endif
@@ -253,21 +237,11 @@ vncClientThread::InitAuthenticate()
 			free(localname);
 			free(remotename);
 
-			if (!ok)
-			{
+			if (!ok) {
 				vnclog.Print(LL_CONNERR, VNCLOG("loopback connection attempted - client rejected\n"));
 				
 				// Send an error message to the client
-				CARD32 auth_val = Swap32IfLE(rfbConnFailed);
-				char *errmsg = "Local loop-back connections are disabled.";
-				CARD32 errlen = Swap32IfLE(strlen(errmsg));
-
-				if (!m_socket->SendExact((char *)&auth_val, sizeof(auth_val)))
-					return FALSE;
-				if (!m_socket->SendExact((char *)&errlen, sizeof(errlen)))
-					return FALSE;
-				m_socket->SendExact(errmsg, strlen(errmsg));
-
+				SendConnFailedMessage("Local loop-back connections are disabled.");
 				return FALSE;
 			}
 		}
@@ -312,14 +286,7 @@ vncClientThread::InitAuthenticate()
 	// or because of the "Reject" action performed in the query dialog
 	if (verified == vncServer::aqrReject) {
 		vnclog.Print(LL_CONNERR, VNCLOG("Client connection rejected\n"));
-		CARD32 auth_val = Swap32IfLE(rfbConnFailed);
-		char *errmsg = "Your connection has been rejected.";
-		CARD32 errlen = Swap32IfLE(strlen(errmsg));
-		if (!m_socket->SendExact((char *)&auth_val, sizeof(auth_val)))
-			return FALSE;
-		if (!m_socket->SendExact((char *)&errlen, sizeof(errlen)))
-			return FALSE;
-		m_socket->SendExact(errmsg, strlen(errmsg));
+		SendConnFailedMessage("Your connection has been rejected.");
 		return FALSE;
 	}
 
@@ -327,26 +294,20 @@ vncClientThread::InitAuthenticate()
 	if (m_auth || strlen(plain) == 0 || skip_auth)
 	{
 		// Send no-auth-required message
-		CARD32 auth_val = Swap32IfLE(rfbNoAuth);
-		if (!m_socket->SendExact((char *)&auth_val, sizeof(auth_val)))
+		if (!SendNoAuthMessage())
 			return FALSE;
 	}
 	else
 	{
-		// Send auth-required message
-		CARD32 auth_val = Swap32IfLE(rfbVncAuth);
-		if (!m_socket->SendExact((char *)&auth_val, sizeof(auth_val)))
-			return FALSE;
-
-		// In the protocol version 3.130:
+		// Send auth-required message.
 		if (m_client->m_protocol_minor_version >= 130) {
 
-			// Advertise our authentication capabilities
-			if (!InitAuthenticationCaps())
+			// Advertise our authentication capabilities (protocol version 3.130).
+			if (!SendAuthenticationCaps())
 				return FALSE;
-			vnclog.Print(LL_INTINFO, VNCLOG("sent auth capability list\n"));
+			vnclog.Print(LL_INTINFO, VNCLOG("sent authentication capability list\n"));
 
-			// Read the actual authentication type from the client
+			// Read the actual authentication type from the client.
 			CARD32 auth_type;
 			if (!m_socket->ReadExact((char *)&auth_type, sizeof(auth_type)))
 				return FALSE;
@@ -355,6 +316,14 @@ vncClientThread::InitAuthenticate()
 				vnclog.Print(LL_CONNERR, VNCLOG("unknown authentication scheme requested\n"));
 				return FALSE;
 			}
+
+		} else {
+
+			// In the protocol version 3.3, just send 32-bit value of rfbVncAuth.
+			CARD32 auth_val = Swap32IfLE(rfbVncAuth);
+			if (!m_socket->SendExact((char *)&auth_val, sizeof(auth_val)))
+				return FALSE;
+
 		}
 
 		BOOL auth_ok = FALSE;
@@ -439,6 +408,83 @@ vncClientThread::InitAuthenticate()
 	// Tell the server that this client is ok
 	return m_server->Authenticated(m_client->GetClientId());
 }
+
+//
+// Send a "connection failed" message. In the protocol version 3.130, this
+// will be sent as a rfbTunnelingCapsMsg or a rfbAuthenticationCapsMsg
+// structure (rfbConnFailedMsg structure is a sort of union of those).
+// In the protocol 3.3, an "authentication scheme" with the value of
+// rfbConnFailed will be sent.
+//
+
+void
+vncClientThread::SendConnFailedMessage(const char *msg)
+{
+	if (m_client->m_protocol_minor_version >= 130) {
+		rfbConnFailedMsg failMsg;
+		failMsg.connFailed = (char)true;
+		failMsg.reasonLength = Swap32IfLE(strlen(msg));
+		if (!m_socket->SendExact((char *)&failMsg, sz_rfbConnFailedMsg)) {
+			return;
+		}
+	} else {
+		CARD32 authValue = Swap32IfLE(rfbConnFailed);
+		CARD32 errlen = Swap32IfLE(strlen(msg));
+		if (!m_socket->SendExact((char *)&authValue, sizeof(authValue)) ||
+			!m_socket->SendExact((char *)&errlen, sizeof(errlen))) {
+			return;
+		}
+	}
+	m_socket->SendExact(msg, strlen(msg));
+}
+
+//
+// Send "no authentication required" message. In the protocol version 3.130,
+// this will be sent as a rfbAuthenticationCapsMsg structure. In the protocol
+// 3.3, an "authentication scheme" with the value of rfbNoAuth will be sent.
+//
+
+BOOL
+vncClientThread::SendNoAuthMessage()
+{
+	if (m_client->m_protocol_minor_version >= 130) {
+		rfbAuthenticationCapsMsg caps;
+		caps.connFailed = (char)false;
+		caps.nAuthTypes = Swap16IfLE(0);
+		if (!m_socket->SendExact((char *)&caps, sz_rfbAuthenticationCapsMsg)) {
+			return FALSE;
+		}
+	} else {
+		CARD32 authValue = Swap32IfLE(rfbNoAuth);
+		if (!m_socket->SendExact((char *)&authValue, sizeof(authValue))) {
+			return FALSE;
+		}
+	}
+	return TRUE;
+}
+
+//
+// Advertise our authentication capabilities (protocol version 3.130).
+//
+
+BOOL
+vncClientThread::SendAuthenticationCaps()
+{
+	rfbAuthenticationCapsMsg caps;
+	caps.connFailed = (char)false;
+	caps.nAuthTypes = Swap16IfLE(1);
+	if (!m_socket->SendExact((char *)&caps, sz_rfbAuthenticationCapsMsg))
+		return FALSE;
+
+	// Inform the client that we support only the standard VNC authentication.
+	rfbCapabilityInfo cap;
+	SetCapInfo(&cap, rfbVncAuth, rfbStandardVendor);
+	return m_socket->SendExact((char *)&cap, sz_rfbCapabilityInfo);
+}
+
+//
+// Advertise our messaging capabilities (protocol version 3.130).
+//
 
 BOOL
 vncClientThread::SendInteractionCaps()
@@ -581,15 +627,6 @@ vncClientThread::run(void *arg)
 		return;
 	}
 	vnclog.Print(LL_INTINFO, VNCLOG("negotiated protocol version\n"));
-
-	// ADVERTISE OUR TUNNELING CAPABILITIES (protocol 3.130)
-	if (m_client->m_protocol_minor_version >= 130) {
-		if (!InitTunnelingCaps()) {
-			m_server->RemoveClient(m_client->GetClientId());
-			return;
-		}
-		vnclog.Print(LL_INTINFO, VNCLOG("sent tunneling capability list\n"));
-	}
 
 	// INITIALISE TUNNELING (protocol 3.130)
 	if (m_client->m_protocol_minor_version >= 130) {

@@ -104,10 +104,10 @@ private:
 	void Connect();
 	void SetSocketOptions();
 	void NegotiateProtocolVersion();
-	void ReadTunnelingCaps();
 	void SetupTunneling();
-	void ReadAuthenticationCaps();
-	void Authenticate();
+	void PerformAuthenticationNew();
+	void PerformAuthenticationOld();
+	void Authenticate(CARD32 authScheme);
 	bool AuthenticateVNC(char *errBuf, int errBufSize, bool *again);
 	void ReadServerInit();
 	void ReadInteractionCaps();
@@ -231,6 +231,7 @@ private:
 	void ReadExact(char *buf, int bytes);
 	void ReadString(char *buf, int length);
 	void WriteExact(char *buf, int bytes);
+	char *ReadFailureReason();
 
 	// This is what controls the thread
 	void * run_undetached(void* arg);

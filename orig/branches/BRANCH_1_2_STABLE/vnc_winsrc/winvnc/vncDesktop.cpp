@@ -885,6 +885,7 @@ vncDesktop::ResetDisplayToNormal()
 	
 	if (checkdetails != NULL) {
 		RegCloseKey(checkdetails);
+		RegCloseKey(HKEY_CURRENT_USER);
 	}
 
 }

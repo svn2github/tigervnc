@@ -78,6 +78,19 @@ void VNCHelp::Popup(LPARAM lParam)
 			break;
 		case IDC_LIVESHARE_LABEL:
 			popup.idString = IDC_LIVESHARE;
+			break;
+		case IDC_PATTERN_COMP1:
+		case IDC_PATTERN_COMP2:
+		case IDC_PATTERN_COMP3:
+		case IDC_PATTERN_COMP4:
+		case IDC_STATIC_P1:
+		case IDC_STATIC_P2:
+		case IDC_STATIC_P3:
+			popup.idString = IDC_STATIC_PATTERN;
+			break;
+		case IDC_STATIC_KLIENTS_LIST:
+			popup.idString = IDC_LIST_CONNECTIONS;
+			break;
 		}
 
 		HtmlHelp((HWND)hlp->hItemHandle,

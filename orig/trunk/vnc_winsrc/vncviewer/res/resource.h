@@ -190,6 +190,8 @@
 #define IDC_DISABLE                     1157
 #define IDC_CREATEREMFLD                1159
 #define IDC_CREATELOCFLD                1160
+#define IDC_STATIC_CURRENT_FILE         1161
+#define IDC_STATIC_FILE_TRANSFER        1162
 #define ID_SESSION_SET_CRECT            32777
 #define IDC_ALLOW_COMPRESSLEVEL         32778
 #define IDC_ALLOW_JPEG                  32779
@@ -206,7 +208,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        268
 #define _APS_NEXT_COMMAND_VALUE         40011
-#define _APS_NEXT_CONTROL_VALUE         1161
+#define _APS_NEXT_CONTROL_VALUE         1163
 #define _APS_NEXT_SYMED_VALUE           244
 #endif
 #endif

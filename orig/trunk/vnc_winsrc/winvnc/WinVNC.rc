@@ -203,7 +203,8 @@ BEGIN
                     BS_AUTORADIOBUTTON | WS_TABSTOP,7,39,100,13
     CONTROL         139,IDC_BMPCURSOR,"Static",SS_BITMAP,63,21,21,17
     EDITTEXT        IDC_NAME_APPLI,91,23,137,12,ES_AUTOHSCROLL | ES_READONLY
-    GROUPBOX        "When sharing one window",IDC_STATIC,7,57,221,32
+    GROUPBOX        "When sharing one window",IDC_STATIC_SHARING_ONE,7,57,
+                    221,32
     CONTROL         "Hide windows of other applications",IDC_CHECK_BLACK_RGN,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,70,205,11
 END
@@ -212,7 +213,7 @@ IDD_INCOMING DIALOG DISCARDABLE  0, 0, 288, 166
 STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE
 FONT 8, "MS Sans Serif"
 BEGIN
-    GROUPBOX        "Incoming connections",IDC_STATIC,5,5,139,63
+    GROUPBOX        "Incoming connections",IDC_STATIC_INCOMING,5,5,139,63
     CONTROL         "Accept socket connections",IDC_CONNECT_SOCK,"Button",
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,13,16,128,12
     LTEXT           "Primary password:",IDC_PASSWORD_LABEL,19,30,69,12,
@@ -239,7 +240,7 @@ BEGIN
                     NOT WS_GROUP
     CTEXT           "(HTTP)",IDC_HTTP_LABEL,247,51,27,10,SS_CENTERIMAGE | 
                     NOT WS_GROUP
-    GROUPBOX        "Input handling",IDC_STATIC,5,72,139,88
+    GROUPBOX        "Input handling",IDC_STATIC_INPUT_HANDLING,5,72,139,88
     CONTROL         "Block remote input events",IDC_DISABLE_INPUTS,"Button",
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,13,84,128,12
     CONTROL         "Block remote input on local activity",
@@ -255,7 +256,8 @@ BEGIN
                     WS_TABSTOP,13,126,128,12
     CONTROL         "Blank screen on client connections",IDC_BLANK_SCREEN,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,140,128,12
-    GROUPBOX        "When last client disconnects",IDC_STATIC,152,72,131,57
+    GROUPBOX        "When last client disconnects",IDC_STATIC_DISCONNECTS,
+                    152,72,131,57
     CONTROL         "Do nothing",IDC_LOCKSETTING_NOTHING,"Button",
                     BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,160,84,117,12
     CONTROL         "Lock workstation",IDC_LOCKSETTING_LOCK,"Button",
@@ -272,7 +274,7 @@ IDD_UPDATE_HANDLING DIALOG DISCARDABLE  0, 0, 288, 132
 STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE
 FONT 8, "MS Sans Serif"
 BEGIN
-    GROUPBOX        "Polling modes",IDC_STATIC,5,5,133,74
+    GROUPBOX        "Polling modes",IDC_STATIC_POLLING_MODES,5,5,133,74
     CONTROL         "Poll foreground window",IDC_POLL_FOREGROUND,"Button",
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,13,16,120,12
     CONTROL         "Poll window under cursor",IDC_POLL_UNDER_CURSOR,"Button",
@@ -284,17 +286,18 @@ BEGIN
     EDITTEXT        IDC_POLLING_CYCLE,78,61,27,12,ES_AUTOHSCROLL
     LTEXT           "ms",IDC_STATIC_MS,112,61,19,12,SS_CENTERIMAGE | NOT 
                     WS_GROUP
-    GROUPBOX        "Window polling",IDC_STATIC,147,5,136,43
+    GROUPBOX        "Window polling",IDC_STATIC_WINDOW_POLLING,147,5,136,43
     CONTROL         "Poll console windows only",IDC_CONSOLE_ONLY,"Button",
                     BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,155,16,125,
                     12
     CONTROL         "Poll on event received only",IDC_ONEVENT_ONLY,"Button",
                     BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,155,31,125,
                     12
-    GROUPBOX        "Mirror driver status",IDC_STATIC,147,52,136,27
+    GROUPBOX        "Mirror driver status",IDC_STATIC_DRIVER_STATUS,147,52,
+                    136,27
     LTEXT           "No information - no clients connected",
                     IDC_STATIC_DRVINFO,155,62,125,12,SS_CENTERIMAGE
-    GROUPBOX        "Troubleshooting",IDC_STATIC,5,83,278,44
+    GROUPBOX        "Troubleshooting",IDC_STATIC_TROUBLESHOOTING,5,83,278,44
     CONTROL         "Don't use VNCHooks.DLL while polling full screen",
                     IDC_DONT_SET_HOOKS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
                     13,94,209,12
@@ -359,13 +362,15 @@ STYLE DS_MODALFRAME | DS_CENTER | DS_CONTEXTHELP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Control Panel"
-FONT 8, "MS Sans Serif", 0, 0, 0x1
+FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "List1",IDC_LIST_CONNECTIONS,"SysListView32",LVS_REPORT | 
                     LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | LVS_NOSORTHEADER | 
                     WS_BORDER | WS_TABSTOP,7,20,195,72
-    GROUPBOX        "Control of selected clients",IDC_STATIC,7,98,100,90
-    LTEXT           "Authorised clients list",IDC_STATIC,69,7,73,9
+    GROUPBOX        "Control of selected clients",
+                    IDC_STATIC_SELECTED_KLIENTS,7,98,100,90
+    LTEXT           "Authorised clients list",IDC_STATIC_KLIENTS_LIST,69,7,
+                    73,9
     CHECKBOX        "Disable New Clients",IDC_DISABLE_CLIENTS,117,166,85,14
     PUSHBUTTON      "Add New Client",IDC_ADD_CLIENT,117,127,85,14
     PUSHBUTTON      "Kill All Clients",IDC_KILL_ALL,117,146,85,14
@@ -377,9 +382,10 @@ BEGIN
     PUSHBUTTON      "Stop updating",IDC_STOP_UPDATE,14,146,85,14
 END
 
-IDD_CONNECTIONS_ACCESS DIALOG DISCARDABLE  0, 0, 232, 103
-STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE
-FONT 8, "MS Sans Serif"
+IDD_CONNECTIONS_ACCESS DIALOGEX 0, 0, 232, 103
+STYLE DS_CONTROL | DS_CONTEXTHELP | WS_CHILD | WS_VISIBLE
+EXSTYLE WS_EX_CONTEXTHELP
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     CONTROL         "List1",IDC_LIST_HOSTS,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | 
@@ -391,12 +397,14 @@ BEGIN
     PUSHBUTTON      "&Edit",IDC_HOST_EDIT,152,82,73,14
 END
 
-IDD_CONN_HOST DIALOG DISCARDABLE  0, 0, 243, 58
-STYLE DS_MODALFRAME | DS_CENTER | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+IDD_CONN_HOST DIALOGEX 0, 0, 243, 58
+STYLE DS_MODALFRAME | DS_CENTER | DS_CONTEXTHELP | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Specify Host IP Address Pattern"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
-    RTEXT           "Pattern:",IDC_STATIC,7,7,29,14,SS_CENTERIMAGE
+    RTEXT           "Pattern:",IDC_STATIC_PATTERN,7,7,29,14,SS_CENTERIMAGE
     EDITTEXT        IDC_PATTERN_COMP1,42,7,24,14,ES_CENTER
     EDITTEXT        IDC_PATTERN_COMP2,76,7,24,14,ES_CENTER | ES_AUTOHSCROLL
     EDITTEXT        IDC_PATTERN_COMP3,109,7,24,14,ES_CENTER | ES_AUTOHSCROLL
@@ -409,10 +417,12 @@ BEGIN
                     37,36,9
     PUSHBUTTON      "OK",IDOK,178,7,58,14,WS_GROUP
     PUSHBUTTON      "Cancel",IDCANCEL,178,26,58,14
-    GROUPBOX        "Action",IDC_STATIC,7,26,159,26
-    CTEXT           ".",IDC_STATIC,67,15,8,6,SS_CENTERIMAGE
-    CTEXT           ".",IDC_STATIC,101,14,8,7,SS_CENTERIMAGE | NOT WS_GROUP
-    CTEXT           ".",IDC_STATIC,134,15,8,6,SS_CENTERIMAGE | NOT WS_GROUP
+    GROUPBOX        "Action",IDC_ACTION,7,26,159,26
+    CTEXT           ".",IDC_STATIC_P1,67,15,8,8,SS_CENTERIMAGE
+    CTEXT           ".",IDC_STATIC_P2,101,14,8,8,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
+    CTEXT           ".",IDC_STATIC_P3,134,15,8,8,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
 END
 
 
@@ -972,6 +982,9 @@ BEGIN
     IDC_STATIC_ADMINISTR    "Administration settings."
     IDC_STATIC_DISPLAY_PORT "Here you can specify which TCP ports should be used for incoming client connections."
     IDC_DONT_USE_DRIVER     "Don't ever try to use mirror display driver. Use this option for troubleshooting purposes. Note that toggling this option does not take immediate effect if there is at least one viewer connected."
+    IDC_CHECK_BLACK_RGN     "Hide windows of other applications"
+    IDC_LIST_CONNECTIONS    "Authorised clients list"
+    IDC_DISABLE_CLIENTS     "Disable new clients button"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1018,6 +1031,45 @@ BEGIN
     IDPRIORITY2             "Preserve existing connections, refuse new connections."
     IDPRIORITY1             "Preserve existing connections, accept new connections."
     IDENABLEHTTPD           "Enable built-in Web server which can deliver Java viewer to Web clients."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDC_HOST_ADD            "Add button"
+    IDC_HOST_REMOVE         "Remove button"
+    IDC_HOST_UP             "Up button"
+    IDC_HOST_DOWN           "Down button"
+    IDC_HOST_EDIT           "Edit button"
+    IDC_RADIO_ALLOW         "Allow"
+    IDC_RADIO_DENY          "Deny"
+    IDC_RADIO_QUERY         "Query"
+    IDC_STATIC_PATTERN      "Pattern"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDC_ACTION              "Action"
+    IDC_STATIC_INPUT_HANDLING "Input handling"
+    IDC_STATIC_INCOMING     "Incoming connections"
+    IDC_STATIC_SHARING_ONE  "When sharing one window"
+    IDC_STATIC_POLLING_MODES "Polling modes"
+    IDC_STATIC_TROUBLESHOOTING "Troubleshooting"
+    IDC_STATIC_DRIVER_STATUS "Mirror driver status"
+    IDC_STATIC_WINDOW_POLLING "Window polling"
+    IDC_STATIC_DISCONNECTS  "When last client disconnects"
+    IDC_STATIC_SELECTED_KLIENTS "Control of selected clients"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDC_ADD_CLIENT          "Add client button"
+    IDC_KILL_ALL            "Kill all clients button"
+    IDC_KILL_SEL_CLIENT     "Kill clients button"
+    IDC_PROPERTIES          "Poperties button"
+    IDC_FULL_CONTROL        "Full control button"
+    IDC_VIEW_ONLY           "View only button"
+    IDC_STOP_UPDATE         "Stop updating button"
+    IDC_LIST_HOSTS          "List Host"
 END
 
 #endif    // English (U.S.) resources

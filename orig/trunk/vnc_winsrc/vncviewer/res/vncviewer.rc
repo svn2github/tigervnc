@@ -237,7 +237,7 @@ STYLE DS_MODALFRAME | DS_CONTEXTHELP | WS_POPUP | WS_CLIPCHILDREN |
     WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "TightVNC File Transfers"
-FONT 8, "MS Sans Serif", 0, 0, 0x1
+FONT 8, "MS Sans Serif"
 BEGIN
     CTEXT           "Local Computer",IDC_LOCAL_COMP_LABEL,7,7,206,10
     CTEXT           "TightVNC Server",IDC_TVNC_SERV_LABEL,327,7,206,10
@@ -257,11 +257,11 @@ BEGIN
                     375,244,133,10
     LTEXT           "",IDC_FTSTATUS,7,261,426,14,SS_CENTERIMAGE
     PUSHBUTTON      "&Close",IDC_EXIT,483,261,50,14
-    LTEXT           "File Transfer",IDC_STATIC,7,245,43,8
+    LTEXT           "File Transfer",IDC_STATIC_FILE_TRANSFER,7,245,43,8
     CONTROL         "Progress1",IDC_FTPROGRESS,"msctls_progress32",WS_BORDER,
                     55,244,133,10
     CTEXT           "0%",IDC_FILETRANSFERPERCENT,195,245,18,8
-    LTEXT           "Current File",IDC_STATIC,327,245,36,8
+    LTEXT           "Current File",IDC_STATIC_CURRENT_FILE,327,245,36,8
     CTEXT           "0%",IDC_CURRENTFILEPERCENT,515,245,18,8
     COMBOBOX        IDC_CLIENTPATH,7,21,161,93,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -276,7 +276,7 @@ BEGIN
                     SS_REALSIZEIMAGE
     ICON            "",IDC_CREATEREMFLD,220,65,20,20,SS_NOTIFY | 
                     SS_REALSIZEIMAGE
-    ICON            "",IDC_FTCANCEL,220,175,21,20,SS_NOTIFY | 
+    ICON            "",IDC_FTCANCEL,220,175,20,20,SS_NOTIFY | 
                     SS_REALSIZEIMAGE
 END
 
@@ -404,15 +404,6 @@ BEGIN
                     SS_LEFTNOWORDWRAP,7,7,196,10
     PUSHBUTTON      "&Hide",IDCLOSE,79,40,50,14
     LTEXT           "",IDC_STATUS_STATIC,7,21,196,10,NOT WS_GROUP
-END
-
-IDD_FULL_SCREEN_DISABLE DIALOGEX 0, 0, 68, 28
-STYLE WS_CHILD | WS_VISIBLE | WS_CAPTION
-EXSTYLE WS_EX_TOOLWINDOW
-CAPTION "Full screen mode"
-FONT 8, "MS Sans Serif", 0, 0, 0x1
-BEGIN
-    PUSHBUTTON      "Disable",IDC_DISABLE,3,3,61,21
 END
 
 
@@ -564,14 +555,6 @@ BEGIN
         RIGHTMARGIN, 203
         TOPMARGIN, 7
         BOTTOMMARGIN, 54
-    END
-
-    IDD_FULL_SCREEN_DISABLE, DIALOG
-    BEGIN
-        LEFTMARGIN, 3
-        RIGHTMARGIN, 64
-        TOPMARGIN, 3
-        BOTTOMMARGIN, 24
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -826,7 +809,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     IDC_FTCANCEL            "Cansel button"
     IDC_EXIT                "Close button"
-    IDC_FTPROGRESS          "Progress bar"
+    IDC_FTPROGRESS          "File transfer progress bar"
     IDC_LOAD                "Load connection info from a file, assuming it was saved earlier by choosing ""Save connection info as..."" in the viewer's system menu."
     IDC_SERVERRELOAD        "Server reload button"
     IDC_CONN_PROF           "Choosing a connection profile allows you to select connection  options suitable for a particular network environment."
@@ -845,8 +828,11 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDC_CLIENTRELOAD        "Client reload button"
+    IDC_FTRENAME            "Rename button"
     IDC_CLIENTUP            "Client up button"
     IDC_LOG_BROWSE          "Choose a location for the log file."
+    IDC_AUTO_SCROLLING      "Allow auto scrolling in window mode"
+    IDC_PROGRESS            "Current progress bar"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -872,6 +858,13 @@ BEGIN
     IDC_STATIC_LCURSOR      "Sometimes, local mouse cursor and the remote pointer have different locations on the screen. Customizing the shape of the local cursor can help at improving local cursor tracking."
     IDC_STATIC_LMODE        "Options specific to the listening mode which is used for ""reverse"" server-to-client connections."
     IDC_STATIC_PICTURE      "TightVNC is an enhanced version of VNC. Visit http://www.tightvnc.com/ for more information."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDC_FTDELETE            "Delete button"
+    IDC_CREATEREMFLD        "Create remote file/dir"
+    IDC_CREATELOCFLD        "Create local file/dir"
 END
 
 #endif    // English (U.S.) resources

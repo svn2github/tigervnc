@@ -160,6 +160,10 @@ SOURCE=.\res\fileup.ico
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\ftdir.ico
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\ftfile.ico
 # End Source File
 # Begin Source File

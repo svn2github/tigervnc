@@ -82,6 +82,14 @@ void VNCHelp::Popup(LPARAM lParam)
 		case IDC_STATIC_PORT:
 			popup.idString = IDC_LISTEN_PORT;
 			break;
+		case IDC_STATIC_FILE_TRANSFER:
+		case IDC_FILETRANSFERPERCENT:
+			popup.idString = IDC_FTPROGRESS;
+			break;
+		case IDC_STATIC_CURRENT_FILE:
+		case IDC_CURRENTFILEPERCENT:
+			popup.idString = IDC_PROGRESS;
+			break;
 		}
 
 		HtmlHelp((HWND)hlp->hItemHandle,

@@ -139,6 +139,7 @@
 #define IDC_DONT_USE_DRIVER             1098
 #define IDC_CHECK_BLACK_RGN             1099
 #define IDC_LIST_CONNECTIONS            1100
+#define IDC_STATIC_POLLING              1100
 #define IDC_DISABLE_CLIENTS             1103
 #define IDC_ADD_CLIENT                  1104
 #define IDC_KILL_ALL                    1105
@@ -165,6 +166,21 @@
 #define IDC_PATTERN_COMP2               1132
 #define IDC_PATTERN_COMP3               1133
 #define IDC_PATTERN_COMP4               1134
+#define IDC_STATIC_PATTERN              1135
+#define IDC_STATIC_P1                   1136
+#define IDC_STATIC_P2                   1137
+#define IDC_STATIC_P3                   1138
+#define IDC_ACTION                      1139
+#define IDC_STATIC_INPUT_HANDLING       1140
+#define IDC_STATIC_INCOMING             1141
+#define IDC_STATIC_SHARING_ONE          1142
+#define IDC_STATIC_POLLING_MODES        1143
+#define IDC_STATIC_TROUBLESHOOTING      1144
+#define IDC_STATIC_DRIVER_STATUS        1145
+#define IDC_STATIC_WINDOW_POLLING       1146
+#define IDC_STATIC_DISCONNECTS          1147
+#define IDC_STATIC_KLIENTS_LIST         1148
+#define IDC_STATIC_SELECTED_KLIENTS     1149
 #define ID_PROPERTIES                   40001
 #define ID_CLOSE                        40002
 #define ID_KILLCLIENTS                  40003
@@ -180,7 +196,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        156
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1135
+#define _APS_NEXT_CONTROL_VALUE         1150
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

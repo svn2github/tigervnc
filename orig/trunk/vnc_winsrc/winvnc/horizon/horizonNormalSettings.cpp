@@ -111,7 +111,12 @@ horizonNormalSettings::DialogProc(
 			} // IDOK
 
 		case IDCANCEL:
+			// reset the shared-area dialog
+			_this->m_shareddtarea->CancelChanges() ;
+			
+			// end the dialog
 			EndDialog( hwnd, IDCANCEL ) ;
+			
 			return TRUE ;
 
 		default:

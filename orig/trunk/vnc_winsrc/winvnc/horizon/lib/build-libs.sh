@@ -1,5 +1,7 @@
 #!/usr/bin/bash
 
+# $Id$ 
+
 # build libjpeg
 if [ ! -d libjpeg ]
 then

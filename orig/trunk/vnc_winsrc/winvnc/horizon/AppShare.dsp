@@ -45,7 +45,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I ".." /I "..\.." /I "$(WINVNC_HOME)\VNCHooks" /I "$(WINVNC_HOME)\libjpeg" /I "$(WINVNC_HOME)\omnithread" /I "$(WINVNC_HOME)\zlib" /D "__WIN32__" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_OMNITHREAD_DLL" /FD /GZ /c
 # SUBTRACT BASE CPP /X /u /YX
-# ADD CPP /nologo /MT /W3 /GX /Od /Ob2 /I ".." /I "../.." /I "./lib" /I "../VNCHooks" /I "../libjpeg" /I "../omnithread" /I "$(PATH_TO_VNC_1_2)/winvnc" /I "C:\Program Files\HTML Help Workshop\include" /D "__WIN32__" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_OMNITHREAD_DLL" /D "ZLIB_EXPORTS" /D "_ZLIB_DLL" /D "ZLIB_DLL" /D "HORIZONLIVE" /FD /GZ /c
+# ADD CPP /nologo /MT /W3 /GX /Od /Ob2 /I ".." /I "../.." /I "./lib" /I "../VNCHooks" /I "../libjpeg" /I "../omnithread" /I "$(PATH_TO_VNC_1_2)/winvnc" /I "C:\Program Files\HTML Help Workshop\include" /D WINVER=0x0500 /D "__WIN32__" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_OMNITHREAD_DLL" /D "HORIZONLIVE" /FD /GZ /c
 # SUBTRACT CPP /X /u /YX
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
@@ -57,7 +57,7 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib wsock32.lib omnithread_rtd.lib libjpeg.lib VNCHooks.lib zlib.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"libcmtd.lib" /pdbtype:sept /libpath:"." /libpath:".." /libpath:"$(WINVNC_HOME)" /libpath:"$(WINVNC_HOME)\Debug"
 # SUBTRACT BASE LINK32 /nodefaultlib
-# ADD LINK32 comctl32.lib htmlhelp.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib wsock32.lib shlwapi.lib omnithread_rt.lib libjpeg.a libz.a VNCHOOKS.lib /nologo /subsystem:windows /pdb:none /machine:I386 /nodefaultlib:"libcmt.lib" /out:"C:\Documents and Settings\Administrator\Application Data\HorizonLive\SecureDoor\HZSDControl\2.0.0.0\Doors\appshare_1_7_0\data\Release-AppShare.exe" /libpath:"./HorizonLive" /libpath:"C:\Program Files\HTML Help Workshop\lib"
+# ADD LINK32 comctl32.lib htmlhelp.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib wsock32.lib shlwapi.lib omnithread_rt.lib libjpeg.a libz.a VNCHOOKS.lib /nologo /subsystem:windows /pdb:none /machine:I386 /out:"C:\Documents and Settings\Administrator\Application Data\HorizonLive\SecureDoor\HZSDControl\2.0.0.0\Doors\appshare_1_7_2\data\Release-AppShare.exe" /libpath:"./HorizonLive" /libpath:"C:\Program Files\HTML Help Workshop\lib"
 # SUBTRACT LINK32 /debug
 
 !ELSEIF  "$(CFG)" == "AppShare - Win32 Debug"
@@ -88,7 +88,7 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib wsock32.lib shlwapi.lib omnithread_rt.lib libjpeg.lib VNCHooks.lib zlib.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"libcmt.lib" /out:"./HorizonLive/LiveShare.exe" /pdbtype:sept /libpath:"./HorizonLive"
 # SUBTRACT BASE LINK32 /pdb:none
-# ADD LINK32 comctl32.lib htmlhelp.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib wsock32.lib shlwapi.lib omnithread_rt.lib libjpeg.lib libz.lib VNCHOOKS.lib /nologo /subsystem:windows /map /debug /machine:I386 /nodefaultlib:"libcmt.lib" /out:"C:\Documents and Settings\Administrator\Application Data\HorizonLive\SecureDoor\HZSDControl\2.0.0.0\Doors\appshare_1_7_2\data\AppShare.exe" /pdbtype:sept /libpath:"./HorizonLiveDebug" /libpath:"C:\Program Files\HTML Help Workshop\lib"
+# ADD LINK32 comctl32.lib htmlhelp.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib wsock32.lib shlwapi.lib omnithread_rt.lib libjpeg.a libz.a VNCHOOKS.lib /nologo /subsystem:windows /map /debug /machine:I386 /nodefaultlib:"libcmt.lib" /out:"C:\Documents and Settings\Administrator\Application Data\HorizonLive\SecureDoor\HZSDControl\2.0.0.0\Doors\appshare_1_8_0\data\AppShare.exe" /pdbtype:sept /libpath:"./lib/libjpeg" /libpath:"./lib/zlib" /libpath:"./HorizonLiveDebug" /libpath:"C:\Program Files\HTML Help Workshop\lib"
 # SUBTRACT LINK32 /pdb:none
 
 !ENDIF 
@@ -100,6 +100,22 @@ LINK32=link.exe
 # Begin Group "tightvnc-cpp"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+# Begin Source File
+
+SOURCE=..\CPUUsage.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\CPUUsageWin32HRPC.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\CPUUsageWin32PDH.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\CPUUsageWin9x.cpp
+# End Source File
 # Begin Source File
 
 SOURCE=..\d3des.c
@@ -122,7 +138,27 @@ SOURCE=..\MinMax.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\PDHFunctions.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\PollControls.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\PollCycleControl.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\PollingQuadrant.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\PollingScanLines.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\PollingScanLinesAdjacent.cpp
 # End Source File
 # Begin Source File
 
@@ -218,6 +254,10 @@ SOURCE=..\vncServer.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\vncServerSingleton.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\vncService.cpp
 # End Source File
 # Begin Source File
@@ -240,6 +280,22 @@ SOURCE=..\WallpaperUtils.cpp
 # Begin Group "tightvnc-hpp"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Source File
+
+SOURCE=..\CPUUsage.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\CPUUsageWin32HRPC.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\CPUUsageWin32PDH.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\CPUUsageWin9x.h
+# End Source File
 # Begin Source File
 
 SOURCE=..\d3des.h
@@ -266,7 +322,31 @@ SOURCE=..\MinMax.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\PDHFunctions.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\PollControls.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\PollCycleControl.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\PollingBase.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\PollingQuadrant.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\PollingScanLines.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\PollingScanLinesAdjacent.h
 # End Source File
 # Begin Source File
 
@@ -382,6 +462,10 @@ SOURCE=..\vncServer.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\vncServerSingleton.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\vncService.h
 # End Source File
 # Begin Source File
@@ -408,22 +492,6 @@ SOURCE=..\WallpaperUtils.h
 # Begin Group "horizon-cpp"
 
 # PROP Default_Filter "cpp"
-# Begin Source File
-
-SOURCE=..\CPUUsage.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\CPUUsageWin32HRPC.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\CPUUsageWin32PDH.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\CPUUsageWin9x.cpp
-# End Source File
 # Begin Source File
 
 SOURCE=.\horizonAdvancedSettings.cpp
@@ -476,46 +544,10 @@ SOURCE=.\horizonSettingsDialog.cpp
 
 SOURCE=.\horizonSharedArea.cpp
 # End Source File
-# Begin Source File
-
-SOURCE=..\PDHFunctions.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\PollCycleControl.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\PollingQuadrant.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\PollingScanLines.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\PollingScanLinesAdjacent.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\vncServerSingleton.cpp
-# End Source File
 # End Group
 # Begin Group "horizon-hpp"
 
 # PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=..\CPUUsage.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\CPUUsageWin32PDH.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\CPUUsageWin9x.h
-# End Source File
 # Begin Source File
 
 SOURCE=.\horizonAdvancedSettings.h
@@ -570,35 +602,7 @@ SOURCE=.\horizonSharedArea.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\PDHFunctions.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\PollCycleControl.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\PollingBase.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\PollingQuadrant.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\PollingScanLines.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\PollingScanLinesAdjacent.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\resource.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\vncServerSingleton.h
 # End Source File
 # End Group
 # Begin Group "horizon-res"

@@ -29,11 +29,12 @@ public:
 	horizonSharedArea( HWND hwnd, CMatchWindow *matchwindow ) ;
 	virtual ~horizonSharedArea() ;
  	
-	bool ApplySharedControls();
+	bool ApplySharedControls() ;
+	void CancelChanges() ;
 	
-	void FullScreen();
-	void SharedWindow();
-	void SharedScreen();
+	void FullScreen() ;
+	void SharedWindow() ;
+	void SharedScreen() ;
 
 	//
 	// shared region accessors/mutators
@@ -55,8 +56,8 @@ protected:
 
 private:
 	void Init();
-	static void DrawFrameAroundWindow(HWND hWnd);
 	static LRESULT CALLBACK BmpWndProc(HWND, UINT, WPARAM, LPARAM);
+	static void DrawFrameAroundWindow(HWND hWnd, bool draw);
 
 	HWND m_hwnd;
 	LONG m_OldBmpWndProc;

@@ -12,8 +12,7 @@
 // constants
 //
 
-// const char *MENU_CLASS_NAME = "AppShare Tray Icon";
-const char* MENU_CLASS_NAME = "WinVNC Tray Icon";
+const char *MENU_CLASS_NAME = "AppShare Tray Icon";
 
 // appshare uses this one
 const UINT APPSHARE_ADD_CLIENT_MSG = RegisterWindowMessage( "AppShare.AddClient.Message" ) ;

@@ -54,7 +54,8 @@ horizonSharedArea::~horizonSharedArea()
 	}
 }
 
-void horizonSharedArea::Init()
+void 
+horizonSharedArea::Init()
 {
 	//
 	// get settings from server
@@ -178,6 +179,18 @@ void horizonSharedArea::Init()
 	return ;
 }
 
+void
+horizonSharedArea::CancelChanges()
+{
+	// return match window to proper state
+	if ( m_server->ScreenAreaShared() )	
+		m_pMatchWindow->Show() ;
+	else
+		m_pMatchWindow->Hide() ;
+
+	return ;
+}
+
 bool 
 horizonSharedArea::ApplySharedControls()
 {
@@ -275,9 +288,9 @@ void horizonSharedArea::SharedWindow()
 	EnableWindow(bmp_hWnd, TRUE);
 
 	// change cursor image
-	HBITMAP hNewImage = LoadBitmap(hAppInstance, MAKEINTRESOURCE(IDB_BITMAP1));
-	HBITMAP hOldImage = (HBITMAP)::SendMessage(bmp_hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
-	DeleteObject(hOldImage);
+	HBITMAP hNewImage = LoadBitmap( hAppInstance, MAKEINTRESOURCE( IDB_BITMAP1 ) ) ;
+	HBITMAP hOldImage = ( HBITMAP )( ::SendMessage( bmp_hWnd, STM_SETIMAGE, IMAGE_BITMAP, ( LPARAM )( hNewImage ) ) ) ;
+	DeleteObject( hOldImage ) ;
 
 	// set window text name
 	EnableWindow(hNameAppli, FALSE);
@@ -348,7 +361,7 @@ LRESULT CALLBACK horizonSharedArea::BmpWndProc(HWND hWnd, UINT message, WPARAM w
 		
 		if (pDialog->m_KeepHandle != NULL) {
 			// We need to remove frame
-			DrawFrameAroundWindow(pDialog->m_KeepHandle);
+			DrawFrameAroundWindow(pDialog->m_KeepHandle, false);
 			pDialog->m_server->SetWindowShared(pDialog->m_KeepHandle);
 			// No more need
 			pDialog->m_KeepHandle = NULL;
@@ -375,17 +388,20 @@ LRESULT CALLBACK horizonSharedArea::BmpWndProc(HWND hWnd, UINT message, WPARAM w
 			pnt1.y = pnt.y;
 			ClientToScreen(hWnd, &pnt1);
 			HWND hMouseWnd=::WindowFromPoint(pnt1);
+			HWND hAncestor = ::GetAncestor(hMouseWnd, GA_ROOT);
+			if (hAncestor != NULL)
+			    hMouseWnd = hAncestor;
 			if (pDialog->m_KeepHandle != hMouseWnd) {
 				// New Windows Handle
 				// Was KeepHndle A Real Window ?
 				if (pDialog->m_KeepHandle != NULL) {
 					// We need to remove frame
-					horizonSharedArea::DrawFrameAroundWindow(pDialog->m_KeepHandle);
+					horizonSharedArea::DrawFrameAroundWindow(pDialog->m_KeepHandle, false);
 				}
 				pDialog->m_KeepHandle = hMouseWnd;
 				if (!IsChild(hParent, hMouseWnd) && hMouseWnd != hParent) {
 					pDialog->SetWindowCaption(hMouseWnd);
-					horizonSharedArea::DrawFrameAroundWindow(hMouseWnd);
+					horizonSharedArea::DrawFrameAroundWindow(hMouseWnd, true);
 				} else {	// My Window
 					pDialog->m_KeepHandle = NULL;
 					pDialog->SetWindowCaption(NULL);
@@ -396,8 +412,9 @@ LRESULT CALLBACK horizonSharedArea::BmpWndProc(HWND hWnd, UINT message, WPARAM w
 
 	case WM_PAINT:
 	case STM_SETIMAGE:
-		return CallWindowProc((WNDPROC)pDialog->m_OldBmpWndProc,
-							  hWnd, message, wParam, lParam);
+		return CallWindowProc( ( WNDPROC )( pDialog->m_OldBmpWndProc ),
+			hWnd, message, wParam, lParam ) ;
+		break ;
 	
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
@@ -405,28 +422,106 @@ LRESULT CALLBACK horizonSharedArea::BmpWndProc(HWND hWnd, UINT message, WPARAM w
 	return 0;
 }
 
-
-void horizonSharedArea::DrawFrameAroundWindow(HWND hWnd)
+void horizonSharedArea::DrawFrameAroundWindow(HWND hWnd, bool draw)
 {
+	static HBITMAP s_topBmp = NULL;
+	static HBITMAP s_bottomBmp = NULL;
+	static HBITMAP s_leftBmp = NULL;
+	static HBITMAP s_rightBmp = NULL;
+	static int thickness = 3;
+
+	// Get window rectangle and region
+	RECT rect;
 	HDC hWindowDc=::GetWindowDC(hWnd);
-	HBRUSH hBrush=CreateSolidBrush(RGB(0,0,0));
 	HRGN Rgn=CreateRectRgn(0,0,1,1);
-	int iRectResult=GetWindowRgn(hWnd,Rgn);
-	if (iRectResult==ERROR || iRectResult==NULLREGION || Rgn==NULL)
-	{
-		RECT rect;
-		GetWindowRect(hWnd,&rect);
-		OffsetRect(&rect,-rect.left,-rect.top);
-		Rgn=CreateRectRgn(rect.left,rect.top,rect.right,rect.bottom);
+	GetWindowRect(hWnd,&rect);
+	// If window is maximized, adjust rect
+	if (IsZoomed(hWnd)) {
+	    rect.left += 4;
+	    rect.right -= 4;
+	    rect.top += 4;
+	    rect.bottom -= 4;
+	    OffsetRect(&rect,-rect.left + 4,-rect.top + 4);
+	} else {
+	    OffsetRect(&rect,-rect.left,-rect.top);
 	}
+	Rgn=CreateRectRgn(rect.left,rect.top,rect.right,rect.bottom);
+
+	int width = rect.right - rect.left;
+	int height = rect.bottom - rect.top;
 	
-	SetROP2(hWindowDc,R2_MERGEPENNOT);
-	FrameRgn(hWindowDc,Rgn,hBrush,3,3);
+	// create context
+	HDC hdcCompatible = CreateCompatibleDC(hWindowDc);
+	if (draw) {
+
+	    // create bmps
+	    if (s_topBmp != NULL) {
+		::DeleteObject(s_topBmp);
+		s_topBmp = NULL;
+	    }
+	    s_topBmp = CreateCompatibleBitmap(hWindowDc, width, thickness);
+	    if (s_bottomBmp != NULL) {
+		::DeleteObject(s_bottomBmp);
+		s_bottomBmp = NULL;
+	    }
+	    s_bottomBmp = CreateCompatibleBitmap(hWindowDc, width, thickness);
+	    if (s_leftBmp != NULL) {
+		::DeleteObject(s_leftBmp);
+		s_leftBmp = NULL;
+	    }
+	    s_leftBmp = CreateCompatibleBitmap(hWindowDc, thickness, height);
+	    if (s_rightBmp != NULL) {
+		::DeleteObject(s_rightBmp);
+		s_rightBmp = NULL;
+	    }
+	    s_rightBmp = CreateCompatibleBitmap(hWindowDc, thickness, height);
+
+	    // copy bmps 
+	    SelectObject(hdcCompatible, s_topBmp);
+	    BitBlt(hdcCompatible, 0, 0, width, thickness, hWindowDc, rect.left, rect.top, SRCCOPY);
+	    
+	    SelectObject(hdcCompatible, s_bottomBmp);
+	    BitBlt(hdcCompatible, 0, 0, width, thickness, hWindowDc, rect.left, rect.bottom - thickness, SRCCOPY);
+
+	    SelectObject(hdcCompatible, s_leftBmp);
+	    BitBlt(hdcCompatible, 0, 0, thickness, height, hWindowDc, rect.left, rect.top, SRCCOPY);
+
+	    SelectObject(hdcCompatible, s_rightBmp);
+	    BitBlt(hdcCompatible, 0, 0, thickness, height, hWindowDc, rect.right - thickness, rect.top, SRCCOPY);
+
+	    // draw frame
+	    HBRUSH hBrush=CreateSolidBrush(RGB(193,30,22));
+	    SetROP2(hWindowDc, R2_COPYPEN);
+	    FrameRgn(hWindowDc,Rgn,hBrush,thickness,thickness);
+	    ::DeleteObject(hBrush);
+	} else {
+	    // draw bmps
+	    SelectObject(hdcCompatible, s_topBmp);
+	    BitBlt(hWindowDc, rect.left, rect.top, width, thickness, hdcCompatible, 0, 0, SRCCOPY);
+
+	    SelectObject(hdcCompatible, s_bottomBmp);
+	    BitBlt(hWindowDc, rect.left, rect.bottom - thickness, width, thickness, hdcCompatible, 0, 0, SRCCOPY);
+
+	    SelectObject(hdcCompatible, s_leftBmp);
+	    BitBlt(hWindowDc, rect.left, rect.top, thickness, height, hdcCompatible, 0, 0, SRCCOPY);
+
+	    SelectObject(hdcCompatible, s_rightBmp);
+	    BitBlt(hWindowDc, rect.right - thickness, rect.top, thickness, height, hdcCompatible, 0, 0, SRCCOPY);
+
+	    // delete bmps
+	    ::DeleteObject(s_topBmp);
+	    ::DeleteObject(s_bottomBmp);
+	    ::DeleteObject(s_leftBmp);
+	    ::DeleteObject(s_rightBmp);
+	    s_topBmp = s_bottomBmp = s_leftBmp = s_rightBmp = NULL;
+
+	}
+	::DeleteDC(hdcCompatible);
+
 	::DeleteObject(Rgn);
-	::DeleteObject(hBrush);
-    ::ReleaseDC(hWnd,hWindowDc);
+	::ReleaseDC(hWnd,hWindowDc);
     
-    return ;
+	return ;
 }
 
 void horizonSharedArea::SetWindowCaption(HWND hWnd)

@@ -4,7 +4,7 @@
 
 # TARGTYPE "Win32 (x86) Dynamic-Link Library" 0x0102
 
-CFG=OMNITHREAD - WIN32 HORIZONLIVE
+CFG=omnithread - Win32 Release
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
@@ -13,7 +13,7 @@ CFG=OMNITHREAD - WIN32 HORIZONLIVE
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "omnithread.mak" CFG="OMNITHREAD - WIN32 HORIZONLIVE"
+!MESSAGE NMAKE /f "omnithread.mak" CFG="omnithread - Win32 Release"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 

@@ -2019,10 +2019,15 @@ vncDesktop::CheckUpdates()
 
 	RECT new_rect;
 	if (m_server->WindowShared()) {
-		BOOL success = GetWindowRect(m_server->GetWindowShared(), &new_rect);
+		HWND hwnd = m_server->GetWindowShared();
+		BOOL success = (hwnd != NULL) && GetWindowRect(hwnd, &new_rect);
 		if (!success) {
 			// Disconnect clients if the shared window has dissapeared.
 			// FIXME: Make this behavior configurable.
+			MessageBox(NULL, "You have exited an application that is being\n"
+					   "viewed/controlled from a remote PC. Exiting this\n"
+					   "application will terminate the session with the remote PC.",
+					   "Warning", MB_ICONWARNING | MB_OK);
 			vnclog.Print(LL_CONNERR, VNCLOG("shared window not found - disconnecting clients\n"));
 			m_server->KillAuthClients();
 			return FALSE;
@@ -2036,15 +2041,6 @@ vncDesktop::CheckUpdates()
 		new_rect = m_bmrect;
 	}
 	IntersectRect(&new_rect, &new_rect, &m_bmrect);
-
-	// Disconnect clients if the shared window is empty (dissapeared).
-	// FIXME: Make this behavior configurable.
-	if (new_rect.right - new_rect.left == 0 ||
-		 new_rect.bottom - new_rect.top == 0) {
-		vnclog.Print(LL_CONNERR, VNCLOG("shared window empty - disconnecting clients\n"));
-		m_server->KillAuthClients();
-		return FALSE;
-	}
 
 	// Update screen size if required
 	if (!EqualRect(&new_rect, &rect)) {

@@ -1613,6 +1613,11 @@ FileTransfer::FTClientDelete(FileTransferItemInfo *ftfi)
 			DeleteFile(buff);
 			ftfi->DeleteAt(i);
 			i -= 1;
+			if (i < 0) {
+				m_bClientRefresh = TRUE;
+				ShowClientItems(m_ClientPath);
+				return;
+			}
 	}
 	if (ftfi->GetNumEntries() == 0) return;
 	char fullPath[MAX_PATH];

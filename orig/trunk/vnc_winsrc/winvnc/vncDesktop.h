@@ -49,11 +49,11 @@ class vncDesktop;
 
 #ifdef HORIZONLIVE
 #include "PollCycleControl.h"
+#include "PollingScanLinesAdjacent.h"
+#include "PollingScanLines.h"
+#include "PollingQuadrant.h"
 #include "horizon/horizonPollingAdapter.h"
 #include "horizon/horizonPollingType.h"
-#include "horizon/PollingScanLinesAdjacent.h"
-#include "horizon/PollingScanLines.h"
-#include "horizon/PollingQuadrant.h"
 #include "horizon/horizonMenu.h"
 #endif
 

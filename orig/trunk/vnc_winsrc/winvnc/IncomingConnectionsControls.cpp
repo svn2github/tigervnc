@@ -28,13 +28,27 @@ void IncomingConnectionsControls::Validate()
 	Enable(IDC_PORTNO_AUTO, bAccept);
 	Enable(IDC_SPECDISPLAY, bAccept);
 	Enable(IDC_SPECPORT, bAccept);
-	
-	Enable(IDC_SPECPORT, bAccept);
-	Enable(IDC_PORTNO_AUTO, bAccept);
-	Enable(IDC_SPECDISPLAY, bAccept);
-	
-	Enable(IDC_DISPLAYNO, bAccept && bDisplay);
-	
+		
+	if (bAuto) {
+		SetDlgItemText(m_hwnd, IDC_PORTRFB, "");
+		SetDlgItemText(m_hwnd, IDC_PORTHTTP, "");
+		SetDlgItemText(m_hwnd, IDC_DISPLAYNO, "");
+	} else {
+		UINT port_rfb = m_server->GetPort();
+		UINT port_http = m_server->GetHttpPort();
+		int d1 = PORT_TO_DISPLAY(port_rfb);
+		int d2 = HPORT_TO_DISPLAY(port_http);
+		BOOL bValidDisplay = (d1 == d2 && d1 >= 0 && d1 <= 99);
+		if (bValidDisplay) {
+			SetDlgItemInt(m_hwnd, IDC_DISPLAYNO, d1, FALSE);
+		} else {
+			SetDlgItemText(m_hwnd, IDC_DISPLAYNO, "");
+		}
+		SetDlgItemInt(m_hwnd, IDC_PORTRFB, port_rfb, FALSE);
+		SetDlgItemInt(m_hwnd, IDC_PORTHTTP, port_http, FALSE);
+	}
+	Enable(IDC_DISPLAY_LABEL, bAccept && bDisplay);
+	Enable(IDC_DISPLAYNO, bAccept && bDisplay);	
 	Enable(IDC_PORTRFB, bAccept && bPorts);
 	Enable(IDC_MAIN_LABEL, bAccept && bPorts);
 	Enable(IDC_AND_LABEL, bAccept && bPorts);
@@ -140,13 +154,6 @@ void IncomingConnectionsControls::Init()
 	SetChecked(IDC_ENABLE_FILE_TRANSFERS, m_server->FileTransfersEnabled());
 	SetChecked(IDC_REMOVE_WALLPAPER, m_server->RemoveWallpaperEnabled());
 	
-	if (bValidDisplay) {
-		SetDlgItemInt(m_hwnd, IDC_DISPLAYNO, d1, FALSE);
-	} else {
-		SetDlgItemText(m_hwnd, IDC_DISPLAYNO, "");
-	}
-	SetDlgItemInt(m_hwnd, IDC_PORTRFB, port_rfb, FALSE);
-	SetDlgItemInt(m_hwnd, IDC_PORTHTTP, port_http, FALSE);
 	SetDlgItemText(m_hwnd, IDC_PASSWORD, "~~~~~~~~");			
 	SetDlgItemText(m_hwnd, IDC_PASSWORD_VIEWONLY, "~~~~~~~~");
 

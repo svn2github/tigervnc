@@ -80,7 +80,7 @@ VNCOptions::VNCOptions()
 
 	m_useCompressLevel = false;
 	m_compressLevel = 6;
-	m_enableJpegCompression = true;
+	m_enableJpegCompression = false;
 	m_jpegQualityLevel = 6;
 	m_requestShapeUpdates = true;
 	m_ignoreShapeUpdates = false;
@@ -91,48 +91,38 @@ VNCOptions::VNCOptions()
 		ERROR_SUCCESS ) {
 		hRegKey = NULL;
 	} else {
-		TCHAR buffer[80];
+		DWORD buffer;
 		DWORD buffersize = sizeof(buffer);
 		DWORD valtype;
 		if ( RegQueryValueEx( hRegKey,  "SkipFullScreenPrompt", NULL, &valtype, 
-				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
-			if (atoi(buffer)==0){
-				m_skipprompt=false;
-			}	
-		}
-		buffersize=80;
+				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {			
+			m_skipprompt=buffer == 1;				
+		}		
 		if ( RegQueryValueEx( hRegKey,  "NoToolbar", NULL, &valtype, 
 				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
-			if (atoi(buffer)==0){
-				m_toolbar=false;
-			}
+			m_toolbar=buffer == 1;
 		}
-		buffersize=80;
 		if ( RegQueryValueEx( hRegKey,  "LogToFile", NULL, &valtype, 
 				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
-			if (atoi(buffer)==1){
-				m_logToFile=true;
-			}
+				m_logToFile=buffer == 1;
 		}
-		buffersize=80;
 		if ( RegQueryValueEx( hRegKey,  "ListServer", NULL, &valtype, 
 				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
-			m_listServer=atoi(buffer);
+			m_listServer=buffer;
 		}
-		buffersize=80;
 		if ( RegQueryValueEx( hRegKey,  "Localcursor", NULL, &valtype, 
 				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
-			m_localCursor=atoi(buffer);
+			m_localCursor=buffer;
 		}
-		buffersize=80;
 		if ( RegQueryValueEx( hRegKey,  "LogLevel", NULL, &valtype, 
 				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
-			m_logLevel=atoi(buffer);
+			m_logLevel=buffer;
 		}
+		TCHAR buf[80];
 		buffersize=_MAX_PATH;
 		if (RegQueryValueEx( hRegKey,  "LogFileName", NULL, &valtype, 
-				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS){
-			strcpy(m_logFilename,buffer);
+				(LPBYTE) &buf, &buffersize) == ERROR_SUCCESS){
+			strcpy(m_logFilename,buf);
 		}
 		RegCloseKey(hRegKey);
 	}
@@ -1261,79 +1251,74 @@ BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,
 					pApp->m_options.m_localCursor=NORMALCURSOR;	
 				}
 				char buf[80];
+				DWORD buffer;
 				HKEY hRegKey;
-				int er;
-				int mg=0;
-				int tb=0;
-				int ch=0;
 				HWND hMessage = GetDlgItem(hwnd, IDC_CHECK_MESSAGE);
 				HWND hToolbar = GetDlgItem(hwnd, IDC_CHECK_TOOLBAR);
 				HWND hChec = GetDlgItem(hwnd, IDC_CHECK_LOG_FILE);
-
+				RegCreateKey(HKEY_CURRENT_USER,
+					SETTINGS_KEY_NAME, &hRegKey);
 				if (SendMessage(hChec,BM_GETCHECK,0,0)==0){
 					pApp->m_options.m_logToFile=false;
-					ch=0;
+					buffer = 0;
 				}else{
 					pApp->m_options.m_logToFile=true;
+					buffer = 1;
 					pApp->m_options.m_logLevel=GetDlgItemInt(hwnd,
-						IDC_EDIT_LOG_LEVEL,&er,FALSE);
+						IDC_EDIT_LOG_LEVEL,NULL,FALSE);
 					GetDlgItemText(hwnd,IDC_EDIT_LOG_FILE,
 						buf,80);
 					strcpy(pApp->m_options.m_logFilename,buf);
 
 					vnclog.SetLevel(pApp->m_options.m_logLevel);
 					vnclog.SetFile(pApp->m_options.m_logFilename);
-					ch=1;
 				}
+				RegSetValueEx( hRegKey,"LogToFile" , 
+					NULL,REG_DWORD , 
+					(CONST BYTE *)&buffer,
+					4 );
 				if (SendMessage(hMessage,BM_GETCHECK,0,0)==0){
 					pApp->m_options.m_skipprompt=false;
-					mg=0;
+					buffer = 0;
 				}else{
 					pApp->m_options.m_skipprompt=true;
-					mg=1;
+					buffer = 1;
 				}
+				RegSetValueEx( hRegKey,"SkipFullScreenPrompt" , 
+					NULL,REG_DWORD , 
+					(CONST BYTE *)&buffer,
+					4 );
 				if (SendMessage(hToolbar,BM_GETCHECK,0,0)==0){
 					pApp->m_options.m_toolbar=false;
-					tb=0;
+					buffer = 0;
 				}else{
 					pApp->m_options.m_toolbar=true;
-					tb=1;
+					buffer = 1;
 				}
+				RegSetValueEx( hRegKey,"NoToolbar" , 
+					NULL,REG_DWORD , 
+					(CONST BYTE *)&buffer,
+					4 );
 				pApp->m_options.m_listServer=GetDlgItemInt(hwnd,
-					IDC_EDIT_AMOUNT_LIST,&er,FALSE);
-				
-				RegCreateKey(HKEY_CURRENT_USER,
-					SETTINGS_KEY_NAME, &hRegKey);
-
-				sprintf(buf, "%d", pApp->m_options.m_localCursor); 
+					IDC_EDIT_AMOUNT_LIST,NULL,FALSE);
+ 
 				RegSetValueEx( hRegKey,"Localcursor" , 
-					NULL,REG_SZ , 
-					(CONST BYTE *)buf, (_tcslen(buf)+1) );
-
-				sprintf(buf, "%d", pApp->m_options.m_listServer); 
+					NULL,REG_DWORD , 
+					(CONST BYTE *)&pApp->m_options.m_localCursor,
+					4 );
+ 
 				RegSetValueEx( hRegKey,"ListServer" , 
-					NULL,REG_SZ , 
-					(CONST BYTE *)buf, (_tcslen(buf)+1) );
-				
-				sprintf(buf, "%d", pApp->m_options.m_logLevel); 
+					NULL,REG_DWORD , 
+					(CONST BYTE *)&pApp->m_options.m_listServer,
+					4 );
+				 
 				RegSetValueEx( hRegKey,"LogLevel" , 
-					NULL,REG_SZ , 
-					(CONST BYTE *)buf, (_tcslen(buf)+1) );
+					NULL,REG_DWORD , 
+					(CONST BYTE *)&pApp->m_options.m_logLevel,
+					4 );
 				
 				strcpy(buf,pApp->m_options.m_logFilename);
 				RegSetValueEx( hRegKey,"LogFileName" , 
-					NULL,REG_SZ , 
-					(CONST BYTE *)buf, (_tcslen(buf)+1) );
-				sprintf(buf, "%d",ch); 
-				RegSetValueEx( hRegKey,"LogToFile" , 
-					NULL,REG_SZ , 
-					(CONST BYTE *)buf, (_tcslen(buf)+1) );
-				sprintf(buf, "%d",tb); 
-				RegSetValueEx( hRegKey,"NoToolbar" , 
-					NULL,REG_SZ , 
-					(CONST BYTE *)buf, (_tcslen(buf)+1) );
-				sprintf(buf, "%d",mg); 
-				RegSetValueEx( hRegKey,"SkipFullScreenPrompt" , 
 					NULL,REG_SZ , 
 					(CONST BYTE *)buf, (_tcslen(buf)+1) );
 				
@@ -1387,14 +1372,14 @@ void VNCOptions::LoadOpt(char subkey[256],char keyname[256])
 }
 int VNCOptions::read(HKEY hkey,char *name,int retrn)
 {
-	DWORD buflen=6;
-	TCHAR buf[5];
+	DWORD buflen=4;
+	DWORD buf=0;
 	if(RegQueryValueEx(hkey ,(LPTSTR)name , 
             NULL, NULL, 
-            (LPBYTE) buf,(LPDWORD) &buflen)!=ERROR_SUCCESS){
+            (LPBYTE) &buf,(LPDWORD) &buflen)!=ERROR_SUCCESS){
 		return retrn;
 	}else{
-		return atoi(buf);
+		return buf;
 	}
 }
  void VNCOptions::SaveOpt(char subkey[256],char keyname[256])
@@ -1450,9 +1435,7 @@ void VNCOptions::delkey(char subkey[256],char keyname[256])
 }
 void VNCOptions::save(HKEY hkey,char *name, int value) 
 {
-	char buf[4];
-	sprintf(buf, "%d", value); 
 	RegSetValueEx( hkey,name , 
-            NULL,REG_SZ , 
-            (CONST BYTE *)buf, (_tcslen(buf)+1) );
+            NULL,REG_DWORD , 
+            (CONST BYTE *)&value, 4 );
 }

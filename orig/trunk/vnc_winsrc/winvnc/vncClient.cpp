@@ -1397,11 +1397,14 @@ vncClientThread::run(void *arg)
 				msg.fud.compressedSize = Swap16IfLE(msg.fud.compressedSize);
 				
 				if ((msg.fud.realSize == 0) && (msg.fud.compressedSize == 0)) {
-					unsigned int mTime;
-					m_socket->ReadExact((char *) &mTime, sizeof(unsigned int));
+					CARD32 mTime;
+					m_socket->ReadExact((char *) &mTime, sizeof(CARD32));
+					mTime = Swap32IfLE(mTime);
 					FILETIME Filetime;
 					m_client->Time70ToFiletime(mTime, &Filetime);
-					SetFileTime(m_hFiletoWrite, &Filetime, &Filetime, &Filetime);
+					if (!SetFileTime(m_hFiletoWrite, &Filetime, &Filetime, &Filetime)) {
+						vnclog.Print(LL_INTINFO, VNCLOG("SetFileTime() failed\n"));
+					}
 					CloseHandle(m_hFiletoWrite);
 					vnclog.Print(LL_CLIENTS, VNCLOG("file upload complete: %s\n"),
 								 m_FullFilename);
@@ -2281,5 +2284,5 @@ unsigned int vncClient::FiletimeToTime70(FILETIME filetime)
 	uli.LowPart = filetime.dwLowDateTime;
 	uli.HighPart = filetime.dwHighDateTime;
 	uli.QuadPart = (uli.QuadPart - 116444736000000000) / 10000000;
-	return uli.HighPart;
+	return uli.LowPart;
 }

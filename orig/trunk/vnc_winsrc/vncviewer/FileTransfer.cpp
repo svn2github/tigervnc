@@ -980,17 +980,19 @@ void FileTransfer::CreateServerItemInfoList(FileTransferItemInfo *pftii,
 
 void FileTransfer::SendFileUploadDataMessage(unsigned int mTime)
 {
-	int msgLen = sz_rfbFileUploadDataMsg + sizeof(unsigned int);
-	char *pAllFUDMessage = new char[msgLen];
-	rfbFileUploadDataMsg *pFUD = (rfbFileUploadDataMsg *) pAllFUDMessage;
-	unsigned int *pmTime = (unsigned int *) &pAllFUDMessage[sz_rfbFileUploadDataMsg];
-	pFUD->type = rfbFileUploadData;
-	pFUD->compressedLevel = 0;
-	pFUD->realSize = Swap16IfLE(0);
-	pFUD->compressedSize = Swap16IfLE(0);
-	memcpy(pmTime, &mTime, sizeof(unsigned int));
-	m_clientconn->WriteExact(pAllFUDMessage, msgLen);
-	delete [] pAllFUDMessage;
+	rfbFileUploadDataMsg msg;
+	msg.type = rfbFileUploadData;
+	msg.compressedLevel = 0;
+	msg.realSize = Swap16IfLE(0);
+	msg.compressedSize = Swap16IfLE(0);
+
+	CARD32 time32 = Swap32IfLE((CARD32)mTime);
+
+	char data[sz_rfbFileUploadDataMsg + sizeof(CARD32)];
+	memcpy(data, &msg, sz_rfbFileUploadDataMsg);
+	memcpy(&data[sz_rfbFileUploadDataMsg], &time32, sizeof(CARD32));
+
+	m_clientconn->WriteExact(data, sz_rfbFileUploadDataMsg + sizeof(CARD32));
 }
 
 void FileTransfer::SendFileUploadDataMessage(unsigned short size, char *pFile)
@@ -1015,7 +1017,7 @@ unsigned int FileTransfer::FiletimeToTime70(FILETIME ftime)
 	uli.LowPart = ftime.dwLowDateTime;
 	uli.HighPart = ftime.dwHighDateTime;
 	uli.QuadPart = (uli.QuadPart - 116444736000000000) / 10000000;
-	return uli.HighPart;
+	return uli.LowPart;
 }
 
 void FileTransfer::Time70ToFiletime(unsigned int time70, FILETIME *pftime)

@@ -1461,6 +1461,7 @@ void ClientConnection::SizeWindow(bool centered)
 				 workwidth, workheight);
 
 	RECT fullwinrect;
+	
 	if (m_opts.m_scaling) {
 		SetRect(&fullwinrect, 0, 0,
 				m_si.framebufferWidth * m_opts.m_scale_num / m_opts.m_scale_den,
@@ -1570,35 +1571,54 @@ void ClientConnection::PositionChildWindow()
 	
 	SetWindowPos(m_hwndscroll, HWND_TOP, rparent.left - 1, rparent.top - 1,
 					parentwidth + 2, parentheight + 2, SWP_SHOWWINDOW);
-	
-	if (InFullScreenMode()) {				
-		ShowScrollBar(m_hwndscroll, SB_HORZ, FALSE);
-		ShowScrollBar(m_hwndscroll, SB_VERT, FALSE);
+	if (!m_opts.m_FitWindow) {
+		if (InFullScreenMode()) {				
+			ShowScrollBar(m_hwndscroll, SB_HORZ, FALSE);
+			ShowScrollBar(m_hwndscroll, SB_VERT, FALSE);
+		} else {
+			ShowScrollBar(m_hwndscroll, SB_VERT, parentheight < m_fullwinheight);
+			ShowScrollBar(m_hwndscroll, SB_HORZ, parentwidth  < m_fullwinwidth);
+			GetClientRect(m_hwndscroll, &rparent);	
+			parentwidth = rparent.right - rparent.left;
+			parentheight = rparent.bottom - rparent.top;
+			ShowScrollBar(m_hwndscroll, SB_VERT, parentheight < m_fullwinheight);
+			ShowScrollBar(m_hwndscroll, SB_HORZ, parentwidth  < m_fullwinwidth);
+			GetClientRect(m_hwndscroll, &rparent);	
+			parentwidth = rparent.right - rparent.left;
+			parentheight = rparent.bottom - rparent.top;		
+		}
 	} else {
-		ShowScrollBar(m_hwndscroll, SB_VERT, parentheight < m_fullwinheight);
-		ShowScrollBar(m_hwndscroll, SB_HORZ, parentwidth  < m_fullwinwidth);
-		GetClientRect(m_hwndscroll, &rparent);	
-		parentwidth = rparent.right - rparent.left;
-		parentheight = rparent.bottom - rparent.top;
-		ShowScrollBar(m_hwndscroll, SB_VERT, parentheight < m_fullwinheight);
-		ShowScrollBar(m_hwndscroll, SB_HORZ, parentwidth  < m_fullwinwidth);
-		GetClientRect(m_hwndscroll, &rparent);	
-		parentwidth = rparent.right - rparent.left;
-		parentheight = rparent.bottom - rparent.top;
-		
+		if (!IsIconic(m_hwnd1)) {
+			ShowScrollBar(m_hwndscroll, SB_HORZ, FALSE);
+			ShowScrollBar(m_hwndscroll, SB_VERT, FALSE);
+			GetClientRect(m_hwndscroll, &rparent);	
+			parentwidth = rparent.right - rparent.left;
+			parentheight = rparent.bottom - rparent.top;
+			if ((parentwidth < 1) || (parentheight < 1))
+				return;
+			RECT fullwinrect;		
+			int den = max(m_si.framebufferWidth * 100 / parentwidth,
+							m_si.framebufferHeight * 100 / parentheight);
+			SetRect(&fullwinrect, 0, 0, (m_si.framebufferWidth * 100 + den - 1) / den,
+					(m_si.framebufferHeight * 100 + den - 1) / den);						
+			while ((fullwinrect.right - fullwinrect.left > parentwidth) ||
+					(fullwinrect.bottom - fullwinrect.top > parentheight)) {
+				den++;
+				SetRect(&fullwinrect, 0, 0, (m_si.framebufferWidth * 100 + den - 1) / den,
+					(m_si.framebufferHeight * 100 + den - 1) / den);								
+			}
+
+			m_opts.m_scale_num = 100;
+			m_opts.m_scale_den = den;
+				
+			m_opts.FixScaling();
+
+			m_fullwinwidth = fullwinrect.right - fullwinrect.left;
+			m_fullwinheight = fullwinrect.bottom - fullwinrect.top;
+		}
 	}
 
-	m_cliwidth = min( (int)parentwidth, (int)m_fullwinwidth);
-	m_cliheight = min( (int)parentheight, (int)m_fullwinheight);
-
-	m_hScrollMax = m_fullwinwidth;
-	m_vScrollMax = m_fullwinheight;
-           
-	int newhpos, newvpos;
-	newhpos = max(0, min(m_hScrollPos, 
-								 m_hScrollMax - max(m_cliwidth, 0)));
-	newvpos = max(0, min(m_vScrollPos, 
-				                 m_vScrollMax - max(m_cliheight, 0)));
+	
 	int x, y;
 	if (parentwidth  > m_fullwinwidth) {
 		x = (parentwidth - m_fullwinwidth) / 2;
@@ -1615,14 +1635,35 @@ void ClientConnection::PositionChildWindow()
 					min(parentwidth, m_fullwinwidth),
 					min(parentheight, m_fullwinheight),
 					SWP_SHOWWINDOW);
+
+	m_cliwidth = min( (int)parentwidth, (int)m_fullwinwidth);
+	m_cliheight = min( (int)parentheight, (int)m_fullwinheight);
+
+	m_hScrollMax = m_fullwinwidth;
+	m_vScrollMax = m_fullwinheight;
+           
+		int newhpos, newvpos;
+	if (!m_opts.m_FitWindow) {
+		newhpos = max(0, min(m_hScrollPos, 
+								 m_hScrollMax - max(m_cliwidth, 0)));
+		newvpos = max(0, min(m_vScrollPos, 
+				                 m_vScrollMax - max(m_cliheight, 0)));
+	} else {
+		newhpos = 0;
+		newvpos = 0;
+	}
 	RECT clichild;
 	GetClientRect(m_hwnd, &clichild);
 	ScrollWindowEx(m_hwnd, m_hScrollPos-newhpos, m_vScrollPos-newvpos,
-				NULL, &clichild, NULL, NULL,  SW_INVALIDATE);
+					NULL, &clichild, NULL, NULL,  SW_INVALIDATE);
 								
 	m_hScrollPos = newhpos;
 	m_vScrollPos = newvpos;
-    UpdateScrollbars();
+	if (!m_opts.m_FitWindow) {
+		UpdateScrollbars();
+	} else {
+		InvalidateRect(m_hwnd, NULL, FALSE);
+	}
 	UpdateWindow(m_hwnd);
 }
 
@@ -1922,7 +1963,8 @@ LRESULT CALLBACK ClientConnection::ScrollProc(HWND hwnd, UINT iMsg, WPARAM wPara
 			case SB_THUMBTRACK:
 				dx = pos - _this->m_hScrollPos;
 			}
-			_this->ScrollScreen(dx,0);
+			if (!_this->m_opts.m_FitWindow) 
+				_this->ScrollScreen(dx,0);
 			return 0;
 		}
 	case WM_VSCROLL:
@@ -1943,7 +1985,8 @@ LRESULT CALLBACK ClientConnection::ScrollProc(HWND hwnd, UINT iMsg, WPARAM wPara
 			case SB_THUMBTRACK:
 				dy = pos - _this->m_vScrollPos;
 			}
-			_this->ScrollScreen(0,dy);
+			if (!_this->m_opts.m_FitWindow) 
+				_this->ScrollScreen(0,dy);
 			return 0;
 		}
 	}
@@ -2046,12 +2089,16 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 				
 				if (_this->m_opts.DoDialog(true)) {
 					_this->m_pendingFormatChange = true;
-					
-					if (prev_scale_num != _this->m_opts.m_scale_num ||
-						prev_scale_den != _this->m_opts.m_scale_den) {
-						// Resize the window if scaling factors were changed
-						_this->SizeWindow(false);
-						InvalidateRect(_this->m_hwnd, NULL, FALSE);
+					if (_this->m_opts.m_FitWindow) {
+						_this->m_opts.m_scaling = true;
+						_this->PositionChildWindow();
+					} else {
+						if (prev_scale_num != _this->m_opts.m_scale_num ||
+							prev_scale_den != _this->m_opts.m_scale_den) {
+							// Resize the window if scaling factors were changed
+							_this->SizeWindow(false);
+							InvalidateRect(_this->m_hwnd, NULL, FALSE);
+						}
 					}
 				}
 				

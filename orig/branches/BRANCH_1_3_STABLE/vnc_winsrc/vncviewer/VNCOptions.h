@@ -94,6 +94,7 @@ public:
 	bool	m_DisableClipboard;
 	int     m_localCursor;
 	bool	m_scaling;
+	bool	m_FitWindow;
 	int		m_scale_num, m_scale_den; // Numerator & denominator
 	bool	m_useCompressLevel;
 	int		m_compressLevel;
@@ -142,14 +143,14 @@ public:
 	// Register() makes this viewer the app invoked for .vnc files
 	static void Register();
 	HWND m_hPageConnection, m_hPageGeneral, m_hTab, m_hParent, m_hWindow;
-	
+	void FixScaling();
 
 private:
 	void BrowseLogFile();
 	void EnableCompress(HWND hwnd, bool enable);
 	void EnableJpeg(HWND hwnd, bool enable);
 	void EnableLog(HWND hwnd, bool enable);
-	void FixScaling();
+	
 	// Just for temporary use
 	bool m_running;
 	

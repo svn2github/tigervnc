@@ -113,9 +113,12 @@ bool ClientConnection::BumpScroll(int x, int y)
 			// If we haven't physically moved the cursor, artificially
 			// generate another mouse event so we keep scrolling.
 			POINT p;
-			GetCursorPos(&p);
-			if (p.x == x && p.y == y)
-				SetCursorPos(x,y);
+			GetCursorPos(&p);			
+			ScreenToClient(m_hwnd, &p);			
+			if (p.x == x && p.y == y) {
+				ClientToScreen(m_hwnd, &p);
+				SetCursorPos(p.x,p.y);
+			}
 			return true;
 		} 
 	}

@@ -228,19 +228,23 @@ vncDesktopThread::run_undetached(void *arg)
 		if (msg.message == RFB_SCREEN_UPDATE)
 		{
 			// An area of the screen has changed
-			RECT rect;
+			RECT rect, coord;
 			if (m_server->OneSharedAppli())
 			{
-			RECT coord = m_server->getSharedRect();
-			rect.left =	(SHORT) LOWORD(msg.wParam)-coord.left;
-			rect.top = (SHORT) HIWORD(msg.wParam)-coord.top;
-			rect.right = (SHORT) LOWORD(msg.lParam)-coord.left;
-			rect.bottom = (SHORT) HIWORD(msg.lParam)-coord.top;
+				if (m_server->WindowShared()) {
+					GetWindowRect(m_server->GetWindowShared(), &coord);
+				} else {
+					coord = m_server->getSharedRect();
+				}
+				rect.left =	(SHORT)LOWORD(msg.wParam) - coord.left;
+				rect.top = (SHORT)HIWORD(msg.wParam) - coord.top;
+				rect.right = (SHORT)LOWORD(msg.lParam) - coord.left;
+				rect.bottom = (SHORT)HIWORD(msg.lParam) - coord.top;
 			} else {
-			rect.left =	(SHORT) LOWORD(msg.wParam);
-			rect.top = (SHORT) HIWORD(msg.wParam);
-			rect.right = (SHORT) LOWORD(msg.lParam);
-			rect.bottom = (SHORT) HIWORD(msg.lParam);
+				rect.left =	(SHORT)LOWORD(msg.wParam);
+				rect.top = (SHORT)HIWORD(msg.wParam);
+				rect.right = (SHORT)LOWORD(msg.lParam);
+				rect.bottom = (SHORT)HIWORD(msg.lParam);
 			}
 
 			//if ((rect.left < 0) || (rect.top < 0) ||

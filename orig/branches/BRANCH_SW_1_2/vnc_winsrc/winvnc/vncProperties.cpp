@@ -1128,8 +1128,8 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	m_pref_PollFullScreen=LoadInt(appkey, "PollFullScreen", m_pref_PollFullScreen);
 	m_pref_PollConsoleOnly=LoadInt(appkey, "OnlyPollConsole", m_pref_PollConsoleOnly);
 	m_pref_PollOnEventOnly=LoadInt(appkey, "OnlyPollOnEvent", m_pref_PollOnEventOnly);
-	m_pref_SharedOneAppliOnly=LoadInt(appkey, "SharedOneAppliOnly",m_pref_SharedOneAppliOnly);
-	m_pref_WindowShared=LoadInt(appkey, "WindowShared",m_pref_WindowShared);
+	//m_pref_SharedOneAppliOnly=LoadInt(appkey, "SharedOneAppliOnly",m_pref_SharedOneAppliOnly);
+	//m_pref_WindowShared=LoadInt(appkey, "WindowShared",m_pref_WindowShared);
 }
 
 void
@@ -1411,20 +1411,18 @@ void vncProperties::DrawFrameAroundWindow(HWND hWnd)
 
 void vncProperties::SetWindowCaption(HWND hWnd)
 {
-	char strWindowText[255];
-	if (hWnd==NULL)
-	{
-	memcpy(strWindowText,"NO WINDOW",9);
-	}
-	else
-	{
-		GetWindowText(hWnd,strWindowText,sizeof(strWindowText));
-		if (strWindowText[0]==0)
-		{
-			int bytes=sprintf(strWindowText,"0x%x ",hWnd);
-			GetClassName(hWnd,strWindowText+bytes,sizeof(strWindowText)-bytes);
+	char strWindowText[256];
+
+	if (hWnd == NULL) {
+		strcpy(strWindowText, "NO WINDOW");
+	} else {
+		GetWindowText(hWnd, strWindowText, sizeof(strWindowText));
+		if (!strWindowText[0]) {
+			int bytes = sprintf(strWindowText, "0x%x ", hWnd);
+			GetClassName(hWnd, strWindowText + bytes,
+						 sizeof(strWindowText) - bytes);
 		}
 	}
-	::SetWindowText(hNameAppli,strWindowText);
+	::SetWindowText(hNameAppli, strWindowText);
 }
 

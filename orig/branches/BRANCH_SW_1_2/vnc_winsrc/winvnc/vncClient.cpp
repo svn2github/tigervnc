@@ -1005,23 +1005,25 @@ vncClient::PollWindow(HWND hwnd)
 	// Are we still wanting to poll this window?
 	if (poll)
 	{
-		RECT rect;
+		RECT rect, trect;
 
 		// Get the rectangle
 		if (GetWindowRect(hwnd, &rect))
 		{
 			if (m_server->OneSharedAppli())
 			{
-
-				RECT trect = m_server->getSharedRect();
-				rect.left-=trect.left;
-				rect.top-=trect.top;
-				rect.right-=trect.left;
-				rect.bottom-=trect.top;
+				if (m_server->WindowShared()) {
+					GetWindowRect(m_server->GetWindowShared(), &trect);
+				} else {
+					trect = m_server->getSharedRect();
+				}
+				rect.left -= trect.left;
+				rect.top -= trect.top;
+				rect.right -= trect.left;
+				rect.bottom -= trect.top;
 			}
 			m_changed_rgn.AddRect(rect);
 		}
-
 	}
 }
 

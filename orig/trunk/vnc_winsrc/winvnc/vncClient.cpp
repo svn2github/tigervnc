@@ -802,7 +802,6 @@ vncClientThread::run(void *arg)
 					    else
 						flags |= (msg.pe.buttonMask & rfbButton1Mask) 
 						    ? MOUSEEVENTF_LEFTDOWN : MOUSEEVENTF_LEFTUP;
-						if ( (msg.pe.buttonMask & rfbButton1Mask) )
 							m_server->SetMouseCounter(1);
 					}
 					if ( (msg.pe.buttonMask & rfbButton2Mask) != 
@@ -810,7 +809,6 @@ vncClientThread::run(void *arg)
 					{
 						flags |= (msg.pe.buttonMask & rfbButton2Mask) 
 						    ? MOUSEEVENTF_MIDDLEDOWN : MOUSEEVENTF_MIDDLEUP;
-						if ( (msg.pe.buttonMask & rfbButton2Mask) )
 							m_server->SetMouseCounter(1);
 					}
 					if ( (msg.pe.buttonMask & rfbButton3Mask) != 
@@ -822,7 +820,6 @@ vncClientThread::run(void *arg)
 					    else
 						flags |= (msg.pe.buttonMask & rfbButton3Mask) 
 						    ? MOUSEEVENTF_RIGHTDOWN : MOUSEEVENTF_RIGHTUP;
-						if ( (msg.pe.buttonMask & rfbButton3Mask) )
 							m_server->SetMouseCounter(1);
 					}
 

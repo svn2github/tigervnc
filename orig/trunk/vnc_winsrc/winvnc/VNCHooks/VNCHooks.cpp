@@ -1035,7 +1035,7 @@ LRESULT CALLBACK KeyboardPriorityProc(int nCode, WPARAM wParam, LPARAM lParam)
 		
 	}
 
-	return CallNextHookEx(hLLKeyboardHook, nCode, wParam, lParam);
+	return CallNextHookEx(hKeyboardHook, nCode, wParam, lParam);
 }
 
 
@@ -1053,7 +1053,7 @@ LRESULT CALLBACK MousePriorityProc(int nCode, WPARAM wParam, LPARAM lParam)
 			);
 	}
 
-	return CallNextHookEx(hLLMouseHook, nCode, wParam, lParam);
+	return CallNextHookEx(hMouseHook, nCode, wParam, lParam);
 }
 
 

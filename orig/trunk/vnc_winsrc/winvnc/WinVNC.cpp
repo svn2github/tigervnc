@@ -180,7 +180,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 					strncpy(name, &(szCmdLine[start]), end-start);
 					name[end-start] = 0;
 
+#ifdef HORIZONLIVE
+					int port = 0;
+#else
 					int port = INCOMING_PORT_OFFSET;
+#endif
 					char *portp = strchr(name, ':');
 					if (portp) {
 						*portp++ = '\0';
@@ -198,6 +202,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 				continue;
 			}
 		}
+
+#ifdef HORIZONLIVE
+			if (strncmp(&szCmdLine[i], winvncNoSettings, strlen(winvncNoSettings)) == 0)
+			{
+				// Set nosettings flag
+				vncService::SetNoSettings(true);
+				return WinVNCAppMain();
+			}
+#endif
 
 		// Either the user gave the -help option or there is something odd on the cmd-line!
 

@@ -35,6 +35,10 @@
 #include "vncConnDialog.h"
 #include <lmcons.h>
 
+#ifdef HORIZONLIVE
+#include "vncAcceptReverseDlg.h"
+#endif
+
 // Header
 
 #include "vncMenu.h"
@@ -559,6 +563,34 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 			// Add Client message.  This message includes an IP address and
 			// a port numbrt of a listening client, to which we should connect.
 
+#ifdef HORIZONLIVE
+			struct hostent *pHost;
+
+			//address.S_un.S_addr = lParam;
+
+			char  key [_MAX_PATH];
+			char name [10];// = inet_ntoa(address);
+			pHost=gethostbyaddr((char *)&lParam,4,AF_INET);
+
+			if (name == 0)
+				return 0;
+			strcpy(key,pHost->h_name);
+			strcat(key,":");
+
+			// Get the port number
+			unsigned short nport = (unsigned short)wParam;
+			strcat(key,itoa(nport,name,10));
+			vncAcceptReverseDlg *newdlg = new vncAcceptReverseDlg(_this, key);
+ 			if (!newdlg->DoDialog())
+				return 0;
+			_this->m_server->SetLiveShareKey(key);
+			PostMessage(hwnd, WM_COMMAND, MAKELONG(ID_PROPERTIES, 0), 0);
+			return 0;
+				
+		}
+	}
+
+#else			
 			// Get the IP address stringified
 			struct in_addr address;
 			address.S_un.S_addr = lParam;
@@ -594,7 +626,7 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 			return 0;
 		}
 	}
-
+#endif
 	// Message not recognised
 	return DefWindowProc(hwnd, iMsg, wParam, lParam);
 }

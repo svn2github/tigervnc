@@ -108,6 +108,11 @@ public:
 	// About box so you can check the version!
 	static BOOL ShowAboutBox();
 
+#ifdef HORIZONLIVE
+	static void SetNoSettings(bool flag);
+	static BOOL GetNoSettings();
+#endif
+
 	// Routine to make an already running copy of WinVNC form an outgoing
 	// connection to a new VNC client
 	static BOOL PostAddNewClient(unsigned long ipaddress, unsigned short port);

@@ -104,6 +104,11 @@ public:
 	virtual BOOL GetPointerEnabled(vncClientId client);
 	virtual const char* GetClientName(vncClientId client);
 
+#ifdef HORIZONLIVE
+	virtual const char* GetLiveShareKey()  { return m_LiveShareKey; };
+	virtual void SetLiveShareKey(const char *key ) {strcpy(m_LiveShareKey, key);};
+#endif
+
 	// Let a client remove itself
 	virtual void RemoveClient(vncClientId client);
 
@@ -337,6 +342,9 @@ protected:
 
 	// Name of this desktop
 	char				*m_name;
+#ifdef HORIZONLIVE
+	char				m_LiveShareKey[_MAX_PATH];
+#endif
 
 	// Blacklist structures
 	struct BlacklistEntry {

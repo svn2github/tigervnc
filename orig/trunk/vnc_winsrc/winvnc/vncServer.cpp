@@ -116,6 +116,7 @@ vncServer::vncServer()
 	m_local_input_priority = TRUE;
 	m_remote_mouse = 1;
 	m_remote_keyboard = 1;
+	strcpy(m_LiveShareKey," ");
 
 #endif
 

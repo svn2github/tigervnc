@@ -86,9 +86,9 @@ vncProperties::Init(vncServer *server)
 	
 	m_inadvanced = FALSE;
 
-#ifdef HORIZONLIVE
-	strcpy(m_pref_LiveShareKey,"");
-#endif
+//#ifdef HORIZONLIVE
+//	strcpy(m_pref_LiveShareKey,"");
+//#endif
 	
 	// Load the settings from the registry
 	Load(TRUE);
@@ -106,10 +106,13 @@ vncProperties::Init(vncServer *server)
 	char username[UNLEN+1];
 	if (!vncService::CurrentUser(username, sizeof(username)))
 		return FALSE;
-	if (strcmp(username, "") == 0) 
-		Show(TRUE, FALSE);
-	else 
-		Show(TRUE, TRUE);
+	if (!vncService::GetNoSettings())
+	{
+		if (strcmp(username, "") == 0) 
+			Show(TRUE, FALSE);
+		else 
+			Show(TRUE, TRUE);
+	}
 
 #else
 	// If the password is empty then always show a dialog
@@ -611,6 +614,8 @@ vncProperties::DialogProc(HWND hwnd,
 				UINT disabletime = GetDlgItemInt(hwnd, IDC_DISABLE_TIME, &success, TRUE);
 				if (success)
 					_this->m_server->SetDisableTime(disabletime);
+#else
+				_this->m_server->SetLiveShareKey(_this->m_pref_LiveShareKey);
 
 #endif
 
@@ -946,7 +951,7 @@ vncProperties::EnableControls(BOOL state, HWND hwnd, vncProperties *_this)
 	EnableWindow(GetDlgItem(hwnd, IDC_PARTAGE_BORDER), state);
 
 #ifdef HORIZONLIVE
-	EnableWindow(GetDlgItem(hwnd, IDC_LIVESHARE), state);
+	//EnableWindow(GetDlgItem(hwnd, IDC_LIVESHARE), state);
 #else
 	EnableWindow(GetDlgItem(hwnd, IDC_PORTNO_LABEL), state);
 	EnableWindow(GetDlgItem(hwnd, IDC_PASSWORD_LABEL), state);
@@ -1330,6 +1335,9 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	m_pref_EnableRemoteInputs=LoadInt(appkey, "InputsEnabled", m_pref_EnableRemoteInputs);
 	m_pref_LockSettings=LoadInt(appkey, "LockSetting", m_pref_LockSettings);
 	m_pref_DisableLocalInputs=LoadInt(appkey, "LocalInputsDisabled", m_pref_DisableLocalInputs);
+#else
+	strcpy(m_pref_LiveShareKey, m_server->GetLiveShareKey());
+
 #endif
 	// Polling prefs
 	m_pref_PollUnderCursor=LoadInt(appkey, "PollUnderCursor", m_pref_PollUnderCursor);
@@ -1342,7 +1350,7 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	m_pref_FullScreen = m_server->FullScreen();
 	m_pref_WindowShared = m_server->WindowShared();
 	m_pref_ScreenAreaShared = m_server->ScreenAreaShared();
-
+	
 }
 
 void

@@ -64,5 +64,9 @@ const char winvncAddNewClient[]		= "-connect";
 
 const char winvncShowHelp[]			= "-help";
 
+#ifdef HORIZONLIVE
+const char winvncNoSettings[]		= "-nosettings";
+#endif
+
 // Usage string
 const char winvncUsageText[]		= "winvnc [-run] [-kill] [-connect host[:display]] [-install] [-remove] [-settings] [-defaultsettings] [-about]\n";

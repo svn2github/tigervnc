@@ -36,6 +36,7 @@
 #define IDC_CURSOR1                     141
 #define IDI_LIVESHARENC                 142
 #define IDB_BITMAP3                     142
+#define IDD_ACCEPT_REVERSE              148
 #define IDC_CONNECT_BORDER              1003
 #define IDC_CONNECT_SOCK                1004
 #define IDC_CONNECT_CORBA               1005
@@ -98,6 +99,7 @@
 #define IDC_WINDOW                      1061
 #define IDC_SCREEN                      1062
 #define IDC_FULLSCREEN                  1063
+#define IDC_STATIC_TEXT2                1063
 #define IDC_DISABLE_TIME                1064
 #define IDC_TIMEOUT_LABEL               1065
 #define IDC_SECONDS_LABEL               1066

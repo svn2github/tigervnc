@@ -5,7 +5,7 @@
 AppName=TightVNC
 AppVerName=TightVNC 1.2.4
 AppVersion=1.2.4
-AppPublisher=Const Kaplinsky
+AppPublisher=Constantin Kaplinsky
 AppPublisherURL=http://www.tightvnc.com
 AppSupportURL=http://www.tightvnc.com
 AppUpdatesURL=http://www.tightvnc.com

@@ -1,4 +1,4 @@
-//  Copyright (C) 2001 Const Kaplinsky. All Rights Reserved.
+//  Copyright (C) 2001 Constantin Kaplinsky. All Rights Reserved.
 //
 //  This file is part of the VNC system.
 //

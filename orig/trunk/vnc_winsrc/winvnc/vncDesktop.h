@@ -88,7 +88,7 @@ public:
 		rfbPixelFormat		cli_pf,
 		const RECT			&rect
 		);
-	void CaptureScreen(RECT &UpdateArea, BYTE *scrBuff, UINT scrBuffSize);
+	void CaptureScreen(RECT &UpdateArea, BYTE *scrBuff, UINT scrBuffSize, BYTE *invBuff);
 	rectlist ChangedAreas(
 		RECT				&ChangedArea,
 		rectlist			&existingRects,

@@ -249,7 +249,7 @@ vncBuffer::CheckBuffer()
 		m_mainsize = m_desktop->ScreenBuffSize();
 
 		// Clear the backbuffer
-		memcpy(m_backbuff, m_mainbuff, m_desktop->ScreenBuffSize());
+		//memcpy(m_backbuff, m_mainbuff, m_desktop->ScreenBuffSize());
 
 	}
 
@@ -276,13 +276,17 @@ vncBuffer::GetChangedRegion(vncRegion &rgn, RECT &rect)
         if (!FastCheckMainbuffer())
                 return;
 
-	const int BLOCK_SIZE = 16;
+	const int BLOCK_SIZE = 32;//(rect.right-rect.left)/6;
 	const UINT bytesPerPixel = m_scrinfo.format.bitsPerPixel / 8;
-
+	
 	RECT new_rect;
 
 	int x, y, ay, by;
+	int bytesPerRowRect = (rect.right-rect.left)*bytesPerPixel;
 
+	 unsigned char * zeroblock = new BYTE[bytesPerRowRect];
+	memset(zeroblock,0x00,bytesPerRowRect);
+	
 	// DWORD align the incoming rectangle.  (bPP will be 8, 16 or 32)
 	if (bytesPerPixel < 4) {
 		if (bytesPerPixel == 1)				// 1 byte per pixel
@@ -292,19 +296,21 @@ vncBuffer::GetChangedRegion(vncRegion &rgn, RECT &rect)
 	}
 
 	// Scan down the rectangle
-	unsigned char *o_topleft_ptr = m_backbuff + (rect.top * m_bytesPerRow) + (rect.left * bytesPerPixel);
-	unsigned char *n_topleft_ptr = m_mainbuff + (rect.top * m_bytesPerRow) + (rect.left * bytesPerPixel);
-	for (y = rect.top; y<rect.bottom; y+=BLOCK_SIZE)
+	unsigned char *o_topleft_ptr = m_backbuff + (rect.top * m_bytesPerRow) + (rect.left * bytesPerPixel)+bytesPerPixel;
+	
+	for (y = rect.top; y<rect.bottom; y++)
 	{
+
+		if ( memcmp(zeroblock, o_topleft_ptr, bytesPerRowRect) != 0 )
+		{
+
 		// Work out way down the bitmap
 		unsigned char * o_row_ptr = o_topleft_ptr;
-		unsigned char * n_row_ptr = n_topleft_ptr;
-
+	
 		const int blockbottom = Min(y+BLOCK_SIZE, rect.bottom);
 		for (x = rect.left; x<rect.right; x+=BLOCK_SIZE)
 		{
 			// Work our way across the row
-			unsigned char *n_block_ptr = n_row_ptr;
 			unsigned char *o_block_ptr = o_row_ptr;
 
 			const UINT blockright = Min(x+BLOCK_SIZE, rect.right);
@@ -313,36 +319,29 @@ vncBuffer::GetChangedRegion(vncRegion &rgn, RECT &rect)
 			// Scan this block
 			for (ay = y; ay < blockbottom; ay++)
 			{
-				if (memcmp(n_block_ptr, o_block_ptr, bytesPerBlockRow) != 0)
+				for (by = 0; by< BLOCK_SIZE* bytesPerPixel; by++)
 				{
-					// A pixel has changed, so this block needs updating
-					new_rect.top = y;
-					new_rect.left = x;
-					new_rect.right = blockright;
-					new_rect.bottom = blockbottom;
-					rgn.AddRect(new_rect);
-
-					// Copy the changes to the back buffer
-					for (by = ay; by < blockbottom; by++)
+					if ( o_block_ptr[by] != 0x00 )
+	//				if (memcmp(zeroblock, o_block_ptr, bytesPerBlockRow) != 0)
 					{
-						memcpy(o_block_ptr, n_block_ptr, bytesPerBlockRow);
-						n_block_ptr+=m_bytesPerRow;
-						o_block_ptr+=m_bytesPerRow;
+						// A pixel has changed, so this block needs updating
+						SetRect(&new_rect, x,y,blockright,blockbottom);
+						rgn.AddRect(new_rect);
+						ay = blockbottom;
+						break;
 					}
-
-					break;
 				}
 
-				n_block_ptr += m_bytesPerRow;
 				o_block_ptr += m_bytesPerRow;
 			}
 
 			o_row_ptr += bytesPerBlockRow;
-			n_row_ptr += bytesPerBlockRow;
 		}
 
 		o_topleft_ptr += m_bytesPerRow * BLOCK_SIZE;
-		n_topleft_ptr += m_bytesPerRow * BLOCK_SIZE;
+		y+=BLOCK_SIZE-1;
+		} else 
+			o_topleft_ptr += m_bytesPerRow;
 	}
 }
 
@@ -354,11 +353,15 @@ vncBuffer::GetNumCodedRects(RECT &rect)
 }
 
 void
-vncBuffer::GrabRect(RECT &rect)
+vncBuffer::GrabRect(RECT &rect, BOOL full_rgn)
 {
 	if (!FastCheckMainbuffer())
 		return;
-	m_desktop->CaptureScreen(rect, m_mainbuff, m_mainsize);
+	
+	if (full_rgn)
+		m_desktop->CaptureScreen(rect, m_mainbuff, m_mainsize, NULL);
+	else
+		m_desktop->CaptureScreen(rect, m_mainbuff, m_mainsize, m_backbuff);
 }
 
 void
@@ -396,8 +399,9 @@ RECT
 vncBuffer::GrabMouse()
 {
 	if (FastCheckMainbuffer()) {
-		m_desktop->CaptureScreen(m_desktop->MouseRect(), m_mainbuff, m_mainsize);
+		m_desktop->CaptureScreen(m_desktop->MouseRect(), m_mainbuff, m_mainsize,m_backbuff);
 		m_desktop->CaptureMouse(m_mainbuff, m_mainsize);
+
 	}
 	return m_desktop->MouseRect();
 }
@@ -664,7 +668,7 @@ vncBuffer::TranslateRect(const RECT &rect, VSocket *outConn, int offsetx, int of
 		return 0;
 
 	// Call the encoder to encode the rectangle into the client buffer...
-	return m_encoder->EncodeRect(m_backbuff, outConn, m_clientbuff, rect, offsetx, offsety);
+	return m_encoder->EncodeRect(m_mainbuff, outConn, m_clientbuff, rect, offsetx, offsety);
 }
 
 // Verify that the fast blit buffer hasn't changed

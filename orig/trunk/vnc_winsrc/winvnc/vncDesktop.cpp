@@ -161,19 +161,26 @@ vncDesktopThread::run_undetached(void *arg)
 	BOOL unhandled;
 	MSG msg;
 	droptime.QuadPart = 0;
-
+	BOOL idle_skip = TRUE;
+	ULONG idle_skip_count = 0;
 
 	while (TRUE)
 	{
 		unhandled = TRUE;
-
-		if (!PeekMessage(&msg, m_desktop->Window(), NULL, NULL, PM_NOREMOVE))
+			
+		if (!PeekMessage(&msg, m_desktop->Window(), NULL, NULL, PM_REMOVE))
 		{
 			// Thread has gone idle.  Now would be a good time to send an update.
 			// First, we must check that the screen hasnt changed too much.
+			if (idle_skip) {
+				idle_skip = FALSE;
+				if (idle_skip_count++ < 4) {
+					Sleep(5);
+					continue;
+				}
+			}
+			idle_skip_count = 0;
 
-			// While we're doing heavy processing, set the thread to normal priority
-			omni_thread::set_priority(omni_thread::PRIORITY_NORMAL);
 
 			// Has the display resolution or desktop changed?
 			if (m_desktop->m_displaychanged || !vncService::InputDesktopSelected())
@@ -249,15 +256,16 @@ vncDesktopThread::run_undetached(void *arg)
 			// Trigger an update to be sent
 			m_server->TriggerUpdate();
 
-			// Increase our priority while we process messages, to avoid "busy" applications
-			// flooding us with messages
-			omni_thread::set_priority(omni_thread::PRIORITY_HIGH);
-		}
 
-		// Now wait on further messages, or quit if told to
-		if (!GetMessage(&msg, m_desktop->Window(), 0,0))
-			break;
+			// Now wait for more messages to be queued
+			if (!WaitMessage()) {
+				vnclog.Print(LL_INTERR, VNCLOG("WaitMessage() failed\n"));
+				break;
+			}
 
+		}	else {
+
+		idle_skip = TRUE;
 		// Now switch, dependent upon the message type recieved
 		if (msg.message == RFB_SCREEN_UPDATE)
 		{
@@ -269,10 +277,8 @@ vncDesktopThread::run_undetached(void *arg)
 			rect.right = (SHORT)LOWORD(msg.lParam);
 			rect.bottom = (SHORT)HIWORD(msg.lParam);
 			
-			if ( IntersectRect(&rect, &rect, &m_server->getSharedRect()) )
-				rgncache.AddRect(rect);
+			rgncache.AddRect(rect);
 
-//			m_server->UpdateRect(rect);
 
 			unhandled = FALSE;
 		}
@@ -282,6 +288,7 @@ vncDesktopThread::run_undetached(void *arg)
 			// Save the cursor ID
 			m_desktop->SetCursor((HCURSOR) msg.wParam);
 			m_desktop->m_cursormoved = TRUE;
+			
 			unhandled = FALSE;
 		}
 		// Blocking remote input events 
@@ -341,7 +348,8 @@ vncDesktopThread::run_undetached(void *arg)
 
 			unhandled = FALSE;
 		}
-
+			if (msg.message == WM_QUIT) 
+				break;
 
 		if (unhandled)
 			DispatchMessage(&msg);
@@ -365,6 +373,9 @@ vncDesktopThread::run_undetached(void *arg)
 		}
 
 	}
+	
+}
+
 
 	m_desktop->SetClipboardActive(FALSE);
 	
@@ -495,7 +506,7 @@ vncDesktop::Startup()
 	// Start a timer to handle Polling Mode.  The timer will cause
 	// an "idle" event once every second, which is necessary if Polling
 	// Mode is being used, to cause TriggerUpdate to be called.
-	m_timerid = SetTimer(m_hwnd, 1, 1000, NULL);
+	m_timerid = SetTimer(m_hwnd, 1, 300, NULL);
 
 	// Get hold of the WindowPos atom!
 	if ((VNC_WINDOWPOS_ATOM = GlobalAddAtom(VNC_WINDOWPOS_ATOMNAME)) == 0) {
@@ -1477,7 +1488,7 @@ vncDesktop::FillDisplayInfo(rfbServerInitMsg *scrinfo)
 // Function to capture an area of the screen immediately prior to sending
 // an update.
 void
-vncDesktop::CaptureScreen(RECT &rect, BYTE *scrBuff, UINT scrBuffSize)
+vncDesktop::CaptureScreen(RECT &rect, BYTE *scrBuff, UINT scrBuffSize, BYTE *invBuff)
 {
 	// Protect the memory bitmap
 	omni_mutex_lock l(m_bitbltlock);
@@ -1491,6 +1502,19 @@ vncDesktop::CaptureScreen(RECT &rect, BYTE *scrBuff, UINT scrBuffSize)
 	HBITMAP oldbitmap;
 	if ((oldbitmap = (HBITMAP) SelectObject(m_hmemdc, m_membitmap)) == NULL)
 		return;
+
+	if (invBuff != NULL)
+	{
+		BOOL blitok;
+		blitok = BitBlt(m_hmemdc, rect.left, rect.top,
+			rect.right - rect.left, rect.bottom - rect.top,
+			m_hrootdc, rect.left, rect.top,	SRCINVERT);
+
+		if (blitok) {
+			// Copy the inversion data to the back buffer 
+			CopyToBuffer(rect, invBuff, scrBuffSize);
+		}
+	}
 
 	// Capture screen into bitmap
 	BOOL blitok;
@@ -1538,6 +1562,7 @@ vncDesktop::CaptureMouse(BYTE *scrBuff, UINT scrBuffSize)
 		if (IconInfo.hbmColor != NULL)
 			DeleteObject(IconInfo.hbmColor);
 	}
+	
 
 	// Select the memory bitmap into the memory DC
 	HBITMAP oldbitmap;
@@ -1563,13 +1588,16 @@ vncDesktop::CaptureMouse(BYTE *scrBuff, UINT scrBuffSize)
 	m_cursorpos.top = CursorPos.y;
 	m_cursorpos.right = CursorPos.x + GetSystemMetrics(SM_CXCURSOR);
 	m_cursorpos.bottom = CursorPos.y + GetSystemMetrics(SM_CYCURSOR);
-
+	
 	// Clip the bounding rect to the screen
 	RECT screen;
-	screen.left=0;
+	screen = m_server->getSharedRect();
+/*	screen.left=0;
 	screen.top=0;
 	screen.right=m_scrinfo.framebufferWidth;
 	screen.bottom=m_scrinfo.framebufferHeight;
+*/
+	//IntersectRect(&m_cursorpos, &m_cursorpos, &screen);
 
 	// Copy the mouse cursor into the screen buffer, if any of it is visible
 	if (IntersectRect(&m_cursorpos, &m_cursorpos, &screen))
@@ -1860,6 +1888,11 @@ DesktopWndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		// Update any palette-based clients, too
 		_this->m_server->UpdatePalette();
 		return 0;
+	case WM_TIMER:
+		if ( wParam == _this->m_timerid )
+			_this->m_server->SetPollingFlag(true);
+		return 0;
+
 
 		// CLIPBOARD MESSAGES
 

@@ -115,7 +115,7 @@ protected:
 	BOOL SendRFBMsg(CARD8 type, BYTE *buffer, int buflen);
 	void CheckRects(vncRegion &rgn, rectlist &rects);
 	void ClearRects(vncRegion &rgn, rectlist &rects);
-	void GrabRegion(vncRegion &rgn);
+	void GrabRegion(vncRegion &rgn, BOOL full_rgn);
 	BOOL SendRectangles(rectlist &rects);
 	BOOL SendRectangle(RECT &rect);
 	BOOL SendCopyRect(RECT &dest, POINT &source);
@@ -187,14 +187,7 @@ protected:
 	RECT			m_qtrscreen;
 	UINT			m_pollingcycle;
 	BOOL			m_remoteevent;
-	// Information used for changing desktop size 
-	CARD32			m_encoding;
-	BOOL			m_DesktopSizeChanged;
-	BOOL			m_ReadyChangeDS;
 	BOOL			m_use_NewFBSize;
-	BOOL			m_use_XCursor;
-	BOOL			m_use_RichCursor;
-	BOOL			m_use_lastrect;
 
 };
 

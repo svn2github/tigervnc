@@ -70,7 +70,7 @@ public:
 	UINT GetNumCodedRects(RECT &rect);
 
 	// SCREEN CAPTURE
-	void GrabRect(RECT &rect);
+	void GrabRect(RECT &rect, BOOL full_rgn);
 	void CopyRect(RECT &dest, POINT &source);
 	RECT GrabMouse();
 	BOOL SetClientFormat(rfbPixelFormat &format);

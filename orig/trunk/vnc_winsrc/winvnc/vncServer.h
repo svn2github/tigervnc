@@ -277,7 +277,8 @@ public:
 	virtual int MouseCounter(){ return m_remote_mouse;};                                 
 	virtual UINT DisableTime() {return m_disable_time;};
 	virtual void SetDisableTime(UINT disabletime) {m_disable_time = disabletime;};                                             
-
+	virtual void SetPollingFlag(BOOL enable) { m_polling_flag = enable;};
+	virtual BOOL GetPollingFlag() { return m_polling_flag;};
 	
 	// Internal stuffs
 protected:
@@ -339,6 +340,7 @@ protected:
 	BOOL				m_local_input_priority;                    
 	INT					m_remote_mouse;              
 	INT					m_remote_keyboard;           
+	BOOL				m_polling_flag;
 	                                                                     
 
 	// Name of this desktop

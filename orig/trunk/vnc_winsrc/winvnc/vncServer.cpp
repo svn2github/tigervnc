@@ -111,6 +111,7 @@ vncServer::vncServer()
 	RECT temp;
 	GetWindowRect(GetDesktopWindow(), &temp);
 	setSharedRect(temp);
+	m_polling_flag = false;
 #ifdef HORIZONLIVE
 	m_full_screen = FALSE;
 	m_WindowShared= TRUE;
@@ -780,6 +781,8 @@ vncServer::UpdateRect(RECT &rect)
 	}
 }
 
+
+
 void
 vncServer::UpdateRegion(vncRegion &region)
 {
@@ -787,6 +790,7 @@ vncServer::UpdateRegion(vncRegion &region)
 	
 	omni_mutex_lock l(m_clientsLock);
 
+		
 	// Post this update to all the connected clients
 	for (i = m_authClients.begin(); i != m_authClients.end(); i++)
 	{

@@ -791,7 +791,8 @@ vncProperties::Load(BOOL usersettings)
 		m_server->SetLoopbackOk(true);
 	else
 		m_server->SetLoopbackOk(LoadInt(hkLocal, "AllowLoopback", false));
-	m_server->SetHttpdEnabled(LoadInt(hkLocal, "EnableHTTPDaemon", true));
+	m_server->SetHttpdEnabled(LoadInt(hkLocal, "EnableHTTPDaemon", true),
+							  LoadInt(hkLocal, "EnableURLParams", false));
 	m_server->SetAuthRequired(LoadInt(hkLocal, "AuthRequired", true));
 	m_server->SetConnectPriority(LoadInt(hkLocal, "ConnectPriority", 2));
 	if (!m_server->LoopbackOnly())

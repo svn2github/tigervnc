@@ -84,6 +84,7 @@ vncServer::vncServer()
 	m_disableTrayIcon = FALSE;
 	m_loopback_allowed = FALSE;
 	m_httpd_enabled = TRUE;
+	m_httpd_params_enabled = FALSE;
 	m_lock_on_exit = 0;
 	m_connect_pri = 0;
 
@@ -983,7 +984,8 @@ vncServer::SockConnect(BOOL On)
 				{
 					// Start up the HTTP server
 					if (!m_httpConn->Init(this,
-					    PORT_TO_DISPLAY(m_port) + HTTP_PORT_OFFSET))
+					    PORT_TO_DISPLAY(m_port) + HTTP_PORT_OFFSET,
+						m_httpd_params_enabled))
 					{
 						delete m_httpConn;
 						m_httpConn = NULL;
@@ -1028,14 +1030,22 @@ vncServer::SockConnected()
 }
 
 BOOL
-vncServer::SetHttpdEnabled(BOOL enable)
+vncServer::SetHttpdEnabled(BOOL enable_httpd, BOOL enable_params)
 {
-	if (enable != m_httpd_enabled)
-	{
-		m_httpd_enabled = enable;
+	if (enable_httpd != m_httpd_enabled) {
+		m_httpd_enabled = enable_httpd;
+		m_httpd_params_enabled = enable_params;
 		BOOL socketConn = SockConnected();
 		SockConnect(FALSE);
 		SockConnect(socketConn);
+	} else {
+		if (enable_params != m_httpd_params_enabled) {
+			m_httpd_params_enabled = enable_params;
+			if (SockConnected()) {
+				SockConnect(FALSE);
+				SockConnect(TRUE);
+			}
+		}
 	}
 	return TRUE;
 }

@@ -283,7 +283,8 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 					_this->m_server->SetConnectPriority(0);
 
 				_this->m_server->SetAuthRequired(IsDlgButtonChecked(hwnd, IDREQUIREAUTH));
-				_this->m_server->SetHttpdEnabled(IsDlgButtonChecked(hwnd, IDENABLEHTTPD));
+				_this->m_server->SetHttpdEnabled(IsDlgButtonChecked(hwnd, IDENABLEHTTPD),
+												 _this->m_server->HttpdParamsEnabled());
 				_this->m_server->SetLoopbackOk(IsDlgButtonChecked(hwnd, IDALLOWLOOPBACK));
 				_this->m_server->SetLoopbackOnly(IsDlgButtonChecked(hwnd, IDONLYLOOPBACK));
 
@@ -488,7 +489,8 @@ vncAdvancedProperties::Load(BOOL usersettings)
 	vnclog.SetLevel(LoadInt(hkLocal, "DebugLevel", 0));
 
 	// Authentication required, httpd enabled, loopback allowed, loopbackOnly
-	m_server->SetHttpdEnabled(LoadInt(hkLocal, "EnableHTTPDaemon", true));
+	m_server->SetHttpdEnabled(LoadInt(hkLocal, "EnableHTTPDaemon", true),
+							  LoadInt(hkLocal, "EnableURLParams", false));
 	m_server->SetLoopbackOnly(LoadInt(hkLocal, "LoopbackOnly", false));
 	if (m_server->LoopbackOnly())
 		m_server->SetLoopbackOk(true);
@@ -690,6 +692,7 @@ vncAdvancedProperties::Save()
 	SaveInt(hkLocal, "DebugLevel", vnclog.GetLevel());
 	SaveInt(hkLocal, "LoopbackOnly", m_server->LoopbackOnly());
 	SaveInt(hkLocal, "EnableHTTPDaemon", m_server->HttpdEnabled());
+	SaveInt(hkLocal, "EnableURLParams", m_server->HttpdParamsEnabled());
 	SaveInt(hkLocal, "AllowLoopback", m_server->LoopbackOk());
 	SaveInt(hkLocal, "AuthRequired", m_server->AuthRequired());
 	RegCloseKey(hkLocal);

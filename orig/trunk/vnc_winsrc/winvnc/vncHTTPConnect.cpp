@@ -107,7 +107,7 @@ class vncHTTPConnectThread : public omni_thread
 {
 public:
 	// Init routine
-	virtual BOOL Init(VSocket *socket, vncServer *server);
+	virtual BOOL Init(VSocket *socket, vncServer *server, BOOL allow_params);
 
 	// Code to be executed by the thread
 	virtual void run(void *arg);
@@ -122,13 +122,16 @@ protected:
 	// Fields used internally
 	vncServer	*m_server;
 	VSocket		*m_socket;
+	BOOL		m_allow_params;
 };
 
 // Method implementations
-BOOL vncHTTPConnectThread::Init(VSocket *socket, vncServer *server)
+BOOL vncHTTPConnectThread::Init(VSocket *socket, vncServer *server,
+								BOOL allow_params)
 {
 	m_server = server;
 	m_socket = socket;
+	m_allow_params = allow_params;
 
 	// Start the thread
 	start();
@@ -195,7 +198,7 @@ void vncHTTPConnectThread::DoHTTP(VSocket *socket)
 	}
 
 	// Switch, dependent upon the filename:
-	if (filename[1] == '\0' || filename[1] == '?')
+	if (filename[1] == '\0' || (m_allow_params && filename[1] == '?'))
 	{
 		char indexpage[2048];
 
@@ -332,7 +335,7 @@ BOOL vncHTTPConnectThread::ParseParams(const char *request,
 	const char *tail = request;
 	for (;;) {
 		// Copy individual "name=value" string into a buffer
-		char *delim_ptr = strchr(tail, '&');
+		char *delim_ptr = strchr((char *)tail, '&');
 		if (delim_ptr == NULL) {
 			if (strlen(tail) >= sizeof(param_request)) {
 				return FALSE;
@@ -442,7 +445,7 @@ class vncHTTPListenThread : public omni_thread
 {
 public:
 	// Init routine
-	virtual BOOL Init(VSocket *socket, vncServer *server);
+	virtual BOOL Init(VSocket *socket, vncServer *server, BOOL allow_params);
 
 	// Code to be executed by the thread
 	virtual void *run_undetached(void * arg);
@@ -453,12 +456,15 @@ public:
 protected:
 	vncServer	*m_server;
 	VSocket		*m_listen_socket;
+	BOOL		m_allow_params;
 };
 
-BOOL vncHTTPListenThread::Init(VSocket *listen_socket, vncServer *server)
+BOOL vncHTTPListenThread::Init(VSocket *listen_socket, vncServer *server,
+							   BOOL allow_params)
 {
 	m_server = server;
 	m_listen_socket = listen_socket;
+	m_allow_params = allow_params;
 
 	// Start the thread
 	m_shutdown = FALSE;
@@ -484,7 +490,8 @@ void *vncHTTPListenThread::run_undetached(void * arg)
 		omni_thread *m_thread = new vncHTTPConnectThread;
 		if (m_thread == NULL)
 			break;
-		((vncHTTPConnectThread *)m_thread)->Init(new_socket, m_server);
+		((vncHTTPConnectThread *)m_thread)->Init(new_socket, m_server,
+												 m_allow_params);
 	}
 
 	vnclog.Print(LL_INTINFO, VNCLOG("quitting HTTP server thread\n"));
@@ -501,7 +508,7 @@ vncHTTPConnect::vncHTTPConnect()
 	m_listen_thread = NULL;
 }
 
-BOOL vncHTTPConnect::Init(vncServer *server, UINT listen_port)
+BOOL vncHTTPConnect::Init(vncServer *server, UINT listen_port, BOOL allow_params)
 {
 	// Save the port number
 	m_listen_port = listen_port;
@@ -524,7 +531,8 @@ BOOL vncHTTPConnect::Init(vncServer *server, UINT listen_port)
 		return FALSE;
 
 	// And start it running
-	return ((vncHTTPListenThread *)m_listen_thread)->Init(&m_listen_socket, server);
+	return ((vncHTTPListenThread *)m_listen_thread)->Init(&m_listen_socket, server,
+														  allow_params);
 }
 
 vncHTTPConnect::~vncHTTPConnect()

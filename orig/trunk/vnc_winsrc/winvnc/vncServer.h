@@ -228,8 +228,9 @@ public:
 	virtual BOOL QueryAllowNoPass() {return m_queryallownopass;};
 
 	// Whether or not to allow incoming HTTP connections
-	virtual BOOL SetHttpdEnabled(BOOL enable);
+	virtual BOOL SetHttpdEnabled(BOOL enable_httpd, BOOL enable_params);
 	virtual BOOL HttpdEnabled() {return m_httpd_enabled;};
+	virtual BOOL HttpdParamsEnabled() {return m_httpd_params_enabled;};
 
 	// Whether or not to allow connections from the local machine
 	virtual void SetLoopbackOk(BOOL ok) {m_loopback_allowed = ok;};
@@ -264,6 +265,7 @@ protected:
 	BOOL				m_passwd_required;
 	BOOL				m_loopback_allowed;
 	BOOL				m_httpd_enabled;
+	BOOL				m_httpd_params_enabled;
 	BOOL				m_loopbackOnly;
 	BOOL				m_disableTrayIcon;
 	char				*m_auth_hosts;

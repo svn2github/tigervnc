@@ -54,7 +54,7 @@ public:
 	~vncHTTPConnect();
 
 	// Init
-	virtual VBool Init(vncServer *server, UINT listen_port);
+	virtual VBool Init(vncServer *server, UINT listen_port, BOOL allow_params);
 
 	// Implementation
 protected:
@@ -66,6 +66,9 @@ protected:
 
 	// The in-coming accept thread
 	omni_thread *m_listen_thread;
+
+	// Allow passing applet parameters in the URL
+	BOOL m_allow_params;
 };
 
 #endif // _WINVNC_VNCHTTPCONNECT

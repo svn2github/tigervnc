@@ -2346,7 +2346,7 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 					hwndafter = GetNextWindow(foreground, GW_HWNDNEXT); 
 				}
 
-				SetWindowPos(hwnd, hwndafter, 0,0,100,100, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+				SetWindowPos(_this->m_hwnd1, hwndafter, 0,0,100,100, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 			}
 			vnclog.Print(6, _T("Losing focus - cancelling modifiers\n"));
 			return 0;

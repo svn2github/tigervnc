@@ -118,6 +118,9 @@ class vncCanvas extends Canvas
 	for (int i = 0; i < rfb.updateNRects; i++) {
 	  rfb.readFramebufferUpdateRectHdr();
 
+	  if (rfb.updateRectEncoding == rfb.EncodingLastRect)
+	    break;
+
 	  if (needToResetClip && (rfb.updateRectEncoding != rfb.EncodingRaw)) {
 	    try {
 	      sg.setClip(0, 0, rfb.framebufferWidth, rfb.framebufferHeight);
@@ -746,7 +749,12 @@ class vncCanvas extends Canvas
     // Ignore cursor shape data if requested by user.
 
     if (v.options.ignoreCursorUpdates) {
-      rfb.is.skipBytes(width * height + bytesMaskData);
+      if (encodingType == rfb.EncodingXCursor) {
+	rfb.is.skipBytes(6 + bytesMaskData * 2);
+      } else {
+	// rfb.EncodingRichCursor
+	rfb.is.skipBytes(width * height + bytesMaskData);
+      }
       return;
     }
 

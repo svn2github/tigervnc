@@ -245,6 +245,8 @@ class optionsFrame extends Frame {
 	choices[cursorUpdatesIndex].getSelectedItem().equals("Ignore");
     }
 
+    encodings[nEncodings++] = rfbProto.EncodingLastRect;
+
     v.setEncodings();
   }
 

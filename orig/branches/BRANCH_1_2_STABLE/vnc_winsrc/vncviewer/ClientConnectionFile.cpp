@@ -99,6 +99,7 @@ void ClientConnection::SaveConnection()
 		buf[0] = '\0';
 	WritePrivateProfileString("connection", "password", buf, fname);
 	m_opts.Save(fname);
+	m_opts.Register();
 }
 
 // returns zero if successful

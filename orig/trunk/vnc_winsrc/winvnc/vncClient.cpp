@@ -133,8 +133,10 @@ vncClientThread::InitVersion()
 	// Check the protocol version
 	int major, minor;
 	sscanf((char *)&protocol_ver, rfbProtocolVersionFormat, &major, &minor);
-	if (major != rfbProtocolMajorVersion)
+	if (major != rfbProtocolMajorVersion) {
+		vnclog.Print(LL_CONNERR, VNCLOG("protocol versions do not match\n"));
 		return FALSE;
+	}
 
 	return TRUE;
 }
@@ -187,6 +189,8 @@ vncClientThread::InitAuthenticate()
 	*/
 
 	if (verified == vncServer::aqrReject) {
+		vnclog.Print(LL_CONNERR, VNCLOG("AuthHosts setting disallows connection - client rejected\n"));
+
 		CARD32 auth_val = Swap32IfLE(rfbConnFailed);
 		char *errmsg = "Your connection has been rejected.";
 		CARD32 errlen = Swap32IfLE(strlen(errmsg));
@@ -401,7 +405,7 @@ vncClientThread::run(void *arg)
 	// IMPORTANT : ALWAYS call RemoveClient on the server before quitting
 	// this thread.
 
-	vnclog.Print(LL_CLIENTS, VNCLOG("client connected : %s (%hd)\n"),
+	vnclog.Print(LL_CLIENTS, VNCLOG("client connected : %s (id %hd)\n"),
 				 m_client->GetClientName(), m_client->GetClientId());
 
 	// Save the handle to the thread's original desktop
@@ -409,7 +413,7 @@ vncClientThread::run(void *arg)
 	
 	// To avoid people connecting and then halting the connection, set a timeout
 	if (!m_socket->SetTimeout(30000))
-		vnclog.Print(LL_INTERR, VNCLOG("failed to set socket timeout(%d)\n"), GetLastError());
+		vnclog.Print(LL_INTERR, VNCLOG("failed to set socket timeout, error = %d\n"), GetLastError());
 
 	// Initially blacklist the client so that excess connections from it get dropped
 	m_server->AddAuthHostsBlacklist(m_client->GetClientName());
@@ -424,7 +428,7 @@ vncClientThread::run(void *arg)
 		m_server->RemoveClient(m_client->GetClientId());
 		return;
 	}
-	vnclog.Print(LL_INTINFO, VNCLOG("negotiated version\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("negotiated protocol version\n"));
 
 	// AUTHENTICATE LINK
 	if (!InitAuthenticate())
@@ -854,7 +858,7 @@ vncClientThread::run(void *arg)
 
 	// Quit this thread.  This will automatically delete the thread and the
 	// associated client.
-	vnclog.Print(LL_CLIENTS, VNCLOG("client disconnected : %s (%hd)\n"),
+	vnclog.Print(LL_CLIENTS, VNCLOG("client disconnected : %s (id %hd)\n"),
 				 m_client->GetClientName(), m_client->GetClientId());
 
 	// Remove the client from the server, just in case!

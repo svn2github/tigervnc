@@ -51,7 +51,8 @@ rfbInitColourMapSingleTableOUT (char **table,
 	if (GetSystemPaletteEntries(hDC,
 		0, 256, palette) == 0)
 	{
-		vnclog.Print(LL_INTERR, VNCLOG("failed to get system palette (%d)\n"), GetLastError());
+		vnclog.Print(LL_INTERR, VNCLOG("failed to get system palette, error = %d\n"),
+					 GetLastError());
 		ReleaseDC(NULL, hDC);
 		return;
 	}

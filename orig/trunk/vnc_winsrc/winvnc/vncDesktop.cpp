@@ -153,12 +153,15 @@ vncDesktopThread::run_undetached(void *arg)
 			// Has the display resolution or desktop changed?
 			if (m_desktop->m_displaychanged || !vncService::InputDesktopSelected())
 			{
+				vnclog.Print(LL_STATE, VNCLOG("display resolution or desktop changed.\n"));
+
 				rfbServerInitMsg oldscrinfo = m_desktop->m_scrinfo;
 				m_desktop->m_displaychanged = FALSE;
 
 				// Attempt to close the old hooks
 				if (!m_desktop->Shutdown())
 				{
+					vnclog.Print(LL_INTERR, VNCLOG("failed to close desktop server.\n"));
 					m_server->KillAuthClients();
 					break;
 				}
@@ -166,6 +169,7 @@ vncDesktopThread::run_undetached(void *arg)
 				// Now attempt to re-install them!
 				if (!m_desktop->Startup())
 				{
+					vnclog.Print(LL_INTERR, VNCLOG("failed to re-start desktop server.\n"));
 					m_server->KillAuthClients();
 					break;
 				}
@@ -183,6 +187,7 @@ vncDesktopThread::run_undetached(void *arg)
 							 m_desktop->m_scrinfo.format.bitsPerPixel);
 				if (memcmp(&m_desktop->m_scrinfo, &oldscrinfo, sizeof(oldscrinfo)) != 0)
 				{
+					vnclog.Print(LL_CONNERR, VNCLOG("screen format has changed - disconnecting clients.\n"));
 					m_server->KillAuthClients();
 					break;
 				}
@@ -300,7 +305,7 @@ vncDesktop::vncDesktop()
 
 vncDesktop::~vncDesktop()
 {
-	vnclog.Print(LL_INTINFO, VNCLOG("killing screen server\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("killing desktop server\n"));
 
 	// If we created a thread then here we delete it
 	// The thread itself does most of the cleanup
@@ -374,8 +379,10 @@ vncDesktop::Startup()
 	m_timerid = SetTimer(m_hwnd, 1, 1000, NULL);
 
 	// Get hold of the WindowPos atom!
-	if ((VNC_WINDOWPOS_ATOM = GlobalAddAtom(VNC_WINDOWPOS_ATOMNAME)) == 0)
+	if ((VNC_WINDOWPOS_ATOM = GlobalAddAtom(VNC_WINDOWPOS_ATOMNAME)) == 0) {
+		vnclog.Print(LL_INTERR, VNCLOG("GlobalAddAtom() failed.\n"));
 		return FALSE;
+	}
 
 	// Everything is ok, so return TRUE
 	return TRUE;
@@ -888,24 +895,29 @@ vncDesktop::InitBitmap()
 {
 	// Get the device context for the whole screen and find it's size
 	m_hrootdc = ::GetDC(NULL);
-	if (m_hrootdc == NULL)
+	if (m_hrootdc == NULL) {
+		vnclog.Print(LL_INTERR, VNCLOG("GetDC() failed, error = %d\n"), GetLastError());
 		return FALSE;
+	}
 
 	m_bmrect.left = m_bmrect.top = 0;
 	m_bmrect.right = GetDeviceCaps(m_hrootdc, HORZRES);
 	m_bmrect.bottom = GetDeviceCaps(m_hrootdc, VERTRES);
-	vnclog.Print(LL_INTINFO, VNCLOG("bitmap dimensions are %d x %d\n"), m_bmrect.right, m_bmrect.bottom);
+	vnclog.Print(LL_INTINFO, VNCLOG("bitmap dimensions are %d x %d\n"),
+				 m_bmrect.right, m_bmrect.bottom);
 
 	// Create a compatible memory DC
 	m_hmemdc = CreateCompatibleDC(m_hrootdc);
 	if (m_hmemdc == NULL) {
-		vnclog.Print(LL_INTERR, VNCLOG("failed to create compatibleDC(%d)\n"), GetLastError());
+		vnclog.Print(LL_INTERR, VNCLOG("CreateCompatibleDC() failed, error = %d\n"),
+					 GetLastError());
 		return FALSE;
 	}
 
 	// Check that the device capabilities are ok
 	if ((GetDeviceCaps(m_hrootdc, RASTERCAPS) & RC_BITBLT) == 0)
 	{
+		vnclog.Print(LL_INTERR, VNCLOG("BitBlt() is not supported\n"));
 		MessageBox(
 			NULL,
 			"vncDesktop : root device doesn't support BitBlt\n"
@@ -917,6 +929,7 @@ vncDesktop::InitBitmap()
 	}
 	if ((GetDeviceCaps(m_hmemdc, RASTERCAPS) & RC_DI_BITMAP) == 0)
 	{
+		vnclog.Print(LL_INTERR, VNCLOG("GetDIBits() is not supported\n"));
 		MessageBox(
 			NULL,
 			"vncDesktop : memory device doesn't support GetDIBits\n"
@@ -930,21 +943,23 @@ vncDesktop::InitBitmap()
 	// Create the bitmap to be compatible with the ROOT DC!!!
 	m_membitmap = CreateCompatibleBitmap(m_hrootdc, m_bmrect.right, m_bmrect.bottom);
 	if (m_membitmap == NULL) {
-		vnclog.Print(LL_INTERR, VNCLOG("failed to create memory bitmap(%d)\n"), GetLastError());
+		vnclog.Print(LL_INTERR, VNCLOG("failed to create memory bitmap, error = %d\n"),
+					 GetLastError());
 		return FALSE;
 	}
 	vnclog.Print(LL_INTINFO, VNCLOG("created memory bitmap\n"));
 
 	// Get the bitmap's format and colour details
-	int result;
 	m_bminfo.bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 	m_bminfo.bmi.bmiHeader.biBitCount = 0;
-	result = ::GetDIBits(m_hmemdc, m_membitmap, 0, 1, NULL, &m_bminfo.bmi, DIB_RGB_COLORS);
-	if (result == 0) {
+	if (::GetDIBits(m_hmemdc, m_membitmap, 0, 1, NULL,
+					&m_bminfo.bmi, DIB_RGB_COLORS) == 0) {
+		vnclog.Print(LL_INTERR, VNCLOG("GetDIBits() failed, call #1\n"));
 		return FALSE;
 	}
-	result = ::GetDIBits(m_hmemdc, m_membitmap, 0, 1, NULL, &m_bminfo.bmi, DIB_RGB_COLORS);
-	if (result == 0) {
+	if (::GetDIBits(m_hmemdc, m_membitmap, 0, 1, NULL,
+					&m_bminfo.bmi, DIB_RGB_COLORS) == 0) {
+		vnclog.Print(LL_INTERR, VNCLOG("GetDIBits() failed, call #2\n"));
 		return FALSE;
 	}
 	vnclog.Print(LL_INTINFO, VNCLOG("got bitmap format\n"));
@@ -952,6 +967,7 @@ vncDesktop::InitBitmap()
 	vnclog.Print(LL_INTINFO, VNCLOG("DBG:memory context has %d planes!\n"), GetDeviceCaps(m_hmemdc, PLANES));
 	if (GetDeviceCaps(m_hmemdc, PLANES) != 1)
 	{
+		vnclog.Print(LL_INTERR, VNCLOG("number of planes in memory context is more than 1\n"));
 		MessageBox(
 			NULL,
 			"vncDesktop : current display is PLANAR, not CHUNKY!\n"
@@ -974,7 +990,7 @@ vncDesktop::InitBitmap()
 BOOL
 vncDesktop::ThunkBitmapInfo()
 {
-	// If we leave the pixel format intact, the blist can be optimised (Will Dean's patch)
+	// If we leave the pixel format intact, the blits can be optimised (Will Dean's patch)
 	m_formatmunged = FALSE;
 
 	// HACK ***.  Optimised blits don't work with palette-based displays, yet
@@ -1100,9 +1116,10 @@ vncDesktop::SetPixShifts()
 		// Other pixel formats are only valid if they're palette-based
 		if (m_bminfo.truecolour)
 		{
-			vnclog.Print(LL_INTERR, "unsupported truecolour pixel format for setpixshifts\n");
+			vnclog.Print(LL_INTERR, "unsupported truecolour pixel format for SetPixShifts()\n");
 			return FALSE;
 		}
+		vnclog.Print(LL_INTINFO, VNCLOG("DBG:palette-based desktop in SetPixShifts()\n"));
 		return TRUE;
 	}
 
@@ -1111,6 +1128,7 @@ vncDesktop::SetPixShifts()
 	MaskToMaxAndShift(greenMask, m_scrinfo.format.greenMax, m_scrinfo.format.greenShift);
 	MaskToMaxAndShift(blueMask, m_scrinfo.format.blueMax, m_scrinfo.format.blueShift);
 
+	vnclog.Print(LL_INTINFO, VNCLOG("DBG:true-color desktop in SetPixShifts()\n"));
 	return TRUE;
 }
 
@@ -1125,17 +1143,19 @@ vncDesktop::SetPalette()
 		UINT size = sizeof(LOGPALETTE) + (sizeof(PALETTEENTRY) * 256);
 
 		palette = (LOGPALETTE *) new char[size];
-		if (palette == NULL)
+		if (palette == NULL) {
+			vnclog.Print(LL_INTERR, VNCLOG("error allocating palette\n"));
 			return FALSE;
+		}
 
 		// Initialise the structure
 		palette->palVersion = 0x300;
 		palette->palNumEntries = 256;
 
 		// Get the system colours
-		if (GetSystemPaletteEntries(m_hrootdc,
-			0, 256, palette->palPalEntry) == 0)
+		if (GetSystemPaletteEntries(m_hrootdc, 0, 256, palette->palPalEntry) == 0)
 		{
+			vnclog.Print(LL_INTERR, VNCLOG("GetSystemPaletteEntries() failed.\n"));
 			delete [] palette;
 			return FALSE;
 		}
@@ -1144,6 +1164,7 @@ vncDesktop::SetPalette()
 		HPALETTE pal = CreatePalette(palette);
 		if (pal == NULL)
 		{
+			vnclog.Print(LL_INTERR, VNCLOG("CreatePalette() failed.\n"));
 			delete [] palette;
 			return FALSE;
 		}
@@ -1152,6 +1173,7 @@ vncDesktop::SetPalette()
 		HPALETTE oldpalette = SelectPalette(m_hmemdc, pal, FALSE);
 		if (oldpalette == NULL)
 		{
+			vnclog.Print(LL_INTERR, VNCLOG("SelectPalette() failed.\n"));
 			delete [] palette;
 			DeleteObject(pal);
 			return FALSE;
@@ -1165,12 +1187,12 @@ vncDesktop::SetPalette()
 		delete [] palette;
 		DeleteObject(oldpalette);
 
-		vnclog.Print(LL_INTERR, VNCLOG("initialised palette OK\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("initialised palette OK\n"));
 		return TRUE;
 	}
 
 	// Not a palette based local screen - forget it!
-	vnclog.Print(LL_INTERR, VNCLOG("no palette data for truecolour display\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("no palette data for truecolour display\n"));
 	return TRUE;
 }
 
@@ -1214,8 +1236,10 @@ vncDesktop::InitWindow()
 				hAppInstance,
 				NULL);
 
-	if (m_hwnd == NULL)
+	if (m_hwnd == NULL) {
+		vnclog.Print(LL_INTERR, VNCLOG("CreateWindow() failed.\n"));
 		return FALSE;
+	}
 
 	// Set the "this" pointer for the window
 	SetWindowLong(m_hwnd, GWL_USERDATA, (long)this);
@@ -1278,7 +1302,7 @@ vncDesktop::EnableOptimisedBlits()
 	// Create a new DIB section ***
 	HBITMAP tempbitmap = CreateDIBSection(m_hmemdc, &m_bminfo.bmi, DIB_RGB_COLORS, &m_DIBbits, NULL, 0);
 	if (tempbitmap == NULL) {
-		vnclog.Print(LL_INTINFO, VNCLOG("failed to build DIB section - reverting to slow blits\n"));
+		vnclog.Print(LL_INTWARN, VNCLOG("failed to build DIB section - reverting to slow blits\n"));
 		m_DIBbits = NULL;
 		return;
 	}
@@ -1298,7 +1322,7 @@ vncDesktop::EnableOptimisedBlits()
 BOOL
 vncDesktop::Init(vncServer *server)
 {
-	vnclog.Print(LL_INTINFO, VNCLOG("initialising desktop handler\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("initialising desktop server\n"));
 
 	// Save the server pointer
 	m_server = server;

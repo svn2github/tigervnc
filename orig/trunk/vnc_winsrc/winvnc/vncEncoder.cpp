@@ -263,7 +263,7 @@ vncEncoder::GetRemotePalette(RGBQUAD *quadlist, UINT ncolours)
 BOOL
 vncEncoder::SetTranslateFunction()
 {
-	vnclog.Print(LL_INTINFO, VNCLOG("settranslatefunction called\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("SetTranslateFunction called\n"));
 
 	// By default, the actual format translated to matches the client format
 	m_transformat = m_remoteformat;
@@ -281,7 +281,7 @@ vncEncoder::SetTranslateFunction()
 
 		return FALSE;
     }
-	
+
     if ((m_localformat.bitsPerPixel != 8) &&
 		(m_localformat.bitsPerPixel != 16) &&
 		(m_localformat.bitsPerPixel != 32))
@@ -410,6 +410,11 @@ vncEncoder::SetLocalFormat(rfbPixelFormat &pixformat, int width, int height)
 
 	// Save the pixel format
 	m_localformat = pixformat;
+
+	// Don't call SetTranslateFunction() if remote format is not set yet.
+	if (m_remoteformat.depth == 0)
+		return TRUE;
+
 	return SetTranslateFunction();
 }
 

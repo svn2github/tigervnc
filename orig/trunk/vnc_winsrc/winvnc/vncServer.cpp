@@ -199,6 +199,7 @@ vncServer::AddClient(VSocket *socket, BOOL auth, BOOL shared,
 		clientid = (clientid+1) % MAX_CLIENTS;
 		if (clientid == m_nextid)
 		{
+			vnclog.Print(LL_CONNERR, VNCLOG("too many clients already connected\n"));
 			delete socket;
 			return -1;
 		}
@@ -208,6 +209,7 @@ vncServer::AddClient(VSocket *socket, BOOL auth, BOOL shared,
 	// Create a new client and add it to the relevant client list
 	client = new vncClient();
 	if (client == NULL) {
+		vnclog.Print(LL_CONNERR, VNCLOG("failed to allocate client object\n"));
 		delete socket;
 		return -1;
 	}
@@ -222,7 +224,7 @@ vncServer::AddClient(VSocket *socket, BOOL auth, BOOL shared,
 	if (!client->Init(this, socket, auth, shared, clientid))
 	{
 		// The client will delete the socket for us...
-		vnclog.Print(LL_CONNERR, VNCLOG("failed to initialise client object\n"));
+		vnclog.Print(LL_CONNERR, VNCLOG("failed to initialize client object\n"));
 		delete client;
 		return -1;
 	}
@@ -266,12 +268,15 @@ vncServer::Authenticated(vncClientId clientid)
 				m_desktop = new vncDesktop();
 				if (m_desktop == NULL)
 				{
+					vnclog.Print(LL_CONNERR, VNCLOG("failed to allocate desktop object\n"));
 					client->Kill();
 					authok = FALSE;
 					break;
 				}
 				if (!m_desktop->Init(this))
 				{
+					vnclog.Print(LL_CONNERR, VNCLOG("failed to initialize desktop object\n"));
+
 					client->Kill();
 					authok = FALSE;
 
@@ -286,6 +291,7 @@ vncServer::Authenticated(vncClientId clientid)
 			vncBuffer *buffer = new vncBuffer(m_desktop);
 			if (buffer == NULL)
 			{
+				vnclog.Print(LL_CONNERR, VNCLOG("failed to allocate buffer object\n"));
 				client->Kill();
 				authok = FALSE;
 				break;

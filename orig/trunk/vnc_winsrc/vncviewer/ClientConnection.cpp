@@ -278,6 +278,7 @@ void ClientConnection::Run()
 	SetSocketOptions();
 
 	NegotiateProtocolVersion();
+
 	PerformAuthentication();
 
 	// Set up windows etc 
@@ -294,8 +295,11 @@ void ClientConnection::Run()
 		m_enableFileTransfers = m_clientMsgCaps.IsEnabled(rfbFileListRequest);
 	}
 
-	delete m_connDlg;
-	m_connDlg = NULL;
+	// Close the "Connecting..." dialog box if not closed yet.
+	if (m_connDlg != NULL) {
+		delete m_connDlg;
+		m_connDlg = NULL;
+	}
 
 	EnableFullControlOptions();
 
@@ -1013,6 +1017,15 @@ typedef bool (ClientConnection::*AuthFunc)(char *, int, bool *);
 void ClientConnection::Authenticate(CARD32 authScheme)
 {
 	AuthFunc authFuncPtr;
+
+	// Uncomment this if the "Connecting..." dialog box should be
+	// closed prior to authentication.
+	/***
+	if (m_connDlg != NULL) {
+		delete m_connDlg;
+		m_connDlg = NULL;
+	}
+	***/
 
 	switch(authScheme) {
 	case rfbAuthVNC:

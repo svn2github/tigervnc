@@ -39,36 +39,41 @@ public:
 	void Close();
 
 private:
-	void ShowStatus(const char *msg);
 	static LRESULT CALLBACK DlgProc(HWND hwnd, UINT uMsg,
 									WPARAM wParam, LPARAM lParam);
 	HINSTANCE m_hInst;
-	HWND m_hwnd;
 	char *m_vnchost;
-	char *m_status;
-	omni_mutex m_mutex;
+
+	// NOTE: These two fields change during thread execution.
+	bool m_started;
+	HWND m_hwnd;
 };
 
 void
 ConnDialogThread::Init(HINSTANCE hInst, const char *vnchost)
 {
 	m_hInst = hInst;
-	m_hwnd = NULL;
 	if (vnchost != NULL) {
 		m_vnchost = strdup(vnchost);
 	} else {
 		m_vnchost = NULL;
 	}
-	m_status = NULL;
+
+	m_started = false;
+	m_hwnd = NULL;
+
+	// Start execution of the new thread
 	start_undetached();
+
+	// Wait for the dialog box to be displayed
+	while (!m_started)
+		sleep(0, 50000000);
 }
 
 ConnDialogThread::~ConnDialogThread()
 {
 	if (m_vnchost != NULL)
 		free(m_vnchost);
-	if (m_status != NULL)
-		free(m_status);
 }
 
 void *
@@ -76,20 +81,16 @@ ConnDialogThread::run_undetached(void *)
 {
 	DialogBoxParam(m_hInst, MAKEINTRESOURCE(IDD_CONNECTING_DIALOG),
 				   NULL, (DLGPROC)DlgProc, (LPARAM)this);
-	m_hwnd = NULL;
 	return NULL;
 }
 
 void
 ConnDialogThread::SetStatus(const char *msg)
 {
-	omni_mutex_lock l(m_mutex);
 	if (m_hwnd != NULL) {
-		ShowStatus(msg);
-	} else {
-		if (m_status != NULL)
-			free(m_status);
-		m_status = strdup(msg);
+		char buf[256];
+		sprintf(buf, "Status: %.240s.", msg);
+		SetDlgItemText(m_hwnd, IDC_STATUS_STATIC, buf);
 	}
 }
 
@@ -97,23 +98,11 @@ void
 ConnDialogThread::Close()
 {
 	if (m_hwnd != NULL)
-		SendMessage(m_hwnd, WM_CLOSE, 0, 0);
+		PostMessage(m_hwnd, WM_CLOSE, 0, 0);
 	try {
 		void *p;
 		join(&p);
 	} catch (omni_thread_invalid) {}
-}
-
-void
-ConnDialogThread::ShowStatus(const char *msg)
-{
-	char buf[256];
-	sprintf(buf, "Status: %.240s.", msg);
-	SetDlgItemText(m_hwnd, IDC_STATUS_STATIC, buf);
-	if (m_status != NULL) {
-		free(m_status);
-		m_status = NULL;
-	}
 }
 
 LRESULT CALLBACK
@@ -126,14 +115,8 @@ ConnDialogThread::DlgProc(HWND hwnd, UINT uMsg,
 	switch (uMsg) {
 	case WM_INITDIALOG:
 		SetWindowLong(hwnd, GWL_USERDATA, lParam);
-		SetForegroundWindow(hwnd);
 		_this = (ConnDialogThread *)lParam;
-		{
-			omni_mutex_lock l(_this->m_mutex);
-			_this->m_hwnd = hwnd;
-			if (_this->m_status != NULL)
-				_this->ShowStatus(_this->m_status);
-		}
+		_this->m_hwnd = hwnd;
 		if (_this->m_vnchost != NULL) {
 			char buf[256];
 			if (_this->m_vnchost[0] != '\0') {
@@ -143,18 +126,25 @@ ConnDialogThread::DlgProc(HWND hwnd, UINT uMsg,
 			}
 			SetDlgItemText(hwnd, IDC_CONNECTING_STATIC, buf);
 		}
+		SetForegroundWindow(hwnd);
+		_this->m_started = true;
 		return TRUE;
+
 	case WM_COMMAND:
 		switch (LOWORD(wParam)) {
 		case IDCLOSE:
+			_this->m_hwnd = NULL;
 			EndDialog(hwnd, IDCLOSE);
 			return TRUE;
 		}
 		break;
+
 	case WM_CLOSE:
+		_this->m_hwnd = NULL;
 		EndDialog(hwnd, IDCLOSE);
 		return TRUE;
 	}
+
 	return FALSE;
 }
 

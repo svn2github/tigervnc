@@ -1525,6 +1525,7 @@ vncClient::vncClient()
 
 	// IMPORTANT: Initially, client is not protocol-ready.
 	m_protocol_ready = FALSE;
+	m_fb_size_changed = FALSE;
 	
 	m_use_NewFBSize = FALSE;
 	
@@ -1832,6 +1833,12 @@ vncClient::SendRFBMsg(CARD8 type, BYTE *buffer, int buflen)
 BOOL
 vncClient::SendUpdate()
 {
+	// First, check if we need to send pending NewFBSize message
+	if (m_use_NewFBSize && m_fb_size_changed) {
+		SetNewFBSize(TRUE);
+		return TRUE;
+	}
+
 	vncRegion toBeSent;			// Region to actually be sent
 	rectlist toBeSentList;		// List of rectangles to actually send
 	vncRegion toBeDone;			// Region to check
@@ -1972,8 +1979,6 @@ vncClient::SendUpdate()
 	_ASSERT(toBeSentList.empty());
 
 	return TRUE;
-	
-
 }
 
 // Send a set of rectangles
@@ -2157,9 +2162,12 @@ vncClient::SetNewFBSize(BOOL sendnewfb)
 	m_full_rgn.Clear();
 	m_incr_rgn.Clear();
 	m_full_rgn.AddRect(SharedRect);
-	
-		
-	if (m_use_NewFBSize && sendnewfb) {
+
+	if (!m_use_NewFBSize) {
+		// We cannot send NewFBSize message right now, maybe later
+		m_fb_size_changed = TRUE;
+
+	} else if (sendnewfb) {
 		hdr.r.x = 0;
 		hdr.r.y = 0;
 		hdr.r.w = Swap16IfLE(SharedRect.right - SharedRect.left);
@@ -2172,9 +2180,12 @@ vncClient::SetNewFBSize(BOOL sendnewfb)
 						sz_rfbFramebufferUpdateMsg))
 			return FALSE;
 
-		// Now send the message;
+		// Now send the message
 		if (!m_socket->SendQueued((char *)&hdr, sizeof(hdr)))
 			return FALSE;
+
+		// No pending NewFBSize anymore
+		m_fb_size_changed = FALSE;
 	}
 
 	return TRUE;

@@ -149,6 +149,10 @@ protected:
 	// Flag to indicate whether the client is ready for RFB messages
 	BOOL			m_protocol_ready;
 
+	// Flag to indicate that our framebuffer size has changed before
+	// the client has told that it supports NewFBSize message
+	BOOL			m_fb_size_changed;
+
 	// User input information
 	RECT			m_oldmousepos;
 	BOOL			m_mousemoved;

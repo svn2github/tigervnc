@@ -34,6 +34,7 @@
 class FileInfoEx  
 {
 public:
+	void add(FileInfoEx *pFIEx);
 	void add(char *pLocPath, char*pRemPath, FileInfo *pFI, unsigned int flags);
 	void add(char *pLocPath, char *pRemPath, char *pLocName, char *pRemName,
 			 unsigned int size, unsigned int data, unsigned int flags);

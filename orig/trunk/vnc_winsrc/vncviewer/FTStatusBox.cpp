@@ -73,13 +73,15 @@ FTStatusBox::setStatusText(LPCSTR format,...)
 	return setText(text);
 }
 
+/*
 bool 
-FTStatusBox::makeStatusText(char *prefix, char *path1, char *path2, char *name)
+FTStatusBox::makeStatusText(char *prefix, char *path1, char *path2, char *name1, char *name2)
 {
-	int length = strlen(prefix) + strlen(path1) + strlen(path2) + 2 * strlen(name) + 7;
+	int length = strlen(prefix) + strlen(path1) + strlen(path2) + strlen(name1) + strlen(name2) + 7;
 	if (length > 120) {
 		char buf[MAX_PATH];
-		char _name[MAX_PATH]; strcpy(_name, name);
+		char _name1[MAX_PATH]; strcpy(_name1, name1);
+		char _name2[MAX_PATH]; strcpy(_name2, name2);
 		char _path1[MAX_PATH]; strcpy(_path1, path1);
 		char _path2[MAX_PATH]; strcpy(_path2, path2);
 		strcpy(buf, name);
@@ -109,11 +111,65 @@ FTStatusBox::makeStatusText(char *prefix, char *path1, char *path2, char *name)
 				buf[j] = path[i];
 				buf[j + 1] = '\0';
 			}
-			length = strlen(prefix) + strlen(_path1) + strlen(_path2) + 2 * strlen(_name) + 13;
+			length = strlen(prefix) + strlen(path1) + strlen(path2) + strlen(name1) + strlen(name2) + 13;
 			if ((strlen(_path1) < 7) && (strlen(_path2) < 7)) break;
 		} while(length > 120);
 		return setStatusText("%s %s\\%s to %s\\%s", prefix, _path1, _name, _path2, _name);
 	} else {
 		return setStatusText("%s %s\\%s to %s\\%s", prefix, path1, name, path2, name);
+	}
+}
+*/
+
+bool 
+FTStatusBox::makeStatusText(char *pPrefix, char *pPath1, char *pPath2, char *pName1, char *pName2)
+{
+	int len = strlen(pPrefix) + strlen(pPath1) + strlen(pPath2) + strlen(pName1) + strlen(pName2);
+	if (len >= FT_MAX_LENGTH_STATUS_STRINGS) {
+		char _path1[MAX_PATH]; strcpy(_path1, pPath1);
+		char _path2[MAX_PATH]; strcpy(_path2, pPath2);
+		char *pPath;
+
+		do {
+			if (strlen(_path1) > strlen(_path2)) pPath = _path1; else pPath = _path2;
+			for (int i = strlen(pPath) - 2; i > 0; i--) {
+				if ((pPath[i] == '\\') && (strcmp(&pPath[i + 1], delimeter) != 0)) {
+					pPath[i + 1] = '\0';
+					strcat(pPath, delimeter);
+					break;
+				}
+			}
+			if (strlen(pPath) < 7) break;
+			len = strlen(pPrefix) + strlen(_path1) + strlen(_path2) + 
+				  strlen(pName1) + strlen(pName2) + strlen(delimeter);
+		} while (len > FT_MAX_LENGTH_STATUS_STRINGS);
+
+		return setStatusText("%s %s\\%s to %s\\%s", pPrefix, _path1, pName1, _path2, pName2);
+	} else {
+		return setStatusText("%s %s\\%s to %s\\%s", pPrefix, pPath1, pName1, pPath2, pName2);
+	}
+}
+
+bool 
+FTStatusBox::makeStatusText(char *pPrefix, char *pPath, char *pName)
+{
+	int len = strlen(pPrefix) + strlen(pPath) + strlen(pName);
+	if (len >= FT_MAX_LENGTH_STATUS_STRINGS) {
+		char _path[MAX_PATH]; strcpy(_path, pPath);
+		do {
+			for (int i = strlen(_path) - 2; i > 0; i--) {
+				if ((_path[i] == '\\') && (strcmp(&_path[i + 1], delimeter) != 0)) {
+					_path[i + 1] = '\0';
+					strcat(_path, delimeter);
+					break;
+				}
+			}
+			if (strlen(_path) < 7) break;
+			len = strlen(pPrefix) + strlen(_path) + strlen(pName) + strlen(delimeter);
+		} while (len > FT_MAX_LENGTH_STATUS_STRINGS);
+
+		return setStatusText("%s %s\\%s", pPrefix, _path, pName);
+	} else {
+		return setStatusText("%s %s\\%s", pPrefix, pPath, pName);
 	}
 }

@@ -36,7 +36,8 @@ public:
 
 	bool setText(char *pText);
 	bool setStatusText(LPCSTR format,...);
-	bool makeStatusText(char *prefix, char *path1, char *path2, char *name);
+	bool makeStatusText(char *pPrefix, char *pPath, char *pName);
+	bool makeStatusText(char *pPrefix, char *pPath1, char *pPath2, char *pName1, char *pName2);
 
 private:
 	HWND m_hStatusBox;

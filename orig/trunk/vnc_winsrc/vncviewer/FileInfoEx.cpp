@@ -50,6 +50,15 @@ FileInfoEx::~FileInfoEx()
 }
 
 void
+FileInfoEx::add(FileInfoEx *pFIEx)
+{
+	for (unsigned int i = 0; i < pFIEx->getNumEntries(); i++) {
+		add(pFIEx->getLocPathAt(i), pFIEx->getRemPathAt(i),	pFIEx->getLocNameAt(i), 
+			pFIEx->getRemNameAt(i), pFIEx->getSizeAt(i), pFIEx->getDataAt(i), pFIEx->getFlagsAt(i));
+	}
+}
+
+void
 FileInfoEx::add(char *pLocPath, char *pRemPath, FileInfo *pFI, unsigned int flags)
 {
 	char locPath[MAX_PATH];

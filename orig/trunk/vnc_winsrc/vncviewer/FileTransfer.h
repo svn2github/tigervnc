@@ -91,7 +91,6 @@ public:
 	void uploadFilePortion();
 
 	void downloadFile();
-	void downloadFilePortion();
 
 	void closeUndoneTransfer();
 

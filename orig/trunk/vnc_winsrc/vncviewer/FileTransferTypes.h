@@ -71,7 +71,8 @@
 #define FT_ID_MYNETHOOD   5
 
 
-#define FT_MAX_STATUS_STRINGS 255
+#define FT_MAX_STATUS_STRINGS		 255
+#define FT_MAX_LENGTH_STATUS_STRINGS 130
 
 typedef struct tagSIZEDATAINFO
 {

@@ -31,6 +31,21 @@
 #include "FileInfoEx.h"
 #include "FileTransferDialog.h"
 
+DWORD NumWritten;
+HANDLE hLogFile = CreateFile("e:\\vnc2.log", GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+
+void 
+qw(LPCSTR format,...)
+{
+	char text[1024];
+	va_list args;
+	va_start(args, format);
+	int nSize = _vsnprintf(text, sizeof(text), format, args);
+	strcat(text, "\n");
+	nSize = strlen(text);
+	WriteFile(hLogFile, text, nSize, &NumWritten, NULL);
+}
+
 FileTransfer::FileTransfer(ClientConnection * pCC, VNCviewerApp * pApp)
 {
 	m_pCC = pCC;
@@ -127,9 +142,15 @@ void
 FileTransfer::uploadFile()
 {
 	char *pPath = m_fileTransferInfoEx.getFullRemPathAt(0);
-	m_pFileTransferDlg->m_pStatusBox->setStatusText("Upload Started: %s", pPath);
+
+	m_pFileTransferDlg->m_pStatusBox->makeStatusText("Upload Started:", 
+													 m_fileTransferInfoEx.getLocPathAt(0),
+													 m_fileTransferInfoEx.getRemPathAt(0),
+													 m_fileTransferInfoEx.getLocNameAt(0),
+													 m_fileTransferInfoEx.getRemNameAt(0));
+
 	if (!m_fileReader.open(m_fileTransferInfoEx.getFullLocPathAt(0))) {
-		m_pFileTransferDlg->m_pStatusBox->setStatusText("Upload Failed: %s", pPath);
+		m_pFileTransferDlg->m_pStatusBox->setStatusText("Upload Failed");
 		m_fileTransferInfoEx.deleteAt(0);
 		PostMessage(m_pCC->m_hwnd, (UINT) WM_FT_CHECKTRANSFERQUEUE, (WPARAM) 0, (LPARAM) 0);
 		return;
@@ -158,7 +179,7 @@ FileTransfer::uploadFilePortion()
 				sendFileUploadDataMsg(mTime);
 				m_fileReader.close();
 				m_bUpload = false;
-				m_pFileTransferDlg->m_pStatusBox->setStatusText("Upload Completed: %s", m_fileTransferInfoEx.getFullRemPathAt(0));
+				m_pFileTransferDlg->m_pStatusBox->setStatusText("Upload Completed");
 				m_fileTransferInfoEx.deleteAt(0);
 				PostMessage(m_pCC->m_hwnd, (UINT) WM_FT_CHECKTRANSFERQUEUE, (WPARAM) 0, (LPARAM) 0);
 				return;
@@ -170,11 +191,12 @@ FileTransfer::uploadFilePortion()
 		} else {
 			m_fileReader.close();
 			m_bUpload = false;
-			m_pFileTransferDlg->m_pStatusBox->setStatusText("Upload Failed: %s", m_fileTransferInfoEx.getFullRemPathAt(0));
+			m_pFileTransferDlg->m_pStatusBox->setStatusText("Upload Failed");
 			m_fileTransferInfoEx.deleteAt(0);
 			char reason[] = "Upload failed";
 			sendFileUploadFailedMsg(strlen(reason), reason);
 			PostMessage(m_pCC->m_hwnd, (UINT) WM_FT_CHECKTRANSFERQUEUE, (WPARAM) 0, (LPARAM) 0);
+			return;
 		}
 	} else {
 		m_bFTCancel = false;
@@ -218,30 +240,28 @@ FileTransfer::downloadFile()
 */
 			}
 		}
-	} else {
-		if (!m_fileWriter.open(m_fileTransferInfoEx.getFullLocPathAt(0))) {
-			m_pFileTransferDlg->m_pStatusBox->setStatusText("File Transfer Operation Failed: Can not open local file: %s", m_fileTransferInfoEx.getFullLocPathAt(0));
-			m_fileTransferInfoEx.deleteAt(0);
-			PostMessage(m_pCC->m_hwnd, (UINT) WM_FT_CHECKTRANSFERQUEUE, (WPARAM) 0, (LPARAM) 0);
-			return;
-		}
+	}
+	if (!m_fileWriter.open(m_fileTransferInfoEx.getFullLocPathAt(0))) {
+		m_pFileTransferDlg->m_pStatusBox->setStatusText("Download Failed");
+		m_fileTransferInfoEx.deleteAt(0);
+		PostMessage(m_pCC->m_hwnd, (UINT) WM_FT_CHECKTRANSFERQUEUE, (WPARAM) 0, (LPARAM) 0);
+		return;
 	}
 
 	m_pFileTransferDlg->m_pProgress->initRightControl(m_fileTransferInfoEx.getSizeAt(0), 0);
-	m_pFileTransferDlg->m_pStatusBox->setStatusText("Download Started: %s", m_fileTransferInfoEx.getFullLocPathAt(0));
+	m_pFileTransferDlg->m_pStatusBox->makeStatusText("Download Started:", 
+													 m_fileTransferInfoEx.getRemPathAt(0),
+													 m_fileTransferInfoEx.getLocPathAt(0),
+													 m_fileTransferInfoEx.getRemNameAt(0),
+													 m_fileTransferInfoEx.getLocNameAt(0));
 	char *pPath = m_fileTransferInfoEx.getFullRemPathAt(0);
 	sendFileDownloadRqstMsg(strlen(pPath), pPath, 0);
 }
 
 void
-FileTransfer::downloadFilePortion()
-{
-}
-
-void
 FileTransfer::checkTransferQueue()
 {
-	if (m_fileTransferInfoEx.getNumEntries() == 0) {
+	if ((m_fileTransferInfoEx.getNumEntries() == 0) && (!m_bResizeNeeded)) {
 		m_pFileTransferDlg->m_pStatusBox->setStatusText("File Transfer Operation Completed Successfully");
 		m_pFileTransferDlg->reloadLocalFileList();
 		m_pFileTransferDlg->reloadRemoteFileList();
@@ -255,6 +275,7 @@ FileTransfer::checkTransferQueue()
 	if (m_bResizeNeeded) {
 		m_bResizeNeeded = false;
 		resizeTotalSize64();
+		return;
 	}
 
 	bool bOverwrite = false;
@@ -315,7 +336,7 @@ FileTransfer::checkTransferQueue()
 */
 						}
 					} else {
-						m_pFileTransferDlg->m_pStatusBox->setStatusText("File Transfer Operation Failed: Can not create folder: %s", m_fileTransferInfoEx.getFullLocPathAt(0));
+						m_pFileTransferDlg->m_pStatusBox->setStatusText("Download Failed");
 						m_fileTransferInfoEx.deleteAt(0);
 						PostMessage(m_pCC->m_hwnd, (UINT) WM_FT_CHECKTRANSFERQUEUE, (WPARAM) 0, (LPARAM) 0);
 						return;
@@ -369,7 +390,7 @@ FileTransfer::checkDeleteQueue()
 {
 	if (m_fileDelInfoEx.getNumEntries() > 0) {
 		if (m_fileDelInfoEx.getFlagsAt(0) & FT_ATTR_DELETE_LOCAL) {
-			m_pFileTransferDlg->m_pStatusBox->setStatusText("Delete Operation Executing: %s\\%s", 
+			m_pFileTransferDlg->m_pStatusBox->makeStatusText("Delete Operation Executing:", 
 															m_fileDelInfoEx.getLocPathAt(0), 
 															m_fileDelInfoEx.getLocNameAt(0));
 			DirManager dm;
@@ -380,23 +401,20 @@ FileTransfer::checkDeleteQueue()
 			fiStruct.info.flags = m_fileDelInfoEx.getFlagsAt(0);
 			if (!dm.deleteIt(m_fileDelInfoEx.getLocPathAt(0), &fiStruct)) {
 				m_dwNumDelError++;
-				m_pFileTransferDlg->m_pStatusBox->setStatusText("Delete Operation Failed: %s\\%s", 
-																m_fileDelInfoEx.getLocPathAt(0), 
-																m_fileDelInfoEx.getLocNameAt(0));
+				m_pFileTransferDlg->m_pStatusBox->setStatusText("Delete Operation Failed");
 			} else {
-				m_pFileTransferDlg->m_pStatusBox->setStatusText("Delete Operation Completed: %s\\%s", 
-																m_fileDelInfoEx.getLocPathAt(0), 
-																m_fileDelInfoEx.getLocNameAt(0));
+				m_pFileTransferDlg->m_pStatusBox->setStatusText("Delete Operation Completed");
 			}
 			m_fileDelInfoEx.deleteAt(0);
 			m_pFileTransferDlg->reloadLocalFileList();
 			PostMessage(m_pCC->m_hwnd, (UINT) WM_FT_CHECKDELETEQUEUE, (WPARAM) 0, (LPARAM) 0);
 		} else {
 			if (m_fileDelInfoEx.getFlagsAt(0) & FT_ATTR_DELETE_REMOTE) {
-				char name[MAX_PATH];
-				sprintf(name, "%s\\%s", m_fileDelInfoEx.getRemPathAt(0), m_fileDelInfoEx.getRemNameAt(0));
-				m_pFileTransferDlg->m_pStatusBox->setStatusText("Delete Operation Executing: %s", name);
-				sendFileDeleteRqstMsg(strlen(name), name);
+				char *pName = m_fileDelInfoEx.getFullRemPathAt(0);
+				m_pFileTransferDlg->m_pStatusBox->makeStatusText("Delete Operation Executing:",
+																 m_fileDelInfoEx.getRemPathAt(0),
+																 m_fileDelInfoEx.getRemNameAt(0));
+				sendFileDeleteRqstMsg(strlen(pName), pName);
 				sendFileListRqstMsg(strlen(m_fileDelInfoEx.getRemPathAt(0)), m_fileDelInfoEx.getRemPathAt(0), FT_FLR_DEST_DELETE, 0);
 			}
 		}
@@ -436,14 +454,10 @@ FileTransfer::checkRenameQueue()
 			if (dm.renameIt(m_fileRenInfoEx.getLocPathAt(0), 
 							m_fileRenInfoEx.getLocNameAt(0), 
 							m_fileRenInfoEx.getRemNameAt(0))) {
-				m_pFileTransferDlg->m_pStatusBox->setStatusText("Rename Operation Completed: %s\\%s", 
-																m_fileRenInfoEx.getLocPathAt(0), 
-																m_fileRenInfoEx.getRemNameAt(0));
+				m_pFileTransferDlg->m_pStatusBox->setStatusText("Rename Operation Completed");
 			} else {
 				m_dwNumRenError++;
-				m_pFileTransferDlg->m_pStatusBox->setStatusText("Rename Operation Failed: %s\\%s",
-																m_fileRenInfoEx.getLocPathAt(0), 
-																m_fileRenInfoEx.getLocNameAt(0));
+				m_pFileTransferDlg->m_pStatusBox->setStatusText("Rename Operation Failed");
 				if (dm.getLastError() == ERROR_ALREADY_EXISTS) {
 					char text1[MAX_PATH] = "Rename: Name Already Exist";
 					char text2[MAX_PATH] = "Enter New Name";
@@ -947,7 +961,7 @@ FileTransfer::procFLRDownload(unsigned short numFiles, FileInfo *pFI)
 									 pFI->getSizeAt(i), pFI->getDataAt(i), (pFI->getFlagsAt(i) | FT_ATTR_COPY_DOWNLOAD));
 		}
 		m_fileTransferInfoEx.deleteAt(0);
-		checkTransferQueue();
+		PostMessage(m_pCC->m_hwnd, (UINT) WM_FT_CHECKTRANSFERQUEUE, (WPARAM) 0, (LPARAM) 0);
 		return true;
 	} else {
 		closeUndoneTransfer();
@@ -961,15 +975,10 @@ FileTransfer::procFLRDelete(unsigned short numFiles, FileInfo *pFI)
 {
 	if (isExistName(pFI, m_fileDelInfoEx.getRemNameAt(0)) >= 0) {
 		m_dwNumDelError++;
-		m_pFileTransferDlg->m_pStatusBox->setStatusText("Delete Operation Failed: %s, reason: %s, error = %d", 
-														m_fileDelInfoEx.getFullRemPathAt(0),
-														m_fileLastRqstFailedMsgs.getNameAt(m_fileLastRqstFailedMsgs.getNumEntries() - 1),
-														m_fileLastRqstFailedMsgs.getFlagsAt(m_fileLastRqstFailedMsgs.getNumEntries() - 1));
+		m_pFileTransferDlg->m_pStatusBox->setStatusText("Delete Operation Failed");
 		m_fileLastRqstFailedMsgs.deleteAt(m_fileLastRqstFailedMsgs.getNumEntries() - 1);
 	} else {
-		m_pFileTransferDlg->m_pStatusBox->setStatusText("Delete Operation Completed: %s\\%s",
-														m_fileDelInfoEx.getRemPathAt(0), 
-														m_fileDelInfoEx.getRemNameAt(0));
+		m_pFileTransferDlg->m_pStatusBox->setStatusText("Delete Operation Completed");
 		m_pFileTransferDlg->reloadRemoteFileList();
 	}
 	m_fileDelInfoEx.deleteAt(0);
@@ -984,17 +993,13 @@ FileTransfer::procFLRRename(unsigned short numFiles, FileInfo *pFI)
 	if (m_fileRenInfoEx.getNumEntries() > 0) {
 		if ((isExistName(pFI, m_fileRenInfoEx.getLocNameAt(0)) < 0) &&
 			(isExistName(pFI, m_fileRenInfoEx.getRemNameAt(0)) >= 0)) {
-				m_pFileTransferDlg->m_pStatusBox->setStatusText("Rename Operation Completed: %s\\%s", 
-																m_fileRenInfoEx.getRemPathAt(0), 
-																m_fileRenInfoEx.getRemNameAt(0));
+				m_pFileTransferDlg->m_pStatusBox->setStatusText("Rename Operation Completed");
 				m_pFileTransferDlg->addRemoteLVItems(pFI);
 		} else {
 			if ((isExistName(pFI, m_fileRenInfoEx.getLocNameAt(0)) >= 0) &&
 				(isExistName(pFI, m_fileRenInfoEx.getRemNameAt(0)) < 0)) {
 				m_dwNumRenError++;
-				m_pFileTransferDlg->m_pStatusBox->setStatusText("Rename Operation Failed: %s\\%s", 
-																m_fileRenInfoEx.getLocPathAt(0), 
-																m_fileRenInfoEx.getLocNameAt(0));
+				m_pFileTransferDlg->m_pStatusBox->setStatusText("Rename Operation Failed");
 			} else {
 				if ((isExistName(pFI, m_fileRenInfoEx.getLocNameAt(0)) >= 0) &&
 					(isExistName(pFI, m_fileRenInfoEx.getRemNameAt(0)) >= 0)) {
@@ -1066,9 +1071,9 @@ FileTransfer::procFileDownloadDataMsg()
 //		mTime = Swap32IfLE(mTime);
 		m_fileWriter.setTime(mTime);
 		m_fileWriter.close();
-		m_pFileTransferDlg->m_pStatusBox->setStatusText("Download Completed: %s", m_fileTransferInfoEx.getFullLocPathAt(0));
+		m_pFileTransferDlg->m_pStatusBox->setStatusText("Download Completed");
 		m_fileTransferInfoEx.deleteAt(0);
-		checkTransferQueue();
+		PostMessage(m_pCC->m_hwnd, (UINT) WM_FT_CHECKTRANSFERQUEUE, (WPARAM) 0, (LPARAM) 0);
 		return true;
 	}
 	
@@ -1157,8 +1162,6 @@ FileTransfer::procFileLastRqstFailedMsg()
 	}
 
 	delete [] pReason;
-//	m_pFileTransferDlg->setStatusText(pReason);
-
 	return true;
 }
 

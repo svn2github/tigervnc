@@ -428,22 +428,45 @@ void
 FileTransferDialog::onFTCopy()
 {
 	FileInfo fi;
+	int len = 0;
 	int numSel = -1;
+	char prefix[MAX_PATH];
+	prefix[0] = '\0';
+	unsigned int flags = 0;
 	if (m_pFileTransfer->isTransferEnable()) {
-		if (MessageBox(m_hwndFileTransfer, "File Transfer is active.\nDo you want to add selected file(s)/folder(s) to transfer queue?",
-					   "Adding File(s)/Folder(s) to Transfer Queue", MB_YESNOCANCEL | MB_ICONQUESTION) != IDYES) return;
+		strcpy(prefix, "File Transfer is active.\nDo you want to add selected file(s)/folder(s) to transfer queue?\n\n");
 	}
 	if (m_dwCheckedLV == 1) {
 		numSel = m_pLocalLV->getSelectedItems(&fi);
 		if (numSel > 0) {
-			m_pFileTransfer->addTransferQueue(m_szLocalPath, m_szRemotePath, &fi, FT_ATTR_COPY_UPLOAD);
+			len = strlen(prefix);
+			char *pBuf = new char [(numSel + 4) * (MAX_PATH + 3) + len + 1];
+			sprintf(pBuf, "%sFrom: Local Computer %s\\\n\n", prefix, m_szLocalPath);
+			for (unsigned int i = 0; i < fi.getNumEntries(); i++) {
+				sprintf(pBuf, "%s%s, ", pBuf, fi.getNameAt(i));
+			}
+			sprintf(pBuf, "%s\n\nTo: Remote Computer %s\\", pBuf, m_szRemotePath);
+			if (MessageBox(m_hwndFileTransfer, pBuf, "Copy Selected Files and Folders", MB_OKCANCEL) == IDOK) {
+				m_pFileTransfer->addTransferQueue(m_szLocalPath, m_szRemotePath, &fi, FT_ATTR_COPY_UPLOAD);
+			}
+			delete [] pBuf;
 			return;
 		}
 	} else {
 		if (m_dwCheckedLV == 2) {
 			int numSel = m_pRemoteLV->getSelectedItems(&fi);
 			if (numSel > 0) {
-				m_pFileTransfer->addTransferQueue(m_szLocalPath, m_szRemotePath, &fi, FT_ATTR_COPY_DOWNLOAD);
+				len = strlen(prefix);
+				char *pBuf = new char [(numSel + 4) * (MAX_PATH + 3) + len + 1];
+				sprintf(pBuf, "%sFrom: Remote Computer %s\\\n\n", prefix, m_szRemotePath);
+				for (unsigned int i = 0; i < fi.getNumEntries(); i++) {
+					sprintf(pBuf, "%s%s, ", pBuf, fi.getNameAt(i));
+				}
+				sprintf(pBuf, "%s\n\nTo: Local Computer %s\\", pBuf, m_szLocalPath);
+				if (MessageBox(m_hwndFileTransfer, pBuf, "Copy Selected Files and Folders", MB_OKCANCEL) == IDOK) {
+					m_pFileTransfer->addTransferQueue(m_szLocalPath, m_szRemotePath, &fi, FT_ATTR_COPY_DOWNLOAD);
+				}
+				delete [] pBuf;
 				return;
 			}
 		}
@@ -469,7 +492,7 @@ FileTransferDialog::onFTRename()
 			if (createRenameDirDlg(&fi)) {
 				m_pFileTransfer->renameLocal(m_szLocalPath, m_szRenameDlgText3, fi.getFullDataAt(0));
 			} else {
-				setStatusText("Rename Operation Canceled");
+				setStatusText("Rename Operation Cancelled");
 			}
 		}
 	} else {
@@ -479,7 +502,7 @@ FileTransferDialog::onFTRename()
 				if (createRenameDirDlg(&fi)) {
 					m_pFileTransfer->renameRemote(m_szRemotePath, m_szRenameDlgText3, fi.getFullDataAt(0));
 				} else {
-					setStatusText("Rename Operation Canceled");
+					setStatusText("Rename Operation Cancelled");
 				}
 			}
 		} else {

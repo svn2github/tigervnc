@@ -647,64 +647,61 @@ BOOL CALLBACK VNCOptions::DlgProc(HWND hwndDlg, UINT uMsg,
 			VNCOptions *_this = (VNCOptions *) lParam;
 			InitCommonControls();
 			CentreWindow(hwndDlg);
+
 			_this->m_hParent = hwndDlg;
-			RECT rc;
+			_this->m_hTab = GetDlgItem(hwndDlg, IDC_TAB);
+
 			TCITEM item;
-			
-			_this->m_hTab=GetDlgItem(hwndDlg, IDC_TAB);
-			
+			item.mask = TCIF_TEXT; 
 			item.pszText="Connection options";
-			item.mask = TCIF_TEXT | TCIF_IMAGE; 
-			item.iImage = -1;
-			
 			TabCtrl_InsertItem(_this->m_hTab, 0, &item);
-			
-			item.pszText = "General Options";
-			
+			item.pszText = "Viewer settings";
 			TabCtrl_InsertItem(_this->m_hTab, 1, &item);
-			
-			GetClientRect(hwndDlg, &rc);
-			
+
 			_this->m_hPageConnection = CreateDialogParam(pApp->m_instance,
 				MAKEINTRESOURCE(IDD_OPTIONDIALOG),
 				hwndDlg,
-				(DLGPROC)_this->DlgProc1,
-				(LONG) _this);
-			
+				(DLGPROC)_this->DlgProcConnOptions,
+				(LONG)_this);
+
 			_this->m_hPageGeneral = CreateDialogParam(pApp->m_instance, 
 				MAKEINTRESOURCE(IDD_GENERAL_OPTION),
 				hwndDlg,
-				(DLGPROC)_this->DlgProc2,
+				(DLGPROC)_this->DlgProcSettings,
 				(LONG)_this);
-			
-			SetWindowPos(_this->m_hPageGeneral, HWND_TOP, rc.left + 15, rc.top + 35,
-				rc.right - rc.left - 30,
-				rc.bottom - rc.top - 85, SWP_HIDEWINDOW);  
-			SetWindowPos(_this->m_hPageConnection, HWND_TOP, rc.left + 15, rc.top + 35,
-				rc.right - rc.left - 30,
-				rc.bottom - rc.top - 85, SWP_SHOWWINDOW);
-			
+
+			// Position child dialogs, to fit the Tab control's display area
+			RECT rc;
+			GetWindowRect(_this->m_hTab, &rc);
+			MapWindowPoints(NULL, hwndDlg, (POINT *)&rc, 2);
+			TabCtrl_AdjustRect(_this->m_hTab, FALSE, &rc);
+			SetWindowPos(_this->m_hPageConnection, HWND_TOP, rc.left, rc.top,
+						 rc.right - rc.left, rc.bottom - rc.top,
+						 SWP_SHOWWINDOW);
+			SetWindowPos(_this->m_hPageGeneral, HWND_TOP, rc.left, rc.top,
+						 rc.right - rc.left, rc.bottom - rc.top,
+						 SWP_HIDEWINDOW);
+
 			return TRUE;
-		}				
+		}
+
 	case WM_HELP:	
 		help.Popup(lParam);
 		return 0;
+
 	case WM_COMMAND:
 		switch (LOWORD(wParam))	{
 		case IDOK: 
-			
 			SendMessage(_this->m_hPageConnection, WM_COMMAND, IDC_OK, 0);
 			SendMessage(_this->m_hPageGeneral, WM_COMMAND, IDC_OK, 0);
-			
 			EndDialog(hwndDlg, TRUE);
-			
 			return TRUE;
-		
 		case IDCANCEL:			
 			EndDialog(hwndDlg, FALSE);
 			return TRUE;
 		}
-		return 0;		
+		return FALSE;
+
 	case WM_NOTIFY:
 		{
 			LPNMHDR pn = (LPNMHDR)lParam;
@@ -748,8 +745,9 @@ BOOL CALLBACK VNCOptions::DlgProc(HWND hwndDlg, UINT uMsg,
 	}
     return 0;
 }
-BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,  
-									 WPARAM wParam, LPARAM lParam ) {
+
+BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
+											 WPARAM wParam, LPARAM lParam) {
 	// This is a static method, so we don't know which instantiation we're 
 	// dealing with. But we can get a pseudo-this from the parameter to 
 	// WM_INITDIALOG, which we therafter store with the window and retrieve
@@ -759,9 +757,10 @@ BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,
 	switch (uMsg) {
 		
 	case WM_INITDIALOG: 
-		{			
+		{
 			SetWindowLong(hwnd, GWL_USERDATA, lParam);
 			VNCOptions *_this = (VNCOptions *) lParam;
+
 			// Initialise the controls
 			HWND hListBox = GetDlgItem(hwnd, IDC_ENCODING);
 			TCHAR list[20];
@@ -891,6 +890,7 @@ BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,
 			SendMessage(hRemoteCursor, BM_SETCHECK,	true, 0);			
 			return TRUE;
 		}
+
 	case WM_COMMAND: 
 		switch (LOWORD(wParam)) {
 		case IDC_SCALE_EDIT:
@@ -1106,9 +1106,10 @@ BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,
 	}
 	return 0;
 }
-BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,  
-									 WPARAM wParam, LPARAM lParam ) 
-{	
+
+BOOL CALLBACK VNCOptions::DlgProcSettings(HWND hwnd, UINT uMsg,
+										  WPARAM wParam, LPARAM lParam)
+{
 	VNCOptions *_this = (VNCOptions *) GetWindowLong(hwnd, GWL_USERDATA);
 	
 	switch (uMsg) {

@@ -65,65 +65,65 @@ BEGIN
     CONTROL         108,IDC_STATIC,"Static",SS_BITMAP,7,7,32,30
 END
 
-IDD_OPTIONDIALOG DIALOG DISCARDABLE  0, 0, 301, 170
+IDD_OPTIONDIALOG DIALOG DISCARDABLE  0, 0, 300, 166
 STYLE DS_CONTROL | WS_CHILD
 FONT 8, "MS Sans Serif"
 BEGIN
-    COMBOBOX        IDC_ENCODING,68,17,56,79,CBS_DROPDOWNLIST | 
+    COMBOBOX        IDC_ENCODING,65,14,56,79,CBS_DROPDOWNLIST | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Allow CopyRect encoding",ID_SESSION_SET_CRECT,"Button",
-                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,15,34,97,10
-    CHECKBOX        "Custom compression level:",IDC_ALLOW_COMPRESSLEVEL,15,
-                    46,96,8
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,12,31,97,10
+    CHECKBOX        "Custom compression level:",IDC_ALLOW_COMPRESSLEVEL,12,
+                    43,96,8
     CONTROL         "Slider2",IDC_COMPRESSLEVEL,"msctls_trackbar32",
-                    TBS_AUTOTICKS | WS_TABSTOP,23,57,92,9
-    CHECKBOX        "Allow JPEG compression:",IDC_ALLOW_JPEG,15,78,96,8
+                    TBS_AUTOTICKS | WS_TABSTOP,20,54,92,9
+    CHECKBOX        "Allow JPEG compression:",IDC_ALLOW_JPEG,12,75,96,8
     CONTROL         "Slider1",IDC_QUALITYLEVEL,"msctls_trackbar32",
-                    TBS_AUTOTICKS | WS_TABSTOP,23,89,92,9
+                    TBS_AUTOTICKS | WS_TABSTOP,20,86,92,9
     CONTROL         "Request shared session",IDC_SHARED,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,15,128,91,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,12,125,91,10
     CONTROL         "Deiconify on Bell",IDC_BELLDEICONIFY,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,15,140,85,8
+                    BS_AUTOCHECKBOX | WS_TABSTOP,12,137,85,8
     CONTROL         "Disable clipboard transfer",IDC_DISABLECLIPBOARD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,15,151,95,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,12,148,95,10
     CONTROL         "Emulate 3 buttons (with 2-button click)",
                     IDC_EMULATECHECK,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
-                    WS_TABSTOP,148,18,136,10
+                    WS_TABSTOP,145,15,136,10
     CONTROL         "Swap mouse buttons 2 and 3",ID_SESSION_SWAPMOUSE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,148,30,108,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,145,27,108,10
     CONTROL         "Track remote cursor locally",IDC_CSHAPE_ENABLE_RADIO,
-                    "Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,148,
-                    59,101,10
+                    "Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,145,
+                    56,101,10
     CONTROL         "Let remote server deal with mouse cursor",
-                    IDC_CSHAPE_DISABLE_RADIO,"Button",BS_AUTORADIOBUTTON,148,
-                    71,145,10
+                    IDC_CSHAPE_DISABLE_RADIO,"Button",BS_AUTORADIOBUTTON,145,
+                    68,145,10
     CONTROL         "Don't show remote cursor",IDC_CSHAPE_IGNORE_RADIO,
-                    "Button",BS_AUTORADIOBUTTON,148,83,96,10
+                    "Button",BS_AUTORADIOBUTTON,145,80,96,10
     CONTROL         "Restrict pixels to 8-bit (for slow networks)",
                     IDC_8BITCHECK,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
-                    WS_TABSTOP,148,113,143,10
-    CHECKBOX        "View only (inputs ignored)",IDC_VIEWONLY,148,125,96,10
+                    WS_TABSTOP,145,111,143,10
+    CHECKBOX        "View only (inputs ignored)",IDC_VIEWONLY,145,123,96,10
     CONTROL         "Full-screen mode",IDC_FULLSCREEN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,148,137,69,8
-    COMBOBOX        IDC_SCALE_EDIT,195,145,37,66,CBS_DROPDOWN | 
+                    BS_AUTOCHECKBOX | WS_TABSTOP,145,135,69,8
+    COMBOBOX        IDC_SCALE_EDIT,192,144,37,66,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    GROUPBOX        "Mouse cursor",IDC_STATIC,139,50,155,48
-    GROUPBOX        "Preferred encoding",IDC_STATIC,7,7,123,107
-    GROUPBOX        "Misc",IDC_STATIC,7,119,123,43
-    GROUPBOX        "Mouse",IDC_STATIC,139,7,155,37
-    GROUPBOX        "Display",IDC_STATIC,139,102,155,60
-    LTEXT           "Use encoding",IDC_STATIC_ENCODING,15,20,45,12
-    LTEXT           "%",IDC_STATIC_P,237,149,10,8
-    LTEXT           "fast",IDC_STATIC_FAST,22,66,15,8
-    LTEXT           "best",IDC_STATIC_BEST,103,66,14,8
-    LTEXT           "poor",IDC_STATIC_POOR,22,99,15,8
-    LTEXT           "best",IDC_STATIC_QBEST,103,99,15,8
-    LTEXT           "level:",IDC_STATIC_TEXT_LEVEL,49,66,16,8
-    LTEXT           "quality:",IDC_STATIC_TEXT_QUALITY,48,99,23,8
-    CONTROL         "1",IDC_STATIC_LEVEL,"Static",SS_SIMPLE | WS_GROUP,70,66,
+    GROUPBOX        "Mouse cursor",IDC_STATIC,136,47,160,48
+    GROUPBOX        "Preferred encoding",IDC_STATIC,4,4,123,107
+    GROUPBOX        "Misc",IDC_STATIC,4,116,123,46
+    GROUPBOX        "Mouse",IDC_STATIC,136,4,160,37
+    GROUPBOX        "Display",IDC_STATIC,136,100,160,62
+    LTEXT           "Use encoding",IDC_STATIC_ENCODING,12,17,45,12
+    LTEXT           "%",IDC_STATIC_P,234,146,10,8
+    LTEXT           "fast",IDC_STATIC_FAST,19,63,15,8
+    LTEXT           "best",IDC_STATIC_BEST,100,63,14,8
+    LTEXT           "poor",IDC_STATIC_POOR,19,96,15,8
+    LTEXT           "best",IDC_STATIC_QBEST,100,96,15,8
+    LTEXT           "level:",IDC_STATIC_TEXT_LEVEL,46,63,16,8
+    LTEXT           "quality:",IDC_STATIC_TEXT_QUALITY,45,96,23,8
+    CONTROL         "1",IDC_STATIC_LEVEL,"Static",SS_SIMPLE | WS_GROUP,67,63,
                     9,8
-    LTEXT           "1",IDC_STATIC_QUALITY,73,99,11,8
-    LTEXT           "Scale:",IDC_STATIC_SCALE,167,147,20,10
+    LTEXT           "1",IDC_STATIC_QUALITY,70,96,11,8
+    LTEXT           "Scale:",IDC_STATIC_SCALE,164,146,20,10
 END
 
 IDD_FTBROWSE_DLG DIALOGEX 0, 0, 164, 215
@@ -174,7 +174,7 @@ IDD_SESSION_DLG DIALOGEX 0, 0, 253, 85
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Connection details"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     COMBOBOX        IDC_HOSTNAME_EDIT,51,7,109,66,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -219,48 +219,48 @@ BEGIN
                     IDC_STATIC,135,36,190,29
 END
 
-IDD_GENERAL_OPTION DIALOG DISCARDABLE  0, 0, 306, 168
+IDD_GENERAL_OPTION DIALOG DISCARDABLE  0, 0, 300, 166
 STYLE DS_CONTROL | WS_CHILD
 FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "message at start of a full screen mode",
                     IDC_CHECK_MESSAGE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    17,17,157,10
+                    14,14,157,10
     CONTROL         "Include toolbar at creation of the window of connection",
                     IDC_CHECK_TOOLBAR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    17,29,189,10
-    EDITTEXT        IDC_EDIT_AMOUNT_LIST,126,40,38,15,ES_AUTOHSCROLL | 
+                    14,26,189,10
+    EDITTEXT        IDC_EDIT_AMOUNT_LIST,123,37,38,15,ES_AUTOHSCROLL | 
                     ES_NUMBER
     PUSHBUTTON      "Clear the list of connections",IDC_BUTTON_CLEAR_LIST,
-                    183,40,97,15
-    LTEXT           "Amount of connections in the list",IDC_STATIC_LIST,17,
-                    43,108,9
-    CHECKBOX        "Log to file",IDC_CHECK_LOG_FILE,17,74,45,11
-    EDITTEXT        IDC_EDIT_LOG_FILE,95,86,96,15,ES_AUTOHSCROLL
-    GROUPBOX        "Interface options",IDC_STATIC,7,7,289,54
-    GROUPBOX        "Logging",IDC_STATIC,7,62,289,45
-    LTEXT           "Name log file (full path):",IDC_STATIC_LOG_FILE,17,90,
+                    180,37,97,15
+    LTEXT           "Amount of connections in the list",IDC_STATIC_LIST,14,
+                    40,108,9
+    CHECKBOX        "Log to file",IDC_CHECK_LOG_FILE,14,71,45,11
+    EDITTEXT        IDC_EDIT_LOG_FILE,92,83,96,15,ES_AUTOHSCROLL
+    GROUPBOX        "Interface options",IDC_STATIC,4,4,292,54
+    GROUPBOX        "Logging",IDC_STATIC,4,59,292,45
+    LTEXT           "Name log file (full path):",IDC_STATIC_LOG_FILE,14,87,
                     77,8
-    EDITTEXT        IDC_EDIT_LOG_LEVEL,235,87,23,14,ES_AUTOHSCROLL
-    LTEXT           "Log level:",IDC_STATIC_LOG_LEVEL,199,89,35,8
+    EDITTEXT        IDC_EDIT_LOG_LEVEL,232,84,23,14,ES_AUTOHSCROLL
+    LTEXT           "Log level:",IDC_STATIC_LOG_LEVEL,196,86,35,8
     CONTROL         "Spin1",IDC_SPIN1,"msctls_updown32",UDS_ALIGNRIGHT | 
-                    UDS_ARROWKEYS,165,41,11,13
+                    UDS_ARROWKEYS,162,38,11,13
     CONTROL         "Spin2",IDC_SPIN2,"msctls_updown32",UDS_ALIGNRIGHT | 
-                    UDS_ARROWKEYS,261,87,11,14
-    GROUPBOX        "Local cursor",IDC_STATIC,7,108,289,26
+                    UDS_ARROWKEYS,258,84,11,14
+    GROUPBOX        "Local cursor",IDC_STATIC,4,105,292,26
     CONTROL         "Dotcursor",IDC_DOTCURSOR_RADIO,"Button",
-                    BS_AUTORADIOBUTTON,17,120,70,8
+                    BS_AUTORADIOBUTTON,14,117,70,8
     CONTROL         "Nocursor",IDC_NOCURSOR_RADIO,"Button",
-                    BS_AUTORADIOBUTTON,117,120,69,8
+                    BS_AUTORADIOBUTTON,114,117,69,8
     CONTROL         "Normalcursor",IDC_NORMALCURSOR_RADIO,"Button",
-                    BS_AUTORADIOBUTTON,211,120,66,8
-    GROUPBOX        "Listen mode",IDC_STATIC,7,135,289,27
-    EDITTEXT        IDC_LISTEN_PORT,134,143,50,15,ES_AUTOHSCROLL | ES_NUMBER | 
+                    BS_AUTORADIOBUTTON,208,117,66,8
+    GROUPBOX        "Listen mode",IDC_STATIC,4,132,292,30
+    EDITTEXT        IDC_LISTEN_PORT,131,140,50,15,ES_AUTOHSCROLL | ES_NUMBER | 
                     WS_GROUP
     LTEXT           "Port for listen  reverse connections:",IDC_STATIC_PORT,
-                    17,146,113,10
+                    14,143,113,10
     CONTROL         "Spin3",IDC_SPIN3,"msctls_updown32",UDS_ALIGNRIGHT | 
-                    UDS_ARROWKEYS,189,147,11,14
+                    UDS_ARROWKEYS,186,140,11,14
 END
 
 IDD_HELP DIALOG DISCARDABLE  0, 0, 224, 170
@@ -273,15 +273,15 @@ BEGIN
                     ES_READONLY | ES_WANTRETURN | WS_VSCROLL
 END
 
-IDD_PARENT DIALOGEX 0, 0, 319, 221
+IDD_PARENT DIALOGEX 0, 0, 316, 212
 STYLE DS_MODALFRAME | DS_CONTEXTHELP | WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP | WS_EX_CONTROLPARENT
 CAPTION "Options"
-FONT 8, "MS Sans Serif", 0, 0, 0x1
+FONT 8, "MS Sans Serif"
 BEGIN
-    PUSHBUTTON      "Cancel",IDCANCEL,256,200,56,14
-    PUSHBUTTON      "OK",IDOK,183,200,56,14
-    CONTROL         "Tab1",IDC_TAB,"SysTabControl32",WS_TABSTOP,7,7,305,186
+    PUSHBUTTON      "Cancel",IDCANCEL,261,193,50,14
+    PUSHBUTTON      "OK",IDOK,204,193,50,14
+    CONTROL         "Tab1",IDC_TAB,"SysTabControl32",WS_TABSTOP,5,5,306,184
 END
 
 
@@ -304,16 +304,15 @@ BEGIN
 
     IDD_OPTIONDIALOG, DIALOG
     BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 294
-        VERTGUIDE, 15
-        VERTGUIDE, 130
-        VERTGUIDE, 139
-        VERTGUIDE, 148
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 163
-        HORZGUIDE, 74
-        HORZGUIDE, 107
+        LEFTMARGIN, 4
+        RIGHTMARGIN, 296
+        VERTGUIDE, 12
+        VERTGUIDE, 127
+        VERTGUIDE, 136
+        VERTGUIDE, 145
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 162
+        HORZGUIDE, 104
     END
 
     IDD_FTBROWSE_DLG, DIALOG
@@ -368,13 +367,11 @@ BEGIN
 
     IDD_GENERAL_OPTION, DIALOG
     BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 299
-        VERTGUIDE, 17
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 161
-        HORZGUIDE, 69
-        HORZGUIDE, 136
+        LEFTMARGIN, 4
+        RIGHTMARGIN, 296
+        VERTGUIDE, 14
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 162
     END
 
     IDD_HELP, DIALOG
@@ -387,10 +384,10 @@ BEGIN
 
     IDD_PARENT, DIALOG
     BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 312
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 214
+        LEFTMARGIN, 5
+        RIGHTMARGIN, 311
+        TOPMARGIN, 5
+        BOTTOMMARGIN, 207
     END
 END
 #endif    // APSTUDIO_INVOKED

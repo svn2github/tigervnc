@@ -125,10 +125,10 @@ public:
 
 	static BOOL CALLBACK DlgProc(HWND hwndDlg, UINT uMsg,
 		WPARAM wParam, LPARAM lParam);
-	static BOOL CALLBACK DlgProc1(  HWND hwnd,  UINT uMsg, 
-		WPARAM wParam, LPARAM lParam );
-	static BOOL CALLBACK DlgProc2(  HWND hwnd,  UINT uMsg, 
-		WPARAM wParam, LPARAM lParam );
+	static BOOL CALLBACK DlgProcConnOptions(HWND hwnd, UINT uMsg,
+		WPARAM wParam, LPARAM lParam);
+	static BOOL CALLBACK DlgProcSettings(HWND hwnd, UINT uMsg,
+		WPARAM wParam, LPARAM lParam);
 	static void Lim(HWND hwnd,int control,DWORD min, DWORD max);
 	// Register() makes this viewer the app invoked for .vnc files
 	static void Register();

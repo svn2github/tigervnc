@@ -87,13 +87,13 @@ void SharedDesktopArea::Init()
 
 bool SharedDesktopArea::ApplySharedControls()
 {
-	if ( m_vncprop->GetPrefWindowShared() && (m_server->GetWindowShared() == NULL) ) {	
+	if (m_vncprop->GetPrefWindowShared() && m_server->GetWindowShared() == NULL) {	
 		MessageBox(NULL,
 				"You have not yet selected a window to share.\n"
 				"Please first select a window with the 'Window Target'\n"
 				"icon, and try again.", "No Window Selected",
 				 MB_OK | MB_ICONEXCLAMATION);
-		return true;
+		return false;
 	}
 
 	// Handle the share one window stuff
@@ -122,7 +122,8 @@ bool SharedDesktopArea::ApplySharedControls()
 		GetWindowRect(GetDesktopWindow(), &temp);
 		m_server->SetMatchSizeFields(temp.left, temp.top, temp.right, temp.bottom);
 	}
-	return false;
+
+	return true;
 }
 
 void SharedDesktopArea::FullScreen()

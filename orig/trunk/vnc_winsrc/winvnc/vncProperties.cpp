@@ -679,6 +679,7 @@ BOOL CALLBACK vncProperties::PollDlgProc(HWND hwnd, UINT uMsg,
 	}
 	return 0;
 }
+
 BOOL CALLBACK vncProperties::SharedDlgProc(HWND hwnd, UINT uMsg,
                                            WPARAM wParam, LPARAM lParam)
 {
@@ -730,11 +731,16 @@ BOOL CALLBACK vncProperties::SharedDlgProc(HWND hwnd, UINT uMsg,
 		case IDC_SCREEN:
 			_this->m_shareddtarea->SharedScreen();
 			return TRUE;
+
 		case IDC_APPLY:
 		case IDOK:
-			_this->m_shareddtarea->ApplySharedControls();
 
-#ifdef HORIZONLIVE
+#ifndef HORIZONLIVE
+			_this->m_shareddtarea->ApplySharedControls();
+			return TRUE;
+#else
+			if (!_this->m_shareddtarea->ApplySharedControls())
+				return TRUE;
 
 			_this->m_server->SetLiveShareKey(_this->m_pref_LiveShareKey);
 			
@@ -794,10 +800,8 @@ BOOL CALLBACK vncProperties::SharedDlgProc(HWND hwnd, UINT uMsg,
 				EndDialog(hwnd, IDOK);
 				_this->m_dlgvisible = FALSE;
 			}
-#endif
-
 			return TRUE;
-#ifdef HORIZONLIVE
+
 		case IDCANCEL:
 			vnclog.Print(LL_INTINFO, VNCLOG("enddialog (CANCEL)\n"));
 			
@@ -818,6 +822,7 @@ BOOL CALLBACK vncProperties::SharedDlgProc(HWND hwnd, UINT uMsg,
 				omni_thread::sleep(0, 200000000);
 			}
 			return TRUE;
+
 		case IDC_LIVESHARE:
 			{
 				char entered_key [_MAX_PATH];
@@ -839,14 +844,17 @@ BOOL CALLBACK vncProperties::SharedDlgProc(HWND hwnd, UINT uMsg,
 #endif
 		}
 		return 0;
+
 	case WM_DESTROY:
 		delete _this->m_shareddtarea;
 		_this->m_shareddtarea = NULL;
 		_this->m_hShared = NULL;
 		return 0;
 	}
+
 	return 0;
 }
+
 BOOL CALLBACK vncProperties::InputHandlingDlgProc(HWND hwnd, UINT
                                                   uMsg, WPARAM wParam, LPARAM lParam)
 {

@@ -1,4 +1,5 @@
 //
+//  Copyright (C) 2001 HorizonLive.com, Inc.  All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge.  All Rights Reserved.
 //
 //  This is free software; you can redistribute it and/or modify
@@ -22,8 +23,10 @@
 //
 
 import java.awt.*;
+import java.awt.event.*;
 
-class clipboardFrame extends Frame {
+class clipboardFrame extends Frame
+  implements WindowListener, ActionListener {
 
   TextArea textArea;
   Button clear, dismiss;
@@ -56,15 +59,20 @@ class clipboardFrame extends Frame {
     gbc.weightx = 1.0;
     gbc.weighty = 0.0;
     gbc.gridwidth = 1;
+
     clear = new Button("Clear");
     gridbag.setConstraints(clear, gbc);
     add(clear);
+    clear.addActionListener(this);
 
     dismiss = new Button("Dismiss");
     gridbag.setConstraints(dismiss, gbc);
     add(dismiss);
+    dismiss.addActionListener(this);
 
     pack();
+
+    addWindowListener(this);
   }
 
 
@@ -82,34 +90,45 @@ class clipboardFrame extends Frame {
 
 
   //
-  // When the focus leaves the window, see if we have new cut text and if so
-  // send it to the RFB server.
+  // When the focus leaves the window, see if we have new cut text and
+  // if so send it to the RFB server.
   //
 
-  public boolean lostFocus(Event evt, Object arg) {
+  public void windowDeactivated (WindowEvent evt) {
     if (selection != null && !selection.equals(textArea.getText())) {
       selection = textArea.getText();
       viewer.setCutText(selection);
     }
-    return true;
   }
 
+  //
+  // Close our window properly.
+  //
+
+  public void windowClosing(WindowEvent evt) {
+    setVisible(false);
+  }
 
   //
-  // Respond to an action i.e. button press
+  // Ignore window events we're not interested in.
   //
 
-  public boolean action(Event evt, Object arg) {
+  public void windowActivated(WindowEvent evt) {}
+  public void windowOpened(WindowEvent evt) {}
+  public void windowClosed(WindowEvent evt) {}
+  public void windowIconified(WindowEvent evt) {}
+  public void windowDeiconified(WindowEvent evt) {}
 
-    if (evt.target == dismiss) {
-      setVisible(false);
-      return true;
 
-    } else if (evt.target == clear) {
+  //
+  // Respond to button presses
+  //
+
+  public void actionPerformed(ActionEvent evt) {
+    if (evt.getSource() == clear) {
       textArea.setText("");
-      return true;
+    } else if (evt.getSource() == dismiss) {
+      setVisible(false);
     }
-
-    return false;
   }
 }

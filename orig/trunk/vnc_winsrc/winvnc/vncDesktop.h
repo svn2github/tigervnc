@@ -207,7 +207,7 @@ protected:
 	HCURSOR			m_hcursor;
 	// Handle of the basic arrow cursor
 	HCURSOR			m_hdefcursor;
-	// Current mouse position
+	// The current mouse position
 	RECT			m_cursorpos;
 
 	// Boolean flag to indicate when the display resolution has changed

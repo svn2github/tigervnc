@@ -1521,8 +1521,7 @@ vncDesktop::CaptureMouse(BYTE *scrBuff, UINT scrBuffSize)
 	m_cursorpos.bottom = CursorPos.y + GetSystemMetrics(SM_CYCURSOR);
 	
 	// Clip the bounding rect to the screen
-	RECT screen;
-	screen = m_server->GetSharedRect();
+	RECT screen = m_server->GetSharedRect();
 	// Copy the mouse cursor into the screen buffer, if any of it is visible
 	if (IntersectRect(&m_cursorpos, &m_cursorpos, &screen))
 		CopyToBuffer(m_cursorpos, scrBuff);

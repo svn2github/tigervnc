@@ -98,7 +98,13 @@ public:
 		BOOL result = m_remoteevent;
 		m_remoteevent = FALSE;
 		return result;
-	};
+	}
+
+	virtual void SetCursorPosChanged() {
+		if (time(NULL) - m_pointer_event_time > 1) {
+			m_cursor_pos_changed = TRUE;
+		}
+	}
 
 	// Functions for setting & getting the client settings
 	virtual void EnableKeyboard(BOOL enable) { m_keyboardenabled = enable; }
@@ -175,6 +181,7 @@ protected:
 	BOOL			m_cursor_update_pending;
 	BOOL			m_cursor_update_sent;
 	BOOL			m_cursor_pos_changed;
+	time_t			m_pointer_event_time;
 	HCURSOR			m_hcursor;
 	POINT			m_cursor_pos;
 

@@ -1040,7 +1040,7 @@ vncClientThread::run(void *arg)
 				// requested by the client.
 				if (shapeupdates_requested && pointerpos_requested) {
 					m_client->m_use_PointerPos = TRUE;
-					m_client->m_cursor_pos_changed = TRUE;
+					m_client->SetCursorPosChanged();
 					vnclog.Print(LL_INTINFO, VNCLOG("PointerPos protocol extension enabled\n"));
 				}
 
@@ -1228,6 +1228,7 @@ vncClientThread::run(void *arg)
 
 					// Flag that a remote event occurred
 					m_client->m_remoteevent = TRUE;
+					m_client->m_pointer_event_time = time(NULL);
 
 					// Flag that the mouse moved
 					// FIXME: It should not set m_cursor_pos_changed here.
@@ -1619,6 +1620,7 @@ vncClient::vncClient()
 	m_cursor_update_pending = FALSE;
 	m_cursor_update_sent = FALSE;
 	m_cursor_pos_changed = FALSE;
+	m_pointer_event_time = (time_t)0;
 	m_cursor_pos.x = -1;
 	m_cursor_pos.y = -1;
 
@@ -1784,7 +1786,7 @@ vncClient::UpdateMouse()
 	} else if (m_use_PointerPos) {
 		omni_mutex_lock l(m_regionLock);
 
-		m_cursor_pos_changed = TRUE;
+		SetCursorPosChanged();
 	}
 }
 

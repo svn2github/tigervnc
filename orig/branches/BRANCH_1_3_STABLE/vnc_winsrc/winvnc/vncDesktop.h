@@ -98,6 +98,7 @@ public:
 	HCURSOR GetCursor() { return m_hcursor; }
 
 	// Clipboard manipulation
+	static void ConvertClipText(char *dst, const char *src);
 	void SetClipText(LPSTR text);
 
 	// Method to obtain the DIBsection buffer if fast blits are enabled

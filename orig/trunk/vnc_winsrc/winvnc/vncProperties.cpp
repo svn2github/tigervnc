@@ -70,6 +70,8 @@ vncProperties::vncProperties()
 	m_dlgvisible = FALSE;
 	m_usersettings = TRUE;
 	m_inadvanced = FALSE;	
+
+	m_pMatchWindow = NULL;
 }
 
 vncProperties::~vncProperties()

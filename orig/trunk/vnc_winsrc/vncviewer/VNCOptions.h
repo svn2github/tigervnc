@@ -55,6 +55,7 @@ public:
 
 	// process options
 	bool	m_listening;
+	int		m_listenPort;
 	bool	m_connectionSpecified;
 	bool	m_configSpecified;
 	TCHAR   m_configFilename[_MAX_PATH];

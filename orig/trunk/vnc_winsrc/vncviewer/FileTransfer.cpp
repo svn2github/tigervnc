@@ -370,6 +370,8 @@ FileTransfer::CheckUploadQueue()
 {
 	int numEntries = m_TransferInfo.GetNumEntries() - 1;
 	if ((numEntries < 0) || (!m_bUploadStarted)) {
+		m_bTransferEnable = FALSE;
+		m_bUploadStarted = FALSE;
 		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
 		return;
 	}
@@ -412,6 +414,7 @@ FileTransfer::CheckUploadQueue()
 		FindClose(hFile);
 		m_TransferInfo.DeleteAt(0);
 		if (m_TransferInfo.GetNumEntries() == 0) {
+			m_bTransferEnable = FALSE;
 			m_bUploadStarted = FALSE;
 			return;
 		}
@@ -535,6 +538,8 @@ void FileTransfer::CheckDownloadQueue()
 {
 	int numEntries = m_TransferInfo.GetNumEntries() - 1;
 	if ((numEntries < 0) || (!m_bDownloadStarted)) {
+		m_bTransferEnable = FALSE;
+		m_bDownloadStarted = FALSE;
 		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
 		return;
 	}

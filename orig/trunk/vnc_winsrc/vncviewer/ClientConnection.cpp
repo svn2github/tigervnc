@@ -1493,6 +1493,14 @@ void ClientConnection::SizeWindow(bool centered)
 
 	m_winwidth  = min(fullwinrect.right - fullwinrect.left,  workwidth);
 	m_winheight = min(fullwinrect.bottom - fullwinrect.top, workheight);
+	if ((fullwinrect.right - fullwinrect.left > workwidth) &&
+		(workheight - m_winheight >= 16)) {
+		m_winheight = m_winheight + 16;
+	} 
+	if ((fullwinrect.bottom - fullwinrect.top > workheight) && 
+		(workwidth - m_winwidth >= 16)) {
+		m_winwidth = m_winwidth + 16;
+	}
 
 	int x,y;
 	WINDOWPLACEMENT winplace;

@@ -1,6 +1,9 @@
 TightVNC compilation notes for Borland C++ 5.5 users
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+IMPORTANT: This instruction and makefiles for Borland C++ compilation may be
+obsolete -- building TightVNC using this compiler is not supported any more.
+
 NOTE: Please read the BUILDING.txt document for information on libraries
 required for successful TightVNC compilation.
 

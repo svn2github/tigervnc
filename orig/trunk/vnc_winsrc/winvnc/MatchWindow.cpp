@@ -24,13 +24,10 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "stdhdrs.h"
 #include "MatchWindow.h"
-#include "vncProperties.h"
 
-#define MW_WIDTH 5
-#define MW_MARGRIN MW_WIDTH/2+1
-
+static const int MW_WIDTH = 5 ;
+static const int MW_MARGRIN = ( MW_WIDTH / 2 ) + 1 ;
 
 TCHAR szMatchWindowClass[]="MATCHWINDOW";
 

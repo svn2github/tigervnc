@@ -24,14 +24,11 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#if !defined(AFX_MATCHWINDOW_H__11975916_3DA2_11D3_8EA3_008048C6AFB8__INCLUDED_)
-#define AFX_MATCHWINDOW_H__11975916_3DA2_11D3_8EA3_008048C6AFB8__INCLUDED_
+#ifndef __MATCHWINDOW_H
+#define __MATCHWINDOW_H
 
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
-class vncServer;
+#include "stdhdrs.h"
+#include "vncServer.h"
 
 class CMatchWindow  
 {
@@ -53,4 +50,4 @@ public:
     vncServer* m_pServer;
 };
 
-#endif // !defined(AFX_MATCHWINDOW_H__11975916_3DA2_11D3_8EA3_008048C6AFB8__INCLUDED_)
+#endif // __MATCHWINDOW_H

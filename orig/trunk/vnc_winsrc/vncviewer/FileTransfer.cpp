@@ -982,8 +982,8 @@ void FileTransfer::CreateServerItemInfoList(FileTransferItemInfo *pftii,
 	int pos = 0;
 	for (int i = 0; i < ftsdNum; i++) {
 		char buf[16];
-		ftsd[i].size = Swap32IfLE(ftsd[i].size);
-		ftsd[i].data = Swap32IfLE(ftsd[i].data);
+//		ftsd[i].size = Swap32IfLE(ftsd[i].size);
+//		ftsd[i].data = Swap32IfLE(ftsd[i].data);
 		if (ftsd[i].size == -1) {
 			strcpy(buf, FileTransferItemInfo::folderText);
 		} else {

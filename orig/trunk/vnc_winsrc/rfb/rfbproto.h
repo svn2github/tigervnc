@@ -1177,7 +1177,7 @@ typedef struct _rfbFileUploadDataMsg {
     /* Followed by File[compressedSize]   */
 } rfbFileUploadDataMsg;
 
-#define sz_rfbFileUploadDataMsg 8
+#define sz_rfbFileUploadDataMsg 6
 
 /*-----------------------------------------------------------------------------
  * FileDownloadCancel

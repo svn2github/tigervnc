@@ -713,7 +713,8 @@ class VncCanvas extends Canvas
     }
 
     rfb.is.readFully(zlibBuf, 0, nBytes);
-    if (rfb.rec != null) {
+
+    if (rfb.rec != null && viewer.recordingFromBeginning) {
       rfb.rec.writeIntBE(nBytes);
       rfb.rec.write(zlibBuf, 0, nBytes);
     }
@@ -726,6 +727,8 @@ class VncCanvas extends Canvas
     if (bytesPixel == 1) {
       for (int dy = y; dy < y + h; dy++) {
 	zlibInflater.inflate(pixels8, dy * rfb.framebufferWidth + x, w);
+	if (rfb.rec != null && !viewer.recordingFromBeginning)
+	  rfb.rec.write(pixels8, dy * rfb.framebufferWidth + x, w);
       }
     } else {
       byte[] buf = new byte[w * 4];
@@ -739,6 +742,8 @@ class VncCanvas extends Canvas
 	    (buf[i * 4 + 1] & 0xFF) << 8 |
 	    (buf[i * 4] & 0xFF);
 	}
+	if (rfb.rec != null && !viewer.recordingFromBeginning)
+	  rfb.rec.write(buf);
       }
     }
 

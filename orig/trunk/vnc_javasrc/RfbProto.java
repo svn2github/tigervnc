@@ -336,7 +336,14 @@ class RfbProto {
       rec.writeShortBE(updateRectY);
       rec.writeShortBE(updateRectW);
       rec.writeShortBE(updateRectH);
-      rec.writeIntBE(updateRectEncoding);
+      if (updateRectEncoding == EncodingZlib &&
+	  !viewer.recordingFromBeginning) {
+	// Here we cannot write Zlib-encoded rectangles because the
+	// decoder won't be able to reproduce zlib stream state.
+	rec.writeIntBE(EncodingRaw);
+      } else {
+	rec.writeIntBE(updateRectEncoding);
+      }
     }
 
     if ((updateRectEncoding == EncodingLastRect) ||

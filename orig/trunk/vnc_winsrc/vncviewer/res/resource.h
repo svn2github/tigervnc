@@ -49,6 +49,7 @@
 #define IDC_VIEWONLY                    1005
 #define IDC_LOGIN_EDIT                  1008
 #define IDC_PASSWD_EDIT                 1009
+#define IDC_TAB                         1010
 #define IDC_OPTIONBUTTON                1012
 #define IDC_8BITCHECK                   1013
 #define IDC_RAWRADIO                    1018
@@ -110,22 +111,12 @@
 #define IDC_FTABOUT                     1088
 #define IDC_FTCANCEL                    1089
 #define IDC_EXIT                        1090
-#define IDC_TAB                         1010
 #define IDC_FTPROGRESS                  1091
 #define IDC_FTBROWSEEDIT                1092
-#define IDC_FTSTATUS                    1130
 #define IDC_LOAD                        1093
-#define IDC_BUTTON2                     1131
 #define IDC_SERVERRELOAD                1094
-#define IDC_LISTEN_PORT                 1132
-#define IDC_BUTTON3                     1133
-#define IDC_SERVERUP                    1134
 #define IDC_CONN_PROF                   1095
-#define IDC_BUTTON4                     1135
-#define IDC_CLIENTRELOAD                1136
 #define IDC_STATIC_TEXT_LEVEL           1096
-#define IDC_BUTTON5                     1137
-#define IDC_CLIENTUP                    1138
 #define IDC_STATIC_FAST                 1097
 #define IDC_STATIC_BEST                 1098
 #define IDC_STATIC_TEXT_QUALITY         1099
@@ -149,13 +140,22 @@
 #define IDC_STATIC_LMODE                1118
 #define IDC_STATIC_PICTURE              1119
 #define IDC_FTCOPY                      1120
-#define IDC_LOG_BROWSE                  1139
 #define IDC_SMALLDOTCURSOR_RADIO        1121
 #define IDC_VNCHOST                     1124
 #define IDC_CONNECTING_STATIC           1125
 #define IDC_STATUS_STATIC               1126
 #define IDC_LOCAL_COMP_LABEL            1127
 #define IDC_TVNC_SERV_LABEL             1128
+#define IDC_FTSTATUS                    1130
+#define IDC_BUTTON2                     1131
+#define IDC_LISTEN_PORT                 1132
+#define IDC_BUTTON3                     1133
+#define IDC_SERVERUP                    1134
+#define IDC_BUTTON4                     1135
+#define IDC_CLIENTRELOAD                1136
+#define IDC_BUTTON5                     1137
+#define IDC_CLIENTUP                    1138
+#define IDC_LOG_BROWSE                  1139
 #define ID_SESSION_SET_CRECT            32777
 #define IDC_ALLOW_COMPRESSLEVEL         32778
 #define IDC_ALLOW_JPEG                  32779
@@ -172,7 +172,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        246
 #define _APS_NEXT_COMMAND_VALUE         40011
-#define _APS_NEXT_CONTROL_VALUE         1129
+#define _APS_NEXT_CONTROL_VALUE         1140
 #define _APS_NEXT_SYMED_VALUE           244
 #endif
 #endif

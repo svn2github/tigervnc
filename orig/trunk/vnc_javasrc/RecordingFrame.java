@@ -50,6 +50,8 @@ class RecordingFrame extends Frame
       try {
 	security.checkPropertyAccess("user.dir");
 	security.checkPropertyAccess("file.separator");
+	// Work around (rare) checkPropertyAccess bug
+	System.getProperty("user.dir");
       } catch (SecurityException e) {
 	System.out.println("SecurityManager restricts session recording.");
 	return false;

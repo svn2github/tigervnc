@@ -234,9 +234,9 @@ vncProperties::Show(BOOL show, BOOL usersettings)
 
 				// Do the dialog box
 				int result = DialogBoxParam(hAppInstance,
-				    MAKEINTRESOURCE(IDD_PROPERTIES), 
+				    MAKEINTRESOURCE(IDD_PROPERTIES_PARENT), 
 				    NULL,
-				    (DLGPROC) DialogProc,
+						(DLGPROC) ParentDlgProc,
 				    (LONG) this);
 
 				if (!m_returncode_valid)
@@ -293,7 +293,7 @@ vncProperties::Show(BOOL show, BOOL usersettings)
 }
 
 BOOL CALLBACK
-vncProperties::DialogProc(HWND hwnd,
+vncProperties::ParentDlgProc(HWND hwnd,
 						  UINT uMsg,
 						  WPARAM wParam,
 						  LPARAM lParam )
@@ -310,176 +310,160 @@ vncProperties::DialogProc(HWND hwnd,
 			// Retrieve the Dialog box parameter and use it as a pointer
 			// to the calling vncProperties object
 			SetWindowLong(hwnd, GWL_USERDATA, lParam);
-			_this = (vncProperties *) lParam;
+			vncProperties *_this = (vncProperties *) lParam;
 			_this->m_dlgvisible = TRUE;
 
-			_this->m_shareddtarea = new SharedDesktopArea(hwnd,
-														_this->m_pMatchWindow,
-														_this,
-														_this->m_server);
+			InitCommonControls();
 
-#ifdef HORIZONLIVE
-			// Set the dialog box's title
-			SetWindowText(hwnd, "LiveShare Settings");
-			
-			HWND hLiveShare = GetDlgItem(hwnd, IDC_LIVESHARE);
-			::SetWindowText(hLiveShare, _this->m_pref_LiveShareKey);                                                                                                  
-			if (_this->m_server->AuthClientCount() != 0)
-				EnableWindow(hLiveShare,false);
+			_this->m_hTab = GetDlgItem(hwnd, IDC_TAB);
 
-			return TRUE;
-#else
+			TCITEM item;
+			item.mask = TCIF_TEXT; 
+			item.pszText="Incoming Connections";
+			TabCtrl_InsertItem(_this->m_hTab, 0, &item);
+			item.pszText = "Input Handling";
+			TabCtrl_InsertItem(_this->m_hTab, 1, &item);
+			item.pszText = "Update Handling";
+			TabCtrl_InsertItem(_this->m_hTab, 2, &item);
+			item.pszText = "Shared Desktop Area";
+			TabCtrl_InsertItem(_this->m_hTab, 3, &item);
+			item.pszText = "Client Disconnects";
+			TabCtrl_InsertItem(_this->m_hTab, 4, &item);
+
+			_this->m_hShared = CreateDialogParam(hAppInstance, 
+				MAKEINTRESOURCE(IDD_SHARED_DESKTOP_AREA),
+				hwnd,
+				(DLGPROC)_this->SharedDlgProc,
+				(LONG)_this);
+
+			_this->m_hIncoming = CreateDialogParam(hAppInstance,
+				MAKEINTRESOURCE(IDD_INCOMING),
+				hwnd,
+				(DLGPROC)_this->IncomingDlgProc,
+				(LONG)_this);
+
+			_this->m_hInputHandling = CreateDialogParam(hAppInstance, 
+				MAKEINTRESOURCE(IDD_INPUT_HANDLING),
+				hwnd,
+				(DLGPROC)_this->InputHandlingDlgProc,
+				(LONG)_this);
+
+			_this->m_hPoll = CreateDialogParam(hAppInstance, 
+				MAKEINTRESOURCE(IDD_UPDATE_HANDLING),
+				hwnd,
+				(DLGPROC)_this->PollDlgProc,
+				(LONG)_this);
+
+			_this->m_hDisconnect = CreateDialogParam(hAppInstance, 
+				MAKEINTRESOURCE(IDD_CLIENT_DISCONNECT),
+				hwnd,
+				(DLGPROC)_this->DisconnectDlgProc,
+				(LONG)_this);
+
+			// Position child dialogs, to fit the Tab control's display area
+			RECT rc;
+			GetWindowRect(_this->m_hTab, &rc);
+			MapWindowPoints(NULL, hwnd, (POINT *)&rc, 2);
+			TabCtrl_AdjustRect(_this->m_hTab, FALSE, &rc);
+			SetWindowPos(_this->m_hIncoming, HWND_TOP, rc.left, rc.top,
+						 rc.right - rc.left, rc.bottom - rc.top,
+						 SWP_SHOWWINDOW);
+			SetWindowPos(_this->m_hInputHandling, HWND_TOP, rc.left, rc.top,
+						 rc.right - rc.left, rc.bottom - rc.top,
+						 SWP_HIDEWINDOW);
+			SetWindowPos(_this->m_hPoll, HWND_TOP, rc.left, rc.top,
+						 rc.right - rc.left, rc.bottom - rc.top,
+						 SWP_HIDEWINDOW);
+			SetWindowPos(_this->m_hShared, HWND_TOP, rc.left, rc.top,
+						 rc.right - rc.left, rc.bottom - rc.top,
+						 SWP_HIDEWINDOW);
+			SetWindowPos(_this->m_hDisconnect, HWND_TOP, rc.left, rc.top,
+						 rc.right - rc.left, rc.bottom - rc.top,
+						 SWP_HIDEWINDOW);
+
 			// Set the dialog box's title to indicate which Properties we're editting
 			if (_this->m_usersettings) {
 				SetWindowText(hwnd, "WinVNC: Current User Properties");
 			} else {
 				SetWindowText(hwnd, "WinVNC: Default Local System Properties");
-			}
-
-			// Initialise the properties controls
-      _this->m_incConnCtrl = new IncomingConnectionsControls(hwnd, _this->m_server);
-						
-			_this->m_inputhandcontr = new InputHandlingControls(hwnd, _this->m_server);
-			
-			// Lock settings
-			HWND hLockSetting;
-			switch (_this->m_server->LockSettings()) {
-			case 1:
-				hLockSetting = GetDlgItem(hwnd, IDC_LOCKSETTING_LOCK);
-				break;
-			case 2:
-				hLockSetting = GetDlgItem(hwnd, IDC_LOCKSETTING_LOGOFF);
-				break;
-			default:
-				hLockSetting = GetDlgItem(hwnd, IDC_LOCKSETTING_NOTHING);
-			};
-			SendMessage(hLockSetting,
-				BM_SETCHECK,
-				TRUE,
-				0);
-			
-			// Set the polling options
-			_this->m_pollcontrols = new PollControls(hwnd, _this->m_server);
-
+			}						
+							
 			// We return FALSE because we set the keyboard focus explicitly.
 			return FALSE;
-#endif
 		}
-
+    case WM_NOTIFY:
+		{
+			LPNMHDR pn = (LPNMHDR)lParam;			
+			switch (pn->idFrom) {
+			case IDC_TAB:
+				{
+				int i = TabCtrl_GetCurFocus(_this->m_hTab);
+				DWORD style;
+				if (pn->code == TCN_SELCHANGE)
+					style = SW_SHOW;
+				if (pn->code == TCN_SELCHANGING)
+					style = SW_HIDE;
+				if ((style != SW_HIDE) && (style != SW_SHOW))
+					return 0;
+				switch (i) {
+				case 0:
+					ShowWindow(_this->m_hIncoming, style);
+					return 0;
+				case 1:
+					ShowWindow(_this->m_hInputHandling, style);						
+					return 0;
+				case 2:
+					ShowWindow(_this->m_hPoll, style);						
+					return 0;
+				case 3:						
+					ShowWindow(_this->m_hShared, style);						
+					return 0;
+				case 4:						
+					ShowWindow(_this->m_hDisconnect, style);						
+						return 0;
+					}
+					return 0;
+				}
+			}
+			return 0;
+		}
 	case WM_COMMAND:
 		if (_this->m_inadvanced)
 			return FALSE;
 		switch (LOWORD(wParam))
 		{
-
 		case IDOK:
 		case IDC_APPLY:
-			{
-#ifndef HORIZONLIVE				
-								
-				_this->m_inputhandcontr->ApplyInputsControlsContents(hwnd);
-				
-				// Lock settings handling
-				if (SendMessage(GetDlgItem(hwnd, IDC_LOCKSETTING_LOCK), BM_GETCHECK, 0, 0)
-					== BST_CHECKED) {
-					_this->m_server->SetLockSettings(1);
-				} else if (SendMessage(GetDlgItem(hwnd, IDC_LOCKSETTING_LOGOFF), BM_GETCHECK, 0, 0)
-					== BST_CHECKED) {
-					_this->m_server->SetLockSettings(2);
-				} else {
-					_this->m_server->SetLockSettings(0);
-				}
+			{	
+			SendMessage(_this->m_hIncoming, WM_COMMAND, IDC_APPLY,0);
+			SendMessage(_this->m_hInputHandling, WM_COMMAND, IDC_APPLY,0);
+			SendMessage(_this->m_hPoll, WM_COMMAND, IDC_APPLY,0);
+			SendMessage(_this->m_hShared, WM_COMMAND, IDC_APPLY,0);
+			SendMessage(_this->m_hDisconnect, WM_COMMAND, IDC_APPLY,0);
+        
+			_this->Save();
+        
+			// Was ok pressed?
+			if (LOWORD(wParam) == IDOK) {
+        
+				// Yes, so close the dialog
+				vnclog.Print(LL_INTINFO, VNCLOG("enddialog (OK)\n"));
 
-				if(_this->m_shareddtarea->ApplySharedControls() == true)
-					return true;
+				_this->m_returncode_valid = TRUE;
 
-        _this->m_incConnCtrl->Apply();
-
-				// Handle the polling stuff
-				_this->m_pollcontrols->Apply();
-				
-#else
-				_this->m_server->SetLiveShareKey(_this->m_pref_LiveShareKey);
-#endif
-
-				// And to the registry
-				_this->Save();
-
-				// Was ok pressed?
-				if (LOWORD(wParam) == IDOK)
-				{
-
-#ifdef HORIZONLIVE					
-					if (_this->m_server->AuthClientCount() == 0)
-					{
-						char hostemp [_MAX_PATH];
-						char *portp;
-						int port;
-						strcpy(hostemp, _this->m_pref_LiveShareKey);
-						// Calculate the Display and Port offset.
-						port = INCOMING_PORT_OFFSET;
-						portp = strchr(hostemp, ':');
-						if (portp)
-						{
-							*portp++ = '\0';
-							port += atoi(portp);
-						}
-
-						// Attempt to create a new socket
-						VSocket *tmpsock;
-						tmpsock = new VSocket;
-						if (!tmpsock)
-							return TRUE;
-
-						// Connect out to the specified host on the VNCviewer listen port
-						// To be really good, we should allow a display number here but
-						// for now we'll just assume we're connecting to display zero
-						tmpsock->Create();
-						if (tmpsock->Connect(hostemp, port)) {
-							// Add the new client to this server
-							_this->m_server->AddClient(tmpsock, TRUE, TRUE);
-							
-						} else {
-							// Print up an error message
-							MessageBox(NULL, 
-							"LiveShare was unable to begin sharing your computer.\nPlease verify that you have entered the correct LiveShare Key and try again.",
-							"LiveShare Connection Error",
-							MB_OK | MB_ICONEXCLAMATION );
-							delete tmpsock;
-							return true;
-						}
-					}
-#endif					
-					
-					// Yes, so close the dialog
-          delete _this->m_incConnCtrl;
-					delete _this->m_shareddtarea;
-					delete _this->m_pollcontrols;
-					delete _this->m_inputhandcontr;
-					vnclog.Print(LL_INTINFO, VNCLOG("enddialog (OK)\n"));
-
-					_this->m_returncode_valid = TRUE;
-
-					EndDialog(hwnd, IDOK);
-					_this->m_dlgvisible = FALSE;
-				}
-
-				return TRUE;
+				EndDialog(hwnd, IDOK);
+				_this->m_dlgvisible = FALSE;
+				_this->m_hTab = NULL;
 			}
-
+			return TRUE;
+			}
 		case IDCANCEL:
-      delete _this->m_incConnCtrl;
-			delete _this->m_shareddtarea;
-			delete _this->m_pollcontrols;
-			delete _this->m_inputhandcontr;
 			vnclog.Print(LL_INTINFO, VNCLOG("enddialog (CANCEL)\n"));
-
 			_this->m_returncode_valid = TRUE;
-
 			EndDialog(hwnd, IDCANCEL);
 			_this->m_dlgvisible = FALSE;
+			_this->m_hTab = NULL;
 			return TRUE;
-
 		case IDADVANCED:
 			vnclog.Print(LL_INTINFO, VNCLOG("newdialog (ADVANCED)\n"));
 			{
@@ -497,70 +481,232 @@ vncProperties::DialogProc(HWND hwnd,
 				omni_thread::sleep(0, 200000000);
 			}
 			return TRUE;
-
-#ifndef HORIZONLIVE		
+		}
+		return 0;
+	}
+	return 0;
+}
+BOOL CALLBACK vncProperties::IncomingDlgProc(HWND hwnd, UINT uMsg,
+                                             WPARAM wParam, LPARAM lParam)
+{
+	// We use the dialog-box's USERDATA to store a _this pointer
+	// This is set only once WM_INITDIALOG has been recieved, though!
+	vncProperties *_this = (vncProperties *) GetWindowLong(hwnd, GWL_USERDATA);
+	
+	switch (uMsg)
+	{
+	case WM_INITDIALOG:
+		{
+			// Retrieve the Dialog box parameter and use it as a pointer
+			// to the calling vncProperties object
+			SetWindowLong(hwnd, GWL_USERDATA, lParam);
+			vncProperties *_this = (vncProperties *) lParam;
+			_this->m_incConnCtrl = new IncomingConnectionsControls(hwnd, _this->m_server);
+			return 0;
+		}
+    case WM_COMMAND:		
+		switch (LOWORD(wParam))
+		{
 		case IDC_CONNECT_SOCK:
-    case IDC_PORTNO_AUTO:
-    case IDC_SPECDISPLAY:
-    case IDC_SPECPORT:
+		case IDC_PORTNO_AUTO:
+		case IDC_SPECDISPLAY:
+		case IDC_SPECPORT:
 			_this->m_incConnCtrl->Validate();
+			return TRUE;      
+		case IDC_APPLY:
+			_this->m_incConnCtrl->Apply();
 			return TRUE;
-
+		}
+		return 0;
+	case WM_DESTROY:
+		delete _this->m_incConnCtrl;      
+		_this->m_incConnCtrl = NULL;  
+		_this->m_hIncoming = NULL;  
+		return 0;
+	}
+	return 0;
+}
+BOOL CALLBACK vncProperties::PollDlgProc(HWND hwnd, UINT uMsg,
+                                         WPARAM wParam, LPARAM lParam)
+{
+	// We use the dialog-box's USERDATA to store a _this pointer
+	// This is set only once WM_INITDIALOG has been recieved, though!
+	vncProperties *_this = (vncProperties *) GetWindowLong(hwnd, GWL_USERDATA);
+	
+	switch (uMsg)
+	{
+	case WM_INITDIALOG:
+		{
+			// Retrieve the Dialog box parameter and use it as a pointer
+			// to the calling vncProperties object
+			SetWindowLong(hwnd, GWL_USERDATA, lParam);
+			vncProperties *_this = (vncProperties *) lParam;
+			_this->m_pollcontrols = new PollControls(hwnd, _this->m_server); 
+			return 0;
+		}
+	case WM_COMMAND:	
+		switch (LOWORD(wParam))
+		{
 		case IDC_POLL_FOREGROUND:
 		case IDC_POLL_UNDER_CURSOR:
 		case IDC_POLL_FULLSCREEN:
 			_this->m_pollcontrols->Validate();
-			return TRUE;				
-		case IDC_DISABLE_INPUTS:
-		case IDC_DISABLE_LOCAL_INPUTS:
+			return TRUE;	
+		case IDC_APPLY:
+			_this->m_pollcontrols->Apply();
+			return TRUE;
+		}
+		return 0;
+	case WM_DESTROY:
+		delete _this->m_pollcontrols;
+		_this->m_pollcontrols = NULL;  
+		_this->m_hPoll = NULL;
+		return 0;
+	}
+	return 0;
+}
+BOOL CALLBACK vncProperties::SharedDlgProc(HWND hwnd, UINT uMsg,
+                                           WPARAM wParam, LPARAM lParam)
+{
+	// We use the dialog-box's USERDATA to store a _this pointer
+	// This is set only once WM_INITDIALOG has been recieved, though!
+	vncProperties *_this = (vncProperties *) GetWindowLong(hwnd, GWL_USERDATA);
+	
+	switch (uMsg)
+	{
+	case WM_INITDIALOG:
+		{
+			// Retrieve the Dialog box parameter and use it as a pointer
+			// to the calling vncProperties object
+			SetWindowLong(hwnd, GWL_USERDATA, lParam);
+			vncProperties *_this = (vncProperties *) lParam;
 			
-			_this->m_inputhandcontr->EnableInputs(hwnd);
-				
-			return TRUE;
-	
-		case IDC_REMOTE_DISABLE:
-
-			_this->m_inputhandcontr->EnableRemote(hwnd);
-
-			return TRUE;
-	
-#else
-		case IDC_LIVESHARE:
-			{
-				char entered_key [_MAX_PATH];
-				char cleaned_key [_MAX_PATH];
-				char *pos = cleaned_key;
-
-				GetDlgItemText(hwnd, IDC_LIVESHARE, entered_key, _MAX_PATH);
-
-				// Clean out low ASCII chars from the LiveShare Key
-				for(int i=0; i<strlen(entered_key); i++)
-					if(entered_key[i] > 0x2C)
-						*pos++ = entered_key[i];
-
-				*pos = '\0';
-				
-				strcpy(_this->m_pref_LiveShareKey, cleaned_key);
-			}
-			return TRUE;
-
-#endif
-
+			_this->m_shareddtarea = new SharedDesktopArea(hwnd,
+				_this->m_pMatchWindow,
+				_this,
+				_this->m_server);
+			return 0;
+		}
+	case WM_COMMAND:	
+		switch (LOWORD(wParam))
+		{
 		case IDC_FULLSCREEN:
 			_this->m_shareddtarea->FullScreen();
 			return TRUE;
-	
+			
 		case IDC_WINDOW:
 			_this->m_shareddtarea->SharedWindow();
 			return TRUE;
-
+			
 		case IDC_SCREEN:
 			_this->m_shareddtarea->SharedScreen();
 			return TRUE;
-
+		case IDC_APPLY:
+			_this->m_shareddtarea->ApplySharedControls();
+			return TRUE;
 		}
-
-		break;
+		return 0;
+	case WM_DESTROY:
+		delete _this->m_shareddtarea;
+		_this->m_shareddtarea = NULL;
+		_this->m_hShared = NULL;
+		return 0;
+	}
+	return 0;
+}
+BOOL CALLBACK vncProperties::InputHandlingDlgProc(HWND hwnd, UINT
+                                                  uMsg, WPARAM wParam, LPARAM lParam)
+{
+	// We use the dialog-box's USERDATA to store a _this pointer
+	// This is set only once WM_INITDIALOG has been recieved, though!
+	vncProperties *_this = (vncProperties *) GetWindowLong(hwnd, GWL_USERDATA);
+	
+	switch (uMsg)
+	{
+	case WM_INITDIALOG:	
+		{
+			// Retrieve the Dialog box parameter and use it as a pointer
+			// to the calling vncProperties object
+			SetWindowLong(hwnd, GWL_USERDATA, lParam);
+			vncProperties *_this = (vncProperties *) lParam;
+			_this->m_inputhandcontr = new InputHandlingControls(hwnd, _this->m_server);
+			return 0;
+		}
+	case WM_COMMAND:	
+		switch (LOWORD(wParam))
+		{
+		case IDC_DISABLE_INPUTS:
+		case IDC_DISABLE_LOCAL_INPUTS:			
+			_this->m_inputhandcontr->EnableInputs(hwnd);				
+			return TRUE;	
+		case IDC_REMOTE_DISABLE:
+			_this->m_inputhandcontr->EnableRemote(hwnd);
+			return TRUE;
+		case IDC_APPLY:
+			_this->m_inputhandcontr->ApplyInputsControlsContents(hwnd);
+			return TRUE;
+		}
+		return 0;
+	case WM_DESTROY:
+		delete _this->m_inputhandcontr;
+		_this->m_inputhandcontr = NULL;
+		_this->m_hInputHandling = NULL;
+		return 0;
+	}
+	return 0;
+}
+BOOL CALLBACK vncProperties::DisconnectDlgProc(HWND hwnd, UINT uMsg,
+                                               WPARAM wParam, LPARAM lParam)
+{
+	// We use the dialog-box's USERDATA to store a _this pointer
+	// This is set only once WM_INITDIALOG has been recieved, though!
+	vncProperties *_this = (vncProperties *) GetWindowLong(hwnd, GWL_USERDATA);
+	
+	switch (uMsg)
+	{
+	case WM_INITDIALOG:
+		{
+			// Retrieve the Dialog box parameter and use it as a pointer
+			// to the calling vncProperties object
+			SetWindowLong(hwnd, GWL_USERDATA, lParam);
+			vncProperties *_this = (vncProperties *) lParam;
+			HWND hLockSetting;
+			switch (_this->m_server->LockSettings()) {
+			case 1:
+				hLockSetting = GetDlgItem(hwnd, IDC_LOCKSETTING_LOCK);
+				break;
+			case 2:
+				hLockSetting = GetDlgItem(hwnd, IDC_LOCKSETTING_LOGOFF);
+				break;
+			default:
+				hLockSetting = GetDlgItem(hwnd, IDC_LOCKSETTING_NOTHING);
+			}
+			SendMessage(hLockSetting,
+				BM_SETCHECK,
+				TRUE,
+				0);
+			return 0;
+		}
+	case WM_COMMAND:		
+		switch (LOWORD(wParam))
+		{
+		case IDC_APPLY:
+			// Lock settings handling
+			if (SendMessage(GetDlgItem(hwnd, IDC_LOCKSETTING_LOCK), BM_GETCHECK, 0, 0)
+				== BST_CHECKED) {
+				_this->m_server->SetLockSettings(1);
+			} else if (SendMessage(GetDlgItem(hwnd, IDC_LOCKSETTING_LOGOFF), BM_GETCHECK, 0, 0)
+				== BST_CHECKED) {
+				_this->m_server->SetLockSettings(2);
+			} else {
+				_this->m_server->SetLockSettings(0);
+			}
+			return TRUE;
+		}
+		return 0;
+	case WM_DESTROY:
+		_this->m_hDisconnect = NULL;
+		return 0;
 	}
 	return 0;
 }

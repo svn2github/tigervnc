@@ -46,7 +46,7 @@ class vncProperties;
 #include "InputHandlingControls.h" 
 #include "SharedDesktopArea.h"
 #include "IncomingConnectionsControls.h"
-
+#include "commctrl.h"
 // The vncProperties class itself
 class vncProperties
 {
@@ -59,7 +59,12 @@ public:
 	BOOL Init(vncServer *server);
 
 	// The dialog box window proc
-	static BOOL CALLBACK DialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	static BOOL CALLBACK ParentDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	static BOOL CALLBACK IncomingDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	static BOOL CALLBACK PollDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	static BOOL CALLBACK SharedDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	static BOOL CALLBACK InputHandlingDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	static BOOL CALLBACK DisconnectDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	// Display the properties dialog
 	// If usersettings is TRUE then the per-user settings come up
@@ -160,11 +165,17 @@ protected:
 #endif
 
 private:
+	HWND m_hTab;
+	HWND m_hIncoming;
+	HWND m_hShared;
+	HWND m_hInputHandling;
+	HWND m_hPoll;
+	HWND m_hDisconnect;
 	CMatchWindow* m_pMatchWindow;
 	PollControls* m_pollcontrols;
 	InputHandlingControls* m_inputhandcontr;
 	SharedDesktopArea* m_shareddtarea;
-  IncomingConnectionsControls* m_incConnCtrl;
+	IncomingConnectionsControls* m_incConnCtrl;
 };
 
 #endif // _WINVNC_VNCPROPERTIES

@@ -26,106 +26,6 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // Dialog
 //
 
-IDD_PROPERTIES DIALOG DISCARDABLE  0, 0, 376, 278
-STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_POPUP | 
-    WS_VISIBLE | WS_CAPTION | WS_SYSMENU
-CAPTION "Property Page"
-FONT 8, "MS Sans Serif"
-BEGIN
-    GROUPBOX        "Incoming Connections",IDC_STATIC,5,5,135,138
-    CONTROL         "Accept socket connections",IDC_CONNECT_SOCK,"Button",
-                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,13,16,117,12
-    LTEXT           "Primary password:",IDC_PASSWORD_LABEL,13,30,69,12,
-                    SS_CENTERIMAGE | NOT WS_GROUP
-    EDITTEXT        IDC_PASSWORD,84,30,46,12,ES_PASSWORD | ES_AUTOHSCROLL
-    LTEXT           "View-only password:",IDC_PASSWORD_VIEWONLY_LABEL,13,46,
-                    69,12,SS_CENTERIMAGE | NOT WS_GROUP
-    EDITTEXT        IDC_PASSWORD_VIEWONLY,84,46,46,12,ES_PASSWORD | 
-                    ES_AUTOHSCROLL
-    CONTROL         "Enable built-in Java viewer",IDC_CONNECT_HTTP,"Button",
-                    BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,13,62,117,12
-    LTEXT           "Display or port numbers to use:",IDC_STATIC,13,80,117,
-                    11,NOT WS_GROUP
-    CONTROL         "auto",IDC_PORTNO_AUTO,"Button",BS_AUTORADIOBUTTON | 
-                    WS_GROUP | WS_TABSTOP,13,94,33,12
-    CONTROL         "display:",IDC_SPECDISPLAY,"Button",BS_AUTORADIOBUTTON | 
-                    WS_TABSTOP,52,94,46,12
-    EDITTEXT        IDC_DISPLAYNO,102,94,28,12,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "ports:",IDC_SPECPORT,"Button",BS_AUTORADIOBUTTON | 
-                    WS_TABSTOP,13,112,35,12
-    EDITTEXT        IDC_PORTRFB,53,112,27,12,ES_AUTOHSCROLL | ES_NUMBER
-    CTEXT           "and",IDC_AND_LABEL,85,112,12,12,SS_CENTERIMAGE | NOT 
-                    WS_GROUP
-    EDITTEXT        IDC_PORTHTTP,102,112,28,12,ES_AUTOHSCROLL | ES_NUMBER
-    CTEXT           "(main)",IDC_MAIN_LABEL,53,126,27,10,SS_CENTERIMAGE | 
-                    NOT WS_GROUP
-    CTEXT           "(HTTP)",IDC_HTTP_LABEL,102,126,28,10,SS_CENTERIMAGE | 
-                    NOT WS_GROUP
-    GROUPBOX        "Input Handling",IDC_STATIC,147,5,224,73
-    CONTROL         "Disable remote keyboard and pointer (all clients view only)",
-                    IDC_DISABLE_INPUTS,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
-                    WS_TABSTOP,156,16,209,12
-    CONTROL         "Disable local keyboard and pointer during client sessions",
-                    IDC_DISABLE_LOCAL_INPUTS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,156,31,209,12
-    CONTROL         "Disable remote keyboard and pointer on local activity",
-                    IDC_REMOTE_DISABLE,"Button",BS_AUTOCHECKBOX | BS_TOP | 
-                    BS_MULTILINE | WS_TABSTOP,156,46,209,12
-    LTEXT           "Input enabled after timeout:",IDC_TIMEOUT_LABEL,167,59,
-                    92,12,SS_CENTERIMAGE | NOT WS_GROUP
-    EDITTEXT        IDC_DISABLE_TIME,268,59,23,12,ES_AUTOHSCROLL | ES_NUMBER
-    LTEXT           "seconds",IDC_SECONDS_LABEL,296,59,69,12,SS_CENTERIMAGE | 
-                    NOT WS_GROUP
-    GROUPBOX        "Update Handling",IDC_STATIC,147,82,224,76
-    CONTROL         "Poll foreground window",IDC_POLL_FOREGROUND,"Button",
-                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,156,94,103,13
-    CONTROL         "Poll window under cursor",IDC_POLL_UNDER_CURSOR,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,156,109,103,13
-    CONTROL         "Poll full screen",IDC_POLL_FULLSCREEN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,156,124,100,13
-    CONTROL         "Poll console windows only",IDC_CONSOLE_ONLY,"Button",
-                    BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,261,94,104,
-                    13
-    CONTROL         "Poll on event received only",IDC_ONEVENT_ONLY,"Button",
-                    BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,261,109,104,
-                    13
-    LTEXT           "Polling cycle:",IDC_STATIC_PCYCLE,259,125,49,10,
-                    SS_CENTERIMAGE | NOT WS_GROUP
-    EDITTEXT        IDC_POLL_TIMER,312,124,27,12,ES_AUTOHSCROLL
-    LTEXT           "ms",IDC_STATIC_MS,346,125,19,10,SS_CENTERIMAGE | NOT 
-                    WS_GROUP
-    GROUPBOX        "When Last Client Disconnects",IDC_STATIC,5,147,135,58
-    CONTROL         "Do nothing",IDC_LOCKSETTING_NOTHING,"Button",
-                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,13,158,117,12
-    CONTROL         "Lock workstation",IDC_LOCKSETTING_LOCK,"Button",
-                    BS_AUTORADIOBUTTON | WS_TABSTOP,13,173,117,12
-    CONTROL         "Logoff workstation",IDC_LOCKSETTING_LOGOFF,"Button",
-                    BS_AUTORADIOBUTTON | WS_TABSTOP,13,188,117,12
-    CONTROL         "Remove desktop wallpaper on client connections",
-                    IDC_REMOVE_WALLPAPER,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
-                    WS_TABSTOP,156,175,209,12
-    DEFPUSHBUTTON   "&OK",IDOK,147,190,50,15,WS_GROUP
-    PUSHBUTTON      "&Apply",IDC_APPLY,203,190,50,15
-    PUSHBUTTON      "&Cancel",IDCANCEL,259,190,50,15
-    PUSHBUTTON      "Ad&vanced...",IDADVANCED,321,190,50,15
-    GROUPBOX        "Shared Desktop Area",IDC_STATIC,5,209,366,62
-    CONTROL         "Full desktop",IDC_FULLSCREEN,"Button",
-                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,13,221,100,13
-    CONTROL         "Window:",IDC_WINDOW,"Button",BS_AUTORADIOBUTTON | 
-                    WS_TABSTOP,13,237,44,13
-    CONTROL         "Rectangular area",IDC_SCREEN,"Button",
-                    BS_AUTORADIOBUTTON | WS_TABSTOP,13,253,100,13
-    CONTROL         139,IDC_BMPCURSOR,"Static",SS_BITMAP,69,235,21,17
-    EDITTEXT        IDC_NAME_APPLI,100,237,262,12,ES_AUTOHSCROLL | 
-                    ES_READONLY
-    CONTROL         "Don't use VNCHooks.DLL while polling full screen",
-                    IDC_DONT_SET_HOOKS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    156,139,209,13
-    CONTROL         "Enable file transfers between server and clients",
-                    IDC_ENABLE_FILE_TRANSFERS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,156,161,209,12
-END
-
 IDD_ABOUT DIALOG DISCARDABLE  0, 0, 326, 130
 STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About WinVNC"
@@ -292,12 +192,146 @@ IDD_ACCEPT_REVERSE DIALOGEX 0, 0, 179, 55
 STYLE DS_SYSMODAL | DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | 
     WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "Begin LiveShare Session?"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "&OK",IDACCEPT,17,31,47,17
     PUSHBUTTON      "&Cancel",IDREJECT,113,31,48,17,0,WS_EX_TRANSPARENT
     CTEXT           "Would you like to share your computer desktop via LiveShare now?",
                     IDC_STATIC_TEXT2,8,2,163,17
+END
+
+IDD_PROPERTIES_PARENT DIALOGEX 0, 0, 285, 164
+STYLE DS_MODALFRAME | DS_CENTER | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTROLPARENT
+CAPTION "Property Page"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    CONTROL         "Tab1",IDC_TAB,"SysTabControl32",TCS_MULTILINE | 
+                    WS_TABSTOP,7,0,271,135
+    DEFPUSHBUTTON   "&OK",IDOK,54,142,50,15,WS_GROUP
+    PUSHBUTTON      "&Apply",IDC_APPLY,111,142,50,15
+    PUSHBUTTON      "&Cancel",IDCANCEL,170,142,50,15
+    PUSHBUTTON      "Ad&vanced...",IDADVANCED,228,142,50,15
+END
+
+IDD_SHARED_DESKTOP_AREA DIALOG DISCARDABLE  0, 0, 235, 90
+STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Full desktop",IDC_FULLSCREEN,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,7,22,100,13
+    CONTROL         "Window:",IDC_WINDOW,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,7,38,44,13
+    CONTROL         "Rectangular area",IDC_SCREEN,"Button",
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,7,54,100,13
+    CONTROL         139,IDC_BMPCURSOR,"Static",SS_BITMAP,63,36,21,17
+    EDITTEXT        IDC_NAME_APPLI,91,39,137,12,ES_AUTOHSCROLL | ES_READONLY
+END
+
+IDD_INCOMING DIALOG DISCARDABLE  0, 0, 262, 112
+STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE | WS_BORDER
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Accept socket connections",IDC_CONNECT_SOCK,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,7,117,12
+    LTEXT           "Primary password:",IDC_PASSWORD_LABEL,13,20,69,12,
+                    SS_CENTERIMAGE | NOT WS_GROUP
+    EDITTEXT        IDC_PASSWORD,84,20,39,12,ES_PASSWORD | ES_AUTOHSCROLL
+    LTEXT           "View-only password:",IDC_PASSWORD_VIEWONLY_LABEL,13,39,
+                    69,12,SS_CENTERIMAGE | NOT WS_GROUP
+    EDITTEXT        IDC_PASSWORD_VIEWONLY,84,39,40,12,ES_PASSWORD | 
+                    ES_AUTOHSCROLL
+    CONTROL         "Enable built-in Java viewer",IDC_CONNECT_HTTP,"Button",
+                    BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,7,58,117,12
+    CONTROL         "auto",IDC_PORTNO_AUTO,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP | WS_TABSTOP,140,21,33,12
+    CONTROL         "display",IDC_SPECDISPLAY,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,140,39,40,12
+    CONTROL         "ports",IDC_SPECPORT,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,140,58,35,12
+    EDITTEXT        IDC_DISPLAYNO,215,20,29,12,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_PORTRFB,215,39,29,12,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_PORTHTTP,215,58,29,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Enable file transfers between server and clients",
+                    IDC_ENABLE_FILE_TRANSFERS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,7,80,209,12
+    CONTROL         "Remove desktop wallpaper on client connections",
+                    IDC_REMOVE_WALLPAPER,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
+                    WS_TABSTOP,7,93,209,12
+    CTEXT           "display:",IDC_DISPLAY_LABEL,189,20,23,12,SS_CENTERIMAGE | 
+                    NOT WS_GROUP
+    CTEXT           "main port:",IDC_MAIN_LABEL,181,40,33,10,SS_CENTERIMAGE | 
+                    NOT WS_GROUP
+    CTEXT           "HTTP port:",IDC_HTTP_LABEL,178,59,35,10,SS_CENTERIMAGE | 
+                    NOT WS_GROUP
+    GROUPBOX        "Display or port numbers to use:",IDC_STATIC,135,9,120,
+                    66
+END
+
+IDD_OLE_PROPPAGE_LARGE DIALOG DISCARDABLE  0, 0, 250, 110
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "TODO: layout OLE  property page",IDC_STATIC,71,51,108,8
+END
+
+IDD_INPUT_HANDLING DIALOG DISCARDABLE  0, 0, 223, 93
+STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Disable remote keyboard and pointer (all clients view only)",
+                    IDC_DISABLE_INPUTS,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
+                    WS_TABSTOP,7,18,202,12
+    CONTROL         "Disable local keyboard and pointer during client sessions",
+                    IDC_DISABLE_LOCAL_INPUTS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,7,33,199,12
+    CONTROL         "Disable remote keyboard and pointer on local activity",
+                    IDC_REMOTE_DISABLE,"Button",BS_AUTOCHECKBOX | BS_TOP | 
+                    BS_MULTILINE | WS_TABSTOP,7,48,201,12
+    LTEXT           "Input enabled after timeout:",IDC_TIMEOUT_LABEL,19,61,
+                    92,12,SS_CENTERIMAGE | NOT WS_GROUP
+    EDITTEXT        IDC_DISABLE_TIME,119,61,23,12,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "seconds",IDC_SECONDS_LABEL,147,61,50,12,SS_CENTERIMAGE | 
+                    NOT WS_GROUP
+END
+
+IDD_UPDATE_HANDLING DIALOG DISCARDABLE  0, 0, 235, 87
+STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Poll foreground window",IDC_POLL_FOREGROUND,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,15,103,13
+    CONTROL         "Poll window under cursor",IDC_POLL_UNDER_CURSOR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,30,103,13
+    CONTROL         "Poll full screen",IDC_POLL_FULLSCREEN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,45,100,13
+    CONTROL         "Poll console windows only",IDC_CONSOLE_ONLY,"Button",
+                    BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,113,15,104,
+                    13
+    CONTROL         "Poll on event received only",IDC_ONEVENT_ONLY,"Button",
+                    BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,113,30,104,
+                    13
+    LTEXT           "Polling cycle:",IDC_STATIC_PCYCLE,111,46,49,10,
+                    SS_CENTERIMAGE | NOT WS_GROUP
+    EDITTEXT        IDC_POLL_TIMER,163,45,27,12,ES_AUTOHSCROLL
+    LTEXT           "ms",IDC_STATIC_MS,197,46,19,10,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
+    CONTROL         "Don't use VNCHooks.DLL while polling full screen",
+                    IDC_DONT_SET_HOOKS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    7,60,209,13
+END
+
+IDD_CLIENT_DISCONNECT DIALOG DISCARDABLE  0, 0, 176, 72
+STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Do nothing",IDC_LOCKSETTING_NOTHING,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,7,15,117,12
+    CONTROL         "Lock workstation",IDC_LOCKSETTING_LOCK,"Button",
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,7,30,117,12
+    CONTROL         "Logoff workstation",IDC_LOCKSETTING_LOGOFF,"Button",
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,7,45,117,12
 END
 
 
@@ -309,23 +343,6 @@ END
 #ifdef APSTUDIO_INVOKED
 GUIDELINES DESIGNINFO DISCARDABLE 
 BEGIN
-    IDD_PROPERTIES, DIALOG
-    BEGIN
-        LEFTMARGIN, 5
-        RIGHTMARGIN, 371
-        VERTGUIDE, 13
-        VERTGUIDE, 130
-        VERTGUIDE, 147
-        VERTGUIDE, 156
-        VERTGUIDE, 365
-        TOPMARGIN, 5
-        BOTTOMMARGIN, 271
-        HORZGUIDE, 131
-        HORZGUIDE, 143
-        HORZGUIDE, 147
-        HORZGUIDE, 205
-    END
-
     IDD_ABOUT, DIALOG
     BEGIN
         LEFTMARGIN, 13
@@ -441,6 +458,63 @@ BEGIN
         RIGHTMARGIN, 171
         TOPMARGIN, 7
         BOTTOMMARGIN, 48
+    END
+
+    IDD_PROPERTIES_PARENT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 278
+        BOTTOMMARGIN, 157
+    END
+
+    IDD_SHARED_DESKTOP_AREA, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 228
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 83
+    END
+
+    IDD_INCOMING, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 255
+        VERTGUIDE, 140
+        VERTGUIDE, 244
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 105
+    END
+
+    IDD_OLE_PROPPAGE_LARGE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 243
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 103
+    END
+
+    IDD_INPUT_HANDLING, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 216
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 86
+    END
+
+    IDD_UPDATE_HANDLING, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 228
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 80
+    END
+
+    IDD_CLIENT_DISCONNECT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 169
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 65
     END
 END
 #endif    // APSTUDIO_INVOKED

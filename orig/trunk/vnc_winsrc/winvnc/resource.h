@@ -3,8 +3,9 @@
 // Used by WinVNC.rc
 //
 #define IDI_WINVNC                      102
-#define IDD_PROPERTIES                  102
 #define IDR_TRAYMENU                    104
+#define IDD_OLE_PROPPAGE_LARGE          105
+#define IDD_PROPERTIES_PARENT           107
 #define IDR_VNCVIEWER_JAR               116
 #define IDR_RECFRAME_CLASS              117
 #define IDR_SESSIONREC_CLASS            118
@@ -36,6 +37,11 @@
 #define IDI_LIVESHARE_CON               144
 #define IDI_LIVESHARE_NOCON             145
 #define IDD_ACCEPT_REVERSE              146
+#define IDD_SHARED_DESKTOP_AREA         147
+#define IDD_INCOMING                    148
+#define IDD_INPUT_HANDLING              149
+#define IDD_UPDATE_HANDLING             150
+#define IDD_CLIENT_DISCONNECT           151
 #define IDC_CONNECT_SOCK                1004
 #define IDC_CONNECT_HTTP                1006
 #define IDC_PASSWORD_LABEL              1007
@@ -109,6 +115,8 @@
 #define IDC_AND_LABEL                   1084
 #define IDC_MAIN_LABEL                  1085
 #define IDC_HTTP_LABEL                  1086
+#define IDC_TAB                         1087
+#define IDC_DISPLAY_LABEL               1088
 #define ID_PROPERTIES                   40001
 #define ID_CLOSE                        40002
 #define ID_KILLCLIENTS                  40003
@@ -123,7 +131,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        147
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1087
+#define _APS_NEXT_CONTROL_VALUE         1089
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

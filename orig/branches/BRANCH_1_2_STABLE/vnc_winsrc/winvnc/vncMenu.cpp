@@ -701,6 +701,7 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 		{
 			// Kill all connected clients
 			_this->m_server->KillAuthClients();
+			return 0;
 		}
 	}
 

@@ -38,6 +38,7 @@ class OptionsFrame extends Frame
     "Compression level",
     "Cursor shape updates",
     "Use CopyRect",
+    "8-bit colors",
     "Mouse buttons 2 and 3",
     "View only",
     "Share desktop",
@@ -48,19 +49,21 @@ class OptionsFrame extends Frame
     { "Default", "1", "2", "3", "4", "5", "6", "7", "8", "9" },
     { "Enable", "Ignore", "Disable" },
     { "Yes", "No" },
+    { "Yes", "No" },
     { "Normal", "Reversed" },
     { "Yes", "No" },
     { "Yes", "No" },
   };
 
   final int
-    encodingIndex       = 0,
-    compressLevelIndex  = 1,
-    cursorUpdatesIndex  = 2,
-    useCopyRectIndex    = 3,
-    mouseButtonIndex    = 4,
-    viewOnlyIndex       = 5,
-    shareDesktopIndex   = 6;
+    encodingIndex        = 0,
+    compressLevelIndex   = 1,
+    cursorUpdatesIndex   = 2,
+    useCopyRectIndex     = 3,
+    eightBitColorsIndex  = 4,
+    mouseButtonIndex     = 5,
+    viewOnlyIndex        = 6,
+    shareDesktopIndex    = 7;
 
   Label[] labels = new Label[names.length];
   Choice[] choices = new Choice[names.length];
@@ -76,6 +79,8 @@ class OptionsFrame extends Frame
   int nEncodings;
 
   int compressLevel;
+
+  boolean eightBitColors;
 
   boolean requestCursorUpdates;
   boolean ignoreCursorUpdates;
@@ -134,6 +139,7 @@ class OptionsFrame extends Frame
     choices[compressLevelIndex].select("Default");
     choices[cursorUpdatesIndex].select("Enable");
     choices[useCopyRectIndex].select("Yes");
+    choices[eightBitColorsIndex].select("No");
     choices[mouseButtonIndex].select("Normal");
     choices[shareDesktopIndex].select("Yes");
     choices[viewOnlyIndex].select("No");
@@ -260,8 +266,23 @@ class OptionsFrame extends Frame
   }
 
   //
+  // setColorFormat sets eightBitColors variable depending on the GUI
+  // setting, and switches between 8-bit and 24-bit colors mode, if
+  // necessary.
+  //
+
+  void setColorFormat() {
+
+    eightBitColors
+      = choices[eightBitColorsIndex].getSelectedItem().equals("Yes");
+
+    // FIXME: implement dynamic changing of the color mode.
+
+  }
+
+  //
   // setOtherOptions looks at the "other" choices (ones which don't set the
-  // encoding) and sets the boolean flags appropriately.
+  // encoding or the color format) and sets the boolean flags appropriately.
   //
 
   void setOtherOptions() {
@@ -292,6 +313,10 @@ class OptionsFrame extends Frame
         source == choices[useCopyRectIndex]) {
 
       setEncodings();
+
+    } else if (source == choices[eightBitColorsIndex]) {
+
+      setColorFormat();
 
     } else if (source == choices[mouseButtonIndex] ||
 	       source == choices[shareDesktopIndex] ||

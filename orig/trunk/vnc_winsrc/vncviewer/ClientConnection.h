@@ -47,7 +47,7 @@
 
 #define ZLIBHEX_DECOMP_UNINITED (-1)
 
-#define TIGHT_ZLIB_BUFFER_SIZE 4096
+#define TIGHT_ZLIB_BUFFER_SIZE 512
 
 class ClientConnection;
 typedef void (ClientConnection:: *tightFilterFunc)(int);
@@ -158,6 +158,10 @@ private:
 	BOOL DrawRBSRect8(int x, int y, int w, int h, CARD8 **pptr);
 	BOOL DrawRBSRect16(int x, int y, int w, int h, CARD8 **pptr);
 	BOOL DrawRBSRect32(int x, int y, int w, int h, CARD8 **pptr);
+
+	// ClientConnectionCursor.cpp
+	void ReadXCursorShape(rfbFramebufferUpdateRectHeader *pfburh);
+	void ReadRichCursorShape(rfbFramebufferUpdateRectHeader *pfburh);
 
 	// ClientConnectionFullScreen.cpp
 	void SetFullScreenMode(bool enable);

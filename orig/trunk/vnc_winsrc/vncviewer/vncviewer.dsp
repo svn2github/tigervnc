@@ -229,6 +229,10 @@ SOURCE=.\ClientConnectionZlibHex.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\ClientConnectionCursor.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\COPYING.txt
 # End Source File
 # Begin Source File

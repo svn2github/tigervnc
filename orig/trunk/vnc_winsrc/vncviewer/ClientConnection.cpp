@@ -1896,6 +1896,12 @@ void ClientConnection::ReadScreenUpdate() {
 		case rfbEncodingZlibHex:
 			ReadZlibHexRect(&surh);
 			break;
+		case rfbEncodingXCursor:
+			ReadXCursorShape(&surh);
+			break;
+		case rfbEncodingRichCursor:
+			ReadRichCursorShape(&surh);
+			break;
 		default:
 			log.Print(0, _T("Unknown encoding %d - not supported!\n"), surh.encoding);
 			break;

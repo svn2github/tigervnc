@@ -287,7 +287,7 @@ vncDesktopThread::run_undetached(void *arg)
 				// If we have a video driver - reset counter
 				if (m_desktop->m_videodriver != NULL) {
 					if (m_desktop->m_videodriver->driver)
-						m_desktop->m_videodriver->oldaantal = m_desktop->m_videodriver->bufdata.buffer->counter;
+						m_desktop->m_videodriver->ResetCounter();
 				}
 			}
 
@@ -297,7 +297,7 @@ vncDesktopThread::run_undetached(void *arg)
 				// Use either a mirror video driver, or perform polling
 				if (m_desktop->m_videodriver != NULL) {
 					if (m_desktop->m_videodriver->driver)
-						m_desktop->HandleDriverChanges();
+						m_desktop->m_videodriver->HandleDriverChanges(m_desktop->m_changed_rgn);
 				} else {
 					if (m_server->GetPollingFlag() || m_desktop->m_polling_phase != 0) {
 						m_server->SetPollingFlag(false);
@@ -2201,33 +2201,6 @@ vncDesktop::GetChangedRegion(vncRegion &rgn, RECT &rect)
 	}
 }
 
-BOOL
-vncDesktop::HandleDriverChanges()
-{
-	// FIXME: What is aantal???
-	// FIXME: In vncVideoDriver, add methods instead of accessing the data dirrectly.
-
-	int oldaantal = m_videodriver->oldaantal;
-	int counter = m_videodriver->bufdata.buffer->counter;
-	if (oldaantal == counter)
-		return FALSE;
-
-	ULONG i;
-	if (oldaantal < counter) {
-		for (i = oldaantal; i < counter; i++)
-			m_changed_rgn.AddRect(m_videodriver->bufdata.buffer->pointrect[i].rect);
-	} else {
-		for (i = oldaantal; i < MAXCHANGES_BUF; i++)
-			m_changed_rgn.AddRect(m_videodriver->bufdata.buffer->pointrect[i].rect);
-		// FIXME: i = 1 or i = 0 here?
-		for (i = 1; i < counter; i++)
-			m_changed_rgn.AddRect(m_videodriver->bufdata.buffer->pointrect[i].rect);
-	}
-
-	m_videodriver->oldaantal = counter;
-	return TRUE;
-}
-
 void
 vncDesktop::PerformPolling()
 {
@@ -2400,7 +2373,7 @@ vncDesktop::InitVideoDriver()
 	if (vncService::VersionMajor() != 5)
 		return FALSE;
 
-	if (m_videodriver != NULL && m_videodriver->testmapped()) {
+	if (m_videodriver != NULL && m_videodriver->TestMapped()) {
 		vnclog.Print(LL_INTINFO, VNCLOG("video driver interface already active\n"));
 		return TRUE;
 	}

@@ -1,7 +1,9 @@
-/////////////////////////////////////////////////////////////////////////////
+//  Copyright (C) 2004 Vladimir Vologzhanin. All Rights Reserved.
 //  Copyright (C) 2002 Ultr@VNC Team Members. All Rights Reserved.
 //
-//  This program is free software; you can redistribute it and/or modify
+//  This file is part of the VNC system.
+//
+//  The VNC system is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
 //  the Free Software Foundation; either version 2 of the License, or
 //  (at your option) any later version.
@@ -16,11 +18,11 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 //  USA.
 //
-// If the source code for the program is not available from the place from
-// which you received this file, check 
-// http://ultravnc.sourceforge.net/
+// TightVNC distribution homepage on the Web: http://www.tightvnc.com/
 //
-/////////////////////////////////////////////////////////////////////////////
+// If the source code for the VNC system is not available from the place 
+// whence you received this file, check http://www.uk.research.att.com/vnc or contact
+// the authors on vnc@uk.research.att.com for information on obtaining it.
 
 #include "VideoDriver.h"
 
@@ -44,22 +46,14 @@ BOOL
 vncVideoDriver::MapSharedbuffers()
 {
 	gdc = GetDC(NULL);
-	oldaantal=0;
+	oldCounter=0;
 	if ( ExtEscape(gdc, MAP1, 0, NULL, sizeof(GETCHANGESBUF), (LPSTR) &bufdata) >0)
 		driver = true;
 	return driver;	
 }
 
 BOOL
-vncVideoDriver::testdriver()
-{
-	gdc = GetDC(NULL);
-	return ExtEscape(gdc, TESTDRIVER, 0, NULL, sizeof(GETCHANGESBUF), (LPSTR) &bufdata);
-		
-}
-
-BOOL
-vncVideoDriver::testmapped()
+vncVideoDriver::TestMapped()
 {
 	gdc = GetDC(NULL);
 	return ExtEscape(gdc, TESTMAPPED, 0, NULL, sizeof(GETCHANGESBUF), (LPSTR) &bufdata);	
@@ -73,10 +67,9 @@ vncVideoDriver::UnMapSharedbuffers()
 	driver = false;
 }
 
-
 BOOL
 vncVideoDriver::Activate_video_driver()
-   {
+{
 	HDESK   hdeskInput;
     HDESK   hdeskCurrent;
 	HINSTANCE  hInstUser32;
@@ -147,11 +140,10 @@ vncVideoDriver::Activate_video_driver()
 			SetThreadDesktop(hdeskInput);
 	}
 	if (devmode.dmBitsPerPel==24) devmode.dmBitsPerPel=16;
-	INT code =ChangeDisplaySettingsEx(deviceName, &devmode, NULL, CDS_UPDATEREGISTRY,NULL);
+	ChangeDisplaySettingsEx(deviceName, &devmode, NULL, CDS_UPDATEREGISTRY,NULL);
     
    // Reset desktop
    SetThreadDesktop(hdeskCurrent);
-
 
    // Close the input desktop
    CloseDesktop(hdeskInput);
@@ -162,11 +154,9 @@ vncVideoDriver::Activate_video_driver()
    return TRUE;
 }
 
-
-
 void
 vncVideoDriver::DesActivate_video_driver()
-   {
+{
 	HDESK   hdeskInput;
 	HDESK   hdeskCurrent;
 	HINSTANCE  hInstUser32;
@@ -237,7 +227,7 @@ vncVideoDriver::DesActivate_video_driver()
 	if (devmode.dmBitsPerPel==24) devmode.dmBitsPerPel=16;
 
     // Add 'Default.*' settings to the registry under above hKeyProfile\mirror\device
-	INT code = ChangeDisplaySettingsEx(deviceName, &devmode, NULL, CDS_UPDATEREGISTRY, NULL);
+	ChangeDisplaySettingsEx(deviceName, &devmode, NULL, CDS_UPDATEREGISTRY, NULL);
     
 	// Reset desktop
 	SetThreadDesktop(hdeskCurrent);
@@ -251,4 +241,25 @@ vncVideoDriver::DesActivate_video_driver()
 	return;
 }
 
+void
+vncVideoDriver::HandleDriverChanges(vncRegion &rgn)
+{
+	if (oldCounter == bufdata.buffer->counter)
+		return;
+
+	int i;
+	if (oldCounter < bufdata.buffer->counter) {
+		for (i = oldCounter; i < bufdata.buffer->counter; i++)
+			rgn.AddRect(bufdata.buffer->pointrect[i].rect);
+	} else {
+		for (i = oldCounter; i < MAXCHANGES_BUF; i++)
+			rgn.AddRect(bufdata.buffer->pointrect[i].rect);
+		for (i = 0; i < bufdata.buffer->counter; i++)
+			rgn.AddRect(bufdata.buffer->pointrect[i].rect);
+	}
+
+	oldCounter = bufdata.buffer->counter;
+
+	return;
+}
 

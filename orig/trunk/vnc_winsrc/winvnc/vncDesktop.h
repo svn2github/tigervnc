@@ -162,7 +162,6 @@ protected:
 	// Enabling & disabling clipboard handling
 	void SetClipboardActive(BOOL active) {m_clipboard_active = active;};
 
-	BOOL HandleDriverChanges();
 	void PerformPolling();
 	void PollWindow(HWND hwnd, RECT &rect);
 	void CheckRects(vncRegion &rgn, rectlist &rects);

@@ -840,11 +840,8 @@ vncDesktop::ResetDisplayToNormal()
 
 	// *** Just in case font smoothing was disabled, re-enable it now
 	// *** - Jeremy Peaks
-	if ((valType == REG_SZ) &&
-		(inouttext[0] == '1')) {
-
+	if (valType == REG_SZ && atoi(inouttext) > 0) {
 		SystemParametersInfo(SPI_SETFONTSMOOTHING, TRUE, 0, SPIF_SENDCHANGE);
-
 	}
 	
 	// *** Get the Pattern value - Jeremy Peaks

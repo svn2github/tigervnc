@@ -511,6 +511,10 @@ vncService::GetSharedWindow(char * titlewindow)
 		}
 			hWindowShared = GetNextWindow(hWindowShared, GW_HWNDNEXT);				
 	}
+	if (hWindowShared == NULL) {
+		MessageBox(NULL, "The window with this title is not found.",
+					szAppName, MB_ICONEXCLAMATION | MB_OK);
+	}
 	return hWindowShared;
 }
 BOOL

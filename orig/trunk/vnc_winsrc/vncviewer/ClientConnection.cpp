@@ -1844,7 +1844,7 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 						prev_scale_den != _this->m_opts.m_scale_den) {
 						// Resize the window if scaling factors were changed
 						_this->SizeWindow(false);
-						InvalidateRect(hwnd, NULL, FALSE);
+						InvalidateRect(_this->m_hwnd, NULL, FALSE);
 						// Make the window correspond to the requested state
 						_this->RealiseFullScreenMode(true);
 					}

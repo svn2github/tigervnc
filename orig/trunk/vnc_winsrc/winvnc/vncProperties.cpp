@@ -363,7 +363,7 @@ vncProperties::ParentDlgProc(HWND hwnd,
 			return FALSE;
 		}
 	case WM_HELP:	
-		help.Popup(lParam);
+		VNCHelp::Popup(lParam);
 		return 0;
     case WM_NOTIFY:
 		{
@@ -476,7 +476,7 @@ BOOL CALLBACK vncProperties::IncomingDlgProc(HWND hwnd, UINT uMsg,
 			return 0;
 		}
 	case WM_HELP:	
-		help.Popup(lParam);
+		VNCHelp::Popup(lParam);
 		return 0;
     case WM_COMMAND:		
 		switch (LOWORD(wParam))
@@ -540,7 +540,7 @@ BOOL CALLBACK vncProperties::ConnectionsAccessDlgProc(HWND hwnd, UINT uMsg,
 			return 0;
 		}
 	case WM_HELP:	
-		help.Popup(lParam);
+		VNCHelp::Popup(lParam);
 		return 0;
 	case WM_NOTIFY:
 		{
@@ -602,7 +602,7 @@ BOOL CALLBACK vncProperties::PollDlgProc(HWND hwnd, UINT uMsg,
 			return 0;
 		}
 	case WM_HELP:	
-		help.Popup(lParam);
+		VNCHelp::Popup(lParam);
 		return 0;
 	case WM_COMMAND:	
 		switch (LOWORD(wParam))
@@ -650,7 +650,7 @@ BOOL CALLBACK vncProperties::SharedDlgProc(HWND hwnd, UINT uMsg,
 			return 0;
 		}
 	case WM_HELP:	
-		help.Popup(lParam);
+		VNCHelp::Popup(lParam);
 		return 0;
 	case WM_COMMAND:	
 		switch (LOWORD(wParam))
@@ -706,7 +706,7 @@ BOOL CALLBACK vncProperties::AdministrationDlgProc(HWND hwnd, UINT uMsg,
 			return 0;
 		}
 	case WM_HELP:	
-		help.Popup(lParam);
+		VNCHelp::Popup(lParam);
 		return 0;
     case WM_COMMAND:		
 		switch (LOWORD(wParam))
@@ -748,7 +748,7 @@ BOOL CALLBACK vncProperties::QuerySettingsDlgProc(HWND hwnd, UINT uMsg,
 			return 0;
 		}
 	case WM_HELP:	
-		help.Popup(lParam);
+		VNCHelp::Popup(lParam);
 		return 0;
     case WM_COMMAND:		
 		switch (LOWORD(wParam))

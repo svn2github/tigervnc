@@ -26,12 +26,8 @@
 
 class VNCHelp  
 {
-	DWORD m_dwCookie;
 public:
-	VNCHelp();
-	void VNCHelp::Popup(LPARAM lParam);
-	BOOL VNCHelp::TranslateMsg(MSG *pmsg);
-	virtual ~VNCHelp();
+	static void Popup(LPARAM lParam);
 };
 
 #endif 

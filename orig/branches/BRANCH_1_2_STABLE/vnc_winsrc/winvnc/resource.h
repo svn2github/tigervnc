@@ -9,6 +9,8 @@
 #define IDR_RECFRAME_CLASS              117
 #define IDR_SESSIONREC_CLASS            118
 #define IDR_AUTHPANEL_CLASS             119
+#define IDR_RELOGINPANEL_CLASS          120
+#define IDR_SOCKFACTORY_CLASS           121
 #define IDR_CLIPBOARDFRAME_CLASS        122
 #define IDR_OPTIONSFRAME_CLASS          125
 #define IDR_RFBPROTO_CLASS              126

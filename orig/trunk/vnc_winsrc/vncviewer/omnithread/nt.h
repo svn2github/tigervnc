@@ -1,7 +1,8 @@
 //				Package : omnithread
 // omnithread/nt.h		Created : 6/95 tjr
 //
-//    Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.//
+//    Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
+//
 //    This file is part of the omnithread library
 //
 //    The omnithread library is free software; you can redistribute it and/or
@@ -28,13 +29,8 @@
 
 #include <windows.h>
 
-#ifndef __BCPLUSPLUS__
 #define OMNI_THREAD_WRAPPER \
-    unsigned __stdcall omni_thread_wrapper(LPVOID ptr);
-#else
-#define OMNI_THREAD_WRAPPER \
-    void _USERENTRY omni_thread_wrapper(void *ptr);
-#endif
+    unsigned __stdcall omni_thread_wrapper(LPVOID ptr)
 
 extern "C" OMNI_THREAD_WRAPPER;
 

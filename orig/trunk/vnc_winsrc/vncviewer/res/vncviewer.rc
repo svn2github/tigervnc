@@ -27,6 +27,8 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // Version
 //
 
+/********** Commented out to make compilation with bcc32 possible. **********
+
 VS_VERSION_INFO VERSIONINFO
  FILEVERSION 1,4,0,0
  PRODUCTVERSION 1,4,0,0
@@ -63,6 +65,8 @@ BEGIN
         VALUE "Translation", 0x409, 1200
     END
 END
+
+******************* End of code commented out for bcc32. *******************/
 
 IDR_VERSION2 VERSIONINFO
  FILEVERSION 1,4,0,0

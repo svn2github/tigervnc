@@ -68,7 +68,7 @@ BOOL vncSockConnectThread::Init(VSocket *socket, vncServer *server)
 // Code to be executed by the thread
 void *vncSockConnectThread::run_undetached(void * arg)
 {
-	log.Print(LL_STATE, VNCLOG("started socket connection thread\n"));
+	vnclog.Print(LL_STATE, VNCLOG("started socket connection thread\n"));
 
 	// Go into a loop, listening for connections on the given socket
 	while (!m_shutdown)
@@ -78,12 +78,12 @@ void *vncSockConnectThread::run_undetached(void * arg)
 		if (new_socket == NULL)
 			break;
 
-		log.Print(LL_CLIENTS, VNCLOG("accepted connection from %s\n"), new_socket->GetPeerName());
+		vnclog.Print(LL_CLIENTS, VNCLOG("accepted connection from %s\n"), new_socket->GetPeerName());
 
 		// Successful accept - start the client unauthenticated
 		m_server->AddClient(new_socket, FALSE, FALSE);
 	}
-	log.Print(LL_STATE, VNCLOG("quitting socket connection thread\n"));
+	vnclog.Print(LL_STATE, VNCLOG("quitting socket connection thread\n"));
 
 	return NULL;
 }

@@ -106,7 +106,7 @@ BOOL vncHTTPConnectThread::Init(VSocket *socket, vncServer *server)
 // Code to be executed by the thread
 void *vncHTTPConnectThread::run_undetached(void * arg)
 {
-	log.Print(LL_INTINFO, VNCLOG("started HTTP server thread\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("started HTTP server thread\n"));
 
 	// Go into a loop, listening for connections on the given socket
 	while (!m_shutdown)
@@ -116,7 +116,7 @@ void *vncHTTPConnectThread::run_undetached(void * arg)
 		if (new_socket == NULL)
 			break;
 
-		log.Print(LL_CLIENTS, VNCLOG("HTTP client connected\n"));
+		vnclog.Print(LL_CLIENTS, VNCLOG("HTTP client connected\n"));
 
 		// Successful accept - perform the transaction
 		DoHTTP(new_socket);
@@ -127,7 +127,7 @@ void *vncHTTPConnectThread::run_undetached(void * arg)
 		delete new_socket;
 	}
 
-	log.Print(LL_INTINFO, VNCLOG("quitting HTTP server thread\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("quitting HTTP server thread\n"));
 
 	return NULL;
 }
@@ -147,7 +147,7 @@ void vncHTTPConnectThread::DoHTTP(VSocket *socket)
 	if ((result == 0) || (result == EOF))
 		return;
 
-	log.Print(LL_CLIENTS, VNCLOG("file %s requested\n"), filename);
+	vnclog.Print(LL_CLIENTS, VNCLOG("file %s requested\n"), filename);
 
 	// Read in the rest of the browser's request data and discard...
 	BOOL emptyline=TRUE;
@@ -171,11 +171,11 @@ void vncHTTPConnectThread::DoHTTP(VSocket *socket)
 			}
 	}
 
-	log.Print(LL_INTINFO, VNCLOG("parameters read\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("parameters read\n"));
 
     if (filename[0] != '/')
 	{
-		log.Print(LL_CONNERR, VNCLOG("filename didn't begin with '/'\n"));
+		vnclog.Print(LL_CONNERR, VNCLOG("filename didn't begin with '/'\n"));
 		socket->SendExact(HTTP_MSG_NOSUCHFILE, strlen(HTTP_MSG_NOSUCHFILE));
 		return;
 	}
@@ -185,7 +185,7 @@ void vncHTTPConnectThread::DoHTTP(VSocket *socket)
 	{
 		char indexpage[1024];
 
-		log.Print(LL_CLIENTS, VNCLOG("sending main page\n"));
+		vnclog.Print(LL_CLIENTS, VNCLOG("sending main page\n"));
 
 		// Send the OK notification message to the client
 		if (!socket->SendExact(HTTP_MSG_OK, strlen(HTTP_MSG_OK)))
@@ -229,7 +229,7 @@ void vncHTTPConnectThread::DoHTTP(VSocket *socket)
 
 		// Send the page
 		if (socket->SendExact(indexpage, strlen(indexpage)))
-			log.Print(LL_INTINFO, VNCLOG("sent page\n"));
+			vnclog.Print(LL_INTINFO, VNCLOG("sent page\n"));
 
 		return;
 	}
@@ -247,7 +247,7 @@ void vncHTTPConnectThread::DoHTTP(VSocket *socket)
 			char *resourceptr;
 			int resourcesize;
 
-			log.Print(LL_INTINFO, VNCLOG("requested file recognised\n"));
+			vnclog.Print(LL_INTINFO, VNCLOG("requested file recognised\n"));
 
 			// Find the resource here
 			resource = FindResource(NULL,
@@ -270,7 +270,7 @@ void vncHTTPConnectThread::DoHTTP(VSocket *socket)
 			if (resourceptr == NULL)
 				return;
 
-			log.Print(LL_INTINFO, VNCLOG("sending file...\n"));
+			vnclog.Print(LL_INTINFO, VNCLOG("sending file...\n"));
 
 			// Send the OK message
 			if (!socket->SendExact(HTTP_MSG_OK, strlen(HTTP_MSG_OK)))
@@ -280,7 +280,7 @@ void vncHTTPConnectThread::DoHTTP(VSocket *socket)
 			if (!socket->SendExact(resourceptr, resourcesize))
 				return;
 
-			log.Print(LL_INTINFO, VNCLOG("file successfully sent\n"));
+			vnclog.Print(LL_INTINFO, VNCLOG("file successfully sent\n"));
 
 			return;
 		}

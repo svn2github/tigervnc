@@ -34,7 +34,7 @@
 // LOGGING SUPPORT
 
 #include "Log.h"
-extern Log log;
+extern Log vnclog;
 
 // No logging at all
 #define LL_NONE		0

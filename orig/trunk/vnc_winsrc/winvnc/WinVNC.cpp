@@ -81,7 +81,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 		MessageBox(NULL, "Failed to initialise the socket system", szAppName, MB_OK);
 		return 0;
 	}
-	log.Print(LL_STATE, VNCLOG("sockets initialised\n"));
+	vnclog.Print(LL_STATE, VNCLOG("sockets initialised\n"));
 
 	// Make the command-line lowercase and parse it
 	int i;
@@ -228,26 +228,26 @@ int WinVNCAppMain()
 
 	// Set the name and port number
 	server.SetName(szAppName);
-	log.Print(LL_STATE, VNCLOG("server created ok\n"));
+	vnclog.Print(LL_STATE, VNCLOG("server created ok\n"));
 
 	// Create tray icon & menu if we're running as an app
 	vncMenu *menu = new vncMenu(&server);
 	if (menu == NULL)
 	{
-		log.Print(LL_INTERR, VNCLOG("failed to create tray menu\n"));
+		vnclog.Print(LL_INTERR, VNCLOG("failed to create tray menu\n"));
 		PostQuitMessage(0);
 	}
 
 	// Now enter the message handling loop until told to quit!
 	MSG msg;
 	while (GetMessage(&msg, NULL, 0,0) ) {
-		log.Print(LL_INTINFO, VNCLOG("message %d recieved\n"), msg.message);
+		vnclog.Print(LL_INTINFO, VNCLOG("message %d recieved\n"), msg.message);
 
 		TranslateMessage(&msg);  // convert key ups and downs to chars
 		DispatchMessage(&msg);
 	}
 
-	log.Print(LL_STATE, VNCLOG("shutting down server\n"));
+	vnclog.Print(LL_STATE, VNCLOG("shutting down server\n"));
 
 	if (menu != NULL)
 		delete menu;

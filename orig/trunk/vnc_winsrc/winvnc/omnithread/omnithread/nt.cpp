@@ -455,11 +455,7 @@ omni_thread::init_t::init_t(void)
 //
 
 extern "C" 
-#ifndef __BCPLUSPLUS__
 unsigned __stdcall
-#else
-void _USERENTRY
-#endif
 omni_thread_wrapper(void* ptr)
 {
     omni_thread* me = (omni_thread*)ptr;
@@ -493,9 +489,7 @@ omni_thread_wrapper(void* ptr)
     }
 
     // should never get here.
-#ifndef __BCPLUSPLUS__
     return 0;
-#endif
 }
 
 
@@ -584,8 +578,6 @@ omni_thread::start(void)
     if (_state != STATE_NEW)
 	throw omni_thread_invalid();
 
-#ifndef __BCPLUSPLUS__
-    // MSVC++ or compatiable
     unsigned int t;
     handle = (HANDLE)_beginthreadex(
                         NULL,
@@ -597,17 +589,6 @@ omni_thread::start(void)
     nt_id = t;
     if (handle == NULL)
       throw omni_thread_fatal(GetLastError());
-#else
-    // Borland C++
-    handle = (HANDLE)_beginthreadNT(omni_thread_wrapper,
-				    0,
-				    (void*)this,
-				    NULL,
-				    CREATE_SUSPENDED,
-				    &nt_id);
-    if (handle == INVALID_HANDLE_VALUE)
-      throw omni_thread_fatal(errno);
-#endif
 
     if (!SetThreadPriority(handle, _priority))
       throw omni_thread_fatal(GetLastError());
@@ -750,18 +731,9 @@ omni_thread::exit(void* return_value)
       {
 	DB(cerr << "omni_thread::exit: called with a non-omnithread. Exit quietly." << endl);
       }
-#ifndef __BCPLUSPLUS__
-    // MSVC++ or compatiable
     //   _endthreadex() does not automatically closes the thread handle.
     //   The omni_thread dtor closes the thread handle.
     _endthreadex(0);
-#else
-    // Borland C++
-    //   _endthread() does not automatically closes the thread handle.
-    //   _endthreadex() is only available if __MFC_COMPAT__ is defined and
-    //   all it does is to call _endthread().
-    _endthread();
-#endif
 }
 
 

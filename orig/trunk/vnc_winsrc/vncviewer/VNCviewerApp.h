@@ -22,6 +22,9 @@
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
+#ifndef VNCVIEWERAPP_H__
+#define VNCVIEWERAPP_H__
+
 #pragma once
 
 // The state of the application as a whole is contained in the app object
@@ -57,4 +60,6 @@ private:
 	ClientConnection *m_clilist[MAX_CONNECTIONS];
 	omni_mutex m_clilistMutex;
 };
+
+#endif // VNCVIEWERAPP_H__
 

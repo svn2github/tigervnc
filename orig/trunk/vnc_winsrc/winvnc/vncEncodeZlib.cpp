@@ -72,8 +72,11 @@ vncEncodeZlib::Init()
 void
 vncEncodeZlib::LogStats()
 {
-	log.Print(LL_INTINFO, VNCLOG("Zlib (pure) encoder stats: dataSize=%d, rectangleOverhead=%d, encodedSize=%d, transmittedSize=%d, efficiency=%.3f\n"),
-				dataSize, rectangleOverhead, encodedSize, transmittedSize, ((((float)dataSize-transmittedSize)*100)/dataSize));
+	vnclog.Print(LL_INTINFO, VNCLOG("Zlib (pure) encoder stats: dataSize=%d, "
+									"rectangleOverhead=%d, encodedSize=%d, "
+									"transmittedSize=%d, efficiency=%.3f\n"),
+				 dataSize, rectangleOverhead, encodedSize, transmittedSize,
+				 ((((float)dataSize-transmittedSize)*100)/dataSize));
 }
 
 UINT
@@ -132,7 +135,7 @@ vncEncodeZlib::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest, const RECT
 	partialRect.bottom = rect.bottom;
 
 	/* WBB: For testing purposes only! */
-	// log.Print(LL_INTINFO, VNCLOG("rect.right=%d rect.left=%d rect.top=%d rect.bottom=%d\n"), rect.right, rect.left, rect.top, rect.bottom);
+	// vnclog.Print(LL_INTINFO, VNCLOG("rect.right=%d rect.left=%d rect.top=%d rect.bottom=%d\n"), rect.right, rect.left, rect.top, rect.bottom);
 
 	maxLines = ( ZLIB_MAX_SIZE(rectW) / rectW );
 	linesRemaining = rectH;
@@ -149,7 +152,7 @@ vncEncodeZlib::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest, const RECT
 		partialRect.bottom = partialRect.top + linesToComp;
 
 		/* WBB: For testing purposes only! */
-		// log.Print(LL_INTINFO, VNCLOG("partialRect.right=%d partialRect.left=%d partialRect.top=%d partialRect.bottom=%d\n"), partialRect.right, partialRect.left, partialRect.top, partialRect.bottom);
+		// vnclog.Print(LL_INTINFO, VNCLOG("partialRect.right=%d partialRect.left=%d partialRect.top=%d partialRect.bottom=%d\n"), partialRect.right, partialRect.left, partialRect.top, partialRect.bottom);
 
 		partialSize = EncodeOneRect( source, dest, partialRect );
 		totalSize += partialSize;
@@ -239,7 +242,7 @@ vncEncodeZlib::EncodeOneRect(BYTE *source, BYTE *dest, const RECT &rect)
 		compStream.zfree = Z_NULL;
 		compStream.opaque = Z_NULL;
 
-		log.Print(LL_INTINFO, VNCLOG("calling deflateInit2 with zlib level:%d\n"), m_compresslevel);
+		vnclog.Print(LL_INTINFO, VNCLOG("calling deflateInit2 with zlib level:%d\n"), m_compresslevel);
 
 		deflateResult = deflateInit2( &compStream,
 			                          m_compresslevel,
@@ -249,7 +252,7 @@ vncEncodeZlib::EncodeOneRect(BYTE *source, BYTE *dest, const RECT &rect)
 					                  Z_DEFAULT_STRATEGY );
 		if ( deflateResult != Z_OK )
 		{
-			log.Print(LL_INTINFO, VNCLOG("deflateInit2 returned error:%d:%s\n"), deflateResult, compStream.msg);
+			vnclog.Print(LL_INTINFO, VNCLOG("deflateInit2 returned error:%d:%s\n"), deflateResult, compStream.msg);
 			return vncEncoder::EncodeRect(source, dest, rect);
 		}
 		compStreamInited = true;
@@ -263,7 +266,7 @@ vncEncodeZlib::EncodeOneRect(BYTE *source, BYTE *dest, const RECT &rect)
 
 	if ( deflateResult != Z_OK )
 	{
-		log.Print(LL_INTINFO, VNCLOG("deflate returned error:%d:%s\n"), deflateResult, compStream.msg);
+		vnclog.Print(LL_INTINFO, VNCLOG("deflate returned error:%d:%s\n"), deflateResult, compStream.msg);
 		return vncEncoder::EncodeRect(source, dest, rect);
 	}
 
@@ -275,7 +278,7 @@ vncEncodeZlib::EncodeOneRect(BYTE *source, BYTE *dest, const RECT &rect)
 	zlibh->nBytes = Swap32IfLE(totalCompDataLen);
 
 	// Log some statistics
-	// log.Print(LL_INTINFO, VNCLOG("rawSize=%d compSize=%d totalRaw=%d totalComp=%d\n"), rawDataSize, totalCompDataLen, compStream.total_in, compStream.total_out);
+	// vnclog.Print(LL_INTINFO, VNCLOG("rawSize=%d compSize=%d totalRaw=%d totalComp=%d\n"), rawDataSize, totalCompDataLen, compStream.total_in, compStream.total_out);
 	encodedSize += sz_rfbZlibHeader + totalCompDataLen;
 
 	// Return the amount of data sent	

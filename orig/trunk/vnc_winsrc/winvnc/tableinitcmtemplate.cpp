@@ -30,7 +30,7 @@ rfbInitColourMapSingleTableOUT (char **table,
 								rfbPixelFormat *in,
 								rfbPixelFormat *out)
 {
-	log.Print(LL_ALL, VNCLOG("rfbInitColourMapSingleTable called\n"));
+	vnclog.Print(LL_ALL, VNCLOG("rfbInitColourMapSingleTable called\n"));
 
 	// ALLOCATE SPACE FOR COLOUR TABLE
 
@@ -41,7 +41,7 @@ rfbInitColourMapSingleTableOUT (char **table,
     *table = (char *)malloc(nEntries * sizeof(OUT_T));
 	if (*table == NULL)
 	{
-		log.Print(LL_INTERR, VNCLOG("failed to allocate translation table\n"));
+		vnclog.Print(LL_INTERR, VNCLOG("failed to allocate translation table\n"));
 		return;
 	}
 
@@ -51,7 +51,7 @@ rfbInitColourMapSingleTableOUT (char **table,
 	if (GetSystemPaletteEntries(hDC,
 		0, 256, palette) == 0)
 	{
-		log.Print(LL_INTERR, VNCLOG("failed to get system palette (%d)\n"), GetLastError());
+		vnclog.Print(LL_INTERR, VNCLOG("failed to get system palette (%d)\n"), GetLastError());
 		ReleaseDC(NULL, hDC);
 		return;
 	}
@@ -82,7 +82,7 @@ rfbInitColourMapSingleTableOUT (char **table,
 #endif
 	}
 
-	log.Print(LL_ALL, VNCLOG("rfbInitColourMapSingleTable done\n"));
+	vnclog.Print(LL_ALL, VNCLOG("rfbInitColourMapSingleTable done\n"));
 }
 
 #undef OUT_T

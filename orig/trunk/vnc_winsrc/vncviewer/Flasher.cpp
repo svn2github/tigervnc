@@ -199,7 +199,7 @@ LRESULT CALLBACK Flasher::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 					GetClipBox(hrootdc, &rect);
 					int barwidth = (rect.right - rect.left) / 10;
 					int barheight = max( 
-						(rect.bottom - rect.top) / 10,
+						(int)((rect.bottom - rect.top) / 10),
 						FLASHFONTHEIGHT);
 					HFONT oldfont = (HFONT) SelectObject(hrootdc, _this->m_hfont);
 

@@ -161,18 +161,15 @@ SetShiftState(BYTE key, BOOL down)
 	if ((keystate && down) || ((!keystate) && (!down)))
 		return;
 
-	log.Print(LL_INTINFO,
-		VNCLOG("setshiftstate %d - (%s->%s)\n"),
-		key, keystate ? "down" : "up",
-		down ? "down" : "up");
+	vnclog.Print(LL_INTINFO, VNCLOG("setshiftstate %d - (%s->%s)\n"),
+				 key, (keystate) ? "down" : "up", (down) ? "down" : "up");
 
 	// Now send a key event to set the key to the new value
 	KeybdEvent(key, down ? 0 : KEYEVENTF_KEYUP);
 	keystate = (GetAsyncKeyState(key) & 0x8000) != 0;
 
-	log.Print(LL_INTINFO,
-		VNCLOG("new state %d (%s)\n"),
-		key, keystate ? "down" : "up");
+	vnclog.Print(LL_INTINFO, VNCLOG("new state %d (%s)\n"),
+				 key, (keystate) ? "down" : "up");
 }
 
 void
@@ -180,7 +177,7 @@ vncKeymap::DoXkeysym(CARD32 keysym, BOOL keydown)
 {
 	int i;
 
-	log.Print(LL_INTINFO, VNCLOG("keysym = %x (%s)\n"), keysym, keydown ? "down" : "up");
+	vnclog.Print(LL_INTINFO, VNCLOG("keysym = %x (%s)\n"), keysym, keydown ? "down" : "up");
 
 	// Cull out some particular keysyms
 	for (i=0; i < (sizeof(ignorekeymap) / sizeof(UINT)); i++)
@@ -197,7 +194,7 @@ vncKeymap::DoXkeysym(CARD32 keysym, BOOL keydown)
 			// *** NT-Only hack
 			if (vncService::IsWinNT())
 			{
-				log.Print(LL_INTINFO, VNCLOG("IsWinNT in keymap\n"));
+				vnclog.Print(LL_INTINFO, VNCLOG("IsWinNT in keymap\n"));
 
 				// DELETE and DEL are used for control-alt-del commands
 				if (keydown && (virtcode == VK_DELETE))
@@ -295,7 +292,7 @@ vncKeymap::DoXkeysym(CARD32 keysym, BOOL keydown)
 	}
 
 	// Now send the desired keycode
-	log.Print(LL_INTINFO, VNCLOG("shift state (%s)\n"), (GetAsyncKeyState(VK_SHIFT) & 0x8000) ? "down" : "up");
+	vnclog.Print(LL_INTINFO, VNCLOG("shift state (%s)\n"), (GetAsyncKeyState(VK_SHIFT) & 0x8000) ? "down" : "up");
 	KeybdEvent((unsigned char) (keycode & 255), keydown ? 0 : KEYEVENTF_KEYUP);
 
 	// Are we running on NT?

@@ -26,7 +26,9 @@ files to the locations listed below, NOT overriding existing files:
     vnc_winsrc/winvnc/libjpeg/
 
 Compilation has been checked under MS Visual C++ 6.0. Workspace files
-(*.dsw) for this environment are included in the distribution.
+(*.dsw) for this environment are included in the distribution. It is
+also possible to build TightVNC using "free" Borland C++ 5.5 compiler,
+please read BUILDING-bcc32.txt for details.
 
 Important note regarding WinVNC compilation:
 

@@ -183,14 +183,16 @@ vncDesktopThread::run_undetached(void *arg)
 				}
 
 				// Check that the screen info hasn't changed
-				log.Print(LL_INTINFO, VNCLOG("SCR: old screen format %dx%dx%d\n"),
-					oldscrinfo.framebufferWidth,
-					oldscrinfo.framebufferHeight,
-					oldscrinfo.format.bitsPerPixel);
-				log.Print(LL_INTINFO, VNCLOG("SCR: new screen format %dx%dx%d\n"),
-					m_desktop->m_scrinfo.framebufferWidth,
-					m_desktop->m_scrinfo.framebufferHeight,
-					m_desktop->m_scrinfo.format.bitsPerPixel);
+				vnclog.Print(LL_INTINFO, VNCLOG("SCR: old screen format "
+												"%dx%dx%d\n"),
+							 oldscrinfo.framebufferWidth,
+							 oldscrinfo.framebufferHeight,
+							 oldscrinfo.format.bitsPerPixel);
+				vnclog.Print(LL_INTINFO, VNCLOG("SCR: new screen format "
+												"%dx%dx%d\n"),
+							 m_desktop->m_scrinfo.framebufferWidth,
+							 m_desktop->m_scrinfo.framebufferHeight,
+							 m_desktop->m_scrinfo.format.bitsPerPixel);
 				if (memcmp(&m_desktop->m_scrinfo, &oldscrinfo, sizeof(oldscrinfo)) != 0)
 				{
 					m_server->KillAll();
@@ -261,7 +263,7 @@ vncDesktopThread::run_undetached(void *arg)
 			DispatchMessage(&msg);
 	}
 
-	log.Print(LL_INTINFO, VNCLOG("quitting desktop server thread\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("quitting desktop server thread\n"));
 
 	// Clear all the hooks and close windows, etc.
 	m_desktop->Shutdown();
@@ -295,10 +297,10 @@ vncDesktop::vncDesktop()
 vncDesktop::~vncDesktop()
 {
 	// *** TIMING
-	log.Print(LL_INTERR, VNCLOG("TIMINGS : captureticks = %d\n"), captureticks);
-	log.Print(LL_INTERR, VNCLOG("TIMINGS : updateticks = %d\n"), updateticks);
+	vnclog.Print(LL_INTERR, VNCLOG("TIMINGS : captureticks = %d\n"), captureticks);
+	vnclog.Print(LL_INTERR, VNCLOG("TIMINGS : updateticks = %d\n"), updateticks);
 
-	log.Print(LL_INTINFO, VNCLOG("killing screen server\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("killing screen server\n"));
 
 	// If we created a thread then here we delete it
 	// The thread itself does most of the cleanup
@@ -354,7 +356,7 @@ vncDesktop::Startup()
 		RFB_MOUSE_UPDATE
 		))
 	{
-		log.Print(LL_INTERR, VNCLOG("failed to set system hooks\n"));
+		vnclog.Print(LL_INTERR, VNCLOG("failed to set system hooks\n"));
 //		return FALSE;
 	}
 
@@ -514,26 +516,26 @@ vncDesktop::InitBitmap()
 			throw "Failed to get surface description!";
 
 		if (DDSdesc.dwFlags & DDSD_WIDTH)
-			log.Print(LL_INTERR, VNCLOG("surface_w = %d\n"), DDSdesc.dwWidth);
+			vnclog.Print(LL_INTERR, VNCLOG("surface_w = %d\n"), DDSdesc.dwWidth);
 		if (DDSdesc.dwFlags & DDSD_HEIGHT)
-			log.Print(LL_INTERR, VNCLOG("surface_h = %d\n"), DDSdesc.dwHeight);
+			vnclog.Print(LL_INTERR, VNCLOG("surface_h = %d\n"), DDSdesc.dwHeight);
 		if (DDSdesc.dwFlags & DDSD_PITCH)
-			log.Print(LL_INTERR, VNCLOG("surface_pitch = %d\n"), DDSdesc.lPitch);
+			vnclog.Print(LL_INTERR, VNCLOG("surface_pitch = %d\n"), DDSdesc.lPitch);
 		if (DDSdesc.dwFlags & DDSD_PIXELFORMAT)
 		{
-			log.Print(LL_INTERR, VNCLOG("surface_rgb = %s\n"),
+			vnclog.Print(LL_INTERR, VNCLOG("surface_rgb = %s\n"),
 				DDSdesc.ddpfPixelFormat.dwFlags & DDPF_RGB ? "yes" : "no");
-			log.Print(LL_INTERR, VNCLOG("surface_rmask = %x\n"),
+			vnclog.Print(LL_INTERR, VNCLOG("surface_rmask = %x\n"),
 				DDSdesc.ddpfPixelFormat.dwRBitMask);
-			log.Print(LL_INTERR, VNCLOG("surface_gmask = %x\n"),
+			vnclog.Print(LL_INTERR, VNCLOG("surface_gmask = %x\n"),
 				DDSdesc.ddpfPixelFormat.dwGBitMask);
-			log.Print(LL_INTERR, VNCLOG("surface_bmask = %x\n"),
+			vnclog.Print(LL_INTERR, VNCLOG("surface_bmask = %x\n"),
 				DDSdesc.ddpfPixelFormat.dwBBitMask);
 		}
 
-		log.Print(LL_INTERR, VNCLOG("DirectX started OK.\n"));
+		vnclog.Print(LL_INTERR, VNCLOG("DirectX started OK.\n"));
 	} catch (const char *str) {
-		log.Print(LL_INTERR, VNCLOG("%s\n"), str);
+		vnclog.Print(LL_INTERR, VNCLOG("%s\n"), str);
 		return FALSE;
 	};
 
@@ -546,7 +548,7 @@ vncDesktop::InitBitmap()
 	}
 	else
 	{
-		log.Print(LL_INTERR, VNCLOG("DX - surface dimensions not given\n"));
+		vnclog.Print(LL_INTERR, VNCLOG("DX - surface dimensions not given\n"));
 		return FALSE;
 	}
 
@@ -662,7 +664,7 @@ vncDesktop::SetPixShifts()
 		// Other pixel formats are only valid if they're palette-based
 		if (m_bminfo.truecolour)
 		{
-			log.Print(LL_INTERR, "unsupported truecolour pixel format for setpixshifts\n");
+			vnclog.Print(LL_INTERR, "unsupported truecolour pixel format for setpixshifts\n");
 			return FALSE;
 		}
 		return TRUE;
@@ -786,7 +788,7 @@ vncDesktop::InitWindow()
 BOOL
 vncDesktop::Init(vncServer *server)
 {
-	log.Print(LL_INTINFO, VNCLOG("initialising desktop handler\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("initialising desktop handler\n"));
 
 	// Save the server pointer
 	m_server = server;
@@ -837,7 +839,7 @@ vncDesktop::CaptureScreen(RECT &rect, BYTE *scrBuff, UINT scrBuffSize)
 	if (ddrval != DD_OK)
 		return;
 
-	// log.Print(LL_INTERR, VNCLOG("surface pitch = %d\n"), surfdesc.lPitch);
+	// vnclog.Print(LL_INTERR, VNCLOG("surface pitch = %d\n"), surfdesc.lPitch);
 
 	// Now copy the data into our buffer
 	BYTE * destbuffpos, * srcbuffpos;
@@ -1012,9 +1014,11 @@ vncDesktop::CopyToBuffer(RECT &rect, BYTE *destbuff, UINT destbuffsize)
 				(rect.bottom-rect.top), destbuffpos,
 				&m_bminfo.bmi, DIB_RGB_COLORS) == 0)
 	{
+#ifdef _MSC_VER
 		_RPT1(_CRT_WARN, "vncDesktop : [1] GetDIBits failed! %d\n", GetLastError());
 		_RPT3(_CRT_WARN, "vncDesktop : thread = %d, DC = %d, bitmap = %d\n", omni_thread::self(), m_hmemdc, m_membitmap);
 		_RPT2(_CRT_WARN, "vncDesktop : y = %d, height = %d\n", y_inv, (rect.bottom-rect.top));
+#endif
 	}
 }
 

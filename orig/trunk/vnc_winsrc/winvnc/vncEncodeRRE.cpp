@@ -62,8 +62,11 @@ vncEncodeRRE::Init()
 void
 vncEncodeRRE::LogStats()
 {
-	log.Print(LL_INTINFO, VNCLOG("RRE encoder stats: dataSize=%d, rectangleOverhead=%d, encodedSize=%d, transmittedSize=%d, efficiency=%.3f\n"),
-				dataSize, rectangleOverhead, encodedSize, transmittedSize, ((((float)dataSize-transmittedSize)*100)/dataSize));
+	vnclog.Print(LL_INTINFO, VNCLOG("RRE encoder stats: dataSize=%d, "
+									"rectangleOverhead=%d, encodedSize=%d, "
+									"transmittedSize=%d, efficiency=%.3f\n"),
+				 dataSize, rectangleOverhead, encodedSize, transmittedSize,
+				 ((((float)dataSize-transmittedSize)*100)/dataSize));
 }
 
 UINT

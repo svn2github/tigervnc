@@ -169,7 +169,7 @@ vncClientThread::InitAuthenticate()
 	// By default we disallow passwordless workstations!
 	if ((strlen(plain) == 0) && m_server->AuthRequired())
 	{
-		log.Print(LL_CONNERR, VNCLOG("no password specified for server - client rejected\n"));
+		vnclog.Print(LL_CONNERR, VNCLOG("no password specified for server - client rejected\n"));
 
 		// Send an error message to the client
 		CARD32 auth_val = Swap32IfLE(rfbConnFailed);
@@ -206,7 +206,7 @@ vncClientThread::InitAuthenticate()
 
 			if (!ok)
 			{
-				log.Print(LL_CONNERR, VNCLOG("loopback connection attempted - client rejected\n"));
+				vnclog.Print(LL_CONNERR, VNCLOG("loopback connection attempted - client rejected\n"));
 				
 				// Send an error message to the client
 				CARD32 auth_val = Swap32IfLE(rfbConnFailed);
@@ -272,7 +272,7 @@ vncClientThread::InitAuthenticate()
 		CARD32 authmsg;
 		if (!auth_ok)
 		{
-			log.Print(LL_CONNERR, VNCLOG("authentication failed\n"));
+			vnclog.Print(LL_CONNERR, VNCLOG("authentication failed\n"));
 
 			authmsg = Swap32IfLE(rfbVncAuthFailed);
 			m_socket->SendExact((char *)&authmsg, sizeof(authmsg));
@@ -299,14 +299,14 @@ vncClientThread::InitAuthenticate()
 		if (m_server->ConnectPriority() < 1)
 		{
 			// Incoming
-			log.Print(LL_INTINFO, VNCLOG("non-shared connection - disconnecting old clients\n"));
+			vnclog.Print(LL_INTINFO, VNCLOG("non-shared connection - disconnecting old clients\n"));
 			m_server->KillAuthClients();
 		} else if (m_server->ConnectPriority() > 1)
 		{
 			// Existing
 			if (m_server->AuthClientCount() > 0)
 			{
-				log.Print(LL_CLIENTS, VNCLOG("connections already exist - client rejected\n"));
+				vnclog.Print(LL_CLIENTS, VNCLOG("connections already exist - client rejected\n"));
 				return FALSE;
 			}
 		}
@@ -320,7 +320,7 @@ vncClientThread::InitAuthenticate()
 										m_socket->GetPeerName());
 		if ((acceptDlg == 0) || (!(acceptDlg->DoDialog())))
 		{
-			log.Print(LL_CLIENTS, VNCLOG("user rejected client in accept dialog\n"));
+			vnclog.Print(LL_CLIENTS, VNCLOG("user rejected client in accept dialog\n"));
 			return FALSE;
 		}
 	}
@@ -358,16 +358,15 @@ vncClientThread::run(void *arg)
 	// IMPORTANT : ALWAYS call RemoveClient on the server before quitting
 	// this thread.
 
-	log.Print(LL_CLIENTS, VNCLOG("client connected : %s (%hd)\n"),
-								m_client->GetClientName(),
-								m_client->GetClientId());
+	vnclog.Print(LL_CLIENTS, VNCLOG("client connected : %s (%hd)\n"),
+				 m_client->GetClientName(), m_client->GetClientId());
 
 	// Save the handle to the thread's original desktop
 	HDESK home_desktop = GetThreadDesktop(GetCurrentThreadId());
 	
 	// To avoid people connecting and then halting the connection, set a timeout
 	if (!m_socket->SetTimeout(30000))
-		log.Print(LL_INTERR, VNCLOG("failed to set socket timeout(%d)\n"), GetLastError());
+		vnclog.Print(LL_INTERR, VNCLOG("failed to set socket timeout(%d)\n"), GetLastError());
 
 	// Initially blacklist the client so that excess connections from it get dropped
 	m_server->AddAuthHostsBlacklist(m_client->GetClientName());
@@ -382,7 +381,7 @@ vncClientThread::run(void *arg)
 		m_server->RemoveClient(m_client->GetClientId());
 		return;
 	}
-	log.Print(LL_INTINFO, VNCLOG("negotiated version\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("negotiated version\n"));
 
 	// AUTHENTICATE LINK
 	if (!InitAuthenticate())
@@ -394,7 +393,7 @@ vncClientThread::run(void *arg)
 	// Authenticated OK - remove from blacklist and remove timeout
 	m_server->RemAuthHostsBlacklist(m_client->GetClientName());
 	m_socket->SetTimeout(0);
-	log.Print(LL_INTINFO, VNCLOG("authenticated connection\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("authenticated connection\n"));
 
 	// INIT PIXEL FORMAT
 
@@ -445,7 +444,7 @@ vncClientThread::run(void *arg)
 		m_server->RemoveClient(m_client->GetClientId());
 		return;
 	}
-	log.Print(LL_INTINFO, VNCLOG("sent pixel format to client\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("sent pixel format to client\n"));
 
 	// UNLOCK INITIAL SETUP
 	// Initial negotiation is complete, so set the protocol ready flag
@@ -505,7 +504,7 @@ vncClientThread::run(void *arg)
 				// Tell the buffer object of the change
 				if (!m_client->m_buffer->SetClientFormat(msg.spf.format))
 				{
-					log.Print(LL_CONNERR, VNCLOG("remote pixel format invalid\n"));
+					vnclog.Print(LL_CONNERR, VNCLOG("remote pixel format invalid\n"));
 
 					connected = FALSE;
 				}
@@ -565,7 +564,7 @@ vncClientThread::run(void *arg)
 					// Is this an XCursor encoding request?
 					if (Swap32IfLE(encoding) == rfbEncodingXCursor) {
 						m_client->m_xcursor_enabled = TRUE;
-						log.Print(LL_INTINFO, VNCLOG("X-style cursor shape updates requested\n"));
+						vnclog.Print(LL_INTINFO, VNCLOG("X-style cursor shape updates requested\n"));
 						continue;
 					}
 
@@ -576,7 +575,7 @@ vncClientThread::run(void *arg)
 						// Client specified encoding-specific compression level
 						m_client->m_buffer->SetCompressLevel(Swap32IfLE(encoding) -
 															 rfbEncodingCompressLevel0);
-						log.Print(LL_INTINFO, VNCLOG("compression level requested: %lu\n"),
+						vnclog.Print(LL_INTINFO, VNCLOG("compression level requested: %lu\n"),
 							(CARD32)(Swap32IfLE(encoding) - rfbEncodingCompressLevel0));
 						continue;
 					}
@@ -588,7 +587,7 @@ vncClientThread::run(void *arg)
 						// Client specified image quality level used for JPEG compression
 						m_client->m_buffer->SetQualityLevel(Swap32IfLE(encoding) -
 															rfbEncodingQualityLevel0);
-						log.Print(LL_INTINFO, VNCLOG("image quality level requested: %lu\n"),
+						vnclog.Print(LL_INTINFO, VNCLOG("image quality level requested: %lu\n"),
 							(CARD32)(Swap32IfLE(encoding) - rfbEncodingQualityLevel0));
 						continue;
 					}
@@ -596,7 +595,7 @@ vncClientThread::run(void *arg)
 					// Is this a LastRect encoding request?
 					if (Swap32IfLE(encoding) == rfbEncodingLastRect) {
 						m_client->m_buffer->EnableLastRect(TRUE);
-						log.Print(LL_INTINFO, VNCLOG("LastRect protocol extension requested\n"));
+						vnclog.Print(LL_INTINFO, VNCLOG("LastRect protocol extension requested\n"));
 						continue;
 					}
 
@@ -615,11 +614,11 @@ vncClientThread::run(void *arg)
 				{
 					omni_mutex_lock l(m_client->m_regionLock);
 
-					log.Print(LL_INTINFO, VNCLOG("defaulting to raw encoder\n"));
+					vnclog.Print(LL_INTINFO, VNCLOG("defaulting to raw encoder\n"));
 
 					if (!m_client->m_buffer->SetEncoding(Swap32IfLE(rfbEncodingRaw)))
 					{
-						log.Print(LL_INTERR, VNCLOG("failed to select raw encoder!\n"));
+						vnclog.Print(LL_INTERR, VNCLOG("failed to select raw encoder!\n"));
 
 						connected = FALSE;
 					}
@@ -788,9 +787,8 @@ vncClientThread::run(void *arg)
 
 	// Quit this thread.  This will automatically delete the thread and the
 	// associated client.
-	log.Print(LL_CLIENTS, VNCLOG("client disconnected : %s (%hd)\n"),
-									m_client->GetClientName(),
-									m_client->GetClientId());
+	vnclog.Print(LL_CLIENTS, VNCLOG("client disconnected : %s (%hd)\n"),
+				 m_client->GetClientName(), m_client->GetClientId());
 
 	// Remove the client from the server, just in case!
 	m_server->RemoveClient(m_client->GetClientId());
@@ -800,7 +798,7 @@ vncClientThread::run(void *arg)
 
 vncClient::vncClient()
 {
-	log.Print(LL_INTINFO, VNCLOG("vncClient() executing...\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("vncClient() executing...\n"));
 
 	m_socket = NULL;
 	m_client_name = 0;
@@ -834,7 +832,7 @@ vncClient::vncClient()
 
 vncClient::~vncClient()
 {
-	log.Print(LL_INTINFO, VNCLOG("~vncClient() executing...\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("~vncClient() executing...\n"));
 
 	// We now know the thread is dead, so we can clean up
 	if (m_client_name != 0) {
@@ -845,7 +843,7 @@ vncClient::~vncClient()
 	// If we have a socket then kill it
 	if (m_socket != NULL)
 	{
-		log.Print(LL_INTINFO, VNCLOG("deleting socket\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("deleting socket\n"));
 
 		delete m_socket;
 		m_socket = NULL;
@@ -854,7 +852,7 @@ vncClient::~vncClient()
 	// Kill the screen buffer
 	if (m_buffer != NULL)
 	{
-		log.Print(LL_INTINFO, VNCLOG("deleting buffer\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("deleting buffer\n"));
 
 		delete m_buffer;
 		m_buffer = NULL;
@@ -1182,7 +1180,7 @@ vncClient::SendRFBMsg(CARD8 type, BYTE *buffer, int buflen)
 	// Send the message
 	if (!m_socket->SendExact((char *) buffer, buflen))
 	{
-		log.Print(LL_CONNERR, VNCLOG("failed to send RFB message to client\n"));
+		vnclog.Print(LL_CONNERR, VNCLOG("failed to send RFB message to client\n"));
 
 		Kill();
 		return FALSE;
@@ -1630,20 +1628,20 @@ vncClient::SendCursorShape()
 	// Get mouse cursor handle
 	m_hcursor = m_buffer->GetCursor();
 	if (m_hcursor == NULL) {
-		log.Print(LL_INTINFO, VNCLOG("DBG:cursor handle is NULL.\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("DBG:cursor handle is NULL.\n"));
 		return FALSE;
 	}
 
 	// Get cursor info
 	ICONINFO IconInfo;
 	if (!GetIconInfo(m_hcursor, &IconInfo)) {
-		log.Print(LL_INTINFO, VNCLOG("DBG:GetIconInfo() failed.\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("DBG:GetIconInfo() failed.\n"));
 		return FALSE;
 	}
 	if (IconInfo.hbmMask == NULL) {
 		if (IconInfo.hbmColor != NULL)
 			DeleteObject(IconInfo.hbmColor);
-		log.Print(LL_INTINFO, VNCLOG("DBG:cursor bitmap handle is NULL.\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("DBG:cursor bitmap handle is NULL.\n"));
 		return FALSE;
 	}
 
@@ -1654,19 +1652,22 @@ vncClient::SendCursorShape()
 		DeleteObject(IconInfo.hbmMask);
 		if (IconInfo.hbmColor != NULL)
 			DeleteObject(IconInfo.hbmColor);
-		log.Print(LL_INTINFO, VNCLOG("DBG:incorrect data in cursor BITMAP structure (mask).\n"));
-		log.Print(LL_INTINFO, VNCLOG("DBG:bmMask: %dx%d, %d planes, %d bpp, %d bytes per row.\n"),
-				  bmMask.bmWidth, bmMask.bmHeight, bmMask.bmPlanes, bmMask.bmBitsPixel, bmMask.bmWidthBytes);
+		vnclog.Print(LL_INTINFO, VNCLOG("DBG:incorrect data in cursor "
+										"BITMAP structure (mask).\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("DBG:bmMask: %dx%d, %d planes, "
+										"%d bpp, %d bytes per row.\n"),
+					 bmMask.bmWidth, bmMask.bmHeight, bmMask.bmPlanes,
+					 bmMask.bmBitsPixel, bmMask.bmWidthBytes);
 		return FALSE;
 	}
-	log.Print(LL_INTINFO, VNCLOG("DBG:bmMask: %dx%d, %d bytes per row.\n"),
-			  bmMask.bmWidth, bmMask.bmHeight, bmMask.bmWidthBytes);
+	vnclog.Print(LL_INTINFO, VNCLOG("DBG:bmMask: %dx%d, %d bytes per row.\n"),
+				 bmMask.bmWidth, bmMask.bmHeight, bmMask.bmWidthBytes);
 
 	// For now, we deal only with black-and-white cursors
 	if (IconInfo.hbmColor != NULL) {
 		DeleteObject(IconInfo.hbmMask);
 		DeleteObject(IconInfo.hbmColor);
-		log.Print(LL_INTINFO, VNCLOG("DBG:cursor is not monochrome.\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("DBG:cursor is not monochrome.\n"));
 		return FALSE;
 	}
 
@@ -1686,7 +1687,7 @@ vncClient::SendCursorShape()
 		delete[] mbits;
 		if (IconInfo.hbmColor != NULL)
 			DeleteObject(IconInfo.hbmColor);
-		log.Print(LL_INTINFO, VNCLOG("DBG:GetBitmapBits() failed.\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("DBG:GetBitmapBits() failed.\n"));
 		return FALSE;
 	}
 
@@ -1720,7 +1721,7 @@ vncClient::SendCursorShape()
 	}
 
 	// Send cursor shape to the client
-	log.Print(LL_INTINFO, VNCLOG("DBG:sending XCursor update.\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("DBG:sending XCursor update.\n"));
 	SendCursorShapeData(IconInfo.xHotspot, IconInfo.yHotspot, width, height,
 						0, mbits, &mbits[packedWidthBytes*height],
 						rfbEncodingXCursor);

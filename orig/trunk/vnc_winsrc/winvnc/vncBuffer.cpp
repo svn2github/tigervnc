@@ -170,7 +170,7 @@ vncBuffer::GetRemotePalette(RGBQUAD *quadlist, UINT ncolours)
 	// in which case the encoder will be storing RGBQUAD data
 	if (m_encoder == NULL)
 	{
-		log.Print(LL_INTWARN, VNCLOG("GetRemotePalette called but no encoder set\n"));
+		vnclog.Print(LL_INTWARN, VNCLOG("GetRemotePalette called but no encoder set\n"));
 		return FALSE;
 	}
 
@@ -214,7 +214,7 @@ vncBuffer::CheckBuffer()
 	    m_clientbuff = new BYTE [clientbuffsize];
 	    if (m_clientbuff == NULL)
 	    {		
-		log.Print(LL_INTERR, VNCLOG("unable to allocate client buffer[%d]\n"), clientbuffsize);
+		vnclog.Print(LL_INTERR, VNCLOG("unable to allocate client buffer[%d]\n"), clientbuffsize);
 		return FALSE;
 	    }
 
@@ -246,20 +246,20 @@ vncBuffer::CheckBuffer()
 		if (m_mainbuff) {
 			// Prevent us from freeing the DIBsection buffer
 			m_freemainbuff = FALSE;
-			log.Print(LL_INTINFO, VNCLOG("fast blits detected - using DIBsection buffer\n"));
+			vnclog.Print(LL_INTINFO, VNCLOG("fast blits detected - using DIBsection buffer\n"));
 		} else {
 			// Create our own buffer to copy blits through
 			m_freemainbuff = TRUE;
 			if ((m_mainbuff = new BYTE [m_desktop->ScreenBuffSize()]) == NULL)
 			{
-				log.Print(LL_INTERR, VNCLOG("unable to allocate main buffer[%d]\n"), m_desktop->ScreenBuffSize());
+				vnclog.Print(LL_INTERR, VNCLOG("unable to allocate main buffer[%d]\n"), m_desktop->ScreenBuffSize());
 				return FALSE;
 			}
 		}
 		// Always create a back buffer
 		if ((m_backbuff = new BYTE [m_desktop->ScreenBuffSize()]) == NULL)
 		{
-			log.Print(LL_INTERR, VNCLOG("unable to allocate back buffer[%d]\n"), m_desktop->ScreenBuffSize());
+			vnclog.Print(LL_INTERR, VNCLOG("unable to allocate back buffer[%d]\n"), m_desktop->ScreenBuffSize());
 			return FALSE;
 		}
 		m_mainsize = m_desktop->ScreenBuffSize();
@@ -269,7 +269,7 @@ vncBuffer::CheckBuffer()
 
 	}
 
-	log.Print(LL_INTINFO, VNCLOG("local buffer=%d, remote buffer=%d\n"), m_mainsize, m_clientbuffsize);
+	vnclog.Print(LL_INTINFO, VNCLOG("local buffer=%d, remote buffer=%d\n"), m_mainsize, m_clientbuffsize);
 
 	return TRUE;
 }
@@ -419,7 +419,7 @@ vncBuffer::GrabMouse()
 BOOL
 vncBuffer::SetClientFormat(rfbPixelFormat &format)
 {
-	log.Print(LL_INTINFO, VNCLOG("SetClientFormat called\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("SetClientFormat called\n"));
 	
 	// Save the desired format
 	m_clientfmtset = TRUE;
@@ -475,7 +475,7 @@ vncBuffer::SetEncoding(CARD32 encoding)
 
 	case rfbEncodingRaw:
 
-		log.Print(LL_INTINFO, VNCLOG("raw encoder requested\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("raw encoder requested\n"));
 
 		// Create a RAW encoder
 		m_encoder = new vncEncoder;
@@ -485,7 +485,7 @@ vncBuffer::SetEncoding(CARD32 encoding)
 
 	case rfbEncodingRRE:
 
-		log.Print(LL_INTINFO, VNCLOG("RRE encoder requested\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("RRE encoder requested\n"));
 
 		// Create a RRE encoder
 		m_encoder = new vncEncodeRRE;
@@ -495,7 +495,7 @@ vncBuffer::SetEncoding(CARD32 encoding)
 
 	case rfbEncodingCoRRE:
 
-		log.Print(LL_INTINFO, VNCLOG("CoRRE encoder requested\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("CoRRE encoder requested\n"));
 
 		// Create a CoRRE encoder
 		m_encoder = new vncEncodeCoRRE;
@@ -505,7 +505,7 @@ vncBuffer::SetEncoding(CARD32 encoding)
 
 	case rfbEncodingHextile:
 
-		log.Print(LL_INTINFO, VNCLOG("Hextile encoder requested\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("Hextile encoder requested\n"));
 
 		// Create a Hextile encoder
 		m_encoder = new vncEncodeHexT;
@@ -515,7 +515,7 @@ vncBuffer::SetEncoding(CARD32 encoding)
 
 	case rfbEncodingZlib:
 
-		log.Print(LL_INTINFO, VNCLOG("Zlib encoder requested\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("Zlib encoder requested\n"));
 
 		// Create a Zlib encoder, if needed.
 		// If a Zlib encoder was used previously, then reuse it here
@@ -535,7 +535,7 @@ vncBuffer::SetEncoding(CARD32 encoding)
 
 	case rfbEncodingTight:
 
-		log.Print(LL_INTINFO, VNCLOG("Tight encoder requested\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("Tight encoder requested\n"));
 
 		// Create a Tight encoder, if needed.
 		// If a Tight encoder was used previously, then reuse it here
@@ -555,7 +555,7 @@ vncBuffer::SetEncoding(CARD32 encoding)
 
 	case rfbEncodingZlibHex:
 
-		log.Print(LL_INTINFO, VNCLOG("ZlibHex encoder requested\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("ZlibHex encoder requested\n"));
 
 		// Create a ZlibHex encoder, if needed.
 		// If a ZlibHex encoder was used previously, then reuse it here
@@ -575,7 +575,7 @@ vncBuffer::SetEncoding(CARD32 encoding)
 
 	default:
 		// An unknown encoding was specified
-		log.Print(LL_INTERR, VNCLOG("unknown encoder requested\n"));
+		vnclog.Print(LL_INTERR, VNCLOG("unknown encoder requested\n"));
 
 		return FALSE;
 	}
@@ -591,7 +591,7 @@ vncBuffer::SetEncoding(CARD32 encoding)
 	if (m_clientfmtset)
 		if (!m_encoder->SetRemoteFormat(m_clientformat))
 		{
-			log.Print(LL_INTERR, VNCLOG("client pixel format is not supported\n"));
+			vnclog.Print(LL_INTERR, VNCLOG("client pixel format is not supported\n"));
 
 			return FALSE;
 		}
@@ -628,14 +628,13 @@ vncBuffer::SetQualityLevel(CARD32 level)
 	return TRUE;
 }
 
-BOOL
+void
 vncBuffer::EnableLastRect(BOOL enable)
 {
 	m_use_lastrect = enable;
 	if (m_encoder != NULL) {
 		m_encoder->EnableLastRect(enable);
 	}
-	return TRUE;
 }
 
 void
@@ -644,7 +643,7 @@ vncBuffer::Clear(RECT &rect)
 	if (!FastCheckMainbuffer())
 		return;
 
-	log.Print(LL_INTINFO,
+	vnclog.Print(LL_INTINFO,
 		VNCLOG("clearing rectangle (%d, %d)-(%d, %d)\n"),
 		rect.left, rect.top, rect.right, rect.bottom);
 

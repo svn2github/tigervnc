@@ -28,6 +28,9 @@
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
 
+#ifndef FLASHER_H__
+#define FLASHER_H__
+
 #pragma once
 
 // Flasher is used with the AT&T internal version of VNC, when the user may need to 
@@ -48,4 +51,6 @@ protected:
 	HWND m_hwnd;
 	HFONT m_hfont;
 };
+
+#endif // FLASHER_H__
 

@@ -28,6 +28,8 @@
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
 
+#ifndef AUTHDIALOG_H__
+#define AUTHDIALOG_H__
 
 #pragma once
 
@@ -41,3 +43,5 @@ public:
 	static BOOL CALLBACK DlgProc(  HWND hwndDlg,  UINT uMsg, 
 		WPARAM wParam, LPARAM lParam );
 };
+
+#endif // AUTHDIALOG_H__

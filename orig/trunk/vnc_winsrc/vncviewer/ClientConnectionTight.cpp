@@ -293,7 +293,9 @@ int ClientConnection::ReadCompactLen() {
 int ClientConnection::InitFilterCopy (int rw, int rh)
 {
   tightFilterFunc funcArray[3] = {
-    FilterCopy8, FilterCopy16, FilterCopy32
+    &ClientConnection::FilterCopy8,
+    &ClientConnection::FilterCopy16,
+    &ClientConnection::FilterCopy32
   };
 
   m_tightCurrentFilter = funcArray[m_myFormat.bitsPerPixel/16];
@@ -302,7 +304,7 @@ int ClientConnection::InitFilterCopy (int rw, int rh)
   if (m_myFormat.depth == 24 && m_myFormat.redMax == 0xFF &&
       m_myFormat.greenMax == 0xFF && m_myFormat.blueMax == 0xFF) {
     m_tightCutZeros = TRUE;
-    m_tightCurrentFilter = FilterCopy24;
+    m_tightCurrentFilter = &ClientConnection::FilterCopy24;
     return 24;
   }
 
@@ -315,13 +317,15 @@ int ClientConnection::InitFilterGradient (int rw, int rh)
   int bits = InitFilterCopy(rw, rh);
 
   tightFilterFunc funcArray[3] = {
-    FilterGradient8, FilterGradient16, FilterGradient32
+    &ClientConnection::FilterGradient8,
+    &ClientConnection::FilterGradient16,
+    &ClientConnection::FilterGradient32
   };
 
   m_tightCurrentFilter = funcArray[m_myFormat.bitsPerPixel/16];
 
   if (m_tightCutZeros) {
-    m_tightCurrentFilter = FilterGradient24;
+    m_tightCurrentFilter = &ClientConnection::FilterGradient24;
     memset(m_tightPrevRow, 0, rw * 3);
   } else
     memset(m_tightPrevRow, 0, rw * 3 * sizeof(CARD16));
@@ -331,7 +335,7 @@ int ClientConnection::InitFilterGradient (int rw, int rh)
 
 int ClientConnection::InitFilterPalette (int rw, int rh)
 {
-  m_tightCurrentFilter = FilterPalette;
+  m_tightCurrentFilter = &ClientConnection::FilterPalette;
   m_tightRectWidth = rw;
 
   CARD8 numColors;

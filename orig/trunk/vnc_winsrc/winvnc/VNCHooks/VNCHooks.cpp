@@ -32,6 +32,10 @@
 
 /////////////////////////////////////////////////////////////////////////////
 // Storage for the global data in the DLL
+// Note: For Borland C++ compilers, this data segment is defined in a
+//       separate file, SharedData.cpp.
+
+#ifdef _MSC_VER
 
 // MSVC is bugged - if a default value is missed off from one of the following
 // variables then that variable is process-specific for some reason!
@@ -47,6 +51,12 @@ HHOOK hDialogMsgHook = NULL;						// Handle to the DialogMsg hook
 HHOOK hLLKeyboardHook = NULL;						// Handle to LowLevel kbd hook
 HHOOK hLLMouseHook = NULL;							// Handle to LowLevel mouse hook
 #pragma data_seg( )
+
+#else
+
+#include "SharedData.h"
+
+#endif // _MSC_VER
 
 /////////////////////////////////////////////////////////////////////////////
 // Per-instance DLL variables
@@ -103,7 +113,9 @@ BOOL WINAPI DllMain (HANDLE hInst, ULONG ul_reason_for_call, LPVOID lpReserved)
 	{
 
 	case DLL_PROCESS_ATTACH:
+#ifdef _MSC_VER
 		_RPT0(_CRT_WARN, "vncHooks : Hook DLL loaded\n");
+#endif
 
 		// Save the instance handle
 		hInstance = (HINSTANCE)hInst;
@@ -115,7 +127,9 @@ BOOL WINAPI DllMain (HANDLE hInst, ULONG ul_reason_for_call, LPVOID lpReserved)
 		return TRUE;
 
 	case DLL_PROCESS_DETACH:
+#ifdef _MSC_VER
 		_RPT0(_CRT_WARN, "vncHooks : Hook DLL unloaded\n");
+#endif
 		
 		// Call the exit function
 		// If the app failed to hook OK, ExitInstance will still operate OK (hopefully...)
@@ -176,7 +190,9 @@ DllExport BOOL SetHook(HWND hWnd, UINT UpdateMsg, UINT CopyMsg, UINT MouseMsg)
 		MouseMoveMessage = MouseMsg;		// Save the message ID to send when mouse moves
 		HookMaster = TRUE;					// Set the HookMaster flag for this instance
 		
+#ifdef _MSC_VER
 		_RPT1(_CRT_WARN, "Window : %d\n", hWnd);
+#endif
 		
 		return TRUE;
 	}

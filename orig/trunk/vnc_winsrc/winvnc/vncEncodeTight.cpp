@@ -95,8 +95,11 @@ vncEncodeTight::Init()
 void
 vncEncodeTight::LogStats()
 {
-	log.Print(LL_INTINFO, VNCLOG("Tight encoder stats: dataSize=%d, rectangleOverhead=%d, encodedSize=%d, transmittedSize=%d, efficiency=%.3f\n"),
-				dataSize, rectangleOverhead, encodedSize, transmittedSize, ((((float)dataSize-transmittedSize)*100)/dataSize));
+	vnclog.Print(LL_INTINFO, VNCLOG("Tight encoder stats: dataSize=%d, "
+									"rectangleOverhead=%d, encodedSize=%d, "
+									"transmittedSize=%d, efficiency=%.3f\n"),
+				 dataSize, rectangleOverhead, encodedSize, transmittedSize,
+				 ((((float)dataSize-transmittedSize)*100)/dataSize));
 }
 
 /*****************************************************************************
@@ -214,8 +217,7 @@ vncEncodeTight::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest,
 				transmittedSize += m_hdrBufferBytes;
 				outConn->SendExact((char *)dest, size);
 				transmittedSize += size;
-				encodedSize += (size + m_hdrBufferBytes -
-								sz_rfbFramebufferUpdateRectHeader);
+				encodedSize += size + m_hdrBufferBytes - sz_rfbFramebufferUpdateRectHeader;
 
 				// Send surrounding rectangles.
 
@@ -225,8 +227,7 @@ vncEncodeTight::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest,
 				SetRect(&rects[2], dx + w_best, dy, x + w, dy + h_best);
 				SetRect(&rects[3], x, dy + h_best, x + w, y + h);
 				for (int i = 0; i < 4; i++) {
-					if ( rects[i].left == rects[i].right ||
-						 rects[i].top == rects[i].bottom )
+					if (rects[i].left == rects[i].right || rects[i].top == rects[i].bottom)
 						continue;
 					size = EncodeRect(source, outConn, dest, rects[i]);
 					outConn->SendExact((char *)dest, size);
@@ -652,15 +653,15 @@ vncEncodeTight::CompressData(BYTE *dest, int streamId, int dataLen,
 		pz->zfree = Z_NULL;
 		pz->opaque = Z_NULL;
 
-		log.Print(LL_INTINFO,
-				  VNCLOG("calling deflateInit2 with zlib level:%d\n"),
-				  zlibLevel);
+		vnclog.Print(LL_INTINFO,
+					 VNCLOG("calling deflateInit2 with zlib level:%d\n"),
+					 zlibLevel);
 		int err = deflateInit2 (pz, zlibLevel, Z_DEFLATED, MAX_WBITS,
 								MAX_MEM_LEVEL, zlibStrategy);
 		if (err != Z_OK) {
-			log.Print(LL_INTINFO,
-					  VNCLOG("deflateInit2 returned error:%d:%s\n"),
-					  err, pz->msg);
+			vnclog.Print(LL_INTINFO,
+						 VNCLOG("deflateInit2 returned error:%d:%s\n"),
+						 err, pz->msg);
 			return -1;
 		}
 
@@ -678,14 +679,14 @@ vncEncodeTight::CompressData(BYTE *dest, int streamId, int dataLen,
 
 	// Change compression parameters if needed.
 	if (zlibLevel != m_zsLevel[streamId]) {
-		log.Print(LL_INTINFO,
-				  VNCLOG("calling deflateParams with zlib level:%d\n"),
-				  zlibLevel);
+		vnclog.Print(LL_INTINFO,
+					 VNCLOG("calling deflateParams with zlib level:%d\n"),
+					 zlibLevel);
 		int err = deflateParams (pz, zlibLevel, zlibStrategy);
 		if (err != Z_OK) {
-			log.Print(LL_INTINFO,
-					  VNCLOG("deflateParams returned error:%d:%s\n"),
-					  err, pz->msg);
+			vnclog.Print(LL_INTINFO,
+						 VNCLOG("deflateParams returned error:%d:%s\n"),
+						 err, pz->msg);
 			return -1;
 		}
 		m_zsLevel[streamId] = zlibLevel;
@@ -694,7 +695,7 @@ vncEncodeTight::CompressData(BYTE *dest, int streamId, int dataLen,
 	// Actual compression.
 	if ( deflate (pz, Z_SYNC_FLUSH) != Z_OK ||
 		 pz->avail_in != 0 || pz->avail_out == 0 ) {
-		log.Print(LL_INTINFO, VNCLOG("deflate() call failed.\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("deflate() call failed.\n"));
 		return -1;
 	}
 

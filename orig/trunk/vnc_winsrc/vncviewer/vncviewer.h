@@ -28,6 +28,9 @@
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
 
+#ifndef VNCVIEWER_H__
+#define VNCVIEWER_H__
+
 #pragma once
 
 #include "res\resource.h"
@@ -67,3 +70,6 @@ inline LPTSTR SELECT_MAKEINTRESOURCE(WORD res_palm, WORD res_hpc)
 		return MAKEINTRESOURCE(res_hpc);
 }
 #endif
+
+#endif // VNCVIEWER_H__
+

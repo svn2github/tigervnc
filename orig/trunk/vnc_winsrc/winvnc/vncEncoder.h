@@ -80,7 +80,7 @@ public:
 	BOOL SetRemoteFormat(rfbPixelFormat &pixformat);
 	BOOL SetCompressLevel(UINT level);
 	BOOL SetQualityLevel(UINT level);
-	BOOL EnableLastRect(BOOL enable) { m_use_lastrect = enable; }
+	void EnableLastRect(BOOL enable) { m_use_lastrect = enable; }
 
 	// Colour map handling
 	BOOL GetRemotePalette(RGBQUAD *quadlist, UINT ncolours);

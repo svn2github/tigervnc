@@ -173,7 +173,7 @@ VSocket::Close()
 {
   if (sock >= 0)
     {
-	  log.Print(LL_SOCKINFO, VNCLOG("closing socket\n"));
+	  vnclog.Print(LL_SOCKINFO, VNCLOG("closing socket\n"));
 
 	  shutdown(sock, SD_BOTH);
 #ifdef __WIN32__
@@ -193,7 +193,7 @@ VSocket::Shutdown()
 {
   if (sock >= 0)
     {
-	  log.Print(LL_SOCKINFO, VNCLOG("shutdown socket\n"));
+	  vnclog.Print(LL_SOCKINFO, VNCLOG("shutdown socket\n"));
 
 	  shutdown(sock, SD_BOTH);
     }
@@ -468,13 +468,13 @@ VSocket::ReadExact(char *buff, const VCard bufflen)
 			buff += n;
 			currlen -= n;
 		} else if (n == 0) {
-			log.Print(LL_SOCKERR, VNCLOG("zero bytes read\n"));
+			vnclog.Print(LL_SOCKERR, VNCLOG("zero bytes read\n"));
 
 			return VFalse;
 		} else {
 			if (errno != EWOULDBLOCK)
 			{
-				log.Print(LL_SOCKERR, VNCLOG("socket error %d\n"), errno);
+				vnclog.Print(LL_SOCKERR, VNCLOG("socket error %d\n"), errno);
 				return VFalse;
 			}
 		}

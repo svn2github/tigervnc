@@ -72,7 +72,8 @@ void ClientConnection::ProcessLocalClipboardChange()
 				CloseClipboard();       		
 				
 				// Translate to Unix-format lines before sending
-				for (int i = 0, j = 0; contents[i] != '\0'; i++) {
+				int j = 0;
+				for (int i = 0; contents[i] != '\0'; i++) {
 					if (contents[i] != '\x0d') {
 						unixcontents[j++] = contents[i];
 					}
@@ -104,7 +105,8 @@ void ClientConnection::UpdateLocalClipboard(char *buf, int len) {
 
 	// Copy to wincontents replacing LF with CR-LF
 	char *wincontents = new char[len * 2 + 1];
-	for (int i = 0, j = 0; m_netbuf[i] != 0; i++, j++) {
+	int j = 0;
+	for (int i = 0; m_netbuf[i] != 0; i++, j++) {
         if (buf[i] == '\x0a') {
 			wincontents[j++] = '\x0d';
             len++;

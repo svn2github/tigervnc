@@ -487,13 +487,15 @@ void VNCOptions::Load(char *fname)
 	m_scale_num =			readInt("scale_num",		m_scale_num,	fname);
 	m_requestShapeUpdates =	readInt("cursorshape",		m_requestShapeUpdates, fname) != 0;
 	m_ignoreShapeUpdates =	readInt("noremotecursor",	m_ignoreShapeUpdates, fname) != 0;
-	m_compressLevel =		readInt("compresslevel",	-1,				fname);
-	if (m_compressLevel != -1) {
+	int level =				readInt("compresslevel",	-1,				fname);
+	if (level != -1) {
 		m_useCompressLevel = true;
+		m_compressLevel = level;
 	}
-	m_jpegQualityLevel =	readInt("quality",			-1,				fname);
-	if (m_jpegQualityLevel != -1) {
+	level =					readInt("quality",			-1,				fname);
+	if (level != -1) {
 		m_enableJpegCompression = true;
+		m_jpegQualityLevel = level;
 	}
 }
 

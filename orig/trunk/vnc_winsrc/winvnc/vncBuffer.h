@@ -83,7 +83,7 @@ public:
 	UINT TranslateRect(const RECT &rect, VSocket *outConn);
 	BOOL SetCompressLevel(CARD32 level);
 	BOOL SetQualityLevel(CARD32 level);
-	BOOL EnableLastRect(BOOL enable);
+	void EnableLastRect(BOOL enable);
 	BOOL IsLastRectEnabled() { return m_use_lastrect; }
 
 	HCURSOR GetCursor();

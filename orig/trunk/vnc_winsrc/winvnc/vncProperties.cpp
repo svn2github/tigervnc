@@ -173,9 +173,9 @@ vncProperties::Show(BOOL show, BOOL usersettings)
 		if (!m_dlgvisible)
 		{
 			if (usersettings)
-				log.Print(LL_INTINFO, VNCLOG("show per-user Properties\n"));
+				vnclog.Print(LL_INTINFO, VNCLOG("show per-user Properties\n"));
 			else
-				log.Print(LL_INTINFO, VNCLOG("show default system Properties\n"));
+				vnclog.Print(LL_INTINFO, VNCLOG("show default system Properties\n"));
 
 			// Load in the settings relevant to the user or system
 			Load(usersettings);
@@ -194,7 +194,7 @@ vncProperties::Show(BOOL show, BOOL usersettings)
 				if (!m_returncode_valid)
 				    result = IDCANCEL;
 
-				log.Print(LL_INTINFO, VNCLOG("dialog result = %d\n"), result);
+				vnclog.Print(LL_INTINFO, VNCLOG("dialog result = %d\n"), result);
 
 				if (result == -1)
 				{
@@ -212,13 +212,13 @@ vncProperties::Show(BOOL show, BOOL usersettings)
 					break;
 				}
 
-				log.Print(LL_INTERR, VNCLOG("warning - empty password\n"));
+				vnclog.Print(LL_INTERR, VNCLOG("warning - empty password\n"));
 
 				// The password is empty, so if OK was used then redisplay the box,
 				// otherwise, if CANCEL was used, close down WinVNC
 				if (result == IDCANCEL)
 				{
-				    log.Print(LL_INTERR, VNCLOG("no password - QUITTING\n"));
+				    vnclog.Print(LL_INTERR, VNCLOG("no password - QUITTING\n"));
 				    PostQuitMessage(0);
 				    return;
 				}
@@ -452,7 +452,7 @@ vncProperties::DialogProc(HWND hwnd,
 				if (LOWORD(wParam) == IDOK)
 				{
 					// Yes, so close the dialog
-					log.Print(LL_INTINFO, VNCLOG("enddialog (OK)\n"));
+					vnclog.Print(LL_INTINFO, VNCLOG("enddialog (OK)\n"));
 
 					_this->m_returncode_valid = TRUE;
 
@@ -464,7 +464,7 @@ vncProperties::DialogProc(HWND hwnd,
 			}
 
 		case IDCANCEL:
-			log.Print(LL_INTINFO, VNCLOG("enddialog (CANCEL)\n"));
+			vnclog.Print(LL_INTINFO, VNCLOG("enddialog (CANCEL)\n"));
 
 			_this->m_returncode_valid = TRUE;
 
@@ -676,9 +676,9 @@ vncProperties::Load(BOOL usersettings)
 	// LOAD THE MACHINE-LEVEL PREFS
 
 	// Logging/debugging prefs
-	log.Print(LL_INTINFO, VNCLOG("loading local-only settings\n"));
-	log.SetMode(LoadInt(hkLocal, "DebugMode", 0));
-	log.SetLevel(LoadInt(hkLocal, "DebugLevel", 0));
+	vnclog.Print(LL_INTINFO, VNCLOG("loading local-only settings\n"));
+	vnclog.SetMode(LoadInt(hkLocal, "DebugMode", 0));
+	vnclog.SetLevel(LoadInt(hkLocal, "DebugLevel", 0));
 
 	// Disable Tray Icon
 	m_server->SetDisableTrayIcon(LoadInt(hkLocal, "DisableTrayIcon", false));
@@ -707,7 +707,7 @@ vncProperties::Load(BOOL usersettings)
 	// LOAD THE USER PREFERENCES
 
 	// Set the default user prefs
-	log.Print(LL_INTINFO, VNCLOG("clearing user settings\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("clearing user settings\n"));
 	m_pref_AutoPortSelect=TRUE;
 	m_pref_SockConnect=TRUE;
 	m_pref_CORBAConn=FALSE;
@@ -732,7 +732,7 @@ vncProperties::Load(BOOL usersettings)
 	// Load the local prefs for this user
 	if (hkDefault != NULL)
 	{
-		log.Print(LL_INTINFO, VNCLOG("loading DEFAULT local settings\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("loading DEFAULT local settings\n"));
 		LoadUserPrefs(hkDefault);
 		m_allowshutdown = LoadInt(hkDefault, "AllowShutdown", m_allowshutdown);
 		m_allowproperties = LoadInt(hkDefault, "AllowProperties", m_allowproperties);
@@ -744,7 +744,7 @@ vncProperties::Load(BOOL usersettings)
 
 		if (hkLocalUser != NULL)
 		{
-			log.Print(LL_INTINFO, VNCLOG("loading \"%s\" local settings\n"), username);
+			vnclog.Print(LL_INTINFO, VNCLOG("loading \"%s\" local settings\n"), username);
 			LoadUserPrefs(hkLocalUser);
 			m_allowshutdown = LoadInt(hkLocalUser, "AllowShutdown", m_allowshutdown);
 			m_allowproperties = LoadInt(hkLocalUser, "AllowProperties", m_allowproperties);
@@ -760,7 +760,7 @@ vncProperties::Load(BOOL usersettings)
 				0, REG_NONE, REG_OPTION_NON_VOLATILE,
 				KEY_READ, NULL, &hkGlobalUser, &dw) == ERROR_SUCCESS)
 			{
-				log.Print(LL_INTINFO, VNCLOG("loading \"%s\" global settings\n"), username);
+				vnclog.Print(LL_INTINFO, VNCLOG("loading \"%s\" global settings\n"), username);
 				LoadUserPrefs(hkGlobalUser);
 				RegCloseKey(hkGlobalUser);
 
@@ -769,7 +769,7 @@ vncProperties::Load(BOOL usersettings)
 			}
 		}
 	} else {
-		log.Print(LL_INTINFO, VNCLOG("bypassing user-specific settings (both local and global)\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("bypassing user-specific settings (both local and global)\n"));
 	}
 
 	if (hkLocalUser != NULL) RegCloseKey(hkLocalUser);
@@ -944,7 +944,7 @@ void
 vncProperties::SaveUserPrefs(HKEY appkey)
 {
 	// SAVE THE PER USER PREFS
-	log.Print(LL_INTINFO, VNCLOG("saving current settings to registry\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("saving current settings to registry\n"));
 
 	// Connection prefs
 	SaveInt(appkey, "SocketConnect", m_server->SockConnected());

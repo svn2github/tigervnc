@@ -29,6 +29,9 @@
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
 
+#ifndef EXCEPTION_H__
+#define EXCEPTION_H__
+
 #pragma once
 
 // Exceptions used in VNCviewer
@@ -86,3 +89,6 @@ public:
 	virtual void Report();
 	virtual ~AuthException();
 };
+
+#endif // EXCEPTION_H__
+

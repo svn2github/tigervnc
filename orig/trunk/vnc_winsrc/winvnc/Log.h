@@ -10,7 +10,7 @@
 //       Log log;
 //       log.SetFile( _T("myapp.log") );
 //       ...
-//       log.Print(2, _T("x = %d\n"), x);
+//       vnclog.Print(2, _T("x = %d\n"), x);
 //
 
 #ifndef VNCLOGGING

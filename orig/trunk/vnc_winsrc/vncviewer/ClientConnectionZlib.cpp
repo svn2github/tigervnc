@@ -43,7 +43,7 @@ void ClientConnection::ReadZlibRect(rfbFramebufferUpdateRectHeader *pfburh) {
     // this assumes at least one byte per pixel. Naughty.
 	UINT numRawBytes = numpixels * m_minPixelBytes;
 	UINT numCompBytes;
-	UINT inflateResult;
+	int inflateResult;
 
 	rfbZlibHeader hdr;
 

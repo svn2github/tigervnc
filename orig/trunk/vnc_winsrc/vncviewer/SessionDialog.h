@@ -28,8 +28,11 @@
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
 
+#ifndef SESSIONDIALOG_H__
+#define SESSIONDIALOG_H__
 
 #pragma once
+
 #include "VNCOptions.h"
 #include "MRU.h"
 
@@ -51,3 +54,6 @@ private:
 	static BOOL CALLBACK SessDlgProc(  HWND hwndDlg,  UINT uMsg, 
 		WPARAM wParam, LPARAM lParam );
 };
+
+#endif // SESSIONDIALOG_H__
+

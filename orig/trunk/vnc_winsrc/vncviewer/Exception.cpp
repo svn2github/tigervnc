@@ -64,7 +64,9 @@ QuietException::~QuietException()
 
 void QuietException::Report()
 {
+#ifdef _MSC_VER
 	_RPT1(_CRT_WARN, "Warning : %s\n", m_info);
+#endif
 }
 
 // ---------------------------------------
@@ -81,7 +83,9 @@ WarningException::~WarningException()
 
 void WarningException::Report()
 {
+#ifdef _MSC_VER
 	_RPT1(_CRT_WARN, "Warning : %s\n", m_info);
+#endif
 	MessageBox(NULL, m_info, "TridiaVNC info", MB_OK| MB_ICONEXCLAMATION | MB_SETFOREGROUND | MB_TOPMOST);
 }
 
@@ -99,7 +103,9 @@ ErrorException::~ErrorException()
 
 void ErrorException::Report()
 {
+#ifdef _MSC_VER
 	_RPT1(_CRT_WARN, "Warning : %s\n", m_info);
+#endif
 	MessageBox(NULL, m_info, "TridiaVNC info", MB_OK | MB_ICONSTOP | MB_SETFOREGROUND | MB_TOPMOST);
 }
 
@@ -117,6 +123,8 @@ AuthException::~AuthException()
 
 void AuthException::Report()
 {
+#ifdef _MSC_VER
 	_RPT1(_CRT_WARN, "Warning : %s\n", m_info);
+#endif
 	MessageBox(NULL, m_info, "TridiaVNC Authentication info", MB_OK| MB_ICONEXCLAMATION | MB_SETFOREGROUND | MB_TOPMOST);
 }

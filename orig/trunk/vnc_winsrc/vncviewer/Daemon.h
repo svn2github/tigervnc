@@ -28,6 +28,9 @@
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
 
+#ifndef DAEMON_H__
+#define DAEMON_H__
+
 #pragma once
 
 #include "stdhdrs.h"
@@ -50,4 +53,6 @@ protected:
 	NOTIFYICONDATA m_nid;
 	char netbuf[1024];
 };
+
+#endif // DAEMON_H__
 

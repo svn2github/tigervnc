@@ -42,7 +42,11 @@
 //       log.Print(2, _T("x = %d\n"), x);
 //
 
+#ifndef LOG_H__
+#define LOG_H__
+
 #pragma once
+
 #include <stdarg.h>
 
 class Log  
@@ -91,3 +95,6 @@ private:
     int m_level;
     HANDLE hlogfile;
 };
+
+#endif // LOG_H__
+

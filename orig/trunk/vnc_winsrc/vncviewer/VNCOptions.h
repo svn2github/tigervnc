@@ -29,6 +29,8 @@
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
 
+#ifndef VNCOPTIONS_H__
+#define VNCOPTIONS_H__
 
 #pragma once
 
@@ -126,4 +128,6 @@ private:
 	bool m_running;
 
 };
+
+#endif // VNCOPTIONS_H__
 

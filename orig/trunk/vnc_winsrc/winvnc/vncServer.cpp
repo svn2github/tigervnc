@@ -103,7 +103,7 @@ vncServer::vncServer()
 
 vncServer::~vncServer()
 {
-	log.Print(LL_STATE, VNCLOG("shutting down server object\n"));
+	vnclog.Print(LL_STATE, VNCLOG("shutting down server object\n"));
 
 	// If there is a socket_conn object then delete it
 	if (m_socketConn != NULL)
@@ -161,7 +161,7 @@ vncServer::~vncServer()
 		m_clientquitsig = NULL;
 	}
 
-	log.Print(LL_STATE, VNCLOG("shutting down server object(4)\n"));
+	vnclog.Print(LL_STATE, VNCLOG("shutting down server object(4)\n"));
 }
 
 // Client handling functions
@@ -207,7 +207,7 @@ vncServer::AddClient(VSocket *socket, BOOL auth, BOOL shared,
 	if (!client->Init(this, socket, auth, shared, clientid))
 	{
 		// The client will delete the socket for us...
-		log.Print(LL_CONNERR, VNCLOG("failed to initialise client object\n"));
+		vnclog.Print(LL_CONNERR, VNCLOG("failed to initialise client object\n"));
 		delete client;
 		return -1;
 	}
@@ -220,7 +220,7 @@ vncServer::AddClient(VSocket *socket, BOOL auth, BOOL shared,
 	// Notify anyone interested about this event
 	DoNotify(WM_SRV_CLIENT_CONNECT, 0, 0);
 
-	log.Print(LL_INTINFO, VNCLOG("AddClient() done\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("AddClient() done\n"));
 
 	return clientid;
 }
@@ -289,7 +289,7 @@ vncServer::Authenticated(vncClientId clientid)
 	// Notify anyone interested of this event
 	DoNotify(WM_SRV_CLIENT_AUTHENTICATED, 0, 0);
 
-	log.Print(LL_INTINFO, VNCLOG("Authenticated() done\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("Authenticated() done\n"));
 
 	// If so configured, beep to indicate the new connection is
 	// present.
@@ -315,7 +315,7 @@ vncServer::KillClient(vncClientId clientid)
 		// Is this the right client?
 		if ((*i) == clientid)
 		{
-			log.Print(LL_INTINFO, VNCLOG("killing unauth client\n"));
+			vnclog.Print(LL_INTINFO, VNCLOG("killing unauth client\n"));
 
 			// Ask the client to die
 			vncClient *client = GetClient(clientid);
@@ -332,7 +332,7 @@ vncServer::KillClient(vncClientId clientid)
 			// Is this the right client?
 			if ((*i) == clientid)
 			{
-				log.Print(LL_INTINFO, VNCLOG("killing auth client\n"));
+				vnclog.Print(LL_INTINFO, VNCLOG("killing auth client\n"));
 
 				// Yes, so kill it
 				vncClient *client = GetClient(clientid);
@@ -344,7 +344,7 @@ vncServer::KillClient(vncClientId clientid)
 		}
 	}
 
-	log.Print(LL_INTINFO, VNCLOG("KillClient() done\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("KillClient() done\n"));
 }
 
 void
@@ -356,13 +356,13 @@ vncServer::KillAuthClients()
 	// Tell all the authorised clients to die!
 	for (i = m_authClients.begin(); i != m_authClients.end(); i++)
 	{
-		log.Print(LL_INTINFO, VNCLOG("killing auth client\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("killing auth client\n"));
 
 		// Kill the client
 		GetClient(*i)->Kill();
 	}
 
-	log.Print(LL_INTINFO, VNCLOG("KillAuthClients() done\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("KillAuthClients() done\n"));
 }
 
 void
@@ -374,13 +374,13 @@ vncServer::KillUnauthClients()
 	// Tell all the authorised clients to die!
 	for (i = m_unauthClients.begin(); i != m_unauthClients.end(); i++)
 	{
-		log.Print(LL_INTINFO, VNCLOG("killing unauth client\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("killing unauth client\n"));
 
 		// Kill the client
 		GetClient(*i)->Kill();
 	}
 
-	log.Print(LL_INTINFO, VNCLOG("KillUnauthClients() done\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("KillUnauthClients() done\n"));
 }
 
 UINT
@@ -557,7 +557,7 @@ vncServer::RemoveClient(vncClientId clientid)
 			// Is this the right client?
 			if ((*i) == clientid)
 			{
-				log.Print(LL_INTINFO, VNCLOG("removing unauthorised client\n"));
+				vnclog.Print(LL_INTINFO, VNCLOG("removing unauthorised client\n"));
 
 				// Yes, so remove the client and kill it
 				m_unauthClients.erase(i);
@@ -574,7 +574,7 @@ vncServer::RemoveClient(vncClientId clientid)
 				// Is this the right client?
 				if ((*i) == clientid)
 				{
-					log.Print(LL_INTINFO, VNCLOG("removing authorised client\n"));
+					vnclog.Print(LL_INTINFO, VNCLOG("removing authorised client\n"));
 
 					// Yes, so remove the client and kill it
 					m_authClients.erase(i);
@@ -601,7 +601,7 @@ vncServer::RemoveClient(vncClientId clientid)
 	// Are there any authorised clients connected?
 	if (m_authClients.empty() && (m_desktop != NULL))
 	{
-		log.Print(LL_STATE, VNCLOG("deleting desktop server\n"));
+		vnclog.Print(LL_STATE, VNCLOG("deleting desktop server\n"));
 
 		// Are there locksettings set?
 		if (LockSettings() == 1)
@@ -618,7 +618,7 @@ vncServer::RemoveClient(vncClientId clientid)
 		    // work..  For this reason, no mention is made of the locking settings at present in the docs!
 /*
 		    if (!LockWorkStation())
-			log.Print(LL_CONNERR, VNCLOG("client disconnect - failed to lock workstation!\n"));
+			vnclog.Print(LL_CONNERR, VNCLOG("client disconnect - failed to lock workstation!\n"));
 */
 		} else if (LockSettings() > 1)
 		{
@@ -629,7 +629,7 @@ vncServer::RemoveClient(vncClientId clientid)
 		    {
 			// Yes - force a user logoff on disconnect!
 			if (!ExitWindowsEx(EWX_LOGOFF, 0))
-			    log.Print(LL_CONNERR, VNCLOG("client disconnect - failed to logoff user!\n"));
+			    vnclog.Print(LL_CONNERR, VNCLOG("client disconnect - failed to logoff user!\n"));
 		    }
 		}
 
@@ -641,7 +641,7 @@ vncServer::RemoveClient(vncClientId clientid)
 	// Notify anyone interested of the change
 	DoNotify(WM_SRV_CLIENT_DISCONNECT, 0, 0);
 
-	log.Print(LL_INTINFO, VNCLOG("RemoveClient() done\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("RemoveClient() done\n"));
 }
 
 // NOTIFICATION HANDLING!
@@ -919,7 +919,7 @@ vncServer::SockConnect(BOOL On)
 				{
 					m_port = DISPLAY_TO_PORT(i);
 
-					log.Print(LL_CLIENTS, VNCLOG("trying port number %d\n"), m_port);
+					vnclog.Print(LL_CLIENTS, VNCLOG("trying port number %d\n"), m_port);
 
 					// Attempt to connect to the port
 					VSocket tempsock;
@@ -1089,7 +1089,7 @@ vncServer::GetScreenInfo(int &width, int &height, int &depth)
 
 	omni_mutex_lock l(m_desktopLock);
 
-	log.Print(LL_INTINFO, VNCLOG("GetScreenInfo called\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("GetScreenInfo called\n"));
 
 	// Is a desktop object currently active?
 	if (m_desktop == NULL)
@@ -1124,12 +1124,12 @@ vncServer::SetAuthHosts(const char*hostlist) {
 	omni_mutex_lock l(m_clientsLock);
 
 	if (hostlist == 0) {
-		log.Print(LL_INTINFO, VNCLOG("authhosts cleared\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("authhosts cleared\n"));
 		m_auth_hosts = 0;
 		return;
 	}
 
-	log.Print(LL_INTINFO, VNCLOG("authhosts set to \"%s\"\n"), hostlist);
+	vnclog.Print(LL_INTINFO, VNCLOG("authhosts set to \"%s\"\n"), hostlist);
 	if (m_auth_hosts != 0)
 		free(m_auth_hosts);
 
@@ -1213,13 +1213,13 @@ vncServer::VerifyHost(const char *hostname) {
 
 	// Has an AuthHosts filter been specified?
 	if (m_auth_hosts == 0) {
-		log.Print(LL_INTWARN, VNCLOG("verify succeeded - null filter\n"));
+		vnclog.Print(LL_INTWARN, VNCLOG("verify succeeded - null filter\n"));
 		return vncServer::aqrAccept;
 	}
 
 	// Has a hostname been specified?
 	if (hostname == 0) {
-		log.Print(LL_INTWARN, VNCLOG("verify failed - null hostname\n"));
+		vnclog.Print(LL_INTWARN, VNCLOG("verify failed - null hostname\n"));
 		return vncServer::aqrReject;
 	}
 
@@ -1255,7 +1255,7 @@ vncServer::VerifyHost(const char *hostname) {
 				patternStart = authHostsPos+1;
 				machineMode = vh_ExpectPattern;
 			} else if (m_auth_hosts[authHostsPos] != '\0') {
-				log.Print(LL_INTWARN, VNCLOG("verify host - malformed AuthHosts string\n"));
+				vnclog.Print(LL_INTWARN, VNCLOG("verify host - malformed AuthHosts string\n"));
 				machineMode = vh_ExpectDelimiter;
 			}
 			break;
@@ -1268,7 +1268,7 @@ vncServer::VerifyHost(const char *hostname) {
 				(m_auth_hosts[authHostsPos] == '\0')) {
 				if (machineMode == vh_ExpectPattern) {
 					if (patternStart == 0) {
-						log.Print(LL_INTWARN, VNCLOG("verify host - pattern processing failed!\n"));
+						vnclog.Print(LL_INTWARN, VNCLOG("verify host - pattern processing failed!\n"));
 					} else {
 
 						// Process the match

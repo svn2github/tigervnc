@@ -172,14 +172,16 @@ vncDesktopThread::run_undetached(void *arg)
 				}
 
 				// Check that the screen info hasn't changed
-				log.Print(LL_INTINFO, VNCLOG("SCR: old screen format %dx%dx%d\n"),
-					oldscrinfo.framebufferWidth,
-					oldscrinfo.framebufferHeight,
-					oldscrinfo.format.bitsPerPixel);
-				log.Print(LL_INTINFO, VNCLOG("SCR: new screen format %dx%dx%d\n"),
-					m_desktop->m_scrinfo.framebufferWidth,
-					m_desktop->m_scrinfo.framebufferHeight,
-					m_desktop->m_scrinfo.format.bitsPerPixel);
+				vnclog.Print(LL_INTINFO,
+							 VNCLOG("SCR: old screen format %dx%dx%d\n"),
+							 oldscrinfo.framebufferWidth,
+							 oldscrinfo.framebufferHeight,
+							 oldscrinfo.format.bitsPerPixel);
+				vnclog.Print(LL_INTINFO,
+							 VNCLOG("SCR: new screen format %dx%dx%d\n"),
+							 m_desktop->m_scrinfo.framebufferWidth,
+							 m_desktop->m_scrinfo.framebufferHeight,
+							 m_desktop->m_scrinfo.format.bitsPerPixel);
 				if (memcmp(&m_desktop->m_scrinfo, &oldscrinfo, sizeof(oldscrinfo)) != 0)
 				{
 					m_server->KillAuthClients();
@@ -232,7 +234,7 @@ vncDesktopThread::run_undetached(void *arg)
 			rect.right = (SHORT) LOWORD(msg.lParam);
 			rect.bottom = (SHORT) HIWORD(msg.lParam);
 if ((rect.left < 0) || (rect.top < 0) || (rect.right > m_desktop->m_bmrect.right) || (rect.bottom > m_desktop->m_bmrect.bottom))
-	log.Print(LL_INTINFO, VNCLOG("update:(%d,%d)-(%d,%d)\n"), rect.left, rect.top, rect.right, rect.bottom);
+	vnclog.Print(LL_INTINFO, VNCLOG("update:(%d,%d)-(%d,%d)\n"), rect.left, rect.top, rect.right, rect.bottom);
 
 			rgncache.AddRect(rect);
 //			m_server->UpdateRect(rect);
@@ -252,7 +254,7 @@ if ((rect.left < 0) || (rect.top < 0) || (rect.right > m_desktop->m_bmrect.right
 			DispatchMessage(&msg);
 	}
 
-	log.Print(LL_INTINFO, VNCLOG("quitting desktop server thread\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("quitting desktop server thread\n"));
 
 	// Clear all the hooks and close windows, etc.
 	m_desktop->Shutdown();
@@ -293,7 +295,7 @@ vncDesktop::vncDesktop()
 
 vncDesktop::~vncDesktop()
 {
-	log.Print(LL_INTINFO, VNCLOG("killing screen server\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("killing screen server\n"));
 
 	// If we created a thread then here we delete it
 	// The thread itself does most of the cleanup
@@ -352,7 +354,7 @@ vncDesktop::Startup()
 		RFB_MOUSE_UPDATE
 		))
 	{
-		log.Print(LL_INTERR, VNCLOG("failed to set system hooks\n"));
+		vnclog.Print(LL_INTERR, VNCLOG("failed to set system hooks\n"));
 		// Switch on full screen polling, so they can see something, at least...
 		m_server->PollFullScreen(TRUE);
 	}
@@ -403,7 +405,7 @@ vncDesktop::Shutdown()
 		// Release our device context
 		if(ReleaseDC(NULL, m_hrootdc) == 0)
 		{
-			log.Print(LL_INTERR, VNCLOG("failed to ReleaseDC\n"));
+			vnclog.Print(LL_INTERR, VNCLOG("failed to ReleaseDC\n"));
 		}
 		m_hrootdc = NULL;
 	}
@@ -412,7 +414,7 @@ vncDesktop::Shutdown()
 		// Release our device context
 		if (!DeleteDC(m_hmemdc))
 		{
-			log.Print(LL_INTERR, VNCLOG("failed to DeleteDC\n"));
+			vnclog.Print(LL_INTERR, VNCLOG("failed to DeleteDC\n"));
 		}
 		m_hmemdc = NULL;
 	}
@@ -421,7 +423,7 @@ vncDesktop::Shutdown()
 		// Release the custom bitmap, if any
 		if (!DeleteObject(m_membitmap))
 		{
-			log.Print(LL_INTERR, VNCLOG("failed to DeleteObject\n"));
+			vnclog.Print(LL_INTERR, VNCLOG("failed to DeleteObject\n"));
 		}
 		m_membitmap = NULL;
 	}
@@ -429,7 +431,7 @@ vncDesktop::Shutdown()
 	// Free the WindowPos atom!
 	if (VNC_WINDOWPOS_ATOM != NULL) {
 		if (GlobalDeleteAtom(VNC_WINDOWPOS_ATOM) != 0) {
-			log.Print(LL_INTERR, VNCLOG("failed to delete atom!\n"));
+			vnclog.Print(LL_INTERR, VNCLOG("failed to delete atom!\n"));
 		}
 	}
 
@@ -460,9 +462,9 @@ KillScreenSaverFunc(HWND hwnd, LPARAM lParam)
 	char buffer[256];
 
 	if (GetClassName(hwnd, buffer, 256) == 0)
-		log.Print(LL_INTINFO, VNCLOG("HWND->null\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("HWND->null\n"));
 	else
-		log.Print(LL_INTINFO, VNCLOG("HWND->\"%s\"\n"), buffer);
+		vnclog.Print(LL_INTINFO, VNCLOG("HWND->\"%s\"\n"), buffer);
 
 	PostMessage(hwnd, WM_CLOSE, 0, 0);
 	return TRUE;
@@ -487,7 +489,7 @@ vncDesktop::KillScreenSaver()
 	if (!GetVersionEx(&osversioninfo))
 		return;
 
-	log.Print(LL_INTINFO, VNCLOG("KillScreenSaver...\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("KillScreenSaver...\n"));
 
 	// How to kill the screen saver depends on the OS
 	switch (osversioninfo.dwPlatformId)
@@ -515,7 +517,7 @@ vncDesktop::KillScreenSaver()
 				);
 			if (hDesk != NULL)
 			{
-				log.Print(LL_INTINFO, VNCLOG("Killing ScreenSaver\n"));
+				vnclog.Print(LL_INTINFO, VNCLOG("Killing ScreenSaver\n"));
 
 				// Close all windows on the screen saver desktop
 				EnumDesktopWindows(hDesk, (WNDENUMPROC) &KillScreenSaverFunc, 0);
@@ -539,18 +541,20 @@ void vncDesktop::ChangeResNow()
 	// *** WBB - Obtain the current display settings.
 	if (! EnumDisplaySettings( 0, ENUM_CURRENT_SETTINGS, lpDevMode)) {
 
-		log.Print(LL_INTINFO, VNCLOG("SCR-WBB: could not get current display settings!\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("SCR-WBB: could not get "
+										"current display settings!\n"));
 		delete lpDevMode;
 		lpDevMode = NULL;
 		return;
 
 	}
 
-	log.Print(LL_INTINFO, VNCLOG("SCR-WBB: current display: w=%d h=%d bpp=%d vRfrsh=%d.\n"),
-				lpDevMode->dmPelsWidth,
-				lpDevMode->dmPelsHeight,
-				lpDevMode->dmBitsPerPel,
-				lpDevMode->dmDisplayFrequency );
+	vnclog.Print(LL_INTINFO, VNCLOG("SCR-WBB: current display: "
+									"w=%d h=%d bpp=%d vRfrsh=%d.\n"),
+				 lpDevMode->dmPelsWidth,
+				 lpDevMode->dmPelsHeight,
+				 lpDevMode->dmBitsPerPel,
+				 lpDevMode->dmDisplayFrequency);
 
 	origPelsWidth = lpDevMode->dmPelsWidth; // *** sets the original resolution for use later
 	origPelsHeight = lpDevMode->dmPelsHeight; // *** - Jeremy Peaks
@@ -595,8 +599,9 @@ void vncDesktop::ChangeResNow()
 		if ((valType == REG_SZ ) &&
 			(lpDevMode->dmPelsHeight > 0)) {
 
-			log.Print(LL_INTINFO, VNCLOG("SCR-WBB: attempting to change resolution w=%d h=%d\n"),
-						lpDevMode->dmPelsWidth, lpDevMode->dmPelsHeight);
+			vnclog.Print(LL_INTINFO, VNCLOG("SCR-WBB: attempting to change "
+											"resolution w=%d h=%d\n"),
+						 lpDevMode->dmPelsWidth, lpDevMode->dmPelsHeight);
 
 			// *** make res change - Jeremy Peaks
 			long resultOfResChange = ChangeDisplaySettings( lpDevMode, CDS_TEST);
@@ -662,7 +667,7 @@ vncDesktop::DisableIfRegSystemParameter(char *regName,
 	if ((valType == REG_SZ) &&
 		(inouttext[0] == 'Y' || inouttext[0] == 'y')) {
 
-		log.Print(LL_INTINFO, VNCLOG("SCR-WBB: attempting to %s.\n"), regName);
+		vnclog.Print(LL_INTINFO, VNCLOG("SCR-WBB: attempting to %s.\n"), regName);
 
 		SystemParametersInfo(spiCommand, spiParamInt, spiParamPtr, spiUpdate);
 		// SystemParametersInfo(SPI_SETDESKPATTERN, 0, 0, 0);
@@ -751,19 +756,19 @@ vncDesktop::OptimizeDisplayForConnection()
 	if ((valType == REG_SZ) &&
 		(inouttext[0] == 'Y' || inouttext[0] == 'y')) {
 
-		log.Print(LL_INTINFO, VNCLOG("SCR-WBB: desktop optimization enabled.\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("SCR-WBB: desktop optimization enabled.\n"));
 		result = TRUE;
 
-		log.Print(LL_INTINFO, VNCLOG("SCR-WBB: attempting to disable pattern.\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("SCR-WBB: attempting to disable pattern.\n"));
 		SystemParametersInfo(SPI_SETDESKPATTERN, 0, 0, SPIF_SENDCHANGE);
 
-		log.Print(LL_INTINFO, VNCLOG("SCR-WBB: attempting to disable wallpaper.\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("SCR-WBB: attempting to disable wallpaper.\n"));
 		SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, "", SPIF_SENDCHANGE);
 
-		log.Print(LL_INTINFO, VNCLOG("SCR-WBB: attempting to disable font smoothing.\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("SCR-WBB: attempting to disable font smoothing.\n"));
 		SystemParametersInfo(SPI_SETFONTSMOOTHING, FALSE, 0, SPIF_SENDCHANGE);
 
-		log.Print(LL_INTINFO, VNCLOG("SCR-WBB: attempting to disable full window drags.\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("SCR-WBB: attempting to disable full window drags.\n"));
 		SystemParametersInfo(SPI_SETDRAGFULLWINDOWS, FALSE, 0, SPIF_SENDCHANGE);
 
 	}
@@ -895,12 +900,12 @@ vncDesktop::InitBitmap()
 	m_bmrect.left = m_bmrect.top = 0;
 	m_bmrect.right = GetDeviceCaps(m_hrootdc, HORZRES);
 	m_bmrect.bottom = GetDeviceCaps(m_hrootdc, VERTRES);
-	log.Print(LL_INTINFO, VNCLOG("bitmap dimensions are %d x %d\n"), m_bmrect.right, m_bmrect.bottom);
+	vnclog.Print(LL_INTINFO, VNCLOG("bitmap dimensions are %d x %d\n"), m_bmrect.right, m_bmrect.bottom);
 
 	// Create a compatible memory DC
 	m_hmemdc = CreateCompatibleDC(m_hrootdc);
 	if (m_hmemdc == NULL) {
-		log.Print(LL_INTERR, VNCLOG("failed to create compatibleDC(%d)\n"), GetLastError());
+		vnclog.Print(LL_INTERR, VNCLOG("failed to create compatibleDC(%d)\n"), GetLastError());
 		return FALSE;
 	}
 
@@ -931,10 +936,10 @@ vncDesktop::InitBitmap()
 	// Create the bitmap to be compatible with the ROOT DC!!!
 	m_membitmap = CreateCompatibleBitmap(m_hrootdc, m_bmrect.right, m_bmrect.bottom);
 	if (m_membitmap == NULL) {
-		log.Print(LL_INTERR, VNCLOG("failed to create memory bitmap(%d)\n"), GetLastError());
+		vnclog.Print(LL_INTERR, VNCLOG("failed to create memory bitmap(%d)\n"), GetLastError());
 		return FALSE;
 	}
-	log.Print(LL_INTINFO, VNCLOG("created memory bitmap\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("created memory bitmap\n"));
 
 	// Get the bitmap's format and colour details
 	int result;
@@ -948,9 +953,9 @@ vncDesktop::InitBitmap()
 	if (result == 0) {
 		return FALSE;
 	}
-	log.Print(LL_INTINFO, VNCLOG("got bitmap format\n"));
-	log.Print(LL_INTINFO, VNCLOG("DBG:display context has %d planes!\n"), GetDeviceCaps(m_hrootdc, PLANES));
-	log.Print(LL_INTINFO, VNCLOG("DBG:memory context has %d planes!\n"), GetDeviceCaps(m_hmemdc, PLANES));
+	vnclog.Print(LL_INTINFO, VNCLOG("got bitmap format\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("DBG:display context has %d planes!\n"), GetDeviceCaps(m_hrootdc, PLANES));
+	vnclog.Print(LL_INTINFO, VNCLOG("DBG:memory context has %d planes!\n"), GetDeviceCaps(m_hmemdc, PLANES));
 	if (GetDeviceCaps(m_hmemdc, PLANES) != 1)
 	{
 		MessageBox(
@@ -989,12 +994,13 @@ vncDesktop::ThunkBitmapInfo()
 	{
 	case 1:
 	case 4:
-		log.Print(LL_INTINFO, VNCLOG("DBG:used/bits/planes/comp/size = %d/%d/%d/%d/%d\n"),
-			(int)m_bminfo.bmi.bmiHeader.biClrUsed,
-			(int)m_bminfo.bmi.bmiHeader.biBitCount,
-			(int)m_bminfo.bmi.bmiHeader.biPlanes,
-			(int)m_bminfo.bmi.bmiHeader.biCompression,
-			(int)m_bminfo.bmi.bmiHeader.biSizeImage);
+		vnclog.Print(LL_INTINFO, VNCLOG("DBG:used/bits/planes/comp/size "
+										"= %d/%d/%d/%d/%d\n"),
+					 (int)m_bminfo.bmi.bmiHeader.biClrUsed,
+					 (int)m_bminfo.bmi.bmiHeader.biBitCount,
+					 (int)m_bminfo.bmi.bmiHeader.biPlanes,
+					 (int)m_bminfo.bmi.bmiHeader.biCompression,
+					 (int)m_bminfo.bmi.bmiHeader.biSizeImage);
 		
 		// Correct the BITMAPINFO header to the format we actually want
 		m_bminfo.bmi.bmiHeader.biClrUsed = 0;
@@ -1094,7 +1100,7 @@ vncDesktop::SetPixShifts()
 		// Other pixel formats are only valid if they're palette-based
 		if (m_bminfo.truecolour)
 		{
-			log.Print(LL_INTERR, "unsupported truecolour pixel format for setpixshifts\n");
+			vnclog.Print(LL_INTERR, "unsupported truecolour pixel format for setpixshifts\n");
 			return FALSE;
 		}
 		return TRUE;
@@ -1153,18 +1159,18 @@ vncDesktop::SetPalette()
 
 		// Worked, so realise the palette
 		if (RealizePalette(m_hmemdc) == GDI_ERROR)
-			log.Print(LL_INTWARN, VNCLOG("warning - failed to RealizePalette\n"));
+			vnclog.Print(LL_INTWARN, VNCLOG("warning - failed to RealizePalette\n"));
 
 		// It worked!
 		delete [] palette;
 		DeleteObject(oldpalette);
 
-		log.Print(LL_INTERR, VNCLOG("initialised palette OK\n"));
+		vnclog.Print(LL_INTERR, VNCLOG("initialised palette OK\n"));
 		return TRUE;
 	}
 
 	// Not a palette based local screen - forget it!
-	log.Print(LL_INTERR, VNCLOG("no palette data for truecolour display\n"));
+	vnclog.Print(LL_INTERR, VNCLOG("no palette data for truecolour display\n"));
 	return TRUE;
 }
 
@@ -1220,10 +1226,10 @@ vncDesktop::InitWindow()
 void
 vncDesktop::EnableOptimisedBlits()
 {
-	log.Print(LL_INTINFO, VNCLOG("attempting to enable DIBsection blits\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("attempting to enable DIBsection blits\n"));
 
 	if (m_formatmunged) {
-		log.Print(LL_INTINFO, VNCLOG("unable to enable fast blits\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("unable to enable fast blits\n"));
 		return;
 	}
 
@@ -1235,7 +1241,7 @@ vncDesktop::EnableOptimisedBlits()
 
 		palette = (LOGPALETTE *) new char[size];
 		if (palette == NULL) {
-			log.Print(LL_INTERR, VNCLOG("failed to create temp fast palette - disabling fast blits\n"));
+			vnclog.Print(LL_INTERR, VNCLOG("failed to create temp fast palette - disabling fast blits\n"));
 			return;
 		}
 
@@ -1247,7 +1253,7 @@ vncDesktop::EnableOptimisedBlits()
 		if (GetSystemPaletteEntries(m_hrootdc,
 			0, 256, palette->palPalEntry) == 0) {
 			delete [] palette;
-			log.Print(LL_INTERR, VNCLOG("failed to init fast palette - disabling fast blits\n"));
+			vnclog.Print(LL_INTERR, VNCLOG("failed to init fast palette - disabling fast blits\n"));
 			return;
 		}
 
@@ -1262,14 +1268,14 @@ vncDesktop::EnableOptimisedBlits()
 		// It worked!
 		delete [] palette;
 
-		log.Print(LL_INTINFO, VNCLOG("initialised fast palette OK\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("initialised fast palette OK\n"));
 	}
 */
 
 	// Create a new DIB section ***
 	HBITMAP tempbitmap = CreateDIBSection(m_hmemdc, &m_bminfo.bmi, DIB_RGB_COLORS, &m_DIBbits, NULL, 0);
 	if (tempbitmap == NULL) {
-		log.Print(LL_INTINFO, VNCLOG("failed to build DIB section - reverting to slow blits\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("failed to build DIB section - reverting to slow blits\n"));
 		m_DIBbits = NULL;
 		return;
 	}
@@ -1283,13 +1289,13 @@ vncDesktop::EnableOptimisedBlits()
 	// Replace old membitmap with DIB section
 	m_membitmap = tempbitmap;
 
-	log.Print(LL_INTINFO, VNCLOG("enabled fast DIBsection blits OK\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("enabled fast DIBsection blits OK\n"));
 }
 
 BOOL
 vncDesktop::Init(vncServer *server)
 {
-	log.Print(LL_INTINFO, VNCLOG("initialising desktop handler\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("initialising desktop handler\n"));
 
 	// Save the server pointer
 	m_server = server;
@@ -1515,9 +1521,11 @@ vncDesktop::CopyToBuffer(RECT &rect, BYTE *destbuff, UINT destbuffsize)
 					(rect.bottom-rect.top), destbuffpos,
 					&m_bminfo.bmi, DIB_RGB_COLORS) == 0)
 		{
+#ifdef _MSC_VER
 			_RPT1(_CRT_WARN, "vncDesktop : [1] GetDIBits failed! %d\n", GetLastError());
 			_RPT3(_CRT_WARN, "vncDesktop : thread = %d, DC = %d, bitmap = %d\n", omni_thread::self(), m_hmemdc, m_membitmap);
 			_RPT2(_CRT_WARN, "vncDesktop : y = %d, height = %d\n", y_inv, (rect.bottom-rect.top));
+#endif
 		}
 	} else {
 		// Fast blits are enabled.  [I have a sneaking suspicion this will never get used, unless

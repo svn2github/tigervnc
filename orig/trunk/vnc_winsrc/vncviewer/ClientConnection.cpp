@@ -64,8 +64,6 @@ extern "C" {
 const rfbPixelFormat vnc8bitFormat = {8, 8, 1, 1, 7,7,3, 0,3,6,0,0};
 const rfbPixelFormat vnc16bitFormat = {16, 16, 1, 1, 63, 31, 31, 0,6,11,0,0};
 
-static LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
-
 
 // *************************************************************************
 //  A Client connection involves two threads - the main one which sets up
@@ -749,10 +747,11 @@ void ClientConnection::SetFormatAndEncodings()
 	se->nEncodings = 0;
 
 	bool useCompressLevel = false;
+	int i;
 
 	// Put the preferred encoding first, and change it if the
 	// preferred encoding is not actually usable.
-	for (int i = LASTENCODING; i >= rfbEncodingRaw; i--)
+	for (i = LASTENCODING; i >= rfbEncodingRaw; i--)
 	{
 		if (m_opts.m_PreferredEncoding == i) {
 			if (m_opts.m_UseEnc[i]) {
@@ -1072,10 +1071,10 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 			// And consider that in full-screen mode the window
 			// is actually bigger than the remote screen.
 			GetClientRect(hwnd, &rect);
-			_this->m_cliwidth = min( rect.right - rect.left, 
-									 _this->m_si.framebufferWidth );
-			_this->m_cliheight = min( rect.bottom - rect.top,
-									 _this->m_si.framebufferHeight );
+			_this->m_cliwidth = min( (int)(rect.right - rect.left),
+									 (int)_this->m_si.framebufferWidth );
+			_this->m_cliheight = min( (int)(rect.bottom - rect.top),
+									 (int)_this->m_si.framebufferHeight );
 
 			_this->m_hScrollMax = _this->m_si.framebufferWidth * _this->m_opts.m_scale_num / _this->m_opts.m_scale_den;
 			_this->m_vScrollMax = _this->m_si.framebufferHeight* _this->m_opts.m_scale_num / _this->m_opts.m_scale_den;
@@ -1858,6 +1857,7 @@ void ClientConnection::SendAppropriateFramebufferUpdateRequest()
 		log.Print(3, _T("Requesting new pixel format\n") );
 		rfbPixelFormat oldFormat = m_myFormat;
 		SetupPixelFormat();
+		SoftCursorFree();
 		SetFormatAndEncodings();
 		m_pendingFormatChange = false;
 		// If the pixel format has changed, request whole screen
@@ -1882,7 +1882,7 @@ void ClientConnection::ReadScreenUpdate() {
     sut.nRects = Swap16IfLE(sut.nRects);
 	if (sut.nRects == 0) return;
 	
-	for (UINT i=0; i < sut.nRects; i++) {
+	for (int i=0; i < sut.nRects; i++) {
 
 		rfbFramebufferUpdateRectHeader surh;
 		ReadExact((char *) &surh, sz_rfbFramebufferUpdateRectHeader);

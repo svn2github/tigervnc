@@ -77,4 +77,5 @@ typedef unsigned char  CARD8;
 #endif
 
 
-#endif
+#endif // RFB_H__
+

@@ -236,7 +236,7 @@ vncMenu::SendTrayMsg(DWORD msg, BOOL flash)
 	if (Shell_NotifyIcon(msg, &m_nid))
 	{
 		// Set the enabled/disabled state of the menu items
-		log.Print(LL_INTINFO, VNCLOG("tray icon added ok\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("tray icon added ok\n"));
 
 		EnableMenuItem(m_hmenu, ID_PROPERTIES,
 			m_properties.AllowProperties() ? MF_ENABLED : MF_GRAYED);
@@ -249,7 +249,7 @@ vncMenu::SendTrayMsg(DWORD msg, BOOL flash)
 			{
 				// The tray icon couldn't be created, so use the Properties dialog
 				// as the main program window
-				log.Print(LL_INTINFO, VNCLOG("opening dialog box\n"));
+				vnclog.Print(LL_INTINFO, VNCLOG("opening dialog box\n"));
 				m_properties.Show(TRUE, TRUE);
 				PostQuitMessage(0);
 			}
@@ -300,7 +300,7 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 
 		case ID_DEFAULT_PROPERTIES:
 			// Show the default properties dialog, unless it is already displayed
-			log.Print(LL_INTINFO, VNCLOG("show default properties requested\n"));
+			vnclog.Print(LL_INTINFO, VNCLOG("show default properties requested\n"));
 			_this->m_properties.Show(TRUE, FALSE);
 			_this->FlashTrayIcon(_this->m_server->AuthClientCount() != 0);
 			break;
@@ -308,7 +308,7 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 
 		case ID_PROPERTIES:
 			// Show the properties dialog, unless it is already displayed
-			log.Print(LL_INTINFO, VNCLOG("show user properties requested\n"));
+			vnclog.Print(LL_INTINFO, VNCLOG("show user properties requested\n"));
 			_this->m_properties.Show(TRUE, TRUE);
 			_this->FlashTrayIcon(_this->m_server->AuthClientCount() != 0);
 			break;
@@ -351,7 +351,7 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 			{
 				if (submenu == NULL)
 				{ 
-					log.Print(LL_INTERR, VNCLOG("no submenu available\n"));
+					vnclog.Print(LL_INTERR, VNCLOG("no submenu available\n"));
 					return 0;
 				}
 
@@ -454,14 +454,14 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 
 			if (vncService::CurrentUser((char *) &newuser, sizeof(newuser)))
 			{
-				log.Print(LL_INTINFO,
+				vnclog.Print(LL_INTINFO,
 					VNCLOG("usernames : old=\"%s\", new=\"%s\"\n"),
 					_this->m_username, newuser);
 
 				// Check whether the user name has changed!
 				if (strcmp(newuser, _this->m_username) != 0)
 				{
-					log.Print(LL_INTINFO,
+					vnclog.Print(LL_INTINFO,
 						VNCLOG("user name has changed\n"));
 
 					// User has changed!

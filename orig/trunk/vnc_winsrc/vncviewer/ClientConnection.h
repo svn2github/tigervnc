@@ -29,6 +29,9 @@
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
 
+#ifndef CLIENTCONNECTION_H__
+#define CLIENTCONNECTION_H__
+
 #pragma once
 
 #include "stdhdrs.h"
@@ -243,7 +246,8 @@ private:
 	int m_netbufsize;
 	omni_mutex m_bufferMutex, 
 		m_bitmapdcMutex,  m_clipMutex,
-        m_readMutex, m_writeMutex, m_sockMutex;
+		m_readMutex, m_writeMutex, m_sockMutex,
+		m_cursorMutex;
 
 	// Buffer for zlib decompression.
 	void CheckZlibBufferSize(int bufsize);
@@ -443,4 +447,6 @@ public:
 			}																	\
 		}																		\
 	}
+
+#endif // CLIENTCONNECTION_H__
 

@@ -81,8 +81,11 @@ vncEncoder::Init()
 void
 vncEncoder::LogStats()
 {
-	log.Print(LL_INTINFO, VNCLOG("Raw encoder stats: dataSize=%d, rectangleOverhead=%d, encodedSize=%d, transmittedSize=%d, efficiency=%.3f\n"),
-				dataSize, rectangleOverhead, encodedSize, transmittedSize, ((((float)dataSize-transmittedSize)*100)/dataSize));
+	vnclog.Print(LL_INTINFO, VNCLOG("Raw encoder stats: dataSize=%d, "
+									"rectangleOverhead=%d, encodedSize=%d, "
+									"transmittedSize=%d, efficiency=%.3f\n"),
+				 dataSize, rectangleOverhead, encodedSize, transmittedSize,
+				 ((((float)dataSize-transmittedSize)*100)/dataSize));
 }
 
 UINT
@@ -171,7 +174,7 @@ vncEncoder::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest, const RECT &r
 BOOL
 vncEncoder::GetRemotePalette(RGBQUAD *quadlist, UINT ncolours)
 {
-	log.Print(LL_INTINFO, VNCLOG("remote palette data requested\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("remote palette data requested\n"));
 
 	// If the local server is palette-based then call SetTranslateFunction
 	// to update the palette-to-truecolour mapping:
@@ -189,7 +192,7 @@ vncEncoder::GetRemotePalette(RGBQUAD *quadlist, UINT ncolours)
 	if (m_localformat.trueColour)
 	{
 		// Fake BGR233...
-		log.Print(LL_INTINFO, VNCLOG("generating BGR233 palette data\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("generating BGR233 palette data\n"));
 
 		int ncolours = 1 << m_transformat.bitsPerPixel;
 		if (m_localpalette != NULL)
@@ -211,7 +214,7 @@ vncEncoder::GetRemotePalette(RGBQUAD *quadlist, UINT ncolours)
 	else
 	{
 		// Set up RGBQUAD rfbPixelFormat info
-		log.Print(LL_INTINFO, VNCLOG("generating 8-bit palette data\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("generating 8-bit palette data\n"));
 
 		rfbPixelFormat remote;
 		remote.trueColour = TRUE;
@@ -232,7 +235,7 @@ vncEncoder::GetRemotePalette(RGBQUAD *quadlist, UINT ncolours)
 	// Did we create some palette info?
 	if (m_localpalette == NULL)
 	{
-		log.Print(LL_INTERR, VNCLOG("failed to obtain colour map data!\n"));
+		vnclog.Print(LL_INTERR, VNCLOG("failed to obtain colour map data!\n"));
 		return FALSE;
 	}
 
@@ -245,7 +248,7 @@ vncEncoder::GetRemotePalette(RGBQUAD *quadlist, UINT ncolours)
 BOOL
 vncEncoder::SetTranslateFunction()
 {
-	log.Print(LL_INTINFO, VNCLOG("settranslatefunction called\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("settranslatefunction called\n"));
 
 	// By default, the actual format translated to matches the client format
 	m_transformat = m_remoteformat;
@@ -256,7 +259,7 @@ vncEncoder::SetTranslateFunction()
 		(m_transformat.bitsPerPixel != 16) &&
 		(m_transformat.bitsPerPixel != 32))
     {
-		log.Print(LL_CONNERR,
+		vnclog.Print(LL_CONNERR,
 			VNCLOG("only 8, 16 or 32 bits supported remotely - %d requested\n"),
 			m_transformat.bitsPerPixel
 			);
@@ -268,7 +271,7 @@ vncEncoder::SetTranslateFunction()
 		(m_localformat.bitsPerPixel != 16) &&
 		(m_localformat.bitsPerPixel != 32))
     {
-		log.Print(LL_CONNERR,
+		vnclog.Print(LL_CONNERR,
 			VNCLOG("only 8, 16 or 32 bits supported locally - %d in use\n"),
 			m_localformat.bitsPerPixel
 			);
@@ -278,12 +281,12 @@ vncEncoder::SetTranslateFunction()
 
 	if (!m_transformat.trueColour && (m_transformat.bitsPerPixel != 8))
 	{
-		log.Print(LL_CONNERR, VNCLOG("only 8-bit palette format supported remotely\n"));
+		vnclog.Print(LL_CONNERR, VNCLOG("only 8-bit palette format supported remotely\n"));
 		return FALSE;
 	}
 	if (!m_localformat.trueColour && (m_localformat.bitsPerPixel != 8))
 	{
-		log.Print(LL_CONNERR, VNCLOG("only 8-bit palette format supported locally\n"));
+		vnclog.Print(LL_CONNERR, VNCLOG("only 8-bit palette format supported locally\n"));
 		return FALSE;
 	}
 
@@ -297,7 +300,7 @@ vncEncoder::SetTranslateFunction()
 			(m_localformat.bitsPerPixel == m_transformat.bitsPerPixel))
 		{
 			// Yes, so don't do any encoding
-			log.Print(LL_INTINFO, VNCLOG("no encoding required - both 8-bit palettized\n"));
+			vnclog.Print(LL_INTINFO, VNCLOG("no encoding required - both 8-bit palettized\n"));
 
 			m_transfunc = rfbTranslateNone;
 
@@ -308,7 +311,7 @@ vncEncoder::SetTranslateFunction()
 		else if (m_localformat.trueColour)
 		{
 			// Local side is truecolour, remote is palettized
-			log.Print(LL_INTINFO, VNCLOG("local truecolour, remote palettized.  using BGR233 palette\n"));
+			vnclog.Print(LL_INTINFO, VNCLOG("local truecolour, remote palettized.  using BGR233 palette\n"));
 
 			// Fill out the translation table as if writing to BGR233
 			m_transformat = BGR233Format;
@@ -318,7 +321,7 @@ vncEncoder::SetTranslateFunction()
 		else
 		{
 			// No, so not supported yet...
-			log.Print(LL_CONNERR, VNCLOG("unknown local pixel format in use!\n"));
+			vnclog.Print(LL_CONNERR, VNCLOG("unknown local pixel format in use!\n"));
 			return FALSE;
 		}
 	}
@@ -331,7 +334,7 @@ vncEncoder::SetTranslateFunction()
 		// 8-bit palette to truecolour...
 
 		// Yes, so pick the right translation function!
-		log.Print(LL_INTINFO, VNCLOG("using 8-bit colourmap to truecolour translation\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("using 8-bit colourmap to truecolour translation\n"));
 
 		m_transfunc = rfbTranslateWithSingleTableFns
 			[m_localformat.bitsPerPixel / 16]
@@ -348,7 +351,7 @@ vncEncoder::SetTranslateFunction()
     if (PF_EQ(m_transformat,m_localformat))
 	{
 		// Yes, so use the null translation function
-		log.Print(LL_INTINFO, VNCLOG("no translation required\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("no translation required\n"));
 
 		m_transfunc = rfbTranslateNone;
 
@@ -359,7 +362,7 @@ vncEncoder::SetTranslateFunction()
     if (m_localformat.bitsPerPixel == 16)
 	{
 		// Yes, so use a single lookup-table
-		log.Print(LL_INTINFO, VNCLOG("single LUT used\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("single LUT used\n"));
 
 		m_transfunc = rfbTranslateWithSingleTableFns
 			[m_localformat.bitsPerPixel / 16]
@@ -371,7 +374,7 @@ vncEncoder::SetTranslateFunction()
 	else
 	{
 		// No, so use three tables - one for each of R, G, B.
-		log.Print(LL_INTINFO, VNCLOG("triple LUT used\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("triple LUT used\n"));
 
 		m_transfunc = rfbTranslateWithRGBTablesFns
 			[m_localformat.bitsPerPixel / 16]

@@ -137,7 +137,7 @@ vncService::CurrentUser(char *buffer, UINT size)
 				else
 				{
 					// Genuine error...
-					log.Print(LL_INTERR, VNCLOG("getusername error %d\n"), GetLastError());
+					vnclog.Print(LL_INTERR, VNCLOG("getusername error %d\n"), GetLastError());
 					return FALSE;
 				}
 			}
@@ -201,7 +201,7 @@ vncService::SelectHDESK(HDESK new_desktop)
 			return FALSE;
 		}
 
-		log.Print(LL_INTERR, VNCLOG("SelectHDESK to %s (%x) from %x"), new_name, new_desktop, old_desktop);
+		vnclog.Print(LL_INTERR, VNCLOG("SelectHDESK to %s (%x) from %x"), new_name, new_desktop, old_desktop);
 
 		// Switch the desktop
 		if(!SetThreadDesktop(new_desktop)) {
@@ -210,7 +210,7 @@ vncService::SelectHDESK(HDESK new_desktop)
 
 		// Switched successfully - destroy the old desktop
 		if (!CloseDesktop(old_desktop))
-			log.Print(LL_INTERR, VNCLOG("SelectHDESK failed to close old desktop %x (Err=%d)\n"), old_desktop, GetLastError());
+			vnclog.Print(LL_INTERR, VNCLOG("SelectHDESK failed to close old desktop %x (Err=%d)\n"), old_desktop, GetLastError());
 
 		return TRUE;
 	}
@@ -259,7 +259,7 @@ vncService::SelectDesktop(char *name)
 		if (!SelectHDESK(desktop)) {
 			// Failed to enter the new desktop, so free it!
 			if (!CloseDesktop(desktop))
-				log.Print(LL_INTERR, VNCLOG("SelectDesktop failed to close desktop\n"));
+				vnclog.Print(LL_INTERR, VNCLOG("SelectDesktop failed to close desktop\n"));
 			return FALSE;
 		}
 
@@ -297,19 +297,19 @@ vncService::InputDesktopSelected()
 
 		if (!GetUserObjectInformation(threaddesktop, UOI_NAME, &threadname, 256, &dummy)) {
 			if (!CloseDesktop(inputdesktop))
-				log.Print(LL_INTWARN, VNCLOG("failed to close input desktop\n"));
+				vnclog.Print(LL_INTWARN, VNCLOG("failed to close input desktop\n"));
 			return FALSE;
 		}
 		_ASSERT(dummy <= 256);
 		if (!GetUserObjectInformation(inputdesktop, UOI_NAME, &inputname, 256, &dummy)) {
 			if (!CloseDesktop(inputdesktop))
-				log.Print(LL_INTWARN, VNCLOG("failed to close input desktop\n"));
+				vnclog.Print(LL_INTWARN, VNCLOG("failed to close input desktop\n"));
 			return FALSE;
 		}
 		_ASSERT(dummy <= 256);
 
 		if (!CloseDesktop(inputdesktop))
-			log.Print(LL_INTWARN, VNCLOG("failed to close input desktop\n"));
+			vnclog.Print(LL_INTWARN, VNCLOG("failed to close input desktop\n"));
 
 		if (strcmp(threadname, inputname) != 0)
 			return FALSE;
@@ -328,11 +328,11 @@ SimulateCtrlAltDelThreadFn(void *context)
 	// Switch into the Winlogon desktop
 	if (!vncService::SelectDesktop("Winlogon"))
 	{
-		log.Print(LL_INTERR, VNCLOG("failed to select logon desktop\n"));
+		vnclog.Print(LL_INTERR, VNCLOG("failed to select logon desktop\n"));
 		return FALSE;
 	}
 
-	log.Print(LL_ALL, VNCLOG("generating ctrl-alt-del\n"));
+	vnclog.Print(LL_ALL, VNCLOG("generating ctrl-alt-del\n"));
 
 	// Fake a hotkey event to any windows we find there.... :(
 	// Winlogon uses hotkeys to trap Ctrl-Alt-Del...
@@ -350,12 +350,12 @@ SimulateCtrlAltDelThreadFn(void *context)
 BOOL
 vncService::SimulateCtrlAltDel()
 {
-	log.Print(LL_ALL, VNCLOG("preparing to generate ctrl-alt-del\n"));
+	vnclog.Print(LL_ALL, VNCLOG("preparing to generate ctrl-alt-del\n"));
 
 	// Are we running on NT?
 	if (IsWinNT())
 	{
-		log.Print(LL_ALL, VNCLOG("spawn ctrl-alt-del thread...\n"));
+		vnclog.Print(LL_ALL, VNCLOG("spawn ctrl-alt-del thread...\n"));
 
 		// *** This is an unpleasant hack.  Oh dear.
 
@@ -535,7 +535,7 @@ vncService::ProcessUserHelperMessage(WPARAM wParam, LPARAM lParam) {
 	// - Close the HKEY_CURRENT_USER key, to force NT to reload it for the new user
 	// NB: Note that this is _really_ dodgy if ANY other thread is accessing the key!
 	if (RegCloseKey(HKEY_CURRENT_USER) != ERROR_SUCCESS) {
-		log.Print(LL_INTERR, VNCLOG("failed to close current registry hive\n"));
+		vnclog.Print(LL_INTERR, VNCLOG("failed to close current registry hive\n"));
 		return FALSE;
 	}
 
@@ -546,14 +546,14 @@ vncService::ProcessUserHelperMessage(WPARAM wParam, LPARAM lParam) {
 	// - Open the specified process
 	HANDLE processHandle = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, (DWORD)lParam);
 	if (processHandle == NULL) {
-		log.Print(LL_INTERR, VNCLOG("failed to open specified process(%d)\n"), GetLastError());
+		vnclog.Print(LL_INTERR, VNCLOG("failed to open specified process(%d)\n"), GetLastError());
 		return FALSE;
 	}
 
 	// - Get the token for the given process
 	HANDLE userToken = NULL;
 	if (!OpenProcessToken(processHandle, TOKEN_QUERY | TOKEN_DUPLICATE | TOKEN_IMPERSONATE, &userToken)) {
-		log.Print(LL_INTERR, VNCLOG("failed to get user token(%d)\n"), GetLastError());
+		vnclog.Print(LL_INTERR, VNCLOG("failed to get user token(%d)\n"), GetLastError());
 		CloseHandle(processHandle);
 		return FALSE;
 	}
@@ -561,14 +561,14 @@ vncService::ProcessUserHelperMessage(WPARAM wParam, LPARAM lParam) {
 
 	// - Set this thread to impersonate them
 	if (!ImpersonateLoggedOnUser(userToken)) {
-		log.Print(LL_INTERR, VNCLOG("failed to impersonate user(%d)\n"), GetLastError());
+		vnclog.Print(LL_INTERR, VNCLOG("failed to impersonate user(%d)\n"), GetLastError());
 		CloseHandle(userToken);
 		return FALSE;
 	}
 	CloseHandle(userToken);
 
 	g_impersonating_user = TRUE;
-	log.Print(LL_INTINFO, VNCLOG("impersonating logged on user\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("impersonating logged on user\n"));
 	return TRUE;
 }
 

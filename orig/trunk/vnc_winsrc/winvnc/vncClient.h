@@ -187,6 +187,14 @@ protected:
 
 	BOOL			m_use_NewFBSize;
 	BOOL			m_use_PointerPos;
+private:
+	unsigned int FiletimeToTime70(FILETIME filetime);
+	void SendFileDownloadData(unsigned short sizeFile, char *pFile);
+	void SendFileDownloadData(unsigned int mTime);
+	void SendFileUploadCancel(unsigned short reasonLen, char *reason);
+	void SendFileDownloadFailed(unsigned short reasonLen, char *reason);
+	BOOL m_bDownloadEnable;
+	void Time70ToFiletime(unsigned int mTime, FILETIME *pFiletime);
 };
 
 #endif

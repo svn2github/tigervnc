@@ -27,6 +27,7 @@
 #include "stdlib.h"
 #include "stdio.h"
 #include "string.h"
+#include "windows.h"
 
 const char FileTransferItemInfo::folderText[] = "<Folder>";
 
@@ -90,7 +91,7 @@ void FileTransferItemInfo::Free()
 
 void FileTransferItemInfo::Sort()
 {
-	qsort(m_pEntries, m_NumEntries, rfbMAX_PATH + 16 + sizeof(unsigned int), CompareFTItemInfo);
+	qsort(m_pEntries, m_NumEntries, sizeof(FTITEMINFO), CompareFTItemInfo);
 }
 
 char * FileTransferItemInfo::GetNameAt(int Number)
@@ -110,10 +111,38 @@ char * FileTransferItemInfo::GetSizeAt(int Number)
 unsigned int FileTransferItemInfo::GetDataAt(int Number)
 {
 	if ((Number >= 0) && (Number <= m_NumEntries)) 
-		return m_pEntries[Number].Data; 
+		return m_pEntries[Number].Data;
+	return 0;
 }
 
 int FileTransferItemInfo::GetNumEntries()
 {
 	return m_NumEntries;
+}
+
+int FileTransferItemInfo::GetIntSizeAt(int Number)
+{
+	return ConvertCharToInt(GetSizeAt(Number));
+}
+
+int FileTransferItemInfo::ConvertCharToInt(char *pStr)
+{
+	int strLen = strlen(pStr);
+	int res = 0, tenX = 1;
+	for (int i = (strLen - 1); i >= 0; i--) {
+		switch (pStr[i])
+		{
+		case '1': res = res + 1 * tenX; break;
+		case '2': res = res + 2 * tenX;	break;
+		case '3': res = res + 3 * tenX;	break;
+		case '4': res = res + 4 * tenX;	break;
+		case '5': res = res + 5 * tenX;	break;
+		case '6': res = res + 6 * tenX; break;
+		case '7': res = res + 7 * tenX;	break;
+		case '8': res = res + 8 * tenX; break;
+		case '9': res = res + 9 * tenX;	break;
+		}
+		tenX = tenX * 10;
+	}
+	return res;
 }

@@ -49,7 +49,7 @@ public:
 	void ShowListViewItems(HWND hwnd, FileTransferItemInfo *ftii);
 	void ConvertPath(char *path);
 	void ProcessListViewDBLCLK(HWND hwnd, char *Path, char *PathTmp, int iItem);
-	void SendFileListRequestMessage(char *filename);
+	void SendFileListRequestMessage(char *filename, unsigned char flags);
 	void ShowServerItems();
 	void ShowClientItems(char *path);
 	void BlockingFileTransferDialog(BOOL status);
@@ -75,6 +75,14 @@ public:
 	VNCviewerApp * m_pApp; 
 	
 private:
+	DWORD m_dwDownloadRead;
+	DWORD m_dwDownloadBlockSize;
+	int m_sizeDownloadFile;
+	BOOL m_bFirstFileDownloadMsg;
+	void Time70ToFiletime(unsigned int time70, FILETIME *pftime);
+	unsigned int FiletimeToTime70(FILETIME ftime);
+	void SendFileUploadDataMessage(unsigned short size, char *pFile);
+	void SendFileUploadDataMessage(unsigned int mTime);
 	void CreateServerItemInfoList(FileTransferItemInfo *pftii, FTSIZEDATA *ftsd, int ftsdNum, char *pfnames, int fnamesSize);
 	void InitProgressBar(int nPosition, int nMinRange, int nMaxRange, int nStep);
 	HWND m_hwndFileTransfer;

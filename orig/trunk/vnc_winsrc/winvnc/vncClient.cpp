@@ -55,6 +55,7 @@
 #include "vncPasswd.h"
 #include "vncAcceptDialog.h"
 #include "vncKeymap.h"
+#include "Windows.h"
 
 #include "FileTransferItemInfo.h"
 
@@ -1190,11 +1191,12 @@ vncClientThread::run(void *arg)
 				if (msg.flr.dirNameSize > 255) break;
 				char path[255 + 1];
 				m_socket->ReadExact(path, msg.flr.dirNameSize);
+				path[msg.flr.dirNameSize] = '\0';
 				ConvertPath(path);
 				FileTransferItemInfo ftii;
 				if (strlen(path) == 0) {
 					TCHAR szDrivesList[256];
-					char drive[] = "?:\\\0";
+					char drive[] = "?:\\";
 					if (GetLogicalDriveStrings(256, szDrivesList) == 0) break;
 					for (int i = 0; i < 256; i++) {
 						drive[0] = szDrivesList[i];
@@ -1206,7 +1208,7 @@ vncClientThread::run(void *arg)
 							{
 								drive[2] = '\0';
 								ftii.Add(drive, -1, 0);
-								strcpy(drive, "?:\\");
+								strcat(drive, "\\");
 							}
 						i += 3;
 						if (szDrivesList[i+1] == '\0') break;
@@ -1227,13 +1229,28 @@ vncClientThread::run(void *arg)
 								li.LowPart = FindFileData.ftLastWriteTime.dwLowDateTime;
 								li.HighPart = FindFileData.ftLastWriteTime.dwHighDateTime;							
 								li.QuadPart = (li.QuadPart - 1164444736000000000) / 10000000;
-								ftii.Add(FindFileData.cFileName, FindFileData.nFileSizeLow, li.HighPart);
+								if ((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {	
+									ftii.Add(FindFileData.cFileName, -1, 0);
+								} else {
+									if (!(msg.flr.flags & 0x10))
+										ftii.Add(FindFileData.cFileName, FindFileData.nFileSizeLow, li.HighPart);
+								}
 							}
 
 						} while (FindNextFile(FLRhandle, &FindFileData));
+					} else {
+						if (LastError != ERROR_SUCCESS && LastError != ERROR_FILE_NOT_FOUND) {
+							rfbFileListDataMsg fld;
+							fld.type = rfbFileListData;
+							fld.numFiles = Swap16IfLE(0);
+							fld.dataSize = Swap16IfLE(0);
+							fld.compressedSize = Swap16IfLE(0);
+							fld.flags = msg.flr.flags | 0x80;
+							m_socket->SendExact((char *)&fld, sz_rfbFileListDataMsg);
+							break;
+						}
 					}
  					FindClose(FLRhandle);	
-					if(ftii.GetNumEntries == 0) break;
 				}
 				if (ftii.GetNumEntries != 0) {
 					int dsSize = ftii.GetNumEntries() * 8;
@@ -1251,203 +1268,121 @@ vncClientThread::run(void *arg)
 						pftsd[i].size = ftii.GetSizeAt(i);
 						pftsd[i].data = ftii.GetDataAt(i);
 						strcpy(pFilenames, ftii.GetNameAt(i));
-						pFilenames = pFilenames + strlen(pFilenames + 1);
+						pFilenames = pFilenames + strlen(pFilenames) + 1;
 					}
 					m_socket->SendExact(pAllMessage, msgLen);
 				}
-
-/*
-				const UINT size = msg.flr.dnamesize;
-				char path[255 + 1];
-				char drive[4];
-				char * pAllMessage = new char[sz_rfbFileListDataMsg + 255];
-				rfbFileListDataMsg *pFLD = (rfbFileListDataMsg *) pAllMessage;
-				char *pFilename = &pAllMessage[sz_rfbFileListDataMsg];
-				pFLD->type = rfbFileListData;
-				pFLD->fnamesize = 0;
-				pFLD->amount = Swap16IfLE(0);
-				pFLD->num = Swap16IfLE(0);
-				pFLD->attr = Swap16IfLE(0);
-				pFLD->size = Swap32IfLE(0);
-				strcpy(pFilename, "");
-				if(size > 255) {
-					m_socket->SendExact(pAllMessage, sz_rfbFileListDataMsg);
-					break;
-				}
-				m_socket->ReadExact(path, size);
-				path[size] = '\0';
-				ConvertPath(path);
-				if(strlen(path) == 0) {
-					TCHAR szDrivesList[256];
-					int szDrivesNum = 0;
-					char fixeddrive [28] [4];
-					if (GetLogicalDriveStrings(256, szDrivesList) == 0) {
-						m_socket->SendExact(pAllMessage, sz_rfbFileListDataMsg);
-						break;
-					}
-					for (int i=0, p=0; i<=255; i++, p++) {
-						drive[p] = szDrivesList[i];
-						if (szDrivesList[i] == '\0') {
-							p = -1;
-							switch (GetDriveType((LPCTSTR) drive))
-								case DRIVE_REMOVABLE:
-								case DRIVE_FIXED:
-								case DRIVE_REMOTE:
-								case DRIVE_CDROM:
-								{
-									drive[strlen(drive) - 1] = '\0';
-									strcpy(fixeddrive[szDrivesNum], drive);
-									szDrivesNum += 1;
-								}
-							if (szDrivesList[i+1] == '\0') break;
-						}
-					}
-					pFLD->amount = Swap16IfLE(szDrivesNum);
-					for(int ii=0; ii<szDrivesNum; ii++) {
-						pFLD->attr = Swap16IfLE(0x0001);
-						pFLD->size = Swap32IfLE(0);
-						pFLD->fnamesize = strlen(fixeddrive[ii]);
-						pFLD->num = Swap16IfLE(ii);
-						strcpy(pFilename, fixeddrive[ii]);
-						m_socket->SendExact(pAllMessage, sz_rfbFileListDataMsg + strlen(fixeddrive[ii]));
-					}
-				} else {
-					strcat(path, "\\*");
-					HANDLE FLRhandle;
- 					int NumFiles = 0;
- 					WIN32_FIND_DATA FindFileData;
-					SetErrorMode(SEM_FAILCRITICALERRORS);
- 					FLRhandle = FindFirstFile(path, &FindFileData);
-					DWORD LastError = GetLastError();
-					SetErrorMode(0);
-					if (FLRhandle != INVALID_HANDLE_VALUE) {
-						do {
-							if (strcmp(FindFileData.cFileName, ".") != 0 &&
-								strcmp(FindFileData.cFileName, "..") != 0) {
-								NumFiles++;
-							}
-						} while (FindNextFile(FLRhandle, &FindFileData));
-					} else {
-						NumFiles = 0;
-						if (LastError != ERROR_SUCCESS && LastError != ERROR_FILE_NOT_FOUND) 
-							pFLD->attr = Swap16IfLE(0x0002);
- 					}
- 					FindClose(FLRhandle);	
-					if(NumFiles == 0) {
-						m_socket->SendExact(pAllMessage, sz_rfbFileListDataMsg);
-						break;
-					}
-					pFLD->amount = Swap16IfLE(NumFiles);
-					FLRhandle = FindFirstFile(path, &FindFileData);
-					int i=0;
-					while(1) {
-						if((strcmp(FindFileData.cFileName, ".") != 0) &&
-							(strcmp(FindFileData.cFileName, "..") != 0)) {
-							if ((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {	
-								pFLD->attr = Swap16IfLE(0x0001);
-								pFLD->size = Swap32IfLE(0);
-							} else {
-								pFLD->attr = Swap16IfLE(0x0000);
-								pFLD->size = Swap32IfLE(FindFileData.nFileSizeLow);
-							}
-							pFLD->fnamesize = strlen(FindFileData.cFileName);
-							pFLD->num = Swap16IfLE(i);
-							strcpy(pFilename, FindFileData.cFileName);
-							m_socket->SendExact(pAllMessage, sz_rfbFileListDataMsg + strlen(FindFileData.cFileName));
-							i++;
-						}
-						if (!FindNextFile(FLRhandle, &FindFileData)) break;
-					}
-					FindClose(FLRhandle);
-				}
-				delete [] pAllMessage;
-*/
 			}
 			break;
 
 		case rfbFileDownloadRequest:
-/*
 			if (!m_server->FileTransfersEnabled() ||
 				(!m_client->m_keyboardenabled && !m_client->m_pointerenabled)) {
 				connected = FALSE;
 				break;
 			}
-*/
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileDownloadRequestMsg-1))
 			{
-/*
-				const UINT size = msg.fdr.fnamesize;
-				WIN32_FIND_DATA FindFileData;
+				msg.fdr.fNameSize = Swap16IfLE(msg.fdr.fNameSize);
+				msg.fdr.position = Swap32IfLE(msg.fdr.position);
+				if (msg.fdr.fNameSize > 255) {
+					m_socket->ReadExact(NULL, msg.fdr.fNameSize);
+					char reason[] = "Size of file for download large than 255 bytes";
+					int reasonLen = strlen(reason);
+					m_client->SendFileDownloadFailed(reasonLen, reason);
+					break;
+				}
+				char path_file[255];
+				m_socket->ReadExact(path_file, msg.fdr.fNameSize);
+				path_file[msg.fdr.fNameSize] = '\0';
+				ConvertPath(path_file);
+
 				HANDLE hFile;
 				BOOL bResult;
-				DWORD filesize = NULL;
-				DWORD dwNumberOfBytesRead = 0;
-				DWORD dwNumberOfAllBytesRead = 0;
 				DWORD sz_rfbFileSize;
 				DWORD sz_rfbBlockSize = 8192;
-				char path_file[255];
-				char *pBuff = new char [sz_rfbFileDownloadDataMsg + sz_rfbBlockSize];
-				rfbFileDownloadDataMsg *pfdd = (rfbFileDownloadDataMsg *)pBuff;
-				char *lpBuff = &pBuff[sz_rfbFileDownloadDataMsg];
-				m_socket->ReadExact(path_file, size);
-				path_file[size] = '\0';
-				ConvertPath(path_file);
+				DWORD dwNumberOfBytesRead = 0;
+				DWORD dwNumberOfAllBytesRead = 0;
+				WIN32_FIND_DATA FindFileData;
+				SetErrorMode(SEM_FAILCRITICALERRORS);
+				hFile = FindFirstFile(path_file, &FindFileData);
+				DWORD LastError = GetLastError();
+				SetErrorMode(0);
+
 				vnclog.Print(LL_CLIENTS, VNCLOG("file download requested: %s\n"),
 							 path_file);
-				pfdd->type = rfbFileDownloadData;
-				hFile = FindFirstFile(path_file, &FindFileData);
+				
 				if ((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) || 
 					(hFile == INVALID_HANDLE_VALUE) || (path_file[0] == '\0')) {
-					pfdd->amount = Swap16IfLE(0);
-					pfdd->size = Swap16IfLE(0);
-					m_socket->SendExact(pBuff, sz_rfbFileDownloadDataMsg);
 					FindClose(hFile);
+					char reason[] = "Can't download that file. May be that directory.";
+					int reasonLen = strlen(reason);
+					m_client->SendFileDownloadFailed(reasonLen, reason);
 					break;
 				}
 				sz_rfbFileSize = FindFileData.nFileSizeLow;
 				FindClose(hFile);
-				int amount = (int) ((sz_rfbFileSize + sz_rfbBlockSize - 1) / sz_rfbBlockSize);
 				if (sz_rfbFileSize <= sz_rfbBlockSize) sz_rfbBlockSize = sz_rfbFileSize;
-				pfdd->amount = Swap16IfLE(amount);
-				pfdd->size = Swap16IfLE(sz_rfbBlockSize);
+				SetErrorMode(SEM_FAILCRITICALERRORS);
 				HANDLE hFiletoRead = CreateFile(path_file, GENERIC_READ, FILE_SHARE_READ, NULL,	OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);				// handle to file with attributes to copy  
+				SetErrorMode(0);
+				m_client->m_bDownloadEnable = TRUE;
+				char *pBuff = new char[sz_rfbBlockSize];
 				if (hFiletoRead != INVALID_HANDLE_VALUE) {
-					for (int i=0; i<amount; i++) {
-						pfdd->num = Swap16IfLE(i);
-						bResult = ReadFile(hFiletoRead, lpBuff, sz_rfbBlockSize, &dwNumberOfBytesRead, NULL);
-						dwNumberOfAllBytesRead += dwNumberOfBytesRead;
-						m_socket->SendExact(pBuff, sz_rfbFileDownloadDataMsg + dwNumberOfBytesRead);
-						if ((sz_rfbFileSize - dwNumberOfAllBytesRead) < sz_rfbBlockSize) {
-							sz_rfbBlockSize = sz_rfbFileSize - dwNumberOfAllBytesRead;
-							pfdd->size = Swap16IfLE(sz_rfbBlockSize);
+					while(m_client->m_bDownloadEnable) {
+						bResult = ReadFile(hFiletoRead, pBuff, sz_rfbBlockSize, &dwNumberOfBytesRead, NULL);
+						if (bResult && dwNumberOfBytesRead == 0) {
+							/* This is the end of the file. */
+							unsigned int mTime = m_client->FiletimeToTime70(FindFileData.ftLastWriteTime);
+							m_client->SendFileDownloadData(mTime);
+							CloseHandle(hFiletoRead);
+							delete [] pBuff;
+							vnclog.Print(LL_CLIENTS, VNCLOG("file download complete: %s\n"),
+										 path_file);
+							break;
 						}
+						m_client->SendFileDownloadData(dwNumberOfBytesRead, pBuff);
 					}
 				}
-				CloseHandle(hFiletoRead);
-				delete [] pBuff;
-				vnclog.Print(LL_CLIENTS, VNCLOG("file download complete: %s\n"),
-							 path_file);
-*/
 			}
 			break;
 
 		case rfbFileUploadRequest:
-/*
 			if (!m_server->FileTransfersEnabled() ||
 				(!m_client->m_keyboardenabled && !m_client->m_pointerenabled)) {
 				connected = FALSE;
 				break;
 			}
-*/
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileUploadRequestMsg-1))
 			{
-/*
-				m_socket->ReadExact(m_FullFilename, msg.fupr.fnamesize);
-				m_FullFilename[msg.fupr.fnamesize] = '\0';
+				msg.fupr.fNameSize = Swap16IfLE(msg.fupr.fNameSize);
+				msg.fupr.position = Swap32IfLE(msg.fupr.position);
+				if (msg.fupr.fNameSize > rfbMAX_PATH) {
+					m_socket->ReadExact(NULL, msg.fupr.fNameSize);
+					char reason[] = "Size of filename large than rfbMAX_PATH value";
+					int reasonLen = strlen(reason);
+					m_client->SendFileUploadCancel(reasonLen, reason);
+					break;
+				}
+				m_socket->ReadExact(m_FullFilename, msg.fupr.fNameSize);
+				m_FullFilename[msg.fupr.fNameSize] = '\0';
 				ConvertPath(m_FullFilename);
 				vnclog.Print(LL_CLIENTS, VNCLOG("file upload requested: %s\n"),
 							 m_FullFilename);
 				m_hFiletoWrite = CreateFile(m_FullFilename, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+				DWORD dwError = GetLastError();
+/*
+				DWORD dwFilePtr;
+				if (msg.fupr.position > 0) {
+					dwFilePtr = SetFilePointer(m_hFiletoWrite, msg.fupr.position, NULL, FILE_BEGIN);
+					if ((dwFilePtr == INVALID_SET_FILE_POINTER) && (dwError != NO_ERROR)) {
+						char reason[] = "Invalid file pointer position";
+						int reasonLen = strlen(reason);
+						m_client->SendFileUploadCancel(reasonLen, reason);
+						CloseHandle(m_hFiletoWrite);
+						break;
+					}
+				}
 */
 			}				
 			break;
@@ -1460,22 +1395,39 @@ vncClientThread::run(void *arg)
 			}
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileUploadDataMsg-1))
 			{
-/*
-				msg.fud.amount = Swap16IfLE(msg.fud.amount);
-				msg.fud.num = Swap16IfLE(msg.fud.num);
-				msg.fud.size = Swap16IfLE(msg.fud.size);
+				msg.fud.realSize = Swap16IfLE(msg.fud.realSize);
+				msg.fud.compressedSize = Swap16IfLE(msg.fud.compressedSize);
 				
-				DWORD dwNumberOfBytesWritten;
-				char *pBuff = new char [8192];
-				m_socket->ReadExact(pBuff, msg.fud.size);
-				WriteFile(m_hFiletoWrite, pBuff, msg.fud.size, &dwNumberOfBytesWritten, NULL);
-				if (msg.fud.num == msg.fud.amount - 1) {
+				if ((msg.fud.realSize == 0) && (msg.fud.compressedSize == 0)) {
+					unsigned int mTime;
+					m_socket->ReadExact((char *) &mTime, sizeof(unsigned int));
+					FILETIME Filetime;
+					m_client->Time70ToFiletime(mTime, &Filetime);
+					SetFileTime(m_hFiletoWrite, &Filetime, &Filetime, &Filetime);
 					CloseHandle(m_hFiletoWrite);
 					vnclog.Print(LL_CLIENTS, VNCLOG("file upload complete: %s\n"),
 								 m_FullFilename);
+					break;
+				}
+				DWORD dwNumberOfBytesWritten;
+				char *pBuff = new char [msg.fud.compressedSize];
+				m_socket->ReadExact(pBuff, msg.fud.compressedSize);
+				if (msg.fud.compressedLevel != 0) {
+					char reason[] = "VNCServer don't allow compress data";
+					int reasonLen = strlen(reason);
+					m_client->SendFileUploadCancel(reasonLen, reason);
+					CloseHandle(m_hFiletoWrite);
+					break;
+				}
+				BOOL bResult = WriteFile(m_hFiletoWrite, pBuff, msg.fud.compressedSize, &dwNumberOfBytesWritten, NULL);
+				if ((dwNumberOfBytesWritten != msg.fud.compressedSize) || !bResult) {
+					char reason[] = "WriteFile was failed";
+					int reasonLen = strlen(reason);
+					m_client->SendFileUploadCancel(reasonLen, reason);
+					CloseHandle(m_hFiletoWrite);
+					break;
 				}
 				delete [] pBuff;
-*/
 			}
 			break;
 
@@ -1485,6 +1437,14 @@ vncClientThread::run(void *arg)
 				connected = FALSE;
 				break;
 			}
+			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileDownloadCancelMsg-1))
+			{
+				m_client->m_bDownloadEnable = FALSE;
+				msg.fdc.reasonLen = Swap16IfLE(msg.fdc.reasonLen);
+				char *reason = new char[msg.fdc.reasonLen];
+				m_socket->ReadExact(reason, msg.fdc.reasonLen);
+				delete [] reason;
+			}
 			break;
 
 		case rfbFileUploadFailed:
@@ -1493,9 +1453,17 @@ vncClientThread::run(void *arg)
 				connected = FALSE;
 				break;
 			}
-			if (strcmp(m_FullFilename, "") != 0) {
-				CloseHandle(m_hFiletoWrite);
-				DeleteFile(m_FullFilename);
+			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileUploadFailedMsg-1))
+			{
+				msg.fuf.reasonLen = Swap16IfLE(msg.fuf.reasonLen);
+				char *reason = new char[msg.fuf.reasonLen];
+				m_socket->ReadExact(reason, msg.fuf.reasonLen);
+				reason[msg.fuf.reasonLen] = '\0';
+				if (strcmp(m_FullFilename, "") != 0) {
+					CloseHandle(m_hFiletoWrite);
+					DeleteFile(m_FullFilename);
+				}
+				delete [] reason;
 			}
 			break;
 #endif
@@ -1553,6 +1521,8 @@ vncClient::vncClient()
 	m_pollingcycle = 0;
 	m_remoteevent = FALSE;
 
+	m_bDownloadEnable = FALSE;
+
 	// IMPORTANT: Initially, client is not protocol-ready.
 	m_protocol_ready = FALSE;
 	
@@ -1609,7 +1579,7 @@ vncClient::Init(vncServer *server,
 		m_client_name = strdup(name);
 	else
 		m_client_name = strdup("<unknown>");
-
+	
 	// Save the client id
 	m_id = newid;
 
@@ -2228,4 +2198,78 @@ vncClientThread::ConvertPath(char *path)
 	}
 	path[len-1] = '\0';
 	return path;
+}
+
+void 
+vncClient::SendFileUploadCancel(unsigned short reasonLen, char *reason)
+{
+	int msgLen = sz_rfbFileUploadCancelMsg + reasonLen;
+	char *pAllFUCMessage = new char[msgLen];
+	rfbFileUploadCancelMsg *pFUC = (rfbFileUploadCancelMsg *) pAllFUCMessage;
+	char *pFollow = &pAllFUCMessage[sz_rfbFileUploadCancelMsg];
+	pFUC->type = rfbFileUploadCancel;
+	pFUC->reasonLen = Swap16IfLE(reasonLen);
+	memcpy(pFollow, reason, reasonLen);
+	m_socket->SendExact(pAllFUCMessage, msgLen);
+	delete [] pAllFUCMessage;
+}
+
+void vncClient::Time70ToFiletime(unsigned int mTime, FILETIME *pFiletime)
+{
+    LONGLONG ll = Int32x32To64(mTime, 10000000) + 116444736000000000;
+    pFiletime->dwLowDateTime = (DWORD) ll;
+    pFiletime->dwHighDateTime = ll >> 32;
+}
+
+void vncClient::SendFileDownloadFailed(unsigned short reasonLen, char *reason)
+{
+	int msgLen = sz_rfbFileDownloadFailedMsg + reasonLen;
+	char *pAllFDFMessage = new char[msgLen];
+	rfbFileDownloadFailedMsg *pFDF = (rfbFileDownloadFailedMsg *) pAllFDFMessage;
+	char *pFollow = &pAllFDFMessage[sz_rfbFileDownloadFailedMsg];
+	pFDF->type = rfbFileDownloadFailed;
+	pFDF->reasonLen = Swap16IfLE(reasonLen);
+	memcpy(pFollow, reason, reasonLen);
+	m_socket->SendExact(pAllFDFMessage, msgLen);
+	delete [] pAllFDFMessage;
+}
+
+void vncClient::SendFileDownloadData(unsigned int mTime)
+{
+	int msgLen = sz_rfbFileDownloadDataMsg + sizeof(unsigned int);
+	char *pAllFDDMessage = new char[msgLen];
+	rfbFileDownloadDataMsg *pFDD = (rfbFileDownloadDataMsg *) pAllFDDMessage;
+	unsigned int *pFollow = (unsigned int *) &pAllFDDMessage[sz_rfbFileDownloadDataMsg];
+	pFDD->type = rfbFileDownloadData;
+	pFDD->compressLevel = 0;
+	pFDD->compressedSize = Swap16IfLE(0);
+	pFDD->realSize = Swap16IfLE(0);
+	memcpy(pFollow, &mTime, sizeof(unsigned int));
+	m_socket->SendExact(pAllFDDMessage, msgLen);
+	delete [] pAllFDDMessage;
+}
+
+void vncClient::SendFileDownloadData(unsigned short sizeFile, char *pFile)
+{
+	int msgLen = sz_rfbFileDownloadDataMsg + sizeFile;
+	char *pAllFDDMessage = new char[msgLen];
+	rfbFileDownloadDataMsg *pFDD = (rfbFileDownloadDataMsg *) pAllFDDMessage;
+	char *pFollow = &pAllFDDMessage[sz_rfbFileDownloadDataMsg];
+	pFDD->type = rfbFileDownloadData;
+	pFDD->compressLevel = 0;
+	pFDD->compressedSize = Swap16IfLE(sizeFile);
+	pFDD->realSize = Swap16IfLE(sizeFile);
+	memcpy(pFollow, pFile, sizeFile);
+	m_socket->SendExact(pAllFDDMessage, msgLen);
+	delete [] pAllFDDMessage;
+
+}
+
+unsigned int vncClient::FiletimeToTime70(FILETIME filetime)
+{
+	LARGE_INTEGER uli;
+	uli.LowPart = filetime.dwLowDateTime;
+	uli.HighPart = filetime.dwHighDateTime;
+	uli.QuadPart = (uli.QuadPart - 116444736000000000) / 10000000;
+	return uli.HighPart;
 }

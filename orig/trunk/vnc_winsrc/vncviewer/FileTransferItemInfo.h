@@ -44,6 +44,7 @@ typedef struct tagFTSIZEDATA
 class FileTransferItemInfo  
 {
 public:
+	int GetIntSizeAt(int Number);
 	static const char folderText[];
 	int GetNumEntries();
 	char * GetSizeAt(int Number);
@@ -56,6 +57,7 @@ public:
 	virtual ~FileTransferItemInfo();
 
 private:
+	int ConvertCharToInt(char *pStr);
 	FTITEMINFO * m_pEntries;
 	int m_NumEntries;
 };

@@ -948,7 +948,7 @@ typedef struct {
     /* Followed by reason[reasonLen] */
 } rfbFileDownloadFailedMsg;
 
-#define sz_rfbFileServerCancelMsg 4
+#define sz_rfbFileDownloadFailedMsg 4
 
 /*-----------------------------------------------------------------------------
  * Union of all server->client messages.
@@ -1184,7 +1184,7 @@ typedef struct {
 typedef struct {
     CARD8 type;
 	CARD8 unused;
-	CARD16 reaonLen;
+	CARD16 reasonLen;
 	/* Followed by reason[reasonLen] */
 } rfbFileDownloadCancelMsg;
 
@@ -1235,6 +1235,6 @@ typedef union _rfbClientToServerMsg {
     rfbFileUploadRequestMsg fupr;
     rfbFileUploadDataMsg fud;
     rfbFileDownloadCancelMsg fdc;
-    rfbFileUploadFailedMsg fcc;
+    rfbFileUploadFailedMsg fuf;
 	rfbFileCreateDirRequestMsg fcdr;
 } rfbClientToServerMsg;

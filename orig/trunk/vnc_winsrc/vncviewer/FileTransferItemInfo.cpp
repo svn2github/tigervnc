@@ -36,8 +36,8 @@ CompareFTItemInfo(const void *F, const void *S)
 	if (strcmp(((FTITEMINFO *)F)->Size, ((FTITEMINFO *)S)->Size) == 0) {
 		return stricmp(((FTITEMINFO *)F)->Name, ((FTITEMINFO *)S)->Name);
 	} else {
-		if (strcmp(((FTITEMINFO *)F)->Size, FileTransferItemInfo.folderText) == 0) return -1;
-		if (strcmp(((FTITEMINFO *)S)->Size, FileTransferItemInfo.folderText) == 0) {
+		if (strcmp(((FTITEMINFO *)F)->Size, FileTransferItemInfo::folderText) == 0) return -1;
+		if (strcmp(((FTITEMINFO *)S)->Size, FileTransferItemInfo::folderText) == 0) {
 			return 1;
 		} else {
 		return stricmp(((FTITEMINFO *)F)->Name, ((FTITEMINFO *)S)->Name);

@@ -30,6 +30,7 @@
 // virtual keycodes.  Now it actually does the local-end simulation of
 // key presses, to keep this messy code on one place!
 
+// Disable warnings about truncated names caused by #include <map>
 #pragma warning(disable : 4786)
 
 #include "vncKeymap.h"
@@ -39,8 +40,6 @@
 #include "vncService.h"
 
 #include <map>
-
-#pragma warning(default : 4786)
 
 // Mapping of X keysyms to windows VK codes.  Ordering here is the same as
 // keysymdef.h to make checking easier

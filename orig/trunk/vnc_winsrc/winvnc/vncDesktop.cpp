@@ -1172,6 +1172,7 @@ vncDesktop::InitBitmap()
 	if (m_hrootdc == NULL) {
 		vnclog.Print(LL_INTERR, VNCLOG("GetDC() failed, error=%d\n"), GetLastError());
 		return FALSE;
+	}
 
 	m_bmrect.left = m_bmrect.top = 0;
 	m_bmrect.right = GetDeviceCaps(m_hrootdc, HORZRES);

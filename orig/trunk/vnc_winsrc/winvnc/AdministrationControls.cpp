@@ -14,13 +14,16 @@ AdministrationControls::AdministrationControls(HWND hwnd, vncServer * server)
 	m_hwnd = hwnd;
 	Init();
 }
+
 void AdministrationControls::Validate()
 {
 	if (!IsChecked(IDALLOWLOOPBACK))
 		SetChecked(IDONLYLOOPBACK, false);
 	Enable(IDONLYLOOPBACK, IsChecked(IDALLOWLOOPBACK));
 	Enable(IDLOGLOTS, IsChecked(IDLOG));
+	Enable(IDC_URL_PARAMS, IsChecked(IDENABLEHTTPD));
 }
+
 void AdministrationControls::Apply()
 {
 	if (IsChecked(IDPRIORITY1))
@@ -32,7 +35,7 @@ void AdministrationControls::Apply()
 
 	m_server->SetAuthRequired(IsChecked(IDREQUIREAUTH));
 	m_server->SetHttpdEnabled(IsChecked(IDENABLEHTTPD),
-						 m_server->HttpdParamsEnabled());
+							  IsChecked(IDC_URL_PARAMS));
 	m_server->SetLoopbackOk(IsChecked(IDALLOWLOOPBACK));
 	m_server->SetLoopbackOnly(IsChecked(IDONLYLOOPBACK));
 
@@ -46,9 +49,11 @@ void AdministrationControls::Apply()
 	else
 		vnclog.SetLevel(2);
 }
+
 void AdministrationControls::Init()
 {
 	SetChecked(IDENABLEHTTPD, m_server->HttpdEnabled());
+	SetChecked(IDC_URL_PARAMS, m_server->HttpdParamsEnabled());
 	SetChecked(IDALLOWLOOPBACK, m_server->LoopbackOk());
 	SetChecked(IDONLYLOOPBACK, m_server->LoopbackOnly());
 	SetChecked(IDREQUIREAUTH, m_server->AuthRequired());
@@ -64,6 +69,7 @@ void AdministrationControls::Init()
 	
 	Validate();
 }
+
 AdministrationControls::~AdministrationControls()
 {
 

@@ -68,6 +68,7 @@ public class VncViewer extends java.applet.Applet
   // Variables read from parameter values.
   String host;
   int port;
+  String sessionFileName;
   String passwordParam;
   String encPasswordParam;
   boolean showControls;
@@ -473,6 +474,9 @@ public class VncViewer extends java.applet.Applet
     if (encPasswordParam == null)
       passwordParam = readParameter("PASSWORD", false);
 
+    // This parameter tells the viewer to save VNC session in a file.
+    sessionFileName = readParameter("Save Session", false);
+
     // "Show Controls" set to "No" disables button panel.
     showControls = true;
     str = readParameter("Show Controls", false);
@@ -549,16 +553,16 @@ public class VncViewer extends java.applet.Applet
   //
 
   public void disconnect() {
+    if (rfb != null) {
+      rfb.close();
+      rfb = null;
+    }
     System.out.println("Disconnect");
     options.dispose();
     clipboard.dispose();
 
     if (inAnApplet) {
       vncContainer.removeAll();
-      if (rfb != null) {
-	rfb.close();
-	rfb = null;
-      }
       Label errLabel = new Label("Disconnected");
       errLabel.setFont(new Font("Helvetica", Font.PLAIN, 12));
       vncContainer.setLayout(new FlowLayout(FlowLayout.LEFT, 30, 30));
@@ -579,14 +583,14 @@ public class VncViewer extends java.applet.Applet
   //
 
   public void fatalError(String str) {
+    if (rfb != null) {
+      rfb.close();
+      rfb = null;
+    }
     System.out.println(str);
 
     if (inAnApplet) {
       vncContainer.removeAll();
-      if (rfb != null) {
-	rfb.close();
-	rfb = null;
-      }
       Label errLabel = new Label(str);
       errLabel.setFont(new Font("Helvetica", Font.PLAIN, 12));
       vncContainer.setLayout(new FlowLayout(FlowLayout.LEFT, 30, 30));

@@ -78,6 +78,7 @@ class RfbProto {
   Socket sock;
   DataInputStream is;
   OutputStream os;
+  SessionRecorder rec;
   boolean inNormalProtocol = false;
   VncViewer viewer;
 
@@ -87,8 +88,15 @@ class RfbProto {
   // keyPressed() for a "broken" key was called or not. 
   boolean brokenKeyPressed = false;
 
+  // Initially, we set this field to 0, and increment on each
+  // framebuffer update. We don't flush the SessionRecorder data into
+  // the file before the second update. This allows us to write
+  // initial framebuffer update with zero timestamp, to let the player
+  // show initial desktop before playback.
+  int numUpdates;
+
   //
-  // Constructor.  Just make TCP connection to RFB server.
+  // Constructor. Make TCP connection to RFB server.
   //
 
   RfbProto(String h, int p, VncViewer v) throws IOException {
@@ -105,6 +113,10 @@ class RfbProto {
   void close() {
     try {
       sock.close();
+      if (rec != null) {
+	rec.close();
+	rec = null;
+      }
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -217,6 +229,26 @@ class RfbProto {
     is.readFully(name);
     desktopName = new String(name);
 
+    // If desired, create session file and write initial protocol
+    // messages into it.
+    if (viewer.sessionFileName != null) {
+      rec = new SessionRecorder(viewer.sessionFileName);
+      rec.writeHeader();
+      rec.write(versionMsg.getBytes());
+      rec.writeIntBE(NoAuth);
+      rec.writeShortBE(framebufferWidth);
+      rec.writeShortBE(framebufferHeight);
+      byte[] fbsServerInitMsg =	{
+	32, 24, 0, 1, 0,
+	(byte)0xFF, 0, (byte)0xFF, 0, (byte)0xFF,
+	16, 8, 0, 0, 0, 0
+      };
+      rec.write(fbsServerInitMsg);
+      rec.writeIntBE(nameLength);
+      rec.write(name);
+      numUpdates = 0;
+    }
+
     inNormalProtocol = true;
   }
 
@@ -236,7 +268,18 @@ class RfbProto {
   //
 
   int readServerMessageType() throws IOException {
-    return is.readUnsignedByte();
+    int msgType = is.readUnsignedByte();
+
+    // If the session is being recorded:
+    if (rec != null) {
+      if (msgType == Bell) {	// Save Bell messages in session files.
+	rec.writeByte(msgType);
+	if (numUpdates > 0)
+	  rec.flush();
+      }
+    }
+
+    return msgType;
   }
 
 
@@ -249,6 +292,15 @@ class RfbProto {
   void readFramebufferUpdate() throws IOException {
     is.readByte();
     updateNRects = is.readUnsignedShort();
+
+    // If the session is being recorded:
+    if (rec != null) {
+      rec.writeByte(FramebufferUpdate);
+      rec.writeByte(0);
+      rec.writeShortBE(updateNRects);
+    }
+
+    numUpdates++;
   }
 
   // Read a FramebufferUpdate rectangle header
@@ -261,6 +313,17 @@ class RfbProto {
     updateRectW = is.readUnsignedShort();
     updateRectH = is.readUnsignedShort();
     updateRectEncoding = is.readInt();
+
+    // If the session is being recorded:
+    if (rec != null) {
+      if (numUpdates > 1)
+	rec.flush();		// Flush the output on each rectangle.
+      rec.writeShortBE(updateRectX);
+      rec.writeShortBE(updateRectY);
+      rec.writeShortBE(updateRectW);
+      rec.writeShortBE(updateRectH);
+      rec.writeIntBE(updateRectEncoding);
+    }
 
     if ((updateRectEncoding == EncodingLastRect) ||
 	(updateRectEncoding == EncodingNewFBSize))
@@ -281,6 +344,12 @@ class RfbProto {
   void readCopyRect() throws IOException {
     copyRectSrcX = is.readUnsignedShort();
     copyRectSrcY = is.readUnsignedShort();
+
+    // If the session is being recorded:
+    if (rec != null) {
+      rec.writeShortBE(copyRectSrcX);
+      rec.writeShortBE(copyRectSrcY);
+    }
   }
 
 
@@ -299,20 +368,31 @@ class RfbProto {
 
 
   //
-  // Read integer in compact representation
+  // Read an integer in compact representation (1..3 bytes).
+  // Such format is used as a part of the Tight encoding.
+  // Also, this method records data if session recording is active.
   //
 
   int readCompactLen() throws IOException {
-    int portion = is.readUnsignedByte();
-    int len = portion & 0x7F;
-    if ((portion & 0x80) != 0) {
-      portion = is.readUnsignedByte();
-      len |= (portion & 0x7F) << 7;
-      if ((portion & 0x80) != 0) {
-	portion = is.readUnsignedByte();
-	len |= (portion & 0xFF) << 14;
+    int[] portion = new int[3];
+    portion[0] = is.readUnsignedByte();
+    int byteCount = 1;
+    int len = portion[0] & 0x7F;
+    if ((portion[0] & 0x80) != 0) {
+      portion[1] = is.readUnsignedByte();
+      byteCount++;
+      len |= (portion[1] & 0x7F) << 7;
+      if ((portion[1] & 0x80) != 0) {
+	portion[2] = is.readUnsignedByte();
+	byteCount++;
+	len |= (portion[2] & 0xFF) << 14;
       }
     }
+
+    if (rec != null)
+      for (int i = 0; i < byteCount; i++)
+	rec.writeByte(portion[i]);
+
     return len;
   }
 

@@ -186,7 +186,7 @@ class VncCanvas extends Canvas
       rfb.writeSetPixelFormat(8, 8, false, true, 7, 7, 3, 0, 3, 6);
       bytesPixel = 1;
     } else {
-      rfb.writeSetPixelFormat(32, 24, true, true, 255, 255, 255, 16, 8, 0);
+      rfb.writeSetPixelFormat(32, 24, false, true, 255, 255, 255, 16, 8, 0);
       bytesPixel = 4;
     }
     updateFramebufferSize();
@@ -386,32 +386,45 @@ class VncCanvas extends Canvas
 
 
   //
-  // Handle a raw rectangle.
+  // Handle a raw rectangle. The second form with paint==false is used
+  // by the Hextile decoder for raw-encoded tiles.
   //
 
   void handleRawRect(int x, int y, int w, int h) throws IOException {
+    handleRawRect(x, y, w, h, true);
+  }
+
+  void handleRawRect(int x, int y, int w, int h, boolean paint)
+    throws IOException {
 
     if (bytesPixel == 1) {
       for (int dy = y; dy < y + h; dy++) {
 	rfb.is.readFully(pixels8, dy * rfb.framebufferWidth + x, w);
+	if (rfb.rec != null) {
+	  rfb.rec.write(pixels8, dy * rfb.framebufferWidth + x, w);
+	}
       }
     } else {
       byte[] buf = new byte[w * 4];
       int i, offset;
       for (int dy = y; dy < y + h; dy++) {
 	rfb.is.readFully(buf);
+	if (rfb.rec != null) {
+	  rfb.rec.write(buf);
+	}
 	offset = dy * rfb.framebufferWidth + x;
 	for (i = 0; i < w; i++) {
 	  pixels24[offset + i] =
-	    (buf[i * 4 + 1] & 0xFF) << 16 |
-	    (buf[i * 4 + 2] & 0xFF) << 8 |
-	    (buf[i * 4 + 3] & 0xFF);
+	    (buf[i * 4 + 2] & 0xFF) << 16 |
+	    (buf[i * 4 + 1] & 0xFF) << 8 |
+	    (buf[i * 4] & 0xFF);
 	}
       }
     }
 
     handleUpdatedPixels(x, y, w, h);
-    scheduleRepaint(x, y, w, h);
+    if (paint)
+      scheduleRepaint(x, y, w, h);
   }
 
   //
@@ -434,38 +447,46 @@ class VncCanvas extends Canvas
   void handleRRERect(int x, int y, int w, int h) throws IOException {
 
     int nSubrects = rfb.is.readInt();
-    int sx, sy, sw, sh;
+
+    byte[] bg_buf = new byte[bytesPixel];
+    rfb.is.readFully(bg_buf);
     Color pixel;
+    if (bytesPixel == 1) {
+      pixel = colors[bg_buf[0] & 0xFF];
+    } else {
+      pixel = new Color(bg_buf[2] & 0xFF, bg_buf[1] & 0xFF, bg_buf[0] & 0xFF);
+    }
+    memGraphics.setColor(pixel);
+    memGraphics.fillRect(x, y, w, h);
 
-    if (bytesPixel == 1) {	// 8-bit colors
-      memGraphics.setColor(colors[rfb.is.readUnsignedByte()]);
-      memGraphics.fillRect(x, y, w, h);
+    byte[] buf = new byte[nSubrects * (bytesPixel + 8)];
+    rfb.is.readFully(buf);
+    DataInputStream ds = new DataInputStream(new ByteArrayInputStream(buf));
 
-      for (int j = 0; j < nSubrects; j++) {
-	pixel = colors[rfb.is.readUnsignedByte()];
-	sx = x + rfb.is.readUnsignedShort();
-	sy = y + rfb.is.readUnsignedShort();
-	sw = rfb.is.readUnsignedShort();
-	sh = rfb.is.readUnsignedShort();
+    if (rfb.rec != null) {
+      rfb.rec.writeIntBE(nSubrects);
+      rfb.rec.write(bg_buf);
+      rfb.rec.write(buf);
+    }
 
-	memGraphics.setColor(pixel);
-	memGraphics.fillRect(sx, sy, sw, sh);
+    int sx, sy, sw, sh;
+
+    for (int j = 0; j < nSubrects; j++) {
+      if (bytesPixel == 1) {
+	pixel = colors[ds.readUnsignedByte()];
+      } else {
+	ds.skip(4);
+	pixel = new Color(buf[j*12+2] & 0xFF,
+			  buf[j*12+1] & 0xFF,
+			  buf[j*12]   & 0xFF);
       }
-    } else {			// 24-bit colors
-      pixel = new Color(0xFF000000 | rfb.is.readInt());
+      sx = x + ds.readUnsignedShort();
+      sy = y + ds.readUnsignedShort();
+      sw = ds.readUnsignedShort();
+      sh = ds.readUnsignedShort();
+
       memGraphics.setColor(pixel);
-      memGraphics.fillRect(x, y, w, h);
-
-      for (int j = 0; j < nSubrects; j++) {
-	pixel = new Color(0xFF000000 | rfb.is.readInt());
-	sx = x + rfb.is.readUnsignedShort();
-	sy = y + rfb.is.readUnsignedShort();
-	sw = rfb.is.readUnsignedShort();
-	sh = rfb.is.readUnsignedShort();
-
-	memGraphics.setColor(pixel);
-	memGraphics.fillRect(sx, sy, sw, sh);
-      }
+      memGraphics.fillRect(sx, sy, sw, sh);
     }
 
     scheduleRepaint(x, y, w, h);
@@ -476,40 +497,45 @@ class VncCanvas extends Canvas
   //
 
   void handleCoRRERect(int x, int y, int w, int h) throws IOException {
-
     int nSubrects = rfb.is.readInt();
-    int sx, sy, sw, sh;
+
+    byte[] bg_buf = new byte[bytesPixel];
+    rfb.is.readFully(bg_buf);
     Color pixel;
+    if (bytesPixel == 1) {
+      pixel = colors[bg_buf[0] & 0xFF];
+    } else {
+      pixel = new Color(bg_buf[2] & 0xFF, bg_buf[1] & 0xFF, bg_buf[0] & 0xFF);
+    }
+    memGraphics.setColor(pixel);
+    memGraphics.fillRect(x, y, w, h);
 
-    if (bytesPixel == 1) {	// 8-bit colors
-      memGraphics.setColor(colors[rfb.is.readUnsignedByte()]);
-      memGraphics.fillRect(x, y, w, h);
+    byte[] buf = new byte[nSubrects * (bytesPixel + 4)];
+    rfb.is.readFully(buf);
 
-      for (int j = 0; j < nSubrects; j++) {
-	pixel = colors[rfb.is.readUnsignedByte()];
-	sx = x + rfb.is.readUnsignedByte();
-	sy = y + rfb.is.readUnsignedByte();
-	sw = rfb.is.readUnsignedByte();
-	sh = rfb.is.readUnsignedByte();
+    if (rfb.rec != null) {
+      rfb.rec.writeIntBE(nSubrects);
+      rfb.rec.write(bg_buf);
+      rfb.rec.write(buf);
+    }
 
-	memGraphics.setColor(pixel);
-	memGraphics.fillRect(sx, sy, sw, sh);
+    int sx, sy, sw, sh;
+    int i = 0;
+
+    for (int j = 0; j < nSubrects; j++) {
+      if (bytesPixel == 1) {
+	pixel = colors[buf[i++] & 0xFF];
+      } else {
+	pixel = new Color(buf[i+2] & 0xFF, buf[i+1] & 0xFF, buf[i] & 0xFF);
+	i += 4;
       }
-    } else {			// 24-bit colors
-      pixel = new Color(0xFF000000 | rfb.is.readInt());
+      sx = x + (buf[i++] & 0xFF);
+      sy = y + (buf[i++] & 0xFF);
+      sw = buf[i++] & 0xFF;
+      sh = buf[i++] & 0xFF;
+
       memGraphics.setColor(pixel);
-      memGraphics.fillRect(x, y, w, h);
-
-      for (int j = 0; j < nSubrects; j++) {
-	pixel = new Color(0xFF000000 | rfb.is.readInt());
-	sx = x + rfb.is.readUnsignedByte();
-	sy = y + rfb.is.readUnsignedByte();
-	sw = rfb.is.readUnsignedByte();
-	sh = rfb.is.readUnsignedByte();
-
-	memGraphics.setColor(pixel);
-	memGraphics.fillRect(sx, sy, sw, sh);
-      }
+      memGraphics.fillRect(sx, sy, sw, sh);
     }
 
     scheduleRepaint(x, y, w, h);
@@ -553,37 +579,27 @@ class VncCanvas extends Canvas
     throws IOException {
 
     int subencoding = rfb.is.readUnsignedByte();
+    if (rfb.rec != null) {
+      rfb.rec.writeByte(subencoding);
+    }
 
     // Is it a raw-encoded sub-rectangle?
     if ((subencoding & rfb.HextileRaw) != 0) {
-      if (bytesPixel == 1) {
-	for (int j = ty; j < ty + th; j++) {
-	  rfb.is.readFully(pixels8, j*rfb.framebufferWidth+tx, tw);
-	}
-      } else {
-	byte[] buf = new byte[tw * 4];
-	int count, offset;
-	for (int j = ty; j < ty + th; j++) {
-	  rfb.is.readFully(buf);
-	  offset = j * rfb.framebufferWidth + tx;
-	  for (count = 0; count < tw; count++) {
-	    pixels24[offset + count] =
-	      (buf[count * 4 + 1] & 0xFF) << 16 |
-	      (buf[count * 4 + 2] & 0xFF) << 8 |
-	      (buf[count * 4 + 3] & 0xFF);
-	  }
-	}
-      }
-      handleUpdatedPixels(tx, ty, tw, th);
+      handleRawRect(tx, ty, tw, th, false);
       return;
     }
 
     // Read and draw the background if specified.
+    byte[] cbuf = new byte[bytesPixel];
     if ((subencoding & rfb.HextileBackgroundSpecified) != 0) {
+      rfb.is.readFully(cbuf);
       if (bytesPixel == 1) {
-	hextile_bg = colors[rfb.is.readUnsignedByte()];
+	hextile_bg = colors[cbuf[0] & 0xFF];
       } else {
-	hextile_bg = new Color(0xFF000000 | rfb.is.readInt());
+	hextile_bg = new Color(cbuf[2] & 0xFF, cbuf[1] & 0xFF, cbuf[0] & 0xFF);
+      }
+      if (rfb.rec != null) {
+	rfb.rec.write(cbuf);
       }
     }
     memGraphics.setColor(hextile_bg);
@@ -591,10 +607,14 @@ class VncCanvas extends Canvas
 
     // Read the foreground color if specified.
     if ((subencoding & rfb.HextileForegroundSpecified) != 0) {
+      rfb.is.readFully(cbuf);
       if (bytesPixel == 1) {
-	hextile_fg = colors[rfb.is.readUnsignedByte()];
+	hextile_fg = colors[cbuf[0] & 0xFF];
       } else {
-	hextile_fg = new Color(0xFF000000 | rfb.is.readInt());
+	hextile_fg = new Color(cbuf[2] & 0xFF, cbuf[1] & 0xFF, cbuf[0] & 0xFF);
+      }
+      if (rfb.rec != null) {
+	rfb.rec.write(cbuf);
       }
     }
 
@@ -603,62 +623,64 @@ class VncCanvas extends Canvas
       return;
 
     int nSubrects = rfb.is.readUnsignedByte();
+    int bufsize = nSubrects * 2;
+    if ((subencoding & rfb.HextileSubrectsColoured) != 0) {
+      bufsize += nSubrects * bytesPixel;
+    }
+    byte[] buf = new byte[bufsize];
+    rfb.is.readFully(buf);
+    if (rfb.rec != null) {
+      rfb.rec.writeByte(nSubrects);
+      rfb.rec.write(buf);
+    }
 
     int b1, b2, sx, sy, sw, sh;
-    if (bytesPixel == 1) {
+    int i = 0;
 
-      // BGR233 (8-bit color) version.
-      if ((subencoding & rfb.HextileSubrectsColoured) != 0) {
-	for (int j = 0; j < nSubrects; j++) {
-	  hextile_fg = colors[rfb.is.readUnsignedByte()];
-	  b1 = rfb.is.readUnsignedByte();
-	  b2 = rfb.is.readUnsignedByte();
-	  sx = tx + (b1 >> 4);
-	  sy = ty + (b1 & 0xf);
-	  sw = (b2 >> 4) + 1;
-	  sh = (b2 & 0xf) + 1;
-	  memGraphics.setColor(hextile_fg);
-	  memGraphics.fillRect(sx, sy, sw, sh);
-	}
-      } else {
+    if ((subencoding & rfb.HextileSubrectsColoured) == 0) {
+
+      // Sub-rectangles are all of the same color.
+      memGraphics.setColor(hextile_fg);
+      for (int j = 0; j < nSubrects; j++) {
+	b1 = buf[i++] & 0xFF;
+	b2 = buf[i++] & 0xFF;
+	sx = tx + (b1 >> 4);
+	sy = ty + (b1 & 0xf);
+	sw = (b2 >> 4) + 1;
+	sh = (b2 & 0xf) + 1;
+	memGraphics.fillRect(sx, sy, sw, sh);
+      }
+    } else if (bytesPixel == 1) {
+
+      // BGR233 (8-bit color) version for colored sub-rectangles.
+      for (int j = 0; j < nSubrects; j++) {
+	hextile_fg = colors[buf[i++] & 0xFF];
+	b1 = buf[i++] & 0xFF;
+	b2 = buf[i++] & 0xFF;
+	sx = tx + (b1 >> 4);
+	sy = ty + (b1 & 0xf);
+	sw = (b2 >> 4) + 1;
+	sh = (b2 & 0xf) + 1;
 	memGraphics.setColor(hextile_fg);
-	for (int j = 0; j < nSubrects; j++) {
-	  b1 = rfb.is.readUnsignedByte();
-	  b2 = rfb.is.readUnsignedByte();
-	  sx = tx + (b1 >> 4);
-	  sy = ty + (b1 & 0xf);
-	  sw = (b2 >> 4) + 1;
-	  sh = (b2 & 0xf) + 1;
-	  memGraphics.fillRect(sx, sy, sw, sh);
-	}
+	memGraphics.fillRect(sx, sy, sw, sh);
       }
 
     } else {
 
-      // Full-color (24-bit) version.
-      if ((subencoding & rfb.HextileSubrectsColoured) != 0) {
-	for (int j = 0; j < nSubrects; j++) {
-	  hextile_fg = new Color(0xFF000000 | rfb.is.readInt());
-	  b1 = rfb.is.readUnsignedByte();
-	  b2 = rfb.is.readUnsignedByte();
-	  sx = tx + (b1 >> 4);
-	  sy = ty + (b1 & 0xf);
-	  sw = (b2 >> 4) + 1;
-	  sh = (b2 & 0xf) + 1;
-	  memGraphics.setColor(hextile_fg);
-	  memGraphics.fillRect(sx, sy, sw, sh);
-	}
-      } else {
+      // Full-color (24-bit) version for colored sub-rectangles.
+      for (int j = 0; j < nSubrects; j++) {
+	hextile_fg = new Color(buf[i+2] & 0xFF,
+			       buf[i+1] & 0xFF,
+			       buf[i] & 0xFF);
+	i += 4;
+	b1 = buf[i++] & 0xFF;
+	b2 = buf[i++] & 0xFF;
+	sx = tx + (b1 >> 4);
+	sy = ty + (b1 & 0xf);
+	sw = (b2 >> 4) + 1;
+	sh = (b2 & 0xf) + 1;
 	memGraphics.setColor(hextile_fg);
-	for (int j = 0; j < nSubrects; j++) {
-	  b1 = rfb.is.readUnsignedByte();
-	  b2 = rfb.is.readUnsignedByte();
-	  sx = tx + (b1 >> 4);
-	  sy = ty + (b1 & 0xf);
-	  sw = (b2 >> 4) + 1;
-	  sh = (b2 & 0xf) + 1;
-	  memGraphics.fillRect(sx, sy, sw, sh);
-	}
+	memGraphics.fillRect(sx, sy, sw, sh);
       }
 
     }
@@ -678,6 +700,10 @@ class VncCanvas extends Canvas
     }
 
     rfb.is.readFully(zlibBuf, 0, nBytes);
+    if (rfb.rec != null) {
+      rfb.rec.writeIntBE(nBytes);
+      rfb.rec.write(zlibBuf, 0, nBytes);
+    }
 
     if (zlibInflater == null) {
       zlibInflater = new Inflater();
@@ -696,9 +722,9 @@ class VncCanvas extends Canvas
 	offset = dy * rfb.framebufferWidth + x;
 	for (i = 0; i < w; i++) {
 	  pixels24[offset + i] =
-	    (buf[i * 4 + 1] & 0xFF) << 16 |
-	    (buf[i * 4 + 2] & 0xFF) << 8 |
-	    (buf[i * 4 + 3] & 0xFF);
+	    (buf[i * 4 + 2] & 0xFF) << 16 |
+	    (buf[i * 4 + 1] & 0xFF) << 8 |
+	    (buf[i * 4] & 0xFF);
 	}
       }
     }
@@ -714,6 +740,9 @@ class VncCanvas extends Canvas
   void handleTightRect(int x, int y, int w, int h) throws Exception {
 
     int comp_ctl = rfb.is.readUnsignedByte();
+    if (rfb.rec != null) {
+      rfb.rec.writeByte(comp_ctl);
+    }
 
     // Flush zlib streams if we are told by the server to do so.
     for (int stream_id = 0; stream_id < 4; stream_id++) {
@@ -730,11 +759,19 @@ class VncCanvas extends Canvas
 
     // Handle solid-color rectangles.
     if (comp_ctl == rfb.TightFill) {
+
       if (bytesPixel == 1) {
-	memGraphics.setColor(colors[rfb.is.readUnsignedByte()]);
+	int idx = rfb.is.readUnsignedByte();
+	memGraphics.setColor(colors[idx]);
+	if (rfb.rec != null) {
+	  rfb.rec.writeByte(idx);
+	}
       } else {
 	byte[] buf = new byte[3];
 	rfb.is.readFully(buf);
+	if (rfb.rec != null) {
+	  rfb.rec.write(buf);
+	}
 	Color bg = new Color(0xFF000000 | (buf[0] & 0xFF) << 16 |
 			     (buf[1] & 0xFF) << 8 | (buf[2] & 0xFF));
 	memGraphics.setColor(bg);
@@ -742,6 +779,7 @@ class VncCanvas extends Canvas
       memGraphics.fillRect(x, y, w, h);
       scheduleRepaint(x, y, w, h);
       return;
+
     }
 
     if (comp_ctl == rfb.TightJpeg) {
@@ -749,6 +787,9 @@ class VncCanvas extends Canvas
       // Read JPEG data.
       byte[] jpegData = new byte[rfb.readCompactLen()];
       rfb.is.readFully(jpegData);
+      if (rfb.rec != null) {
+	rfb.rec.write(jpegData);
+      }
 
       // Create an Image object from the JPEG data.
       Image jpegImage = Toolkit.getDefaultToolkit().createImage(jpegData);
@@ -781,17 +822,28 @@ class VncCanvas extends Canvas
     boolean useGradient = false;
     if ((comp_ctl & rfb.TightExplicitFilter) != 0) {
       int filter_id = rfb.is.readUnsignedByte();
+      if (rfb.rec != null) {
+	rfb.rec.writeByte(filter_id);
+      }
       if (filter_id == rfb.TightFilterPalette) {
 	numColors = rfb.is.readUnsignedByte() + 1;
+	if (rfb.rec != null) {
+	  rfb.rec.writeByte(numColors - 1);
+	}
         if (bytesPixel == 1) {
 	  if (numColors != 2) {
 	    throw new Exception("Incorrect tight palette size: " + numColors);
 	  }
-	  palette8[0] = rfb.is.readByte();
-	  palette8[1] = rfb.is.readByte();
+	  rfb.is.readFully(palette8);
+	  if (rfb.rec != null) {
+	    rfb.rec.write(palette8);
+	  }
 	} else {
 	  byte[] buf = new byte[numColors * 3];
 	  rfb.is.readFully(buf);
+	  if (rfb.rec != null) {
+	    rfb.rec.write(buf);
+	  }
 	  for (int i = 0; i < numColors; i++) {
 	    palette24[i] = ((buf[i * 3] & 0xFF) << 16 |
 			    (buf[i * 3 + 1] & 0xFF) << 8 |
@@ -817,6 +869,9 @@ class VncCanvas extends Canvas
 	// Indexed colors.
 	byte[] indexedData = new byte[dataSize];
 	rfb.is.readFully(indexedData);
+	if (rfb.rec != null) {
+	  rfb.rec.write(indexedData);
+	}
 	if (numColors == 2) {
 	  // Two colors.
 	  if (bytesPixel == 1) {
@@ -838,18 +893,27 @@ class VncCanvas extends Canvas
 	// "Gradient"-processed data
 	byte[] buf = new byte[w * h * 3];
 	rfb.is.readFully(buf);
+	if (rfb.rec != null) {
+	  rfb.rec.write(buf);
+	}
 	decodeGradientData(x, y, w, h, buf);
       } else {
 	// Raw truecolor data.
 	if (bytesPixel == 1) {
 	  for (int dy = y; dy < y + h; dy++) {
 	    rfb.is.readFully(pixels8, dy * rfb.framebufferWidth + x, w);
+	    if (rfb.rec != null) {
+	      rfb.rec.write(pixels8, dy * rfb.framebufferWidth + x, w);
+	    }
 	  }
 	} else {
 	  byte[] buf = new byte[w * 3];
 	  int i, offset;
 	  for (int dy = y; dy < y + h; dy++) {
 	    rfb.is.readFully(buf);
+	    if (rfb.rec != null) {
+	      rfb.rec.write(buf);
+	    }
 	    offset = dy * rfb.framebufferWidth + x;
 	    for (i = 0; i < w; i++) {
 	      pixels24[offset + i] =
@@ -865,6 +929,9 @@ class VncCanvas extends Canvas
       int zlibDataLen = rfb.readCompactLen();
       byte[] zlibData = new byte[zlibDataLen];
       rfb.is.readFully(zlibData);
+      if (rfb.rec != null) {
+	rfb.rec.write(zlibData);
+      }
       int stream_id = comp_ctl & 0x03;
       if (tightInflaters[stream_id] == null) {
 	tightInflaters[stream_id] = new Inflater();
@@ -1015,7 +1082,6 @@ class VncCanvas extends Canvas
     }
   }
 
-
   //
   // Display newly updated area of pixels.
   //
@@ -1037,7 +1103,6 @@ class VncCanvas extends Canvas
     // Request repaint, deferred if necessary.
     repaint(viewer.deferScreenUpdates, x, y, w, h);
   }
-
 
   //
   // Handle events.
@@ -1111,7 +1176,6 @@ class VncCanvas extends Canvas
       }
     }
   }
-
 
   //
   // Ignored events.

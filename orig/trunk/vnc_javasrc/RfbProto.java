@@ -823,7 +823,6 @@ class RfbProto {
     deflater.finish();
     int compressedSize = deflater.deflate(buf);
     recordCompactLen(compressedSize);
-    System.out.print("[" + compressedSize + "] ");
     rec.write(buf, 0, compressedSize);
   }
 

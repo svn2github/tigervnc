@@ -27,7 +27,10 @@ public:
 	void Edit();
 	virtual ~ConnectionsAccess();
 protected:
-	BOOL FormatPattern(BOOL toList, TCHAR strpattern[256]);
+	void MatchEdit(HWND hwnd, DWORD idedit);
+	BOOL MatchPatternComponent(TCHAR component[5]);
+	BOOL FormatPattern(BOOL toList, TCHAR strpattern[256], 
+						char buf_parts[4][5]);
 	DWORD DoEditDialog();
     BOOL InsertListViewItem(int Numbe, TCHAR ItemString[2][256]);
 	void GetListViewItem(int Numbe, TCHAR ItemString[2][256]);
@@ -40,8 +43,8 @@ protected:
 	HWND m_hwnd;
     vncServer * m_server;
 	TCHAR ItemString[2][256];
+	char IPComponent[4][5];
 	BOOL m_edit;
-	HWND m_hwnd_edit_dialog;
 };
 
 #endif // !defined(AFX_CONNECTIONSACCESS_H__1FBA6287_0A9F_4441_A018_1949A5C7A9EE__INCLUDED_)

@@ -14,7 +14,6 @@ ConnectionsAccess::ConnectionsAccess(vncServer * server, HWND hwnd)
 {
 	m_server = server;
 	m_hwnd = hwnd;
-	m_hwnd_edit_dialog = NULL;
 	Init();
 }
 
@@ -32,7 +31,7 @@ void ConnectionsAccess::Apply()
 
 	for (int i = count - 1; i >= 0; i--) {
 		GetListViewItem(i, ItemString);
-		if (!FormatPattern(FALSE, ItemString[0]))
+		if (!FormatPattern(FALSE, ItemString[0], NULL))
 			continue;
 
 		if (strcmp(ItemString[1], "Allow") == 0) {
@@ -68,7 +67,7 @@ void ConnectionsAccess::Init()
 			case '-': strcpy(ItemString[1], "Deny"); break;
 			case '?': strcpy(ItemString[1], "Query"); break;
 			}
-			if (FormatPattern(TRUE, ItemString[0]))
+			if (FormatPattern(TRUE, ItemString[0], NULL))
 				InsertListViewItem(0, ItemString);
 		}
 		if (pattern[len] == '\0')
@@ -81,8 +80,6 @@ void ConnectionsAccess::Init()
 
 void ConnectionsAccess::MoveUp()
 {
-	if (m_hwnd_edit_dialog != NULL) 
-		return;
 	int number = GetSelectedItem();
 	if (number <= 0)
 		return;
@@ -94,8 +91,6 @@ void ConnectionsAccess::MoveUp()
 
 void ConnectionsAccess::MoveDown()
 {
-	if (m_hwnd_edit_dialog != NULL) 
-		return;
 	int number = GetSelectedItem();
 	if (number == -1 || number == (GetItemCount() - 1))
 		return;
@@ -107,8 +102,6 @@ void ConnectionsAccess::MoveDown()
 
 void ConnectionsAccess::Remove()
 {
-	if (m_hwnd_edit_dialog != NULL) 
-		return;
 	int number = GetSelectedItem();
 	if (number == -1)
 		return;
@@ -117,10 +110,6 @@ void ConnectionsAccess::Remove()
 
 void ConnectionsAccess::Add()
 {
-	if (m_hwnd_edit_dialog != NULL) {
-		SetForegroundWindow(m_hwnd_edit_dialog);
-		return;
-	}
 	m_edit = FALSE;
 	if (DoEditDialog() != IDOK)
 		return;
@@ -130,11 +119,6 @@ void ConnectionsAccess::Add()
 
 void ConnectionsAccess::Edit()
 {
-	if (m_hwnd_edit_dialog != NULL) {
-		SetForegroundWindow(m_hwnd_edit_dialog);
-		return;
-	}
-
 	int numbersel = GetSelectedItem();
 	if (numbersel == -1)
 		return;
@@ -150,7 +134,7 @@ void ConnectionsAccess::Edit()
 DWORD ConnectionsAccess::DoEditDialog()
 {
 	return DialogBoxParam(hAppInstance, MAKEINTRESOURCE(IDD_CONN_HOST), 
-		NULL, (DLGPROC) EditDlgProc, (LONG) this);
+		m_hwnd, (DLGPROC) EditDlgProc, (LONG) this);
 }
 
 int ConnectionsAccess::GetItemCount()
@@ -236,9 +220,10 @@ BOOL ConnectionsAccess::InitListViewColumns()
 	return TRUE;
 }
 
-BOOL ConnectionsAccess::FormatPattern(BOOL toList, TCHAR strpattern[256])
+BOOL ConnectionsAccess::FormatPattern(BOOL toList, TCHAR strpattern[256], 
+									  char buf_parts[4][5])
 {
-	char parts[4][5] = {"*", ".*", ".*", ".*"};
+	char parts[4][5] = {"*", "*", "*", "*"};
 	int num_components = 0;
 	int num_numbers = 0;
 
@@ -251,13 +236,9 @@ BOOL ConnectionsAccess::FormatPattern(BOOL toList, TCHAR strpattern[256])
 			} else if (num_components != num_numbers) {
 				return FALSE;		// non-'*' found after there was '*'
 			} else {
-				if (len < 1 || strspn(component, "0123456789") != len)
-					return FALSE;	// not a non-negative number
-				int value = atoi(component);
-				if (value > 255)
-					return FALSE;	// not a number in the range 0..255
-				sprintf(parts[num_numbers], "%s%d",
-						(num_numbers == 0) ? "" : ".", value);
+				strncpy(parts[num_numbers], component, len);
+				if (!MatchPatternComponent(parts[num_numbers]))
+					return FALSE;
 				num_numbers++;
 			}
 			if (component[len] == '\0')
@@ -272,10 +253,62 @@ BOOL ConnectionsAccess::FormatPattern(BOOL toList, TCHAR strpattern[256])
 
 	int num_parts = (toList) ? 4 : num_numbers;
 	strpattern[0] = '\0';
-	for (int i = 0; i < num_parts; i++)
+	for (int i = 0; i < num_parts; i++) {
+		strcat(strpattern, (i == 0) ? "" : ".");
 		strcat(strpattern, parts[i]);
+	}
+	if (buf_parts != NULL) {	
+		for (int i = 0; i < 4; i++)
+			strcpy(buf_parts[i], parts[i]);
+	}
 
 	return TRUE;
+}
+
+BOOL ConnectionsAccess::MatchPatternComponent(TCHAR component[5])
+{
+	if (strcmp(component, "*") == 0 || strcmp(component, "") == 0)
+		return TRUE;
+	int len = strlen(component);
+	if (len < 1 || strspn(component, "0123456789") != len)
+		return FALSE;	// not a non-negative number
+	int value = atoi(component);
+	if (value > 255)
+		return FALSE;	// not a number in the range 0..255
+	sprintf(component, "%d", value);
+	return TRUE;
+}
+
+void ConnectionsAccess::MatchEdit(HWND hwnd, DWORD idedit)
+{
+	int num_comp;
+	switch (idedit)
+	{
+	case IDC_PATTERN_COMP1:
+		num_comp = 0;
+		break;
+	case IDC_PATTERN_COMP2:
+		num_comp = 1;
+		break;
+	case IDC_PATTERN_COMP3:
+		num_comp = 2;
+		break;
+	case IDC_PATTERN_COMP4:
+		num_comp = 3;
+		break;
+	}
+
+	TCHAR buffer[5];
+	GetDlgItemText(hwnd, idedit, buffer, 5);
+	if (!MatchPatternComponent(buffer)) {
+		SetDlgItemText(hwnd, idedit, IPComponent[num_comp]);
+		MessageBox(hwnd,
+				"Element of pattern should be an unsigned\n"
+				"number from the range 0..255, or *.",
+				"Error", MB_ICONSTOP | MB_OK);
+	} else {
+		strcpy(IPComponent[num_comp], buffer);
+	}
 }
 
 BOOL CALLBACK ConnectionsAccess::EditDlgProc(HWND hwnd,
@@ -296,7 +329,12 @@ BOOL CALLBACK ConnectionsAccess::EditDlgProc(HWND hwnd,
 			// to the calling vncProperties object
 			SetWindowLong(hwnd, GWL_USERDATA, lParam);
 			ConnectionsAccess *_this = (ConnectionsAccess *) lParam;
-			_this->m_hwnd_edit_dialog = hwnd;
+
+			SendMessage(GetDlgItem(hwnd, IDC_PATTERN_COMP1), EM_LIMITTEXT, (WPARAM)3, 0);
+			SendMessage(GetDlgItem(hwnd, IDC_PATTERN_COMP2), EM_LIMITTEXT, (WPARAM)3, 0);
+			SendMessage(GetDlgItem(hwnd, IDC_PATTERN_COMP3), EM_LIMITTEXT, (WPARAM)3, 0);
+			SendMessage(GetDlgItem(hwnd, IDC_PATTERN_COMP4), EM_LIMITTEXT, (WPARAM)3, 0);
+
 			if (_this->m_edit) {
 				SendDlgItemMessage(hwnd, IDC_RADIO_ALLOW, BM_SETCHECK,
 					(strcmp(_this->ItemString[1], "Allow") == 0), 0);
@@ -304,11 +342,18 @@ BOOL CALLBACK ConnectionsAccess::EditDlgProc(HWND hwnd,
 					(strcmp(_this->ItemString[1], "Deny") == 0), 0);
 				SendDlgItemMessage(hwnd, IDC_RADIO_QUERY, BM_SETCHECK,
 					(strcmp(_this->ItemString[1], "Query") == 0), 0);
-				_this->FormatPattern(FALSE, _this->ItemString[0]);
-				SetDlgItemText(hwnd, IDC_HOST_PATTERN, _this->ItemString[0]);
+				_this->FormatPattern(FALSE, _this->ItemString[0], _this->IPComponent);
 			} else {
+				for (int i = 0; i < 4; i++)
+					strcpy(_this->IPComponent[i], "*");
 				SendDlgItemMessage(hwnd, IDC_RADIO_ALLOW, BM_SETCHECK, TRUE, 0);
 			}
+
+			SetDlgItemText(hwnd, IDC_PATTERN_COMP1, _this->IPComponent[0]);
+			SetDlgItemText(hwnd, IDC_PATTERN_COMP2, _this->IPComponent[1]);
+			SetDlgItemText(hwnd, IDC_PATTERN_COMP3, _this->IPComponent[2]);
+			SetDlgItemText(hwnd, IDC_PATTERN_COMP4, _this->IPComponent[3]);
+
 			return TRUE;
 		}
 	case WM_HELP:	
@@ -317,30 +362,43 @@ BOOL CALLBACK ConnectionsAccess::EditDlgProc(HWND hwnd,
 	case WM_COMMAND:
 		switch (LOWORD(wParam))
 		{
+		case IDC_PATTERN_COMP1:
+		case IDC_PATTERN_COMP2:
+		case IDC_PATTERN_COMP3:
+		case IDC_PATTERN_COMP4:
+			{
+				if (HIWORD(wParam) == EN_UPDATE)
+					_this->MatchEdit(hwnd, LOWORD(wParam));
+			}
+			return 0;
 		case IDOK:
-			GetDlgItemText(hwnd, IDC_HOST_PATTERN, _this->ItemString[0], 80);
+			{
+				_this->ItemString[0][0] = '\0';
+				for (int i = 0; i < 4; i++) {
+					strcat(_this->ItemString[0], (i == 0) ? "" : ".");
+					strcat(_this->ItemString[0], _this->IPComponent[i]);
+				}
 
-			if (!_this->FormatPattern(TRUE, _this->ItemString[0])) {
-				MessageBox(hwnd,
-						   "The pattern format is incorrect. It should be entered\n"
-						   "as A.B.C.D or A.B.C or A.B or A, where each element\n"
-						   "should be an unsigned number from the range 0..255",
-						   "Error", MB_ICONSTOP | MB_OK);
+				if (!_this->FormatPattern(TRUE, _this->ItemString[0], NULL)) {
+					MessageBox(hwnd,
+							"The pattern format is incorrect. It should be entered\n"
+							 "as A.B.C.D or A.B.C or A.B or A, where each element\n"
+							 "should be an unsigned number from the range 0..255",
+							"Error", MB_ICONSTOP | MB_OK);
+					return TRUE;
+				}
+				if (SendDlgItemMessage(hwnd, IDC_RADIO_ALLOW, BM_GETCHECK, 0, 0) == BST_CHECKED) {
+					strcpy(_this->ItemString[1], "Allow");
+				} else if (SendDlgItemMessage(hwnd, IDC_RADIO_DENY, BM_GETCHECK, 0, 0) == BST_CHECKED) {
+					strcpy(_this->ItemString[1], "Deny");
+				} else if (SendDlgItemMessage(hwnd, IDC_RADIO_QUERY, BM_GETCHECK, 0, 0) == BST_CHECKED) {
+					strcpy(_this->ItemString[1], "Query");
+				}
+				EndDialog(hwnd, IDOK);
 				return TRUE;
 			}
-			if (SendDlgItemMessage(hwnd, IDC_RADIO_ALLOW, BM_GETCHECK, 0, 0) == BST_CHECKED) {
-				strcpy(_this->ItemString[1], "Allow");
-			} else if (SendDlgItemMessage(hwnd, IDC_RADIO_DENY, BM_GETCHECK, 0, 0) == BST_CHECKED) {
-				strcpy(_this->ItemString[1], "Deny");
-			} else if (SendDlgItemMessage(hwnd, IDC_RADIO_QUERY, BM_GETCHECK, 0, 0) == BST_CHECKED) {
-				strcpy(_this->ItemString[1], "Query");
-			}
-			EndDialog(hwnd, IDOK);
-			_this->m_hwnd_edit_dialog = NULL;
-			return TRUE;
 		case IDCANCEL:
 			EndDialog(hwnd, IDCANCEL);
-			_this->m_hwnd_edit_dialog = NULL;
 			return TRUE;		
 		}
 		return 0;
@@ -350,8 +408,4 @@ BOOL CALLBACK ConnectionsAccess::EditDlgProc(HWND hwnd,
 
 ConnectionsAccess::~ConnectionsAccess()
 {
-	if (m_hwnd_edit_dialog != NULL) {
-		EndDialog(m_hwnd_edit_dialog, IDCANCEL);
-		m_hwnd_edit_dialog = NULL;
-	}
 }

@@ -1,4 +1,3 @@
-//  Copyright (C) 2002 HorizonLive.com, Inc. All Rights Reserved.
 //  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
@@ -26,17 +25,18 @@
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
 
-// vncAcceptReversDlg.cpp
+// vncAcceptDialog.cpp: implementation of the vncAcceptDialog class, used
+// to query whether or not to accept incoming connections.
 
 #include "stdhdrs.h"
-#include "vncAcceptReversDlg.h"
+#include "vncAcceptReverseDlg.h"
 #include "WinVNC.h"
 #include "vncService.h"
 #include "resource.h"
 
 // Constructor
 
-vncAcceptReversDlg::vncAcceptReversDlg(vncMenu *menu, const char *addr)
+vncAcceptReverseDlg::vncAcceptReverseDlg(vncMenu *menu, const char *addr)
 {
 m_menu = menu;
 m_ipAddress = strdup(addr);
@@ -44,7 +44,7 @@ m_ipAddress = strdup(addr);
 
 // Destructor
 
-vncAcceptReversDlg::~vncAcceptReversDlg()
+vncAcceptReverseDlg::~vncAcceptReverseDlg()
 {
 	if (m_ipAddress)
 		free(m_ipAddress);
@@ -52,10 +52,10 @@ vncAcceptReversDlg::~vncAcceptReversDlg()
 
 // Routine called to activate the dialog and, once it's done, delete it
 
-int vncAcceptReversDlg::DoDialog()
+int vncAcceptReverseDlg::DoDialog()
 {
-	int retVal = DialogBoxParam(hAppInstance, MAKEINTRESOURCE(IDD_ACCEPT_REVERS), 
-		NULL, (DLGPROC) vncAcceptReversDlgProc, (LONG) this);
+	int retVal = DialogBoxParam(hAppInstance, MAKEINTRESOURCE(IDD_ACCEPT_REVERSE), 
+		NULL, (DLGPROC) vncAcceptReverseDlgProc, (LONG) this);
 	delete this;
 	switch (retVal)
 	{
@@ -69,7 +69,7 @@ int vncAcceptReversDlg::DoDialog()
 
 // Callback function - handles messages sent to the dialog box
 
-BOOL CALLBACK vncAcceptReversDlg::vncAcceptReversDlgProc(HWND hwnd,
+BOOL CALLBACK vncAcceptReverseDlg::vncAcceptReverseDlgProc(HWND hwnd,
 											UINT uMsg,
 											WPARAM wParam,
 											LPARAM lParam) {
@@ -77,7 +77,7 @@ BOOL CALLBACK vncAcceptReversDlg::vncAcceptReversDlgProc(HWND hwnd,
 	// dealing with. But we can get a pseudo-this from the parameter to 
 	// WM_INITDIALOG, which we therafter store with the window and retrieve
 	// as follows:
-	vncAcceptReversDlg *_this = (vncAcceptReversDlg *) GetWindowLong(hwnd, GWL_USERDATA);
+	vncAcceptReverseDlg *_this = (vncAcceptReverseDlg *) GetWindowLong(hwnd, GWL_USERDATA);
 
 	switch (uMsg) {
 
@@ -88,10 +88,10 @@ BOOL CALLBACK vncAcceptReversDlg::vncAcceptReversDlgProc(HWND hwnd,
 			// access to the parent C++ object
 
             SetWindowLong(hwnd, GWL_USERDATA, lParam);
-            vncAcceptReversDlg *_this = (vncAcceptReversDlg *) lParam;
+            vncAcceptReverseDlg *_this = (vncAcceptReverseDlg *) lParam;
 
 			
-			// Set the IP-address string
+			// Set the IP-address string to text dialog box
 			char temp[256];
 			sprintf(temp, "Would you like to share your computer now via LiveShare at http://%s", (_this->m_ipAddress));
 			SetDlgItemText(hwnd, IDC_STATIC_TEXT2, temp);

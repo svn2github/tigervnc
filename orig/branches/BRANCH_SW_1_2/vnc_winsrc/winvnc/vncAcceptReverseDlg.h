@@ -1,4 +1,3 @@
-//  Copyright (C) 2001 HorizonLive.com, Inc. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
 //  This file is part of the VNC system.
@@ -24,7 +23,7 @@
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
-class vncAcceptReversDlg;
+class vncAcceptReverseDlg;
 
 #if (!defined(_WINVNC_VNCACCEPTREVERSDIALOG))
 #define _WINVNC_VNCACCEPTREVERSDIALOG
@@ -32,31 +31,24 @@ class vncAcceptReversDlg;
 #pragma once
 
 #include "vncMenu.h"
-// Incoming connection-rejection dialog.  vncClient creates an AcceptDialog
-// if it needs to query whether or not to accept a connection.
+// Reverse connection-rejection dialog.  
 
-class vncAcceptReversDlg  
+class vncAcceptReverseDlg  
 {
 public:
 
 	// Create an outgoing-connection dialog
-	vncAcceptReversDlg (vncMenu *menu, const char *addr);
+	vncAcceptReverseDlg (vncMenu *menu, const char *addr);
 	// Destructor
-	virtual ~vncAcceptReversDlg();
+	virtual ~vncAcceptReverseDlg();
 
-	// Once a dialog object is created, either delete it again, or
-	// call DoDialog.  DoDialog will run the dialog and return
-	// TRUE (Accept) or FALSE (Reject).
-	// 1: Accept, 2: Accept w/o Password
-	// The function will also return false (or true, if set to accept at timeout)
-	// if the dialog times out.
 	BOOL DoDialog();
 
 	// Internal stuffs
 private:
 
 	// Routine to call when a dialog event occurs
-	static BOOL CALLBACK vncAcceptReversDlgProc(HWND hwndDlg,
+	static BOOL CALLBACK vncAcceptReverseDlgProc(HWND hwndDlg,
 											UINT uMsg, 
 											WPARAM wParam,
 											LPARAM lParam);

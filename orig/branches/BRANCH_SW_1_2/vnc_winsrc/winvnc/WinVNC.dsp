@@ -601,7 +601,7 @@ SOURCE=.\vncAcceptDialog.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\vncAcceptReversDlg.cpp
+SOURCE=.\vncAcceptReverseDlg.cpp
 
 !IF  "$(CFG)" == "WinVNC - Win32 Release"
 
@@ -1663,7 +1663,7 @@ SOURCE=.\vncAcceptDialog.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\vncAcceptReversDlg.h
+SOURCE=.\vncAcceptReverseDlg.h
 # End Source File
 # Begin Source File
 

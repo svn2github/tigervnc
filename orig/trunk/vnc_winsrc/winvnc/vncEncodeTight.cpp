@@ -92,6 +92,13 @@ vncEncodeTight::Init()
 	vncEncoder::Init();
 }
 
+void
+vncEncodeTight::LogStats()
+{
+	log.Print(LL_INTINFO, VNCLOG("Tight encoder stats: dataSize=%d, rectangleOverhead=%d, encodedSize=%d, transmittedSize=%d, efficiency=%.3f\n"),
+				dataSize, rectangleOverhead, encodedSize, transmittedSize, ((((float)dataSize-transmittedSize)*100)/dataSize));
+}
+
 UINT
 vncEncodeTight::RequiredBuffSize(UINT width, UINT height)
 {
@@ -173,8 +180,10 @@ vncEncodeTight::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest,
 				partialSize = EncodeSubrect(source, outConn, dest,
 											x+dx, y+dy, rw, rh);
 				totalSize += partialSize;
-				if (dy + subrectMaxHeight < h || dx + maxRectWidth < w)
+				if (dy + subrectMaxHeight < h || dx + maxRectWidth < w) {
 					outConn->SendExact((char *)dest, partialSize);
+					transmittedSize += partialSize;
+				}
 			}
 		}
 	} else {
@@ -182,6 +191,7 @@ vncEncodeTight::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest,
 		totalSize += partialSize;
 	}
 
+	transmittedSize += partialSize;
 	return partialSize;
 }
 
@@ -196,6 +206,9 @@ vncEncodeTight::EncodeSubrect(BYTE *source, VSocket *outConn, BYTE *dest,
 	hdr.r.w = Swap16IfLE(w);
 	hdr.r.h = Swap16IfLE(h);
 	hdr.encoding = Swap32IfLE(rfbEncodingTight);
+
+	dataSize += ( w * h * m_remoteformat.bitsPerPixel) / 8;
+	rectangleOverhead += sz_rfbFramebufferUpdateRectHeader;
 
 	memcpy(m_hdrBuffer, (BYTE *)&hdr, sz_rfbFramebufferUpdateRectHeader);
 	m_hdrBufferBytes = sz_rfbFramebufferUpdateRectHeader;
@@ -221,34 +234,37 @@ vncEncodeTight::EncodeSubrect(BYTE *source, VSocket *outConn, BYTE *dest,
 		FillPalette32(w * h);
 	}
 
-	int dataSize;
+	int encDataSize;
 	switch (m_paletteNumColors) {
 	case 0:
 		// Truecolor image
 		if (DetectStillImage(w, h)) {
-			dataSize = SendGradientRect(dest, w, h);
+			encDataSize = SendGradientRect(dest, w, h);
 		} else {
-			dataSize = SendFullColorRect(dest, w, h);
+			encDataSize = SendFullColorRect(dest, w, h);
 		}
 		break;
 	case 1:
 		// Solid rectangle
-		dataSize = SendSolidRect(dest, w, h);
+		encDataSize = SendSolidRect(dest, w, h);
 		break;
 	case 2:
 		// Two-color rectangle
-		dataSize = SendMonoRect(dest, w, h);
+		encDataSize = SendMonoRect(dest, w, h);
 		break;
 	default:
 		// Up to 256 different colors
-		dataSize = SendIndexedRect(dest, w, h);
+		encDataSize = SendIndexedRect(dest, w, h);
 	}
 
-	if (dataSize < 0)
+	if (encDataSize < 0)
 		return vncEncoder::EncodeRect(source, dest, r);
 
 	outConn->SendExact((char *)m_hdrBuffer, m_hdrBufferBytes);
-	return dataSize;
+	transmittedSize += m_hdrBufferBytes;
+
+	encodedSize += encDataSize + m_hdrBufferBytes - sz_rfbFramebufferUpdateRectHeader;
+	return encDataSize;
 }
 
 

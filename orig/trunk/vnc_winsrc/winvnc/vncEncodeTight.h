@@ -87,6 +87,7 @@ public:
 	~vncEncodeTight();
 
 	virtual void Init();
+	virtual void LogStats();
 
 	virtual UINT RequiredBuffSize(UINT width, UINT height);
 	virtual UINT NumCodedRects(RECT &rect);

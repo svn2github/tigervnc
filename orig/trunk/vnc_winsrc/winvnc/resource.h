@@ -49,6 +49,7 @@
 #define IDR_CAPSCONTAINER_CLASS         155
 #define IDC_STATIC_DRVINFO              1003
 #define IDC_CONNECT_SOCK                1004
+#define IDC_BLANK_SCREEN                1005
 #define IDC_PASSWORD_LABEL              1007
 #define IDC_DISPLAYNO                   1008
 #define IDC_PASSWORD                    1009

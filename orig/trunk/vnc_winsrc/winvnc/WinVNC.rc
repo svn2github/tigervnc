@@ -221,29 +221,32 @@ BEGIN
                     69,12,SS_CENTERIMAGE | NOT WS_GROUP
     EDITTEXT        IDC_PASSWORD_VIEWONLY,84,39,40,12,ES_PASSWORD | 
                     ES_AUTOHSCROLL
+    GROUPBOX        "Display or port numbers to use:",
+                    IDC_STATIC_DISPLAY_PORT,154,9,120,66
     CONTROL         "auto",IDC_PORTNO_AUTO,"Button",BS_AUTORADIOBUTTON | 
                     WS_GROUP | WS_TABSTOP,159,21,33,12
     CONTROL         "display",IDC_SPECDISPLAY,"Button",BS_AUTORADIOBUTTON | 
                     WS_TABSTOP,159,39,40,12
     CONTROL         "ports",IDC_SPECPORT,"Button",BS_AUTORADIOBUTTON | 
                     WS_TABSTOP,159,58,35,12
-    EDITTEXT        IDC_DISPLAYNO,237,20,29,12,ES_AUTOHSCROLL | ES_NUMBER
-    EDITTEXT        IDC_PORTRFB,237,39,29,12,ES_AUTOHSCROLL | ES_NUMBER
-    EDITTEXT        IDC_PORTHTTP,237,58,29,12,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "Enable file transfers between server and clients",
-                    IDC_ENABLE_FILE_TRANSFERS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,7,80,209,12
-    CONTROL         "Remove desktop wallpaper on client connections",
-                    IDC_REMOVE_WALLPAPER,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
-                    WS_TABSTOP,7,93,209,12
     CTEXT           "display:",IDC_DISPLAY_LABEL,209,21,23,12,SS_CENTERIMAGE | 
                     NOT WS_GROUP
+    EDITTEXT        IDC_DISPLAYNO,237,20,29,12,ES_AUTOHSCROLL | ES_NUMBER
     CTEXT           "main port:",IDC_MAIN_LABEL,201,40,33,10,SS_CENTERIMAGE | 
                     NOT WS_GROUP
+    EDITTEXT        IDC_PORTRFB,237,39,29,12,ES_AUTOHSCROLL | ES_NUMBER
     CTEXT           "HTTP port:",IDC_HTTP_LABEL,198,59,35,10,SS_CENTERIMAGE | 
                     NOT WS_GROUP
-    GROUPBOX        "Display or port numbers to use:",
-                    IDC_STATIC_DISPLAY_PORT,154,9,120,66
+    EDITTEXT        IDC_PORTHTTP,237,58,29,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Blank screen on client connections",IDC_BLANK_SCREEN,
+                    "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,67,
+                    144,12
+    CONTROL         "Remove desktop wallpaper on client connections",
+                    IDC_REMOVE_WALLPAPER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,7,80,209,12
+    CONTROL         "Enable file transfers between server and clients",
+                    IDC_ENABLE_FILE_TRANSFERS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,7,93,209,12
 END
 
 IDD_INPUT_HANDLING DIALOG DISCARDABLE  0, 0, 232, 93

@@ -4,7 +4,7 @@
 
 CLASSES = vncviewer.class rfbProto.class authenticationPanel.class \
 	  vncCanvas.class optionsFrame.class clipboardFrame.class \
-	  animatedMemoryImageSource.class DesCipher.class
+	  DesCipher.class
 
 all: $(CLASSES) vncviewer.jar
 

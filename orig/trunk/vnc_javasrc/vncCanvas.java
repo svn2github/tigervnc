@@ -36,7 +36,7 @@ class vncCanvas extends Canvas
   ColorModel cm;
   Color[] colors;
   Image rawPixelsImage;
-  animatedMemoryImageSource amis;
+  MemoryImageSource pixelsSource;
   byte[] pixels;
   byte[] zlibBuf;
   int zlibBufLen = 0;
@@ -62,9 +62,12 @@ class vncCanvas extends Canvas
 
     pixels = new byte[rfb.framebufferWidth * rfb.framebufferHeight];
 
-    amis = new animatedMemoryImageSource(rfb.framebufferWidth,
-					 rfb.framebufferHeight, cm, pixels);
-    rawPixelsImage = createImage(amis);
+    pixelsSource = new MemoryImageSource(rfb.framebufferWidth,
+                                         rfb.framebufferHeight, cm, pixels,
+                                         0, rfb.framebufferWidth);
+    pixelsSource.setAnimated(true);
+
+    rawPixelsImage = createImage(pixelsSource);
 
     tightInflaters = new Inflater[4];
   }
@@ -548,7 +551,7 @@ class vncCanvas extends Canvas
   synchronized void
   handleUpdatedPixels(int x, int y, int w, int h) throws IOException {
 
-    amis.newPixels(x, y, w, h);
+    pixelsSource.newPixels(x, y, w, h);
 
     try {
       sg.setClip(x, y, w, h);

@@ -157,8 +157,6 @@ protected:
 	RECT			m_oldmousepos;
 	BOOL			m_mousemoved;
 	rfbPointerEventMsg	m_ptrevent;
-	/// !!!!
-	//vncKeymap		m_keymap;
 
 	// Support for cursor shape updates (XCursor, RichCursor encodings)
 	BOOL			m_cursor_update_pending;

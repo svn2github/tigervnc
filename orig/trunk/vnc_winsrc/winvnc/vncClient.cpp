@@ -509,8 +509,6 @@ vncClientThread::run(void *arg)
 		//ClearKeyState(VK_NUMLOCK);
 		ClearKeyState(VK_SCROLL);
 	}
-/// !!!!
-	vncKeymap *m_keymap = new vncKeymap(m_client->m_server);
 	
 	// MAIN LOOP
 
@@ -777,8 +775,8 @@ vncClientThread::run(void *arg)
 					msg.ke.key = Swap32IfLE(msg.ke.key);
 
 					// Get the keymapper to do the work
-					//m_client->m_keymap.DoXkeysym(msg.ke.key, msg.ke.down);
-					m_keymap->DoXkeysym(msg.ke.key, msg.ke.down);
+					vncKeymap::keyEvent(msg.ke.key, msg.ke.down != 0,
+										m_client->m_server);
 					m_client->m_remoteevent = TRUE;
 				}
 			}
@@ -924,9 +922,6 @@ vncClientThread::run(void *arg)
 	// associated client.
 	vnclog.Print(LL_CLIENTS, VNCLOG("client disconnected : %s (id %hd)\n"),
 				 m_client->GetClientName(), m_client->GetClientId());
-
-	if (m_keymap != NULL)
-		delete m_keymap;
 
 	// Remove the client from the server, just in case!
 	m_server->RemoveClient(m_client->GetClientId());

@@ -127,6 +127,7 @@ protected:
 protected:
 	// Per-client settings
 	int				m_protocol_minor_version;
+	BOOL			m_protocol_tightvnc;
 	BOOL			m_keyboardenabled;
 	BOOL			m_pointerenabled;
 	BOOL			m_copyrect_use;

@@ -105,9 +105,11 @@ private:
 	void Connect();
 	void SetSocketOptions();
 	void NegotiateProtocolVersion();
+	void PerformAuthentication();
+	int ReadSecurityType();
+	int SelectSecurityType();
 	void SetupTunneling();
-	void PerformAuthenticationNew();
-	void PerformAuthenticationOld();
+	void PerformAuthenticationTight();
 	void Authenticate(CARD32 authScheme);
 	bool AuthenticateVNC(char *errBuf, int errBufSize, bool *again);
 	bool AuthenticateUnixLogin(char *errBuf, int errBufSize, bool *again);
@@ -333,6 +335,7 @@ private:
 	rfbPixelFormat m_myFormat, m_pendingFormat;
 	// protocol version in use.
 	int m_majorVersion, m_minorVersion;
+	bool m_tightVncProtocol;
 	bool m_threadStarted, m_running;
 	// mid-connection format change requested
 	bool m_pendingFormatChange;

@@ -180,9 +180,9 @@ void ClientConnection::Init(VNCviewerApp *pApp)
 void ClientConnection::InitCapabilities()
 {
 	// Supported authentication methods
-	m_authCaps.Add(rfbVncAuth, rfbStandardVendor, sig_rfbVncAuth,
+	m_authCaps.Add(rfbAuthVNC, rfbStandardVendor, sig_rfbAuthVNC,
 				   "Standard VNC password authentication");
-	m_authCaps.Add(rfbUnixLoginAuth, rfbTightVncVendor, sig_rfbUnixLoginAuth,
+	m_authCaps.Add(rfbAuthUnixLogin, rfbTightVncVendor, sig_rfbAuthUnixLogin,
 				   "Login-style Unix authentication");
 
 	// Known server->client message types
@@ -267,14 +267,7 @@ void ClientConnection::Run()
 	SetSocketOptions();
 
 	NegotiateProtocolVersion();
-
-	// Only for protocol version 3.130
-	if (m_minorVersion >= 130) {
-		SetupTunneling();
-		PerformAuthenticationNew();
-	} else {
-		PerformAuthenticationOld();
-	}
+	PerformAuthentication();
 
 	// Set up windows etc 
 	CreateDisplay();
@@ -283,8 +276,8 @@ void ClientConnection::Run()
 	
 	ReadServerInit();
 
-	// Only for protocol version 3.130
-	if (m_minorVersion >= 130) {
+	// Only for protocol version 3.7t
+	if (m_tightVncProtocol) {
 		// Determine which protocol messages and encodings are supported.
 		ReadInteractionCaps();
 		// Enable file transfers if the server supports this feature.
@@ -782,12 +775,11 @@ void ClientConnection::NegotiateProtocolVersion()
 		vnclog.Print(0, _T("Can't use IDEA authentication\n"));
         /* This will be reported later if authentication is requested*/
 
-	} else if ((m_majorVersion == 3) && (m_minorVersion >= 130)) {
+	} else if ((m_majorVersion == 3) && (m_minorVersion >= rfbProtocolMinorVersion)) {
 
-		/* the server supports TightVNC extensions, protocol 3.130 */
+		/* the server supports at least the standard protocol 3.7 */
 		m_majorVersion = rfbProtocolMajorVersion;
 		m_minorVersion = rfbProtocolMinorVersion;
-		InitCapabilities();
 
     } else {
 
@@ -797,27 +789,128 @@ void ClientConnection::NegotiateProtocolVersion()
 
     }
 
+	m_tightVncProtocol = false;
+
     sprintf(pv,rfbProtocolVersionFormat,m_majorVersion,m_minorVersion);
 #endif
 
     WriteExact(pv, sz_rfbProtocolVersionMsg);
 
 	vnclog.Print(0, _T("Connected to RFB server, using protocol version %d.%d\n"),
-		rfbProtocolMajorVersion, rfbProtocolMinorVersion);
+		m_majorVersion, m_minorVersion);
 }
 
 //
-// Setup tunneling in protocol version 3.130
+// Negotiate authentication scheme and authenticate if necessary
+//
+
+void ClientConnection::PerformAuthentication()
+{
+	int secType;
+	if (m_minorVersion == rfbProtocolMinorVersion) {
+		secType = SelectSecurityType();
+	} else {
+		secType = ReadSecurityType();
+	}
+
+	switch (secType) {
+    case rfbSecTypeNone:
+		vnclog.Print(0, _T("No authentication needed\n"));
+		break;
+    case rfbSecTypeVncAuth:
+		Authenticate(rfbAuthVNC);
+		break;
+    case rfbSecTypeTight:
+		m_tightVncProtocol = true;
+		InitCapabilities();
+		SetupTunneling();
+		PerformAuthenticationTight();
+		break;
+	default:	// should never happen
+		vnclog.Print(0, _T("Internal error: Invalid security type\n"));
+		throw ErrorException("Internal error: Invalid security type");
+    }
+}
+
+//
+// Read security type from the server (protocol version 3.3)
+//
+
+int ClientConnection::ReadSecurityType()
+{
+	// Read the authentication scheme.
+	CARD32 secType;
+	ReadExact((char *)&secType, sizeof(secType));
+	secType = Swap32IfLE(secType);
+
+    if (secType == rfbSecTypeInvalid)
+		throw WarningException(ReadFailureReason());
+
+	if (secType != rfbSecTypeNone && secType != rfbSecTypeVncAuth) {
+		vnclog.Print(0, _T("Unknown security type from RFB server: %d\n"),
+					 (int)secType);
+		throw ErrorException("Unknown security type requested!");
+    }
+
+	return (int)secType;
+}
+
+//
+// Select security type from the server's list (protocol version 3.7)
+//
+
+int ClientConnection::SelectSecurityType()
+{
+	// Read the list of secutiry types.
+	CARD8 nSecTypes;
+	ReadExact((char *)&nSecTypes, sizeof(nSecTypes));
+	if (nSecTypes == 0)
+		throw WarningException(ReadFailureReason());
+
+	char *secTypeNames[] = {"None", "VncAuth"};
+	CARD8 knownSecTypes[] = {rfbSecTypeNone, rfbSecTypeVncAuth};
+	int nKnownSecTypes = sizeof(knownSecTypes);
+	CARD8 *secTypes = new CARD8[nSecTypes];
+	ReadExact((char *)secTypes, nSecTypes);
+	CARD8 secType = rfbSecTypeInvalid;
+
+	// Find out if the server supports TightVNC protocol extensions
+	int j;
+	for (j = 0; j < (int)nSecTypes; j++) {
+		if (secTypes[j] == rfbSecTypeTight) {
+			secType = rfbSecTypeTight;
+			WriteExact((char *)&secType, sizeof(secType));
+			vnclog.Print(8, _T("Enabling TightVNC protocol extensions\n"));
+			return rfbSecTypeTight;
+		}
+	}
+
+	// Find first supported security type
+	for (j = 0; j < (int)nSecTypes; j++) {
+		for (int i = 0; i < nKnownSecTypes; i++) {
+			if (secTypes[j] == knownSecTypes[i]) {
+				secType = secTypes[j];
+				WriteExact((char *)&secType, sizeof(secType));
+				vnclog.Print(8, _T("Choosing security type %s(%d)\n"),
+							 secTypeNames[i], (int)secType);
+				break;
+			}
+		}
+		if (secType != rfbSecTypeInvalid) break;
+    }
+
+	return (int)secType;
+}
+
+//
+// Setup tunneling (protocol version 3.7t)
 //
 
 void ClientConnection::SetupTunneling()
 {
 	rfbTunnelingCapsMsg caps;
 	ReadExact((char *)&caps, sz_rfbTunnelingCapsMsg);
-	caps.nTunnelTypes = Swap16IfLE(caps.nTunnelTypes);
-
-	if (caps.connFailed)
-		throw WarningException(ReadFailureReason());
+	caps.nTunnelTypes = Swap32IfLE(caps.nTunnelTypes);
 
 	if (caps.nTunnelTypes) {
 		ReadCapabilityList(&m_tunnelCaps, caps.nTunnelTypes);
@@ -829,17 +922,14 @@ void ClientConnection::SetupTunneling()
 }
 
 //
-// Negotiate authentication scheme (protocol version 3.130)
+// Negotiate authentication scheme (protocol version 3.7t)
 //
 
-void ClientConnection::PerformAuthenticationNew()
+void ClientConnection::PerformAuthenticationTight()
 {
 	rfbAuthenticationCapsMsg caps;
 	ReadExact((char *)&caps, sz_rfbAuthenticationCapsMsg);
-	caps.nAuthTypes = Swap16IfLE(caps.nAuthTypes);
-
-	if (caps.connFailed)
-		throw WarningException(ReadFailureReason());
+	caps.nAuthTypes = Swap32IfLE(caps.nAuthTypes);
 
 	if (!caps.nAuthTypes) {
 		vnclog.Print(0, _T("No authentication needed\n"));
@@ -847,7 +937,7 @@ void ClientConnection::PerformAuthenticationNew()
 		ReadCapabilityList(&m_authCaps, caps.nAuthTypes);
 		if (!m_authCaps.NumEnabled()) {
 			vnclog.Print(0, _T("No suitable authentication schemes offered by the server\n"));
-			throw ErrorException("Incompatible authentication schemes on the server!");
+			throw ErrorException("No suitable authentication schemes offered by the server");
 		}
 
 		// Use server's preferred authentication scheme.
@@ -857,34 +947,6 @@ void ClientConnection::PerformAuthenticationNew()
 		authScheme = Swap32IfLE(authScheme);	// convert it back
 		Authenticate(authScheme);
 	}
-}
-
-//
-// Negotiate authentication scheme (protocol version 3.3)
-//
-
-void ClientConnection::PerformAuthenticationOld()
-{
-	// Read the authentication scheme.
-	CARD32 authScheme;
-	ReadExact((char *)&authScheme, sizeof(authScheme));
-	authScheme = Swap32IfLE(authScheme);
-
-    switch (authScheme) {
-    case rfbConnFailed:
-		throw WarningException(ReadFailureReason());
-		break;
-    case rfbNoAuth:
-		vnclog.Print(0, _T("No authentication needed\n"));
-		break;
-    case rfbVncAuth:
-		Authenticate(rfbVncAuth);
-		break;
-	default:
-		vnclog.Print(0, _T("Unknown authentication scheme from RFB server: %d\n"),
-			(int)authScheme);
-		throw ErrorException("Unknown authentication scheme!");
-    }
 }
 
 // The definition of a function implementing some authentication scheme.
@@ -898,10 +960,10 @@ void ClientConnection::Authenticate(CARD32 authScheme)
 	AuthFunc authFuncPtr;
 
 	switch(authScheme) {
-	case rfbVncAuth:
+	case rfbAuthVNC:
 		authFuncPtr = &ClientConnection::AuthenticateVNC;
 		break;
-	case rfbUnixLoginAuth:
+	case rfbAuthUnixLogin:
 		authFuncPtr = &ClientConnection::AuthenticateUnixLogin;
 		break;
 	default:
@@ -1127,7 +1189,7 @@ void ClientConnection::ReadServerInit()
 }
 
 //
-// In the protocol version 3.130, the server informs us about supported
+// In the protocol version 3.7t, the server informs us about supported
 // protocol messages and encodings. Here we read this information.
 //
 
@@ -2556,16 +2618,16 @@ void ClientConnection::ShowConnInfo()
 #endif
 	_stprintf(
 		buf,
-		_T("Connected to: %s:\n\r")
+		_T("Connected to: %s\n\r")
 		_T("Host: %s port: %d\n\r\n\r")
 		_T("Desktop geometry: %d x %d x %d\n\r")
 		_T("Using depth: %d\n\r")
-		_T("Current protocol version: %d.%d\n\r\n\r")
+		_T("Current protocol version: %d.%d%s\n\r\n\r")
 		_T("Current keyboard name: %s\n\r"),
 		m_desktopName, m_host, m_port,
 		m_si.framebufferWidth, m_si.framebufferHeight, m_si.format.depth,
 		m_myFormat.depth,
-		m_majorVersion, m_minorVersion,
+		m_majorVersion, m_minorVersion, (m_tightVncProtocol ? "tight" : ""),
 		kbdname);
 	MessageBox(NULL, buf, _T("VNC connection info"), MB_ICONINFORMATION | MB_OK);
 }

@@ -1,23 +1,24 @@
-// QuerySettingsControls.h: interface for the QuerySettingsControls class.
+// AdministrationControls.h: interface for the AdministrationControls class.
 //
 //////////////////////////////////////////////////////////////////////
 
-#ifndef AFX_QUERYSETTINGSCONTROLS_H__
-#define AFX_QUERYSETTINGSCONTROLS_H__
+#ifndef AFX_ADMINISTRATIONCONTROLS_H__
+#define AFX_ADMINISTRATIONCONTROLS_H__
+
 
 #pragma once
 
 #include "resource.h"
 #include "vncServer.h"
 
-class QuerySettingsControls  
+class AdministrationControls  
 {
 public:
-	QuerySettingsControls(HWND hwnd, vncServer * m_server);
+	AdministrationControls(HWND hwnd, vncServer * server);
 	void Validate();
 	void Apply();
 	void Init();
-	virtual ~QuerySettingsControls();
+	virtual ~AdministrationControls();
 private:
 	inline void Enable(int id, BOOL enable) {
 		EnableWindow(GetDlgItem(m_hwnd, id), enable);
@@ -32,4 +33,4 @@ private:
 	HWND m_hwnd;
 };
 
-#endif 
+#endif

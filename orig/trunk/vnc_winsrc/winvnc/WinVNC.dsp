@@ -156,6 +156,10 @@ LINK32=link.exe
 # PROP Default_Filter ".cpp, .c"
 # Begin Source File
 
+SOURCE=.\AdministrationControls.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\d3des.c
 # End Source File
 # Begin Source File
@@ -426,6 +430,10 @@ SOURCE=.\WinVNC.rc
 # Begin Group "Headers"
 
 # PROP Default_Filter ".h"
+# Begin Source File
+
+SOURCE=.\AdministrationControls.h
+# End Source File
 # Begin Source File
 
 SOURCE=.\d3des.h

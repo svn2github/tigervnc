@@ -516,13 +516,10 @@ void VNCOptions::Save(char *fname)
 	saveInt("scale_den",			m_scale_den,		fname);
 	saveInt("scale_num",			m_scale_num,		fname);
 	saveInt("cursorshape",			m_requestShapeUpdates, fname);
-	saveInt("noremotecursor",		m_ignoreShapeUpdates, fname);
-	if (m_useCompressLevel) {
-		saveInt("compresslevel",	m_compressLevel,	fname);
-	}
-	if (m_enableJpegCompression) {
-		saveInt("quality",			m_jpegQualityLevel,	fname);
-	}
+	saveInt("noremotecursor",		m_ignoreShapeUpdates, fname);	
+	saveInt("compresslevel", m_useCompressLevel? m_compressLevel : -1,	fname);	
+	saveInt("quality", m_enableJpegCompression?	m_jpegQualityLevel : -1,	fname);
+
 }
 
 void VNCOptions::Load(char *fname)
@@ -1421,13 +1418,21 @@ void VNCOptions::LoadOpt(char subkey[256], char keyname[256])
 	m_scale_num =			read(RegKey, "scale_num",         m_scale_num	         );
 	m_requestShapeUpdates =	read(RegKey, "cursorshape",       m_requestShapeUpdates	 ) != 0;
 	m_ignoreShapeUpdates =	read(RegKey, "noremotecursor",    m_ignoreShapeUpdates   ) != 0;
-	m_compressLevel =		read(RegKey, "compresslevel",     m_compressLevel        );
-	m_useCompressLevel =	read(RegKey, "usecompresslevel",  m_useCompressLevel     ) != 0;
+	int level		 =		read(RegKey, "compresslevel",     -1				     );
+	m_useCompressLevel = false;
+	if (level != -1) {
+		m_compressLevel = level;
+		m_useCompressLevel = true;
+	}
 	m_scaling =				read(RegKey, "scaling",						  m_scaling  ) != 0;	
 		
-	m_enableJpegCompression =	read(RegKey, "enablejpeglevel", m_enableJpegCompression) != 0;
-	m_jpegQualityLevel =	read(RegKey, "quality", m_jpegQualityLevel);
-			
+	m_enableJpegCompression = false;
+	level =					read(RegKey, "quality", -1);
+	m_enableJpegCompression = false;
+	if (level != -1) {
+		m_jpegQualityLevel = level;
+		m_enableJpegCompression = true;
+	}
 	RegCloseKey(RegKey);
 }
 int VNCOptions::read(HKEY hkey, char *name, int retrn)
@@ -1474,13 +1479,10 @@ int VNCOptions::read(HKEY hkey, char *name, int retrn)
 	save(RegKey, "scale_den",			m_scale_den			);
 	save(RegKey, "scale_num",			m_scale_num			);
 	save(RegKey, "cursorshape",			m_requestShapeUpdates );
-	save(RegKey, "noremotecursor",		m_ignoreShapeUpdates );
+	save(RegKey, "noremotecursor",		m_ignoreShapeUpdates );	
+	save(RegKey, "compresslevel", m_useCompressLevel ? m_compressLevel : -1);	
+	save(RegKey, "quality",	m_enableJpegCompression ? m_jpegQualityLevel : -1);
 	
-	save(RegKey, "usecompresslevel",	m_useCompressLevel	);
-	save(RegKey, "compresslevel",	m_compressLevel			);
-	
-	save(RegKey, "quality",			m_jpegQualityLevel		);
-	save(RegKey, "enablejpeglevel",	m_enableJpegCompression	);
 	
 	RegCloseKey(RegKey);
 }

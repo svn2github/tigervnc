@@ -43,7 +43,7 @@ class authenticationPanel extends Panel {
     password = new TextField(10);
     password.setForeground(Color.black);
     password.setBackground(Color.white);
-    password.setEchoCharacter('*');
+    password.setEchoChar('*');
 
     ok = new Button("OK");
 
@@ -84,12 +84,14 @@ class authenticationPanel extends Panel {
   }
 
   //
-  // Override Component.show() to get the focus set properly.
+  // Override Component.setVisible() to get the focus set properly.
   //
 
-  public void show() {
-    password.requestFocus();
-    super.show();
+  public void setVisible(boolean f) {
+    if (f) {
+      password.requestFocus();
+    }
+    super.setVisible(f);
   }
 
   //

@@ -137,9 +137,7 @@ class rfbProto {
   //
 
   void writeVersionMsg() throws IOException {
-    byte[] b = new byte[12];
-    versionMsg.getBytes(0, 12, b, 0);
-    os.write(b);
+    os.write(versionMsg.getBytes());
   }
 
 
@@ -156,7 +154,7 @@ class rfbProto {
       int reasonLen = is.readInt();
       byte[] reason = new byte[reasonLen];
       is.readFully(reason);
-      throw new IOException(new String(reason, 0));
+      throw new IOException(new String(reason));
 
     case NoAuth:
     case VncAuth:
@@ -213,7 +211,7 @@ class rfbProto {
     int nameLength = is.readInt();
     byte[] name = new byte[nameLength];
     is.readFully(name);
-    desktopName = new String(name, 0);
+    desktopName = new String(name);
 
     inNormalProtocol = true;
   }
@@ -278,7 +276,7 @@ class rfbProto {
     int len = is.readInt();
     byte[] text = new byte[len];
     is.readFully(text);
-    return new String(text, 0);
+    return new String(text);
   }
 
 
@@ -422,7 +420,7 @@ class rfbProto {
     b[6] = (byte) ((text.length() >> 8) & 0xff);
     b[7] = (byte) (text.length() & 0xff);
 
-    text.getBytes(0, text.length(), b, 8);
+    System.arraycopy(text.getBytes(), 0, b, 8, text.length());
 
     os.write(b);
   }

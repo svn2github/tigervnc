@@ -103,15 +103,15 @@ public class vncviewer extends java.applet.Applet
 	    buttonPanel = new Panel();
 	    buttonPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
 	    disconnectButton = new Button("Disconnect");
-	    disconnectButton.disable();
+	    disconnectButton.setEnabled(false);
 	    buttonPanel.add(disconnectButton);
 	    optionsButton = new Button("Options");
 	    buttonPanel.add(optionsButton);
 	    clipboardButton = new Button("Clipboard");
-	    clipboardButton.disable();
+	    clipboardButton.setEnabled(false);
 	    buttonPanel.add(clipboardButton);
 	    ctrlAltDelButton = new Button("Send Ctrl-Alt-Del");
-	    ctrlAltDelButton.disable();
+	    ctrlAltDelButton.setEnabled(false);
 	    buttonPanel.add(ctrlAltDelButton);
 
 	    gridbag.setConstraints(buttonPanel,gbc);
@@ -137,9 +137,9 @@ public class vncviewer extends java.applet.Applet
       }
 
       if (options.showControls) {
-	      disconnectButton.enable();
-	      clipboardButton.enable();
-	      ctrlAltDelButton.enable();
+	      disconnectButton.setEnabled(true);
+	      clipboardButton.setEnabled(true);
+	      ctrlAltDelButton.setEnabled(true);
       }
 
       vc.processNormalProtocol();
@@ -223,12 +223,8 @@ public class vncviewer extends java.applet.Applet
 	  break;
 	}
 
-	byte[] key = new byte[8];
-	pw.getBytes(0, pw.length(), key, 0);
-
-	for (int i = pw.length(); i < 8; i++) {
-	  key[i] = (byte)0;
-	}
+	byte[] key = {0, 0, 0, 0, 0, 0, 0, 0};
+        System.arraycopy(pw.getBytes(), 0, key, 0, pw.length());
 
 	DesCipher des = new DesCipher(key);
 
@@ -325,11 +321,7 @@ public class vncviewer extends java.applet.Applet
 
     if (evt.target == optionsButton) {
 
-      if (options.isVisible()) {
-	options.hide();
-      } else {
-	options.show();
-      }
+      options.setVisible(!options.isVisible());
 
     } else if (evt.target == disconnectButton) {
 
@@ -352,11 +344,7 @@ public class vncviewer extends java.applet.Applet
 
     } else if (evt.target == clipboardButton) {
 
-      if (clipboard.isVisible()) {
-	clipboard.hide();
-      } else {
-	clipboard.show();
-      }
+      clipboard.setVisible(!clipboard.isVisible());
 
     } else if (evt.target == ctrlAltDelButton) {
 
@@ -393,31 +381,6 @@ public class vncviewer extends java.applet.Applet
   public boolean lostFocus(Event evt, Object what) {
     gotFocus = false;
     return true;
-  }
-
-
-  //
-  // encryptBytes() - encrypt some bytes in memory using a password.  Note that
-  // the mapping from password to key must be the same as that used on the rfb
-  // server side.
-  //
-  // Note also that IDEA encrypts data in 8-byte blocks, so here we will ignore
-  // any data beyond the last 8-byte boundary leaving it to the calling
-  // function to pad the data appropriately.
-  //
-
-  void encryptBytes(byte[] bytes, String passwd) {
-    byte[] key = new byte[8];
-    passwd.getBytes(0, passwd.length(), key, 0);
-
-    for (int i = passwd.length(); i < 8; i++) {
-      key[i] = (byte)0;
-    }
-
-    DesCipher des = new DesCipher(key);
-
-    des.encrypt(bytes,0,bytes,0);
-    des.encrypt(bytes,8,bytes,8);
   }
 
 

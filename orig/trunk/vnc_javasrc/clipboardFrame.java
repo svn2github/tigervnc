@@ -87,8 +87,10 @@ class clipboardFrame extends Frame {
   //
 
   public boolean lostFocus(Event evt, Object arg) {
+    System.out.println("Lost focus");
     if ((selection != null) && !selection.equals(ta.getText())) {
       selection = ta.getText();
+      System.out.println("Sending selection: " + selection);
       v.setCutText(selection);
     }
     return true;
@@ -102,7 +104,7 @@ class clipboardFrame extends Frame {
   public boolean action(Event evt, Object arg) {
 
     if (evt.target == dismiss) {
-      hide();
+      setVisible(false);
       return true;
 
     } else if (evt.target == clear) {

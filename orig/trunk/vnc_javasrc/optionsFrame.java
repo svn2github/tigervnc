@@ -163,14 +163,14 @@ class optionsFrame extends Frame {
   //
 
   void disableShareDesktop() {
-    labels[shareDesktopIndex].disable();
-    choices[shareDesktopIndex].disable();
+    labels[shareDesktopIndex].setEnabled(false);
+    choices[shareDesktopIndex].setEnabled(false);
   }
 
 
   void disableViewOnly() {
-    labels[viewOnlyIndex].disable();
-    choices[viewOnlyIndex].disable();
+    labels[viewOnlyIndex].setEnabled(false);
+    choices[viewOnlyIndex].setEnabled(false);
   }
 
   //
@@ -221,8 +221,8 @@ class optionsFrame extends Frame {
     }
 
     if (enableCompressLevel) {
-      labels[compressLevelIndex].enable();
-      choices[compressLevelIndex].enable();
+      labels[compressLevelIndex].setEnabled(true);
+      choices[compressLevelIndex].setEnabled(true);
       try {
 	compressLevel =
 	  Integer.parseInt(choices[compressLevelIndex].getSelectedItem());
@@ -235,8 +235,8 @@ class optionsFrame extends Frame {
 	  rfbProto.EncodingCompressLevel0 + compressLevel;
       }
     } else {
-      labels[compressLevelIndex].disable();
-      choices[compressLevelIndex].disable();
+      labels[compressLevelIndex].setEnabled(false);
+      choices[compressLevelIndex].setEnabled(false);
     }
 
     // Request cursor shape updates if necessary.
@@ -282,7 +282,7 @@ class optionsFrame extends Frame {
   public boolean action(Event evt, Object arg) {
 
     if (evt.target == dismiss) {
-      hide();
+      setVisible(false);
       return true;
 
     } else if ((evt.target == choices[encodingIndex]) ||

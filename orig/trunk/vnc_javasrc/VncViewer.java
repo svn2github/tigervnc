@@ -80,7 +80,6 @@ public class VncViewer extends java.applet.Applet
   public void init() {
 
     readParameters();
-    System.out.println("deferScreenUpdates = " + deferScreenUpdates);
 
     if (inSeparateFrame) {
       vncFrame = new Frame("TightVNC");
@@ -322,7 +321,6 @@ public class VncViewer extends java.applet.Applet
   //
 
   void doProtocolInitialisation() throws IOException {
-    System.out.println("sending client init");
 
     rfb.writeClientInit();
 

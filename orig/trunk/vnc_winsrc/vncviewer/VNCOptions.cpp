@@ -723,7 +723,10 @@ BOOL CALLBACK VNCOptions::DlgProc(HWND hwndDlg, UINT uMsg,
 				rc.bottom-rc.top-75,SWP_SHOWWINDOW);
 					
 			return TRUE;
-		}		
+		}
+		case WM_HELP:	
+			help.Popup(lParam);
+			return 0;
 		case WM_COMMAND:
 		
 			switch (LOWORD(wParam))	{

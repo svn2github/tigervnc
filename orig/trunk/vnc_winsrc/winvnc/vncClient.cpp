@@ -862,6 +862,8 @@ vncClientThread::run(void *arg)
 	{
 		rfbClientToServerMsg msg;
 
+		m_server->BlankScreen();
+
 		// Ensure that we're running in the correct desktop
 		if (!vncService::InputDesktopSelected())
 			if (!vncService::SelectDesktop(NULL))
@@ -905,7 +907,6 @@ vncClientThread::run(void *arg)
 				// Set the palette-changed flag, just in case...
 				m_client->m_palettechanged = TRUE;
 			}
-
 			break;
 
 		case rfbSetEncodings:
@@ -1251,6 +1252,7 @@ vncClientThread::run(void *arg)
 					}
 				}
 			}
+			
 			break;
 
 		case rfbClientCutText:

@@ -125,7 +125,9 @@ vncServer::vncServer()
 	m_cursor_pos.y = 0;
 
 	// initialize
-	m_enable_file_transfers = FALSE ; 
+	m_enable_file_transfers = FALSE;
+	m_remove_wallpaper = FALSE;
+	m_blank_screen = FALSE;
 
 #ifdef HORIZONLIVE
 	m_full_screen = FALSE;
@@ -136,6 +138,9 @@ vncServer::vncServer()
 	m_remote_mouse = 1;
 	m_remote_keyboard = 1;
 #endif
+
+	hUser32=LoadLibrary("USER32");
+	pbi = (pBlockInput)GetProcAddress( hUser32, "BlockInput");
 }
 
 vncServer::~vncServer()
@@ -340,7 +345,6 @@ vncServer::Authenticated(vncClientId clientid)
 				SetForegroundWindow(GetWindowShared());
 			}
 
-
 			// Add the client to the auth list
 			m_authClients.push_back(clientid);
 
@@ -358,7 +362,7 @@ vncServer::Authenticated(vncClientId clientid)
 	if (authok && GetBeepConnect())
 	{
 		MessageBeep(MB_OK);
-	}
+	}	
 	if (authok)
 		GetClient(clientid)->setStartTime(time(0));
 	return authok;
@@ -1665,4 +1669,18 @@ vncServer::GetWindowShared()
 		} 
 	}
 	return m_hwndShared;
+}
+
+void
+vncServer::BlankScreen()
+{
+	BOOL enable = m_blank_screen && AuthClientCount() != 0;
+	if (pbi) (*pbi)(enable);
+	if (enable) {
+		SystemParametersInfo(SPI_SETPOWEROFFACTIVE, 1, NULL, 0);
+		SendMessage(GetDesktopWindow(),WM_SYSCOMMAND,SC_MONITORPOWER,(LPARAM)2);
+	} else {
+		SystemParametersInfo(SPI_SETPOWEROFFACTIVE, 0, NULL, 0);
+		SendMessage(GetDesktopWindow(),WM_SYSCOMMAND,SC_MONITORPOWER,(LPARAM)-1);
+	}
 }

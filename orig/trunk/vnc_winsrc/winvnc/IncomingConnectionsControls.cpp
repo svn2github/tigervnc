@@ -116,6 +116,8 @@ void IncomingConnectionsControls::Apply()
 	
 	// Wallpaper handling
 	m_server->EnableRemoveWallpaper(IsChecked(IDC_REMOVE_WALLPAPER));
+
+	m_server->SetBlankScreen(IsChecked(IDC_BLANK_SCREEN));
 	
 	// Enabling/disabling file transfers
 	m_server->EnableFileTransfers(IsChecked(IDC_ENABLE_FILE_TRANSFERS));
@@ -137,6 +139,7 @@ void IncomingConnectionsControls::Init()
 	SetChecked(IDC_CONNECT_SOCK, bConnectSock);
 	SetChecked(IDC_ENABLE_FILE_TRANSFERS, m_server->FileTransfersEnabled());
 	SetChecked(IDC_REMOVE_WALLPAPER, m_server->RemoveWallpaperEnabled());
+	SetChecked(IDC_BLANK_SCREEN, m_server->GetBlankScreen());
 	
 	SetDlgItemText(m_hwnd, IDC_PASSWORD, "~~~~~~~~");			
 	SetDlgItemText(m_hwnd, IDC_PASSWORD_VIEWONLY, "~~~~~~~~");

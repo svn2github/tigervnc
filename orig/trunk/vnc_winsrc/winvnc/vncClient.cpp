@@ -64,10 +64,11 @@
 
 #define SetCapInfo(cap_ptr, code_sym, vendor)			\
 {														\
-	(cap_ptr)->code = Swap32IfLE(code_sym);				\
-	memcpy((cap_ptr)->vendorSignature, (vendor),		\
+	rfbCapabilityInfo *pcap = (cap_ptr);				\
+	pcap->code = Swap32IfLE(code_sym);					\
+	memcpy(pcap->vendorSignature, (vendor),				\
 		   sz_rfbCapabilityInfoVendor);					\
-	memcpy((cap_ptr)->nameSignature, sig_##code_sym,	\
+	memcpy(pcap->nameSignature, sig_##code_sym,			\
 		   sz_rfbCapabilityInfoName);					\
 }
 
@@ -443,36 +444,54 @@ vncClientThread::SendInteractionCaps()
 
 	// Supported server->client message types
 	rfbCapabilityInfo smsg_list[N_SMSG_CAPS];
-	SetCapInfo(&smsg_list[0], rfbFileListData,           rfbTightVncVendor);
-	SetCapInfo(&smsg_list[1], rfbFileDownloadData,       rfbTightVncVendor);
-	SetCapInfo(&smsg_list[2], rfbFileUploadCancel,       rfbTightVncVendor);
-	SetCapInfo(&smsg_list[3], rfbFileDownloadFailed,     rfbTightVncVendor);
+	int i = 0;
+	SetCapInfo(&smsg_list[i++], rfbFileListData,           rfbTightVncVendor);
+	SetCapInfo(&smsg_list[i++], rfbFileDownloadData,       rfbTightVncVendor);
+	SetCapInfo(&smsg_list[i++], rfbFileUploadCancel,       rfbTightVncVendor);
+	SetCapInfo(&smsg_list[i++], rfbFileDownloadFailed,     rfbTightVncVendor);
+	if (i != N_SMSG_CAPS) {
+		vnclog.Print(LL_INTERR,
+					 VNCLOG("assertion failed, i != N_SMSG_CAPS\n"));
+		return FALSE;
+	}
 
 	// Supported client->server message types
 	rfbCapabilityInfo cmsg_list[N_CMSG_CAPS];
-	SetCapInfo(&cmsg_list[0], rfbFileListRequest,        rfbTightVncVendor);
-	SetCapInfo(&cmsg_list[1], rfbFileDownloadRequest,    rfbTightVncVendor);
-	SetCapInfo(&cmsg_list[2], rfbFileUploadRequest,      rfbTightVncVendor);
-	SetCapInfo(&cmsg_list[3], rfbFileUploadData,         rfbTightVncVendor);
-	SetCapInfo(&cmsg_list[4], rfbFileDownloadCancel,     rfbTightVncVendor);
-	SetCapInfo(&cmsg_list[5], rfbFileUploadFailed,       rfbTightVncVendor);
+	i = 0;
+	SetCapInfo(&cmsg_list[i++], rfbFileListRequest,        rfbTightVncVendor);
+	SetCapInfo(&cmsg_list[i++], rfbFileDownloadRequest,    rfbTightVncVendor);
+	SetCapInfo(&cmsg_list[i++], rfbFileUploadRequest,      rfbTightVncVendor);
+	SetCapInfo(&cmsg_list[i++], rfbFileUploadData,         rfbTightVncVendor);
+	SetCapInfo(&cmsg_list[i++], rfbFileDownloadCancel,     rfbTightVncVendor);
+	SetCapInfo(&cmsg_list[i++], rfbFileUploadFailed,       rfbTightVncVendor);
+	if (i != N_CMSG_CAPS) {
+		vnclog.Print(LL_INTERR,
+					 VNCLOG("assertion failed, i != N_CMSG_CAPS\n"));
+		return FALSE;
+	}
 
 	// Encoding types
 	rfbCapabilityInfo enc_list[N_ENC_CAPS];
-	SetCapInfo(&enc_list[0],  rfbEncodingCopyRect,       rfbStandardVendor);
-	SetCapInfo(&enc_list[1],  rfbEncodingRRE,            rfbStandardVendor);
-	SetCapInfo(&enc_list[2],  rfbEncodingCoRRE,          rfbStandardVendor);
-	SetCapInfo(&enc_list[3],  rfbEncodingHextile,        rfbStandardVendor);
-	SetCapInfo(&enc_list[4],  rfbEncodingZlib,           rfbTridiaVncVendor);
-	SetCapInfo(&enc_list[5],  rfbEncodingZlibHex,        rfbTridiaVncVendor);
-	SetCapInfo(&enc_list[6],  rfbEncodingTight,          rfbTightVncVendor);
-	SetCapInfo(&enc_list[7],  rfbEncodingCompressLevel0, rfbTightVncVendor);
-	SetCapInfo(&enc_list[8],  rfbEncodingQualityLevel0,  rfbTightVncVendor);
-	SetCapInfo(&enc_list[9],  rfbEncodingXCursor,        rfbTightVncVendor);
-	SetCapInfo(&enc_list[10], rfbEncodingRichCursor,     rfbTightVncVendor);
-	SetCapInfo(&enc_list[11], rfbEncodingPointerPos,     rfbTightVncVendor);
-	SetCapInfo(&enc_list[12], rfbEncodingLastRect,       rfbTightVncVendor);
-	SetCapInfo(&enc_list[13], rfbEncodingNewFBSize,      rfbTightVncVendor);
+	i = 0;
+	SetCapInfo(&enc_list[i++],  rfbEncodingCopyRect,       rfbStandardVendor);
+	SetCapInfo(&enc_list[i++],  rfbEncodingRRE,            rfbStandardVendor);
+	SetCapInfo(&enc_list[i++],  rfbEncodingCoRRE,          rfbStandardVendor);
+	SetCapInfo(&enc_list[i++],  rfbEncodingHextile,        rfbStandardVendor);
+	SetCapInfo(&enc_list[i++],  rfbEncodingZlib,           rfbTridiaVncVendor);
+	SetCapInfo(&enc_list[i++],  rfbEncodingZlibHex,        rfbTridiaVncVendor);
+	SetCapInfo(&enc_list[i++],  rfbEncodingTight,          rfbTightVncVendor);
+	SetCapInfo(&enc_list[i++],  rfbEncodingCompressLevel0, rfbTightVncVendor);
+	SetCapInfo(&enc_list[i++],  rfbEncodingQualityLevel0,  rfbTightVncVendor);
+	SetCapInfo(&enc_list[i++],  rfbEncodingXCursor,        rfbTightVncVendor);
+	SetCapInfo(&enc_list[i++],  rfbEncodingRichCursor,     rfbTightVncVendor);
+	SetCapInfo(&enc_list[i++],  rfbEncodingPointerPos,     rfbTightVncVendor);
+	SetCapInfo(&enc_list[i++],  rfbEncodingLastRect,       rfbTightVncVendor);
+	SetCapInfo(&enc_list[i++],  rfbEncodingNewFBSize,      rfbTightVncVendor);
+	if (i != N_ENC_CAPS) {
+		vnclog.Print(LL_INTERR,
+					 VNCLOG("assertion failed, i != N_ENC_CAPS\n"));
+		return FALSE;
+	}
 
 	// Send header and capability lists
 	return (m_socket->SendExact((char *)&intr_caps,

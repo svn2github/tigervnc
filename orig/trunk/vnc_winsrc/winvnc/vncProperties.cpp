@@ -1207,7 +1207,7 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	memcpy(m_pref_passwd_viewonly, m_pref_passwd, MAXPWLEN);
 	LoadPassword(appkey, m_pref_passwd_viewonly, "PasswordViewOnly");
 	// External authentication
-	m_pref_externalAuth=LoadInt(appkey, "ExternalAuth", m_pref_externalAuth);
+	// m_pref_externalAuth=LoadInt(appkey, "ExternalAuth", m_pref_externalAuth);
 	// CORBA Settings
 	m_pref_CORBAConn=LoadInt(appkey, "CORBAConnect", m_pref_CORBAConn);
 

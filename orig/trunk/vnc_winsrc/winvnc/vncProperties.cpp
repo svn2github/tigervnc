@@ -551,7 +551,7 @@ vncProperties::ParentDlgProc(HWND hwnd,
 			} else {
 				SetWindowText(hwnd, "WinVNC: Default Local System Properties");
 			}						
-							
+				
 			// We return FALSE because we set the keyboard focus explicitly.
 			return FALSE;
 		}

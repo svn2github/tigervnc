@@ -42,10 +42,11 @@ void IncomingConnectionsControls::Validate()
 	Enable(IDC_HTTP_LABEL, bAccept && bPorts);
 	
 	HWND hFocus = GetFocus();
-	if ((hFocus == GetDlgItem(m_hwnd, IDC_CONNECT_SOCK)) ||
-		(hFocus == m_hwnd))	
+	if (hFocus == GetDlgItem(m_hwnd, IDC_CONNECT_SOCK)) {
 		SetFocus(GetDlgItem(m_hwnd, IDC_PASSWORD));
-
+		SendMessage(GetDlgItem(m_hwnd, IDC_PASSWORD), EM_SETSEL, 0, (LPARAM)-1);
+	}	
+	
 	if (hFocus == GetDlgItem(m_hwnd, IDC_SPECDISPLAY)) {
 		SetFocus(GetDlgItem(m_hwnd, IDC_DISPLAYNO));
 		SendMessage(GetDlgItem(m_hwnd, IDC_DISPLAYNO), EM_SETSEL, 0, (LPARAM)-1);
@@ -148,6 +149,8 @@ void IncomingConnectionsControls::Init()
 	SetDlgItemInt(m_hwnd, IDC_PORTHTTP, port_http, FALSE);
 	SetDlgItemText(m_hwnd, IDC_PASSWORD, "~~~~~~~~");			
 	SetDlgItemText(m_hwnd, IDC_PASSWORD_VIEWONLY, "~~~~~~~~");
+
+	SetFocus(GetDlgItem(m_hwnd, IDC_CONNECT_SOCK));
 	
 	Validate();
 }

@@ -691,10 +691,12 @@ BOOL CALLBACK VNCOptions::DlgProc(HWND hwndDlg, UINT uMsg,
 					int i = TabCtrl_GetCurFocus(_this->m_hTab);
 					switch (i) {
 					case 0:
-						ShowWindow(_this->m_hPageConnection, SW_SHOW);						
+						ShowWindow(_this->m_hPageConnection, SW_SHOW);
+						SetFocus(_this->m_hPageConnection);
 						return 0;
 					case 1:
-						ShowWindow(_this->m_hPageGeneral, SW_SHOW);						
+						ShowWindow(_this->m_hPageGeneral, SW_SHOW);
+						SetFocus(_this->m_hPageGeneral);
 						return 0;						
 					}
 					return 0;
@@ -707,11 +709,9 @@ BOOL CALLBACK VNCOptions::DlgProc(HWND hwndDlg, UINT uMsg,
 					switch (i) {
 					case 0:
 						ShowWindow(_this->m_hPageConnection, SW_HIDE);
-						SetFocus(_this->m_hPageConnection);
 						break;
 					case 1:
 						ShowWindow(_this->m_hPageGeneral, SW_HIDE);
-						SetFocus(_this->m_hPageGeneral);
 						break;
 					}
 					return 0;

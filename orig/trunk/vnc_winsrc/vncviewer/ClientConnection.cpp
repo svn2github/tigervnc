@@ -1674,6 +1674,7 @@ void ClientConnection::PositionChildWindow()
 	}
 	m_QuitFSW->ShowButton(toolbar && InFullScreenMode());
 	UpdateWindow(m_hwnd);
+	SetFocus(m_hwnd);
 }
 
 void ClientConnection::CreateLocalFramebuffer() {
@@ -2194,9 +2195,6 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 			}
 			return 0;
 		}
-		break;
-	case WM_ACTIVATEAPP:
-		SetFocus(_this->m_hwnd1);
 		break;
 	case WM_ACTIVATE:
 		{

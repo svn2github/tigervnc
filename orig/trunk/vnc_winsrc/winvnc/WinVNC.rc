@@ -237,13 +237,13 @@ BEGIN
     EDITTEXT        IDC_DISPLAYNO,247,17,27,12,ES_AUTOHSCROLL | ES_NUMBER | 
                     WS_GROUP
     EDITTEXT        IDC_PORTRFB,200,36,27,12,ES_AUTOHSCROLL | ES_NUMBER
-    CTEXT           "and",IDC_STATIC,230,36,14,12,SS_CENTERIMAGE
+    CTEXT           "and",IDC_STATIC_AND,230,36,14,12,SS_CENTERIMAGE
     EDITTEXT        IDC_PORTHTTP,247,36,27,12,ES_AUTOHSCROLL | ES_NUMBER
     CTEXT           "(main)",IDC_MAIN_LABEL,200,51,27,10,SS_CENTERIMAGE | 
                     NOT WS_GROUP
     CTEXT           "(HTTP)",IDC_HTTP_LABEL,247,51,27,10,SS_CENTERIMAGE | 
                     NOT WS_GROUP
-    GROUPBOX        "Input handling",IDC_STATIC_INPUT_HANDLING,5,72,139,88
+    GROUPBOX        "Input handling",IDC_STATIC_INPUT,5,72,139,88
     CONTROL         "Block remote input events",IDC_DISABLE_INPUTS,"Button",
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,13,84,128,12
     CONTROL         "Block remote input on local activity",
@@ -259,8 +259,8 @@ BEGIN
                     WS_TABSTOP,13,126,128,12
     CONTROL         "Blank screen on client connections",IDC_BLANK_SCREEN,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,140,128,12
-    GROUPBOX        "When last client disconnects",IDC_STATIC_DISCONNECTS,
-                    152,72,131,57
+    GROUPBOX        "When last client disconnects",IDC_STATIC_DISCONNECT,152,
+                    72,131,57
     CONTROL         "Do nothing",IDC_LOCKSETTING_NOTHING,"Button",
                     BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,160,84,117,12
     CONTROL         "Lock workstation",IDC_LOCKSETTING_LOCK,"Button",
@@ -277,7 +277,7 @@ IDD_UPDATE_HANDLING DIALOG DISCARDABLE  0, 0, 288, 132
 STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE
 FONT 8, "MS Sans Serif"
 BEGIN
-    GROUPBOX        "Polling modes",IDC_STATIC_POLLING_MODES,5,5,133,74
+    GROUPBOX        "Polling modes",IDC_STATIC_POLLING,5,5,133,74
     CONTROL         "Poll foreground window",IDC_POLL_FOREGROUND,"Button",
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,13,16,120,12
     CONTROL         "Poll window under cursor",IDC_POLL_UNDER_CURSOR,"Button",
@@ -289,18 +289,18 @@ BEGIN
     EDITTEXT        IDC_POLLING_CYCLE,78,61,27,12,ES_AUTOHSCROLL
     LTEXT           "ms",IDC_STATIC_MS,112,61,19,12,SS_CENTERIMAGE | NOT 
                     WS_GROUP
-    GROUPBOX        "Window polling",IDC_STATIC_WINDOW_POLLING,147,5,136,43
+    GROUPBOX        "Window polling",IDC_STATIC_WNDPOLLING,147,5,136,43
     CONTROL         "Poll console windows only",IDC_CONSOLE_ONLY,"Button",
                     BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,155,16,125,
                     12
     CONTROL         "Poll on event received only",IDC_ONEVENT_ONLY,"Button",
                     BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,155,31,125,
                     12
-    GROUPBOX        "Mirror driver status",IDC_STATIC_DRIVER_STATUS,147,52,
-                    136,27
+    GROUPBOX        "Mirror driver status",IDC_STATIC_DRVSTATUS,147,52,136,
+                    27
     LTEXT           "No information - no clients connected",
                     IDC_STATIC_DRVINFO,155,62,125,12,SS_CENTERIMAGE
-    GROUPBOX        "Troubleshooting",IDC_STATIC_TROUBLESHOOTING,5,83,278,44
+    GROUPBOX        "Troubleshooting",IDC_STATIC_TRSH,5,83,278,44
     CONTROL         "Don't use VNCHooks.DLL while polling full screen",
                     IDC_DONT_SET_HOOKS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
                     13,94,209,12
@@ -962,6 +962,7 @@ BEGIN
     IDC_PORTRFB             "TCP port used for VNC data exchange (pixel data, input events, file transfers etc.)"
     IDC_PASSWORD_VIEWONLY   "Users authenticated with view-only password are allowed to view the server's desktop, but cannot control it with their mouse and keyboard. Note that only first 8 characters of passwords are used in the standard VNC authentication."
     IDC_URL_PARAMS          "When set, the HTTP server passes parameters from the URL to the Java viewer applet. For example, you could write http://myvnchost:5800/?view+only=yes&restricted+colors=yes"
+    IDC_STATIC_TRSH         "Change these options if something goes wrong."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -994,17 +995,6 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDC_DISABLE_INPUTS      "If set, no keyboard or mouse control will be allowed to remote VNC viewers."
-    IDC_APPLY               "Apply the changes but do not close the dialog box."
-    IDC_PORTNO_AUTO         "When this option is set, the server will automatically find available port numbers, starting from port 5900 (corresponding to display 0). If built-in Web server is enabled, HTTP port will be set to VNC port minus 100."
-    IDC_DISABLE_LOCAL_INPUTS 
-                            "If set, local keyboard and mouse will be blocked while at least one VNC viewer is connected to this computer."
-    IDADVANCED              "Advanced..."
-    IDQUERY                 "When a client connects, show a confirmation window allowing either to accept or to reject the connection."
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
     IDC_SHARINGAREA_BORDER  "Select which parts of the desktop should be visible to connected viewers."
     IDC_LIVESHARE_BORDER    "Connect with AppShare Key"
     IDC_NAME_APPLI          "Window name. You cannot enter the text here. To choose a window to share, drag the ""target"" icon to the selected window."
@@ -1014,7 +1004,23 @@ BEGIN
     IDC_SCREEN              "Share a rectangular part of the desktop."
     IDC_FULLSCREEN          "Share the whole desktop of this computer."
     IDC_DISABLE_TIME        "Specify how many seconds should pass between local keyboard or mouse activity and enabling remote input."
+    IDC_STATIC_INCOMING     "Options controlling incoming connections from remote clients."
+    IDC_STATIC_INPUT        "Controlling input events during client connections."
+    IDC_STATIC_DISCONNECT   "Action performed when last VNC client disconnects from this server."
+    IDC_STATIC_POLLING      "Select which parts of the screen should be scanned to detect changes."
     IDC_SPECDISPLAY         "Specify a display number. The VNC port is calculated as 5900 plus display, the HTTP port is 5800 plus display."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDC_DISABLE_INPUTS      "If set, no keyboard or mouse control will be allowed to remote VNC viewers. Toggling this option does not take immediate effect if there is at least one viewer connected."
+    IDC_APPLY               "Apply the changes but do not close the dialog box."
+    IDC_PORTNO_AUTO         "When this option is set, the server will automatically find available port numbers, starting from port 5900 (corresponding to display 0). If built-in Web server is enabled, HTTP port will be set to VNC port minus 100."
+    IDC_DISABLE_LOCAL_INPUTS 
+                            "If set, local keyboard and mouse will be blocked while at least one VNC viewer is connected to this computer."
+    IDC_STATIC_WNDPOLLING   "Choose poling options for window polling modes."
+    IDADVANCED              "Advanced..."
+    IDQUERY                 "When a client connects, show a confirmation window allowing either to accept or to reject the connection."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1054,14 +1060,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDC_ACTION              "Action"
-    IDC_STATIC_INPUT_HANDLING "Input handling"
-    IDC_STATIC_INCOMING     "Incoming connections"
     IDC_BORDER_WNDLOCATOR   "Window locator is used to select a window or an application to share."
-    IDC_STATIC_POLLING_MODES "Polling modes"
-    IDC_STATIC_TROUBLESHOOTING "Troubleshooting"
-    IDC_STATIC_DRIVER_STATUS "Mirror driver status"
-    IDC_STATIC_WINDOW_POLLING "Window polling"
-    IDC_STATIC_DISCONNECTS  "When last client disconnects"
     IDC_STATIC_SELECTED_KLIENTS "Control of selected clients"
     IDC_APPLICATION         "Share all windows of one partucular application. Use the window locator to choose any window of the application you would like to share."
     IDC_STATIC_WNDLOCATOR   "Drag the target image to choose a window or application to share."

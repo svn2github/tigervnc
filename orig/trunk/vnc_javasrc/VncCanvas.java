@@ -93,10 +93,11 @@ class VncCanvas extends Canvas
   }
 
   void resizeDesktopFrame() {
-    Insets insets = viewer.desktopScrollPane.getInsets();
+    setSize(rfb.framebufferWidth, rfb.framebufferHeight);
 
     // FIXME: Find a better way to determine correct size of a
     // ScrollPane.  -- const
+    Insets insets = viewer.desktopScrollPane.getInsets();
     viewer.desktopScrollPane.setSize(rfb.framebufferWidth +
 				     2 * Math.min(insets.left, insets.right),
 				     rfb.framebufferHeight +
@@ -119,11 +120,18 @@ class VncCanvas extends Canvas
   }
 
   public void update(Graphics g) {
-    g.drawImage(rawPixelsImage, 0, 0, this);
+    paint(g);
   }
 
   public void paint(Graphics g) {
     g.drawImage(rawPixelsImage, 0, 0, this);
+    if (showSoftCursor) {
+      int x0 = cursorX - hotX, y0 = cursorY - hotY;
+      Rectangle r = new Rectangle(x0, y0, cursorWidth, cursorHeight);
+      if (r.intersects(g.getClipBounds())) {
+	g.drawImage(softCursor, x0, y0, this);
+      }
+    }
   }
 
   //
@@ -167,9 +175,6 @@ class VncCanvas extends Canvas
 	    continue;
 	  }
 
-	  softCursorLockArea(rfb.updateRectX, rfb.updateRectY,
-			     rfb.updateRectW, rfb.updateRectH);
-
 	  switch (rfb.updateRectEncoding) {
 
 	  case RfbProto.EncodingRaw:
@@ -182,8 +187,6 @@ class VncCanvas extends Canvas
 	  case RfbProto.EncodingCopyRect:
 	  {
 	    rfb.readCopyRect();
-	    softCursorLockArea(rfb.copyRectSrcX, rfb.copyRectSrcY,
-			       rfb.updateRectW, rfb.updateRectH);
 	    handleCopyRect();
 	    break;
 	  }
@@ -345,7 +348,6 @@ class VncCanvas extends Canvas
 				  rfb.updateRectEncoding);
 	  }
 
-	  softCursorUnlockScreen();
 	}
 	rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
 					  rfb.framebufferHeight, true);
@@ -589,8 +591,8 @@ class VncCanvas extends Canvas
 
     pixelsSource.newPixels(x, y, w, h);
 
-    // Request repaint delayed by 10 milliseconds.
-    repaint(10, x, y, w, h);
+    // Request repaint delayed by 20 milliseconds.
+    repaint(20, x, y, w, h);
   }
 
 
@@ -635,12 +637,16 @@ class VncCanvas extends Canvas
 
   //
   // Override the ImageObserver interface method.
-  // FIXME: In theory, empty imageUpdate() is not absolutely correct.
+  // FIXME: Call repaint() from imageUpdate()?
   //
 
   public boolean imageUpdate(Image img, int infoflags,
                              int x, int y, int width, int height) {
-    return true;
+    if ((infoflags & ALLBITS) == 0) {
+      return true;
+    } else {
+      return false;
+    }
   }
  
 
@@ -712,15 +718,15 @@ class VncCanvas extends Canvas
   // Handle cursor shape updates (XCursor and RichCursor encodings).
   //
 
-  boolean prevCursorSet = false;
+  boolean showSoftCursor = false;
 
-  byte[] rcSavedArea;
-  byte[] rcSource;
-  boolean[] rcMask;
-  int rcHotX, rcHotY, rcWidth, rcHeight;
-  int rcCursorX = 0, rcCursorY = 0;
-  int rcLockX, rcLockY, rcLockWidth, rcLockHeight;
-  boolean rcCursorHidden, rcLockSet;
+  int[] softCursorPixels;
+  MemoryImageSource softCursorSource;
+  Image softCursor;
+
+  int cursorX = 0, cursorY = 0;
+  int cursorWidth, cursorHeight;
+  int hotX, hotY;
 
   //
   // Handle cursor shape update (XCursor and RichCursor encodings).
@@ -751,299 +757,133 @@ class VncCanvas extends Canvas
       return;
     }
 
-    // Read cursor pixel data.
+    // Decode cursor pixel data.
 
-    rcSource = new byte[width * height];
+    softCursorPixels = new int[width * height];
 
     if (encodingType == rfb.EncodingXCursor) {
-      byte[] xcolors = new byte[6];
-      rfb.is.readFully(xcolors, 0, 6);
-      byte[] rcolors = new byte[2];
-      rcolors[1] = (byte)((xcolors[0] >> 5 & 0x07) |
-			  (xcolors[1] >> 2 & 0x38) |
-			  (xcolors[2] & 0xC0));
-      rcolors[0] = (byte)((xcolors[3] >> 5 & 0x07) |
-			  (xcolors[4] >> 2 & 0x38) |
-			  (xcolors[5] & 0xC0));
-      byte[] buf = new byte[bytesMaskData];
-      rfb.is.readFully(buf, 0, bytesMaskData);
 
-      int x, y, n, b;
+      // Read foreground and background colors of the cursor.
+      byte[] rgb = new byte[6];
+      rfb.is.readFully(rgb, 0, 6);
+      int[] colors = { (0xFF << 24 | rgb[3] << 16 | rgb[4] << 8 | rgb[5]),
+		       (0xFF << 24 | rgb[0] << 16 | rgb[1] << 8 | rgb[2]) };
+
+      // Read pixel and mask data.
+      byte[] pixBuf = new byte[bytesMaskData];
+      rfb.is.readFully(pixBuf, 0, bytesMaskData);
+      byte[] maskBuf = new byte[bytesMaskData];
+      rfb.is.readFully(maskBuf, 0, bytesMaskData);
+
+      // Decode pixel data into softCursorPixels[].
+      byte pixByte, maskByte;
+      int x, y, n, result;
       int i = 0;
       for (y = 0; y < height; y++) {
 	for (x = 0; x < width / 8; x++) {
-	  b = buf[y * bytesPerRow + x];
-	  for (n = 7; n >= 0; n--)
-	    rcSource[i++] = rcolors[b >> n & 1];
+	  pixByte = pixBuf[y * bytesPerRow + x];
+	  maskByte = maskBuf[y * bytesPerRow + x];
+	  for (n = 7; n >= 0; n--) {
+	    if ((maskByte >> n & 1) != 0) {
+	      result = colors[pixByte >> n & 1];
+	    } else {
+	      result = 0;	// Transparent pixel
+	    }
+	    softCursorPixels[i++] = result;
+	  }
 	}
 	for (n = 7; n >= 8 - width % 8; n--) {
-	  rcSource[i++] = rcolors[buf[y * bytesPerRow + x] >> n & 1];
+	  if ((maskBuf[y * bytesPerRow + x] >> n & 1) != 0) {
+	    result = colors[pixBuf[y * bytesPerRow + x] >> n & 1];
+	  } else {
+	    result = 0;		// Transparent pixel
+	  }
+	  softCursorPixels[i++] = result;
 	}
       }
+
     } else {
-      // rfb.EncodingRichCursor
-      rfb.is.readFully(rcSource, 0, width * height);
+
+      // Read pixel and mask data.
+      byte[] pixBuf = new byte[width * height];
+      rfb.is.readFully(pixBuf, 0, width * height);
+      byte[] maskBuf = new byte[bytesMaskData];
+      rfb.is.readFully(maskBuf, 0, bytesMaskData);
+
+      // Decode pixel data into softCursorPixels[].
+      byte pixByte, maskByte;
+      int x, y, n, result;
+      int i = 0;
+      for (y = 0; y < height; y++) {
+	for (x = 0; x < width / 8; x++) {
+	  maskByte = maskBuf[y * bytesPerRow + x];
+	  for (n = 7; n >= 0; n--) {
+	    if ((maskByte >> n & 1) != 0) {
+	      result = cm.getRGB(pixBuf[i]);
+	    } else {
+	      result = 0;	// Transparent pixel
+	    }
+	    softCursorPixels[i++] = result;
+	  }
+	}
+	for (n = 7; n >= 8 - width % 8; n--) {
+	  if ((maskBuf[y * bytesPerRow + x] >> n & 1) != 0) {
+	    result = cm.getRGB(pixBuf[i]);
+	  } else {
+	    result = 0;		// Transparent pixel
+	  }
+	  softCursorPixels[i++] = result;
+	}
+      }
+
     }
 
-    // Read and decode mask data.
-    
-    byte[] buf = new byte[bytesMaskData];
-    rfb.is.readFully(buf, 0, bytesMaskData);
+    // Draw the cursor on an off-screen image.
 
-    rcMask = new boolean[width * height];
-
-    int x, y, n, b;
-    int i = 0;
-    for (y = 0; y < height; y++) {
-      for (x = 0; x < width / 8; x++) {
-	b = buf[y * bytesPerRow + x];
-	for (n = 7; n >= 0; n--)
-	  rcMask[i++] = (b >> n & 1) != 0;
-      }
-      for (n = 7; n >= 8 - width % 8; n--) {
-	rcMask[i++] = (buf[y * bytesPerRow + x] >> n & 1) != 0;
-      }
-    }
+    softCursorSource =
+      new MemoryImageSource(width, height, softCursorPixels, 0, width);
+    softCursor = createImage(softCursorSource);
 
     // Set remaining data associated with cursor.
 
-    rcSavedArea = new byte[width * height];
-    rcHotX = xhot;
-    rcHotY = yhot;
-    rcWidth = width;
-    rcHeight = height;
+    cursorWidth = width;
+    cursorHeight = height;
+    hotX = xhot;
+    hotY = yhot;
 
-    softCursorSaveArea();
-    softCursorDraw();
+    showSoftCursor = true;
 
-    rcCursorHidden = false;
-    rcLockSet = false;
+    // Show the cursor.
 
-    prevCursorSet = true;
+    repaint(10, cursorX - hotX, cursorY - hotY, cursorWidth, cursorHeight);
   }
 
   //
-  // softCursorLockArea(). This method should be used to prevent
-  // collisions between simultaneous framebuffer update operations and
-  // cursor drawing operations caused by movements of pointing device.
-  // The parameters denote a rectangle where mouse cursor should not
-  // be drawn. Every next call to this function expands locked area so
-  // previous locks remain active.
-  //
-
-  synchronized void
-    softCursorLockArea(int x, int y, int w, int h) {
-
-    if (!prevCursorSet)
-      return;
-
-    if (!rcLockSet) {
-      rcLockX = x;
-      rcLockY = y;
-      rcLockWidth = w;
-      rcLockHeight = h;
-      rcLockSet = true;
-    } else {
-      int newX = (x < rcLockX) ? x : rcLockX;
-      int newY = (y < rcLockY) ? y : rcLockY;
-      rcLockWidth = (x + w > rcLockX + rcLockWidth) ?
-	(x + w - newX) : (rcLockX + rcLockWidth - newX);
-      rcLockHeight = (y + h > rcLockY + rcLockHeight) ?
-	(y + h - newY) : (rcLockY + rcLockHeight - newY);
-      rcLockX = newX;
-      rcLockY = newY;
-    }
-
-    if (!rcCursorHidden && softCursorInLockedArea()) {
-      softCursorRestoreArea();
-      rcCursorHidden = true;
-    }
-  }
-
-  //
-  // softCursorUnlockScreen(). This function discards all locks
-  // performed since previous softCursorUnlockScreen() call.
-  //
-
-  synchronized void softCursorUnlockScreen() {
-
-    if (!prevCursorSet)
-      return;
-
-    if (rcCursorHidden) {
-      softCursorSaveArea();
-      softCursorDraw();
-      rcCursorHidden = false;
-    }
-    rcLockSet = false;
-  }
-
-  //
-  // softCursorMove(). Moves soft cursor in particular location. This
-  // function respects locking of screen areas so when the cursor is
-  // moved in the locked area, it becomes invisible until
-  // softCursorUnlockScreen() method is called.
+  // softCursorMove(). Moves soft cursor into a particular location.
   //
 
   synchronized void softCursorMove(int x, int y) {
-
-    if (prevCursorSet && !rcCursorHidden) {
-      softCursorRestoreArea();
-      rcCursorHidden = true;
+    if (showSoftCursor) {
+      repaint(10, cursorX - hotX, cursorY - hotY, cursorWidth, cursorHeight);
+      repaint(10, x - hotX, y - hotY, cursorWidth, cursorHeight);
     }
 
-    rcCursorX = x;
-    rcCursorY = y;
-
-    if (prevCursorSet && !(rcLockSet && softCursorInLockedArea())) {
-      softCursorSaveArea();
-      softCursorDraw();
-      rcCursorHidden = false;
-    }
+    cursorX = x;
+    cursorY = y;
   }
 
   //
-  // Free all data associated with cursor.
+  // softCursorFree(). Remove soft cursor, dispose resources.
   //
 
   synchronized void softCursorFree() {
+    if (showSoftCursor) {
+      showSoftCursor = false;
+      softCursor = null;
+      softCursorSource = null;
+      softCursorPixels = null;
 
-    if (prevCursorSet) {
-      softCursorRestoreArea();
-      rcSavedArea = null;
-      rcSource = null;
-      rcMask = null;
-      prevCursorSet = false;
+      repaint(10, cursorX - hotX, cursorY - hotY, cursorWidth, cursorHeight);
     }
-  }
-
-  //////////////////////////////////////////////////////////////////
-  //
-  // Low-level methods implementing software cursor functionality.
-  //
-
-  //
-  // Check if cursor is within locked part of screen.
-  //
-
-  boolean softCursorInLockedArea() {
-
-    return (rcLockX < rcCursorX - rcHotX + rcWidth &&
-	    rcLockY < rcCursorY - rcHotY + rcHeight &&
-	    rcLockX + rcLockWidth > rcCursorX - rcHotX &&
-	    rcLockY + rcLockHeight > rcCursorY - rcHotY);
-  }
-
-  //
-  // Save screen data in memory buffer.
-  //
-
-  void softCursorSaveArea() {
-
-    Rectangle r = new Rectangle();
-    softCursorToScreen(r, null);
-    int x = r.x;
-    int y = r.y;
-    int w = r.width;
-    int h = r.height;
-
-    int dx, dy, i = 0;
-    for (dy = y; dy < y + h; dy++) {
-      for (dx = x; dx < x + w; dx++)
-	rcSavedArea[i++] = pixels[dy * rfb.framebufferWidth + dx];
-    }
-  }
-
-  //
-  // Restore screen data saved in memory buffer.
-  //
-
-  void softCursorRestoreArea() {
-
-    Rectangle r = new Rectangle();
-    softCursorToScreen(r, null);
-    int x = r.x;
-    int y = r.y;
-    int w = r.width;
-    int h = r.height;
-
-    int dx, dy, i = 0;
-    for (dy = y; dy < y + h; dy++) {
-      for (dx = x; dx < x + w; dx++)
-	pixels[dy * rfb.framebufferWidth + dx] = rcSavedArea[i++];
-    }
-    handleUpdatedPixels(r.x, r.y, r.width, r.height);
-  }
-
-  //
-  // Draw cursor.
-  //
-
-  void softCursorDraw() {
-
-    int x, y, x0, y0;
-    int offset;
-
-    for (y = 0; y < rcHeight; y++) {
-      y0 = rcCursorY - rcHotY + y;
-      if (y0 >= 0 && y0 < rfb.framebufferHeight) {
-	for (x = 0; x < rcWidth; x++) {
-	  x0 = rcCursorX - rcHotX + x;
-	  if (x0 >= 0 && x0 < rfb.framebufferWidth) {
-	    offset = y * rcWidth + x;
-	    if (rcMask[offset]) {
-	      pixels[y0 * rfb.framebufferWidth + x0] = rcSource[offset];
-	    }
-	  }
-	}
-      }
-    }
-
-    Rectangle r = new Rectangle();
-    softCursorToScreen(r, null);
-
-    handleUpdatedPixels(r.x, r.y, r.width, r.height);
-  }
-
-  //
-  // Calculate position, size and offset for the part of cursor
-  // located inside framebuffer bounds.
-  //
-
-  void softCursorToScreen(Rectangle screenArea, Point cursorOffset) {
-
-    int cx = 0, cy = 0;
-
-    int x = rcCursorX - rcHotX;
-    int y = rcCursorY - rcHotY;
-    int w = rcWidth;
-    int h = rcHeight;
-
-    if (x < 0) {
-      cx = -x;
-      w -= cx;
-      x = 0;
-    } else if (x + w > rfb.framebufferWidth) {
-      w = rfb.framebufferWidth - x;
-    }
-    if (y < 0) {
-      cy = -y;
-      h -= cy;
-      y = 0;
-    } else if (y + h > rfb.framebufferHeight) {
-      h = rfb.framebufferHeight - y;
-    }
-
-    if (w < 0) {
-      cx = 0; x = 0; w = 0;
-    }
-    if (h < 0) {
-      cy = 0; y = 0; h = 0;
-    }
-
-    if (screenArea != null)
-      screenArea.setBounds(x, y, w, h);
-    if (cursorOffset != null)
-      cursorOffset.setLocation(cx, cy);
   }
 }

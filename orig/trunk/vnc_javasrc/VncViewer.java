@@ -127,21 +127,35 @@ public class VncViewer extends java.applet.Applet
       vc = new VncCanvas(this);
       gbc.weightx = 1.0;
       gbc.weighty = 1.0;
-      gbc.anchor = GridBagConstraints.NORTHWEST;
-      gbc.fill = GridBagConstraints.BOTH;
 
       if (inSeparateFrame) {
-	desktopScrollPane = new ScrollPane();
+
+	// Create a panel which itself is resizeable and can hold
+	// non-resizeable VncCanvas component at the top left corner.
+	Panel canvasPanel = new Panel();
+	canvasPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+	canvasPanel.add(vc);
+
+	// Create a ScrollPane which will hold a panel with VncCanvas
+	// inside.
+	desktopScrollPane = new ScrollPane(ScrollPane.SCROLLBARS_AS_NEEDED);
+	gbc.fill = GridBagConstraints.BOTH;
 	gridbag.setConstraints(desktopScrollPane, gbc);
-	desktopScrollPane.add(vc);
+	desktopScrollPane.add(canvasPanel);
+
+	// Finally, add our ScrollPane to the Frame window.
 	vncFrame.add(desktopScrollPane);
 	vncFrame.setTitle(rfb.desktopName);
 	vncFrame.pack();
 	vc.resizeDesktopFrame();
+
       } else {
+
+	// Just add the VncCanvas component to the Applet.
 	gridbag.setConstraints(vc, gbc);
 	add(vc);
 	validate();
+
       }
 
       if (options.showControls)

@@ -276,7 +276,7 @@ vncBuffer::GetChangedRegion(vncRegion &rgn, RECT &rect)
         if (!FastCheckMainbuffer())
                 return;
 
-	const int BLOCK_SIZE = 32;
+	const int BLOCK_SIZE = 16;
 	const UINT bytesPerPixel = m_scrinfo.format.bitsPerPixel / 8;
 
 	RECT new_rect;
@@ -425,7 +425,7 @@ vncBuffer::SetClientFormat(rfbPixelFormat &format)
 BOOL
 vncBuffer::SetEncoding(CARD32 encoding)
 {
-	m_desktop->FillDisplayInfo(&m_scrinfo);
+	//m_desktop->FillDisplayInfo(&m_scrinfo);
 
 	// Delete the old encoder
 	if (m_encoder != NULL)
@@ -658,13 +658,13 @@ vncBuffer::Clear(RECT &rect)
 
 // Routine to translate a rectangle between pixel formats
 UINT
-vncBuffer::TranslateRect(const RECT &rect, VSocket *outConn)
+vncBuffer::TranslateRect(const RECT &rect, VSocket *outConn, int offsetx, int offsety)
 {
 	if (!FastCheckMainbuffer())
 		return 0;
 
 	// Call the encoder to encode the rectangle into the client buffer...
-	return m_encoder->EncodeRect(m_backbuff, outConn, m_clientbuff, rect);
+	return m_encoder->EncodeRect(m_backbuff, outConn, m_clientbuff, rect, offsetx, offsety);
 }
 
 // Verify that the fast blit buffer hasn't changed

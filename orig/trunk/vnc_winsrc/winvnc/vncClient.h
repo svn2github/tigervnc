@@ -106,10 +106,6 @@ public:
 	virtual const char *GetClientName();
 	virtual vncClientId GetClientId() {return m_id;};
 
-	virtual void UpdateDesktopSize(BOOL enable) { m_DesktopSizeChanged = enable;};
-	virtual BOOL IsDesktopSizeChanged() {return m_DesktopSizeChanged;};
-	virtual BOOL ReadyChangeDS() {return m_ReadyChangeDS;};
-	virtual BOOL SetNewDS();
 	void SetInputCounter();
 
 

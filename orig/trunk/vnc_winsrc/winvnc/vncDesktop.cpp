@@ -129,6 +129,21 @@ vncDesktopThread::run_undetached(void *arg)
 	// Succeeded to initialise ok
 	ReturnVal(TRUE);
 
+	RECT rect;
+	if (m_server->WindowShared())
+		GetWindowRect(m_server->GetWindowShared(), &rect);
+	else
+	{
+		if (m_server->ScreenAreaShared())
+			rect = m_server->GetScreenAreaRect();
+		else
+			rect = m_desktop->m_bmrect;
+	}
+	
+	IntersectRect(&rect, &rect, &m_desktop->m_bmrect);
+	m_server->setSharedRect(rect);
+
+	
 	// START PROCESSING DESKTOP MESSAGES
 
 	// We set a flag inside the desktop handler here, to indicate it's now safe
@@ -146,6 +161,7 @@ vncDesktopThread::run_undetached(void *arg)
 	BOOL unhandled;
 	MSG msg;
 	droptime.QuadPart = 0;
+
 
 	while (TRUE)
 	{
@@ -204,45 +220,11 @@ vncDesktopThread::run_undetached(void *arg)
 				}
 
 				// Add a full screen update to all the clients
-				RECT rect = m_desktop->m_bmrect;
-				m_server->UpdateRect(rect);
+				
+				m_server->UpdateRect(m_desktop->m_bmrect);
 				m_server->UpdatePalette();
 			}
 	
-			if ( !m_server->CheckUpdateDesktopSize() ) {
-				RECT SharedRect;
-
-				if ( m_server->WindowShared() ) {
-					GetWindowRect( m_server->GetWindowShared(), &SharedRect );
-					m_server->SetMatchSizeFields( SharedRect.left, SharedRect.top, SharedRect.right, SharedRect.bottom);  
-				}
-				
-				SharedRect = m_server->getSharedRect();
-			
-				if (  m_desktop->m_scrinfo.framebufferHeight != SharedRect.bottom - SharedRect.top   
-					|| m_desktop->m_bmrect.right-m_desktop->m_bmrect.left != SharedRect.right - SharedRect.left ) 
-					m_server->UpdateDesktopSize();
-				
-			}			
-								
-				if ( m_server->ReadyChangeDS () ) {
-			
-					// Attempt to close the old hooks
-					if (!m_desktop->Shutdown())
-					{
-						m_server->KillAuthClients();
-						break;
-					}
-
-					// Now attempt to re-install them!
-					if (!m_desktop->Startup())
-					{
-						m_server->KillAuthClients();
-						break;
-					}
-					m_server->SetNewDS();
-					
-				}	
 			
 
 			// TRIGGER THE UPDATE
@@ -280,19 +262,16 @@ vncDesktopThread::run_undetached(void *arg)
 		if (msg.message == RFB_SCREEN_UPDATE)
 		{
 			// An area of the screen has changed
-			RECT rect, coord;
-			if (m_server->WindowShared()) {
-				GetWindowRect(m_server->GetWindowShared(), &coord);
-				m_server->SetMatchSizeFields( coord.left, coord.top, coord.right, coord.bottom);  
-			} 
-			coord = m_server->getSharedRect();
+			RECT rect;
+				
+			rect.left =	(SHORT)LOWORD(msg.wParam);
+			rect.top = (SHORT)HIWORD(msg.wParam);
+			rect.right = (SHORT)LOWORD(msg.lParam);
+			rect.bottom = (SHORT)HIWORD(msg.lParam);
 			
-			rect.left =	(SHORT)LOWORD(msg.wParam)- coord.left;
-			rect.top = (SHORT)HIWORD(msg.wParam) - coord.top;
-			rect.right = (SHORT)LOWORD(msg.lParam) - coord.left;
-			rect.bottom = (SHORT)HIWORD(msg.lParam) - coord.top;
+			if ( IntersectRect(&rect, &rect, &m_server->getSharedRect()) )
+				rgncache.AddRect(rect);
 
-			rgncache.AddRect(rect);
 //			m_server->UpdateRect(rect);
 
 			unhandled = FALSE;
@@ -1036,38 +1015,26 @@ vncDesktop::ResetDisplayToNormal()
 BOOL
 vncDesktop::InitBitmap()
 {
-	// check sharing screen area
-	if (m_server->WindowShared()) {
-		// to get position of our window
-		if (!GetWindowRect(m_server->GetWindowShared(),&m_bmrect))
-			return FALSE;
-		m_server->SetMatchSizeFields(m_bmrect.left,m_bmrect.top,m_bmrect.right,m_bmrect.bottom);
-	} 
-	
-	m_bmrect=m_server->getSharedRect();
-	
 	// Get the device context for the whole screen and find it's size
 	m_hrootdc = ::GetDC(NULL);
-	if (m_hrootdc == NULL) {
-		vnclog.Print(LL_INTERR, VNCLOG("GetDC() failed, error = %d\n"), GetLastError());
+	if (m_hrootdc == NULL)
 		return FALSE;
-	}
 
-	vnclog.Print(LL_INTINFO, VNCLOG("bitmap dimensions are %d x %d\n"),
-				 m_bmrect.right, m_bmrect.bottom);
+	m_bmrect.left = m_bmrect.top = 0;
+	m_bmrect.right = GetDeviceCaps(m_hrootdc, HORZRES);
+	m_bmrect.bottom = GetDeviceCaps(m_hrootdc, VERTRES);
+	vnclog.Print(LL_INTINFO, VNCLOG("bitmap dimensions are %d x %d\n"), m_bmrect.right, m_bmrect.bottom);
 
 	// Create a compatible memory DC
 	m_hmemdc = CreateCompatibleDC(m_hrootdc);
 	if (m_hmemdc == NULL) {
-		vnclog.Print(LL_INTERR, VNCLOG("CreateCompatibleDC() failed, error = %d\n"),
-					 GetLastError());
+		vnclog.Print(LL_INTERR, VNCLOG("failed to create compatibleDC(%d)\n"), GetLastError());
 		return FALSE;
 	}
 
 	// Check that the device capabilities are ok
 	if ((GetDeviceCaps(m_hrootdc, RASTERCAPS) & RC_BITBLT) == 0)
 	{
-		vnclog.Print(LL_INTERR, VNCLOG("BitBlt() is not supported\n"));
 		MessageBox(
 			NULL,
 			"vncDesktop : root device doesn't support BitBlt\n"
@@ -1079,7 +1046,6 @@ vncDesktop::InitBitmap()
 	}
 	if ((GetDeviceCaps(m_hmemdc, RASTERCAPS) & RC_DI_BITMAP) == 0)
 	{
-		vnclog.Print(LL_INTERR, VNCLOG("GetDIBits() is not supported\n"));
 		MessageBox(
 			NULL,
 			"vncDesktop : memory device doesn't support GetDIBits\n"
@@ -1091,26 +1057,23 @@ vncDesktop::InitBitmap()
 	}
 
 	// Create the bitmap to be compatible with the ROOT DC!!!
-	m_membitmap = CreateCompatibleBitmap(m_hrootdc, m_bmrect.right - m_bmrect.left,
-		m_bmrect.bottom - m_bmrect.top);
+	m_membitmap = CreateCompatibleBitmap(m_hrootdc, m_bmrect.right, m_bmrect.bottom);
 	if (m_membitmap == NULL) {
-		vnclog.Print(LL_INTERR, VNCLOG("failed to create memory bitmap, error = %d\n"),
-					 GetLastError());
+		vnclog.Print(LL_INTERR, VNCLOG("failed to create memory bitmap(%d)\n"), GetLastError());
 		return FALSE;
 	}
 	vnclog.Print(LL_INTINFO, VNCLOG("created memory bitmap\n"));
 
 	// Get the bitmap's format and colour details
+	int result;
 	m_bminfo.bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 	m_bminfo.bmi.bmiHeader.biBitCount = 0;
-	if (::GetDIBits(m_hmemdc, m_membitmap, 0, 1, NULL,
-					&m_bminfo.bmi, DIB_RGB_COLORS) == 0) {
-		vnclog.Print(LL_INTERR, VNCLOG("GetDIBits() failed, call #1\n"));
+	result = ::GetDIBits(m_hmemdc, m_membitmap, 0, 1, NULL, &m_bminfo.bmi, DIB_RGB_COLORS);
+	if (result == 0) {
 		return FALSE;
 	}
-	if (::GetDIBits(m_hmemdc, m_membitmap, 0, 1, NULL,
-					&m_bminfo.bmi, DIB_RGB_COLORS) == 0) {
-		vnclog.Print(LL_INTERR, VNCLOG("GetDIBits() failed, call #2\n"));
+	result = ::GetDIBits(m_hmemdc, m_membitmap, 0, 1, NULL, &m_bminfo.bmi, DIB_RGB_COLORS);
+	if (result == 0) {
 		return FALSE;
 	}
 	vnclog.Print(LL_INTINFO, VNCLOG("got bitmap format\n"));
@@ -1118,7 +1081,6 @@ vncDesktop::InitBitmap()
 	vnclog.Print(LL_INTINFO, VNCLOG("DBG:memory context has %d planes!\n"), GetDeviceCaps(m_hmemdc, PLANES));
 	if (GetDeviceCaps(m_hmemdc, PLANES) != 1)
 	{
-		vnclog.Print(LL_INTERR, VNCLOG("number of planes in memory context is more than 1\n"));
 		MessageBox(
 			NULL,
 			"vncDesktop : current display is PLANAR, not CHUNKY!\n"
@@ -1137,6 +1099,7 @@ vncDesktop::InitBitmap()
 
 	return TRUE;
 }
+
 
 BOOL
 vncDesktop::ThunkBitmapInfo()
@@ -1208,11 +1171,7 @@ vncDesktop::SetPixFormat()
 	m_scrinfo.format.bitsPerPixel = (CARD8) m_bminfo.bmi.bmiHeader.biBitCount;
 	m_scrinfo.format.depth        = (CARD8) m_bminfo.bmi.bmiHeader.biBitCount;
 
-	if (!m_server->FullScreen()) {
-		if (m_scrinfo.format.bitsPerPixel == 8) m_scrinfo.framebufferWidth = (CARD16) ((m_bmrect.right+3 - m_bmrect.left)/4*4);
-		if (m_scrinfo.format.bitsPerPixel == 16) m_scrinfo.framebufferWidth = (CARD16) ((m_bmrect.right+1 - m_bmrect.left)/2*2);
-	}	
-
+	
 	// Calculate the number of bytes per row
 	m_bytesPerRow = m_scrinfo.framebufferWidth * m_scrinfo.format.bitsPerPixel / 8;
 
@@ -1535,17 +1494,9 @@ vncDesktop::CaptureScreen(RECT &rect, BYTE *scrBuff, UINT scrBuffSize)
 
 	// Capture screen into bitmap
 	BOOL blitok;
-	RECT coord;
-	if ( m_server->WindowShared() ) {
-		GetWindowRect( m_server->GetWindowShared(), &coord );
-		m_server->SetMatchSizeFields( coord.left, coord.top, coord.right, coord.bottom);  
-	}
-				
-	coord = m_server->getSharedRect();
 	blitok = BitBlt(m_hmemdc, rect.left, rect.top,
 					rect.right - rect.left, rect.bottom - rect.top,
-					m_hrootdc, rect.left + coord.left, rect.top + coord.top,
-					SRCCOPY);
+					m_hrootdc, rect.left, rect.top,	SRCCOPY);
 
 	// Select the old bitmap back into the memory DC
 	SelectObject(m_hmemdc, oldbitmap);
@@ -1578,23 +1529,10 @@ vncDesktop::CaptureMouse(BYTE *scrBuff, UINT scrBuffSize)
 	// Translate position for hotspot
 	if (GetIconInfo(m_hcursor, &IconInfo))
 	{
-		RECT coord;
-		if (m_server->WindowShared()) {
-			GetWindowRect(m_server->GetWindowShared(), &coord);
-			m_server->SetMatchSizeFields( coord.left, coord.top, coord.right, coord.bottom);  
-		}
-		coord = m_server->getSharedRect();
-
-		CursorPos.x -= ((int) IconInfo.xHotspot);
 		
-		// here, cursor position is relative to the screen
-		// we put them relative to the screen area !
-		CursorPos.x = CursorPos.x - coord.left;
-
+		CursorPos.x -= ((int) IconInfo.xHotspot);
 		CursorPos.y -= ((int) IconInfo.yHotspot);
-		// we have to do the same thing for y than for x !
-		CursorPos.y = CursorPos.y - coord.top;
-
+		
 		if (IconInfo.hbmMask != NULL)
 			DeleteObject(IconInfo.hbmMask);
 		if (IconInfo.hbmColor != NULL)

@@ -109,7 +109,7 @@ vncServer::vncServer()
 	m_disable_time = 3;
 	RECT temp;
 	GetWindowRect(GetDesktopWindow(), &temp);
-	SetMatchSizeFields(temp.left, temp.top, temp.right, temp.bottom);
+	setSharedRect(temp);
 #ifdef HORIZONLIVE
 	m_full_screen = FALSE;
 	m_WindowShared= TRUE;
@@ -790,7 +790,6 @@ vncServer::UpdateRegion(vncRegion &region)
 	for (i = m_authClients.begin(); i != m_authClients.end(); i++)
 	{
 		// Post the update
-		if ( !GetClient(*i)->IsDesktopSizeChanged() )
 			GetClient(*i)->UpdateRegion(region);
 	}
 }
@@ -1204,8 +1203,8 @@ vncServer::GetScreenInfo(int &width, int &height, int &depth)
 	}
 
 	// Get the info from the scrinfo structure
-	width = scrinfo.framebufferWidth;
-	height = scrinfo.framebufferHeight;
+	width = m_shared_rect.right - m_shared_rect.left;
+	height = m_shared_rect.bottom - m_shared_rect.top;
 	depth = scrinfo.format.bitsPerPixel;
 }
 
@@ -1517,87 +1516,12 @@ vncServer::SetMatchSizeFields(int left,int top,int right,int bottom)
 		top = trect.top;
 
  
-	m_shared_rect.left=left;
-	m_shared_rect.top=top;
-	m_shared_rect.bottom=bottom;
-	m_shared_rect.right=right;
+	m_screenarea_rect.left=left;
+	m_screenarea_rect.top=top;
+	m_screenarea_rect.bottom=bottom;
+	m_screenarea_rect.right=right;
 }
 
-void
-vncServer::UpdateDesktopSize()
-{
-	vncClientList::iterator i;
-	
-	omni_mutex_lock l(m_clientsLock);
-
-	// Post this screen size update to all the connected clients
-	for (i = m_authClients.begin(); i != m_authClients.end(); i++)
-	{
-		// Post the update
-		GetClient(*i)->UpdateDesktopSize(TRUE);
-	}
-}
-
-BOOL
-vncServer::CheckUpdateDesktopSize()
-{
-	vncClientList::iterator i;
-
-	BOOL check = FALSE;
-	omni_mutex_lock l(m_clientsLock);
-
-	for (i = m_authClients.begin(); i != m_authClients.end(); i++)
-	{
-		check = check || GetClient(*i)->IsDesktopSizeChanged();
-	}
-
-	if ( m_authClients.empty() )
-		check = true;
-
-	
-	return check;
-}
-
-
-void
-vncServer::SetNewDS()
-{
-	vncClientList::iterator i;
-		
-	omni_mutex_lock l(m_clientsLock);
-
-	// Post this screen size update to all the connected clients
-	for (i = m_authClients.begin(); i != m_authClients.end(); i++)
-	{
-		// Post the update
-		if (!GetClient(*i)->SetNewDS()) {
-			vnclog.Print(LL_INTINFO, VNCLOG("Unable to set new desktop size\n"));
-			KillClient (*i);
-		}
-	}
-}
-
-
-BOOL
-vncServer::ReadyChangeDS()
-{
-	vncClientList::iterator i;
-	
-	BOOL check = TRUE;
-	omni_mutex_lock l(m_clientsLock);
-
-	// Post this screen size update to all the connected clients
-	for (i = m_authClients.begin(); i != m_authClients.end(); i++)
-	{
-		// Post the update
-		check = check && GetClient(*i)->ReadyChangeDS();
-	}
-
-	if ( m_authClients.empty() )
-		check = false;
-	
-	return check;
-}
 
 void 
 vncServer::SetKeyboardCounter(int count)

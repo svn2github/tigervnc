@@ -476,8 +476,10 @@ vncClientThread::run(void *arg)
 	server_ini.format = m_client->m_buffer->GetLocalFormat();
 
 	// Endian swaps
-	server_ini.framebufferWidth = Swap16IfLE(m_client->m_fullscreen.right);
-	server_ini.framebufferHeight = Swap16IfLE(m_client->m_fullscreen.bottom);
+	RECT SharedRect;
+	SharedRect = m_server->getSharedRect();
+	server_ini.framebufferWidth = Swap16IfLE(SharedRect.right- SharedRect.left);
+	server_ini.framebufferHeight = Swap16IfLE(SharedRect.bottom - SharedRect.top);
 	server_ini.format.redMax = Swap16IfLE(server_ini.format.redMax);
 	server_ini.format.greenMax = Swap16IfLE(server_ini.format.greenMax);
 	server_ini.format.blueMax = Swap16IfLE(server_ini.format.blueMax);
@@ -497,12 +499,12 @@ vncClientThread::run(void *arg)
 
 	// UNLOCK INITIAL SETUP
 	// Initial negotiation is complete, so set the protocol ready flag
-	{	omni_mutex_lock l(m_client->m_regionLock);
+	{
+		omni_mutex_lock l(m_client->m_regionLock);
 		m_client->m_protocol_ready = TRUE;
+		// Add a fullscreen update to the client's update list
+		m_client->UpdateRect(m_server->getSharedRect());
 	}
-	
-	// Add a fullscreen update to the client's update list
-	m_client->UpdateRect(m_client->m_fullscreen);
 
 	// Clear the CapsLock and NumLock keys
 	if (m_client->m_keyboardenabled)
@@ -710,21 +712,29 @@ vncClientThread::run(void *arg)
 			}
 
 			{
-				RECT update;
-
-				// Get the specified rectangle as the region to send updates for.
-				update.left = Swap16IfLE(msg.fur.x);
-				update.top = Swap16IfLE(msg.fur.y);
-				update.right = update.left + Swap16IfLE(msg.fur.w);
-				update.bottom = update.top + Swap16IfLE(msg.fur.h);
+				RECT update, SharedRect;
 
 				{	omni_mutex_lock l(m_client->m_regionLock);
+				
+				SharedRect = m_server->getSharedRect();
+				// Get the specified rectangle as the region to send updates for.
+				update.left = Swap16IfLE(msg.fur.x)+ SharedRect.left;
+				update.top = Swap16IfLE(msg.fur.y)+ SharedRect.top;
+				update.right = update.left + Swap16IfLE(msg.fur.w);
+				
+				if (update.right > m_client->m_fullscreen.right )
+					update.right = m_client->m_fullscreen.right;
+
+				update.bottom = update.top + Swap16IfLE(msg.fur.h);
+				if ( update.bottom > m_client->m_fullscreen.bottom )
+					update.bottom = m_client->m_fullscreen.bottom;
+				
 
 					// Set the update-wanted flag to true
 					m_client->m_updatewanted = TRUE;
 
 					// Clip the rectangle to the screen
-					if (IntersectRect(&update, &update, &m_client->m_fullscreen))
+					if (IntersectRect(&update, &update, &SharedRect))
 					{
 						// Is this request for an incremental region?
 						if (msg.fur.incremental)
@@ -777,12 +787,10 @@ vncClientThread::run(void *arg)
 					// if we share only one window...
 			     	
 					RECT coord;
-					if ( m_server->WindowShared() ) {
-						GetWindowRect( m_server->GetWindowShared(), &coord );
-						m_server->SetMatchSizeFields( coord.left, coord.top, coord.right, coord.bottom);  
-					}
-					
+					{	omni_mutex_lock l(m_client->m_regionLock);
+
 					coord = m_server->getSharedRect();
+					}
 					
 					// to put position relative to screen
 					msg.pe.x = msg.pe.x + coord.left;
@@ -1060,22 +1068,10 @@ vncClient::PollWindow(HWND hwnd)
 	// Are we still wanting to poll this window?
 	if (poll)
 	{
-		RECT rect,trect;
+		RECT rect;
 
 		// Get the rectangle
 		if (GetWindowRect(hwnd, &rect))
-		{
-			if (m_server->WindowShared()) {
-				GetWindowRect(m_server->GetWindowShared(), &trect);
-				m_server->SetMatchSizeFields( rect.left, rect.top, rect.right, rect.bottom);  
-			} 
-				
-			trect = m_server->getSharedRect();
-			rect.left -= trect.left;
-			rect.top -= trect.top;
-			rect.right -= trect.left;
-			rect.bottom -= trect.top;
-		}
 			m_changed_rgn.AddRect(rect);
 	}
 }
@@ -1087,10 +1083,42 @@ vncClient::TriggerUpdate()
 	omni_mutex_lock l(m_regionLock);
 	if (!m_protocol_ready) return;
 
-	if (m_DesktopSizeChanged) {         
-		m_ReadyChangeDS = TRUE;     
-		return;                     
+	RECT SharedRect, CurrentRect;
+
+	if (m_server->WindowShared())
+		GetWindowRect(m_server->GetWindowShared(), &CurrentRect);
+	else
+	{
+		if (m_server->ScreenAreaShared())
+			CurrentRect = m_server->GetScreenAreaRect();
+		else
+			CurrentRect = m_fullscreen;
 	}
+	
+	SharedRect = m_server->getSharedRect();
+	IntersectRect(&CurrentRect, &CurrentRect, &m_fullscreen);
+	
+	if ( !EqualRect( &CurrentRect, &SharedRect) )
+	{
+
+		m_server->setSharedRect( CurrentRect);
+		m_full_rgn.Clear();
+		m_incr_rgn.Clear();
+	
+		if ( (SharedRect.right-SharedRect.left != CurrentRect.right - CurrentRect.left) ||
+			( SharedRect.bottom-SharedRect.top != CurrentRect.bottom - CurrentRect.top) ) 
+		{
+			SendNewFBSize(); 
+			//m_changed_rgn.AddRect(CurrentRect) ;
+			m_full_rgn.AddRect(CurrentRect);
+		} else 
+			if (m_server->WindowShared())
+				return;
+			else 
+				m_full_rgn.AddRect(CurrentRect);
+				
+	}
+
 	
 	if (m_updatewanted)
 	{
@@ -1098,14 +1126,22 @@ vncClient::TriggerUpdate()
 		if (m_server->PollFullScreen())
 		{
 			RECT rect;
-			rect.left = (m_pollingcycle % 2) * m_qtrscreen.right;
-			rect.right = rect.left + m_qtrscreen.right;
-			rect.top = (m_pollingcycle / 2) * m_qtrscreen.bottom;
-			rect.bottom = rect.top + m_qtrscreen.bottom;
+			{	omni_mutex_lock l(m_regionLock);
 
-			m_changed_rgn.AddRect(rect);
+			if(EqualRect(&m_fullscreen, &m_server->getSharedRect()))
+			{
+				rect.left = (m_pollingcycle % 2) * m_qtrscreen.right;
+				rect.right = rect.left + m_qtrscreen.right;
+				rect.top = (m_pollingcycle / 2) * m_qtrscreen.bottom;
+				rect.bottom = rect.top + m_qtrscreen.bottom;
+				
+				m_changed_rgn.AddRect(rect);
+				m_pollingcycle = (m_pollingcycle + 1) % 4;
+			} else 
+				m_changed_rgn.AddRect(m_server->getSharedRect());
+						
+			}
 			
-			m_pollingcycle = (m_pollingcycle + 1) % 4;
 		}
 
 		if (m_server->PollForeground())
@@ -1162,7 +1198,7 @@ vncClient::UpdateMouse()
 	{
 		omni_mutex_lock l(m_regionLock);
 
-		if (IntersectRect(&m_oldmousepos, &m_oldmousepos, &m_fullscreen))
+		if (IntersectRect(&m_oldmousepos, &m_oldmousepos, &m_server->getSharedRect()))
 			m_changed_rgn.AddRect(m_oldmousepos);
 
 		m_mousemoved = TRUE;
@@ -1175,10 +1211,10 @@ vncClient::UpdateRect(RECT &rect)
 	// Add the rectangle to the update region
 	if (IsRectEmpty(&rect))
 		return;
-
-	if (IntersectRect(&rect, &rect, &m_fullscreen))
+	
 	{	omni_mutex_lock l(m_regionLock);
 		
+	if (IntersectRect(&rect, &rect, &m_server->getSharedRect()))
 		m_changed_rgn.AddRect(rect);
 	}
 }
@@ -1194,7 +1230,7 @@ vncClient::UpdateRegion(vncRegion &region)
 		
 		// Merge the two
 		vncRegion dummy;
-		dummy.AddRect(m_fullscreen);
+		dummy.AddRect(m_server->getSharedRect());
 		region.Intersect(dummy);
 
 		m_changed_rgn.Combine(region);
@@ -1215,7 +1251,7 @@ vncClient::CopyRect(RECT &dest, POINT &source)
 
 		// Clip the destination to the screen
 		RECT destrect;
-		if (!IntersectRect(&destrect, &dest, &m_fullscreen))
+		if (!IntersectRect(&destrect, &dest, &m_server->getSharedRect()))
 			return;
 
 		// Adjust the source correspondingly
@@ -1246,7 +1282,7 @@ vncClient::CopyRect(RECT &dest, POINT &source)
 
 		// Clip the source to the screen
 		RECT srcrect2;
-		if (!IntersectRect(&srcrect2, &srcrect, &m_fullscreen))
+		if (!IntersectRect(&srcrect2, &srcrect, &m_server->getSharedRect()))
 			return;
 
 		// Correct the destination rectangle
@@ -1337,6 +1373,9 @@ vncClient::CheckRects(vncRegion &rgn, rectlist &rects)
 	{
 		// Get the buffer to check for changes in the rect
 		m_buffer->GetChangedRegion(rgn, *i);
+//		RECT rect = *i;
+//		vnclog.Print(LL_CONNERR, VNCLOG("RECT to check : %hd %hd %hd %hd \n"), rect.left, rect.top, rect.right, rect.bottom );
+
 	}
 }
 
@@ -1494,7 +1533,7 @@ vncClient::SendUpdate()
 			{
 				// Grab the mouse
 				m_oldmousepos = m_buffer->GrabMouse();
-				if (IntersectRect(&m_oldmousepos, &m_oldmousepos, &m_fullscreen))
+				if (IntersectRect(&m_oldmousepos, &m_oldmousepos, &m_server->getSharedRect()))
 					m_buffer->GetChangedRegion(toBeSent, m_oldmousepos);
 
 				m_mousemoved = FALSE;
@@ -1592,8 +1631,13 @@ vncClient::SendRectangles(rectlist &rects)
 BOOL
 vncClient::SendRectangle(RECT &rect)
 {
+	RECT SharedRect;
+	{	omni_mutex_lock l(m_regionLock);
+	SharedRect = m_server->getSharedRect();
+	}
+	IntersectRect(&rect, &rect, &SharedRect);
 	// Get the buffer to encode the rectangle
-	UINT bytes = m_buffer->TranslateRect(rect, m_socket);
+		UINT bytes = m_buffer->TranslateRect(rect, m_socket, SharedRect.left, SharedRect.top);
 
 	// Send the encoded data
 	return m_socket->SendQueued((char *)(m_buffer->GetClientBuffer()), bytes);
@@ -1722,11 +1766,6 @@ vncClient::SendNewFBSize()
 {
 	rfbFramebufferUpdateRectHeader hdr;
 	RECT SharedRect;
-
-	if (m_server->WindowShared()) { 
-		GetWindowRect(m_server->GetWindowShared(), &SharedRect);
-		m_server->SetMatchSizeFields( SharedRect.left, SharedRect.top, SharedRect.right, SharedRect.bottom);  
-	}
 	
 	SharedRect = m_server->getSharedRect();
 		
@@ -1747,29 +1786,10 @@ vncClient::SendNewFBSize()
 		if (!m_socket->SendQueued((char *)&hdr, sizeof(hdr)))
 			return FALSE;
 	}
-	m_fullscreen.bottom = SharedRect.bottom - SharedRect.top;
-	m_fullscreen.right = SharedRect.right - SharedRect.left;
-	m_qtrscreen.right = m_fullscreen.right/2;
-	m_qtrscreen.bottom = m_fullscreen.bottom/2;
+
 	return TRUE;
 }
 
-BOOL
-vncClient::SetNewDS()
-{
-	SendNewFBSize(); 
-	BOOL t = m_buffer->SetEncoding(Swap32IfLE(m_encoding));
-	m_buffer->EnableXCursor(m_use_XCursor);
-	m_buffer->EnableRichCursor(m_use_RichCursor);
-	m_buffer->EnableLastRect(m_use_lastrect);
-	m_full_rgn.Clear();
-	m_incr_rgn.Clear();
-	//m_changed_rgn.Clear();
-	m_full_rgn.AddRect(m_fullscreen);
-	UpdateDesktopSize(FALSE);
-	m_ReadyChangeDS = FALSE;
-	return t;
-}
 
 void
 vncClient::SetInputCounter()

@@ -85,7 +85,7 @@ public:
 
 	// ENCODING
 	BOOL SetEncoding(CARD32 encoding);
-	UINT TranslateRect(const RECT &rect, VSocket *outConn);
+	UINT TranslateRect(const RECT &rect, VSocket *outConn, int offsetx, int offsety);
 
 	// SENDING CURSOR SHAPE UPDATES
 	BOOL IsCursorUpdatePending();

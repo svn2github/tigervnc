@@ -257,14 +257,12 @@ public:
     virtual void WindowShared(BOOL enable) { m_WindowShared = enable; };                    
     virtual BOOL WindowShared() { return m_WindowShared; };                                 
     virtual void SetMatchSizeFields(int left,int top,int right,int bottom);                 
+	virtual RECT GetScreenAreaRect() { return m_screenarea_rect;};
 	virtual void SetWindowShared(HWND hWnd);                                             
     virtual HWND GetWindowShared() { return m_hwndShared; };                                
-	virtual RECT getSharedRect () { return m_shared_rect; };                             
-	virtual void UpdateDesktopSize() ;                                                   
-	virtual BOOL CheckUpdateDesktopSize() ;                                              
-	virtual BOOL ReadyChangeDS();                                                        
-	virtual void SetNewDS();                                                             
-    virtual BOOL FullScreen() { return m_full_screen; };                                    
+	virtual RECT getSharedRect () { return m_shared_rect; };
+	virtual void setSharedRect (RECT rect) { m_shared_rect = rect; };
+	virtual BOOL FullScreen() { return m_full_screen; };                                    
 	virtual void FullScreen(BOOL enable) { m_full_screen = enable; };                    
 	virtual BOOL ScreenAreaShared() { return m_screen_area; };                           
 	virtual void ScreenAreaShared(BOOL enable) { m_screen_area = enable; };              
@@ -293,6 +291,7 @@ protected:
 	// General preferences
 	UINT				m_port;
 	RECT			    m_shared_rect;
+	RECT			    m_screenarea_rect;
 	BOOL				m_autoportselect;
 	char				m_password[MAXPWLEN];
 	BOOL				m_passwd_required;

@@ -99,8 +99,7 @@ BEGIN
                     127,145,10
     CONTROL         "Don't show remote cursor",IDC_CSHAPE_IGNORE_RADIO,
                     "Button",BS_AUTORADIOBUTTON,145,139,145,10
-    CONTROL         "Use 8-bit color",IDC_8BITCHECK,"Button",BS_AUTOCHECKBOX | 
-                    WS_GROUP | WS_TABSTOP,12,29,109,10
+    CHECKBOX        "Use 8-bit color",IDC_8BITCHECK,12,29,109,10,WS_GROUP
     CHECKBOX        "View only (inputs ignored)",IDC_VIEWONLY,12,148,109,10
     CONTROL         "Full-screen mode",IDC_FULLSCREEN,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,145,29,145,10
@@ -119,8 +118,7 @@ BEGIN
     LTEXT           "best",IDC_STATIC_QBEST,103,94,18,10
     RTEXT           "level:",IDC_STATIC_TEXT_LEVEL,31,68,39,10
     RTEXT           "quality:",IDC_STATIC_TEXT_QUALITY,31,107,42,10
-    CONTROL         "1",IDC_STATIC_LEVEL,"Static",SS_SIMPLE | WS_GROUP,75,68,
-                    28,10
+    LTEXT           "1",IDC_STATIC_LEVEL,75,68,28,10
     LTEXT           "1",IDC_STATIC_QUALITY,78,107,25,10
     LTEXT           "Scale by:",IDC_STATIC_SCALE,145,15,36,10,SS_CENTERIMAGE
     GROUPBOX        "Restrictions",IDC_STATIC,4,137,123,38

@@ -767,32 +767,40 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 			TCHAR list[20];
 			strcpy(list, "Raw");
 			SendMessage(hListBox, CB_INSERTSTRING, (WPARAM)0, (LPARAM)(int FAR*)list);
-			strcpy(list, "RRE");
-			SendMessage(hListBox, CB_INSERTSTRING, (WPARAM)1, (LPARAM)(int FAR*)list);
-			strcpy(list, "CoRRE");
-			SendMessage(hListBox, CB_INSERTSTRING, (WPARAM)2, (LPARAM)(int FAR*)list);
 			strcpy(list, "Hextile");
+			SendMessage(hListBox, CB_INSERTSTRING, (WPARAM)1, (LPARAM)(int FAR*)list);
+			strcpy(list, "Tight");
+			SendMessage(hListBox, CB_INSERTSTRING, (WPARAM)2, (LPARAM)(int FAR*)list);
+			strcpy(list, "RRE");
 			SendMessage(hListBox, CB_INSERTSTRING, (WPARAM)3, (LPARAM)(int FAR*)list);
 			strcpy(list, "Zlib (pure)");
 			SendMessage(hListBox, CB_INSERTSTRING, (WPARAM)4, (LPARAM)(int FAR*)list);
-			strcpy(list, "Tight");
+			strcpy(list, "CoRRE");
 			SendMessage(hListBox, CB_INSERTSTRING, (WPARAM)5, (LPARAM)(int FAR*)list);
 			strcpy(list, "ZlibHex (mix)");
 			SendMessage(hListBox, CB_INSERTSTRING, (WPARAM)6, (LPARAM)(int FAR*)list);
 			int i;
 			switch (_this->m_PreferredEncoding) {
-			case 0:
+			case rfbEncodingRaw:
 				i = 0;
 				break;
-			case 2:
+			case rfbEncodingHextile:
 				i = 1;
 				break;
-			case 4:
-			case 5:
-			case 6:
-			case 7:
-			case 8:
-				i = _this->m_PreferredEncoding - 2;
+			case rfbEncodingTight:
+				i = 2;
+				break;
+			case rfbEncodingRRE:
+				i = 3;
+				break;
+			case rfbEncodingZlib:
+				i = 4;
+				break;
+			case rfbEncodingCoRRE:
+				i = 5;
+				break;
+			case rfbEncodingZlibHex:
+				i = 6;
 				break;
 			}
 			SendMessage(hListBox, CB_SETCURSEL, i, 0);
@@ -859,7 +867,7 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 				(_this->m_PreferredEncoding == rfbEncodingZlib) ||
 				(_this->m_PreferredEncoding == rfbEncodingZlibHex)));
 			
-			EnableWindow(hAllowJpeg, (_this->m_PreferredEncoding == rfbEncodingTight));
+			EnableWindow(hAllowJpeg, ((_this->m_PreferredEncoding == rfbEncodingTight) && !_this->m_Use8Bit));
 			
 			HWND hCompressLevel = GetDlgItem(hwnd, IDC_COMPRESSLEVEL);
 			SendMessage(hCompressLevel, TBM_SETRANGE, TRUE, (LPARAM) MAKELONG(1, 9)); 
@@ -867,7 +875,7 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 			
 			SetDlgItemInt(hwnd, IDC_STATIC_LEVEL, _this->m_compressLevel, FALSE);
 			
-			EnableWindow(hCompressLevel, (((_this->m_PreferredEncoding == rfbEncodingTight)||
+			_this->EnableCompress(hwnd, (((_this->m_PreferredEncoding == rfbEncodingTight)||
 				(_this->m_PreferredEncoding == rfbEncodingZlib) ||
 				(_this->m_PreferredEncoding == rfbEncodingZlibHex)) && _this->m_useCompressLevel));
 			
@@ -877,8 +885,8 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 			
 			SetDlgItemInt(hwnd, IDC_STATIC_QUALITY, _this->m_jpegQualityLevel, FALSE);
 			
-			EnableWindow(hJpeg, ((_this->m_PreferredEncoding == rfbEncodingTight) &&
-				_this->m_enableJpegCompression));
+			_this->EnableJpeg(hwnd, ((_this->m_PreferredEncoding == rfbEncodingTight) &&
+				_this->m_enableJpegCompression) && !_this->m_Use8Bit);
 			
 			HWND hRemoteCursor;
 			if (_this->m_requestShapeUpdates && !_this->m_ignoreShapeUpdates) {
@@ -905,14 +913,12 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 		case IDC_ALLOW_COMPRESSLEVEL:
 			switch (HIWORD(wParam)) {
 			case BN_CLICKED:
-				HWND hAllowCompressLevel = GetDlgItem(hwnd, IDC_ALLOW_COMPRESSLEVEL);
-				HWND hCompressLevel = GetDlgItem(hwnd, IDC_COMPRESSLEVEL);
-				
+				HWND hAllowCompressLevel = GetDlgItem(hwnd, IDC_ALLOW_COMPRESSLEVEL);				
 				if (SendMessage(hAllowCompressLevel, BM_GETCHECK, 0, 0) == 0) {
-					EnableWindow( hCompressLevel, TRUE);
+					_this->EnableCompress(hwnd, TRUE);
 					SendMessage(hAllowCompressLevel, BM_SETCHECK, TRUE, 0);
 				} else {
-					EnableWindow( hCompressLevel, FALSE);
+					_this->EnableCompress(hwnd, FALSE);
 					SendMessage(hAllowCompressLevel, BM_SETCHECK, FALSE, 0);
 				}
 				return 0;
@@ -921,15 +927,36 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 		case IDC_ALLOW_JPEG:
 			switch (HIWORD(wParam)) {
 			case BN_CLICKED:
-				HWND hAllowJpeg = GetDlgItem(hwnd, IDC_ALLOW_JPEG);
-				HWND hJpeg = GetDlgItem(hwnd, IDC_QUALITYLEVEL);
-				
+				HWND hAllowJpeg = GetDlgItem(hwnd, IDC_ALLOW_JPEG);				
 				if (SendMessage(hAllowJpeg, BM_GETCHECK, 0, 0) == 0) {
-					EnableWindow( hJpeg, TRUE);
+					_this->EnableJpeg(hwnd, TRUE);
 					SendMessage(hAllowJpeg, BM_SETCHECK, TRUE, 0);
 				} else {
-					EnableWindow( hJpeg, FALSE);
+					_this->EnableJpeg(hwnd, FALSE);
 					SendMessage(hAllowJpeg, BM_SETCHECK, FALSE, 0);
+				}
+				return 0;
+			}
+			return 0;
+		case IDC_8BITCHECK:
+			switch (HIWORD(wParam)) {
+			case BN_CLICKED:
+				HWND h8Bit = GetDlgItem(hwnd, IDC_8BITCHECK);
+				HWND hAllowJpeg = GetDlgItem(hwnd, IDC_ALLOW_JPEG);
+				HWND hListBox = GetDlgItem(hwnd, IDC_ENCODING);
+				int i = SendMessage(hListBox, CB_GETCURSEL, 0, 0);
+				if (SendMessage(h8Bit, BM_GETCHECK, 0, 0) != 0) {
+					if (i == 2) {
+						if (SendMessage(hAllowJpeg, BM_GETCHECK, 0, 0) != 0) {
+							_this->EnableJpeg(hwnd, TRUE);
+						}
+						EnableWindow(hAllowJpeg, TRUE);
+					}
+					SendMessage(h8Bit, BM_SETCHECK, FALSE, 0);
+				} else {
+					_this->EnableJpeg(hwnd, FALSE);
+					EnableWindow(hAllowJpeg, FALSE);
+					SendMessage(h8Bit, BM_SETCHECK, TRUE, 0);
 				}
 				return 0;
 			}
@@ -958,17 +985,25 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 				int i = SendMessage(hListBox, CB_GETCURSEL, 0, 0);
 				switch (i) {
 				case 0:
-					_this->m_PreferredEncoding = 0;
+					_this->m_PreferredEncoding = rfbEncodingRaw;
 					break;
 				case 1:
-					_this->m_PreferredEncoding = 2;
+					_this->m_PreferredEncoding = rfbEncodingHextile;
 					break;
 				case 2:
+					_this->m_PreferredEncoding = rfbEncodingTight;
+					break;
 				case 3:
+					_this->m_PreferredEncoding = rfbEncodingRRE;
+					break;
 				case 4:
+					_this->m_PreferredEncoding = rfbEncodingZlib;
+					break;
 				case 5:
+					_this->m_PreferredEncoding = rfbEncodingCoRRE;
+					break;
 				case 6:
-					_this->m_PreferredEncoding = i + 2;
+					_this->m_PreferredEncoding = rfbEncodingZlibHex;
 					break;
 				}
 				HWND hScalEdit = GetDlgItem(hwnd, IDC_SCALE_EDIT);
@@ -1051,33 +1086,40 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 		case IDC_ENCODING:
 			switch (HIWORD(wParam)) {
 			case CBN_SELCHANGE:
-				{
-					HWND hAllowCompressLevel = GetDlgItem(hwnd, IDC_ALLOW_COMPRESSLEVEL);
-					HWND hCompressLevel = GetDlgItem(hwnd, IDC_COMPRESSLEVEL);
-					HWND hAllowJpeg = GetDlgItem(hwnd, IDC_ALLOW_JPEG);
-					HWND hJpeg = GetDlgItem(hwnd, IDC_QUALITYLEVEL);
+				{			
+					HWND h8bit = GetDlgItem(hwnd, IDC_8BITCHECK);
+					HWND hAllowCompressLevel = GetDlgItem(hwnd, IDC_ALLOW_COMPRESSLEVEL);					
+					HWND hAllowJpeg = GetDlgItem(hwnd, IDC_ALLOW_JPEG);					
 					HWND hListBox = GetDlgItem(hwnd, IDC_ENCODING);
 					int i = SendMessage(hListBox ,CB_GETCURSEL, 0, 0);
-					if (i == 5) {
-						EnableWindow( hJpeg,
-							(SendMessage(hAllowJpeg, BM_GETCHECK, 0, 0) == 1));
-						EnableWindow(hAllowJpeg, TRUE);
-						EnableWindow( hCompressLevel,
-							(SendMessage(hAllowCompressLevel, BM_GETCHECK,0,0) == 1));
+					switch (i) {
+					case 2:
+						if (SendMessage(h8bit, BM_GETCHECK, 0, 0) == 0) {
+							_this->EnableJpeg(hwnd, (SendMessage(hAllowJpeg,
+													BM_GETCHECK, 0, 0) == 1));							
+							EnableWindow(hAllowJpeg, TRUE);
+						}
+						_this->EnableCompress(hwnd,(SendMessage(hAllowCompressLevel,
+													BM_GETCHECK,0,0) == 1));
 						EnableWindow(hAllowCompressLevel, TRUE);
-					}
-					if ((i == 6) || (i == 4)) {
-						EnableWindow( hCompressLevel,
+						break;
+					case 4:
+					case 6:
+						_this->EnableCompress(hwnd,
 							(SendMessage(hAllowCompressLevel, BM_GETCHECK, 0, 0) == 1));
-						EnableWindow(hAllowCompressLevel, TRUE);
-						EnableWindow( hJpeg, FALSE);
+						EnableWindow(hAllowCompressLevel, TRUE);						
+						_this->EnableJpeg(hwnd, FALSE);
 						EnableWindow(hAllowJpeg, FALSE);
-					}
-					if ((i >= 0) && (i <= 3)) {
-						EnableWindow( hCompressLevel, FALSE);
+						break;
+					case 0:
+					case 3:
+					case 5:
+					case 1:
+						_this->EnableCompress(hwnd, FALSE);
 						EnableWindow(hAllowCompressLevel, FALSE);
-						EnableWindow( hJpeg, FALSE);
+						_this->EnableJpeg(hwnd, FALSE);
 						EnableWindow(hAllowJpeg, FALSE);
+						break;
 					}
 					return 0;
 				}
@@ -1107,7 +1149,32 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 	}
 	return 0;
 }
-
+void VNCOptions::EnableCompress(HWND hwnd, bool enable)
+{
+	HWND hfast = GetDlgItem(hwnd, IDC_STATIC_FAST);
+	HWND hlevel = GetDlgItem(hwnd, IDC_STATIC_LEVEL);
+	HWND htextlevel = GetDlgItem(hwnd, IDC_STATIC_TEXT_LEVEL);
+	HWND hbest = GetDlgItem(hwnd, IDC_STATIC_BEST);
+	HWND hCompressLevel = GetDlgItem(hwnd, IDC_COMPRESSLEVEL);
+	EnableWindow(hCompressLevel,enable);
+	EnableWindow(hfast, enable);
+	EnableWindow(hlevel,enable);
+	EnableWindow(htextlevel, enable);
+	EnableWindow(hbest, enable);
+}
+void VNCOptions::EnableJpeg(HWND hwnd, bool enable)
+{
+	HWND hpoor = GetDlgItem(hwnd, IDC_STATIC_POOR);
+	HWND hqbest = GetDlgItem(hwnd, IDC_STATIC_QBEST);
+	HWND hqualitytext = GetDlgItem(hwnd, IDC_STATIC_TEXT_QUALITY);
+	HWND hquality = GetDlgItem(hwnd, IDC_STATIC_QUALITY);
+	HWND hJpeg = GetDlgItem(hwnd, IDC_QUALITYLEVEL);
+	EnableWindow( hJpeg, enable);
+	EnableWindow(hpoor, enable);
+	EnableWindow(hqbest, enable);
+	EnableWindow(hqualitytext, enable);
+	EnableWindow(hquality, enable);
+}
 BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 											   WPARAM wParam, LPARAM lParam)
 {
@@ -1170,13 +1237,19 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 			HWND hSpin3 = GetDlgItem(hwnd, IDC_SPIN3);
 			SendMessage(hSpin3, UDM_SETBUDDY, (WPARAM) (HWND)hListenPort, 0);
 			
+			HWND hfile = GetDlgItem(hwnd, IDC_STATIC_LOG_FILE);
+			HWND hlevel = GetDlgItem(hwnd, IDC_STATIC_LOG_LEVEL);
 			SendMessage(hChec, BM_SETCHECK, pApp->m_options.m_logToFile, 0);
 			if (SendMessage(hChec, BM_GETCHECK, 0, 0) == 0) {
 				EnableWindow(hEditFile, FALSE);
-				EnableWindow(hEditLevel, FALSE);	
+				EnableWindow(hEditLevel, FALSE);
+				EnableWindow(hfile, FALSE);
+				EnableWindow(hlevel, FALSE);
 			} else {
 				EnableWindow(hEditFile, TRUE);
-				EnableWindow(hEditLevel, TRUE);	
+				EnableWindow(hEditLevel, TRUE);
+				EnableWindow(hfile, TRUE);
+				EnableWindow(hlevel, TRUE);
 			}
 			SetDlgItemInt( hwnd, IDC_EDIT_LOG_LEVEL, pApp->m_options.m_logLevel, FALSE);
 			SetDlgItemText( hwnd, IDC_EDIT_LOG_FILE, pApp->m_options.m_logFilename);
@@ -1287,6 +1360,8 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 		case IDC_CHECK_LOG_FILE:
 			switch (HIWORD(wParam)) {
 			case BN_CLICKED:
+				HWND hfile = GetDlgItem(hwnd, IDC_STATIC_LOG_FILE);
+				HWND hlevel = GetDlgItem(hwnd, IDC_STATIC_LOG_LEVEL);
 				HWND hChec = GetDlgItem(hwnd, IDC_CHECK_LOG_FILE);
 				HWND hEditFile = GetDlgItem(hwnd, IDC_EDIT_LOG_FILE);
 				HWND hEditLevel = GetDlgItem(hwnd, IDC_EDIT_LOG_LEVEL);
@@ -1294,10 +1369,14 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 				if (SendMessage(hChec, BM_GETCHECK, 0, 0) == 0){
 					EnableWindow(hEditFile, TRUE);
 					EnableWindow(hEditLevel, TRUE);
+					EnableWindow(hfile, TRUE);
+					EnableWindow(hlevel, TRUE);
 					SendMessage(hChec, BM_SETCHECK, TRUE, 0);
 				} else {
 					EnableWindow(hEditFile, FALSE);
 					EnableWindow(hEditLevel, FALSE);
+					EnableWindow(hfile, FALSE);
+					EnableWindow(hlevel, FALSE);
 					SendMessage(hChec, BM_SETCHECK, FALSE, 0);
 				} 
 				return 0;

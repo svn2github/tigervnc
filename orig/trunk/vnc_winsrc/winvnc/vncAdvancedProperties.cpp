@@ -53,10 +53,10 @@ vncAdvancedProperties::Show(BOOL show, BOOL usersettings)
 			char username[UNLEN+1];
 			if (!vncService::CurrentUser(username, sizeof(username)))
 				return;
-			if (strcmp(username, "") == 0) {
-				MessageBox(NULL, NO_CURRENT_USER_ERR, "WinVNC Error", MB_OK | MB_ICONEXCLAMATION);
-				return;
-			}
+//			if (strcmp(username, "") == 0) {
+//				MessageBox(NULL, NO_CURRENT_USER_ERR, "WinVNC Error", MB_OK | MB_ICONEXCLAMATION);
+//				return;
+//			}
 		} else {
 			// We're trying to edit the default local settings - verify that we can
 			HKEY hkLocal, hkDefault;
@@ -772,7 +772,8 @@ vncAdvancedProperties::Save()
 		if (!vncService::CurrentUser((char *)&username, sizeof(username)))
 			return;
 		if (strcmp(username, "") == 0)
-			return;
+			strcpy((char *)&username, "SYSTEM");
+
 
 		// Try to get the per-user, global registry key for WinVNC
 		if (RegCreateKeyEx(HKEY_CURRENT_USER,

@@ -1128,17 +1128,13 @@ vncClient::TriggerUpdate()
 			RECT rect;
 			{	omni_mutex_lock l(m_regionLock);
 
-			if(EqualRect(&m_fullscreen, &m_server->getSharedRect()))
-			{
 				rect.left = (m_pollingcycle % 2) * m_qtrscreen.right;
 				rect.right = rect.left + m_qtrscreen.right;
 				rect.top = (m_pollingcycle / 2) * m_qtrscreen.bottom;
 				rect.bottom = rect.top + m_qtrscreen.bottom;
-				
+				IntersectRect(&rect, &rect, &m_server->getSharedRect());
 				m_changed_rgn.AddRect(rect);
 				m_pollingcycle = (m_pollingcycle + 1) % 4;
-			} else 
-				m_changed_rgn.AddRect(m_server->getSharedRect());
 						
 			}
 			

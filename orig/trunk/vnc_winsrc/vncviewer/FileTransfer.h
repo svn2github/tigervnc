@@ -37,6 +37,13 @@
 #define FT_FLR_DEST_DOWNLOAD 102
 #define FT_FLR_DEST_UPLOAD   103
 
+#define FT_ID_MYCOMPUTER 0
+#define FT_ID_MYDOCUMENTS 1
+#define FT_ID_MYPICTURES 2
+#define FT_ID_MYMUSIC 3
+#define FT_ID_MYDESKTOP 4 
+
+
 class ClientConnection;
 
 class FileTransfer  
@@ -46,7 +53,11 @@ private:
 	static const char uploadText[];
 	static const char downloadText[];
 	static const char noactionText[];
+	static const char myComputerText[];
 	static const char myDocumentsText[];
+	static const char myPicturesText[];
+	static const char myMusicText[];
+	static const char myDesktopText[];
 
 public:
 	FileTransfer(ClientConnection * pCC, VNCviewerApp * pApp);
@@ -168,6 +179,8 @@ private:
     BOOL m_bDownloadStarted;
 	BOOL m_bTransferEnable;
 	BOOL m_bServerBrowseRequest;
+	BOOL m_bClientRefresh;
+	BOOL m_bServerRefresh;
 
 	HANDLE m_hFiletoWrite;
     HANDLE m_hFiletoRead;

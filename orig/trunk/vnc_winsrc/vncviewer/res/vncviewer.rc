@@ -83,28 +83,49 @@ IDD_OPTIONDIALOG DIALOG DISCARDABLE  0, 0, 300, 179
 STYLE DS_CONTROL | WS_CHILD
 FONT 8, "MS Sans Serif"
 BEGIN
+    GROUPBOX        "Format and encodings",IDC_STATIC_FORMAT,4,4,123,130
+    LTEXT           "Use encoding:",IDC_STATIC_ENCODING,12,15,49,10,
+                    SS_CENTERIMAGE
     COMBOBOX        IDC_ENCODING,65,14,56,79,CBS_DROPDOWNLIST | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "Allow CopyRect encoding",ID_SESSION_SET_CRECT,"Button",
-                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,12,119,109,10
+    CHECKBOX        "Use 8-bit color",IDC_8BITCHECK,12,29,109,10,WS_GROUP
     CHECKBOX        "Custom compression level:",IDC_ALLOW_COMPRESSLEVEL,12,
                     41,109,10
+    RTEXT           "fast",IDC_STATIC_FAST,12,55,18,10
     CONTROL         "Slider2",IDC_COMPRESSLEVEL,"msctls_trackbar32",
                     TBS_AUTOTICKS | WS_TABSTOP,31,54,72,12
+    LTEXT           "best",IDC_STATIC_BEST,103,55,18,10
+    RTEXT           "level:",IDC_STATIC_TEXT_LEVEL,31,68,39,10
+    LTEXT           "1",IDC_STATIC_LEVEL,75,68,28,10
     CHECKBOX        "Allow JPEG compression:",IDC_ALLOW_JPEG,12,80,109,10
+    RTEXT           "poor",IDC_STATIC_POOR,12,94,18,10
     CONTROL         "Slider1",IDC_QUALITYLEVEL,"msctls_trackbar32",
                     TBS_AUTOTICKS | WS_TABSTOP,31,93,72,12
-    CONTROL         "Request shared session",IDC_SHARED,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,145,160,145,10
-    CONTROL         "Deiconify on remote Bell event",IDC_BELLDEICONIFY,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,145,41,145,10
+    LTEXT           "best",IDC_STATIC_QBEST,103,94,18,10
+    RTEXT           "quality:",IDC_STATIC_TEXT_QUALITY,31,107,42,10
+    LTEXT           "1",IDC_STATIC_QUALITY,78,107,25,10
+    CONTROL         "Allow CopyRect encoding",ID_SESSION_SET_CRECT,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,12,119,109,10
+    GROUPBOX        "Restrictions",IDC_STATIC_RESTRICTIONS,4,137,123,38
+    CHECKBOX        "View only (inputs ignored)",IDC_VIEWONLY,12,148,109,10
     CONTROL         "Disable clipboard transfer",IDC_DISABLECLIPBOARD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,12,160,109,10
+    GROUPBOX        "Display",IDC_STATIC_DISPLAY,136,4,160,52
+    LTEXT           "Scale by:",IDC_STATIC_SCALE,145,15,36,10,SS_CENTERIMAGE
+    COMBOBOX        IDC_SCALE_EDIT,181,14,35,74,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "%",IDC_STATIC_P,221,15,10,10,SS_CENTERIMAGE
+    CONTROL         "Full-screen mode",IDC_FULLSCREEN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,145,29,145,10
+    CONTROL         "Deiconify on remote Bell event",IDC_BELLDEICONIFY,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,145,41,145,10
+    GROUPBOX        "Mouse",IDC_STATIC_MOUSE,136,61,160,39
     CONTROL         "Emulate 3 buttons (with 2-button click)",
                     IDC_EMULATECHECK,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
                     WS_TABSTOP,145,72,145,10
     CONTROL         "Swap mouse buttons 2 and 3",ID_SESSION_SWAPMOUSE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,145,84,145,10
+    GROUPBOX        "Mouse cursor",IDC_STATIC_MCURSOR,136,104,160,49
     CONTROL         "Track remote cursor locally",IDC_CSHAPE_ENABLE_RADIO,
                     "Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,145,
                     115,145,10
@@ -113,29 +134,8 @@ BEGIN
                     127,145,10
     CONTROL         "Don't show remote cursor",IDC_CSHAPE_IGNORE_RADIO,
                     "Button",BS_AUTORADIOBUTTON,145,139,145,10
-    CHECKBOX        "Use 8-bit color",IDC_8BITCHECK,12,29,109,10,WS_GROUP
-    CHECKBOX        "View only (inputs ignored)",IDC_VIEWONLY,12,148,109,10
-    CONTROL         "Full-screen mode",IDC_FULLSCREEN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,145,29,145,10
-    COMBOBOX        IDC_SCALE_EDIT,181,14,35,74,CBS_DROPDOWN | 
-                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    GROUPBOX        "Mouse cursor",IDC_STATIC_MCURSOR,136,104,160,49
-    GROUPBOX        "Format and encodings",IDC_STATIC_FORMAT,4,4,123,130
-    GROUPBOX        "Mouse",IDC_STATIC_MOUSE,136,61,160,39
-    GROUPBOX        "Display",IDC_STATIC_DISPLAY,136,4,160,52
-    LTEXT           "Use encoding:",IDC_STATIC_ENCODING,12,15,49,10,
-                    SS_CENTERIMAGE
-    LTEXT           "%",IDC_STATIC_P,221,15,10,10,SS_CENTERIMAGE
-    RTEXT           "fast",IDC_STATIC_FAST,12,55,18,10
-    LTEXT           "best",IDC_STATIC_BEST,103,55,18,10
-    RTEXT           "poor",IDC_STATIC_POOR,12,94,18,10
-    LTEXT           "best",IDC_STATIC_QBEST,103,94,18,10
-    RTEXT           "level:",IDC_STATIC_TEXT_LEVEL,31,68,39,10
-    RTEXT           "quality:",IDC_STATIC_TEXT_QUALITY,31,107,42,10
-    LTEXT           "1",IDC_STATIC_LEVEL,75,68,28,10
-    LTEXT           "1",IDC_STATIC_QUALITY,78,107,25,10
-    LTEXT           "Scale by:",IDC_STATIC_SCALE,145,15,36,10,SS_CENTERIMAGE
-    GROUPBOX        "Restrictions",IDC_STATIC_RESTRICTIONS,4,137,123,38
+    CONTROL         "Request shared session",IDC_SHARED,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,145,160,145,10
 END
 
 IDD_FTBROWSE_DLG DIALOGEX 0, 0, 164, 215
@@ -251,6 +251,8 @@ BEGIN
     GROUPBOX        "Local cursor shape",IDC_STATIC_LCURSOR,180,4,116,77
     CONTROL         "Dot cursor",IDC_DOTCURSOR_RADIO,"Button",
                     BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,189,18,99,10
+    CONTROL         "Small dot cursor",IDC_SMALLDOTCURSOR_RADIO,"Button",
+                    BS_AUTORADIOBUTTON,189,33,99,10
     CONTROL         "Normal arrow",IDC_NORMALCURSOR_RADIO,"Button",
                     BS_AUTORADIOBUTTON,189,48,99,10
     CONTROL         "No local cursor",IDC_NOCURSOR_RADIO,"Button",
@@ -270,8 +272,6 @@ BEGIN
     EDITTEXT        IDC_EDIT_LOG_LEVEL,92,153,23,14,ES_AUTOHSCROLL
     CONTROL         "Spin2",IDC_SPIN2,"msctls_updown32",UDS_ALIGNRIGHT | 
                     UDS_ARROWKEYS,115,153,10,14
-    CONTROL         "Small dot cursor",IDC_SMALLDOTCURSOR_RADIO,"Button",
-                    BS_AUTORADIOBUTTON,189,33,99,10
 END
 
 IDD_HELP DIALOG DISCARDABLE  0, 0, 224, 170
@@ -288,10 +288,10 @@ IDD_PARENT DIALOGEX 0, 0, 316, 225
 STYLE DS_MODALFRAME | DS_CONTEXTHELP | WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP | WS_EX_CONTROLPARENT
 CAPTION "Options"
-FONT 8, "MS Sans Serif", 0, 0, 0x1
+FONT 8, "MS Sans Serif"
 BEGIN
-    PUSHBUTTON      "Cancel",IDCANCEL,261,206,50,14
     PUSHBUTTON      "OK",IDOK,206,206,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,261,206,50,14
     CONTROL         "Tab1",IDC_TAB,"SysTabControl32",WS_TABSTOP,5,5,306,197
 END
 

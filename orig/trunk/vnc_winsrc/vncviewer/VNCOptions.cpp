@@ -85,52 +85,9 @@ VNCOptions::VNCOptions()
 	m_requestShapeUpdates = true;
 	m_ignoreShapeUpdates = false;
 
-	HKEY hRegKey;
-		
-	if ( RegOpenKey(HKEY_CURRENT_USER,
-					SETTINGS_KEY_NAME, &hRegKey) != ERROR_SUCCESS ) {
-		hRegKey = NULL;
-	} else {
-		DWORD buffer;
-		DWORD buffersize = sizeof(buffer);
-		DWORD valtype;
-		if ( RegQueryValueEx( hRegKey, "SkipFullScreenPrompt", NULL, &valtype, 
-				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {			
-			m_skipprompt = buffer == 1;				
-		}		
-		if ( RegQueryValueEx( hRegKey, "NoToolbar", NULL, &valtype, 
-				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
-			m_toolbar = buffer == 1;
-		}
-		if ( RegQueryValueEx( hRegKey, "LogToFile", NULL, &valtype, 
-				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
-				m_logToFile = buffer == 1;
-		}
-		if ( RegQueryValueEx( hRegKey, "ListServer", NULL, &valtype, 
-				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
-			m_listServer = buffer;
-		}
-		if ( RegQueryValueEx( hRegKey, "Localcursor", NULL, &valtype, 
-				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
-			m_localCursor = buffer;
-		}
-		if ( RegQueryValueEx( hRegKey, "LogLevel", NULL, &valtype, 
-				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
-			m_logLevel = buffer;
-		}
-		if ( RegQueryValueEx( hRegKey, "listenPort", NULL, &valtype, 
-				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
-			m_listenPort = buffer;
-		}
-		TCHAR buf[80];
-		buffersize=_MAX_PATH;
-		if (RegQueryValueEx( hRegKey, "LogFileName", NULL, &valtype, 
-				(LPBYTE) &buf, &buffersize) == ERROR_SUCCESS) {
-			strcpy(m_logFilename, buf);
-		}
-		RegCloseKey(hRegKey);
-	}
+	LoadGenOpt();
 
+	
 #ifdef UNDER_CE
 	m_palmpc = false;
 	
@@ -720,12 +677,12 @@ BOOL CALLBACK VNCOptions::DlgProc(HWND hwndDlg, UINT uMsg,
 				(DLGPROC)_this->DlgProc2,
 				(LONG)_this);
 			
-			SetWindowPos(_this->m_hPageGeneral, HWND_TOP, rc.left + 4, rc.top + 24,
-				rc.right - rc.left - 20,
-				rc.bottom - rc.top - 75, SWP_HIDEWINDOW);  
-			SetWindowPos(_this->m_hPageConnection, HWND_TOP, rc.left + 4, rc.top + 24,
-				rc.right - rc.left - 20,
-				rc.bottom - rc.top - 75, SWP_SHOWWINDOW);
+			SetWindowPos(_this->m_hPageGeneral, HWND_TOP, rc.left + 15, rc.top + 35,
+				rc.right - rc.left - 30,
+				rc.bottom - rc.top - 85, SWP_HIDEWINDOW);  
+			SetWindowPos(_this->m_hPageConnection, HWND_TOP, rc.left + 15, rc.top + 35,
+				rc.right - rc.left - 30,
+				rc.bottom - rc.top - 85, SWP_SHOWWINDOW);
 			
 			return TRUE;
 		}				
@@ -863,9 +820,6 @@ BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,
 			HWND hViewOnly = GetDlgItem(hwnd, IDC_VIEWONLY);
 			SendMessage(hViewOnly, BM_SETCHECK, _this->m_ViewOnly, 0);
 			
-			
-			HWND hScaling = GetDlgItem(hwnd, IDC_SCALING);
-			SendMessage(hScaling, BM_SETCHECK, _this->m_scaling, 0);
 			HWND hScalEdit = GetDlgItem(hwnd, IDC_SCALE_EDIT);
 			strcpy(list, "25");
 			SendMessage(hScalEdit, CB_INSERTSTRING, (WPARAM)0, (LPARAM)(int FAR*)list);
@@ -883,8 +837,6 @@ BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,
 			SendMessage(hScalEdit, CB_INSERTSTRING, (WPARAM)6, (LPARAM)(int FAR*)list);
 			
 			SetDlgItemInt(hwnd, IDC_SCALE_EDIT, (( _this->m_scale_num*100) / _this->m_scale_den), FALSE);
-			
-			EnableWindow(hScalEdit, _this->m_scaling);
 			
 #ifndef UNDER_CE
 			HWND hFullScreen = GetDlgItem(hwnd, IDC_FULLSCREEN);
@@ -945,21 +897,7 @@ BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,
 				return 0;
 			}
 			return 0;
-		case IDC_SCALING:
-			switch (HIWORD(wParam)) {
-			case BN_CLICKED:
-				HWND hScaling = GetDlgItem(hwnd, IDC_SCALING);
-				HWND hScalEdit = GetDlgItem(hwnd, IDC_SCALE_EDIT);
-				if (SendMessage(hScaling, BM_GETCHECK,0,0) == 0) {
-					EnableWindow(hScalEdit, TRUE);
-					SendMessage(hScaling, BM_SETCHECK, TRUE, 0);
-				} else {
-					EnableWindow(hScalEdit, FALSE);
-					SendMessage(hScaling, BM_SETCHECK, FALSE, 0);
-				}
-				return 0;
-			}
-			return 0;
+		
 		case IDC_ALLOW_COMPRESSLEVEL:
 			switch (HIWORD(wParam)) {
 			case BN_CLICKED:
@@ -1018,6 +956,8 @@ BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,
 					_this->m_scale_num = i;
 					_this->m_scale_den = 100;
 				}
+
+				_this->m_scaling = !(_this->m_scale_num == 100);
 				
 				HWND hCopyRect = GetDlgItem(hwnd, ID_SESSION_SET_CRECT);
 				_this->m_UseEnc[rfbEncodingCopyRect] =
@@ -1046,14 +986,7 @@ BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,
 				
 				HWND hViewOnly = GetDlgItem(hwnd, IDC_VIEWONLY);
 				_this->m_ViewOnly = 
-					(SendMessage(hViewOnly, BM_GETCHECK, 0, 0) == BST_CHECKED);
-				
-				HWND hScaling = GetDlgItem(hwnd, IDC_SCALING);
-				_this->m_scaling = 
-					(SendMessage(hScaling, BM_GETCHECK, 0, 0) == BST_CHECKED);
-				
-				
-				
+					(SendMessage(hViewOnly, BM_GETCHECK, 0, 0) == BST_CHECKED);				
 #ifndef UNDER_CE
 				HWND hFullScreen = GetDlgItem(hwnd, IDC_FULLSCREEN);
 				_this->m_FullScreen = 
@@ -1280,6 +1213,11 @@ BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,
 				HWND hDotCursor = GetDlgItem(hwnd, IDC_DOTCURSOR_RADIO);
 				HWND hNoCursor = GetDlgItem(hwnd, IDC_NOCURSOR_RADIO);
 				HWND hNormalCursor = GetDlgItem(hwnd, IDC_NORMALCURSOR_RADIO);
+				char buf[80];
+				HWND hMessage = GetDlgItem(hwnd, IDC_CHECK_MESSAGE);
+				HWND hToolbar = GetDlgItem(hwnd, IDC_CHECK_TOOLBAR);
+				HWND hChec = GetDlgItem(hwnd, IDC_CHECK_LOG_FILE);
+
 				if (SendMessage(hDotCursor, BM_GETCHECK, 0, 0) == BST_CHECKED) {
 					pApp->m_options.m_localCursor = DOTCURSOR;	
 				}
@@ -1289,20 +1227,10 @@ BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,
 				if (SendMessage(hNormalCursor, BM_GETCHECK, 0, 0) == BST_CHECKED) {
 					pApp->m_options.m_localCursor = NORMALCURSOR;	
 				}
-				char buf[80];
-				DWORD buffer;
-				HKEY hRegKey;
-				HWND hMessage = GetDlgItem(hwnd, IDC_CHECK_MESSAGE);
-				HWND hToolbar = GetDlgItem(hwnd, IDC_CHECK_TOOLBAR);
-				HWND hChec = GetDlgItem(hwnd, IDC_CHECK_LOG_FILE);
-				RegCreateKey(HKEY_CURRENT_USER,
-					SETTINGS_KEY_NAME, &hRegKey);
 				if (SendMessage(hChec, BM_GETCHECK, 0, 0) == 0) {
 					pApp->m_options.m_logToFile = false;
-					buffer = 0;
 				} else {
 					pApp->m_options.m_logToFile = true;
-					buffer = 1;
 					pApp->m_options.m_logLevel = GetDlgItemInt(hwnd,
 						IDC_EDIT_LOG_LEVEL, NULL, FALSE);
 					GetDlgItemText(hwnd, IDC_EDIT_LOG_FILE,
@@ -1312,64 +1240,25 @@ BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,
 					vnclog.SetLevel(pApp->m_options.m_logLevel);
 					vnclog.SetFile(pApp->m_options.m_logFilename);
 				}
-				RegSetValueEx( hRegKey, "LogToFile" , 
-					NULL, REG_DWORD, 
-					(CONST BYTE *)&buffer,
-					4);
+
 				if (SendMessage(hMessage, BM_GETCHECK, 0, 0) == 0) {
 					pApp->m_options.m_skipprompt = true;
-					buffer = 1;
 				} else {
 					pApp->m_options.m_skipprompt = false;
-					buffer = 0;
 				}
-				RegSetValueEx( hRegKey, "SkipFullScreenPrompt", 
-					NULL,REG_DWORD, 
-					(CONST BYTE *)&buffer,
-					4);
+				
 				if (SendMessage(hToolbar, BM_GETCHECK, 0, 0) == 0) {
-					pApp->m_options.m_toolbar = false;
-					buffer = 0;
+					pApp->m_options.m_toolbar = false;					
 				} else {
-					pApp->m_options.m_toolbar = true;
-					buffer = 1;
+					pApp->m_options.m_toolbar = true;					
 				}
-				RegSetValueEx( hRegKey, "NoToolbar", 
-					NULL, REG_DWORD, 
-					(CONST BYTE *)&buffer,
-					4);
+				
 				pApp->m_options.m_listServer = GetDlgItemInt(hwnd,
 					IDC_EDIT_AMOUNT_LIST, NULL, FALSE);
-				
-				RegSetValueEx( hRegKey, "Localcursor", 
-					NULL, REG_DWORD, 
-					(CONST BYTE *)&pApp->m_options.m_localCursor,
-					4);
-				
-				RegSetValueEx( hRegKey, "ListServer", 
-					NULL, REG_DWORD, 
-					(CONST BYTE *)&pApp->m_options.m_listServer,
-					4);
-				
-				RegSetValueEx( hRegKey, "LogLevel", 
-					NULL, REG_DWORD, 
-					(CONST BYTE *)&pApp->m_options.m_logLevel,
-					4);
-				
-				strcpy(buf, pApp->m_options.m_logFilename);
-				RegSetValueEx( hRegKey, "LogFileName", 
-					NULL, REG_SZ , 
-					(CONST BYTE *)buf, (_tcslen(buf)+1));
-				
 				pApp->m_options.m_listenPort = GetDlgItemInt(hwnd,
 					IDC_LISTEN_PORT, NULL, FALSE);
-				
-				RegSetValueEx( hRegKey, "listenPort", 
-					NULL, REG_DWORD, 
-					(CONST BYTE *)&pApp->m_options.m_listenPort,
-					4);
-				
-				RegCloseKey(hRegKey);
+				pApp->m_options.SaveGenOpt();
+
 				return 0;
 			}
 		case IDC_CHECK_LOG_FILE:
@@ -1539,4 +1428,116 @@ void VNCOptions::save(HKEY hkey, char *name, int value)
 	RegSetValueEx( hkey, name, 
             NULL, REG_DWORD, 
             (CONST BYTE *)&value, 4);
+}
+
+void VNCOptions::LoadGenOpt()
+{
+	HKEY hRegKey;
+		
+	if ( RegOpenKey(HKEY_CURRENT_USER,
+					SETTINGS_KEY_NAME, &hRegKey) != ERROR_SUCCESS ) {
+		hRegKey = NULL;
+	} else {
+		DWORD buffer;
+		DWORD buffersize = sizeof(buffer);
+		DWORD valtype;
+		if ( RegQueryValueEx( hRegKey, "SkipFullScreenPrompt", NULL, &valtype, 
+				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {			
+			m_skipprompt = buffer == 1;				
+		}		
+		if ( RegQueryValueEx( hRegKey, "NoToolbar", NULL, &valtype, 
+				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
+			m_toolbar = buffer == 1;
+		}
+		if ( RegQueryValueEx( hRegKey, "LogToFile", NULL, &valtype, 
+				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
+				m_logToFile = buffer == 1;
+		}
+		if ( RegQueryValueEx( hRegKey, "ListServer", NULL, &valtype, 
+				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
+			m_listServer = buffer;
+		}
+		if ( RegQueryValueEx( hRegKey, "Localcursor", NULL, &valtype, 
+				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
+			m_localCursor = buffer;
+		}
+		if ( RegQueryValueEx( hRegKey, "LogLevel", NULL, &valtype, 
+				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
+			m_logLevel = buffer;
+		}
+		if ( RegQueryValueEx( hRegKey, "listenPort", NULL, &valtype, 
+				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
+			m_listenPort = buffer;
+		}
+		TCHAR buf[80];
+		buffersize=_MAX_PATH;
+		if (RegQueryValueEx( hRegKey, "LogFileName", NULL, &valtype, 
+				(LPBYTE) &buf, &buffersize) == ERROR_SUCCESS) {
+			strcpy(m_logFilename, buf);
+		}
+		RegCloseKey(hRegKey);
+	}	
+}
+
+void VNCOptions::SaveGenOpt()
+{
+	HKEY hRegKey;
+	DWORD buffer;
+	TCHAR buf[80];
+
+	RegCreateKey(HKEY_CURRENT_USER,
+					SETTINGS_KEY_NAME, &hRegKey);
+	RegSetValueEx( hRegKey, "Localcursor", 
+					NULL, REG_DWORD, 
+					(CONST BYTE *)&m_localCursor,
+					4);
+				
+	RegSetValueEx( hRegKey, "ListServer", 
+					NULL, REG_DWORD, 
+					(CONST BYTE *)&m_listServer,
+					4);
+				
+	RegSetValueEx( hRegKey, "LogLevel", 
+					NULL, REG_DWORD, 
+					(CONST BYTE *)&m_logLevel,
+					4);
+				
+	strcpy(buf, m_logFilename);
+	RegSetValueEx( hRegKey, "LogFileName", 
+					NULL, REG_SZ , 
+					(CONST BYTE *)buf, (_tcslen(buf)+1));				
+				
+	RegSetValueEx( hRegKey, "listenPort", 
+					NULL, REG_DWORD, 
+					(CONST BYTE *)&m_listenPort,
+					4);
+	if (m_logToFile) {
+		buffer = 1;
+	} else {
+		buffer = 0;
+	}
+	RegSetValueEx( hRegKey, "LogToFile" , 
+					NULL, REG_DWORD, 
+					(CONST BYTE *)&buffer,
+					4);
+	if (m_skipprompt) {
+		buffer = 1;
+	} else {
+		buffer = 0;
+	}
+	RegSetValueEx( hRegKey, "SkipFullScreenPrompt", 
+					NULL,REG_DWORD, 
+					(CONST BYTE *)&buffer,
+					4);
+	if (m_toolbar) {
+		buffer = 1;
+	} else {
+		buffer = 0;
+	}
+	RegSetValueEx( hRegKey, "NoToolbar", 
+					NULL, REG_DWORD, 
+					(CONST BYTE *)&buffer,
+					4);
+				
+	RegCloseKey(hRegKey);
 }

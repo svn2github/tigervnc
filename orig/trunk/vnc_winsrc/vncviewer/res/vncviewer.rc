@@ -106,7 +106,6 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,148,125,96,10
     CONTROL         "Full-screen mode",IDC_FULLSCREEN,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,148,137,69,8
-    CHECKBOX        "Scale by",IDC_SCALING,148,148,43,10
     COMBOBOX        IDC_SCALE_EDIT,195,145,37,66,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     GROUPBOX        "Mouse cursor",IDC_STATIC,139,50,155,48
@@ -125,6 +124,7 @@ BEGIN
     CONTROL         "1",IDC_STATIC_LEVEL,"Static",SS_SIMPLE | WS_GROUP,70,66,
                     9,8
     LTEXT           "1",IDC_STATIC_QUALITY,73,99,11,8
+    LTEXT           "Scale:",IDC_STATIC,167,147,20,10
 END
 
 IDD_FTBROWSE_DLG DIALOGEX 0, 0, 164, 215
@@ -175,7 +175,7 @@ IDD_SESSION_DLG DIALOGEX 0, 0, 268, 85
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Connection details"
-FONT 8, "MS Sans Serif", 0, 0, 0x1
+FONT 8, "MS Sans Serif"
 BEGIN
     COMBOBOX        IDC_HOSTNAME_EDIT,51,7,125,66,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -191,7 +191,7 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,205,43,56,14
     PUSHBUTTON      "&Listening mode",IDC_LIST_MODE,205,64,56,14
     LTEXT           "VNC server:",IDC_STATIC,7,9,39,8
-    GROUPBOX        "Connection profile",IDC_STATIC,51,24,145,54
+    GROUPBOX        "Connection profile",IDC_CONN_PROF,51,24,145,54
     CONTROL         108,IDC_STATIC,"Static",SS_BITMAP,9,28,32,30
 END
 
@@ -273,15 +273,15 @@ BEGIN
                     ES_READONLY | ES_WANTRETURN | WS_VSCROLL
 END
 
-IDD_PARENT DIALOGEX 0, 0, 309, 212
+IDD_PARENT DIALOGEX 0, 0, 319, 221
 STYLE DS_MODALFRAME | DS_CONTEXTHELP | WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP | WS_EX_CONTROLPARENT
 CAPTION "Options"
-FONT 8, "MS Sans Serif", 0, 0, 0x1
+FONT 8, "MS Sans Serif"
 BEGIN
-    PUSHBUTTON      "Cancel",IDCANCEL,225,195,66,15
-    PUSHBUTTON      "OK",IDOK,135,195,69,15
-    CONTROL         "Tab1",IDC_TAB,"SysTabControl32",WS_TABSTOP,0,0,309,192
+    PUSHBUTTON      "Cancel",IDCANCEL,256,200,56,14
+    PUSHBUTTON      "OK",IDOK,183,200,56,14
+    CONTROL         "Tab1",IDC_TAB,"SysTabControl32",WS_TABSTOP,7,7,305,186
 END
 
 
@@ -388,9 +388,9 @@ BEGIN
     IDD_PARENT, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 302
+        RIGHTMARGIN, 312
         TOPMARGIN, 7
-        BOTTOMMARGIN, 205
+        BOTTOMMARGIN, 214
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -594,6 +594,7 @@ BEGIN
     IDC_EDIT_LOG_LEVEL      "Log level:"
     IDC_SHARED              "Request shared session"
     IDC_ENCODING            "Encoding refers to the representation of graphics sent over the network. Encodings differ at the required bandwidth and CPU usage. Use Hextile encoding on fast networks, and Tight over slow connections. Raw encoding means no compression at all."
+    IDC_SCALE_EDIT          "Scaling"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -601,9 +602,6 @@ BEGIN
     IDC_EMULATECHECK        "Set this if you have two-button mouse but want to send presses of the third button as well. If this option is enabled, pressing left and right buttons at the same time will emulate pressing the middle button."
     IDC_FULLSCREEN          "Full-screen mode"
     IDC_DISABLECLIPBOARD    "Disable clipboard transfer"
-    IDC_SCALING             "Scale remote screen at the specified ratio. Note that this feature is still experimental."
-    IDC_SCALE_NUM           "Factor of process of scaling"
-    IDC_SCALE_DEN           "Devider of process of scaling"
     IDC_CSHAPE_DISABLE_RADIO "Let remote server deal with mouse cursor"
     IDC_QUALITYLEVEL        "quality (0=poor, 9=best)"
     IDC_COMPRESSLEVEL       "level (1=fast, 9=best)"
@@ -627,6 +625,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     IDC_TAB                 "Property Sheet"
     IDC_LOAD                "Load connection info from a file."
+    IDC_CONN_PROF           "Connection profile"
 END
 
 #endif    // English (U.S.) resources

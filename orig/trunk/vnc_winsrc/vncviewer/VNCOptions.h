@@ -55,7 +55,8 @@ public:
 	void VNCOptions::LoadOpt(char subkey[256],char keyname[256]);
 	int VNCOptions::read(HKEY hkey,char *name,int retrn);
 	void VNCOptions::save(HKEY hkey,char *name, int value);
-	
+	void VNCOptions::LoadGenOpt();
+	void VNCOptions::SaveGenOpt();
 	void VNCOptions::delkey(char subkey[256],char keyname[256]);
 	void VNCOptions::SaveOpt(char subkey[256],char keyname[256]);
 	// process options

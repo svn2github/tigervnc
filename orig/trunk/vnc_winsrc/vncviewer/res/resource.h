@@ -115,6 +115,7 @@
 #define IDC_LISTEN_PORT                 1094
 #define IDC_BUTTON3                     1095
 #define IDC_SERVERUP                    1095
+#define IDC_CONN_PROF                   1095
 #define IDC_BUTTON4                     1096
 #define IDC_CLIENTRELOAD                1096
 #define IDC_BUTTON5                     1097
@@ -136,7 +137,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        244
 #define _APS_NEXT_COMMAND_VALUE         40011
-#define _APS_NEXT_CONTROL_VALUE         1095
+#define _APS_NEXT_CONTROL_VALUE         1096
 #define _APS_NEXT_SYMED_VALUE           154
 #endif
 #endif

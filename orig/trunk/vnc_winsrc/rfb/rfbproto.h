@@ -450,6 +450,7 @@ typedef struct _rfbInteractionCapsMsg {
 #define rfbFileUploadData 133
 #define rfbFileDownloadCancel 134
 #define rfbFileUploadFailed 135
+#define rfbFileCreateDirRequest 136
 
 /* signatures for non-standard messages */
 #define sig_rfbFileListRequest "FTC_LSRQ"
@@ -458,6 +459,7 @@ typedef struct _rfbInteractionCapsMsg {
 #define sig_rfbFileUploadData "FTC_UPDT"
 #define sig_rfbFileDownloadCancel "FTC_DNCN"
 #define sig_rfbFileUploadFailed "FTC_UPFL"
+#define sig_rfbFileCreateDirRequest "FTC_FCDR"
 
 /*****************************************************************************
  *
@@ -941,15 +943,14 @@ typedef struct _rfbServerCutTextMsg {
 
 typedef struct {
     CARD8 type;
-    CARD8 fnamesize;
-    CARD16 amount;
-    CARD16 num;
-    CARD16 attr;
-    CARD32 size;
-    /* Followed by Filename[fmamesize] */
+    CARD8 flags;
+    CARD16 numFiles;
+    CARD16 dataSize;
+    CARD16 compressedSize;
+    /* Followed by FilenamesArray[compressedSize] */
 } rfbFileListDataMsg;
 
-#define sz_rfbFileListDataMsg 12
+#define sz_rfbFileListDataMsg 8
 
 /*-----------------------------------------------------------------------------
  * FileDownloadData
@@ -957,14 +958,13 @@ typedef struct {
 
 typedef struct {
     CARD8 type;
-    CARD8 unused;
-    CARD16 amount;
-    CARD16 num;
-    CARD16 size;
-    /* Followed by File[size] */
+    CARD8 compressLevel;
+    CARD16 realSize;
+    CARD16 compressedSize;
+    /* Followed by File[copressedSize] */
 } rfbFileDownloadDataMsg;
 
-#define sz_rfbFileDownloadDataMsg 8
+#define sz_rfbFileDownloadDataMsg 6
 
 
 /*-----------------------------------------------------------------------------
@@ -974,8 +974,8 @@ typedef struct {
 typedef struct {
     CARD8 type;
     CARD8 unused;
-    CARD16 reasonlen;
-    /* Followed by reason[reasonsize] */
+    CARD16 reasonLen;
+    /* Followed by reason[reasonLen] */
 } rfbFileUploadCancelMsg;
 
 #define sz_rfbFileUploadCancelMsg 4
@@ -987,8 +987,8 @@ typedef struct {
 typedef struct {
     CARD8 type;
     CARD8 unused;
-    CARD16 reasonlen;
-    /* Followed by reason[reasonsize] */
+    CARD16 reasonLen;
+    /* Followed by reason[reasonLen] */
 } rfbFileDownloadFailedMsg;
 
 #define sz_rfbFileServerCancelMsg 4
@@ -1170,11 +1170,12 @@ typedef struct _rfbClientCutTextMsg {
 
 typedef struct {
     CARD8 type;
-    CARD8 dnamesize;
-    /* Followed by char Dirname[dnamesize] */
+    CARD8 flags;
+	CARD16 dirNameSize;
+    /* Followed by char Dirname[dirNameSize] */
 } rfbFileListRequestMsg;
 
-#define sz_rfbFileListRequestMsg 2
+#define sz_rfbFileListRequestMsg 4
 
 /*-----------------------------------------------------------------------------
  * FileDownloadRequest
@@ -1182,11 +1183,13 @@ typedef struct {
 
 typedef struct {
     CARD8 type;
-    CARD8 fnamesize;
-    /* Followed by char Filename[size] */
+	CARD8 compressedLevel;
+    CARD16 fNameSize;
+	CARD32 position
+    /* Followed by char Filename[fNameSize] */
 } rfbFileDownloadRequestMsg;
 
-#define sz_rfbFileDownloadRequestMsg 2
+#define sz_rfbFileDownloadRequestMsg 8
 
 /*-----------------------------------------------------------------------------
  * FileUploadRequest
@@ -1194,11 +1197,13 @@ typedef struct {
 
 typedef struct {
     CARD8 type;
-    CARD8 fnamesize;
-    /* Followed by char Filename[size] */
+	CARD8 compressedLevel;
+    CARD16 fNameSize;
+	CARD32 position;
+    /* Followed by char Filename[fNameSize] */
 } rfbFileUploadRequestMsg;
 
-#define sz_rfbFileUploadRequestMsg 2
+#define sz_rfbFileUploadRequestMsg 8
 
 
 /*-----------------------------------------------------------------------------
@@ -1207,11 +1212,11 @@ typedef struct {
 
 typedef struct {
     CARD8 type;
-    CARD8 unused;
-    CARD16 size;
-    CARD16 amount;
+    CARD8 compressedLevel;
+    CARD16 realSize;
+    CARD16 compressedSize;
     CARD16 num;
-    /* Followed by File[size]   */
+    /* Followed by File[compressedSize]   */
 } rfbFileUploadDataMsg;
 
 #define sz_rfbFileUploadDataMsg 8
@@ -1222,9 +1227,12 @@ typedef struct {
 
 typedef struct {
     CARD8 type;
+	CARD8 unused;
+	CARD16 reaonLen;
+	/* Followed by reason[reasonLen] */
 } rfbFileDownloadCancelMsg;
 
-#define sz_rfbFileDownloadCancelMsg 1
+#define sz_rfbFileDownloadCancelMsg 4
 
 /*-----------------------------------------------------------------------------
  * FileUploadFailed
@@ -1232,11 +1240,26 @@ typedef struct {
 
 typedef struct {
     CARD8 type;
+	CARD8 unused;
+	CARD16 reasonLen;
+	/* Followed by reason[reasonLen] */
 } rfbFileUploadFailedMsg;
 
-#define sz_rfbFileUploadFailedMsg 1
+#define sz_rfbFileUploadFailedMsg 4
 
+/*-----------------------------------------------------------------------------
+ * FileCreateDirRequest
+ */
 
+typedef struct {
+    CARD8 type;
+	CARD8 unused;
+	CARD16 dNameLen;
+	CARD32 dModTime;
+	/* Followed by dName[dNameLen] */
+} rfbFileCreateDirRequestMsg;
+
+#define sz_rfbFileCreateDirRequestMsg 8
 
 /*-----------------------------------------------------------------------------
  * Union of all client->server messages.
@@ -1257,4 +1280,5 @@ typedef union _rfbClientToServerMsg {
     rfbFileUploadDataMsg fud;
     rfbFileDownloadCancelMsg fdc;
     rfbFileUploadFailedMsg fcc;
+	rfbFileCreateDirRequestMsg fcdr;
 } rfbClientToServerMsg;

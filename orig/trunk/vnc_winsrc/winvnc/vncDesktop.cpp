@@ -316,27 +316,26 @@ vncDesktopThread::run_undetached(void *arg)
 					if ( m_server->GetPollingFlag() || (m_desktop->m_pollingcycle !=0))	{
 						m_server->SetPollingFlag(false);
 
-						if (m_server->PollFullScreen())	{
-								
-							// Request update for all parts of screen
-							if( m_desktop->m_pollingcycle !=3)
-								m_desktop->RequestUpdate();
-					
-							RECT rect;
-							rect.left = (m_desktop->m_pollingcycle % 2) * m_desktop->m_qtrscreen.right+old_rect.left;
-							rect.right = rect.left + m_desktop->m_qtrscreen.right;
-							rect.top = (m_desktop->m_pollingcycle / 2) * m_desktop->m_qtrscreen.bottom+old_rect.top;
-							rect.bottom = rect.top + m_desktop->m_qtrscreen.bottom;
-							m_desktop->m_changed_rgn.AddRect(rect);
-							m_desktop->m_pollingcycle = (m_desktop->m_pollingcycle + 1) % 4;
-						} else {
+						// Request update for all parts of screen
+						if( m_desktop->m_pollingcycle !=3)
+							m_desktop->RequestUpdate();
 						
+						RECT rect;
+						rect.left = (m_desktop->m_pollingcycle % 2) * m_desktop->m_qtrscreen.right+old_rect.left;
+						rect.right = rect.left + m_desktop->m_qtrscreen.right;
+						rect.top = (m_desktop->m_pollingcycle / 2) * m_desktop->m_qtrscreen.bottom+old_rect.top;
+						rect.bottom = rect.top + m_desktop->m_qtrscreen.bottom;
+
+						
+						if (m_server->PollFullScreen())	{
+							m_desktop->m_changed_rgn.AddRect(rect);
+						} else {
 							//Other polling 
 							if (m_server->PollForeground())	{
 								// Get the window rectangle for the currently selected window
 								HWND hwnd = GetForegroundWindow();
 								if (hwnd != NULL)
-									m_desktop->PollWindow(hwnd);
+									m_desktop->PollWindow(hwnd, rect);
 							}
 							
 							if (m_server->PollUnderCursor()) {
@@ -346,12 +345,13 @@ vncDesktopThread::run_undetached(void *arg)
 									// Find the window under the mouse
 									HWND hwnd = WindowFromPoint(mousepos);
 									if (hwnd != NULL)
-										m_desktop->PollWindow(hwnd);
+										m_desktop->PollWindow(hwnd, rect);
 								}
 							}
 						}
+						m_desktop->m_pollingcycle = (m_desktop->m_pollingcycle + 1) % 4;
 					}			
-				}
+				}					
 
 				// Get only desktop area
 				rgn.Clear();
@@ -513,7 +513,9 @@ vncDesktopThread::run_undetached(void *arg)
 	m_desktop->Shutdown();
 	// Return display settings to previous values.
 	m_desktop->ResetDisplayToNormal();
-
+	
+	// Clear the shift modifier keys, now that there are no remote clients
+	vncKeymap::ClearShiftKeys();
 
 	// Switch back into our home desktop, under NT (no effect under 9x)
 	vncService::SelectHDESK(home_desktop);
@@ -1880,62 +1882,58 @@ BOOL CALLBACK
 EnumWindowsFnCopyRect(HWND hwnd, LPARAM arg)
 {
 
-	HANDLE prop = GetProp(hwnd, (LPCTSTR) MAKELONG(VNC_WINDOWPOS_ATOM, 0));
-	if (prop != NULL)
+	//For excluding the popup windows
+	if ((GetWindowLong( hwnd, GWL_STYLE) & WS_POPUP) ==0)
 	{
-		if (IsWindowVisible(hwnd))
-		{
-			RECT dest;
-			POINT source;
+	
+		HANDLE prop = GetProp(hwnd, (LPCTSTR) MAKELONG(VNC_WINDOWPOS_ATOM, 0));
+		if (prop != NULL) {
+			
+			if (IsWindowVisible(hwnd)) {
+				
+				RECT dest;
+				POINT source;
 
-			// Get the window rectangle
-			if (GetWindowRect(hwnd, &dest))
-			{
-				// Old position
-				source.x = (SHORT) LOWORD(prop);
-				source.y = (SHORT) HIWORD(prop);
+				// Get the window rectangle
+				if (GetWindowRect(hwnd, &dest)) {
+					// Old position
+					source.x = (SHORT) LOWORD(prop);
+					source.y = (SHORT) HIWORD(prop);
 
-				// Got the destination position.  Now send to clients!
-				if ((source.x != dest.left) || (source.y != dest.top))
-				{
-					// Update the property entry
+					// Got the destination position.  Now send to clients!
+					if ((source.x != dest.left) || (source.y != dest.top)) {
+						// Update the property entry
+						SHORT x = (SHORT) dest.left;
+						SHORT y = (SHORT) dest.top;
+						SetProp(hwnd,
+							(LPCTSTR) MAKELONG(VNC_WINDOWPOS_ATOM, 0),
+							(HANDLE) MAKELONG(x, y));
+
+						// Store of the copyrect 
+						((vncDesktop*)arg)->CopyRect(dest, source);
+						
+					}
+				} else {
+					RemoveProp(hwnd, (LPCTSTR) MAKELONG(VNC_WINDOWPOS_ATOM, 0));
+				}
+			} else {
+				RemoveProp(hwnd, (LPCTSTR) MAKELONG(VNC_WINDOWPOS_ATOM, 0));
+			}
+		} else {
+			// If the window has become visible then save its position!
+			if (IsWindowVisible(hwnd)) {
+				RECT dest;
+
+				if (GetWindowRect(hwnd, &dest)) {
 					SHORT x = (SHORT) dest.left;
 					SHORT y = (SHORT) dest.top;
 					SetProp(hwnd,
 						(LPCTSTR) MAKELONG(VNC_WINDOWPOS_ATOM, 0),
 						(HANDLE) MAKELONG(x, y));
-
-					// Store of the copyrect 
-					((vncDesktop*)arg)->CopyRect(dest, source);
-					
 				}
 			}
-			else
-				RemoveProp(hwnd, (LPCTSTR) MAKELONG(VNC_WINDOWPOS_ATOM, 0));
-		}
-		else
-		{
-			RemoveProp(hwnd, (LPCTSTR) MAKELONG(VNC_WINDOWPOS_ATOM, 0));
 		}
 	}
-	else
-	{
-		// If the window has become visible then save its position!
-		if (IsWindowVisible(hwnd))
-		{
-			RECT dest;
-
-			if (GetWindowRect(hwnd, &dest))
-			{
-				SHORT x = (SHORT) dest.left;
-				SHORT y = (SHORT) dest.top;
-				SetProp(hwnd,
-					(LPCTSTR) MAKELONG(VNC_WINDOWPOS_ATOM, 0),
-					(HANDLE) MAKELONG(x, y));
-			}
-		}
-	}
-
 	return TRUE;
 }
 
@@ -2204,7 +2202,7 @@ vncDesktop::GetChangedRegion(vncRegion &rgn, RECT &rect)
 
 
 void
-vncDesktop::PollWindow(HWND hwnd)
+vncDesktop::PollWindow(HWND hwnd, RECT &qtrrect)
 {
 	BOOL poll = TRUE;
 
@@ -2234,8 +2232,10 @@ vncDesktop::PollWindow(HWND hwnd)
 		RECT rect;
 
 		// Get the rectangle
-		if (GetWindowRect(hwnd, &rect))
+		if (GetWindowRect(hwnd, &rect)) {
+			IntersectRect(&rect,&rect,&qtrrect);
 			m_changed_rgn.AddRect(rect);
+		}
 	}
 }
 

@@ -137,6 +137,7 @@ private:
 	void UploadFile(int num);
 
 	void ClearFTControls();
+	void ClearFTButtons();
 	void CheckClientLV();
 	void CheckServerLV();
 

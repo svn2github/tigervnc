@@ -135,12 +135,7 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 				switch (HIWORD (wParam))
 				{
 					case EN_SETFOCUS:
-						EnableWindow(GetDlgItem(_this->m_hwndFileTransfer, IDC_CLIENTRENAME), FALSE);
-						EnableWindow(GetDlgItem(_this->m_hwndFileTransfer, IDC_SERVERRENAME), FALSE);
-						EnableWindow(GetDlgItem(_this->m_hwndFileTransfer, IDC_CLIENTDELETE), FALSE);
-						EnableWindow(GetDlgItem(_this->m_hwndFileTransfer, IDC_SERVERDELETE), FALSE);
-						SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
-						EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), FALSE);
+						_this->ClearFTButtons();
 						return TRUE;
 				}
 			break;
@@ -148,12 +143,7 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 				switch (HIWORD (wParam))
 				{
 					case EN_SETFOCUS:
-						EnableWindow(GetDlgItem(_this->m_hwndFileTransfer, IDC_CLIENTRENAME), FALSE);
-						EnableWindow(GetDlgItem(_this->m_hwndFileTransfer, IDC_SERVERRENAME), FALSE);
-						EnableWindow(GetDlgItem(_this->m_hwndFileTransfer, IDC_CLIENTDELETE), FALSE);
-						EnableWindow(GetDlgItem(_this->m_hwndFileTransfer, IDC_SERVERDELETE), FALSE);
-						SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
-						EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), FALSE);
+						_this->ClearFTButtons();
 						return TRUE;
 				}
 			break;
@@ -1891,16 +1881,22 @@ FileTransfer::GetSelectedFileSize(char *path, FileTransferItemInfo *pFTFI)
 }
 
 void
-FileTransfer::ClearFTControls()
+FileTransfer::ClearFTButtons()
 {
 	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_CLIENTRENAME), FALSE);
 	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_SERVERRENAME), FALSE);
 	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_CLIENTDELETE), FALSE);
 	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_SERVERDELETE), FALSE);
-	SetDlgItemText(m_hwndFileTransfer, IDC_FTCOPY, noactionText);
+	SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
+	EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), FALSE);
+}
+
+void
+FileTransfer::ClearFTControls()
+{
+	ClearFTButtons();
 	SetDlgItemText(m_hwndFileTransfer, IDC_FILETRANSFERPERCENT, "0%");
 	SetDlgItemText(m_hwndFileTransfer, IDC_CURRENTFILEPERCENT, "0%");
-	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCOPY), FALSE);
 	SendMessage(m_hwndProgress, PBM_SETPOS, 0, 0);
 	SendMessage(m_hwndFTProgress, PBM_SETPOS, 0, 0);
 	ClearStatusText();

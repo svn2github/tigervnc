@@ -150,7 +150,8 @@ void vncHTTPConnectThread::DoHTTP(VSocket *socket)
 				break;
 			newline = TRUE;
 		} else {
-			newline = FALSE;
+			if (c >= ' ')
+				newline = FALSE;
 		}
 	}
 

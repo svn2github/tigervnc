@@ -70,12 +70,11 @@ void ClientConnection::RealiseFullScreenMode(bool suppressPrompt)
 		SetWindowLong(m_hwnd1, GWL_STYLE, style);
 		int cx = GetSystemMetrics(SM_CXSCREEN);
 		int cy = GetSystemMetrics(SM_CYSCREEN);
-		SetWindowPos(m_hwnd1, HWND_TOPMOST, -1, -1, cx + 3, cy + 3, SWP_FRAMECHANGED);
+		SetWindowPos(m_hwnd1, HWND_TOP, -1, -1, cx + 3, cy + 3, SWP_FRAMECHANGED);
 		CheckMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_FULLSCREEN, MF_BYCOMMAND|MF_CHECKED);
 		m_QuitFSW->ShowButton(TRUE);
 	} else {
 		m_QuitFSW->ShowButton(FALSE);
-		ShowWindow(m_hToolbar, SW_SHOW);
 		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_TOOLBAR, MF_BYCOMMAND|MF_ENABLED);
 		style |= (WS_DLGFRAME | WS_THICKFRAME);
 		

@@ -43,7 +43,7 @@ protected:
 	POINT m_MousePoint;
 	HDC m_hdcCompat;
 	HBITMAP m_hbmp;
-	BOOL m_ButtonDown;
+	BOOL m_DblClick;
 	RECT m_rectOldCur;
 };
 

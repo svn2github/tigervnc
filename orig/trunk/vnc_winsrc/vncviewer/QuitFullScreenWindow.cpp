@@ -35,7 +35,7 @@ QuitFullScreenWindow::QuitFullScreenWindow(VNCviewerApp *pApp, ClientConnection 
 {
 	m_pApp = pApp;
 	m_CConn = CConn;
-	m_ButtonDown = FALSE;
+	m_DblClick = FALSE;
 	m_hOldCap = NULL;
 
 	//Creating button window.
@@ -49,7 +49,7 @@ QuitFullScreenWindow::QuitFullScreenWindow(VNCviewerApp *pApp, ClientConnection 
 	wcex.cbWndExtra		= 0;
 	wcex.hInstance		= NULL;
 	wcex.hIcon			= NULL;
-	wcex.hCursor		= NULL;
+	wcex.hCursor		= LoadCursor( NULL, IDC_ARROW );
 	wcex.hbrBackground	= (HBRUSH)(COLOR_WINDOW);
 	wcex.lpszMenuName	= NULL;
 	wcex.lpszClassName	= "QuitFullScreenWindowClass";
@@ -59,17 +59,17 @@ QuitFullScreenWindow::QuitFullScreenWindow(VNCviewerApp *pApp, ClientConnection 
 
 	RECT workrect;
 	SystemParametersInfo(SPI_GETWORKAREA, 0, &workrect, 0);
-	int xpos = workrect.right * 9 / 10;
-	int ypos = workrect.bottom / 10;
+	int xpos = workrect.right - 45;
+	int ypos = 32;
 
-	m_hwndButton = CreateWindowEx(WS_EX_TOPMOST|WS_EX_TOOLWINDOW,			//dwExStyle
-		"QuitFullScreenWindowClass",		// pointer to registered class name
-  		"QuitButton",			// pointer to window name
+	m_hwndButton = CreateWindowEx(WS_EX_TOPMOST | WS_EX_TOOLWINDOW,			//dwExStyle
+		"QuitFullScreenWindowClass",// pointer to registered class name
+  		"QuitButton",				// pointer to window name
   		WS_POPUP,					// window style
-		xpos,							// horizontal position of window
-		ypos,							// vertical position of window
-		SIZE_BUTTON,							// window width
-		SIZE_BUTTON,							// window height
+		xpos,						// horizontal position of window
+		ypos,						// vertical position of window
+		SIZE_BUTTON,				// window width
+		SIZE_BUTTON,				// window height
 		NULL,						// handle to parent or owner window
 		NULL,						// handle to menu, or child-window identifier
 		NULL,						// handle to application instance
@@ -94,7 +94,8 @@ QuitFullScreenWindow::QuitFullScreenWindow(VNCviewerApp *pApp, ClientConnection 
 void QuitFullScreenWindow::ShowButton(BOOL show)
 {
 	if (show) {
-		ShowWindow(m_hwndButton, SW_SHOWNA);
+		SetWindowPos(m_hwndButton, HWND_TOPMOST, 0, 0, 0, 0,
+					SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 	} else {
 		ShowWindow(m_hwndButton, SW_HIDE);
 	}
@@ -117,7 +118,7 @@ LRESULT CALLBACK QuitFullScreenWindow::QuitProc(HWND hwnd, UINT iMsg,
 		}
 		break; 
 	case WM_MOUSEMOVE:
-		{
+		if (GetCapture() == hwnd) {	
 			POINTS ptsMousePoint=MAKEPOINTS(lParam);
 			POINT ptMousePoint;
 			ptMousePoint.x = ptsMousePoint.x;
@@ -125,40 +126,41 @@ LRESULT CALLBACK QuitFullScreenWindow::QuitProc(HWND hwnd, UINT iMsg,
 			ClientToScreen(hwnd,&ptMousePoint);
 			RECT wrect;
 			GetWindowRect(hwnd, &wrect);
+			POINT newpos;
+			newpos.x = wrect.left - (_this->m_MousePoint.x - ptMousePoint.x);
+			newpos.y = wrect.top - (_this->m_MousePoint.y - ptMousePoint.y);
+			if (newpos.x != wrect.left || newpos.y != wrect.top)
+				SetWindowPos(hwnd, HWND_TOPMOST, newpos.x, newpos.y,
+								SIZE_BUTTON, SIZE_BUTTON,
+								SWP_NOSIZE | SWP_SHOWWINDOW);
+			_this->m_MousePoint.x = ptMousePoint.x;
+			_this->m_MousePoint.y = ptMousePoint.y;
+		}
+		break;
+	case WM_LBUTTONDBLCLK:
+		_this->m_DblClick = TRUE;
+		break;
+	case WM_LBUTTONDOWN:
+		{
+			POINTS ptsMousePoint = MAKEPOINTS(lParam);
+			_this->m_MousePoint.x = ptsMousePoint.x;
+			_this->m_MousePoint.y = ptsMousePoint.y;
+			ClientToScreen(hwnd,&_this->m_MousePoint);
 			HWND hOld = GetCapture();
 			if (hOld != hwnd) {
 				_this->m_hOldCap = hOld;
 				GetClipCursor(&_this->m_rectOldCur);
 				SetCapture(hwnd);
-			} else if (!PtInRect(&wrect, ptMousePoint)) {
-				SetCapture(_this->m_hOldCap);
-				ClipCursor(&_this->m_rectOldCur);
-			}
-			
-			if (_this->m_ButtonDown)
-			{				
-				POINT newpos;
-				newpos.x = wrect.left - (_this->m_MousePoint.x - ptMousePoint.x);
-				newpos.y = wrect.top - (_this->m_MousePoint.y - ptMousePoint.y);
-				if (newpos.x != wrect.left || newpos.y != wrect.top)
-					MoveWindow(hwnd,newpos.x, newpos.y, SIZE_BUTTON,SIZE_BUTTON, TRUE);
-				_this->m_MousePoint.x = ptMousePoint.x;
-				_this->m_MousePoint.y = ptMousePoint.y;
 			}
 		}
-		break;
-	case WM_LBUTTONDBLCLK:
-		_this->m_CConn->SetFullScreenMode(false);
-		break;
-	case WM_LBUTTONDOWN:
-		_this->m_ButtonDown = TRUE;
-		POINTS ptsMousePoint = MAKEPOINTS(lParam);
-		_this->m_MousePoint.x = ptsMousePoint.x;
-		_this->m_MousePoint.y = ptsMousePoint.y;
-		ClientToScreen(hwnd,&_this->m_MousePoint);
 		break;	
 	case WM_LBUTTONUP:
-		_this->m_ButtonDown = FALSE;
+		if (_this->m_DblClick) {
+			_this->m_DblClick = FALSE;
+			_this->m_CConn->SetFullScreenMode(false);
+		}
+		SetCapture(_this->m_hOldCap);
+		ClipCursor(&_this->m_rectOldCur);
 		break;
 	case WM_DESTROY: 
 		// Destroy compatible bitmap, 

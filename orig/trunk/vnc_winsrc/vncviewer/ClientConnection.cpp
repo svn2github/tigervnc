@@ -2057,10 +2057,6 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 		}
 		return 0;
 	}
-	case WM_SETFOCUS:		
-		hotkeys.SetWindow(hwnd);
-		SetFocus(_this->m_hwnd);
-		return 0;
 	case WM_COMMAND:
 	case WM_SYSCOMMAND:
 		switch (LOWORD(wParam)) {
@@ -2198,9 +2194,34 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 			return 0;
 		}
 		break;		
-	case WM_KILLFOCUS:
-		if ( _this->m_opts.m_ViewOnly) return 0;
-		_this->SwitchOffKey();
+	case WM_ACTIVATEAPP:
+		if (!wParam) {
+			if (!_this->m_running) return 0;
+			if (_this->InFullScreenMode()) {
+				_this->m_QuitFSW->ShowButton(FALSE);
+				// We must top being topmost, but we want to choose our
+				// position carefully.
+				HWND foreground = GetForegroundWindow();
+				HWND hwndafter = NULL;
+				if ((foreground == NULL) || 
+					(GetWindowLong(foreground, GWL_EXSTYLE) & WS_EX_TOPMOST)) {
+					hwndafter = HWND_NOTOPMOST;
+				} else {
+					hwndafter = GetNextWindow(foreground, GW_HWNDNEXT); 
+				}
+
+				SetWindowPos(_this->m_hwnd1, hwndafter, 0,0,100,100, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);		
+			}
+			vnclog.Print(6, _T("Losing focus - cancelling modifiers\n"));
+			if ( _this->m_opts.m_ViewOnly) return 0;
+			_this->SwitchOffKey();
+		} else {					
+			hotkeys.SetWindow(hwnd);
+			if (_this->InFullScreenMode()) {
+				SetWindowPos(_this->m_hwnd1, HWND_TOP, 0,0,100,100, SWP_NOMOVE | SWP_NOSIZE);
+				_this->m_QuitFSW->ShowButton(TRUE);
+			}
+		}
 		return 0;
 	case WM_SIZE:		
 		_this->PositionChildWindow();			
@@ -2400,34 +2421,6 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 	case WM_DEADCHAR:
 	case WM_SYSDEADCHAR:
 	  return 0;
-	case WM_SETFOCUS:
-		if (_this->InFullScreenMode()) {
-			SetWindowPos(hwnd, HWND_TOPMOST, 0,0,100,100, SWP_NOMOVE | SWP_NOSIZE);
-			_this->m_QuitFSW->ShowButton(TRUE);
-		}
-		return 0;
-	// Cacnel modifiers when we lose focus
-	case WM_KILLFOCUS:
-		{
-			if (!_this->m_running) return 0;
-			if (_this->InFullScreenMode()) {
-				// We must top being topmost, but we want to choose our
-				// position carefully.
-				HWND foreground = GetForegroundWindow();
-				HWND hwndafter = NULL;
-				if ((foreground == NULL) || 
-					(GetWindowLong(foreground, GWL_EXSTYLE) & WS_EX_TOPMOST)) {
-					hwndafter = HWND_NOTOPMOST;
-				} else {
-					hwndafter = GetNextWindow(foreground, GW_HWNDNEXT); 
-				}
-
-				SetWindowPos(_this->m_hwnd1, hwndafter, 0,0,100,100, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-				_this->m_QuitFSW->ShowButton(FALSE);
-			}
-			vnclog.Print(6, _T("Losing focus - cancelling modifiers\n"));
-			return 0;
-		}	
     case WM_QUERYNEWPALETTE:
         {
 			TempDC hDC(hwnd);

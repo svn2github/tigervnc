@@ -401,7 +401,7 @@ void ClientConnection::CreateDisplay()
 
 	m_hwndscroll = CreateWindow("ScrollClass",
 			      NULL,
-			      WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
+			      WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_BORDER,
 			      CW_USEDEFAULT,
 			      CW_USEDEFAULT,
 			      CW_USEDEFAULT,       // x-size
@@ -605,7 +605,7 @@ HWND ClientConnection::CreateToolbar()
 	assert(numButtons <= MAX_TOOLBAR_BUTTONS);
 
 	return CreateToolbarEx(m_hwnd1,
-		WS_CHILD | TBSTYLE_TOOLTIPS |
+		WS_CHILD | TBSTYLE_TOOLTIPS | 
 		WS_CLIPSIBLINGS | TBSTYLE_FLAT,
 		ID_TOOLBAR, 12, m_pApp->m_instance,
 		IDB_BITMAP1, but, numButtons, 0, 0, 0, 0, sizeof(TBBUTTON));
@@ -1567,8 +1567,8 @@ void ClientConnection::PositionChildWindow()
 		ShowWindow(m_hToolbar, SW_HIDE);
 	}
 	
-	SetWindowPos(m_hwndscroll, HWND_TOP, rparent.left, rparent.top,
-					parentwidth, parentheight, SWP_SHOWWINDOW);
+	SetWindowPos(m_hwndscroll, HWND_TOP, rparent.left - 1, rparent.top,
+					parentwidth + 2, parentheight + 1, SWP_SHOWWINDOW);
 	
 	if (InFullScreenMode()) {				
 		ShowScrollBar(m_hwndscroll, SB_HORZ, FALSE);

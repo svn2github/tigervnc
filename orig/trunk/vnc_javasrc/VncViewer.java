@@ -198,6 +198,11 @@ public class VncViewer extends java.applet.Applet
 	}
 	if (showControls && buttonPanel != null) {
 	  buttonPanel.disableButtonsOnDisconnect();
+	  if (inSeparateFrame) {
+	    vncFrame.pack();
+	  } else {
+	    validate();
+	  }
 	}
       } else {
 	fatalError("Network error: remote side closed connection");

@@ -19,15 +19,13 @@
 
 // ConnectionsAccess.h: interface for the ConnectionsAccess class.
 
-
-#if !defined(AFX_CONNECTIONSACCESS_H__1FBA6287_0A9F_4441_A018_1949A5C7A9EE__INCLUDED_)
-#define AFX_CONNECTIONSACCESS_H__1FBA6287_0A9F_4441_A018_1949A5C7A9EE__INCLUDED_
+#ifndef _WINVNC_CONNECTIONSACCESS_H
+#define _WINVNC_CONNECTIONSACCESS_H
+#pragma once
 
 #include "resource.h"
 #include "vncServer.h"
 #include "commctrl.h"
-
-#pragma once
 
 class ConnectionsAccess  
 {

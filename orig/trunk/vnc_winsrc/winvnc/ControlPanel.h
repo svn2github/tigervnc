@@ -19,14 +19,13 @@
 
 // ControlPanel.h: interface for the ControlPanel class.
 
-#ifndef AFX_CONTROLPANEL_H__
-#define AFX_CONTROLPANEL_H__
+#ifndef _WINVNC_CONTROLPANEL_H
+#define _WINVNC_CONTROLPANEL_H
+#pragma once
 
 #include "resource.h"
 #include "vncServer.h"
 #include "commctrl.h"
-
-#pragma once
 
 class ControlPanel  
 {

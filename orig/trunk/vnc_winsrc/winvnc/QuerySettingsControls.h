@@ -19,9 +19,8 @@
 
 // QuerySettingsControls.h: interface for the QuerySettingsControls class.
 
-#ifndef AFX_QUERYSETTINGSCONTROLS_H__
-#define AFX_QUERYSETTINGSCONTROLS_H__
-
+#ifndef _WINVNC_QUERYSETTINGSCONTROLS_H
+#define _WINVNC_QUERYSETTINGSCONTROLS_H
 #pragma once
 
 #include "resource.h"
@@ -49,4 +48,4 @@ private:
 	HWND m_hwnd;
 };
 
-#endif 
+#endif

@@ -19,11 +19,8 @@
 
 // AdministrationControls.h: interface for the AdministrationControls class.
 
-
-#ifndef AFX_ADMINISTRATIONCONTROLS_H__
-#define AFX_ADMINISTRATIONCONTROLS_H__
-
-
+#ifndef _WINVNC_ADMINISTRATIONCONTROLS_H
+#define _WINVNC_ADMINISTRATIONCONTROLS_H
 #pragma once
 
 #include "resource.h"

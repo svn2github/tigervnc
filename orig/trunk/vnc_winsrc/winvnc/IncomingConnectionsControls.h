@@ -19,10 +19,8 @@
 
 // IncomingConnectionsControls.h: interface for the IncomingConnectionsControls class.
 
-
-#ifndef AFX_INCOMINGCONNECTIONSCONTROLS_H__
-#define AFX_INCOMINGCONNECTIONSCONTROLS_H__
-
+#ifndef _WINVNC_INCOMINGCONNECTIONSCONTROLS_H
+#define _WINVNC_INCOMINGCONNECTIONSCONTROLS_H
 #pragma once
 
 #include "resource.h"
@@ -53,4 +51,4 @@ private:
   HWND m_hwnd;
 };
 
-#endif 
+#endif

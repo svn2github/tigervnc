@@ -92,7 +92,6 @@ class OptionsFrame extends Frame
   boolean reverseMouseButtons2And3;
   boolean shareDesktop;
   boolean viewOnly;
-  boolean showControls;
 
   //
   // Constructor.  Set up the labels and choices from the names and values
@@ -161,13 +160,6 @@ class OptionsFrame extends Frame
 	}
       }
     }
-
-    // "Show Controls" setting does not have associated GUI option
-
-    showControls = true;
-    String s = viewer.readParameter("Show Controls", false);
-    if (s != null && s.equalsIgnoreCase("No"))
-      showControls = false;
 
     // Make the booleans and encodings array correspond to the state of the GUI
 

@@ -69,6 +69,7 @@ public class VncViewer extends java.applet.Applet
   String host;
   int port;
   String passwordParam;
+  boolean showControls;
   boolean showOfflineDesktop;
   int deferScreenUpdates;
   int deferCursorUpdates;
@@ -120,7 +121,7 @@ public class VncViewer extends java.applet.Applet
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbc.anchor = GridBagConstraints.NORTHWEST;
 
-    if (options.showControls) {
+    if (showControls) {
       buttonPanel = new ButtonPanel(this);
       gridbag.setConstraints(buttonPanel, gbc);
       vncContainer.add(buttonPanel);
@@ -165,7 +166,7 @@ public class VncViewer extends java.applet.Applet
 
       }
 
-      if (options.showControls)
+      if (showControls)
 	buttonPanel.enableButtons();
 
       moveFocusToDesktop();
@@ -191,7 +192,7 @@ public class VncViewer extends java.applet.Applet
 	if (inSeparateFrame) {
 	  vncFrame.setTitle(rfb.desktopName + " [disconnected]");
 	}
-	if (options.showControls && buttonPanel != null) {
+	if (showControls && buttonPanel != null) {
 	  buttonPanel.disableButtonsOnDisconnect();
 	}
       } else {
@@ -432,6 +433,12 @@ public class VncViewer extends java.applet.Applet
     }
 
     passwordParam = readParameter("PASSWORD", false);
+
+    // "Show Controls" set to "No" disables button panel.
+    showControls = true;
+    str = readParameter("Show Controls", false);
+    if (str != null && str.equalsIgnoreCase("No"))
+      showControls = false;
 
     // Do we continue showing desktop on remote disconnect?
     showOfflineDesktop = false;

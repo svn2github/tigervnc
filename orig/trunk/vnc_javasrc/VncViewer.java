@@ -82,6 +82,7 @@ public class VncViewer extends java.applet.Applet
   String passwordParam;
   String encPasswordParam;
   boolean showControls;
+  boolean offerRelogin;
   boolean showOfflineDesktop;
   int deferScreenUpdates;
   int deferCursorUpdates;
@@ -578,6 +579,13 @@ public class VncViewer extends java.applet.Applet
     if (str != null && str.equalsIgnoreCase("No"))
       showControls = false;
 
+    // "Offer Relogin" set to "No" disables "Login again" and "Close
+    // window" buttons under error messages in applet mode.
+    offerRelogin = true;
+    str = readParameter("Offer Relogin", false);
+    if (str != null && str.equalsIgnoreCase("No"))
+      offerRelogin = false;
+
     // Do we continue showing desktop on remote disconnect?
     showOfflineDesktop = false;
     str = readParameter("Show Offline Desktop", false);
@@ -661,16 +669,7 @@ public class VncViewer extends java.applet.Applet
       rec.dispose();
 
     if (inAnApplet) {
-      vncContainer.removeAll();
-      Label errLabel = new Label("Disconnected");
-      errLabel.setFont(new Font("Helvetica", Font.PLAIN, 12));
-      vncContainer.setLayout(new FlowLayout(FlowLayout.LEFT, 30, 30));
-      vncContainer.add(errLabel);
-      if (inSeparateFrame) {
-	vncFrame.pack();
-      } else {
-	validate();
-      }
+      showMessage("Disconnected");
     } else {
       System.exit(0);
     }
@@ -708,18 +707,45 @@ public class VncViewer extends java.applet.Applet
     System.out.println(str);
 
     if (inAnApplet) {
-      vncContainer.removeAll();
-      Label errLabel = new Label(str);
-      errLabel.setFont(new Font("Helvetica", Font.PLAIN, 12));
-      vncContainer.setLayout(new FlowLayout(FlowLayout.LEFT, 30, 30));
-      vncContainer.add(errLabel);
-      if (inSeparateFrame) {
-	vncFrame.pack();
-      } else {
-	validate();
-      }
+      showMessage(str);
     } else {
       System.exit(1);
+    }
+  }
+
+  //
+  // Show message text and optionally "Relogin" and "Close" buttons.
+  //
+
+  void showMessage(String msg) {
+    vncContainer.removeAll();
+
+    Label errLabel = new Label(msg, Label.CENTER);
+    errLabel.setFont(new Font("Helvetica", Font.PLAIN, 12));
+
+    if (offerRelogin) {
+
+      Panel gridPanel = new Panel(new GridLayout(0, 1));
+      Panel outerPanel = new Panel(new FlowLayout(FlowLayout.LEFT));
+      outerPanel.add(gridPanel);
+      vncContainer.setLayout(new FlowLayout(FlowLayout.LEFT, 30, 16));
+      vncContainer.add(outerPanel);
+      Panel textPanel = new Panel(new FlowLayout(FlowLayout.CENTER));
+      textPanel.add(errLabel);
+      gridPanel.add(textPanel);
+      gridPanel.add(new ReloginPanel(this));
+
+    } else {
+
+      vncContainer.setLayout(new FlowLayout(FlowLayout.LEFT, 30, 30));
+      vncContainer.add(errLabel);
+
+    }
+
+    if (inSeparateFrame) {
+      vncFrame.pack();
+    } else {
+      validate();
     }
   }
 

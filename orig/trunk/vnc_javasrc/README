@@ -193,6 +193,14 @@ is the full list of parameters supported in TightVNC Java viewer:
 
     Set to "No" if you want to get rid of that button panel at the top.
 
+--> "Offer relogin" (no GUI equivalent)
+
+    Values: "Yes", "No".
+    Default: "Yes".
+
+    If set to "No", the buttons "Login again" and "Close window" won't be
+    shown on disconnects or after an error has occured.
+
 --> "Show offline desktop" (no GUI equivalent)
 
     Values: "Yes", "No".

@@ -13,13 +13,13 @@ CLASSES = VncViewer.class RfbProto.class AuthPanel.class VncCanvas.class \
 	  OptionsFrame.class ClipboardFrame.class ButtonPanel.class \
 	  DesCipher.class RecordingFrame.class SessionRecorder.class \
 	  SocketFactory.class HTTPConnectSocketFactory.class \
-	  HTTPConnectSocket.class
+	  HTTPConnectSocket.class ReloginPanel.class
 
 SOURCES = VncViewer.java RfbProto.java AuthPanel.java VncCanvas.java \
 	  OptionsFrame.java ClipboardFrame.java ButtonPanel.java \
 	  DesCipher.java RecordingFrame.java SessionRecorder.java \
 	  SocketFactory.java HTTPConnectSocketFactory.java \
-	  HTTPConnectSocket.java
+	  HTTPConnectSocket.java ReloginPanel.java
 
 all: $(CLASSES) $(ARCHIVE)
 

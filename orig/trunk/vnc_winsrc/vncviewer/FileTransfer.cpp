@@ -21,11 +21,6 @@ CompareFTItemInfo(const void *F, const void *S)
 	return 0;
 }
 
-
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
-
 FileTransfer::FileTransfer(ClientConnection * pCC, VNCviewerApp * pApp)
 {
 	m_clientconn = pCC;
@@ -411,8 +406,6 @@ FileTransfer::FileTransferDownload()
 	fdd.num = Swap16IfLE(fdd.num);
 	char * pBuff = new char [fdd.size + 1];
 	char path[rfbMAX_PATH + rfbMAX_PATH + 3];
-//	HANDLE hFile;
-//	WIN32_FIND_DATA FindFileData;
 	DWORD dwNumberOfBytesWritten;
 	m_clientconn->ReadExact(pBuff, fdd.size);
 	ProcessDlgMessage(m_hwndFileTransfer);
@@ -433,19 +426,6 @@ FileTransfer::FileTransferDownload()
 		BlockingFileTransferDialog(TRUE);
 		return;
 	}
-/*
-	hFile = FindFirstFile(m_ClientPath, &FindFileData);
-	DWORD AvailableBytes;
-	GetDiskFreeSpaceEx((LPCTSTR) m_ClientPath, (PULARGE_INTEGER) &AvailableBytes, NULL, NULL);
-	if ((hFile == INVALID_HANDLE_VALUE) || (AvailableBytes < (8192 * (fdd.amount - 1)))){
-		char tmpBuffer[rfbMAX_PATH + 20];
-		sprintf(tmpBuffer, "Can't write to %s", m_ClientPath);
-		SetWindowText(m_hwndFTStatus, tmpBuffer);
-		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
-		BlockingFileTransferDialog(TRUE);
-		return;
-	}
-*/
 	if (fdd.num == 0) {
 		sprintf(path, "%s\\%s", m_ClientPath, m_ServerFilename);
 		m_hFiletoWrite = CreateFile(path, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
@@ -466,13 +446,10 @@ FileTransfer::FileTransferDownload()
 }
 
 void 
-FileTransfer::ShowClientItems(char path[rfbMAX_PATH])
+FileTransfer::ShowClientItems(char *path)
 {
-//	char drive[] = "?:\\";
-	char path_[rfbMAX_PATH];
-	strcpy(path_, path);
-	if (strlen(path_) == 0) {
-		//Show Disks
+	if (strlen(path) == 0) {
+		//Show Logical Drives
 		ListView_DeleteAllItems(m_hwndFTClientList); 
 		int DrivesNum = 0;
 		char DrivesString[256];
@@ -498,8 +475,8 @@ FileTransfer::ShowClientItems(char path[rfbMAX_PATH])
 		HANDLE m_handle;
 		int FilesNum = 0;
 		WIN32_FIND_DATA m_FindFileData;
-		strcat(path_, "\\*");
-		m_handle = FindFirstFile(path_, &m_FindFileData);
+		strcat(path, "\\*");
+		m_handle = FindFirstFile(path, &m_FindFileData);
 		while(1) {
 			if (m_handle != INVALID_HANDLE_VALUE) {
 				if ((strcmp(m_FindFileData.cFileName, ".") != 0) &&
@@ -510,6 +487,7 @@ FileTransfer::ShowClientItems(char path[rfbMAX_PATH])
 				FilesNum = 0;
 				if (GetLastError() != ERROR_SUCCESS) {
 					BlockingFileTransferDialog(TRUE);
+					path[strlen(path) - 2] = '\0';
 					strcpy(m_ClientPathTmp, m_ClientPath);
 					return;
 				}
@@ -517,14 +495,15 @@ FileTransfer::ShowClientItems(char path[rfbMAX_PATH])
 			}
 			if (!FindNextFile(m_handle, &m_FindFileData)) break;
 		}
-		strcpy(m_ClientPath, m_ClientPathTmp);
-		SetWindowText(m_hwndFTClientPath, m_ClientPath);
 		ListView_DeleteAllItems(m_hwndFTClientList); 
 		if (FilesNum == 0) {
 			BlockingFileTransferDialog(TRUE);
+			path[strlen(path) - 2] = '\0';
+			strcpy(m_ClientPath, m_ClientPathTmp);
+			SetWindowText(m_hwndFTClientPath, m_ClientPath);
 			return;
 		} 
-		m_handle = FindFirstFile(path_, &m_FindFileData);
+		m_handle = FindFirstFile(path, &m_FindFileData);
 		if (m_FTClientItemInfo !=NULL) delete [] m_FTClientItemInfo;
 		m_FTClientItemInfo = new FTITEMINFO [FilesNum];
 		int i=0;
@@ -545,9 +524,11 @@ FileTransfer::ShowClientItems(char path[rfbMAX_PATH])
 		}
 		FindClose(m_handle);
 		ShowListViewItems(m_hwndFTClientList, m_FTClientItemInfo, FilesNum);
+		path[strlen(path) - 2] = '\0';
+		strcpy(m_ClientPath, m_ClientPathTmp);
+		SetWindowText(m_hwndFTClientPath, m_ClientPath);
 	}
 	BlockingFileTransferDialog(TRUE);
-	path_[strlen(path) - 1] = '\0';
 }
 
 BOOL CALLBACK 
@@ -806,7 +787,6 @@ FileTransfer::ShowServerItems()
 		}
 		if (fld.num == 0) {
 			if (m_FTServerItemInfo != NULL) delete [] m_FTServerItemInfo;
-//			ClearFTItemInfo(m_FTServerItemInfo);
 			m_FTServerItemInfo = new FTITEMINFO[fld.amount];
 			ListView_DeleteAllItems(m_hwndFTServerList); 
 		}

@@ -31,7 +31,7 @@ public:
 	void ProcessListViewDBLCLK(HWND hwnd, char *Path, char *PathTmp, int iItem);
 	void SendFileListRequestMessage(char *filename);
 	void ShowServerItems();
-	void ShowClientItems(char path[rfbMAX_PATH]);
+	void ShowClientItems(char *path);
 	void BlockingFileTransferDialog(BOOL status);
 	void ProcessDlgMessage(HWND hwnd);
 	void ShowTreeViewItems(HWND hwnd, LPNMTREEVIEW m_lParam);

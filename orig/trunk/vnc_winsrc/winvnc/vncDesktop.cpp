@@ -2124,80 +2124,205 @@ vncDesktop::CheckRects(vncRegion &rgn, rectlist &rects)
 	}
 }
 
-// New version of GetChangedRegion.  This version tries to avoid
-// sending too much unnecessary data.
-#pragma function(memcpy,memcmp)
+// This notably improves performance when using Visual C++ 6.0 compiler
+#pragma function(memcpy, memcmp)
+
+static const int BLOCK_SIZE = 32;
+static const int BLOCK_PIXELS = BLOCK_SIZE * BLOCK_SIZE;
 
 void
-vncDesktop::GetChangedRegion(vncRegion &rgn, RECT &rect)
+vncDesktop::GetChangedRegion(vncRegion &rgn, const RECT &rect)
 {
-	const int BLOCK_SIZE = 32;
+	const UINT bytesPerPixel = m_scrinfo.format.bitsPerPixel / 8;
+	const int bytes_per_scanline = (rect.right - rect.left) * bytesPerPixel;
+
+	const int offset = rect.top * m_bytesPerRow + rect.left * bytesPerPixel;
+	unsigned char *o_ptr = m_backbuff + offset;
+	unsigned char *n_ptr = m_mainbuff + offset;
+
+	RECT new_rect = rect;
+
+	// Fast processing for small rectangles
+	if ( rect.right - rect.left <= BLOCK_SIZE &&
+		 rect.bottom - rect.top <= BLOCK_SIZE ) {
+		for (int y = rect.top; y < rect.bottom; y++) {
+			if (memcmp(o_ptr, n_ptr, bytes_per_scanline) != 0) {
+				new_rect.top = y;
+				UpdateChangedSubRect(rgn, new_rect);
+				break;
+			}
+			o_ptr += m_bytesPerRow;
+			n_ptr += m_bytesPerRow;
+		}
+		return;
+	}
+
+	// Process bigger rectangles
+	new_rect.top = -1;
+	for (int y = rect.top; y < rect.bottom; y++) {
+		if (memcmp(o_ptr, n_ptr, bytes_per_scanline) != 0) {
+			if (new_rect.top == -1) {
+				new_rect.top = y;
+			}
+			// Skip a number of lines after a non-matched one
+			int n = BLOCK_SIZE / 2 - 1;
+			y += n;
+			o_ptr += n * m_bytesPerRow;
+			n_ptr += n * m_bytesPerRow;
+		} else {
+			if (new_rect.top != -1) {
+				new_rect.bottom = y;
+				UpdateChangedRect(rgn, new_rect);
+				new_rect.top = -1;
+			}
+		}
+		o_ptr += m_bytesPerRow;
+		n_ptr += m_bytesPerRow;
+	}
+	if (new_rect.top != -1) {
+		new_rect.bottom = rect.bottom;
+		UpdateChangedRect(rgn, new_rect);
+	}
+}
+
+void
+vncDesktop::UpdateChangedRect(vncRegion &rgn, const RECT &rect)
+{
+	// Pass small rectangles directly to UpdateChangedSubRect
+	if ( rect.right - rect.left <= BLOCK_SIZE &&
+		 rect.bottom - rect.top <= BLOCK_SIZE ) {
+		UpdateChangedSubRect(rgn, rect);
+		return;
+	}
+
 	const UINT bytesPerPixel = m_scrinfo.format.bitsPerPixel / 8;
 
 	RECT new_rect;
-
-	int x, y, ay, by;
-
-	// DWORD align the incoming rectangle.  (bPP will be 8, 16 or 32)
-	if (bytesPerPixel < 4) {
-		if (bytesPerPixel == 1)				// 1 byte per pixel
-			rect.left -= (rect.left & 3);	// round down to nearest multiple of 4
-		else								// 2 bytes per pixel
-			rect.left -= (rect.left & 1);	// round down to nearest multiple of 2
-	}
+	int x, y, ay;
 
 	// Scan down the rectangle
-	unsigned char *o_topleft_ptr = m_backbuff + (rect.top * m_bytesPerRow) + (rect.left * bytesPerPixel);
-	unsigned char *n_topleft_ptr = m_mainbuff + (rect.top * m_bytesPerRow) + (rect.left * bytesPerPixel);
-	for (y = rect.top; y<rect.bottom; y+=BLOCK_SIZE)
+	const int offset = rect.top * m_bytesPerRow + rect.left * bytesPerPixel;
+	unsigned char *o_topleft_ptr = m_backbuff + offset;
+	unsigned char *n_topleft_ptr = m_mainbuff + offset;
+
+	for (y = rect.top; y < rect.bottom; y += BLOCK_SIZE)
 	{
 		// Work out way down the bitmap
-		unsigned char * o_row_ptr = o_topleft_ptr;
-		unsigned char * n_row_ptr = n_topleft_ptr;
+		unsigned char *o_row_ptr = o_topleft_ptr;
+		unsigned char *n_row_ptr = n_topleft_ptr;
 
-		const int blockbottom = Min(y+BLOCK_SIZE, rect.bottom);
-		for (x = rect.left; x<rect.right; x+=BLOCK_SIZE)
+		const int blockbottom = Min(y + BLOCK_SIZE, rect.bottom);
+		new_rect.bottom = blockbottom;
+		new_rect.left = -1;
+
+		for (x = rect.left; x < rect.right; x += BLOCK_SIZE)
 		{
 			// Work our way across the row
 			unsigned char *n_block_ptr = n_row_ptr;
 			unsigned char *o_block_ptr = o_row_ptr;
 
-			const UINT blockright = Min(x+BLOCK_SIZE, rect.right);
+			const UINT blockright = Min(x + BLOCK_SIZE, rect.right);
 			const UINT bytesPerBlockRow = (blockright-x) * bytesPerPixel;
 
 			// Scan this block
-			for (ay = y; ay < blockbottom; ay++)
-			{
+			for (ay = y; ay < blockbottom; ay++) {
 				if (memcmp(n_block_ptr, o_block_ptr, bytesPerBlockRow) != 0)
-				{
-					// A pixel has changed, so this block needs updating
-					new_rect.top = y;
-					new_rect.left = x;
-					new_rect.right = blockright;
-					new_rect.bottom = blockbottom;
-					rgn.AddRect(new_rect);
-
-					// Copy the changes to the back buffer
-					for (by = ay; by < blockbottom; by++)
-					{
-						memcpy(o_block_ptr, n_block_ptr, bytesPerBlockRow);
-						n_block_ptr+=m_bytesPerRow;
-						o_block_ptr+=m_bytesPerRow;
-					}
-
 					break;
-				}
-
 				n_block_ptr += m_bytesPerRow;
 				o_block_ptr += m_bytesPerRow;
+			}
+			if (ay < blockbottom) {
+				// There were changes, so this block will need to be updated
+				if (new_rect.left == -1) {
+					new_rect.left = x;
+					new_rect.top = ay;
+				} else if (ay < new_rect.top) {
+					new_rect.top = ay;
+				}
+			} else {
+				// No changes in this block, process previous changed blocks if any
+				if (new_rect.left != -1) {
+					new_rect.right = x;
+					UpdateChangedSubRect(rgn, new_rect);
+					new_rect.left = -1;
+				}
 			}
 
 			o_row_ptr += bytesPerBlockRow;
 			n_row_ptr += bytesPerBlockRow;
 		}
 
+		if (new_rect.left != -1) {
+			new_rect.right = rect.right;
+			UpdateChangedSubRect(rgn, new_rect);
+		}
+
 		o_topleft_ptr += m_bytesPerRow * BLOCK_SIZE;
 		n_topleft_ptr += m_bytesPerRow * BLOCK_SIZE;
+	}
+}
+
+void
+vncDesktop::UpdateChangedSubRect(vncRegion &rgn, const RECT &rect)
+{
+	const UINT bytesPerPixel = m_scrinfo.format.bitsPerPixel / 8;
+	int bytes_in_row = (rect.right - rect.left) * bytesPerPixel;
+	int y, i;
+
+	// Exclude unchanged scan lines at the bottom
+	int offset = (rect.bottom - 1) * m_bytesPerRow + rect.left * bytesPerPixel;
+	unsigned char *o_ptr = m_backbuff + offset;
+	unsigned char *n_ptr = m_mainbuff + offset;
+	RECT final_rect = rect;
+	final_rect.bottom = rect.top + 1;
+	for (y = rect.bottom - 1; y > rect.top; y--) {
+		if (memcmp(o_ptr, n_ptr, bytes_in_row) != 0) {
+			final_rect.bottom = y + 1;
+			break;
+		}
+		n_ptr -= m_bytesPerRow;
+		o_ptr -= m_bytesPerRow;
+	}
+
+	// Exclude unchanged pixels at left and right sides
+	offset = final_rect.top * m_bytesPerRow + final_rect.left * bytesPerPixel;
+	o_ptr = m_backbuff + offset;
+	n_ptr = m_mainbuff + offset;
+	int left_delta = bytes_in_row - 1;
+	int right_delta = 0;
+	for (y = final_rect.top; y < final_rect.bottom; y++) {
+		for (i = 0; i < bytes_in_row - 1; i++) {
+			if (n_ptr[i] != o_ptr[i]) {
+				if (i < left_delta)
+					left_delta = i;
+				break;
+			}
+		}
+		for (i = bytes_in_row - 1; i > 0; i--) {
+			if (n_ptr[i] != o_ptr[i]) {
+				if (i > right_delta)
+					right_delta = i;
+				break;
+			}
+		}
+		n_ptr += m_bytesPerRow;
+		o_ptr += m_bytesPerRow;
+	}
+	final_rect.right = final_rect.left + right_delta / bytesPerPixel + 1;
+	final_rect.left += left_delta / bytesPerPixel;
+
+	// Update the rectangle
+	rgn.AddRect(final_rect);
+
+	// Copy the changes to the back buffer
+	offset = final_rect.top * m_bytesPerRow + final_rect.left * bytesPerPixel;
+	o_ptr = m_backbuff + offset;
+	n_ptr = m_mainbuff + offset;
+	bytes_in_row = (final_rect.right - final_rect.left) * bytesPerPixel;
+	for (y = final_rect.top; y < final_rect.bottom; y++) {
+		memcpy(o_ptr, n_ptr, bytes_in_row);
+		n_ptr += m_bytesPerRow;
+		o_ptr += m_bytesPerRow;
 	}
 }
 

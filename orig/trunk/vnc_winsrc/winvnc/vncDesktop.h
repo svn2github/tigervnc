@@ -152,7 +152,9 @@ protected:
 	void PerformPolling();
 	void PollWindow(HWND hwnd, RECT &rect);
 	void CheckRects(vncRegion &rgn, rectlist &rects);
-	void GetChangedRegion(vncRegion &rgn, RECT &rect);											
+	void GetChangedRegion(vncRegion &rgn, const RECT &rect);
+	void UpdateChangedRect(vncRegion &rgn, const RECT &rect);
+	void UpdateChangedSubRect(vncRegion &rgn, const RECT &rect);
 
 	// Video driver stuff
 	BOOL InitVideoDriver();

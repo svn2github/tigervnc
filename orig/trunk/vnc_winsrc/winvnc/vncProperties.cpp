@@ -213,7 +213,7 @@ vncProperties::Show(BOOL show, BOOL usersettings)
 			int result = DialogBoxParam(hAppInstance,
 			    MAKEINTRESOURCE(IDD_LIVESHAREPROP), 
 			    NULL,
-			    (DLGPROC) DialogProc,
+			    (DLGPROC) ParentDlgProc,
 			    (LONG) this);
 
 			if (!m_returncode_valid)
@@ -291,6 +291,170 @@ vncProperties::Show(BOOL show, BOOL usersettings)
 		}
 	}
 }
+
+#ifdef HORIZONLIVE
+
+BOOL CALLBACK
+vncProperties::ParentDlgProc(HWND hwnd,
+						  UINT uMsg,
+						  WPARAM wParam,
+						  LPARAM lParam )
+{
+	// We use the dialog-box's USERDATA to store a _this pointer
+	// This is set only once WM_INITDIALOG has been recieved, though!
+	vncProperties *_this = (vncProperties *) GetWindowLong(hwnd, GWL_USERDATA);
+	
+	switch (uMsg)
+	{
+	case WM_INITDIALOG:
+		{
+			// Retrieve the Dialog box parameter and use it as a pointer
+			// to the calling vncProperties object
+			SetWindowLong(hwnd, GWL_USERDATA, lParam);
+			vncProperties *_this = (vncProperties *) lParam;
+			_this->m_dlgvisible = TRUE;
+			// Set the dialog box's title
+			SetWindowText(hwnd, "LiveShare Settings");
+			
+			HWND hLiveShare = GetDlgItem(hwnd, IDC_LIVESHARE);
+			::SetWindowText(hLiveShare, _this->m_pref_LiveShareKey);																								  
+			if (_this->m_server->AuthClientCount() != 0)
+				EnableWindow(hLiveShare,false);
+			_this->m_shareddtarea = new SharedDesktopArea(hwnd,
+				_this->m_pMatchWindow,
+				_this,
+				_this->m_server);
+			return TRUE;
+		}
+	case WM_COMMAND:	
+		switch (LOWORD(wParam))
+		{
+		case IDC_FULLSCREEN:
+			_this->m_shareddtarea->FullScreen();
+			return TRUE;
+			
+		case IDC_WINDOW:
+			_this->m_shareddtarea->SharedWindow();
+			return TRUE;
+			
+		case IDC_SCREEN:
+			_this->m_shareddtarea->SharedScreen();
+			return TRUE;
+			
+		case IDC_LIVESHARE:
+			{
+				char entered_key [_MAX_PATH];
+				char cleaned_key [_MAX_PATH];
+				char *pos = cleaned_key;
+				
+				GetDlgItemText(hwnd, IDC_LIVESHARE, entered_key, _MAX_PATH);
+				
+				// Clean out low ASCII chars from the LiveShare Key
+				for(int i=0; i<strlen(entered_key); i++)
+					if(entered_key[i] > 0x2C)
+						*pos++ = entered_key[i];
+					
+					*pos = '\0';
+					
+					strcpy(_this->m_pref_LiveShareKey, cleaned_key);
+			}
+			return TRUE;
+		case IDOK:
+		case IDC_APPLY:
+			_this->m_server->SetLiveShareKey(_this->m_pref_LiveShareKey);
+			_this->m_shareddtarea->ApplySharedControls();
+			
+			if (LOWORD(wParam) == IDOK)
+			{					
+				if (_this->m_server->AuthClientCount() == 0)
+				{
+					char hostemp [_MAX_PATH];
+					char *portp;
+					int port;
+					strcpy(hostemp, _this->m_pref_LiveShareKey);
+					// Calculate the Display and Port offset.
+					port = INCOMING_PORT_OFFSET;
+					portp = strchr(hostemp, ':');
+					if (portp)
+					{
+						*portp++ = '\0';
+						port += atoi(portp);
+					}
+					
+					// Attempt to create a new socket
+					VSocket *tmpsock;
+					tmpsock = new VSocket;
+					if (!tmpsock)
+						return TRUE;
+					
+					// Connect out to the specified host on the VNCviewer listen port
+					// To be really good, we should allow a display number here but
+					// for now we'll just assume we're connecting to display zero
+					tmpsock->Create();
+					if (tmpsock->Connect(hostemp, port)) {
+						// Add the new client to this server
+						_this->m_server->AddClient(tmpsock, TRUE, TRUE);
+						
+					} else {
+						// Print up an error message
+						MessageBox(NULL, 
+							"LiveShare was unable to begin sharing your computer.\nPlease verify that you have entered the correct LiveShare Key and try again.",
+							"LiveShare Connection Error",
+							MB_OK | MB_ICONEXCLAMATION );
+						delete tmpsock;
+						return true;
+					}						
+				}
+				delete _this->m_shareddtarea;
+				_this->m_shareddtarea = NULL;
+				_this->m_hShared = NULL;
+				
+				// Yes, so close the dialog
+				vnclog.Print(LL_INTINFO, VNCLOG("enddialog (OK)\n"));
+				
+				_this->m_returncode_valid = TRUE;
+				
+				EndDialog(hwnd, IDOK);
+				_this->m_dlgvisible = FALSE;
+			}
+			return TRUE;
+		case IDCANCEL:
+			vnclog.Print(LL_INTINFO, VNCLOG("enddialog (CANCEL)\n"));
+			
+			_this->m_returncode_valid = TRUE;
+
+			delete _this->m_shareddtarea;
+			_this->m_shareddtarea = NULL;
+			_this->m_hShared = NULL;
+			
+			EndDialog(hwnd, IDCANCEL);
+			_this->m_dlgvisible = FALSE;
+			return TRUE;
+			
+		case IDADVANCED:
+			vnclog.Print(LL_INTINFO, VNCLOG("newdialog (ADVANCED)\n"));
+			{
+				EnableWindow(hwnd, FALSE);
+				_this->m_inadvanced = TRUE;
+				vncAdvancedProperties *aprop = new vncAdvancedProperties();
+				if (aprop->Init(_this->m_server))
+				{
+					aprop->Show(TRUE, _this->m_usersettings);
+				}
+				//aprop->DoDialog();
+				SetForegroundWindow(hwnd);
+				_this->m_inadvanced = FALSE;
+				EnableWindow(hwnd, TRUE);
+				omni_thread::sleep(0, 200000000);
+			}
+			return TRUE;
+		}
+		return 0;	
+	}
+	return 0;
+}
+
+#else
 
 BOOL CALLBACK
 vncProperties::ParentDlgProc(HWND hwnd,
@@ -486,6 +650,7 @@ vncProperties::ParentDlgProc(HWND hwnd,
 	}
 	return 0;
 }
+
 BOOL CALLBACK vncProperties::IncomingDlgProc(HWND hwnd, UINT uMsg,
                                              WPARAM wParam, LPARAM lParam)
 {
@@ -711,6 +876,8 @@ BOOL CALLBACK vncProperties::DisconnectDlgProc(HWND hwnd, UINT uMsg,
 	return 0;
 }
 
+#endif
+
 // Functions to load & save the settings
 LONG
 vncProperties::LoadInt(HKEY key, LPCSTR valname, LONG defval)
@@ -875,6 +1042,7 @@ vncProperties::Load(BOOL usersettings)
 	m_pref_FullScreen = FALSE;
 	m_pref_WindowShared = TRUE;
 	m_pref_ScreenAreaShared = FALSE;
+	m_pref_externalAuth=FALSE;
 #else
 	// Disable Tray Icon
 	m_server->SetDisableTrayIcon(LoadInt(hkLocal, "DisableTrayIcon", false));
@@ -1085,9 +1253,6 @@ vncProperties::ApplyUserPrefs()
 	m_server->SetPassword(m_pref_passwd);
 	m_server->SetPasswordViewOnly(m_pref_passwd_viewonly);
 
-	// Enable/disable external authentication
-	m_server->EnableExternalAuth(m_pref_externalAuth);
-
 	// Now change the listening port settings
 	m_server->SetAutoPortSelect(m_pref_AutoPortSelect);
 	if (!m_pref_AutoPortSelect)
@@ -1109,7 +1274,8 @@ vncProperties::ApplyUserPrefs()
 	m_server->SetPollingTimer(m_pref_PollingCycle);
 
 #endif
-
+	// Enable/disable external authentication
+	m_server->EnableExternalAuth(m_pref_externalAuth);
 	m_server->SockConnect(m_pref_SockConnect);
 	// Polling prefs
 	m_server->PollUnderCursor(m_pref_PollUnderCursor);

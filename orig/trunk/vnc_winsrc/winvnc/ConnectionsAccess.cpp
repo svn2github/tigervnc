@@ -247,7 +247,7 @@ BOOL ConnectionsAccess::InitListViewColumns()
 	int iCol;
     
 	TCHAR *ColumnsStrings[] = {
-		"IP Adress Pattern",
+		"IP pattern",
 		"Action"
 	};
 	
@@ -346,14 +346,11 @@ BOOL CALLBACK ConnectionsAccess::EditDlgProc(HWND hwnd,
 		case IDOK:
 			GetDlgItemText(hwnd, IDC_HOST_PATTERN, _this->ItemString[0], 80);
 			if (!_this->MatchStringToPattern(_this->ItemString[0])) {
-				MessageBox(
-							NULL,
-							"The pattern is incorrectly entered. The pattern should be \n"
-							"a.b.c.d or a.b.c or a.b or a, where each element should \n"
-							"have unsigned numerical value smaller than 255",
-							szAppName,
-							MB_ICONWARNING | MB_OK
-							);
+				MessageBox(hwnd,
+						   "The pattern format is incorrect. It should be entered\n"
+						   "as A.B.C.D or A.B.C or A.B or A, where each element\n"
+						   "should be an unsigned number from the range 0..255",
+						   "Error", MB_ICONSTOP | MB_OK);
 				return TRUE;
 			}
 			_this->TransformPattern(TRUE, '*', _this->ItemString[0]);

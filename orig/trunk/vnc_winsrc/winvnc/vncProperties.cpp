@@ -294,7 +294,7 @@ vncProperties::ParentDlgProc(HWND hwnd,
 			TabCtrl_InsertItem(_this->m_hTab, 5, &item);
 			item.pszText = "Administration";
 			TabCtrl_InsertItem(_this->m_hTab, 6, &item);
-			item.pszText = "Connections Acces";
+			item.pszText = "Access Control";
 			TabCtrl_InsertItem(_this->m_hTab, 7, &item);
 
 			_this->m_hShared = CreateDialogParam(hAppInstance, 

@@ -1125,13 +1125,15 @@ vncClientThread::run(void *arg)
  					int NumFiles = 0;
  					WIN32_FIND_DATA FindFileData;
  					FLRhandle = FindFirstFile(path, &FindFileData);
-					while(1) {
-						if((FLRhandle != INVALID_HANDLE_VALUE) && 
-						   (strcmp(FindFileData.cFileName, ".") != 0) &&
-						   (strcmp(FindFileData.cFileName, "..") != 0)) NumFiles += 1;
- 						if (!FindNextFile(FLRhandle, &FindFileData)) break;
+					if (FLRhandle != INVALID_HANDLE_VALUE) {
+						do {
+							if (strcmp(FindFileData.cFileName, ".") != 0 &&
+								strcmp(FindFileData.cFileName, "..") != 0) {
+								NumFiles++;
+							}
+						} while (FindNextFile(FLRhandle, &FindFileData));
+	 					FindClose(FLRhandle);	
  					}
- 					FindClose(FLRhandle);	
 					if(NumFiles == 0) {
 						m_socket->SendExact(pAllMessage, sz_rfbFileListDataMsg);
 						break;

@@ -43,7 +43,6 @@
 #define IDD_UPDATE_HANDLING             150
 #define IDD_CLIENT_DISCONNECT           151
 #define IDD_ADMINISTRATION              152
-#define IDD_DIALOG1                     153
 #define IDC_CONNECT_SOCK                1004
 #define IDC_CONNECT_HTTP                1006
 #define IDC_PASSWORD_LABEL              1007
@@ -138,7 +137,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        154
+#define _APS_NEXT_RESOURCE_VALUE        153
 #define _APS_NEXT_COMMAND_VALUE         40008
 #define _APS_NEXT_CONTROL_VALUE         1096
 #define _APS_NEXT_SYMED_VALUE           101

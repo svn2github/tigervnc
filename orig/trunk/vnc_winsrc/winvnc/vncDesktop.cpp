@@ -536,6 +536,8 @@ vncDesktop::vncDesktop()
 	m_backbuff = NULL;
 
 	m_clipboard_active = FALSE;
+	m_hooks_active = FALSE;
+	m_hooks_may_change = FALSE;
 	lpDevMode = NULL;
 	m_copyrect_set = FALSE;
 
@@ -597,17 +599,8 @@ vncDesktop::Startup()
 		return FALSE;
 
 	// Add the system hook
-	if (!SetHook(
-		m_hwnd,
-		RFB_SCREEN_UPDATE,
-		RFB_COPYRECT_UPDATE,
-		RFB_MOUSE_UPDATE
-		))
-	{
-		vnclog.Print(LL_INTERR, VNCLOG("failed to set system hooks\n"));
-		// Switch on full screen polling, so they can see something, at least...
-		m_server->PollFullScreen(TRUE);
-	}
+	ActivateHooks();
+	m_hooks_may_change = true;
 
 #ifndef HORIZONLIVE
 	// Start up the keyboard and mouse filters
@@ -650,7 +643,8 @@ vncDesktop::Shutdown()
 		//Remove the system hooks
 		//Unset keyboard and mouse hooks
 		SetLocalInputPriorityHook(false);
-		UnSetHook(m_hwnd);
+		m_hooks_may_change = false;
+		ShutdownHooks();
 
 #ifndef HORIZONLIVE
 		// Stop the keyboard and mouse filters
@@ -721,6 +715,41 @@ vncDesktop::Shutdown()
 
 	
 	return TRUE;
+}
+
+// Routines to set/unset hooks via VNCHooks.dll
+
+void
+vncDesktop::ActivateHooks()
+{
+	BOOL enable = !(m_server->DontSetHooks() && m_server->PollFullScreen());
+	if (enable && !m_hooks_active) {
+		m_hooks_active = SetHook(m_hwnd,
+								 RFB_SCREEN_UPDATE,
+								 RFB_COPYRECT_UPDATE,
+								 RFB_MOUSE_UPDATE);
+		if (!m_hooks_active) {
+			vnclog.Print(LL_INTERR, VNCLOG("failed to set system hooks\n"));
+			// Switch on full screen polling, so they can see something, at least...
+			m_server->PollFullScreen(TRUE);
+		}
+	} else if (!enable) {
+		ShutdownHooks();
+	}
+}
+
+void
+vncDesktop::ShutdownHooks()
+{
+	if (m_hooks_active)
+		m_hooks_active = !UnSetHook(m_hwnd);
+}
+
+void
+vncDesktop::TryActivateHooks()
+{
+	if (m_hooks_may_change)
+		ActivateHooks();
 }
 
 // Routine to ensure we're on the correct NT desktop

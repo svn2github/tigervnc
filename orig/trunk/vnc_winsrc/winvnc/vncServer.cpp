@@ -81,6 +81,8 @@ vncServer::vncServer()
 	m_poll_oneventonly = FALSE;
 	m_poll_consoleonly = TRUE;
 
+	m_dont_set_hooks = FALSE;
+
 	// General options
 	m_loopbackOnly = FALSE;
 	m_disableTrayIcon = FALSE;
@@ -815,6 +817,16 @@ vncServer::UpdateLocalClipText(LPSTR text)
 
 	if (m_desktop != NULL)
 		m_desktop->SetClipText(text);
+}
+
+// Changing hook settings
+
+void
+vncServer::DontSetHooks(BOOL enable)
+{
+	m_dont_set_hooks = enable;
+	if (m_desktop != NULL)
+		m_desktop->TryActivateHooks();
 }
 
 // Name and port number handling

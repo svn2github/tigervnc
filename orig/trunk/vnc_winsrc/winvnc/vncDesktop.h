@@ -74,6 +74,9 @@ public:
 
 	BOOL Init(vncServer *pSrv);
 
+	// Hooking stuff
+	void TryActivateHooks();
+
 	// Routine to signal a vncServer to trigger an update
 	void RequestUpdate();
 
@@ -121,7 +124,9 @@ protected:
 	// Routines to hook and unhook us
 	BOOL Startup();
 	BOOL Shutdown();
-	
+	void ActivateHooks();
+	void ShutdownHooks();
+
 	// Init routines called by the child thread
 	BOOL InitDesktop();
 	void KillScreenSaver();
@@ -171,6 +176,8 @@ protected:
 	UINT			m_timerid;
 	HWND			m_hnextviewer;
 	BOOL			m_clipboard_active;
+	BOOL			m_hooks_active;
+	BOOL			m_hooks_may_change;
 
 	// device contexts for memory and the screen
 	HDC				m_hmemdc;

@@ -210,6 +210,10 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 				_this->m_server->PollUnderCursor() || _this->m_server->PollForeground() ||
 				_this->m_server->PollFullScreen());
 
+			HWND hDontSetHooks = GetDlgItem(hwnd, IDC_DONT_SET_HOOKS);
+			SendMessage(hDontSetHooks, BM_SETCHECK, _this->m_server->DontSetHooks(), 0);
+			EnableWindow(hDontSetHooks, _this->m_server->PollFullScreen());
+
 			HWND hRemoteDisable = GetDlgItem(hwnd, IDC_REMOTE_DISABLE);
 			SendMessage(hRemoteDisable,
 				BM_SETCHECK,
@@ -342,7 +346,11 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 				if (success)
 					_this->m_server->SetPollingTimer(pollingtimer);
 
-
+				// This should appear AFTER calling m_server->PollFullScreen(...)
+				HWND hDontSetHooks = GetDlgItem(hwnd, IDC_DONT_SET_HOOKS);
+				_this->m_server->DontSetHooks(
+					SendMessage(hDontSetHooks, BM_GETCHECK, 0, 0) == BST_CHECKED
+					);
 
 				HWND hRemoteDisable = GetDlgItem(hwnd, IDC_REMOTE_DISABLE);
 				_this->m_server->LocalInputPriority(
@@ -461,22 +469,24 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 				HWND hPollForeground = GetDlgItem(hwnd, IDC_POLL_FOREGROUND);
 				HWND hPollUnderCursor = GetDlgItem(hwnd, IDC_POLL_UNDER_CURSOR);
 				
-				BOOL otherenabled = (SendMessage(hPollFullScreen, BM_GETCHECK, 0, 0) == BST_CHECKED);
-				EnableWindow(hPollForeground, !otherenabled);
-				EnableWindow(hPollUnderCursor, !otherenabled);
+				BOOL full_polling = (SendMessage(hPollFullScreen, BM_GETCHECK, 0, 0) == BST_CHECKED);
+				EnableWindow(hPollForeground, !full_polling);
+				EnableWindow(hPollUnderCursor, !full_polling);
 				
-				BOOL enabled = (SendMessage(hPollForeground, BM_GETCHECK, 0, 0) == BST_CHECKED) ||
+				BOOL window_polling = (SendMessage(hPollForeground, BM_GETCHECK, 0, 0) == BST_CHECKED) ||
 					(SendMessage(hPollUnderCursor, BM_GETCHECK, 0, 0) == BST_CHECKED);
 
 				HWND hPollConsoleOnly = GetDlgItem(hwnd, IDC_CONSOLE_ONLY);
-				EnableWindow(hPollConsoleOnly, !otherenabled && enabled);
+				EnableWindow(hPollConsoleOnly, !full_polling && window_polling);
 
 				HWND hPollOnEventOnly = GetDlgItem(hwnd, IDC_ONEVENT_ONLY);
-				EnableWindow(hPollOnEventOnly, !otherenabled && enabled);
+				EnableWindow(hPollOnEventOnly, !full_polling && window_polling);
 
 				HWND hPollingTimer = GetDlgItem(hwnd, IDC_POLL_TIMER);
-				EnableWindow(hPollingTimer,otherenabled || (SendMessage(hPollForeground, BM_GETCHECK, 0, 0) == BST_CHECKED) ||
-					(SendMessage(hPollUnderCursor, BM_GETCHECK, 0, 0) == BST_CHECKED));
+				EnableWindow(hPollingTimer, full_polling || window_polling);
+
+				HWND hDontSetHooks = GetDlgItem(hwnd, IDC_DONT_SET_HOOKS);
+				EnableWindow(hDontSetHooks, full_polling);
 			}
 			return TRUE;
 
@@ -881,6 +891,7 @@ vncAdvancedProperties::SaveUserPrefs(HKEY appkey)
 	SaveInt(appkey, "PollFullScreen", m_server->PollFullScreen());
 	SaveInt(appkey, "OnlyPollConsole", m_server->PollConsoleOnly());
 	SaveInt(appkey, "OnlyPollOnEvent", m_server->PollOnEventOnly());
+	SaveInt(appkey, "DontSetHooks", m_server->DontSetHooks());
 #else
 	// Connection querying settings
 	SaveInt(appkey, "QuerySetting", m_server->QuerySetting());

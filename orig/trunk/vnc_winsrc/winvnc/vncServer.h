@@ -135,6 +135,8 @@ public:
 	virtual BOOL PollForeground() {return m_poll_foreground;};
 	virtual void PollFullScreen(BOOL enable) {m_poll_fullscreen = enable;};
 	virtual BOOL PollFullScreen() {return m_poll_fullscreen;};
+	virtual void DontSetHooks(BOOL enable);
+	virtual BOOL DontSetHooks() {return m_dont_set_hooks;};
 
 	virtual void PollConsoleOnly(BOOL enable) {m_poll_consoleonly = enable;};
 	virtual BOOL PollConsoleOnly() {return m_poll_consoleonly;};
@@ -335,6 +337,7 @@ protected:
 	BOOL				m_poll_oneventonly;
 	BOOL				m_poll_consoleonly;
 
+	BOOL				m_dont_set_hooks;
 
 	// screen area sharing preferences                                                   
 	BOOL				m_shared_oneapplionly;               

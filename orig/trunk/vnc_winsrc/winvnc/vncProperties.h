@@ -135,6 +135,7 @@ protected:
 	BOOL m_pref_PollConsoleOnly;
 	BOOL m_pref_PollOnEventOnly;
 	BOOL m_pref_PollingCycle;
+	BOOL m_pref_DontSetHooks;
 	BOOL m_pref_WindowShared;
 	HWND hNameAppli;
 	BOOL m_pref_FullScreen;

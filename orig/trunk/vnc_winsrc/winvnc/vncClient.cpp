@@ -72,7 +72,10 @@ public:
 
 	// Sub-Init routines
 	virtual BOOL InitVersion();
+	virtual BOOL InitCapabilities();
+	virtual BOOL InitTunneling();
 	virtual BOOL InitAuthenticate();
+	virtual BOOL InitAuthenticateVNC();
 
 	// The main thread function
 	virtual void run(void *arg);
@@ -144,7 +147,55 @@ vncClientThread::InitVersion()
 }
 
 BOOL
+vncClientThread::InitCapabilities()
+{
+	rfbTunnelAuthOptionList cap_list;
+	cap_list.nTunnelOptions = Swap16IfLE(0);
+	cap_list.nAuthOptions = Swap16IfLE(1);
+	if (!m_socket->SendExact((char *)&cap_list, sz_rfbTunnelAuthOptionList))
+		return FALSE;
+
+	// Inform the client that we do support the standard VNC authentication.
+	// FIXME: Move to a separate class e.g. vncCapsContainer.
+	rfbOptionInfo cap;
+	cap.code = Swap32IfLE(rfbVncAuth);
+	memcpy(cap.vendorSignature, rfbStandardVendor, sz_rfbOptionInfoVendor);
+	memcpy(cap.nameSignatire, rfbVncAuthSignature, sz_rfbOptionInfoName);
+
+	return m_socket->SendExact((char *)&cap, sz_rfbOptionInfo);
+}
+
+BOOL
+vncClientThread::InitTunneling()
+{
+	// Read tunneling type requested by the client (protocol 3.130)
+	CARD32 tunnel_type;
+	if (!m_socket->ReadExact((char *)&tunnel_type, sizeof(tunnel_type)))
+		return FALSE;
+	tunnel_type = Swap32IfLE(tunnel_type);
+
+	// We cannot do tunneling yet.
+	if (tunnel_type != 0)
+		return FALSE;
+
+	return TRUE;
+}
+
+BOOL
 vncClientThread::InitAuthenticate()
+{
+	// Read client's preferred authentication type (protocol 3.130)
+	CARD32 auth_type;
+	if (!m_socket->ReadExact((char *)&auth_type, sizeof(auth_type)))
+		return FALSE;
+	auth_type = Swap32IfLE(auth_type);
+
+	// Currently, we always fallback to the standard VNC authentication.
+	return InitAuthenticateVNC();
+}
+
+BOOL
+vncClientThread::InitAuthenticateVNC()
 {
 	// Retrieve local passwords
 	char password[MAXPWLEN];
@@ -412,6 +463,22 @@ vncClientThread::run(void *arg)
 	}
 	vnclog.Print(LL_INTINFO, VNCLOG("negotiated protocol version\n"));
 
+	// ADVERTISE OUR TUNNELING AND AUTHENTICATION CAPABILITIES (protocol 3.130)
+	if (!InitCapabilities())
+	{
+		m_server->RemoveClient(m_client->GetClientId());
+		return;
+	}
+	vnclog.Print(LL_INTINFO, VNCLOG("sent pre-auth capability list\n"));
+
+	// INITIALISE TUNNELING (protocol 3.130)
+	if (!InitTunneling())
+	{
+		m_server->RemoveClient(m_client->GetClientId());
+		return;
+	}
+	vnclog.Print(LL_INTINFO, VNCLOG("negotiated tunneling type\n"));
+
 	// AUTHENTICATE LINK
 	if (!InitAuthenticate())
 	{
@@ -458,9 +525,8 @@ vncClientThread::run(void *arg)
 	server_ini.format.redMax = Swap16IfLE(server_ini.format.redMax);
 	server_ini.format.greenMax = Swap16IfLE(server_ini.format.greenMax);
 	server_ini.format.blueMax = Swap16IfLE(server_ini.format.blueMax);
-
-		
 	server_ini.nameLength = Swap32IfLE(strlen(desktopname));
+
 	if (!m_socket->SendExact((char *)&server_ini, sizeof(server_ini)))
 	{
 		m_server->RemoveClient(m_client->GetClientId());
@@ -472,6 +538,18 @@ vncClientThread::run(void *arg)
 		return;
 	}
 	vnclog.Print(LL_INTINFO, VNCLOG("sent pixel format to client\n"));
+
+	// Inform the client about our capabilities (protocol 3.130)
+	// NOTE: Currently we support only 3.3 message types, so both counts
+	//       are 0, and Swap16IfLE() is there only for future convenience.
+	rfbServerCapabilitiesMsg server_caps;
+	server_caps.nServerMessageTypes = Swap16IfLE(0);
+	server_caps.nClientMessageTypes = Swap16IfLE(0);
+	if (!m_socket->SendExact((char *)&server_caps, sizeof(server_caps)))
+	{
+		m_server->RemoveClient(m_client->GetClientId());
+		return;
+	}
 
 	// UNLOCK INITIAL SETUP
 	// Initial negotiation is complete, so set the protocol ready flag

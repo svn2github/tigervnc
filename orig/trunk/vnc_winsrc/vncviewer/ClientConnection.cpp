@@ -193,7 +193,13 @@ void ClientConnection::Run()
 	SetSocketOptions();
 
 	NegotiateProtocolVersion();
-	
+
+	// Only for protocol version 3.130
+	ReadInitCapabilities();
+
+	// Only for protocol version 3.130
+	SetupTunneling();
+
 	Authenticate();
 
 	// Set up windows etc 
@@ -202,7 +208,10 @@ void ClientConnection::Run()
 	SendClientInit();
 	
 	ReadServerInit();
-	
+
+	// Only for protocol version 3.130
+	ReadServerCapabilities();
+
 	CreateLocalFramebuffer();
 	
 	SetupPixelFormat();
@@ -558,18 +567,30 @@ void ClientConnection::NegotiateProtocolVersion()
 		rfbProtocolMajorVersion, rfbProtocolMinorVersion);
 }
 
+void ClientConnection::SetupTunneling()
+{
+	// We cannot do tunneling yet.
+	CARD32 tunnelType = Swap32IfLE(0);
+	WriteExact((char *)&tunnelType, sizeof(tunnelType));
+}
+
 void ClientConnection::Authenticate()
 {
 	CARD32 authScheme, reasonLen, authResult;
     CARD8 challenge[CHALLENGESIZE];
-	
-	ReadExact((char *)&authScheme, 4);
+
+	// Send our preferred authentication scheme (protocol 3.130).
+	authScheme = Swap32IfLE(rfbVncAuth);
+	WriteExact((char *)&authScheme, sizeof(authScheme));
+
+	// Read actual authentication scheme.
+	ReadExact((char *)&authScheme, sizeof(authScheme));
     authScheme = Swap32IfLE(authScheme);
 	
     switch (authScheme) {
 		
     case rfbConnFailed:
-		ReadExact((char *)&reasonLen, 4);
+		ReadExact((char *)&reasonLen, sizeof(reasonLen));
 		reasonLen = Swap32IfLE(reasonLen);
 		
 		CheckBufferSize(reasonLen+1);
@@ -714,6 +735,47 @@ void ClientConnection::ReadServerInit()
 	SetWindowText(m_hwnd1, m_desktopName);	
 
 	SizeWindow(true);
+}
+
+// FIXME: Code duplication, see ReadServerCapabilities()
+void ClientConnection::ReadInitCapabilities()
+{
+	// Read the counts of list items following
+	rfbTunnelAuthOptionList init_caps;
+	ReadExact((char *)&init_caps, sz_rfbTunnelAuthOptionList);
+	init_caps.nTunnelOptions = Swap16IfLE(init_caps.nTunnelOptions);
+	init_caps.nAuthOptions = Swap16IfLE(init_caps.nAuthOptions);
+
+	// Read the list of server messages
+	ReadCapabilitiesList(init_caps.nTunnelOptions);
+	ReadCapabilitiesList(init_caps.nAuthOptions);
+}
+
+// FIXME: Code duplication, see ReadInitCapabilities()
+void ClientConnection::ReadServerCapabilities()
+{
+	// Read the counts of list items following
+	rfbServerCapabilitiesMsg server_caps;
+	ReadExact((char *)&server_caps, sz_rfbServerCapabilitiesMsg);
+	server_caps.nServerMessageTypes = Swap16IfLE(server_caps.nServerMessageTypes);
+	server_caps.nClientMessageTypes = Swap16IfLE(server_caps.nClientMessageTypes);
+
+	// Read the list of server messages
+	ReadCapabilitiesList(server_caps.nServerMessageTypes);
+	ReadCapabilitiesList(server_caps.nClientMessageTypes);
+}
+
+// FIXME: Finished function will require arguments like a dictionary of
+// known capabilities, and a pointer to the resulting dictionary.
+void ClientConnection::ReadCapabilitiesList(int count)
+{
+	rfbOptionInfo msginfo;
+	for (int i = 0; i < count; i++) {
+		ReadExact((char *)&msginfo, sz_rfbOptionInfo);
+		msginfo.code = Swap32IfLE(msginfo.code);
+		// FIXME: Currently we don't process the list contents.
+		// FIXME: Move to a separate class e.g. vncCapsContainer.
+	}
 }
 
 void ClientConnection::SizeWindow(bool centered)

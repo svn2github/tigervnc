@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2000-2002 Constantin Kaplinsky. All Rights Reserved.
+ *  Copyright (C) 2000-2003 Constantin Kaplinsky. All Rights Reserved.
  *  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
  *  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
  *
@@ -20,7 +20,7 @@
  */
 
 /*
- * rfbproto.h - header file for the RFB protocol version 3.3
+ * rfbproto.h - header file for the RFB protocol, versions 3.130 and 3.3
  *
  * Uses types CARD<n> for an n-bit unsigned integer, INT<n> for an n-bit signed
  * integer (for n = 8, 16 and 32).
@@ -121,6 +121,30 @@ typedef struct _rfbPixelFormat {
 #define sz_rfbPixelFormat 16
 
 
+/*-----------------------------------------------------------------------------
+ * Structure used to describe protocol options such as tunneling methods,
+ * authentication schemes and message types (protocol version 3.130).
+ */
+
+typedef struct _rfbOptionInfo {
+
+	CARD32 code;				/* numeric identifier */
+	CARD8 vendorSignature[4];	/* vendor identification */
+	CARD8 nameSignatire[8];		/* abbreviated option name */
+
+} rfbOptionInfo;
+
+#define sz_rfbOptionInfoVendor 4
+#define sz_rfbOptionInfoName 8
+#define sz_rfbOptionInfo 16
+
+/*
+ * Vendors known by TightVNC: standard VNC/RealVNC, and TightVNC.
+ */
+
+#define rfbStandardVendor "STDV"
+#define rfbTightVncVendor "TGHT"
+
 
 /*****************************************************************************
  *
@@ -155,7 +179,8 @@ typedef struct _rfbPixelFormat {
 
 #define rfbProtocolVersionFormat "RFB %03d.%03d\n"
 #define rfbProtocolMajorVersion 3
-#define rfbProtocolMinorVersion 3
+#define rfbProtocolMinorVersion 130
+#define rfbProtocolFallbackMinorVersion 3
 
 typedef char rfbProtocolVersionMsg[13];	/* allow extra byte for null */
 
@@ -163,7 +188,28 @@ typedef char rfbProtocolVersionMsg[13];	/* allow extra byte for null */
 
 
 /*-----------------------------------------------------------------------------
- * Authentication
+ * Negotiation of Protocol Options
+ *
+ * Once the protocol version has been decided, the server then sends two lists
+ * of supported protocol extensions. First list tells the client what tunneling
+ * methods can be used, the second list provides information about supported
+ * authentication schemes. Each list is an array of rfbOptionInfo structures.
+ * Before sending the lists, the server sends two 16-bit words with number of
+ * elements in each one.
+ */
+
+typedef struct _rfbTunnelAuthOptionList {
+	CARD16 nTunnelOptions;
+	CARD16 nAuthOptions;
+	/* followed by nTunnelOptions * rfbOptionInfo structures */
+	/* followed by nAuthOptions * rfbOptionInfo structures */
+} rfbTunnelAuthOptionList;
+
+#define sz_rfbTunnelAuthOptionList 4
+
+
+/*-----------------------------------------------------------------------------
+ * Authentication (protocol versions 3.0 - 3.3).
  *
  * Once the protocol version has been decided, the server then sends a 32-bit
  * word indicating whether any authentication is needed on the connection.
@@ -174,6 +220,8 @@ typedef char rfbProtocolVersionMsg[13];	/* allow extra byte for null */
 #define rfbConnFailed 0
 #define rfbNoAuth 1
 #define rfbVncAuth 2
+
+#define rfbVncAuthSignature "VNCAUTH "
 
 /*
  * rfbConnFailed:	For some reason the connection failed (e.g. the server
@@ -236,6 +284,24 @@ typedef struct _rfbServerInitMsg {
 } rfbServerInitMsg;
 
 #define sz_rfbServerInitMsg (8 + sz_rfbPixelFormat)
+
+
+/*-----------------------------------------------------------------------------
+ * Server Capabilities Message (protocol version 3.130)
+ *
+ * In the protocol version 3.130, the server informs the client what message
+ * types it supports in addition to ones defined in the protocol version 3.3.
+ * This data immediately follows the server initialisation message.
+ */
+
+typedef struct _rfbServerCapabilitiesMsg {
+	CARD16 nServerMessageTypes;
+	CARD16 nClientMessageTypes;
+	/* followed by nServerMessageTypes * rfbOptionInfo structures */
+	/* followed by nClientMessageTypes * rfbOptionInfo structures */
+} rfbServerCapabilitiesMsg;
+
+#define sz_rfbServerCapabilitiesMsg 4
 
 
 /*

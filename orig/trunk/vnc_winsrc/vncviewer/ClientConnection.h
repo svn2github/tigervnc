@@ -93,9 +93,13 @@ private:
 	void GetConnectDetails();
 	void Connect();
 	void SetSocketOptions();
-	void Authenticate();
 	void NegotiateProtocolVersion();
+	void ReadInitCapabilities();
+	void SetupTunneling();
+	void Authenticate();
 	void ReadServerInit();
+	void ReadServerCapabilities();
+	void ReadCapabilitiesList(int count);
 	void SendClientInit();
 	void CreateLocalFramebuffer();
 	void SaveConnection();

@@ -1273,9 +1273,9 @@ vncEncodeTight::DetectSmoothImage (int w, int h)
 			return 0;
 		}
 	} else {
-		// if (w * h < m_conf[m_compresslevel].gradientMinRectSize) {
+		if (w * h < m_conf[m_compresslevel].gradientMinRectSize) {
 			return 0;
-		// }
+		}
 	}
 
 	unsigned long avgError;

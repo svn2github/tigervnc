@@ -2252,10 +2252,10 @@ vncClient::SendUpdate()
 	vncRegion toBeDone;			// Region to check
 
 	// Prepare to send cursor position update if necessary
-	if (m_server->shouldCursorBeHidden()) {
-		RECT rr = m_server->GetSharedRect();
-		m_cursor_pos.x = rr.right;
-		m_cursor_pos.y = rr.bottom;
+	if (m_server->hasFakeCursorPos()) {
+		POINT p = m_server->getFakeCursorPos();
+		m_cursor_pos.x = p.x;
+		m_cursor_pos.y = p.y;
 		m_cursor_pos_changed = TRUE;
 	} else {
 		if (m_cursor_pos_changed) {

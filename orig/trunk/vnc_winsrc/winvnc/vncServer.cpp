@@ -127,6 +127,7 @@ vncServer::vncServer()
 	m_enable_file_transfers = FALSE;
 	m_remove_wallpaper = FALSE;
 	m_blank_screen = FALSE;
+	m_has_fake_cursor_pos = FALSE;
 
 #ifdef HORIZONLIVE
 	m_full_screen = FALSE;
@@ -137,9 +138,6 @@ vncServer::vncServer()
 	m_remote_mouse = 1;
 	m_remote_keyboard = 1;
 #endif
-
-	// don't hide cursor until we say so
-	m_hide_cursor = FALSE;
 }
 
 vncServer::~vncServer()

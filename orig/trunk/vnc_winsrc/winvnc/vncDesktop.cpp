@@ -2904,6 +2904,7 @@ vncDesktop::displayMessageInViewer(
 )
 {
 	BOOL rv ;
+	int margin = 16;
 
 	// get the shared rect
 	RECT rect = m_server->GetSharedRect() ;
@@ -2936,8 +2937,8 @@ vncDesktop::displayMessageInViewer(
 	text_extent.cy = text_extent.cy * message_lines ;
 
 	// calculate diff of text extant and shared-area
-	int diff_x = ( rect.right - rect.left ) - text_extent.cx ;
-	int diff_y = ( rect.bottom - rect.top ) - text_extent.cy ;
+	int diff_x = ( rect.right - rect.left ) - (text_extent.cx + margin);
+	int diff_y = ( rect.bottom - rect.top ) - (text_extent.cy + margin);
 
 	// inflate the share-area rect, if necessary
 	if ( diff_x < 0 || diff_y < 0 )
@@ -2977,21 +2978,13 @@ vncDesktop::displayMessageInViewer(
 	// determine the text's rectangle
 	//
 
-	// get rect for text message
+	// put text message in upper left corner
 	RECT text_rect ;
 	::CopyRect( &text_rect, &rect ) ;
-
-	// calculate the middle of the shared area
-	int middle_x = rect.left + ( ( rect.right - rect.left ) / 2 ) ;
-	int middle_y = rect.top + ( ( rect.bottom - rect.top ) / 2 ) ;
-
-	// adjust text rect horizontal
-	text_rect.left = middle_x - text_extent.cx ;
-	text_rect.right = middle_x + text_extent.cx ; 
-
-	// adjust text rect veritical
-	text_rect.top = middle_y - text_extent.cy ;
-	text_rect.bottom = middle_y + text_extent.cy ; 
+	text_rect.left = rect.left + margin;
+	text_rect.top = rect.top + margin;
+	text_rect.right = rect.left + margin + text_extent.cx;
+	text_rect.bottom = rect.top + margin + text_extent.cy;
 
 	//
 	// fill the background
@@ -3038,7 +3031,7 @@ vncDesktop::displayMessageInViewer(
 		message, 
 		message_length,
 		&text_rect,
-		DT_CENTER
+		DT_LEFT
 	) ;
 
 	//
@@ -3064,14 +3057,18 @@ vncDesktop::displayMessageInViewer(
 	// tell the clients about the updated region
 	m_server->UpdateRegion( message_region ) ;
 
-	// hide the cursor for the upcoming update
-	m_server->HideCursorFromClient( TRUE ) ;
-
+	// warp cursor to origin
+	POINT p;
+	p.x = 0;
+	p.y = 0;
+	m_server->setFakeCursorPos(p);
+	m_server->provideFakeCursorPos(TRUE);
+	
 	// send the update to the clients
 	m_server->TriggerUpdate() ;
 
-	// un-hide the cursor
-	m_server->HideCursorFromClient( FALSE ) ;
+	// done faking cursor position
+	m_server->provideFakeCursorPos(FALSE);
 
 	return true ;
 }

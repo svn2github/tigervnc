@@ -127,9 +127,12 @@ public:
 	virtual void UpdateClipText(LPSTR text);
 	virtual void UpdatePalette();
 
-	// should the mouse position be sent?
-	virtual void HideCursorFromClient( BOOL hide ) { m_hide_cursor = hide ; } ;
-	virtual BOOL shouldCursorBeHidden( void ) { return m_hide_cursor ; } ;
+	// Set a fake cursor position, rather than having the client
+	// request the location on its own. 
+	virtual BOOL hasFakeCursorPos(void) { return m_has_fake_cursor_pos; }
+	virtual POINT getFakeCursorPos(void) { return m_fake_cursor_pos; }
+	virtual void setFakeCursorPos(POINT p) { m_fake_cursor_pos = p; }
+	virtual void provideFakeCursorPos(BOOL b) { m_has_fake_cursor_pos = b; }
 
 	// Polling mode handling
 	virtual void PollUnderCursor(BOOL enable) {m_poll_undercursor = enable;};
@@ -352,8 +355,9 @@ protected:
 	BOOL				m_blank_screen;
 	BOOL				m_enable_file_transfers;
 
-	// should the cursor be hidden?
-	BOOL m_hide_cursor ;
+	// Fake a cursor position. 
+	BOOL m_has_fake_cursor_pos;
+	POINT m_fake_cursor_pos;
 
 	// Polling preferences
 	BOOL				m_poll_fullscreen;

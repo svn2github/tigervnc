@@ -267,7 +267,7 @@ BEGIN
                     7,52,209,13
     CONTROL         "Don't use mirror video driver even if available",
                     IDC_DONT_USE_DRIVER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,7,67,209,13
+                    WS_DISABLED | WS_TABSTOP,7,67,209,13
 END
 
 IDD_CLIENT_DISCONNECT DIALOG DISCARDABLE  0, 0, 176, 72

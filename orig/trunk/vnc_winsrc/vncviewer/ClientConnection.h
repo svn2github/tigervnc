@@ -69,15 +69,10 @@ public:
 	void KillThread();
 	void CopyOptions(ClientConnection *source);
 	int  LoadConnection(char *fname, bool sess);
+	void UnloadConnection() { m_opts.m_configSpecified = false; }
 	int m_port;
     TCHAR m_host[MAX_HOST_NAME_LEN];
 	HWND m_hSess;
-	// Exceptions 
-	class UserCancelExc {};
-	class AuthenticationExc {};
-	class SocketExc {};
-	class ProtocolExc {};
-	class Fatal {};
 
 private:
 	static LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);

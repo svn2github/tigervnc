@@ -75,6 +75,7 @@ void VNCviewerApp32::NewConnection() {
 			return;
 		} catch (AuthException &e) {
 			e.Report();
+			pcc->UnloadConnection();
 			// If the connection count drops to zero, the app exits.
 			old_pcc = pcc;
 			pcc = new ClientConnection(this);

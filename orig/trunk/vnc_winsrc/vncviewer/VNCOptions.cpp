@@ -323,8 +323,7 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 				ArgError(_T("Invalid scaling specified"));
 				continue;
 			}
-				m_scale_den = 100;
-				m_scaling=true;
+				m_scale_den = 100;					
 		} else if ( SwitchMatch(args[j], _T("emulate3timeout") )) {
 			if (++j == i) {
 				ArgError(_T("No timeout specified"));
@@ -467,14 +466,11 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 			}
 		}
 	}       
-	
-	if (m_scale_num != 1 || m_scale_den != 1) 			
-		m_scaling = true;
-
 	// reduce scaling factors by greatest common denominator
-	if (m_scaling) {
-		FixScaling();
-	}
+	FixScaling();
+
+	m_scaling = (m_scale_num != 1 || m_scale_den != 1);			
+
 	// tidy up
 	delete [] cmd;
 	delete [] args;
@@ -949,6 +945,7 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 				}
 
 				_this->m_scaling = !(_this->m_scale_num == 100);
+        _this->FixScaling();
 				
 				HWND hCopyRect = GetDlgItem(hwnd, ID_SESSION_SET_CRECT);
 				_this->m_UseEnc[rfbEncodingCopyRect] =

@@ -97,20 +97,6 @@ vncProperties::Init(vncServer *server)
 		m_pMatchWindow->CanModify(TRUE);
 	}
 
-#ifdef HORIZONLIVE
-	
-	char username[UNLEN+1];
-	if (!vncService::CurrentUser(username, sizeof(username)))
-		return FALSE;
-	if (!vncService::GetNoSettings())
-	{
-		if (strcmp(username, "") == 0) 
-			Show(TRUE, FALSE);
-		else 
-			Show(TRUE, TRUE);
-	}
-
-#else
 	// If the password is empty then always show a dialog
 	char passwd[MAXPWLEN];
 	m_server->GetPassword(passwd);
@@ -145,8 +131,6 @@ vncProperties::Init(vncServer *server)
 				}
 			}
 	}
-
-#endif
 
 	return TRUE;
 }
@@ -205,27 +189,6 @@ vncProperties::Show(BOOL show, BOOL usersettings)
 			// Load in the settings relevant to the user or system
 			Load(usersettings);
 
-#ifdef HORIZONLIVE
-			m_returncode_valid = FALSE;
-			// Do the dialog box
-			int result = DialogBoxParam(hAppInstance,
-			    MAKEINTRESOURCE(IDD_LIVESHAREPROP), 
-			    NULL,
-			    (DLGPROC) SharedDlgProc,
-			    (LONG) this);
-
-			if (!m_returncode_valid)
-			    result = IDCANCEL;
-
-			vnclog.Print(LL_INTINFO, VNCLOG("dialog result = %d\n"), result);
-
-			if (result == -1)
-			{
-				// Dialog box failed, so quit
-				PostQuitMessage(0);
-				return;
-			}
-#else
 			for (;;)
 			{
 				m_returncode_valid = FALSE;
@@ -283,31 +246,12 @@ vncProperties::Show(BOOL show, BOOL usersettings)
 
 				omni_thread::sleep(4);
 			}
-#endif
+
 			// Load in all the settings
 			Load(TRUE);
 		}
 	}
 }
-
-void vncProperties::ShowAdv()
-{
-
-#ifdef HORIZONLIVE
-	int result = DialogBoxParam(hAppInstance,
-				    MAKEINTRESOURCE(IDD_LIVESHAREADVPROP), 
-				    NULL,
-				    (DLGPROC) PollDlgProc,
-				    (LONG) this);
-	if (result == -1) {
-		// Dialog box failed, so quit
-		PostQuitMessage(0);
-		return;
-	}
-#endif
-}
-
-
 
 BOOL CALLBACK
 vncProperties::ParentDlgProc(HWND hwnd,
@@ -577,34 +521,6 @@ BOOL CALLBACK vncProperties::PollDlgProc(HWND hwnd, UINT uMsg,
 			SetWindowLong(hwnd, GWL_USERDATA, lParam);
 			vncProperties *_this = (vncProperties *) lParam;
 
-#ifdef HORIZONLIVE
-			// Set the dialog box's title to indicate which Properties we're editting
-			if (_this->m_usersettings) {
-				SetWindowText(hwnd, "WinVNC: Current User Advanced Properties");
-			} else {
-				SetWindowText(hwnd, "WinVNC: Default Local System Advanced Properties");
-			}
-			HWND hRemoteDisable = GetDlgItem(hwnd, IDC_REMOTE_DISABLE);
-			SendMessage(hRemoteDisable,
-				BM_SETCHECK,
-				_this->m_server->LocalInputPriority(),
-				0);
-			BOOL logstate = (vnclog.GetMode() >= 2);
-			if (logstate)
-				CheckDlgButton(hwnd, IDLOG, BST_CHECKED);
-			else
-				CheckDlgButton(hwnd, IDLOG, BST_UNCHECKED);
-			HWND hLogLots = GetDlgItem(hwnd, IDLOGLOTS);
-			EnableWindow(hLogLots, logstate);
-			if (vnclog.GetLevel() > 5)
-				CheckDlgButton(hwnd, IDLOGLOTS, BST_CHECKED);
-			else
-				CheckDlgButton(hwnd, IDLOGLOTS, BST_UNCHECKED);
-			SetForegroundWindow(hwnd);
-
-			_this->m_dlgvisible = TRUE;
-#endif
-
 			_this->m_pollcontrols = new PollControls(hwnd, _this->m_server); 
 			return 0;
 		}
@@ -620,54 +536,9 @@ BOOL CALLBACK vncProperties::PollDlgProc(HWND hwnd, UINT uMsg,
 			_this->m_pollcontrols->Validate();
 			return TRUE;
 
-#ifdef HORIZONLIVE
-		case IDCANCEL:
-			vnclog.Print(LL_INTINFO, VNCLOG("enddialog (CANCEL)\n"));
-
-			_this->m_returncode_valid = TRUE;
-
-			EndDialog(hwnd, IDCANCEL);
-			_this->m_dlgvisible = FALSE;
-
-			return TRUE;
-		case IDLOG:
-			{
-				BOOL logon = IsDlgButtonChecked(hwnd, IDLOG);
-				HWND hLogLots = GetDlgItem(hwnd, IDLOGLOTS);
-				EnableWindow(hLogLots, logon);
-			}
-			return TRUE;
-
-#endif
 		case IDOK:
 		case IDC_APPLY:
 			_this->m_pollcontrols->Apply();
-#ifdef HORIZONLIVE
-			HWND hRemoteDisable = GetDlgItem(hwnd, IDC_REMOTE_DISABLE);
-			_this->m_server->LocalInputPriority(
-				SendMessage(hRemoteDisable, BM_GETCHECK, 0, 0) == BST_CHECKED
-				);
-			if (IsDlgButtonChecked(hwnd, IDLOG))
-				vnclog.SetMode(2);
-			else
-				vnclog.SetMode(0);
-
-			if (IsDlgButtonChecked(hwnd, IDLOGLOTS))
-				vnclog.SetLevel(10);
-			else
-					vnclog.SetLevel(2);
-			if (LOWORD(wParam) == IDOK)
-				{
-					// Yes, so close the dialog
-					vnclog.Print(LL_INTINFO, VNCLOG("enddialog (OK)\n"));
-
-					_this->m_returncode_valid = TRUE;
-
-					EndDialog(hwnd, IDOK);
-					_this->m_dlgvisible = FALSE;
-			}
-			_this->Save();
-#endif
 			return TRUE;
 		}
 		return 0;
@@ -701,17 +572,6 @@ BOOL CALLBACK vncProperties::SharedDlgProc(HWND hwnd, UINT uMsg,
 				_this,
 				_this->m_server);
 
-#ifdef HORIZONLIVE
-			InitCommonControls();
-			_this->m_dlgvisible = TRUE;
-			// Set the dialog box's title
-			SetWindowText(hwnd, "AppShare Settings");
-			
-			HWND hLiveShare = GetDlgItem(hwnd, IDC_LIVESHARE);
-			::SetWindowText(hLiveShare, _this->m_pref_LiveShareKey);																								  
-			if (_this->m_server->AuthClientCount() != 0)
-			EnableWindow(hLiveShare,false);
-#endif
 			return 0;
 		}
 	case WM_HELP:	
@@ -735,113 +595,8 @@ BOOL CALLBACK vncProperties::SharedDlgProc(HWND hwnd, UINT uMsg,
 		case IDC_APPLY:
 		case IDOK:
 
-#ifndef HORIZONLIVE
 			_this->m_shareddtarea->ApplySharedControls();
 			return TRUE;
-#else
-			if (!_this->m_shareddtarea->ApplySharedControls())
-				return TRUE;
-
-			_this->m_server->SetLiveShareKey(_this->m_pref_LiveShareKey);
-			
-			if (LOWORD(wParam) == IDOK)
-			{					
-				if (_this->m_server->AuthClientCount() == 0)
-				{
-					char hostemp [_MAX_PATH];
-					char *portp;
-					int port;
-					strcpy(hostemp, _this->m_pref_LiveShareKey);
-
-					// Calculate the port number
-					port = INCOMING_PORT_OFFSET;
-					portp = strchr(hostemp, ':');
-					if (portp != NULL) {
-						*portp++ = '\0';
-						if (*portp == ':') {
-							port = atoi(++portp);	// host::port
-						} else {
-							port += atoi(portp);	// host:display
-						}
-					}
-					
-					// Attempt to create a new socket
-					VSocket *tmpsock;
-					tmpsock = new VSocket;
-					if (!tmpsock)
-						return TRUE;
-					
-					// Connect out to the specified host on the VNCviewer listen port
-					// To be really good, we should allow a display number here but
-					// for now we'll just assume we're connecting to display zero
-					tmpsock->Create();
-					if (tmpsock->Connect(hostemp, port)) {
-						// Add the new client to this server
-						_this->m_server->AddClient(tmpsock, TRUE, TRUE);
-						
-					} else {
-						// Print up an error message
-						MessageBox(NULL, 
-							"AppShare was unable to begin sharing your computer.\n"
-							"Please verify that you have entered the correct AppShare Key"
-							" and try again.",
-							"AppShare Connection Error",
-							MB_OK | MB_ICONEXCLAMATION );
-						delete tmpsock;
-						return true;
-					}						
-				}
-				
-				// Yes, so close the dialog
-				vnclog.Print(LL_INTINFO, VNCLOG("enddialog (OK)\n"));
-				
-				_this->m_returncode_valid = TRUE;
-				
-				EndDialog(hwnd, IDOK);
-				_this->m_dlgvisible = FALSE;
-			}
-			return TRUE;
-
-		case IDCANCEL:
-			vnclog.Print(LL_INTINFO, VNCLOG("enddialog (CANCEL)\n"));
-			
-			_this->m_returncode_valid = TRUE;
-			
-			EndDialog(hwnd, IDCANCEL);
-			_this->m_dlgvisible = FALSE;
-			return TRUE;
-			
-		case IDADVANCED:
-			vnclog.Print(LL_INTINFO, VNCLOG("newdialog (ADVANCED)\n"));
-			{
-				EnableWindow(hwnd, FALSE);
-				
-				_this->ShowAdv();
-				SetForegroundWindow(hwnd);
-				EnableWindow(hwnd, TRUE);
-				omni_thread::sleep(0, 200000000);
-			}
-			return TRUE;
-
-		case IDC_LIVESHARE:
-			{
-				char entered_key [_MAX_PATH];
-				char cleaned_key [_MAX_PATH];
-				char *pos = cleaned_key;
-				
-				GetDlgItemText(hwnd, IDC_LIVESHARE, entered_key, _MAX_PATH);
-				
-				// Clean out low ASCII chars from the LiveShare Key
-				for(int i=0; i<strlen(entered_key); i++)
-					if(entered_key[i] > 0x2C)
-						*pos++ = entered_key[i];
-					
-					*pos = '\0';
-					
-					strcpy(_this->m_pref_LiveShareKey, cleaned_key);
-			}
-			return TRUE;
-#endif
 		}
 		return 0;
 
@@ -1188,24 +943,6 @@ vncProperties::Load(BOOL usersettings)
 	vnclog.SetMode(LoadInt(hkLocal, "DebugMode", 0));
 	vnclog.SetLevel(LoadInt(hkLocal, "DebugLevel", 0));
 
-#ifdef HORIZONLIVE
-	m_pref_SockConnect=false;
-	m_pref_EnableRemoteInputs=TRUE;
-	m_pref_PollUnderCursor=FALSE;
-	m_pref_PollForeground=TRUE;
-	m_pref_PollFullScreen=TRUE;
-	m_pref_DontSetHooks=FALSE;
-	m_pref_DontUseDriver=FALSE;
-	m_pref_PollConsoleOnly=TRUE;
-	m_pref_PollOnEventOnly=FALSE;
-	m_allowshutdown = TRUE;
-	m_allowproperties = TRUE;
-	m_alloweditclients = TRUE;
-	m_pref_FullScreen = FALSE;
-	m_pref_WindowShared = TRUE;
-	m_pref_ScreenAreaShared = FALSE;
-	m_pref_externalAuth=FALSE;
-#else
 	// Disable Tray Icon
 	m_server->SetDisableTrayIcon(LoadInt(hkLocal, "DisableTrayIcon", false));
 
@@ -1274,18 +1011,14 @@ vncProperties::Load(BOOL usersettings)
 	m_pref_LocalInputPriority = FALSE;
 	m_pref_PollingCycle = 300;
 
-#endif
-
 	// Load the local prefs for this user
 	if (hkDefault != NULL)
 	{
 		vnclog.Print(LL_INTINFO, VNCLOG("loading DEFAULT local settings\n"));
 		LoadUserPrefs(hkDefault);
-#ifndef HORIZONLIVE
 		m_allowshutdown = LoadInt(hkDefault, "AllowShutdown", m_allowshutdown);
 		m_allowproperties = LoadInt(hkDefault, "AllowProperties", m_allowproperties);
 		m_alloweditclients = LoadInt(hkDefault, "AllowEditClients", m_alloweditclients);
-#endif	
 	}
 
 	// Are we being asked to load the user settings, or just the default local system settings?
@@ -1296,11 +1029,9 @@ vncProperties::Load(BOOL usersettings)
 		{
 			vnclog.Print(LL_INTINFO, VNCLOG("loading \"%s\" local settings\n"), username);
 			LoadUserPrefs(hkLocalUser);
-#ifndef HORIZONLIVE
 			m_allowshutdown = LoadInt(hkLocalUser, "AllowShutdown", m_allowshutdown);
 			m_allowproperties = LoadInt(hkLocalUser, "AllowProperties", m_allowproperties);
 			m_alloweditclients = LoadInt(hkLocalUser, "AllowEditClients", m_alloweditclients);
-#endif
 		}
 
 		// Now override the system settings with the user's settings
@@ -1341,7 +1072,6 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 {
 	// LOAD USER PREFS FROM THE SELECTED KEY
 
-#ifndef HORIZONLIVE
 	// Connection prefs
 	m_pref_SockConnect=LoadInt(appkey, "SocketConnect", m_pref_SockConnect);
 	m_pref_AutoPortSelect=LoadInt(appkey, "AutoPortSelect", m_pref_AutoPortSelect);
@@ -1383,10 +1113,6 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	m_pref_DisableLocalInputs=LoadInt(appkey, "LocalInputsDisabled", m_pref_DisableLocalInputs);
 	m_pref_PollingCycle=LoadInt(appkey, "PollingCycle", m_pref_PollingCycle);
 
-#else
-	strcpy(m_pref_LiveShareKey, m_server->GetLiveShareKey());
-
-#endif
 	// Polling prefs
 	m_pref_PollUnderCursor=LoadInt(appkey, "PollUnderCursor", m_pref_PollUnderCursor);
 	m_pref_PollForeground=LoadInt(appkey, "PollForeground", m_pref_PollForeground);
@@ -1408,7 +1134,6 @@ void
 vncProperties::ApplyUserPrefs()
 {
 	// APPLY THE CACHED PREFERENCES TO THE SERVER
-#ifndef HORIZONLIVE
 	// Update the connection querying settings
 	m_server->SetQuerySetting(m_pref_QuerySetting);
 	m_server->SetQueryTimeout(m_pref_QueryTimeout);
@@ -1441,7 +1166,6 @@ vncProperties::ApplyUserPrefs()
 	
 	m_server->SetDisableTime(m_pref_PriorityTime);
 	m_server->SetPollingCycle(m_pref_PollingCycle);
-#endif
 
 	// Enable/disable external authentication
 	m_server->EnableExternalAuth(m_pref_externalAuth);
@@ -1539,14 +1263,12 @@ vncProperties::Save()
 		KEY_WRITE | KEY_READ, NULL, &hkLocal, &dw) != ERROR_SUCCESS)
 		return;
 
-#ifndef HORIZONLIVE
 	SaveInt(hkLocal, "ConnectPriority", m_server->ConnectPriority());
 	SaveInt(hkLocal, "LoopbackOnly", m_server->LoopbackOnly());
 	SaveInt(hkLocal, "EnableHTTPDaemon", m_server->HttpdEnabled());
 	SaveInt(hkLocal, "EnableURLParams", m_server->HttpdParamsEnabled());
 	SaveInt(hkLocal, "AllowLoopback", m_server->LoopbackOk());
 	SaveInt(hkLocal, "AuthRequired", m_server->AuthRequired());
-#endif
 
 	SaveInt(hkLocal, "DebugMode", vnclog.GetMode());
 	SaveInt(hkLocal, "DebugLevel", vnclog.GetLevel());
@@ -1560,8 +1282,6 @@ vncProperties::Save()
 void
 vncProperties::SaveUserPrefs(HKEY appkey)
 {
-#ifndef HORIZONLIVE
-
 	// SAVE THE PER USER PREFS
 	vnclog.Print(LL_INTINFO, VNCLOG("saving current settings to registry\n"));
 
@@ -1605,7 +1325,6 @@ vncProperties::SaveUserPrefs(HKEY appkey)
 	SaveInt(appkey, "CORBAConnect", m_server->CORBAConnected());
 #endif
 
-#endif
 	// Polling prefs
 	SaveInt(appkey, "PollUnderCursor", m_server->PollUnderCursor());
 	SaveInt(appkey, "PollForeground", m_server->PollForeground());

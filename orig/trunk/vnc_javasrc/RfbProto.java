@@ -29,18 +29,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.net.Socket;
 
-/*
-class myInputStream extends FilterInputStream {
-  public myInputStream(InputStream in) {
-    super(in);
-  }
-  public int read(byte[] b, int off, int len) throws IOException {
-    System.out.println("read(byte[] b, int off, int len) called");
-    return super.read(b, off, len);
-  }
-}
-*/
-
 class RfbProto {
 
   final String versionMsg = "RFB 003.003\n";

@@ -260,7 +260,6 @@ vncClientThread::GetAuthenticationType()
 		no_password_set = (strlen(plain) == 0);
 	}
 
-#ifndef HORIZONLIVE
 	// By default we disallow passwordless workstations!
 	if (no_password_set && m_server->AuthRequired() &&
 		!m_server->ExternalAuthEnabled())
@@ -274,10 +273,8 @@ vncClientThread::GetAuthenticationType()
 							  "be accepted.");
 		return rfbSecTypeInvalid;
 	}
-#endif
 
 	// By default we filter out local loop connections, because they're pointless
-#ifndef HORIZONLIVE
 	if (!m_server->LoopbackOk())
 	{
 		char *localname = strdup(m_socket->GetSockName());
@@ -300,7 +297,6 @@ vncClientThread::GetAuthenticationType()
 			}
 		}
 	}
-#endif
 
 	// Verify the peer host name against the AuthHosts string
 	vncServer::AcceptQueryReject verified;
@@ -631,14 +627,14 @@ vncClientThread::SendInteractionCaps()
 	// Supported server->client message types
 	rfbCapabilityInfo smsg_list[MAX_SMSG_CAPS];
 	i = 0;
-#ifndef HORIZONLIVE
+
 	if (m_server->FileTransfersEnabled() && m_client->IsInputEnabled()) {
 		SetCapInfo(&smsg_list[i++], rfbFileListData,       rfbTightVncVendor);
 		SetCapInfo(&smsg_list[i++], rfbFileDownloadData,   rfbTightVncVendor);
 		SetCapInfo(&smsg_list[i++], rfbFileUploadCancel,   rfbTightVncVendor);
 		SetCapInfo(&smsg_list[i++], rfbFileDownloadFailed, rfbTightVncVendor);
 	}
-#endif
+
 	int nServerMsgs = i;
 	if (nServerMsgs > MAX_SMSG_CAPS) {
 		vnclog.Print(LL_INTERR,
@@ -649,7 +645,7 @@ vncClientThread::SendInteractionCaps()
 	// Supported client->server message types
 	rfbCapabilityInfo cmsg_list[MAX_CMSG_CAPS];
 	i = 0;
-#ifndef HORIZONLIVE
+
 	if (m_server->FileTransfersEnabled() && m_client->IsInputEnabled()) {
 		SetCapInfo(&cmsg_list[i++], rfbFileListRequest,    rfbTightVncVendor);
 		SetCapInfo(&cmsg_list[i++], rfbFileDownloadRequest,rfbTightVncVendor);
@@ -658,7 +654,7 @@ vncClientThread::SendInteractionCaps()
 		SetCapInfo(&cmsg_list[i++], rfbFileDownloadCancel, rfbTightVncVendor);
 		SetCapInfo(&cmsg_list[i++], rfbFileUploadFailed,   rfbTightVncVendor);
 	}
-#endif
+
 	int nClientMsgs = i;
 	if (nClientMsgs > MAX_CMSG_CAPS) {
 		vnclog.Print(LL_INTERR,
@@ -1282,7 +1278,6 @@ vncClientThread::run(void *arg)
 			}
 			break;
 
-#ifndef HORIZONLIVE
 		case rfbFileListRequest:
 			if (!m_server->FileTransfersEnabled() || !m_client->IsInputEnabled()) {
 				connected = FALSE;
@@ -1594,7 +1589,6 @@ vncClientThread::run(void *arg)
 			}
 
 			break;
-#endif
 
 		default:
 			// Unknown message, so fail!

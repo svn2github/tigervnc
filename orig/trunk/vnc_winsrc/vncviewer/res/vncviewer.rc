@@ -86,9 +86,9 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,15,140,85,8
     CONTROL         "Disable clipboard transfer",IDC_DISABLECLIPBOARD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,15,151,95,10
-    CONTROL         "Emulate 3 Buttons (with 2-button click)",
+    CONTROL         "Emulate 3 buttons (with 2-button click)",
                     IDC_EMULATECHECK,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
-                    WS_TABSTOP,148,18,137,10
+                    WS_TABSTOP,148,18,136,10
     CONTROL         "Swap mouse buttons 2 and 3",ID_SESSION_SWAPMOUSE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,148,30,108,10
     CONTROL         "Track remote cursor locally",IDC_CSHAPE_ENABLE_RADIO,
@@ -558,8 +558,8 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDC_OPTIONBUTTON        "Edit connection-specific options for the specified VNC server."
-    IDC_8BITCHECK           "Restrict pixels to 8-bit (for slow networks)"
+    IDC_OPTIONBUTTON        "Edit connection-specific options for the specified VNC server, or change general configuration of the viewer."
+    IDC_8BITCHECK           "Set this if you don't care about image quality, but want to minimize the amount of pixel data sent over the network."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -579,9 +579,9 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDC_HOSTNAME_EDIT       "Specify a VNC server to connect to, in one of the following formats: host, host:display, host::port. Host can be either an IP address, or a domain name. Display is an offset from the TCP port number 5900 which is used by Win32 VNC servers by default."
-    IDC_BELLDEICONIFY       "Deiconify on Bell"
-    IDC_VIEWONLY            "View only (inputs ignored)"
+    IDC_HOSTNAME_EDIT       "Specify a VNC server to connect to, in one of the following formats: host, host:display, host::port. Host can be either an IP address, or a domain name. Display is an offset from the TCP port 5900. Display 0 will be used if not specified."
+    IDC_BELLDEICONIFY       "When set, the viewer window will be restored on remote Bell events."
+    IDC_VIEWONLY            "When set, you will be able to see the remote desktop, but not control it with your mouse and keyboard."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -593,15 +593,15 @@ STRINGTABLE DISCARDABLE
 BEGIN
     IDC_EDIT_LOG_LEVEL      "Log level:"
     IDC_SHARED              "Request shared session"
-    IDC_ENCODING            "1"
+    IDC_ENCODING            "Encoding refers to the representation of graphics sent over the network. Encodings differ at the required bandwidth and CPU usage. Use Hextile encoding on fast networks, and Tight over slow connections. Raw encoding means no compression at all."
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDC_EMULATECHECK        "Emulate 3 Buttons (with 2-button click)"
+    IDC_EMULATECHECK        "Set this if you have two-button mouse but want to send presses of the third button as well. If this option is enabled, pressing left and right buttons at the same time will emulate pressing the middle button."
     IDC_FULLSCREEN          "Full-screen mode"
     IDC_DISABLECLIPBOARD    "Disable clipboard transfer"
-    IDC_SCALING             "Scaling"
+    IDC_SCALING             "Scale remote screen at the specified ratio. Note that this feature is still experimental."
     IDC_SCALE_NUM           "Factor of process of scaling"
     IDC_SCALE_DEN           "Devider of process of scaling"
     IDC_CSHAPE_DISABLE_RADIO "Let remote server deal with mouse cursor"
@@ -626,7 +626,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDC_TAB                 "Property Sheet"
-    IDC_LOAD                "Load connection"
+    IDC_LOAD                "Load connection info from a file."
 END
 
 #endif    // English (U.S.) resources

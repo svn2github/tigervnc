@@ -105,8 +105,12 @@ bool SharedDesktopArea::ApplySharedControls()
 								BM_GETCHECK, 0, 0) == BST_CHECKED);
 
 	HWND hBlackRgn = GetDlgItem(m_hwnd, IDC_CHECK_BLACK_RGN);
-	m_server->SetBlackRgn(SendMessage(hBlackRgn,
-								BM_GETCHECK, 0, 0) == BST_CHECKED);
+	if (SendMessage(hBlackRgn, BM_GETCHECK, 0, 0) == BST_CHECKED) {
+		m_server->SetBlackRgn(TRUE);
+		m_server->SetNewFBSize(TRUE);
+	} else {
+		m_server->SetBlackRgn(FALSE);
+	}
 
 	HWND hWindowCapture = GetDlgItem(m_hwnd, IDC_WINDOW);
 	m_server->WindowShared(SendMessage(hWindowCapture,

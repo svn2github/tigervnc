@@ -163,13 +163,17 @@ class VncCanvas extends Canvas
       addKeyListener(this);
       addMouseListener(this);
       addMouseMotionListener(this);
-      viewer.buttonPanel.enableRemoteAccessControls(true);
+      if (viewer.options.showControls) {
+	viewer.buttonPanel.enableRemoteAccessControls(true);
+      }
     } else if (!enable && listenersInstalled) {
       listenersInstalled = false;
       removeKeyListener(this);
       removeMouseListener(this);
       removeMouseMotionListener(this);
-      viewer.buttonPanel.enableRemoteAccessControls(false);
+      if (viewer.options.showControls) {
+	viewer.buttonPanel.enableRemoteAccessControls(false);
+      }
     }
   }
 

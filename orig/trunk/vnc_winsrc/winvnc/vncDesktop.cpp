@@ -284,37 +284,20 @@ vncDesktopThread::run_undetached(void *arg)
 			}
 			
 			if (m_server->IncrRgnRequested()) {
-				// Check for moved windows
-				if (m_server->FullScreen())
-					m_desktop->CalcCopyRects();
-
-				if (m_desktop->m_copyrect_set) {
-					//Send copyrect to all clients
-					m_server->CopyRect(m_desktop->m_copyrect_rect, m_desktop->m_copyrect_src);
-					m_desktop->m_copyrect_set = false;
-
-					// Copy target rect to main and back buffer
-					m_desktop->CaptureScreen(m_desktop->m_copyrect_rect, m_desktop->m_mainbuff, false);
-					m_desktop->CopyRectToBuffer(m_desktop->m_copyrect_rect, m_desktop->m_copyrect_src);
-					m_desktop->GetChangedRegion(rgn,m_desktop->m_copyrect_rect);
-					m_desktop->m_changed_rgn.SubtractRect(m_desktop->m_copyrect_rect);
-				} 
-				
 				// Polling section
 				//If polling timer 
 				if ( m_server->GetPollingFlag() || (m_desktop->m_pollingcycle !=0))	{
 					m_server->SetPollingFlag(false);
-
 					// Request update for all parts of screen
 					if( m_desktop->m_pollingcycle !=3)
 						m_desktop->RequestUpdate();
-						
+
 					RECT rect;
 					rect.left = (m_desktop->m_pollingcycle % 2) * m_desktop->m_qtrscreen.right+old_rect.left;
 					rect.right = rect.left + m_desktop->m_qtrscreen.right;
 					rect.top = (m_desktop->m_pollingcycle / 2) * m_desktop->m_qtrscreen.bottom+old_rect.top;
 					rect.bottom = rect.top + m_desktop->m_qtrscreen.bottom;
-
+						
 					if (m_server->PollFullScreen())	{
 						m_desktop->m_changed_rgn.AddRect(rect);
 					} else {
@@ -325,7 +308,6 @@ vncDesktopThread::run_undetached(void *arg)
 							if (hwnd != NULL)
 								m_desktop->PollWindow(hwnd, rect);
 						}
-						
 						if (m_server->PollUnderCursor()) {
 							// Find the mouse position
 							POINT mousepos;
@@ -338,7 +320,33 @@ vncDesktopThread::run_undetached(void *arg)
 						}
 					}
 					m_desktop->m_pollingcycle = (m_desktop->m_pollingcycle + 1) % 4;
-				}			
+				}
+
+				// Check for moved windows
+				if (m_server->FullScreen())
+					m_desktop->CalcCopyRects();
+
+				if (m_desktop->m_copyrect_set) {
+					//Send copyrect to all clients
+					m_server->CopyRect(m_desktop->m_copyrect_rect, m_desktop->m_copyrect_src);
+					m_desktop->m_copyrect_set = false;
+
+					// Copy new window rect to main buffer
+					m_desktop->CaptureScreen(m_desktop->m_copyrect_rect, m_desktop->m_mainbuff, true);
+					// Copy old window rect to back buffer
+					m_desktop->CopyRectToBuffer(m_desktop->m_copyrect_rect, m_desktop->m_copyrect_src);
+					// Get changed pixels to rgn
+					m_desktop->GetChangedRegion(rgn,m_desktop->m_copyrect_rect);
+					RECT rect;
+					rect.left= m_desktop->m_copyrect_src.x;
+					rect.top = m_desktop->m_copyrect_src.y;
+					rect.right = rect.left + (m_desktop->m_copyrect_rect.right - m_desktop->m_copyrect_rect.left);
+					rect.bottom = rect.top + (m_desktop->m_copyrect_rect.bottom - m_desktop->m_copyrect_rect.top);
+					// Refresh old window rect
+					m_desktop->m_changed_rgn.AddRect(rect);					
+					// Don't refresh new window rect
+					m_desktop->m_changed_rgn.SubtractRect(m_desktop->m_copyrect_rect);				
+				} 
 				
 				// Get only desktop area
 				vncRegion temprgn;
@@ -387,10 +395,7 @@ vncDesktopThread::run_undetached(void *arg)
 			rect.top = (SHORT)HIWORD(msg.wParam);
 			rect.right = (SHORT)LOWORD(msg.lParam);
 			rect.bottom = (SHORT)HIWORD(msg.lParam);
-			
 			m_desktop->m_changed_rgn.AddRect(rect);
-
-
 			unhandled = FALSE;
 		}
 
@@ -542,7 +547,6 @@ vncDesktop::vncDesktop()
 	m_hooks_may_change = FALSE;
 	lpDevMode = NULL;
 	m_copyrect_set = FALSE;
-
 }
 
 vncDesktop::~vncDesktop()
@@ -2303,7 +2307,7 @@ void
 vncDesktop::CopyRectToBuffer(RECT &dest, POINT &source)
 {
 	// Copy the data from one region of the back-buffer to another!
-	BYTE *srcptr = m_backbuff + (source.y * m_bytesPerRow) +
+	BYTE *srcptr = m_mainbuff + (source.y * m_bytesPerRow) +
 		(source.x * m_scrinfo.format.bitsPerPixel/8);
 	BYTE *destptr = m_backbuff + (dest.top * m_bytesPerRow) +
 		(dest.left * m_scrinfo.format.bitsPerPixel/8);

@@ -106,6 +106,10 @@ public:
 	virtual BOOL AddNotify(HWND hwnd);
 	virtual BOOL RemNotify(HWND hwnd);
 
+	// Check mirror driver status
+	virtual BOOL DesktopActive() { return m_desktop != NULL; }
+	virtual BOOL DriverActive();
+
 protected:
 	// Send a notification message
 	virtual void DoNotify(UINT message, WPARAM wparam, LPARAM lparam);

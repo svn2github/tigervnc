@@ -77,6 +77,7 @@ public:
 
 	// Hooking stuff
 	void TryActivateHooks();
+	BOOL DriverActive() { return m_videodriver != NULL; }
 
 	// Routine to signal a vncServer to trigger an update
 	void RequestUpdate();

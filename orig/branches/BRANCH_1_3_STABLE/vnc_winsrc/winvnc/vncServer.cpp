@@ -1610,3 +1610,8 @@ vncServer::checkPointer(vncClient *pClient)
   }
   return FALSE;
 }
+
+BOOL
+vncServer::DriverActive() {
+	return (m_desktop != NULL) ? m_desktop->DriverActive() : FALSE;
+}

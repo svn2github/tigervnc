@@ -76,14 +76,14 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,249,80,80,20
     CONTROL         132,IDC_VNCLOGO,"Static",SS_BITMAP | SS_CENTERIMAGE | 
                     SS_SUNKEN,4,5,82,65
-    LTEXT           "WinVNC Version 1.0.1.2",IDC_VERSION,92,10,116,10
+    LTEXT           "WinVNC Version 1.1.2.0",IDC_VERSION,92,10,116,10
     LTEXT           "Copyright (C) 2000 Tridia Corporation",IDC_NAME,92,60,
                     116,10
     LTEXT           "Virtual Network Computing",IDC_VNC,92,20,116,10
     LTEXT           "AT&&T Research Labs Cambridge",IDC_ATT,4,90,116,11
     LTEXT           "For more information, see http://www.tridiavnc.com/",
                     IDC_WWW,92,30,116,20
-    LTEXT           "Copyright 1998-99",IDC_COPYRIGHT,4,80,90,10
+    LTEXT           "Copyright 1998-2000",IDC_COPYRIGHT,4,80,90,10
 END
 
 IDD_OUTGOING_CONN DIALOG DISCARDABLE  0, 0, 243, 47
@@ -130,7 +130,6 @@ BEGIN
     IDD_PROPERTIES, DIALOG
     BEGIN
         LEFTMARGIN, 5
-        RIGHTMARGIN, 329
         VERTGUIDE, 10
         VERTGUIDE, 19
         VERTGUIDE, 75
@@ -164,22 +163,6 @@ BEGIN
         HORZGUIDE, 170
         HORZGUIDE, 174
         HORZGUIDE, 190
-    END
-
-    IDD_ACCEPT_CONN, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 179
-        VERTGUIDE, 60
-        VERTGUIDE, 130
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 88
-        HORZGUIDE, 24
-        HORZGUIDE, 30
-        HORZGUIDE, 46
-        HORZGUIDE, 50
-        HORZGUIDE, 65
-        HORZGUIDE, 74
     END
 
     IDD_ABOUT, DIALOG
@@ -216,6 +199,22 @@ BEGIN
         HORZGUIDE, 20
         HORZGUIDE, 25
     END
+
+    IDD_ACCEPT_CONN, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        VERTGUIDE, 60
+        VERTGUIDE, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 88
+        HORZGUIDE, 24
+        HORZGUIDE, 30
+        HORZGUIDE, 46
+        HORZGUIDE, 50
+        HORZGUIDE, 65
+        HORZGUIDE, 74
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -245,7 +244,7 @@ BEGIN
         BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "Tridia Corporation\0"
-            VALUE "FileDescription", "VNC Server for' Win32\0"
+            VALUE "FileDescription", "VNC Server for  Win32\0"
             VALUE "FileVersion", "1, 1, 2, 0\0"
             VALUE "InternalName", "WinVNC\0"
             VALUE "LegalCopyright", "Copyright © 2000 Tridia Corporation\0"

@@ -79,13 +79,14 @@ BEGIN
     PUSHBUTTON      "Accept without &Password",IDACCEPT_NOPASS,70,78,95,17
 END
 
-IDD_LIVESHAREPROP DIALOG DISCARDABLE  0, 0, 262, 118
-STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_POPUP | 
+IDD_LIVESHAREPROP DIALOGEX 0, 0, 262, 118
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | DS_CONTEXTHELP | WS_POPUP | 
     WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "LiveShare Settings"
 FONT 8, "MS Sans Serif"
 BEGIN
-    GROUPBOX        "Select Sharing Area",IDC_PARTAGE_BORDER,5,5,188,55
+    GROUPBOX        "Select Sharing Area",IDC_SHARINGAREA_BORDER,5,5,188,55
     CONTROL         "Window",IDC_WINDOW,"Button",BS_AUTORADIOBUTTON | 
                     WS_TABSTOP,10,18,42,10
     CONTROL         "Screen Area",IDC_SCREEN,"Button",BS_AUTORADIOBUTTON | 
@@ -94,9 +95,9 @@ BEGIN
                     BS_AUTORADIOBUTTON | WS_TABSTOP,10,48,55,10
     CONTROL         139,IDC_BMPCURSOR,"Static",SS_BITMAP,55,15,21,17
     EDITTEXT        IDC_NAME_APPLI,81,15,105,14,ES_AUTOHSCROLL | ES_READONLY
-    GROUPBOX        "Connect with LiveShare Key",IDC_PARTAGE_BORDER2,5,65,
+    GROUPBOX        "Connect with LiveShare Key",IDC_LIVESHARE_BORDER,5,65,
                     187,45
-    LTEXT           "LiveShare Key:",IDC_STATIC,10,77,54,8
+    LTEXT           "LiveShare Key:",IDC_LIVESHARE_LABEL,10,77,54,8
     EDITTEXT        IDC_LIVESHARE,67,75,121,14,ES_AUTOHSCROLL
     LTEXT           "Enter the LiveShare Key in the box above and click 'OK' to begin sharing your computer ",
                     IDC_STATIC,10,90,176,16
@@ -106,9 +107,10 @@ BEGIN
     PUSHBUTTON      "Ad&vanced ...",IDADVANCED,199,69,58,15
 END
 
-IDD_LIVESHAREADVPROP DIALOG DISCARDABLE  0, 0, 280, 138
-STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_POPUP | 
+IDD_LIVESHAREADVPROP DIALOGEX 0, 0, 280, 138
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | DS_CONTEXTHELP | WS_POPUP | 
     WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Advanced Properties"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -124,7 +126,7 @@ BEGIN
     CONTROL         "Poll On Event Received Only",IDC_ONEVENT_ONLY,"Button",
                     BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,115,35,65,15
     EDITTEXT        IDC_POLL_TIMER,115,55,22,12,ES_AUTOHSCROLL
-    CONTROL         "Polling cycle, ms",IDC_STATIC,"Static",
+    CONTROL         "Polling cycle, ms",IDC_POLCYCLMS_LABEL,"Static",
                     SS_LEFTNOWORDWRAP | WS_GROUP,142,58,56,11
     CONTROL         "Don't use VNCHooks.DLL while polling full screen",
                     IDC_DONT_SET_HOOKS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
@@ -145,7 +147,7 @@ IDD_ACCEPT_REVERSE DIALOGEX 0, 0, 179, 55
 STYLE DS_SYSMODAL | DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | 
     WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "Begin LiveShare Session?"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "&OK",IDACCEPT,17,31,47,17
     PUSHBUTTON      "&Cancel",IDREJECT,113,31,48,17,0,WS_EX_TRANSPARENT
@@ -157,7 +159,7 @@ IDD_PROPERTIES_PARENT DIALOGEX 0, 0, 312, 167
 STYLE DS_MODALFRAME | DS_CENTER | DS_CONTEXTHELP | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP | WS_EX_CONTROLPARENT
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     CONTROL         "Tab1",IDC_TAB,"SysTabControl32",TCS_MULTILINE | 
                     WS_TABSTOP,7,0,298,138
@@ -777,6 +779,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     IDC_DISPLAYNO           "display:"
     IDC_PASSWORD            "Users authenticated with the primary password are given full control over the server's desktop. Note that only first 8 characters of passwords are used in the standard VNC authentication."
+    IDC_UPDATE_BORDER       "Update Handling"
     IDC_POLL_FULLSCREEN     "Poll full screen"
     IDC_CONSOLE_ONLY        "Poll console windows only"
     IDC_POLL_FOREGROUND     "Poll foreground window"
@@ -820,12 +823,16 @@ BEGIN
     IDC_PORTNO_AUTO         "auto"
     IDC_DISABLE_LOCAL_INPUTS 
                             "Disable local keyboard and pointer during client sessions"
+    IDADVANCED              "Ad&vanced ..."
     IDQUERY                 "Query console on incoming connections"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    IDC_SHARINGAREA_BORDER  "Select Sharing Area"
+    IDC_LIVESHARE_BORDER    "Connect with LiveShare Key"
     IDC_NAME_APPLI          "name application"
+    IDC_LIVESHARE           "LiveShare Key:"
     IDC_BMPCURSOR           "bitmap target"
     IDC_WINDOW              "Window:"
     IDC_SCREEN              "Rectangular area"

@@ -703,7 +703,7 @@ BOOL CALLBACK vncProperties::SharedDlgProc(HWND hwnd, UINT uMsg,
 				_this->m_server);
 
 #ifdef HORIZONLIVE
-
+			InitCommonControls();
 			_this->m_dlgvisible = TRUE;
 			// Set the dialog box's title
 			SetWindowText(hwnd, "LiveShare Settings");

@@ -72,8 +72,11 @@ void VNCHelp::Popup(LPARAM lParam)
 			break;
 		case IDC_STATIC_PCYCLE:
 		case IDC_STATIC_MS:
+		case IDC_POLCYCLMS_LABEL:
 			popup.idString = IDC_POLL_TIMER;
 			break;
+		case IDC_LIVESHARE_LABEL:
+			popup.idString = IDC_LIVESHARE;
 		}
 
 		HtmlHelp((HWND)hlp->hItemHandle,

@@ -610,19 +610,19 @@ STRINGTABLE DISCARDABLE
 BEGIN
     IDC_EMULATECHECK        "Set this if you have two-button mouse but want to send presses of the third button as well. If this option is enabled, pressing left and right buttons at the same time will emulate pressing the middle button."
     IDC_FULLSCREEN          "Full-screen mode"
-    IDC_DISABLECLIPBOARD    "Disable clipboard transfer"
+    IDC_DISABLECLIPBOARD    "If checked, the viewer won't try to propagate local clibboard changes to the server."
     IDC_CSHAPE_DISABLE_RADIO "Let remote server deal with mouse cursor"
-    IDC_QUALITYLEVEL        "quality (0=poor, 9=best)"
-    IDC_COMPRESSLEVEL       "level (1=fast, 9=best)"
+    IDC_QUALITYLEVEL        "Higher JPEG quality levels result less compression but better image quality. Normally, Tight encoder tries to use JPEG only where it does not cause major quality losses, so usually it's ok to choose low quality levels."
+    IDC_COMPRESSLEVEL       "Higher compression levels result greater compression ratios, but require more time to encode data. Use lower values on fast networks, and higher levels for slow connections."
     IDC_CSHAPE_ENABLE_RADIO "Track remote cursor locally"
     IDC_CSHAPE_IGNORE_RADIO "Don't show remote cursor"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    ID_SESSION_SET_CRECT    "Allow CopyRect encoding"
-    IDC_ALLOW_COMPRESSLEVEL "Custom compression level:"
-    IDC_ALLOW_JPEG          "Allow JPEG compression:"
+    ID_SESSION_SET_CRECT    "CopyRect encoding is used to save bandwidth when some screen area on the server changes its position. CopyRect allows to send only coordinates instead of pixel arrays. Normally, you should keep this option checked."
+    IDC_ALLOW_COMPRESSLEVEL "Set this if you want to specify a particular compression level, instead of using server's default."
+    IDC_ALLOW_JPEG          "JPEG scheme allows Tight encoder compress full-color data much better, but the image quality may degrade in particular screen areas."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -632,7 +632,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDC_TAB                 "Property Sheet"
+    IDC_TAB                 "Here you can choose either connection-specific options, or global settings of the viewer."
     IDC_LOAD                "Load connection info from a file, assuming it was saved earlier by choosing ""Save connection info as..."" in the viewer's system menu."
     IDC_LISTEN_PORT         "Listen port"
     IDC_CONN_PROF           "Choosing a connection profile allows you to select connection  options suitable for a particular network environment."

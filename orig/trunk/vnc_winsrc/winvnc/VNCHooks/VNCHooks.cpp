@@ -44,6 +44,8 @@
 
 #pragma data_seg(".SharedData")
 HWND hVeneto = NULL;
+HWND hKeyboardPriorityWindow = NULL;
+HWND hMousePriorityWindow = NULL;
 UINT UpdateRectMessage = 0;
 UINT CopyRectMessage = 0;
 UINT MouseMoveMessage = 0;
@@ -330,7 +332,7 @@ DllExport BOOL SetKeyboardFilterHook(BOOL activate)
 	}
 }
 
-DllExport BOOL SetKeyboardPriorityLLHook(BOOL activate, UINT LocalKbdMsg)
+DllExport BOOL SetKeyboardPriorityLLHook(HWND hwnd, BOOL activate, UINT LocalKbdMsg)
 {
 	LocalKeyboardMessage = LocalKbdMsg;
 	if (activate)
@@ -338,6 +340,9 @@ DllExport BOOL SetKeyboardPriorityLLHook(BOOL activate, UINT LocalKbdMsg)
 #ifdef WH_KEYBOARD_LL
 		if (hLLKeyboardPrHook == NULL)
 		{
+			// save the window handle
+			hKeyboardPriorityWindow = hwnd;
+		
 			// Start up the hook...
 			hLLKeyboardPrHook = SetWindowsHookEx(
 					WH_KEYBOARD_LL,					// Hook in before msg reaches app
@@ -359,6 +364,9 @@ DllExport BOOL SetKeyboardPriorityLLHook(BOOL activate, UINT LocalKbdMsg)
 			// Stop the hook...
 			if (!UnhookWindowsHookEx(hLLKeyboardPrHook))
 				return FALSE;
+				
+			// reset the hook and window handle
+			hKeyboardPriorityWindow = NULL;
 			hLLKeyboardPrHook = NULL;
 		}
 		return TRUE;
@@ -400,7 +408,7 @@ DllExport BOOL SetMouseFilterHook(BOOL activate)
 	}
 }
 
-DllExport BOOL SetMousePriorityLLHook(BOOL activate, UINT LocalMouseMsg)
+DllExport BOOL SetMousePriorityLLHook(HWND hwnd, BOOL activate, UINT LocalMouseMsg)
 {
 	LocalMouseMessage = LocalMouseMsg;
 	if (activate)
@@ -408,6 +416,9 @@ DllExport BOOL SetMousePriorityLLHook(BOOL activate, UINT LocalMouseMsg)
 #ifdef WH_MOUSE_LL
 		if (hLLMousePrHook == NULL)
 		{
+			// save the window handle
+			hMousePriorityWindow = hwnd;
+		
 			// Start up the hook...
 			hLLMousePrHook = SetWindowsHookEx(
 					WH_MOUSE_LL,					// Hook in before msg reaches app
@@ -429,6 +440,9 @@ DllExport BOOL SetMousePriorityLLHook(BOOL activate, UINT LocalMouseMsg)
 			// Stop the hook...
 			if (!UnhookWindowsHookEx(hLLMousePrHook))
 				return FALSE;
+				
+			// reset the hook and window handle
+			hMousePriorityWindow = NULL;
 			hLLMousePrHook = NULL;
 		}
 		return TRUE;
@@ -437,13 +451,16 @@ DllExport BOOL SetMousePriorityLLHook(BOOL activate, UINT LocalMouseMsg)
 
 
 // Routine to start and stop local keyboard message filtering
-DllExport BOOL SetKeyboardPriorityHook(BOOL activate, UINT LocalKbdMsg)
+DllExport BOOL SetKeyboardPriorityHook(HWND hwnd, BOOL activate, UINT LocalKbdMsg)
 {
 	LocalKeyboardMessage = LocalKbdMsg;
 	if (activate)
 	{
 		if (hKeyboardHook == NULL)
 		{
+			// save the window handle
+			hKeyboardPriorityWindow = hwnd;
+
 			// Start up the hook...
 			hKeyboardHook = SetWindowsHookEx(
 					WH_KEYBOARD,					// Hook in before msg reaches app
@@ -461,6 +478,9 @@ DllExport BOOL SetKeyboardPriorityHook(BOOL activate, UINT LocalKbdMsg)
 			// Stop the hook...
 			if (!UnhookWindowsHookEx(hKeyboardHook))
 				return FALSE;
+			
+			// reset the hook and window handle
+			hKeyboardPriorityWindow = NULL;
 			hKeyboardHook = NULL;
 		}
 		return TRUE;
@@ -469,13 +489,16 @@ DllExport BOOL SetKeyboardPriorityHook(BOOL activate, UINT LocalKbdMsg)
 
 
 // Routine to start and stop local mouse message filtering
-DllExport BOOL SetMousePriorityHook(BOOL activate, UINT LocalMouseMsg)
+DllExport BOOL SetMousePriorityHook(HWND hwnd, BOOL activate, UINT LocalMouseMsg)
 {
 	LocalMouseMessage = LocalMouseMsg;
 	if (activate)
 	{
 		if (hMouseHook == NULL)
 		{
+			// save the window handle
+			hMousePriorityWindow = hwnd;
+ 		
 			// Start up the hook...
 			hMouseHook = SetWindowsHookEx(
 					WH_MOUSE,					// Hook in before msg reaches app
@@ -493,6 +516,9 @@ DllExport BOOL SetMousePriorityHook(BOOL activate, UINT LocalMouseMsg)
 			// Stop the hook...
 			if (!UnhookWindowsHookEx(hMouseHook))
 				return FALSE;
+				
+			// reset the hook and window handle
+			hMousePriorityWindow = NULL;
 			hMouseHook = NULL;
 		}
 		return TRUE;
@@ -951,7 +977,8 @@ LRESULT CALLBACK LowLevelKeyboardFilterProc(int nCode, WPARAM wParam, LPARAM lPa
 LRESULT CALLBACK LowLevelKeyboardPriorityProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
 	// Are we expected to handle this callback?
-	if (nCode == HC_ACTION)
+	// do we have a target window handle?
+	if (nCode == HC_ACTION && hKeyboardPriorityWindow != NULL)
 	{
 		// Is this keyboard event "real" or "injected"
 		// i.e. hardware or software-produced?
@@ -960,7 +987,7 @@ LRESULT CALLBACK LowLevelKeyboardPriorityProc(int nCode, WPARAM wParam, LPARAM l
 			// Message was not injected - send RFB_LOCAL_KEYBOARD msg!
 			// Remote event will be blocked
 			PostMessage(
-				hVeneto,
+				hKeyboardPriorityWindow,
 				LocalKeyboardMessage,
 				0,
 				0
@@ -998,7 +1025,8 @@ LRESULT CALLBACK LowLevelMouseFilterProc(int nCode, WPARAM wParam, LPARAM lParam
 LRESULT CALLBACK LowLevelMousePriorityProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
 	// Are we expected to handle this callback?
-	if (nCode == HC_ACTION)
+	// do we have a target window handle?
+	if (nCode == HC_ACTION && hMousePriorityWindow != NULL)
 	{
 		// Is this mouse event "real" or "injected"
 		// i.e. hardware or software-produced?
@@ -1007,7 +1035,7 @@ LRESULT CALLBACK LowLevelMousePriorityProc(int nCode, WPARAM wParam, LPARAM lPar
 			// Message was not injected - send RFB_LOCAL_MOUSE msg!
 			// Remote event will be blocked
 			PostMessage(
-				hVeneto,
+				hMousePriorityWindow,
 				LocalMouseMessage,
 				0,
 				0
@@ -1024,10 +1052,11 @@ LRESULT CALLBACK LowLevelMousePriorityProc(int nCode, WPARAM wParam, LPARAM lPar
 LRESULT CALLBACK KeyboardPriorityProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
 	// Are we expected to handle this callback?
-	if (nCode == HC_ACTION)
+	// do we have a target window handle?
+	if (nCode == HC_ACTION && hKeyboardPriorityWindow != NULL)
 	{
 			PostMessage(
-			hVeneto,
+			hKeyboardPriorityWindow,
 			LocalKeyboardMessage,
 			0,
 			0
@@ -1042,11 +1071,12 @@ LRESULT CALLBACK KeyboardPriorityProc(int nCode, WPARAM wParam, LPARAM lParam)
 LRESULT CALLBACK MousePriorityProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
 	// Are we expected to handle this callback?
-	if (nCode == HC_ACTION)
+	// do we have a target window handle?
+	if (nCode == HC_ACTION && hMousePriorityWindow != NULL)
 	{
 		if ( (wParam == WM_LBUTTONDOWN) || (wParam == WM_RBUTTONDOWN) || (wParam == WM_MBUTTONDOWN) || (wParam == WM_MOUSEMOVE) )
 			PostMessage(
-			hVeneto,
+			hMousePriorityWindow,
 			LocalMouseMessage,
 			0,
 			0

@@ -49,22 +49,28 @@ public class VncViewer extends java.applet.Applet
     v.start();
   }
 
+  String[] mainArgs;
+
+  RfbProto rfb;
+  Thread rfbThread;
+
   Frame vncFrame;
   Container vncContainer;
   ScrollPane desktopScrollPane;
-
-  String[] mainArgs;
-  String host;
-  int port;
-  String password = null;
-  RfbProto rfb;
-  Thread rfbThread;
   GridBagLayout gridbag;
   ButtonPanel buttonPanel;
+  AuthPanel authenticator;
   VncCanvas vc;
   OptionsFrame options;
   ClipboardFrame clipboard;
-  AuthPanel authenticator;
+
+  // Variables read from parameter values.
+  String host;
+  int port;
+  String passwordParam;
+  int deferScreenUpdates;
+  int deferCursorUpdates;
+  int deferUpdateRequests;
 
 
   //
@@ -74,6 +80,7 @@ public class VncViewer extends java.applet.Applet
   public void init() {
 
     readParameters();
+    System.out.println("deferScreenUpdates = " + deferScreenUpdates);
 
     if (inSeparateFrame) {
       vncFrame = new Frame("TightVNC");
@@ -182,14 +189,14 @@ public class VncViewer extends java.applet.Applet
     // "PASSWORD" parameter instead. Authentication failures would be
     // fatal.
 
-    if (password != null) {
+    if (passwordParam != null) {
       if (inSeparateFrame) {
 	vncFrame.pack();
 	vncFrame.show();
       } else {
 	validate();
       }
-      if (!tryAuthenticate(password)) {
+      if (!tryAuthenticate(passwordParam)) {
 	throw new IOException("VNC authentication failed");
       }
       return;
@@ -387,7 +394,12 @@ public class VncViewer extends java.applet.Applet
 	inSeparateFrame = true;
     }
 
-    password = readParameter("PASSWORD", false);
+    passwordParam = readParameter("PASSWORD", false);
+
+    // Fine tuning options.
+    deferScreenUpdates = readIntParameter("Defer screen updates", 20);
+    deferCursorUpdates = readIntParameter("Defer cursor updates", 10);
+    deferUpdateRequests = readIntParameter("Defer update requests", 50);
   }
 
   public String readParameter(String name, boolean required) {
@@ -415,6 +427,17 @@ public class VncViewer extends java.applet.Applet
       fatalError(name + " parameter not specified");
     }
     return null;
+  }
+
+  int readIntParameter(String name, int defaultValue) {
+    String str = readParameter(name, false);
+    int result = defaultValue;
+    if (str != null) {
+      try {
+	result = Integer.parseInt(str);
+      } catch (NumberFormatException e) { }
+    }
+    return result;
   }
 
   //

@@ -585,6 +585,17 @@ class VncCanvas extends Canvas
 
 	}
 
+	// Defer framebuffer update request if necessary. But wake up
+	// immediately on keyboard or mouse event.
+	if (viewer.deferUpdateRequests > 0) {
+	  synchronized(rfb) {
+	    try {
+	      rfb.wait(viewer.deferUpdateRequests);
+	    } catch (InterruptedException e) {
+	    }
+	  }
+	}
+
 	// Before requesting framebuffer update, check if the pixel
 	// format should be changed. If it should, request full update
 	// instead of incremental one.
@@ -1019,8 +1030,8 @@ class VncCanvas extends Canvas
   //
 
   void scheduleRepaint(int x, int y, int w, int h) {
-    // Request repaint delayed by 20 milliseconds.
-    repaint(20, x, y, w, h);
+    // Request repaint, deferred if necessary.
+    repaint(viewer.deferScreenUpdates, x, y, w, h);
   }
 
 
@@ -1053,10 +1064,13 @@ class VncCanvas extends Canvas
 
   public void processLocalKeyEvent(KeyEvent evt) {
     if (rfb != null && rfb.inNormalProtocol) {
-      try {
-	rfb.writeKeyEvent(evt);
-      } catch (Exception e) {
-	e.printStackTrace();
+      synchronized(rfb) {
+	try {
+	  rfb.writeKeyEvent(evt);
+	} catch (Exception e) {
+	  e.printStackTrace();
+	}
+	rfb.notify();
       }
     }
     // Don't ever pass keyboard events to AWT for default processing. 
@@ -1069,10 +1083,13 @@ class VncCanvas extends Canvas
       if (moved) {
 	softCursorMove(evt.getX(), evt.getY());
       }
-      try {
-	rfb.writePointerEvent(evt);
-      } catch (Exception e) {
-	e.printStackTrace();
+      synchronized(rfb) {
+	try {
+	  rfb.writePointerEvent(evt);
+	} catch (Exception e) {
+	  e.printStackTrace();
+	}
+	rfb.notify();
       }
     }
   }
@@ -1246,7 +1263,8 @@ class VncCanvas extends Canvas
 
     // Show the cursor.
 
-    repaint(10, cursorX - hotX, cursorY - hotY, cursorWidth, cursorHeight);
+    repaint(viewer.deferCursorUpdates,
+	    cursorX - hotX, cursorY - hotY, cursorWidth, cursorHeight);
   }
 
   //
@@ -1255,8 +1273,10 @@ class VncCanvas extends Canvas
 
   synchronized void softCursorMove(int x, int y) {
     if (showSoftCursor) {
-      repaint(10, cursorX - hotX, cursorY - hotY, cursorWidth, cursorHeight);
-      repaint(10, x - hotX, y - hotY, cursorWidth, cursorHeight);
+      repaint(viewer.deferCursorUpdates,
+	      cursorX - hotX, cursorY - hotY, cursorWidth, cursorHeight);
+      repaint(viewer.deferCursorUpdates,
+	      x - hotX, y - hotY, cursorWidth, cursorHeight);
     }
 
     cursorX = x;
@@ -1274,7 +1294,8 @@ class VncCanvas extends Canvas
       softCursorSource = null;
       softCursorPixels = null;
 
-      repaint(10, cursorX - hotX, cursorY - hotY, cursorWidth, cursorHeight);
+      repaint(viewer.deferCursorUpdates,
+	      cursorX - hotX, cursorY - hotY, cursorWidth, cursorHeight);
     }
   }
 }

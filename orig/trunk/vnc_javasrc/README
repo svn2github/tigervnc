@@ -181,6 +181,41 @@ is the full list of parameters supported in TightVNC Java viewer:
 
     Set to "No" if you want to get rid of that button panel at the top.
 
+--> "Defer screen updates" (no GUI equivalent)
+
+    Value: time in milliseconds.
+    Default: "20".
+
+    When updating the desktop contents after receiving an update from server,
+    schedule repaint within the specified number of milliseconds. Small delay
+    helps to coalesce several small updates into one drawing operation,
+    improving CPU usage. Set this parameter to 0 to disable deferred updates.
+
+--> "Defer cursor updates" (no GUI equivalent)
+
+    Value: time in milliseconds.
+    Default: "10".
+
+    When updating the desktop after moving the mouse, schedule repaint within
+    the specified number of milliseconds. This setting makes sense only when
+    "Cursor shape updates" parameter is set to "Enable". Small delay helps to
+    coalesce several small updates into one drawing operation, improving CPU
+    usage. Set this parameter to 0 to disable deferred cursor updates.
+
+--> "Defer update requests" (no GUI equivalent)
+
+    Value: time in milliseconds.
+    Default: "50".
+
+    After processing an update received from server, wait for the specified
+    number of milliseconds before requesting next screen update. Such delay
+    will end immediately on every mouse or keyboard event if not in the "view
+    only" mode. Small delay helps the server to coalesce several small
+    updates into one framebuffer update, improving both bandwidth and CPU
+    usage. Increasing the parameter value does not affect responsiveness on
+    mouse and keyboard events, but causes delays in updating the screen when
+    there is no mouse and keyboard activity on the client side.
+
 
 ACKNOWLEDGEMENTS
 ================

@@ -936,6 +936,19 @@ BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,
 	}
 	case WM_COMMAND:{
 		switch (LOWORD(wParam)) {
+		case IDC_SCALE_EDIT:
+			switch (HIWORD(wParam)) {
+			case CBN_EDITCHANGE:
+				int buf;
+				buf=GetDlgItemInt(hwnd,IDC_SCALE_EDIT,
+					NULL, FALSE);
+				if (buf > 150) {
+					buf = 150;
+					SetDlgItemInt(hwnd,IDC_SCALE_EDIT,
+						buf, FALSE);
+				}
+				return 0;
+			}
 		case IDC_SCALING:
 			switch (HIWORD(wParam)) {
 			case BN_CLICKED:
@@ -1220,6 +1233,32 @@ BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,
 		return 0;
 	case WM_COMMAND:{
 		switch (LOWORD(wParam)) {
+		case IDC_EDIT_AMOUNT_LIST:
+			switch (HIWORD(wParam)) {
+			case EN_CHANGE:
+				int buf;
+				buf=GetDlgItemInt(hwnd,IDC_EDIT_AMOUNT_LIST,
+									NULL, FALSE);
+				if (buf > 64) {
+					buf = 64;
+					SetDlgItemInt(hwnd,IDC_EDIT_AMOUNT_LIST,
+									buf, FALSE);
+				}
+				return 0;
+			}
+		case IDC_EDIT_LOG_LEVEL:
+		switch (HIWORD(wParam)) {
+			case EN_CHANGE:
+				int buf;
+				buf=GetDlgItemInt(hwnd,IDC_EDIT_LOG_LEVEL,
+								NULL, FALSE);
+				if (buf > 12) {
+					buf = 12;
+					SetDlgItemInt(hwnd,IDC_EDIT_LOG_LEVEL,
+								buf, FALSE);
+				}
+				return 0;
+		}
 		case IDC_BUTTON_CLEAR_LIST:{
 			HKEY hRegKey;
 			TCHAR value[80];

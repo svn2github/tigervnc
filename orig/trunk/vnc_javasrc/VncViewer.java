@@ -186,6 +186,10 @@ public class VncViewer extends java.applet.Applet
       e.printStackTrace();
       if (showOfflineDesktop) {
 	System.out.println("Network error: remote side closed connection");
+	if (rfb != null) {
+	  rfb.close();
+	  rfb = null;
+	}
 	if (vc != null) {
 	  vc.enableInput(false);
 	}

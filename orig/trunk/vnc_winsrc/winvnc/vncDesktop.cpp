@@ -212,7 +212,7 @@ vncDesktopThread::run_undetached(void *arg)
 					break;
 				}
 
-				// Check that the screen info hasn't changed
+				// Check if the screen info has changed
 				vnclog.Print(LL_INTINFO,
 							 VNCLOG("SCR: old screen format %dx%dx%d\n"),
 							 oldscrinfo.framebufferWidth,
@@ -225,9 +225,11 @@ vncDesktopThread::run_undetached(void *arg)
 							 m_desktop->m_scrinfo.format.bitsPerPixel);
 				if (memcmp(&m_desktop->m_scrinfo, &oldscrinfo, sizeof(oldscrinfo)) != 0)
 				{
-					vnclog.Print(LL_CONNERR, VNCLOG("screen format has changed - disconnecting clients.\n"));
-					m_server->UpdateLocalFormat();
+					vnclog.Print(LL_CONNERR, VNCLOG("screen format has changed.\n"));
 				}
+
+				// Call this regardless of screen format change
+				m_server->UpdateLocalFormat();
 
 				// Add a full screen update to all the clients
 				m_desktop->m_changed_rgn.AddRect(m_desktop->m_bmrect);

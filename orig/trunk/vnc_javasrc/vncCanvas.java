@@ -43,7 +43,6 @@ class vncCanvas extends Canvas
   Graphics sg, sg2;
   Image paintImage;
   Graphics pig, pig2;
-  boolean needToResetClip;
 
   final static int tightZlibBufferSize = 512;
   Inflater[] tightInflaters;
@@ -102,8 +101,6 @@ class vncCanvas extends Canvas
 
     sg = getGraphics();
 
-    needToResetClip = false;
-
     //
     // main dispatch loop
     //
@@ -121,15 +118,6 @@ class vncCanvas extends Canvas
 	  if (rfb.updateRectEncoding == rfb.EncodingLastRect)
 	    break;
 
-	  if (needToResetClip && (rfb.updateRectEncoding != rfb.EncodingRaw)) {
-	    try {
-	      sg.setClip(0, 0, rfb.framebufferWidth, rfb.framebufferHeight);
-	      pig.setClip(0, 0, rfb.framebufferWidth, rfb.framebufferHeight);
-	    } catch (NoSuchMethodError e) {
-	    }
-	    needToResetClip = false;
-	  }
-
 	  if (rfb.updateRectEncoding == rfb.EncodingXCursor ||
 	      rfb.updateRectEncoding == rfb.EncodingRichCursor) {
 	    handleCursorShapeUpdate(rfb.updateRectEncoding,
@@ -144,74 +132,96 @@ class vncCanvas extends Canvas
 	  switch (rfb.updateRectEncoding) {
 
 	  case rfb.EncodingRaw:
+	  {
 	    drawRawRect(rfb.updateRectX, rfb.updateRectY,
 			rfb.updateRectW, rfb.updateRectH);
 	    break;
+	  }
 
 	  case rfb.EncodingCopyRect:
+	  {
 	    rfb.readCopyRect();
 
-	    softCursorLockArea(rfb.copyRectSrcX, rfb.copyRectSrcY,
-			       rfb.updateRectW, rfb.updateRectH);
+	    int sx = rfb.copyRectSrcX, sy = rfb.copyRectSrcY;
+	    int rx = rfb.updateRectX, ry = rfb.updateRectY;
+	    int rw = rfb.updateRectW, rh = rfb.updateRectH;
 
-	    pig.copyArea(rfb.copyRectSrcX, rfb.copyRectSrcY,
-			 rfb.updateRectW, rfb.updateRectH,
-			 rfb.updateRectX - rfb.copyRectSrcX,
-			 rfb.updateRectY - rfb.copyRectSrcY);
+	    softCursorLockArea(sx, sy, rw, rh);
+
+	    pig.copyArea(sx, sy, rw, rh, rx - sx, ry - sy);
 	    if (v.options.copyRectFast) {
-	      sg.copyArea(rfb.copyRectSrcX, rfb.copyRectSrcY,
-			  rfb.updateRectW, rfb.updateRectH,
-			  rfb.updateRectX - rfb.copyRectSrcX,
-			  rfb.updateRectY - rfb.copyRectSrcY);
+	      sg.copyArea(sx, sy, rw, rh, rx - sx, ry - sy);
 	    } else {
 	      sg.drawImage(paintImage, 0, 0, this);
 	    }
+
+	    int dx, dy;
+	    if (sy * rfb.framebufferWidth + sx >
+		ry * rfb.framebufferWidth + rx ) {
+	      for (dy = 0; dy < rh; dy++) {
+		for (dx = 0; dx < rw; dx++) {
+		  pixels[(ry + dy) * rfb.framebufferWidth + (rx + dx)] =
+		    pixels[(sy + dy) * rfb.framebufferWidth + (sx + dx)];
+		}
+	      }
+	    } else {
+	      for (dy = rh - 1; dy >= 0; dy--) {
+		for (dx = rw - 1; dx >= 0; dx--) {
+		  pixels[(ry + dy) * rfb.framebufferWidth + (rx + dx)] =
+		    pixels[(sy + dy) * rfb.framebufferWidth + (sx + dx)];
+		}
+	      }
+	    }
 	    break;
+	  }
 
 	  case rfb.EncodingRRE:
 	  {
+	    int rx = rfb.updateRectX, ry = rfb.updateRectY;
+	    int rw = rfb.updateRectW, rh = rfb.updateRectH;
 	    int nSubrects = rfb.is.readInt();
 	    int bg = rfb.is.read();
 	    int pixel, x, y, w, h;
-	    sg.translate(rfb.updateRectX, rfb.updateRectY);
 	    sg.setColor(colors[bg]);
-	    sg.fillRect(0, 0, rfb.updateRectW, rfb.updateRectH);
-	    pig.translate(rfb.updateRectX, rfb.updateRectY);
+	    sg.fillRect(rx, ry, rw, rh);
 	    pig.setColor(colors[bg]);
-	    pig.fillRect(0, 0, rfb.updateRectW, rfb.updateRectH);
+	    pig.fillRect(rx, ry, rw, rh);
+	    fillPixelsArea(rx, ry, rw, rh, (byte)bg);
+
 	    for (int j = 0; j < nSubrects; j++) {
 	      pixel = rfb.is.read();
-	      x = rfb.is.readUnsignedShort();
-	      y = rfb.is.readUnsignedShort();
+	      x = rx + rfb.is.readUnsignedShort();
+	      y = ry + rfb.is.readUnsignedShort();
 	      w = rfb.is.readUnsignedShort();
 	      h = rfb.is.readUnsignedShort();
+
 	      sg.setColor(colors[pixel]);
 	      sg.fillRect(x, y, w, h);
 	      pig.setColor(colors[pixel]);
 	      pig.fillRect(x, y, w, h);
+	      fillPixelsArea(x, y, w, h, (byte)pixel);
 	    }
-	    sg.translate(-rfb.updateRectX, -rfb.updateRectY);
-	    pig.translate(-rfb.updateRectX, -rfb.updateRectY);
 	    break;
 	  }
 
 	  case rfb.EncodingCoRRE:
 	  {
+	    int rx = rfb.updateRectX, ry = rfb.updateRectY;
+	    int rw = rfb.updateRectW, rh = rfb.updateRectH;
 	    int nSubrects = rfb.is.readInt();
 	    int bg = rfb.is.read();
 	    int pixel, x, y, w, h;
 
-	    sg.translate(rfb.updateRectX, rfb.updateRectY);
 	    sg.setColor(colors[bg]);
-	    sg.fillRect(0, 0, rfb.updateRectW, rfb.updateRectH);
-	    pig.translate(rfb.updateRectX, rfb.updateRectY);
+	    sg.fillRect(rx, ry, rw, rh);
 	    pig.setColor(colors[bg]);
-	    pig.fillRect(0, 0, rfb.updateRectW, rfb.updateRectH);
+	    pig.fillRect(rx, ry, rw, rh);
+	    fillPixelsArea(rx, ry, rw, rh, (byte)bg);
 
 	    for (int j = 0; j < nSubrects; j++) {
 	      pixel = rfb.is.read();
-	      x = rfb.is.read();
-	      y = rfb.is.read();
+	      x = rx + rfb.is.read();
+	      y = ry + rfb.is.read();
 	      w = rfb.is.read();
 	      h = rfb.is.read();
 
@@ -219,47 +229,33 @@ class vncCanvas extends Canvas
 	      sg.fillRect(x, y, w, h);
 	      pig.setColor(colors[pixel]);
 	      pig.fillRect(x, y, w, h);
-	    }
-	    sg.translate(-rfb.updateRectX, -rfb.updateRectY);
-	    pig.translate(-rfb.updateRectX, -rfb.updateRectY);
 
+	      fillPixelsArea(x, y, w, h, (byte)pixel);
+	    }
 	    break;
 	  }
 
 	  case rfb.EncodingHextile:
 	  {
+	    int rx = rfb.updateRectX, ry = rfb.updateRectY;
+	    int rw = rfb.updateRectW, rh = rfb.updateRectH;
 	    int bg = 0, fg = 0, sx, sy, sw, sh;
 
-	    for (int ty = rfb.updateRectY;
-		 ty < rfb.updateRectY + rfb.updateRectH;
-		 ty += 16) {
-	      for (int tx = rfb.updateRectX;
-		   tx < rfb.updateRectX + rfb.updateRectW;
-		   tx += 16) {
+	    for (int ty = ry; ty < ry + rh; ty += 16) {
+	      for (int tx = rx; tx < rx + rw; tx += 16) {
 
 		int tw = 16, th = 16;
 
-		if (rfb.updateRectX + rfb.updateRectW - tx < 16)
-		  tw = rfb.updateRectX + rfb.updateRectW - tx;
-		if (rfb.updateRectY + rfb.updateRectH - ty < 16)
-		  th = rfb.updateRectY + rfb.updateRectH - ty;
+		if (rx + rw - tx < 16)
+		  tw = rx + rw - tx;
+		if (ry + rh - ty < 16)
+		  th = ry + rh - ty;
 
 		int subencoding = rfb.is.read();
 
 		if ((subencoding & rfb.HextileRaw) != 0) {
 		  drawRawRect(tx, ty, tw, th);
 		  continue;
-		}
-
-		if (needToResetClip) {
-		  try {
-		    sg.setClip(0, 0,
-			       rfb.framebufferWidth, rfb.framebufferHeight);
-		    pig.setClip(0, 0,
-				rfb.framebufferWidth, rfb.framebufferHeight);
-		  } catch (NoSuchMethodError e) {
-		  }
-		  needToResetClip = false;
 		}
 
 		if ((subencoding & rfb.HextileBackgroundSpecified) != 0)
@@ -269,6 +265,7 @@ class vncCanvas extends Canvas
 		sg.fillRect(tx, ty, tw, th);
 		pig.setColor(colors[bg]);
 		pig.fillRect(tx, ty, tw, th);
+		fillPixelsArea(tx, ty, tw, th, (byte)bg);
 
 		if ((subencoding & rfb.HextileForegroundSpecified) != 0)
 		  fg = rfb.is.read();
@@ -278,24 +275,22 @@ class vncCanvas extends Canvas
 
 		int nSubrects = rfb.is.read();
 
-		sg.translate(tx, ty);
-		pig.translate(tx, ty);
-
 		if ((subencoding & rfb.HextileSubrectsColoured) != 0) {
 
 		  for (int j = 0; j < nSubrects; j++) {
 		    fg = rfb.is.read();
 		    int b1 = rfb.is.read();
 		    int b2 = rfb.is.read();
-		    sx = b1 >> 4;
-                    sy = b1 & 0xf;
-                    sw = (b2 >> 4) + 1;
+		    sx = tx + (b1 >> 4);
+		    sy = ty + (b1 & 0xf);
+		    sw = (b2 >> 4) + 1;
 		    sh = (b2 & 0xf) + 1;
 
 		    sg.setColor(colors[fg]);
 		    sg.fillRect(sx, sy, sw, sh);
 		    pig.setColor(colors[fg]);
 		    pig.fillRect(sx, sy, sw, sh);
+		    fillPixelsArea(sx, sy, sw, sh, (byte)fg);
 		  }
 
 		} else {
@@ -306,18 +301,16 @@ class vncCanvas extends Canvas
 		  for (int j = 0; j < nSubrects; j++) {
 		    int b1 = rfb.is.read();
 		    int b2 = rfb.is.read();
-		    sx = b1 >> 4;
-                    sy = b1 & 0xf;
-                    sw = (b2 >> 4) + 1;
+		    sx = tx + (b1 >> 4);
+		    sy = ty + (b1 & 0xf);
+		    sw = (b2 >> 4) + 1;
 		    sh = (b2 & 0xf) + 1;
 
 		    sg.fillRect(sx, sy, sw, sh);
 		    pig.fillRect(sx, sy, sw, sh);
+		    fillPixelsArea(sx, sy, sw, sh, (byte)fg);
 		  }
 		}
-
-		sg.translate(-tx, -ty);
-		pig.translate(-tx, -ty);
 	      }
 	    }
 	    break;
@@ -398,6 +391,7 @@ class vncCanvas extends Canvas
 	  sg.fillRect(k, j, 1, 1);
 	  pig.setColor(colors[pixel]);
 	  pig.fillRect(k, j, 1, 1);
+	  pixels[j * rfb.framebufferWidth + k] = (byte)pixel;
 	}
       }
       return;
@@ -420,6 +414,7 @@ class vncCanvas extends Canvas
 
     if (v.options.drawEachPixelForRawRects) {
       byte[] nextLine = new byte[ w ];
+      byte pixel;
       Color myColor;
       for (int j = y; j < (y + h); j++) {
         try {
@@ -429,11 +424,13 @@ class vncCanvas extends Canvas
           throw new IOException( dfe.toString());
         }
 	for (int k = x; k < (x + w); k++) {
-          myColor = colors[ 0x000000ff & nextLine[ k - x ]];
+	  pixel = nextLine[ k - x ];
+          myColor = colors[ 0x000000ff & pixel ];
 	  sg.setColor(myColor);
 	  sg.fillRect(k, j, 1, 1);
 	  pig.setColor(myColor);
 	  pig.fillRect(k, j, 1, 1);
+	  pixels[j * rfb.framebufferWidth + k] = pixel;
 	}
       }
       return;
@@ -481,6 +478,7 @@ class vncCanvas extends Canvas
       sg.fillRect(x, y, w, h);
       pig.setColor(colors[bg]);
       pig.fillRect(x, y, w, h);
+      fillPixelsArea(x, y, w, h, (byte)bg);
       return;
     }
 
@@ -548,6 +546,13 @@ class vncCanvas extends Canvas
     // Draw full-color rectangle.
     Color myColor;
     int dx, dy;
+
+    for (dy = 0; dy < h; dy++) {
+      for (dx = 0; dx < w; dx++) {
+	pixels[(y + dy) * rfb.framebufferWidth + (x + dx)] =
+	  rawData[dy * w + dx];
+      }
+    }
     if (v.options.drawEachPixelForRawRects) {
       for (dy = 0; dy < h; dy++) {
 	for (dx = 0; dx < w; dx++) {
@@ -559,12 +564,6 @@ class vncCanvas extends Canvas
 	}
       }
     } else {
-      for (dy = 0; dy < h; dy++) {
-	for (dx = 0; dx < w; dx++) {
-	  pixels[(y + dy) * rfb.framebufferWidth + (x + dx)] =
-	    rawData[dy * w + dx];
-	}
-      }
       handleUpdatedPixels(x, y, w, h);
     }
   }
@@ -578,14 +577,14 @@ class vncCanvas extends Canvas
 		    byte[] src, byte[] palette)
     throws IOException {
 
+    int dx, dy, i, n;
+    int rowBytes = (w + 7) / 8;
+    byte b;
+
     if (v.options.drawEachPixelForRawRects) {
       // "Reliable" drawing mode
 
       Color myColor;
-      int rowBytes = (w + 7) / 8;
-      int dx, dy, i, n;
-      byte b;
-
       Color myPalette[] = new Color[2];
       myPalette[0] = colors[0xFF & palette[0]];
       myPalette[1] = colors[0xFF & palette[1]];
@@ -612,25 +611,23 @@ class vncCanvas extends Canvas
 	  i++;
 	}
       }
-    } else {
-      // "Fast" drawing mode
+    }
 
-      int i = y * rfb.framebufferWidth + x;
-      int rowBytes = (w + 7) / 8;
-      int dx, dy, n;
-      byte b;
+    i = y * rfb.framebufferWidth + x;
 
-      for (dy = 0; dy < h; dy++) {
-	for (dx = 0; dx < w / 8; dx++) {
-	  b = src[dy*rowBytes+dx];
-	  for (n = 7; n >= 0; n--)
-	    pixels[i++] = palette[b >> n & 1];
-	}
-	for (n = 7; n >= 8 - w % 8; n--) {
-	  pixels[i++] = palette[src[dy*rowBytes+dx] >> n & 1];
-	}
-	i += (rfb.framebufferWidth - w);
+    for (dy = 0; dy < h; dy++) {
+      for (dx = 0; dx < w / 8; dx++) {
+	b = src[dy*rowBytes+dx];
+	for (n = 7; n >= 0; n--)
+	  pixels[i++] = palette[b >> n & 1];
       }
+      for (n = 7; n >= 8 - w % 8; n--) {
+	pixels[i++] = palette[src[dy*rowBytes+dx] >> n & 1];
+      }
+      i += (rfb.framebufferWidth - w);
+    }
+
+    if (!v.options.drawEachPixelForRawRects) {
       handleUpdatedPixels(x, y, w, h);
     }
   }
@@ -640,14 +637,14 @@ class vncCanvas extends Canvas
   // Display newly updated area of pixels.
   //
 
-  void handleUpdatedPixels(int x, int y, int w, int h) throws IOException {
+  synchronized void
+    handleUpdatedPixels(int x, int y, int w, int h) throws IOException {
 
     amis.newPixels(x, y, w, h);
 
     try {
       sg.setClip(x, y, w, h);
       pig.setClip(x, y, w, h);
-      needToResetClip = true;
     } catch (NoSuchMethodError e) {
       sg2 = sg.create();
       sg.clipRect(x, y, w, h);
@@ -658,7 +655,10 @@ class vncCanvas extends Canvas
     sg.drawImage(rawPixelsImage, 0, 0, this);
     pig.drawImage(rawPixelsImage, 0, 0, this);
 
-    if (sg2 != null) {
+    if (sg2 == null) {
+      sg.setClip(0, 0, rfb.framebufferWidth, rfb.framebufferHeight);
+      pig.setClip(0, 0, rfb.framebufferWidth, rfb.framebufferHeight);
+    } else {
       sg.dispose();    // reclaims resources more quickly
       sg = sg2;
       sg2 = null;
@@ -668,6 +668,20 @@ class vncCanvas extends Canvas
     }
   }
 
+  //
+  // Reflect fillRect operation in the pixels[] array.
+  //
+
+  void fillPixelsArea(int x, int y, int w, int h, byte pixel) {
+
+    int offset = y * rfb.framebufferWidth + x;
+    for (int dy = 0; dy < h; dy++) {
+      for (int dx = 0; dx < w; dx++) {
+	pixels[offset++] = pixel;
+      }
+      offset += (rfb.framebufferWidth - w);
+    }
+  }
 
   //
   // Handle events.

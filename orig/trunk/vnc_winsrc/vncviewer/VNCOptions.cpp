@@ -86,6 +86,27 @@ VNCOptions::VNCOptions()
 	m_requestShapeUpdates = true;
 	m_ignoreShapeUpdates = false;
 
+	strcpy(rfbcombo[0].NameString, "Raw");
+	rfbcombo[0].rfbEncoding = rfbEncodingRaw;
+
+	strcpy(rfbcombo[1].NameString, "Hextile");
+	rfbcombo[1].rfbEncoding = rfbEncodingHextile;
+
+	strcpy(rfbcombo[2].NameString, "Tight");
+	rfbcombo[2].rfbEncoding = rfbEncodingTight;
+
+	strcpy(rfbcombo[3].NameString, "RRE");
+	rfbcombo[3].rfbEncoding = rfbEncodingRRE;
+
+	strcpy(rfbcombo[4].NameString, "CoRRE");
+	rfbcombo[4].rfbEncoding = rfbEncodingCoRRE;
+
+	strcpy(rfbcombo[5].NameString, "Zlib(pure)");
+	rfbcombo[5].rfbEncoding = rfbEncodingZlib;
+
+	strcpy(rfbcombo[6].NameString, "ZlibHex(mix)");
+	rfbcombo[6].rfbEncoding = rfbEncodingZlibHex;
+	
 	LoadGenOpt();
 
 	
@@ -765,46 +786,14 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 
 			// Initialise the controls
 			HWND hListBox = GetDlgItem(hwnd, IDC_ENCODING);
-			TCHAR list[20];
-			strcpy(list, "Raw");
-			SendMessage(hListBox, CB_INSERTSTRING, (WPARAM)0, (LPARAM)(int FAR*)list);
-			strcpy(list, "Hextile");
-			SendMessage(hListBox, CB_INSERTSTRING, (WPARAM)1, (LPARAM)(int FAR*)list);
-			strcpy(list, "Tight");
-			SendMessage(hListBox, CB_INSERTSTRING, (WPARAM)2, (LPARAM)(int FAR*)list);
-			strcpy(list, "RRE");
-			SendMessage(hListBox, CB_INSERTSTRING, (WPARAM)3, (LPARAM)(int FAR*)list);
-			strcpy(list, "Zlib (pure)");
-			SendMessage(hListBox, CB_INSERTSTRING, (WPARAM)4, (LPARAM)(int FAR*)list);
-			strcpy(list, "CoRRE");
-			SendMessage(hListBox, CB_INSERTSTRING, (WPARAM)5, (LPARAM)(int FAR*)list);
-			strcpy(list, "ZlibHex (mix)");
-			SendMessage(hListBox, CB_INSERTSTRING, (WPARAM)6, (LPARAM)(int FAR*)list);
-			int i;
-			switch (_this->m_PreferredEncoding) {
-			case rfbEncodingRaw:
-				i = 0;
-				break;
-			case rfbEncodingHextile:
-				i = 1;
-				break;
-			case rfbEncodingTight:
-				i = 2;
-				break;
-			case rfbEncodingRRE:
-				i = 3;
-				break;
-			case rfbEncodingZlib:
-				i = 4;
-				break;
-			case rfbEncodingCoRRE:
-				i = 5;
-				break;
-			case rfbEncodingZlibHex:
-				i = 6;
-				break;
-			}
-			SendMessage(hListBox, CB_SETCURSEL, i, 0);
+			for (int i = 0; i <= 6; i++) {			
+				SendMessage(hListBox, CB_INSERTSTRING, 
+							(WPARAM)i, 
+							(LPARAM)(int FAR*)_this->rfbcombo[i].NameString);
+				if (_this->rfbcombo[i].rfbEncoding == _this->m_PreferredEncoding) {
+					SendMessage(hListBox, CB_SETCURSEL, i, 0);
+				}
+			}			
 			HWND hCopyRect = GetDlgItem(hwnd, ID_SESSION_SET_CRECT);
 			SendMessage(hCopyRect, BM_SETCHECK, _this->m_UseEnc[rfbEncodingCopyRect], 0);
 			
@@ -828,23 +817,17 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 			
 			HWND hViewOnly = GetDlgItem(hwnd, IDC_VIEWONLY);
 			SendMessage(hViewOnly, BM_SETCHECK, _this->m_ViewOnly, 0);
-			
+			int scalecombo[7] = {
+				25,50,75,90,100,125,150
+			};
 			HWND hScalEdit = GetDlgItem(hwnd, IDC_SCALE_EDIT);
-			strcpy(list, "25");
-			SendMessage(hScalEdit, CB_INSERTSTRING, (WPARAM)0, (LPARAM)(int FAR*)list);
-			strcpy(list, "50");
-			SendMessage(hScalEdit, CB_INSERTSTRING, (WPARAM)1, (LPARAM)(int FAR*)list);
-			strcpy(list, "75");
-			SendMessage(hScalEdit, CB_INSERTSTRING, (WPARAM)2, (LPARAM)(int FAR*)list);
-			strcpy(list, "90");
-			SendMessage(hScalEdit, CB_INSERTSTRING, (WPARAM)3, (LPARAM)(int FAR*)list);
-			strcpy(list, "100"); 
-			SendMessage(hScalEdit, CB_INSERTSTRING, (WPARAM)4, (LPARAM)(int FAR*)list);
-			strcpy(list, "125");
-			SendMessage(hScalEdit, CB_INSERTSTRING, (WPARAM)5, (LPARAM)(int FAR*)list);
-			strcpy(list, "150");
-			SendMessage(hScalEdit, CB_INSERTSTRING, (WPARAM)6, (LPARAM)(int FAR*)list);
-			
+			TCHAR list[4];
+			for (i = 0; i <= 6; i++) {
+				itoa(scalecombo[i],list, 10);
+				SendMessage(hScalEdit, CB_INSERTSTRING, (WPARAM)i,
+							(LPARAM)(int FAR*)list);
+			}
+						
 			SetDlgItemInt(hwnd, IDC_SCALE_EDIT, (( _this->m_scale_num*100) / _this->m_scale_den), FALSE);
 			
 #ifndef UNDER_CE
@@ -984,29 +967,7 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 			{		 
 				HWND hListBox = GetDlgItem(hwnd, IDC_ENCODING);
 				int i = SendMessage(hListBox, CB_GETCURSEL, 0, 0);
-				switch (i) {
-				case 0:
-					_this->m_PreferredEncoding = rfbEncodingRaw;
-					break;
-				case 1:
-					_this->m_PreferredEncoding = rfbEncodingHextile;
-					break;
-				case 2:
-					_this->m_PreferredEncoding = rfbEncodingTight;
-					break;
-				case 3:
-					_this->m_PreferredEncoding = rfbEncodingRRE;
-					break;
-				case 4:
-					_this->m_PreferredEncoding = rfbEncodingZlib;
-					break;
-				case 5:
-					_this->m_PreferredEncoding = rfbEncodingCoRRE;
-					break;
-				case 6:
-					_this->m_PreferredEncoding = rfbEncodingZlibHex;
-					break;
-				}
+				_this->m_PreferredEncoding = _this->rfbcombo[i].rfbEncoding;					
 				HWND hScalEdit = GetDlgItem(hwnd, IDC_SCALE_EDIT);
 				int error;
 				i = GetDlgItemInt(hwnd, IDC_SCALE_EDIT, &error, FALSE);
@@ -1093,8 +1054,8 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 					HWND hAllowJpeg = GetDlgItem(hwnd, IDC_ALLOW_JPEG);					
 					HWND hListBox = GetDlgItem(hwnd, IDC_ENCODING);
 					int i = SendMessage(hListBox ,CB_GETCURSEL, 0, 0);
-					switch (i) {
-					case 2:
+					switch (_this->rfbcombo[i].rfbEncoding) {
+					case rfbEncodingTight:
 						if (SendMessage(h8bit, BM_GETCHECK, 0, 0) == 0) {
 							_this->EnableJpeg(hwnd, (SendMessage(hAllowJpeg,
 													BM_GETCHECK, 0, 0) == 1));							
@@ -1104,18 +1065,18 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 													BM_GETCHECK,0,0) == 1));
 						EnableWindow(hAllowCompressLevel, TRUE);
 						break;
-					case 4:
-					case 6:
+					case rfbEncodingZlib:
+					case rfbEncodingZlibHex:
 						_this->EnableCompress(hwnd,
 							(SendMessage(hAllowCompressLevel, BM_GETCHECK, 0, 0) == 1));
 						EnableWindow(hAllowCompressLevel, TRUE);						
 						_this->EnableJpeg(hwnd, FALSE);
 						EnableWindow(hAllowJpeg, FALSE);
 						break;
-					case 0:
-					case 3:
-					case 5:
-					case 1:
+					case rfbEncodingRRE:
+					case rfbEncodingCoRRE:
+					case rfbEncodingRaw:
+					case rfbEncodingHextile:
 						_this->EnableCompress(hwnd, FALSE);
 						EnableWindow(hAllowCompressLevel, FALSE);
 						_this->EnableJpeg(hwnd, FALSE);

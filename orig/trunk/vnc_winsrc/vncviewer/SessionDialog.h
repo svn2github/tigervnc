@@ -40,13 +40,14 @@ public:
 	// displayed if the options.. button is clicked.
 	SessionDialog(VNCOptions *pOpt,ClientConnection *cc);
 	int DoDialog();
-	int SessionDialog::cmp(HWND hwnd);
 	int m_port;
 	TCHAR m_host[256];
    	virtual ~SessionDialog();
     HKEY m_hRegKey;
 	
 private:
+	void SetConnectionProfile(bool LowBandwidth, bool HighSpeed);
+	int cmp(HWND hwnd);
 	ClientConnection *m_cc;
 	VNCOptions *m_pOpt;
 	TCHAR keyname[40];

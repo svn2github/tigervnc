@@ -195,16 +195,7 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 			case BN_CLICKED:
 				// FIXME: Eliminate code duplication, see below
 				// (handle connection profiles in one place, in VNCOptions?)
-				for (int i = rfbEncodingRaw; i <= LASTENCODING; i++)
-					_this->m_pOpt->m_UseEnc[i] = true;
-
-				_this->m_pOpt->m_UseEnc[3] = false;
-				_this->m_pOpt->m_PreferredEncoding = rfbEncodingHextile;
-				_this->m_pOpt->m_useCompressLevel = false;
-				_this->m_pOpt->m_compressLevel = 6;
-				_this->m_pOpt->m_enableJpegCompression = false;
-				_this->m_pOpt->m_jpegQualityLevel = 6;
-				_this->m_pOpt->m_Use8Bit = false;
+				_this->SetConnectionProfile(false, true);
 				return TRUE;
 			}
 			return TRUE;
@@ -212,16 +203,7 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 			switch (HIWORD(wParam)) {
 			case BN_CLICKED:
 				// FIXME: Eliminate code duplication, see above and below.
-				for (i = rfbEncodingRaw; i <= LASTENCODING; i++)
-					_this->m_pOpt->m_UseEnc[i] = true;
-
-				_this->m_pOpt->m_UseEnc[3] = false;
-				_this->m_pOpt->m_PreferredEncoding = rfbEncodingTight;
-				_this->m_pOpt->m_useCompressLevel = true;
-				_this->m_pOpt->m_compressLevel = 6;
-				_this->m_pOpt->m_enableJpegCompression = true;
-				_this->m_pOpt->m_jpegQualityLevel = 6;
-				_this->m_pOpt->m_Use8Bit = true;
+				_this->SetConnectionProfile(true, false);
 				return TRUE;
 			}
 			return TRUE;
@@ -229,16 +211,7 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 			switch (HIWORD(wParam)) {
 			case BN_CLICKED:
 				// FIXME: Eliminate code duplication, see above.
-				for (i = rfbEncodingRaw; i <= LASTENCODING; i++)
-						_this->m_pOpt->m_UseEnc[i] = true;
-
-				_this->m_pOpt->m_UseEnc[3] = false;
-				_this->m_pOpt->m_PreferredEncoding = rfbEncodingTight;
-				_this->m_pOpt->m_useCompressLevel = false;
-				_this->m_pOpt->m_compressLevel = 6;
-				_this->m_pOpt->m_enableJpegCompression = true;
-				_this->m_pOpt->m_jpegQualityLevel = 6;
-				_this->m_pOpt->m_Use8Bit = false;
+				_this->SetConnectionProfile(false, false);
 				return TRUE;
 			}
 			return TRUE;
@@ -293,12 +266,6 @@ int SessionDialog::cmp(HWND hwnd)
 	} else {
 		if (m_pOpt->m_compressLevel != 6) a = 0;
 	}
-	if (m_pOpt->m_enableJpegCompression != true) {
-		a = 0;
-	} else {
-		if (m_pOpt->m_jpegQualityLevel != 6) a = 0;
-	}
-
 	if (a == 1) {
 		SendMessage(hModemRadio, BM_CLICK, 0, 0);
 		return a;
@@ -309,7 +276,7 @@ int SessionDialog::cmp(HWND hwnd)
 		if ((m_pOpt->m_UseEnc[i] != true) && (i != 3)) a = 0;
 	if (m_pOpt->m_UseEnc[3] != false) a = 0;
 	if (m_pOpt->m_Use8Bit != false) a = 0;
-	if (m_pOpt->m_PreferredEncoding != (rfbEncodingTight - 2)) a = 0;
+	if (m_pOpt->m_PreferredEncoding != rfbEncodingHextile) a = 0;
 		
 	if (a == 2) {
 		SendMessage(hLocNetRadio, BM_CLICK, 0, 0);
@@ -340,7 +307,31 @@ int SessionDialog::cmp(HWND hwnd)
 	}
 	return a;
 }
- 
+
+void SessionDialog::SetConnectionProfile(bool LowBandwidth, bool HighSpeed) 
+{
+	for (int i = rfbEncodingRaw; i <= LASTENCODING; i++)
+		m_pOpt->m_UseEnc[i] = true;
+
+	m_pOpt->m_UseEnc[3] = false;	
+	if (!LowBandwidth && !HighSpeed) {
+		m_pOpt->m_PreferredEncoding = rfbEncodingTight;
+		m_pOpt->m_useCompressLevel = false;
+		m_pOpt->m_enableJpegCompression = true;
+		m_pOpt->m_jpegQualityLevel = 6;
+		m_pOpt->m_Use8Bit = false;
+	}
+	if (LowBandwidth && !HighSpeed) {
+		m_pOpt->m_PreferredEncoding = rfbEncodingTight;
+		m_pOpt->m_useCompressLevel = true;
+		m_pOpt->m_compressLevel = 6;
+		m_pOpt->m_Use8Bit = true;
+	}
+	if (!LowBandwidth && HighSpeed) {
+		m_pOpt->m_PreferredEncoding = rfbEncodingHextile;
+		m_pOpt->m_Use8Bit = false;
+	}
+}
 	
 	
 	

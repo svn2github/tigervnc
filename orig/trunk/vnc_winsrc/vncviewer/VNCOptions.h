@@ -143,6 +143,11 @@ private:
 	// Just for temporary use
 	bool m_running;
 
+	struct COMBOSTRING {
+		TCHAR NameString[20];
+		int rfbEncoding;
+	};
+	COMBOSTRING rfbcombo[7];	
 };
 
 #endif // VNCOPTIONS_H__

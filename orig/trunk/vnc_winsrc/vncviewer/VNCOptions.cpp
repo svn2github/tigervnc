@@ -1199,18 +1199,15 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 			HWND hSpin3 = GetDlgItem(hwnd, IDC_SPIN3);
 			SendMessage(hSpin3, UDM_SETBUDDY, (WPARAM) (HWND)hListenPort, 0);
 			
-			HWND hfile = GetDlgItem(hwnd, IDC_STATIC_LOG_FILE);
 			HWND hlevel = GetDlgItem(hwnd, IDC_STATIC_LOG_LEVEL);
 			SendMessage(hChec, BM_SETCHECK, pApp->m_options.m_logToFile, 0);
 			if (SendMessage(hChec, BM_GETCHECK, 0, 0) == 0) {
 				EnableWindow(hEditFile, FALSE);
 				EnableWindow(hEditLevel, FALSE);
-				EnableWindow(hfile, FALSE);
 				EnableWindow(hlevel, FALSE);
 			} else {
 				EnableWindow(hEditFile, TRUE);
 				EnableWindow(hEditLevel, TRUE);
-				EnableWindow(hfile, TRUE);
 				EnableWindow(hlevel, TRUE);
 			}
 			SetDlgItemInt( hwnd, IDC_EDIT_LOG_LEVEL, pApp->m_options.m_logLevel, FALSE);
@@ -1322,7 +1319,6 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 		case IDC_CHECK_LOG_FILE:
 			switch (HIWORD(wParam)) {
 			case BN_CLICKED:
-				HWND hfile = GetDlgItem(hwnd, IDC_STATIC_LOG_FILE);
 				HWND hlevel = GetDlgItem(hwnd, IDC_STATIC_LOG_LEVEL);
 				HWND hChec = GetDlgItem(hwnd, IDC_CHECK_LOG_FILE);
 				HWND hEditFile = GetDlgItem(hwnd, IDC_EDIT_LOG_FILE);
@@ -1331,13 +1327,11 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 				if (SendMessage(hChec, BM_GETCHECK, 0, 0) == 0){
 					EnableWindow(hEditFile, TRUE);
 					EnableWindow(hEditLevel, TRUE);
-					EnableWindow(hfile, TRUE);
 					EnableWindow(hlevel, TRUE);
 					SendMessage(hChec, BM_SETCHECK, TRUE, 0);
 				} else {
 					EnableWindow(hEditFile, FALSE);
 					EnableWindow(hEditLevel, FALSE);
-					EnableWindow(hfile, FALSE);
 					EnableWindow(hlevel, FALSE);
 					SendMessage(hChec, BM_SETCHECK, FALSE, 0);
 				} 

@@ -66,9 +66,6 @@ void VNCHelp::Popup(LPARAM lParam)
 		case IDC_STATIC_LIST:
 			popup.idString = IDC_EDIT_AMOUNT_LIST;
 			break;
-		case IDC_STATIC_LOG_FILE:
-			popup.idString = IDC_EDIT_LOG_FILE;
-			break;
 		case IDC_STATIC_LOG_LEVEL:
 			popup.idString = IDC_EDIT_LOG_LEVEL;
 			break;

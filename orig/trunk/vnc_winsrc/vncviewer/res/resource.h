@@ -134,7 +134,6 @@
 #define IDC_STATIC_P                    1104
 #define IDC_STATIC_SERVER               1105
 #define IDC_STATIC_LIST                 1106
-#define IDC_STATIC_LOG_FILE             1107
 #define IDC_STATIC_LOG_LEVEL            1108
 #define IDC_STATIC_PORT                 1109
 #define IDC_STATIC_FORMAT               1110
@@ -149,6 +148,7 @@
 #define IDC_STATIC_PICTURE              1119
 #define IDC_BUTTON1                     1120
 #define IDC_FTCOPY                      1120
+#define IDC_LOG_BROWSE                  1120
 #define ID_SESSION_SET_CRECT            32777
 #define IDC_ALLOW_COMPRESSLEVEL         32778
 #define IDC_ALLOW_JPEG                  32779

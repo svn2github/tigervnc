@@ -2400,8 +2400,10 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 	case WM_SYSDEADCHAR:
 	  return 0;
 	case WM_SETFOCUS:
-		if (_this->InFullScreenMode())
+		if (_this->InFullScreenMode()) {
 			SetWindowPos(hwnd, HWND_TOPMOST, 0,0,100,100, SWP_NOMOVE | SWP_NOSIZE);
+			_this->m_DisButton->ShowButton(TRUE);
+		}
 		return 0;
 	// Cacnel modifiers when we lose focus
 	case WM_KILLFOCUS:
@@ -2420,6 +2422,7 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 				}
 
 				SetWindowPos(_this->m_hwnd1, hwndafter, 0,0,100,100, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+				_this->m_DisButton->ShowButton(FALSE);
 			}
 			vnclog.Print(6, _T("Losing focus - cancelling modifiers\n"));
 			return 0;

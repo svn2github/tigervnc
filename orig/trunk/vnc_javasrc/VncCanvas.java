@@ -65,7 +65,7 @@ class VncCanvas extends Canvas
   Rectangle jpegRect;
 
   // True if we process keyboard and mouse events.
-  boolean listenersInstalled;
+  boolean inputEnabled;
 
   //
   // The constructor.
@@ -86,9 +86,13 @@ class VncCanvas extends Canvas
 
     setPixelFormat();
 
-    listenersInstalled = false;
+    inputEnabled = false;
     if (!viewer.options.viewOnly)
       enableInput(true);
+
+    // Keyboard listener is enabled even in view-only mode, to catch
+    // 'r' or 'R' key presses used to request screen update.
+    addKeyListener(this);
   }
 
   //
@@ -154,21 +158,21 @@ class VncCanvas extends Canvas
   }
 
   //
-  // Start/stop receiving keyboard and mouse events.
+  // Start/stop receiving mouse events. Keyboard events are received
+  // even in view-only mode, because we want to map the 'r' key to the
+  // screen refreshing function.
   //
 
   public synchronized void enableInput(boolean enable) {
-    if (enable && !listenersInstalled) {
-      listenersInstalled = true;
-      addKeyListener(this);
+    if (enable && !inputEnabled) {
+      inputEnabled = true;
       addMouseListener(this);
       addMouseMotionListener(this);
       if (viewer.showControls) {
 	viewer.buttonPanel.enableRemoteAccessControls(true);
       }
-    } else if (!enable && listenersInstalled) {
-      listenersInstalled = false;
-      removeKeyListener(this);
+    } else if (!enable && inputEnabled) {
+      inputEnabled = false;
       removeMouseListener(this);
       removeMouseMotionListener(this);
       if (viewer.showControls) {
@@ -1069,14 +1073,28 @@ class VncCanvas extends Canvas
   }
 
   public void processLocalKeyEvent(KeyEvent evt) {
-    if (rfb != null && rfb.inNormalProtocol) {
-      synchronized(rfb) {
-	try {
-	  rfb.writeKeyEvent(evt);
-	} catch (Exception e) {
-	  e.printStackTrace();
+    if (viewer.rfb != null && rfb.inNormalProtocol) {
+      if (!inputEnabled) {
+	if ((evt.getKeyChar() == 'r' || evt.getKeyChar() == 'R') &&
+	    evt.getID() == KeyEvent.KEY_PRESSED ) {
+	  // Request screen update.
+	  try {
+	    rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
+					      rfb.framebufferHeight, false);
+	  } catch (IOException e) {
+	    e.printStackTrace();
+	  }
 	}
-	rfb.notify();
+      } else {
+	// Input enabled.
+	synchronized(rfb) {
+	  try {
+	    rfb.writeKeyEvent(evt);
+	  } catch (Exception e) {
+	    e.printStackTrace();
+	  }
+	  rfb.notify();
+	}
       }
     }
     // Don't ever pass keyboard events to AWT for default processing. 
@@ -1085,7 +1103,7 @@ class VncCanvas extends Canvas
   }
 
   public void processLocalMouseEvent(MouseEvent evt, boolean moved) {
-    if (rfb != null && rfb.inNormalProtocol) {
+    if (viewer.rfb != null && rfb.inNormalProtocol) {
       if (moved) {
 	softCursorMove(evt.getX(), evt.getY());
       }

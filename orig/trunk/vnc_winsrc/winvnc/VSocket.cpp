@@ -1,5 +1,5 @@
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
-//  Copyright (C) 2001 Const Kaplinsky. All Rights Reserved.
+//  Copyright (C) 2001 HorizonLive.com, Inc. All Rights Reserved.
 //
 //  This file is part of the VNC system.
 //

@@ -152,9 +152,9 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,12,160,109,10
     GROUPBOX        "Display",IDC_STATIC_DISPLAY,136,4,160,52
     LTEXT           "Scale by:",IDC_STATIC_SCALE,145,15,36,10,SS_CENTERIMAGE
-    COMBOBOX        IDC_SCALE_EDIT,181,14,32,85,CBS_DROPDOWN | 
+    COMBOBOX        IDC_SCALE_EDIT,181,14,36,85,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "%",IDC_STATIC_P,220,15,10,10,SS_CENTERIMAGE
+    LTEXT           "%",IDC_STATIC_P,222,15,10,10,SS_CENTERIMAGE
     CONTROL         "Full-screen mode",IDC_FULLSCREEN,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,145,29,145,10
     CONTROL         "Deiconify on remote Bell event",IDC_BELLDEICONIFY,
@@ -279,46 +279,44 @@ IDD_GENERAL_OPTION DIALOG DISCARDABLE  0, 0, 300, 179
 STYLE DS_CONTROL | WS_CHILD
 FONT 8, "MS Sans Serif"
 BEGIN
-    GROUPBOX        "Interface options",IDC_STATIC_IOPTIONS,4,4,167,77
-    CONTROL         "Show toolbars",IDC_CHECK_TOOLBAR,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,12,16,76,10
+    GROUPBOX        "Interface options",IDC_STATIC_IOPTIONS,4,4,185,77
+    CONTROL         "Show toolbars by default",IDC_CHECK_TOOLBAR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,12,16,152,10
     CONTROL         "Warn at switching to the full-screen mode",
                     IDC_CHECK_MESSAGE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    12,30,152,10
-    LTEXT           "Number of connections to remember:",IDC_STATIC_LIST,12,
-                    46,121,10
-    EDITTEXT        IDC_EDIT_AMOUNT_LIST,137,44,27,14,ES_AUTOHSCROLL | 
+                    12,31,152,10
+    CONTROL         "Allow auto scrolling in window mode",IDC_AUTO_SCROLLING,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,46,152,10
+    LTEXT           "Connections to remember:",IDC_STATIC_LIST,12,62,88,10
+    EDITTEXT        IDC_EDIT_AMOUNT_LIST,103,60,26,14,ES_AUTOHSCROLL | 
                     ES_NUMBER
     CONTROL         "Spin1",IDC_SPIN1,"msctls_updown32",UDS_ALIGNRIGHT | 
-                    UDS_ARROWKEYS,164,44,10,14
-    PUSHBUTTON      "Clear the list of saved connections",
-                    IDC_BUTTON_CLEAR_LIST,12,60,119,14
-    GROUPBOX        "Local cursor shape",IDC_STATIC_LCURSOR,180,4,116,77
+                    UDS_ARROWKEYS,128,60,6,14
+    PUSHBUTTON      "Clear all",IDC_BUTTON_CLEAR_LIST,136,60,43,14
+    GROUPBOX        "Local cursor shape",IDC_STATIC_LCURSOR,198,4,98,77
     CONTROL         "Dot cursor",IDC_DOTCURSOR_RADIO,"Button",
-                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,189,18,99,10
+                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,207,18,81,10
     CONTROL         "Small dot cursor",IDC_SMALLDOTCURSOR_RADIO,"Button",
-                    BS_AUTORADIOBUTTON,189,33,99,10
+                    BS_AUTORADIOBUTTON,207,33,81,10
     CONTROL         "Normal arrow",IDC_NORMALCURSOR_RADIO,"Button",
-                    BS_AUTORADIOBUTTON,189,48,99,10
+                    BS_AUTORADIOBUTTON,207,48,81,10
     CONTROL         "No local cursor",IDC_NOCURSOR_RADIO,"Button",
-                    BS_AUTORADIOBUTTON,189,63,99,10
+                    BS_AUTORADIOBUTTON,207,63,81,10
     GROUPBOX        "Listening mode",IDC_STATIC_LMODE,4,86,292,33
     LTEXT           "Accept reverse VNC connections on TCP port:",
-                    IDC_STATIC_PORT,13,100,158,10
+                    IDC_STATIC_PORT,13,100,157,10
     EDITTEXT        IDC_LISTEN_PORT,176,98,36,14,ES_AUTOHSCROLL | ES_NUMBER | 
                     WS_GROUP
     CONTROL         "Spin3",IDC_SPIN3,"msctls_updown32",UDS_ALIGNRIGHT | 
                     UDS_ARROWKEYS,212,98,10,14
     GROUPBOX        "Logging",IDC_STATIC_LOGGING,4,124,292,51
     CHECKBOX        "Write log to a file:",IDC_CHECK_LOG_FILE,12,137,76,10
-    EDITTEXT        IDC_EDIT_LOG_FILE,92,136,143,13,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT_LOG_FILE,92,136,143,14,ES_AUTOHSCROLL
     PUSHBUTTON      "Browse...",IDC_LOG_BROWSE,240,136,48,14
     LTEXT           "Verbosity level:",IDC_STATIC_LOG_LEVEL,24,156,64,10
-    EDITTEXT        IDC_EDIT_LOG_LEVEL,92,153,23,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT_LOG_LEVEL,92,153,26,14,ES_AUTOHSCROLL
     CONTROL         "Spin2",IDC_SPIN2,"msctls_updown32",UDS_ALIGNRIGHT | 
-                    UDS_ARROWKEYS,115,153,10,14
-    CONTROL         "Auto Scrolling ",IDC_AUTO_SCROLLING,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,92,14,72,14
+                    UDS_ARROWKEYS,117,153,6,14
 END
 
 IDD_HELP DIALOG DISCARDABLE  0, 0, 295, 207
@@ -472,13 +470,12 @@ BEGIN
         VERTGUIDE, 88
         VERTGUIDE, 92
         VERTGUIDE, 164
-        VERTGUIDE, 171
-        VERTGUIDE, 189
+        VERTGUIDE, 207
         VERTGUIDE, 288
         TOPMARGIN, 4
         BOTTOMMARGIN, 175
         HORZGUIDE, 21
-        HORZGUIDE, 35
+        HORZGUIDE, 36
         HORZGUIDE, 51
     END
 

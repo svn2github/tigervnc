@@ -209,12 +209,11 @@ vncServer::ClientsDisabled()
 vncClientId
 vncServer::AddClient(VSocket *socket, BOOL auth, BOOL shared)
 {
-	return AddClient(socket, auth, shared, FALSE, 0, TRUE, TRUE); 
+	return AddClient(socket, auth, shared, TRUE, TRUE);
 }
 
 vncClientId
 vncServer::AddClient(VSocket *socket, BOOL auth, BOOL shared,
-					 BOOL teleport, int capability,
 					 BOOL keysenabled, BOOL ptrenabled)
 {
 	vncClient *client;
@@ -244,8 +243,6 @@ vncServer::AddClient(VSocket *socket, BOOL auth, BOOL shared,
 	}
 
 	// Set the client's settings
-	client->SetTeleport(teleport);
-	client->SetCapability(capability);
 	client->EnableKeyboard(keysenabled && m_enable_remote_inputs);
 	client->EnablePointer(ptrenabled && m_enable_remote_inputs);
 
@@ -497,26 +494,6 @@ vncServer::ClientList()
 }
 
 void
-vncServer::SetTeleport(vncClientId clientid, BOOL teleport)
-{
-	omni_mutex_lock l(m_clientsLock);
-
-	vncClient *client = GetClient(clientid);
-	if (client != NULL)
-		client->SetTeleport(teleport);
-}
-
-void
-vncServer::SetCapability(vncClientId clientid, int capability)
-{
-	omni_mutex_lock l(m_clientsLock);
-
-	vncClient *client = GetClient(clientid);
-	if (client != NULL)
-		client->SetCapability(capability);
-}
-
-void
 vncServer::SetKeyboardEnabled(BOOL enabled)
 {
 	vncClientList::iterator i;
@@ -537,28 +514,6 @@ vncServer::SetPointerEnabled(vncClientId clientid, BOOL enabled)
 	vncClient *client = GetClient(clientid);
 	if (client != NULL)
 		client->EnablePointer(enabled);
-}
-
-BOOL
-vncServer::IsTeleport(vncClientId clientid)
-{
-	omni_mutex_lock l(m_clientsLock);
-
-	vncClient *client = GetClient(clientid);
-	if (client != NULL)
-		return client->IsTeleport();
-	return FALSE;
-}
-
-int
-vncServer::GetCapability(vncClientId clientid)
-{
-	omni_mutex_lock l(m_clientsLock);
-
-	vncClient *client = GetClient(clientid);
-	if (client != NULL)
-		return client->GetCapability();
-	return 0;
 }
 
 BOOL

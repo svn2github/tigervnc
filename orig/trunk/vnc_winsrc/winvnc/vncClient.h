@@ -94,15 +94,11 @@ public:
 	virtual void UpdatePalette();
 
 	// Functions for setting & getting the client settings
-	virtual void SetTeleport(BOOL teleport) {m_teleport = teleport;};
 	virtual void EnableKeyboard(BOOL enable) {m_keyboardenabled = enable;};
 	virtual void EnablePointer(BOOL enable) {m_pointerenabled = enable;};
-	virtual void SetCapability(int capability) {m_capability = capability;};
 
-	virtual BOOL IsTeleport() {return m_teleport;};
 	virtual BOOL IsKeyboardEnabled() {return m_keyboardenabled;};
 	virtual BOOL IsPointerEnabled() {return m_pointerenabled;};
-	virtual int GetCapability() {return m_capability;};
 	virtual const char *GetClientName();
 	virtual vncClientId GetClientId() {return m_id;};
 
@@ -130,10 +126,8 @@ protected:
 	// Internal stuffs
 protected:
 	// Per-client settings
-	BOOL			m_teleport;
 	BOOL			m_keyboardenabled;
 	BOOL			m_pointerenabled;
-	int				m_capability;
 	BOOL			m_copyrect_use;
 	vncClientId		m_id;
 

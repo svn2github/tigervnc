@@ -74,9 +74,8 @@ public:
 	virtual void DisableClients(BOOL state);
 	virtual BOOL ClientsDisabled();
 	virtual vncClientId AddClient(VSocket *socket, BOOL auth, BOOL shared);
-	virtual vncClientId AddClient(VSocket *socket,
-		BOOL auth, BOOL shared, BOOL teleport, int capability,
-		BOOL keysenabled, BOOL ptrenabled);
+	virtual vncClientId AddClient(VSocket *socket, BOOL auth, BOOL shared,
+								  BOOL keysenabled, BOOL ptrenabled);
 	virtual BOOL Authenticated(vncClientId client);
 	virtual void KillClient(vncClientId client);
 
@@ -93,13 +92,9 @@ public:
 	virtual vncClient* GetClient(vncClientId clientid);
 	virtual vncClientList ClientList();
 
-	virtual void SetTeleport(vncClientId client, BOOL teleport);
-	virtual void SetCapability(vncClientId client, int capability);
 	virtual void SetKeyboardEnabled(BOOL enabled);
 	virtual void SetPointerEnabled(vncClientId client, BOOL enabled);
 
-	virtual BOOL IsTeleport(vncClientId client);
-	virtual int GetCapability(vncClientId client);
 	virtual BOOL GetKeyboardEnabled(vncClientId client);
 	virtual BOOL GetPointerEnabled(vncClientId client);
 	virtual const char* GetClientName(vncClientId client);

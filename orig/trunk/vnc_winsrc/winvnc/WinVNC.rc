@@ -981,12 +981,12 @@ STRINGTABLE DISCARDABLE
 BEGIN
     IDC_SHARINGAREA_BORDER  "Select Sharing Area"
     IDC_LIVESHARE_BORDER    "Connect with AppShare Key"
-    IDC_NAME_APPLI          "name application"
+    IDC_NAME_APPLI          "Window name. You cannot enter the text here. To choose a window to share, drag the ""target"" icon to the selected window."
     IDC_LIVESHARE           "AppShare Key:"
-    IDC_BMPCURSOR           "bitmap target"
-    IDC_WINDOW              "Window:"
-    IDC_SCREEN              "Rectangular area"
-    IDC_FULLSCREEN          "Full desktop"
+    IDC_BMPCURSOR           "To choose a window to share, drag this ""target"" to the selected window."
+    IDC_WINDOW              "Share one partucular window. To choose a window to share, drag the ""target"" icon to the selected window."
+    IDC_SCREEN              "Share a rectangular part of the desktop."
+    IDC_FULLSCREEN          "Share the whole desktop of this computer."
     IDC_DISABLE_TIME        "Specify how many seconds should pass between local keyboard or mouse activity and enabling remote input."
     IDC_SPECDISPLAY         "Specify a display number. The VNC port is calculated as 5900 plus display, the HTTP port is 5800 plus display."
 END

@@ -4,6 +4,7 @@
 //
 #define IDI_WINVNC                      102
 #define IDR_TRAYMENU                    104
+#define IDD_QUERY_SETTINGS              106
 #define IDD_PROPERTIES_PARENT           107
 #define IDR_VNCVIEWER_JAR               116
 #define IDR_RECFRAME_CLASS              117
@@ -41,6 +42,7 @@
 #define IDD_INPUT_HANDLING              149
 #define IDD_UPDATE_HANDLING             150
 #define IDD_CLIENT_DISCONNECT           151
+#define IDD_ADMINISTRATION              152
 #define IDC_CONNECT_SOCK                1004
 #define IDC_CONNECT_HTTP                1006
 #define IDC_PASSWORD_LABEL              1007

@@ -46,6 +46,8 @@ class vncProperties;
 #include "InputHandlingControls.h" 
 #include "SharedDesktopArea.h"
 #include "IncomingConnectionsControls.h"
+#include "QuerySettingsControls.h"
+#include "AdministrationControls.h"
 #include "commctrl.h"
 // The vncProperties class itself
 class vncProperties
@@ -64,7 +66,9 @@ public:
 	static BOOL CALLBACK PollDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static BOOL CALLBACK SharedDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static BOOL CALLBACK InputHandlingDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-	static BOOL CALLBACK DisconnectDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);	
+	static BOOL CALLBACK DisconnectDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	static BOOL CALLBACK QuerySettingsDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	static BOOL CALLBACK AdministrationDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	// Display the properties dialog
 	// If usersettings is TRUE then the per-user settings come up
@@ -90,6 +94,8 @@ public:
 
 	// Implementation
 protected:
+
+	void ShowAdv();
 	// The server object to which this properties object is attached.
 	vncServer *			m_server;
 
@@ -146,7 +152,7 @@ protected:
 	BOOL m_pref_RemoveWallpaper;
 	BOOL m_pref_EnableFileTransfers;
 	BOOL m_pref_EnableRemoteInputs;
-	int m_pref_LockSettings;
+	int  m_pref_LockSettings;
 	BOOL m_pref_DisableLocalInputs;
 	BOOL m_pref_PollUnderCursor;
 	BOOL m_pref_PollForeground;
@@ -160,6 +166,12 @@ protected:
 	BOOL m_pref_ScreenAreaShared;
 	UINT m_pref_PriorityTime;
 	BOOL m_pref_LocalInputPriority;
+	BOOL m_pref_AllowLoopback;
+	BOOL m_pref_OnlyLoopback;
+	BOOL m_pref_RequireAuth;
+	BOOL m_pref_Log;
+	BOOL m_pref_LogLots;
+	int m_pref_Priority;
 #ifdef HORIZONLIVE	
 	char m_pref_LiveShareKey[_MAX_PATH];
 #endif
@@ -171,11 +183,15 @@ private:
 	HWND m_hInputHandling;
 	HWND m_hPoll;
 	HWND m_hDisconnect;
+	HWND m_hQuerySettings;
+	HWND m_hAdministration;
 	CMatchWindow* m_pMatchWindow;
 	PollControls* m_pollcontrols;
 	InputHandlingControls* m_inputhandcontr;
 	SharedDesktopArea* m_shareddtarea;
 	IncomingConnectionsControls* m_incConnCtrl;
+	QuerySettingsControls * m_QSControls;
+	AdministrationControls * m_AdminControls;
 };
 
 #endif // _WINVNC_VNCPROPERTIES

@@ -203,7 +203,7 @@ BEGIN
                     IDC_STATIC_TEXT2,8,2,163,17
 END
 
-IDD_PROPERTIES_PARENT DIALOGEX 0, 0, 285, 164
+IDD_PROPERTIES_PARENT DIALOGEX 0, 0, 312, 165
 STYLE DS_MODALFRAME | DS_CENTER | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTROLPARENT
@@ -211,11 +211,10 @@ CAPTION "Property Page"
 FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "Tab1",IDC_TAB,"SysTabControl32",TCS_MULTILINE | 
-                    WS_TABSTOP,7,0,271,135
-    DEFPUSHBUTTON   "&OK",IDOK,54,142,50,15,WS_GROUP
-    PUSHBUTTON      "&Apply",IDC_APPLY,111,142,50,15
-    PUSHBUTTON      "&Cancel",IDCANCEL,170,142,50,15
-    PUSHBUTTON      "Ad&vanced...",IDADVANCED,228,142,50,15
+                    WS_TABSTOP,7,0,298,135
+    DEFPUSHBUTTON   "&OK",IDOK,139,143,50,15,WS_GROUP
+    PUSHBUTTON      "&Apply",IDC_APPLY,197,143,50,15
+    PUSHBUTTON      "&Cancel",IDCANCEL,255,143,50,15
 END
 
 IDD_SHARED_DESKTOP_AREA DIALOG DISCARDABLE  0, 0, 235, 90
@@ -232,7 +231,7 @@ BEGIN
     EDITTEXT        IDC_NAME_APPLI,91,23,137,12,ES_AUTOHSCROLL | ES_READONLY
 END
 
-IDD_INCOMING DIALOG DISCARDABLE  0, 0, 262, 112
+IDD_INCOMING DIALOG DISCARDABLE  0, 0, 281, 112
 STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE | WS_BORDER
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -248,27 +247,27 @@ BEGIN
     CONTROL         "Enable built-in Java viewer",IDC_CONNECT_HTTP,"Button",
                     BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,7,58,117,12
     CONTROL         "auto",IDC_PORTNO_AUTO,"Button",BS_AUTORADIOBUTTON | 
-                    WS_GROUP | WS_TABSTOP,140,21,33,12
+                    WS_GROUP | WS_TABSTOP,159,21,33,12
     CONTROL         "display",IDC_SPECDISPLAY,"Button",BS_AUTORADIOBUTTON | 
-                    WS_TABSTOP,140,39,40,12
+                    WS_TABSTOP,159,39,40,12
     CONTROL         "ports",IDC_SPECPORT,"Button",BS_AUTORADIOBUTTON | 
-                    WS_TABSTOP,140,58,35,12
-    EDITTEXT        IDC_DISPLAYNO,215,20,29,12,ES_AUTOHSCROLL | ES_NUMBER
-    EDITTEXT        IDC_PORTRFB,215,39,29,12,ES_AUTOHSCROLL | ES_NUMBER
-    EDITTEXT        IDC_PORTHTTP,215,58,29,12,ES_AUTOHSCROLL | ES_NUMBER
+                    WS_TABSTOP,159,58,35,12
+    EDITTEXT        IDC_DISPLAYNO,237,20,29,12,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_PORTRFB,237,39,29,12,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_PORTHTTP,237,58,29,12,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "Enable file transfers between server and clients",
                     IDC_ENABLE_FILE_TRANSFERS,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,7,80,209,12
     CONTROL         "Remove desktop wallpaper on client connections",
                     IDC_REMOVE_WALLPAPER,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
                     WS_TABSTOP,7,93,209,12
-    CTEXT           "display:",IDC_DISPLAY_LABEL,189,20,23,12,SS_CENTERIMAGE | 
+    CTEXT           "display:",IDC_DISPLAY_LABEL,209,21,23,12,SS_CENTERIMAGE | 
                     NOT WS_GROUP
-    CTEXT           "main port:",IDC_MAIN_LABEL,181,40,33,10,SS_CENTERIMAGE | 
+    CTEXT           "main port:",IDC_MAIN_LABEL,201,40,33,10,SS_CENTERIMAGE | 
                     NOT WS_GROUP
-    CTEXT           "HTTP port:",IDC_HTTP_LABEL,178,59,35,10,SS_CENTERIMAGE | 
+    CTEXT           "HTTP port:",IDC_HTTP_LABEL,198,59,35,10,SS_CENTERIMAGE | 
                     NOT WS_GROUP
-    GROUPBOX        "Display or port numbers to use:",IDC_STATIC,135,9,120,
+    GROUPBOX        "Display or port numbers to use:",IDC_STATIC,154,9,120,
                     66
 END
 
@@ -327,6 +326,53 @@ BEGIN
                     BS_AUTORADIOBUTTON | WS_TABSTOP,7,22,117,12
     CONTROL         "Logoff workstation",IDC_LOCKSETTING_LOGOFF,"Button",
                     BS_AUTORADIOBUTTON | WS_TABSTOP,7,37,117,12
+END
+
+IDD_QUERY_SETTINGS DIALOG DISCARDABLE  0, 0, 237, 90
+STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Query console on incoming connections",IDQUERY,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,7,211,12
+    LTEXT           "Query timeout:",IDC_STATIC_TIMEOUT,19,22,67,12,
+                    SS_CENTERIMAGE
+    EDITTEXT        IDQUERYTIMEOUT,89,22,22,12,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "Default action:",IDC_STATIC_ACTION,19,37,67,12,
+                    SS_CENTERIMAGE
+    CONTROL         "Refuse",IDC_ACTION_REFUSE,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP | WS_TABSTOP,89,37,57,12
+    CONTROL         "Accept",IDC_ACTION_ACCEPT,"Button",BS_AUTORADIOBUTTON,
+                    146,37,72,12
+    CONTROL         "Allow option to accept without authentication",
+                    IDQUERYALLOWNOPASS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    7,52,211,12
+END
+
+IDD_ADMINISTRATION DIALOG DISCARDABLE  0, 0, 292, 108
+STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE
+FONT 8, "MS Sans Serif"
+BEGIN
+    GROUPBOX        "Administration",IDC_STATIC,7,7,141,94
+    CONTROL         "Disable empty passwords",IDREQUIREAUTH,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,19,129,12
+    CONTROL         "Allow loopback connections",IDALLOWLOOPBACK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,34,132,12
+    CONTROL         "Allow only loopback connections",IDONLYLOOPBACK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,22,49,117,12
+    CONTROL         "Log information to WinVNC.log",IDLOG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,64,125,12
+    CONTROL         "Log detailed debugging information",IDLOGLOTS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,22,79,123,12
+    GROUPBOX        "Temporary",IDC_STATIC,156,7,128,31
+    CONTROL         "Enable built-in HTTP daemon",IDENABLEHTTPD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,164,20,110,10
+    GROUPBOX        "Connection Priority",IDC_STATIC,156,39,128,62
+    CONTROL         "Disconnect existing connections",IDPRIORITY0,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,164,49,114,12
+    CONTROL         "Automatic shared sessions",IDPRIORITY1,"Button",
+                    BS_AUTORADIOBUTTON,164,64,112,12
+    CONTROL         "Refuse concurrent connections",IDPRIORITY2,"Button",
+                    BS_AUTORADIOBUTTON,164,80,113,12
 END
 
 
@@ -458,8 +504,8 @@ BEGIN
     IDD_PROPERTIES_PARENT, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 278
-        BOTTOMMARGIN, 157
+        RIGHTMARGIN, 305
+        BOTTOMMARGIN, 158
     END
 
     IDD_SHARED_DESKTOP_AREA, DIALOG
@@ -473,9 +519,9 @@ BEGIN
     IDD_INCOMING, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 255
-        VERTGUIDE, 140
-        VERTGUIDE, 244
+        RIGHTMARGIN, 274
+        VERTGUIDE, 159
+        VERTGUIDE, 266
         TOPMARGIN, 7
         BOTTOMMARGIN, 105
     END
@@ -502,6 +548,25 @@ BEGIN
         RIGHTMARGIN, 169
         TOPMARGIN, 7
         BOTTOMMARGIN, 65
+    END
+
+    IDD_QUERY_SETTINGS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 83
+    END
+
+    IDD_ADMINISTRATION, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 284
+        VERTGUIDE, 14
+        VERTGUIDE, 22
+        VERTGUIDE, 164
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 101
     END
 END
 #endif    // APSTUDIO_INVOKED

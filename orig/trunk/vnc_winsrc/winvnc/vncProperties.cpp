@@ -37,9 +37,9 @@
 
 #include "WinVNC.h"
 #include "vncProperties.h"
-#include "vncAdvancedProperties.h"
 #include "vncServer.h"
 #include "vncPasswd.h"
+#include "commctrl.h"
 
 const char WINVNC_REGISTRY_KEY [] = "Software\\ORL\\WinVNC3";
 const char NO_PASSWORD_WARN [] = "WARNING : Running WinVNC without setting a password is "
@@ -213,7 +213,7 @@ vncProperties::Show(BOOL show, BOOL usersettings)
 			int result = DialogBoxParam(hAppInstance,
 			    MAKEINTRESOURCE(IDD_LIVESHAREPROP), 
 			    NULL,
-			    (DLGPROC) ParentDlgProc,
+			    (DLGPROC) SharedDlgProc,
 			    (LONG) this);
 
 			if (!m_returncode_valid)
@@ -292,169 +292,24 @@ vncProperties::Show(BOOL show, BOOL usersettings)
 	}
 }
 
-#ifdef HORIZONLIVE
-
-BOOL CALLBACK
-vncProperties::ParentDlgProc(HWND hwnd,
-						  UINT uMsg,
-						  WPARAM wParam,
-						  LPARAM lParam )
+void vncProperties::ShowAdv()
 {
-	// We use the dialog-box's USERDATA to store a _this pointer
-	// This is set only once WM_INITDIALOG has been recieved, though!
-	vncProperties *_this = (vncProperties *) GetWindowLong(hwnd, GWL_USERDATA);
-	
-	switch (uMsg)
-	{
-	case WM_INITDIALOG:
-		{
-			// Retrieve the Dialog box parameter and use it as a pointer
-			// to the calling vncProperties object
-			SetWindowLong(hwnd, GWL_USERDATA, lParam);
-			vncProperties *_this = (vncProperties *) lParam;
-			_this->m_dlgvisible = TRUE;
-			// Set the dialog box's title
-			SetWindowText(hwnd, "LiveShare Settings");
-			
-			HWND hLiveShare = GetDlgItem(hwnd, IDC_LIVESHARE);
-			::SetWindowText(hLiveShare, _this->m_pref_LiveShareKey);																								  
-			if (_this->m_server->AuthClientCount() != 0)
-				EnableWindow(hLiveShare,false);
-			_this->m_shareddtarea = new SharedDesktopArea(hwnd,
-				_this->m_pMatchWindow,
-				_this,
-				_this->m_server);
-			return TRUE;
-		}
-	case WM_COMMAND:	
-		switch (LOWORD(wParam))
-		{
-		case IDC_FULLSCREEN:
-			_this->m_shareddtarea->FullScreen();
-			return TRUE;
-			
-		case IDC_WINDOW:
-			_this->m_shareddtarea->SharedWindow();
-			return TRUE;
-			
-		case IDC_SCREEN:
-			_this->m_shareddtarea->SharedScreen();
-			return TRUE;
-			
-		case IDC_LIVESHARE:
-			{
-				char entered_key [_MAX_PATH];
-				char cleaned_key [_MAX_PATH];
-				char *pos = cleaned_key;
-				
-				GetDlgItemText(hwnd, IDC_LIVESHARE, entered_key, _MAX_PATH);
-				
-				// Clean out low ASCII chars from the LiveShare Key
-				for(int i=0; i<strlen(entered_key); i++)
-					if(entered_key[i] > 0x2C)
-						*pos++ = entered_key[i];
-					
-					*pos = '\0';
-					
-					strcpy(_this->m_pref_LiveShareKey, cleaned_key);
-			}
-			return TRUE;
-		case IDOK:
-		case IDC_APPLY:
-			_this->m_server->SetLiveShareKey(_this->m_pref_LiveShareKey);
-			_this->m_shareddtarea->ApplySharedControls();
-			
-			if (LOWORD(wParam) == IDOK)
-			{					
-				if (_this->m_server->AuthClientCount() == 0)
-				{
-					char hostemp [_MAX_PATH];
-					char *portp;
-					int port;
-					strcpy(hostemp, _this->m_pref_LiveShareKey);
-					// Calculate the Display and Port offset.
-					port = INCOMING_PORT_OFFSET;
-					portp = strchr(hostemp, ':');
-					if (portp)
-					{
-						*portp++ = '\0';
-						port += atoi(portp);
-					}
-					
-					// Attempt to create a new socket
-					VSocket *tmpsock;
-					tmpsock = new VSocket;
-					if (!tmpsock)
-						return TRUE;
-					
-					// Connect out to the specified host on the VNCviewer listen port
-					// To be really good, we should allow a display number here but
-					// for now we'll just assume we're connecting to display zero
-					tmpsock->Create();
-					if (tmpsock->Connect(hostemp, port)) {
-						// Add the new client to this server
-						_this->m_server->AddClient(tmpsock, TRUE, TRUE);
-						
-					} else {
-						// Print up an error message
-						MessageBox(NULL, 
-							"LiveShare was unable to begin sharing your computer.\nPlease verify that you have entered the correct LiveShare Key and try again.",
-							"LiveShare Connection Error",
-							MB_OK | MB_ICONEXCLAMATION );
-						delete tmpsock;
-						return true;
-					}						
-				}
-				delete _this->m_shareddtarea;
-				_this->m_shareddtarea = NULL;
-				_this->m_hShared = NULL;
-				
-				// Yes, so close the dialog
-				vnclog.Print(LL_INTINFO, VNCLOG("enddialog (OK)\n"));
-				
-				_this->m_returncode_valid = TRUE;
-				
-				EndDialog(hwnd, IDOK);
-				_this->m_dlgvisible = FALSE;
-			}
-			return TRUE;
-		case IDCANCEL:
-			vnclog.Print(LL_INTINFO, VNCLOG("enddialog (CANCEL)\n"));
-			
-			_this->m_returncode_valid = TRUE;
 
-			delete _this->m_shareddtarea;
-			_this->m_shareddtarea = NULL;
-			_this->m_hShared = NULL;
-			
-			EndDialog(hwnd, IDCANCEL);
-			_this->m_dlgvisible = FALSE;
-			return TRUE;
-			
-		case IDADVANCED:
-			vnclog.Print(LL_INTINFO, VNCLOG("newdialog (ADVANCED)\n"));
-			{
-				EnableWindow(hwnd, FALSE);
-				_this->m_inadvanced = TRUE;
-				vncAdvancedProperties *aprop = new vncAdvancedProperties();
-				if (aprop->Init(_this->m_server))
-				{
-					aprop->Show(TRUE, _this->m_usersettings);
-				}
-				//aprop->DoDialog();
-				SetForegroundWindow(hwnd);
-				_this->m_inadvanced = FALSE;
-				EnableWindow(hwnd, TRUE);
-				omni_thread::sleep(0, 200000000);
-			}
-			return TRUE;
-		}
-		return 0;	
+#ifdef HORIZONLIVE
+	int result = DialogBoxParam(hAppInstance,
+				    MAKEINTRESOURCE(IDD_LIVESHAREADVPROP), 
+				    NULL,
+				    (DLGPROC) PollDlgProc,
+				    (LONG) this);
+	if (result == -1) {
+		// Dialog box failed, so quit
+		PostQuitMessage(0);
+		return;
 	}
-	return 0;
+#endif
 }
 
-#else
+
 
 BOOL CALLBACK
 vncProperties::ParentDlgProc(HWND hwnd,
@@ -493,6 +348,10 @@ vncProperties::ParentDlgProc(HWND hwnd,
 			TabCtrl_InsertItem(_this->m_hTab, 3, &item);
 			item.pszText = "Client Disconnects";
 			TabCtrl_InsertItem(_this->m_hTab, 4, &item);
+			item.pszText = "Query Settings";
+			TabCtrl_InsertItem(_this->m_hTab, 5, &item);
+			item.pszText = "Administration";
+			TabCtrl_InsertItem(_this->m_hTab, 6, &item);
 
 			_this->m_hShared = CreateDialogParam(hAppInstance, 
 				MAKEINTRESOURCE(IDD_SHARED_DESKTOP_AREA),
@@ -524,6 +383,18 @@ vncProperties::ParentDlgProc(HWND hwnd,
 				(DLGPROC)_this->DisconnectDlgProc,
 				(LONG)_this);
 
+			_this->m_hQuerySettings = CreateDialogParam(hAppInstance, 
+				MAKEINTRESOURCE(IDD_QUERY_SETTINGS),
+				hwnd,
+				(DLGPROC)_this->QuerySettingsDlgProc,
+				(LONG)_this);
+
+			_this->m_hAdministration = CreateDialogParam(hAppInstance, 
+				MAKEINTRESOURCE(IDD_ADMINISTRATION),
+				hwnd,
+				(DLGPROC)_this->AdministrationDlgProc,
+				(LONG)_this);
+
 			// Position child dialogs, to fit the Tab control's display area
 			RECT rc;
 			GetWindowRect(_this->m_hTab, &rc);
@@ -542,6 +413,12 @@ vncProperties::ParentDlgProc(HWND hwnd,
 						 rc.right - rc.left, rc.bottom - rc.top,
 						 SWP_HIDEWINDOW);
 			SetWindowPos(_this->m_hDisconnect, HWND_TOP, rc.left, rc.top,
+						 rc.right - rc.left, rc.bottom - rc.top,
+						 SWP_HIDEWINDOW);
+			SetWindowPos(_this->m_hQuerySettings, HWND_TOP, rc.left, rc.top,
+						 rc.right - rc.left, rc.bottom - rc.top,
+						 SWP_HIDEWINDOW);
+			SetWindowPos(_this->m_hAdministration, HWND_TOP, rc.left, rc.top,
 						 rc.right - rc.left, rc.bottom - rc.top,
 						 SWP_HIDEWINDOW);
 
@@ -584,7 +461,13 @@ vncProperties::ParentDlgProc(HWND hwnd,
 					return 0;
 				case 4:						
 					ShowWindow(_this->m_hDisconnect, style);						
-						return 0;
+					return 0;
+				case 5:						
+					ShowWindow(_this->m_hQuerySettings, style);						
+					return 0;
+				case 6:						
+					ShowWindow(_this->m_hAdministration, style);						
+					return 0;
 					}
 					return 0;
 				}
@@ -592,8 +475,6 @@ vncProperties::ParentDlgProc(HWND hwnd,
 			return 0;
 		}
 	case WM_COMMAND:
-		if (_this->m_inadvanced)
-			return FALSE;
 		switch (LOWORD(wParam))
 		{
 		case IDOK:
@@ -604,7 +485,9 @@ vncProperties::ParentDlgProc(HWND hwnd,
 			SendMessage(_this->m_hPoll, WM_COMMAND, IDC_APPLY,0);
 			SendMessage(_this->m_hShared, WM_COMMAND, IDC_APPLY,0);
 			SendMessage(_this->m_hDisconnect, WM_COMMAND, IDC_APPLY,0);
-        
+			SendMessage(_this->m_hQuerySettings, WM_COMMAND, IDC_APPLY,0);
+			SendMessage(_this->m_hAdministration, WM_COMMAND, IDC_APPLY,0);
+
 			_this->Save();
         
 			// Was ok pressed?
@@ -627,24 +510,7 @@ vncProperties::ParentDlgProc(HWND hwnd,
 			EndDialog(hwnd, IDCANCEL);
 			_this->m_dlgvisible = FALSE;
 			_this->m_hTab = NULL;
-			return TRUE;
-		case IDADVANCED:
-			vnclog.Print(LL_INTINFO, VNCLOG("newdialog (ADVANCED)\n"));
-			{
-				EnableWindow(hwnd, FALSE);
-				_this->m_inadvanced = TRUE;
-				vncAdvancedProperties *aprop = new vncAdvancedProperties();
-				if (aprop->Init(_this->m_server))
-				{
-					aprop->Show(TRUE, _this->m_usersettings);
-				}
-				//aprop->DoDialog();
-				SetForegroundWindow(hwnd);
-				_this->m_inadvanced = FALSE;
-				EnableWindow(hwnd, TRUE);
-				omni_thread::sleep(0, 200000000);
-			}
-			return TRUE;
+			return TRUE;		
 		}
 		return 0;
 	}
@@ -706,6 +572,35 @@ BOOL CALLBACK vncProperties::PollDlgProc(HWND hwnd, UINT uMsg,
 			// to the calling vncProperties object
 			SetWindowLong(hwnd, GWL_USERDATA, lParam);
 			vncProperties *_this = (vncProperties *) lParam;
+
+#ifdef HORIZONLIVE
+			// Set the dialog box's title to indicate which Properties we're editting
+			if (_this->m_usersettings) {
+				SetWindowText(hwnd, "WinVNC: Current User Advanced Properties");
+			} else {
+				SetWindowText(hwnd, "WinVNC: Default Local System Advanced Properties");
+			}
+			HWND hRemoteDisable = GetDlgItem(hwnd, IDC_REMOTE_DISABLE);
+			SendMessage(hRemoteDisable,
+				BM_SETCHECK,
+				_this->m_server->LocalInputPriority(),
+				0);
+			BOOL logstate = (vnclog.GetMode() >= 2);
+			if (logstate)
+				CheckDlgButton(hwnd, IDLOG, BST_CHECKED);
+			else
+				CheckDlgButton(hwnd, IDLOG, BST_UNCHECKED);
+			HWND hLogLots = GetDlgItem(hwnd, IDLOGLOTS);
+			EnableWindow(hLogLots, logstate);
+			if (vnclog.GetLevel() > 5)
+				CheckDlgButton(hwnd, IDLOGLOTS, BST_CHECKED);
+			else
+				CheckDlgButton(hwnd, IDLOGLOTS, BST_UNCHECKED);
+			SetForegroundWindow(hwnd);
+
+			_this->m_dlgvisible = TRUE;
+#endif
+
 			_this->m_pollcontrols = new PollControls(hwnd, _this->m_server); 
 			return 0;
 		}
@@ -716,9 +611,56 @@ BOOL CALLBACK vncProperties::PollDlgProc(HWND hwnd, UINT uMsg,
 		case IDC_POLL_UNDER_CURSOR:
 		case IDC_POLL_FULLSCREEN:
 			_this->m_pollcontrols->Validate();
-			return TRUE;	
+			return TRUE;
+
+#ifdef HORIZONLIVE
+		case IDCANCEL:
+			vnclog.Print(LL_INTINFO, VNCLOG("enddialog (CANCEL)\n"));
+
+			_this->m_returncode_valid = TRUE;
+
+			EndDialog(hwnd, IDCANCEL);
+			_this->m_dlgvisible = FALSE;
+
+			return TRUE;
+		case IDLOG:
+			{
+				BOOL logon = IsDlgButtonChecked(hwnd, IDLOG);
+				HWND hLogLots = GetDlgItem(hwnd, IDLOGLOTS);
+				EnableWindow(hLogLots, logon);
+			}
+			return TRUE;
+
+#endif
+		case IDOK:
 		case IDC_APPLY:
 			_this->m_pollcontrols->Apply();
+#ifdef HORIZONLIVE
+			HWND hRemoteDisable = GetDlgItem(hwnd, IDC_REMOTE_DISABLE);
+			_this->m_server->LocalInputPriority(
+				SendMessage(hRemoteDisable, BM_GETCHECK, 0, 0) == BST_CHECKED
+				);
+			if (IsDlgButtonChecked(hwnd, IDLOG))
+				vnclog.SetMode(2);
+			else
+				vnclog.SetMode(0);
+
+			if (IsDlgButtonChecked(hwnd, IDLOGLOTS))
+				vnclog.SetLevel(10);
+			else
+					vnclog.SetLevel(2);
+			if (LOWORD(wParam) == IDOK)
+				{
+					// Yes, so close the dialog
+					vnclog.Print(LL_INTINFO, VNCLOG("enddialog (OK)\n"));
+
+					_this->m_returncode_valid = TRUE;
+
+					EndDialog(hwnd, IDOK);
+					_this->m_dlgvisible = FALSE;
+			}
+			_this->Save();
+#endif
 			return TRUE;
 		}
 		return 0;
@@ -750,6 +692,18 @@ BOOL CALLBACK vncProperties::SharedDlgProc(HWND hwnd, UINT uMsg,
 				_this->m_pMatchWindow,
 				_this,
 				_this->m_server);
+
+#ifdef HORIZONLIVE
+
+			_this->m_dlgvisible = TRUE;
+			// Set the dialog box's title
+			SetWindowText(hwnd, "LiveShare Settings");
+			
+			HWND hLiveShare = GetDlgItem(hwnd, IDC_LIVESHARE);
+			::SetWindowText(hLiveShare, _this->m_pref_LiveShareKey);																								  
+			if (_this->m_server->AuthClientCount() != 0)
+			EnableWindow(hLiveShare,false);
+#endif
 			return 0;
 		}
 	case WM_COMMAND:	
@@ -767,8 +721,106 @@ BOOL CALLBACK vncProperties::SharedDlgProc(HWND hwnd, UINT uMsg,
 			_this->m_shareddtarea->SharedScreen();
 			return TRUE;
 		case IDC_APPLY:
+		case IDOK:
 			_this->m_shareddtarea->ApplySharedControls();
+
+#ifdef HORIZONLIVE
+
+			_this->m_server->SetLiveShareKey(_this->m_pref_LiveShareKey);
+			
+			if (LOWORD(wParam) == IDOK)
+			{					
+				if (_this->m_server->AuthClientCount() == 0)
+				{
+					char hostemp [_MAX_PATH];
+					char *portp;
+					int port;
+					strcpy(hostemp, _this->m_pref_LiveShareKey);
+					// Calculate the Display and Port offset.
+					port = INCOMING_PORT_OFFSET;
+					portp = strchr(hostemp, ':');
+					if (portp)
+					{
+						*portp++ = '\0';
+						port += atoi(portp);
+					}
+					
+					// Attempt to create a new socket
+					VSocket *tmpsock;
+					tmpsock = new VSocket;
+					if (!tmpsock)
+						return TRUE;
+					
+					// Connect out to the specified host on the VNCviewer listen port
+					// To be really good, we should allow a display number here but
+					// for now we'll just assume we're connecting to display zero
+					tmpsock->Create();
+					if (tmpsock->Connect(hostemp, port)) {
+						// Add the new client to this server
+						_this->m_server->AddClient(tmpsock, TRUE, TRUE);
+						
+					} else {
+						// Print up an error message
+						MessageBox(NULL, 
+							"LiveShare was unable to begin sharing your computer.\nPlease verify that you have entered the correct LiveShare Key and try again.",
+							"LiveShare Connection Error",
+							MB_OK | MB_ICONEXCLAMATION );
+						delete tmpsock;
+						return true;
+					}						
+				}
+				
+				// Yes, so close the dialog
+				vnclog.Print(LL_INTINFO, VNCLOG("enddialog (OK)\n"));
+				
+				_this->m_returncode_valid = TRUE;
+				
+				EndDialog(hwnd, IDOK);
+				_this->m_dlgvisible = FALSE;
+			}
+#endif
+
 			return TRUE;
+#ifdef HORIZONLIVE
+		case IDCANCEL:
+			vnclog.Print(LL_INTINFO, VNCLOG("enddialog (CANCEL)\n"));
+			
+			_this->m_returncode_valid = TRUE;
+			
+			EndDialog(hwnd, IDCANCEL);
+			_this->m_dlgvisible = FALSE;
+			return TRUE;
+			
+		case IDADVANCED:
+			vnclog.Print(LL_INTINFO, VNCLOG("newdialog (ADVANCED)\n"));
+			{
+				EnableWindow(hwnd, FALSE);
+				
+				_this->ShowAdv();
+				SetForegroundWindow(hwnd);
+				EnableWindow(hwnd, TRUE);
+				omni_thread::sleep(0, 200000000);
+			}
+			return TRUE;
+		case IDC_LIVESHARE:
+			{
+				char entered_key [_MAX_PATH];
+				char cleaned_key [_MAX_PATH];
+				char *pos = cleaned_key;
+				
+				GetDlgItemText(hwnd, IDC_LIVESHARE, entered_key, _MAX_PATH);
+				
+				// Clean out low ASCII chars from the LiveShare Key
+				for(int i=0; i<strlen(entered_key); i++)
+					if(entered_key[i] > 0x2C)
+						*pos++ = entered_key[i];
+					
+					*pos = '\0';
+					
+					strcpy(_this->m_pref_LiveShareKey, cleaned_key);
+			}
+			return TRUE;
+#endif
 		}
 		return 0;
 	case WM_DESTROY:
@@ -875,8 +927,81 @@ BOOL CALLBACK vncProperties::DisconnectDlgProc(HWND hwnd, UINT uMsg,
 	}
 	return 0;
 }
-
-#endif
+BOOL CALLBACK vncProperties::AdministrationDlgProc(HWND hwnd, UINT uMsg,
+												  WPARAM wParam, LPARAM lParam)
+{
+	// We use the dialog-box's USERDATA to store a _this pointer
+	// This is set only once WM_INITDIALOG has been recieved, though!
+	vncProperties *_this = (vncProperties *) GetWindowLong(hwnd, GWL_USERDATA);
+	
+	switch (uMsg)
+	{
+	case WM_INITDIALOG:
+		{
+			// Retrieve the Dialog box parameter and use it as a pointer
+			// to the calling vncProperties object
+			SetWindowLong(hwnd, GWL_USERDATA, lParam);
+			vncProperties *_this = (vncProperties *) lParam;
+			_this->m_AdminControls = new AdministrationControls(hwnd, _this->m_server);
+			return 0;
+		}
+    case WM_COMMAND:		
+		switch (LOWORD(wParam))
+		{
+		case IDALLOWLOOPBACK:
+		case IDLOG:
+			_this->m_AdminControls->Validate();
+			return TRUE;      
+		case IDC_APPLY:
+			_this->m_AdminControls->Apply();
+			return TRUE;
+		}
+		return 0;
+	case WM_DESTROY:
+		delete _this->m_AdminControls;      
+		_this->m_AdminControls = NULL;  
+		_this->m_hAdministration = NULL;  
+		return 0;
+	}
+	return 0;	
+}
+BOOL CALLBACK vncProperties::QuerySettingsDlgProc(HWND hwnd, UINT uMsg,
+												   WPARAM wParam, LPARAM lParam)
+{
+// We use the dialog-box's USERDATA to store a _this pointer
+	// This is set only once WM_INITDIALOG has been recieved, though!
+	vncProperties *_this = (vncProperties *) GetWindowLong(hwnd, GWL_USERDATA);
+	
+	switch (uMsg)
+	{
+	case WM_INITDIALOG:
+		{
+			// Retrieve the Dialog box parameter and use it as a pointer
+			// to the calling vncProperties object
+			SetWindowLong(hwnd, GWL_USERDATA, lParam);
+			vncProperties *_this = (vncProperties *) lParam;
+			_this->m_QSControls = new QuerySettingsControls(hwnd, _this->m_server);
+			return 0;
+		}
+    case WM_COMMAND:		
+		switch (LOWORD(wParam))
+		{
+		case IDQUERY:
+			_this->m_QSControls->Validate();
+			return TRUE;      
+		case IDC_APPLY:
+			_this->m_QSControls->Apply();
+			return TRUE;
+		}
+		return 0;
+	case WM_DESTROY:
+		delete _this->m_QSControls;      
+		_this->m_QSControls = NULL;  
+		_this->m_hQuerySettings = NULL;  
+		return 0;
+	}
+	return 0;	
+}
 
 // Functions to load & save the settings
 LONG
@@ -1192,7 +1317,6 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	m_pref_RemoveWallpaper=LoadInt(appkey, "RemoveWallpaper", m_pref_RemoveWallpaper);
 	m_pref_EnableFileTransfers=LoadInt(appkey, "EnableFileTransfers", m_pref_EnableFileTransfers);
 
-	m_pref_LocalInputPriority=LoadInt(appkey, "LocalInputsPriority", m_pref_LocalInputPriority);
 	m_pref_PriorityTime =LoadInt(appkey, "LocalInputsPriorityTime", m_pref_PriorityTime);
 
 	// Connection querying settings
@@ -1233,6 +1357,8 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	m_pref_FullScreen = m_server->FullScreen();
 	m_pref_WindowShared = m_server->WindowShared();
 	m_pref_ScreenAreaShared = m_server->ScreenAreaShared();
+
+	m_pref_LocalInputPriority=LoadInt(appkey, "LocalInputsPriority", m_pref_LocalInputPriority);
 }
 
 void
@@ -1269,7 +1395,7 @@ vncProperties::ApplyUserPrefs()
 	m_server->EnableRemoteInputs(m_pref_EnableRemoteInputs);
 	m_server->SetLockSettings(m_pref_LockSettings);
 	m_server->DisableLocalInputs(m_pref_DisableLocalInputs);
-	m_server->LocalInputPriority(m_pref_LocalInputPriority);
+	
 	m_server->SetDisableTime(m_pref_PriorityTime);
 	m_server->SetPollingTimer(m_pref_PollingCycle);
 
@@ -1288,6 +1414,8 @@ vncProperties::ApplyUserPrefs()
 	m_server->FullScreen(m_pref_FullScreen);
 	m_server->WindowShared(m_pref_WindowShared);
 	m_server->ScreenAreaShared(m_pref_ScreenAreaShared);
+
+	m_server->LocalInputPriority(m_pref_LocalInputPriority);
 
 }
 
@@ -1359,6 +1487,29 @@ vncProperties::Save()
 
 	RegCloseKey(appkey);
 
+	// Machine Preferences
+	// Try to get the machine registry key for WinVNC
+	HKEY hkLocal;
+	if (RegCreateKeyEx(HKEY_LOCAL_MACHINE,
+		WINVNC_REGISTRY_KEY,
+		0, REG_NONE, REG_OPTION_NON_VOLATILE,
+		KEY_WRITE | KEY_READ, NULL, &hkLocal, &dw) != ERROR_SUCCESS)
+		return;
+
+#ifndef HORIZONLIVE
+	SaveInt(hkLocal, "ConnectPriority", m_server->ConnectPriority());
+	SaveInt(hkLocal, "LoopbackOnly", m_server->LoopbackOnly());
+	SaveInt(hkLocal, "EnableHTTPDaemon", m_server->HttpdEnabled());
+	SaveInt(hkLocal, "EnableURLParams", m_server->HttpdParamsEnabled());
+	SaveInt(hkLocal, "AllowLoopback", m_server->LoopbackOk());
+	SaveInt(hkLocal, "AuthRequired", m_server->AuthRequired());
+#endif
+
+	SaveInt(hkLocal, "DebugMode", vnclog.GetMode());
+	SaveInt(hkLocal, "DebugLevel", vnclog.GetLevel());
+	RegCloseKey(hkLocal);
+
+
 	// Close the user registry hive, to allow it to unload if reqd
 	RegCloseKey(HKEY_CURRENT_USER);
 }
@@ -1382,14 +1533,13 @@ vncProperties::SaveUserPrefs(HKEY appkey)
 	SaveInt(appkey, "LocalInputsDisabled", m_server->LocalInputsDisabled());
 	SaveInt(appkey, "IdleTimeout", m_server->AutoIdleDisconnectTimeout());
 	
-	SaveInt(appkey, "LocalInputsPriority", m_server->LocalInputPriority());
 	SaveInt(appkey, "LocalInputsPriorityTime", m_server->DisableTime());
 	
 	// Connection querying settings
-	// FIXME: Currently query settings are saved in vncAdvancedProperties,
-	//        but actually here is a better place.
-	// SaveInt(appkey, "QuerySetting", m_server->QuerySetting());
-	// SaveInt(appkey, "QueryTimeout", m_server->QueryTimeout());
+	SaveInt(appkey, "QuerySetting", m_server->QuerySetting());
+	SaveInt(appkey, "QueryTimeout", m_server->QueryTimeout());
+	SaveInt(appkey, "QueryAccept", m_server->QueryAccept());
+	SaveInt(appkey, "QueryAllowNoPass", m_server->QueryAllowNoPass());
 
 	// Lock settings
 	SaveInt(appkey, "LockSetting", m_server->LockSettings());
@@ -1412,6 +1562,7 @@ vncProperties::SaveUserPrefs(HKEY appkey)
 	SaveInt(appkey, "CORBAConnect", m_server->CORBAConnected());
 #endif
 
+#endif
 	// Polling prefs
 	SaveInt(appkey, "PollUnderCursor", m_server->PollUnderCursor());
 	SaveInt(appkey, "PollForeground", m_server->PollForeground());
@@ -1423,7 +1574,7 @@ vncProperties::SaveUserPrefs(HKEY appkey)
 
 	SaveInt(appkey, "DontSetHooks", m_server->DontSetHooks());
 
-#endif
+	SaveInt(appkey, "LocalInputsPriority", m_server->LocalInputPriority());
 }
 
 

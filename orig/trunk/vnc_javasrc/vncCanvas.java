@@ -450,6 +450,11 @@ class vncCanvas extends Canvas
       comp_ctl >>= 1;
     }
 
+    // Check correctness of subencoding value.
+    if (comp_ctl > rfb.TightMaxSubencoding) {
+      throw new IOException("Incorrect tight subencoding: " + comp_ctl);
+    }
+
     // Handle solid rectangles.
     if (comp_ctl == rfb.TightFill) {
       int bg = rfb.is.readUnsignedByte();

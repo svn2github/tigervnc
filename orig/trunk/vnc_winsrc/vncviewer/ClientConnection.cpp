@@ -436,7 +436,7 @@ void ClientConnection::CreateDisplay()
 	}
 	DrawMenuBar(m_hwnd1);
 
-	static TBBUTTON but[15];
+	static TBBUTTON but[16];
 	but[0].fsStyle		= TBSTYLE_SEP;
 
 	but[1].iBitmap		= 0;

@@ -9,9 +9,6 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "vncviewer.h"
-#include "ClientConnection.h"
-
 class QuitFullScreenWindow
 {
 public:

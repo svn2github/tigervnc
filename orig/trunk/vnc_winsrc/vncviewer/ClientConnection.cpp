@@ -45,6 +45,7 @@
 #endif
 
 #include "ClientConnection.h"
+#include "QuitFullScreenWindow.h"
 #include "SessionDialog.h"
 #include "AuthDialog.h"
 #include "LoginAuthDialog.h"

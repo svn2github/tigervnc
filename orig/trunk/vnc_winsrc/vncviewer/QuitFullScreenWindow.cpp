@@ -2,6 +2,9 @@
 //
 //////////////////////////////////////////////////////////////////////
 
+#include "stdhdrs.h"
+#include "vncviewer.h"
+#include "ClientConnection.h"
 #include "QuitFullScreenWindow.h"
 
 #define SIZE_BUTTON 20

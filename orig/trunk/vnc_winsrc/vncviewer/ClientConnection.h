@@ -43,7 +43,6 @@
 #include "ConnectingDialog.h"
 #include "FileTransfer.h"
 #include "zlib/zlib.h"
-#include "QuitFullScreenWindow.h"
 extern "C" {
 #include "libjpeg/jpeglib.h"
 }
@@ -57,6 +56,7 @@ extern "C" {
 
 extern const UINT fileTransferUploadMessage;
 
+class ClientConnection;
 typedef void (ClientConnection:: *tightFilterFunc)(int);
 
 class QuitFullScreenWindow;

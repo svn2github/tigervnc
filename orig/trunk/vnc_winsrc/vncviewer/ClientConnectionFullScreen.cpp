@@ -29,6 +29,7 @@
 #include "stdhdrs.h"
 #include "vncviewer.h"
 #include "ClientConnection.h"
+#include "QuitFullScreenWindow.h"
 
 // Parameters for scrolling in full screen mode
 #define BUMPSCROLLBORDER 4

@@ -43,8 +43,8 @@ VNCOptions::VNCOptions()
 	m_ViewOnly = false;
 	m_FullScreen = false;
 	m_toolbar = true;
-	m_listServer=32;
-	m_skipprompt=false;
+	m_historyLimit = 32;
+	m_skipprompt = false;
 	m_Use8Bit = false;
 	m_PreferredEncoding = rfbEncodingTight;
 	m_SwapMouse = false;
@@ -209,7 +209,7 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 	_tcscpy(CommLine, szCmdLine);
 
 	if (_tcsstr( CommLine, "/listen") != NULL) {
-		LoadOpt(".listen", "Software\\ORL\\VNCviewer\\MRU1");
+		LoadOpt(".listen", "Software\\ORL\\VNCviewer\\History");
 		f = 1;
 	}
 	TCHAR *cmd = new TCHAR[cmdlinelen + 1];
@@ -255,7 +255,7 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 	TCHAR phost[256];
 	if (ParseDisplay(args[j], phost, 255, &m_port) && (f == 0) &&
 		(_tcsstr( args[j], "/") == NULL))
-	LoadOpt(args[j], "Software\\ORL\\VNCviewer\\MRU1");
+	LoadOpt(args[j], "Software\\ORL\\VNCviewer\\History");
 	}
 	bool hostGiven = false, portGiven = false;
 	// take in order.
@@ -1167,7 +1167,7 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 			SendMessage(hToolbar, BM_SETCHECK, pApp->m_options.m_toolbar, 0);
 			
 			HWND hEditList = GetDlgItem(hwnd, IDC_EDIT_AMOUNT_LIST);
-			SetDlgItemInt( hwnd, IDC_EDIT_AMOUNT_LIST, pApp->m_options.m_listServer, FALSE);
+			SetDlgItemInt( hwnd, IDC_EDIT_AMOUNT_LIST, pApp->m_options.m_historyLimit, FALSE);
 			
 			HWND hSpin1 = GetDlgItem(hwnd, IDC_SPIN1);
 			SendMessage(hSpin1, UDM_SETBUDDY, (WPARAM) (HWND)hEditList, 0);
@@ -1232,11 +1232,11 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 				DWORD index=0;
 				
 				RegOpenKey(HKEY_CURRENT_USER,
-					"Software\\ORL\\VNCviewer\\MRU1", &hRegKey);
+					"Software\\ORL\\VNCviewer\\History", &hRegKey);
 				
 				while (RegEnumValue(hRegKey, index, value, &valuesize,
 					NULL, NULL, (LPBYTE)data, &datasize) == ERROR_SUCCESS) {
-					pApp->m_options.delkey(data, "Software\\ORL\\VNCviewer\\MRU1");
+					pApp->m_options.delkey(data, "Software\\ORL\\VNCviewer\\History");
 					RegDeleteValue(hRegKey, value);
 					valuesize = 80;
 					datasize = 80;
@@ -1305,7 +1305,7 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 					pApp->m_options.m_toolbar = true;					
 				}
 				
-				pApp->m_options.m_listServer = GetDlgItemInt(hwnd,
+				pApp->m_options.m_historyLimit = GetDlgItemInt(hwnd,
 					IDC_EDIT_AMOUNT_LIST, NULL, FALSE);
 				pApp->m_options.m_listenPort = GetDlgItemInt(hwnd,
 					IDC_LISTEN_PORT, NULL, FALSE);
@@ -1530,11 +1530,11 @@ void VNCOptions::LoadGenOpt()
 				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
 				m_logToFile = buffer == 1;
 		}
-		if ( RegQueryValueEx( hRegKey, "ListServer", NULL, &valtype, 
+		if ( RegQueryValueEx( hRegKey, "HistoryLimit", NULL, &valtype, 
 				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
-			m_listServer = buffer;
+			m_historyLimit = buffer;
 		}
-		if ( RegQueryValueEx( hRegKey, "Localcursor", NULL, &valtype, 
+		if ( RegQueryValueEx( hRegKey, "LocalCursor", NULL, &valtype, 
 				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
 			m_localCursor = buffer;
 		}
@@ -1542,7 +1542,7 @@ void VNCOptions::LoadGenOpt()
 				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
 			m_logLevel = buffer;
 		}
-		if ( RegQueryValueEx( hRegKey, "listenPort", NULL, &valtype, 
+		if ( RegQueryValueEx( hRegKey, "ListenPort", NULL, &valtype, 
 				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
 			m_listenPort = buffer;
 		}
@@ -1564,14 +1564,14 @@ void VNCOptions::SaveGenOpt()
 
 	RegCreateKey(HKEY_CURRENT_USER,
 					SETTINGS_KEY_NAME, &hRegKey);
-	RegSetValueEx( hRegKey, "Localcursor", 
+	RegSetValueEx( hRegKey, "LocalCursor", 
 					NULL, REG_DWORD, 
 					(CONST BYTE *)&m_localCursor,
 					4);
 				
-	RegSetValueEx( hRegKey, "ListServer", 
+	RegSetValueEx( hRegKey, "HistoryLimit", 
 					NULL, REG_DWORD, 
-					(CONST BYTE *)&m_listServer,
+					(CONST BYTE *)&m_historyLimit,
 					4);
 				
 	RegSetValueEx( hRegKey, "LogLevel", 
@@ -1584,7 +1584,7 @@ void VNCOptions::SaveGenOpt()
 					NULL, REG_SZ , 
 					(CONST BYTE *)buf, (_tcslen(buf)+1));				
 				
-	RegSetValueEx( hRegKey, "listenPort", 
+	RegSetValueEx( hRegKey, "ListenPort", 
 					NULL, REG_DWORD, 
 					(CONST BYTE *)&m_listenPort,
 					4);

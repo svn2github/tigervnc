@@ -71,7 +71,7 @@ public:
 	TCHAR	m_display[256];
 	bool	m_toolbar;
 	bool	m_skipprompt;
-	int		m_listServer;
+	int		m_historyLimit;
 	bool	m_connectionSpecified;
 	bool	m_configSpecified;
 	TCHAR   m_configFilename[_MAX_PATH];

@@ -218,6 +218,8 @@ protected:
 	BOOL			m_use_NewFBSize;
 	BOOL			m_use_PointerPos;
 
+	omni_mutex		m_sendUpdateLock;
+
 private:
 	unsigned int FiletimeToTime70(FILETIME filetime);
 	void SendFileDownloadData(unsigned short sizeFile, char *pFile);

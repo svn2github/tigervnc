@@ -242,18 +242,26 @@ horizonSharedArea::ApplySharedControls()
 
 	if ( GetPrefScreenAreaShared() ) 
 	{
-		int left, right, top, bottom ;
-		m_pMatchWindow->GetPosition( left, right, top, bottom ) ;
-		m_server->SetMatchSizeFields( left, right, top, bottom ) ;
+		// set the server's shared area rect
+		m_pMatchWindow->SetServerScreenArea() ;
+
+		// start the update timer
+		m_pMatchWindow->StartUpdateServerTimer() ;
 	}
-	else if ( GetPrefFullScreen() ) 
+	else
+	{
+		// stop the update timer
+		m_pMatchWindow->StopUpdateServerTimer() ;
+	}
+
+	if ( GetPrefFullScreen() ) 
 	{
 		RECT temp ;
 		GetWindowRect( GetDesktopWindow(), &temp ) ;
 		m_server->SetMatchSizeFields( temp.left, temp.top, temp.right, temp.bottom ) ;
 	}
 
-	return true;
+	return true ;
 }
 
 void horizonSharedArea::FullScreen()

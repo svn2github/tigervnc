@@ -4,7 +4,7 @@
 
 # TARGTYPE "Win32 (x86) Application" 0x0101
 
-CFG=AppShare - Win32 Release
+CFG=AppShare - Win32 TightVNC
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
@@ -13,12 +13,13 @@ CFG=AppShare - Win32 Release
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "AppShare.mak" CFG="AppShare - Win32 Release"
+!MESSAGE NMAKE /f "AppShare.mak" CFG="AppShare - Win32 TightVNC"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
 !MESSAGE "AppShare - Win32 Release" (based on "Win32 (x86) Application")
 !MESSAGE "AppShare - Win32 Debug" (based on "Win32 (x86) Application")
+!MESSAGE "AppShare - Win32 TightVNC" (based on "Win32 (x86) Application")
 !MESSAGE 
 
 # Begin Project
@@ -45,7 +46,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I ".." /I "..\.." /I "$(WINVNC_HOME)\VNCHooks" /I "$(WINVNC_HOME)\libjpeg" /I "$(WINVNC_HOME)\omnithread" /I "$(WINVNC_HOME)\zlib" /D "__WIN32__" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_OMNITHREAD_DLL" /FD /GZ /c
 # SUBTRACT BASE CPP /X /u /YX
-# ADD CPP /nologo /MT /W3 /GX /Od /Ob2 /I "./lib" /I ".." /I "../.." /I "../VNCHooks" /I "../libjpeg" /I "../omnithread" /I "$(PATH_TO_VNC_1_2)/winvnc" /I "C:\Program Files\HTML Help Workshop\include" /D WINVER=0x0500 /D "__WIN32__" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_OMNITHREAD_DLL" /D "HORIZONLIVE" /FD /GZ /c
+# ADD CPP /nologo /MT /W3 /GX /Od /Ob2 /I "./lib" /I ".." /I "../.." /I "../omnithread" /I "$(PATH_TO_VNC_1_2)/winvnc" /I "C:\Program Files\HTML Help Workshop\include" /D WINVER=0x0500 /D "__WIN32__" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_OMNITHREAD_DLL" /D "HORIZONLIVE" /FD /GZ /c
 # SUBTRACT CPP /X /u /YX
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
@@ -88,8 +89,39 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib wsock32.lib shlwapi.lib omnithread_rt.lib libjpeg.lib VNCHooks.lib zlib.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"libcmt.lib" /out:"./HorizonLive/LiveShare.exe" /pdbtype:sept /libpath:"./HorizonLive"
 # SUBTRACT BASE LINK32 /pdb:none
-# ADD LINK32 comctl32.lib htmlhelp.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib wsock32.lib shlwapi.lib omnithread_rt.lib libjpeg.a libz.a VNCHOOKS.lib /nologo /subsystem:windows /map /debug /machine:I386 /nodefaultlib:"libcmt.lib" /out:"C:\Documents and Settings\Administrator\Application Data\HorizonLive\SecureDoor\HZSDControl\2.0.0.0\Doors\appshare_1_8_3\data\AppShare.exe" /pdbtype:sept /libpath:"./lib/libjpeg" /libpath:"./lib/zlib" /libpath:"./HorizonLiveDebug" /libpath:"C:\Program Files\HTML Help Workshop\lib"
+# ADD LINK32 comctl32.lib htmlhelp.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib wsock32.lib shlwapi.lib omnithread_rt.lib libjpeg.a libz.a VNCHOOKS.lib /nologo /subsystem:windows /map /debug /machine:I386 /nodefaultlib:"libcmt.lib" /out:"C:\Documents and Settings\Administrator\Application Data\HorizonLive\SecureDoor\HZSDControl\2.0.0.0\Doors\appshare_1_8_5\data\AppShare.exe" /pdbtype:sept /libpath:"./lib/libjpeg" /libpath:"./lib/zlib" /libpath:"./HorizonLiveDebug" /libpath:"C:\Program Files\HTML Help Workshop\lib"
 # SUBTRACT LINK32 /pdb:none
+
+!ELSEIF  "$(CFG)" == "AppShare - Win32 TightVNC"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 1
+# PROP BASE Output_Dir "AppShare___Win32_TightVNC"
+# PROP BASE Intermediate_Dir "AppShare___Win32_TightVNC"
+# PROP BASE Ignore_Export_Lib 0
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 1
+# PROP Output_Dir "TightVNCRelease"
+# PROP Intermediate_Dir "TightVNCRelease"
+# PROP Ignore_Export_Lib 0
+# PROP Target_Dir ""
+# ADD BASE CPP /nologo /MT /W3 /GX /Od /Ob2 /I "./lib" /I ".." /I "../.." /I "../omnithread" /I "$(PATH_TO_VNC_1_2)/winvnc" /I "C:\Program Files\HTML Help Workshop\include" /D WINVER=0x0500 /D "__WIN32__" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_OMNITHREAD_DLL" /D "HORIZONLIVE" /FD /GZ /c
+# SUBTRACT BASE CPP /X /u /YX
+# ADD CPP /nologo /MT /W3 /GX /Od /Ob2 /I "./lib" /I ".." /I "../.." /I "../omnithread" /I "$(PATH_TO_VNC_1_2)/winvnc" /I "C:\Program Files\HTML Help Workshop\include" /D WINVER=0x0500 /D "__WIN32__" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_OMNITHREAD_DLL" /FD /GZ /c
+# SUBTRACT CPP /X /u /YX
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
+# ADD BASE RSC /l 0x409 /d "_DEBUG"
+# ADD RSC /l 0x409 /d "_DEBUG"
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 comctl32.lib htmlhelp.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib wsock32.lib shlwapi.lib omnithread_rt.lib libjpeg.a libz.a VNCHOOKS.lib /nologo /subsystem:windows /pdb:none /machine:I386 /out:"C:\Documents and Settings\Administrator\Application Data\HorizonLive\SecureDoor\HZSDControl\2.0.0.0\Doors\appshare_1_8_3\data\Release-AppShare.exe" /libpath:"./lib/libjpeg" /libpath:"./lib/zlib" /libpath:"./HorizonLive" /libpath:"C:\Program Files\HTML Help Workshop\lib"
+# SUBTRACT BASE LINK32 /debug
+# ADD LINK32 comctl32.lib htmlhelp.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib wsock32.lib shlwapi.lib omnithread_rt.lib libjpeg.a libz.a VNCHOOKS.lib /nologo /subsystem:windows /pdb:none /machine:I386 /out:"C:\Documents and Settings\Administrator\Application Data\HorizonLive\SecureDoor\HZSDControl\2.0.0.0\Doors\appshare_1_8_3\data\Release-AppShare.exe" /libpath:"./lib/libjpeg" /libpath:"./lib/zlib" /libpath:"./HorizonLive" /libpath:"C:\Program Files\HTML Help Workshop\lib"
+# SUBTRACT LINK32 /debug
 
 !ENDIF 
 
@@ -97,6 +129,7 @@ LINK32=link.exe
 
 # Name "AppShare - Win32 Release"
 # Name "AppShare - Win32 Debug"
+# Name "AppShare - Win32 TightVNC"
 # Begin Group "tightvnc-cpp"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"

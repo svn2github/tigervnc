@@ -57,7 +57,7 @@ public:
 	bool ShowAdvanced( void ) ;
 
 	// persistent match window
-	CMatchWindow* GetMatchWindow( void ) ;
+	CMatchWindow* GetMatchWindow( bool reset_window = false ) ;
 
 private:
 	horizonProperties() ;

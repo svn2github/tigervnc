@@ -26,12 +26,14 @@ horizonBasicSettings::Show()
 	if ( matchwindow == NULL )
 		return false ;
 		
+	// show the match window
 	matchwindow->Show() ;
 
 	// set initial rect
-	int left, right, top, bottom ;
-	matchwindow->GetPosition( left, top, right, bottom ) ;
-	m_server->SetMatchSizeFields( left, top, right, bottom ) ;
+	matchwindow->SetServerScreenArea() ;
+
+	// start the update timer
+	matchwindow->StartUpdateServerTimer() ;
 
 	// update properties
 	m_server->FullScreen( FALSE ) ;

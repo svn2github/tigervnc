@@ -168,22 +168,32 @@ horizonProperties::ShowAdvanced( void )
 }
 
 CMatchWindow* 
-horizonProperties::GetMatchWindow( void )
+horizonProperties::GetMatchWindow( bool reset_window )
 {
 	if ( m_matchwindow == NULL )
+	{
+		m_matchwindow = new CMatchWindow( 
+			vncServerSingleton::GetInstance(),
+			0, 0, 0, 0 // don't worry about the defaults here
+		) ;
+		
+		m_matchwindow->CanModify( TRUE ) ;
+	
+		// make sure to set the default bounds
+		reset_window = true ;
+	}
+	
+	if ( reset_window == true )
 	{
 		RECT rect ;
 		GetWindowRect( GetDesktopWindow(), &rect ) ;
 
-		m_matchwindow = new CMatchWindow( 
-			vncServerSingleton::GetInstance(),
-			rect.left + 5,
+		m_matchwindow->ModifyPosition(
+			rect.left + 5, 
 			rect.top + 5,
-			rect.right / 2,
+			rect.right / 2, 
 			rect.bottom / 2
 		) ;
-		
-		m_matchwindow->CanModify( TRUE ) ;
 	}
 	
 	return m_matchwindow ;

@@ -58,14 +58,19 @@ horizonNormalSettings::DialogProc(
 			SetWindowLong( hwnd, GWL_USERDATA, lParam ) ;
 			_this = reinterpret_cast< horizonNormalSettings* >( lParam ) ;
 			
+			bool reset_window = ( _this->m_server->ScreenAreaShared() == TRUE )
+				? false 
+				: true 
+			;
+				
+			// get the matchwindow, resetting it, if necessary
+			CMatchWindow* mw = _this->m_properties->GetMatchWindow( reset_window ) ;
+				
 			// create the shared area panel
-			_this->m_shareddtarea = new horizonSharedArea( 
-				hwnd, _this->m_properties->GetMatchWindow() ) ;
+			_this->m_shareddtarea = new horizonSharedArea( hwnd, mw ) ;
 
 			// reset okay flag
 			_this->m_ok_clicked = false ;
-
-//			InitCommonControls() ; // ??? deprecated win32 function ???
 
 			return 0 ;
 		}

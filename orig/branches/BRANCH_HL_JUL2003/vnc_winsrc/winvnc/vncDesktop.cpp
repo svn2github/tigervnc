@@ -41,6 +41,8 @@
 #include "vncService.h"
 #include <fstream.h>
 
+#define IDLE_MANAGMENT
+
 // Constants
 const UINT RFB_SCREEN_UPDATE = RegisterWindowMessage("WinVNC.Update.DrawRect");
 const UINT RFB_COPYRECT_UPDATE = RegisterWindowMessage("WinVNC.Update.CopyRect");
@@ -174,6 +176,9 @@ vncDesktopThread::run_undetached(void *arg)
 			
 		if (!PeekMessage(&msg, m_desktop->Window(), NULL, NULL, PM_REMOVE))
 		{
+#ifdef IDLE_MANAGEMENT
+			long starttime = GetTickCount();
+#endif
 			// Thread has gone idle.  Now would be a good time to send an update.
 			// First, we must check that the screen hasnt changed too much.
 			if (idle_skip) {
@@ -282,6 +287,7 @@ vncDesktopThread::run_undetached(void *arg)
 			}
 			
 			if (m_server->IncrRgnRequested()) {
+#ifndef HORIZONLIVE
 				// Check for moved windows
 				if (m_server->FullScreen())
 					m_desktop->CalcCopyRects();
@@ -297,6 +303,7 @@ vncDesktopThread::run_undetached(void *arg)
 					m_desktop->GetChangedRegion(rgn,m_desktop->m_copyrect_rect);
 					m_desktop->m_changed_rgn.SubtractRect(m_desktop->m_copyrect_rect);
 				} 
+#endif
 				
 				// Polling section
 				//If polling timer 
@@ -365,6 +372,17 @@ vncDesktopThread::run_undetached(void *arg)
 			// Trigger an update to be sent
 			if ( (m_server->FullRgnRequested()) || (m_server->IncrRgnRequested()) )
 				m_server->TriggerUpdate();
+
+#ifdef IDLE_MANAGEMENT
+			long endtime = GetTickCount();
+			long new_interval = endtime - starttime;
+			long user_interval = m_server->GetPollingTimer();
+
+			// clamp interval in range of user < new < (user * 4)
+			if(new_interval < user_interval) new_interval = user_interval;
+			if(new_interval > user_interval * 4) new_interval = user_interval * 4;
+			m_desktop->m_timerid = SetTimer(m_desktop->m_hwnd, m_desktop->m_timerid, new_interval, NULL);
+#endif
 
 			// Now wait for more messages to be queued
 			if (!WaitMessage()) {

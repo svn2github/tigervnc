@@ -181,6 +181,16 @@ is the full list of parameters supported in TightVNC Java viewer:
 
     Set to "No" if you want to get rid of that button panel at the top.
 
+--> "Show offline desktop" (no GUI equivalent)
+
+    Values: "Yes", "No".
+    Default: "No".
+
+    If set to "Yes", the viewer would continue to display desktop even
+    if the remote side has closed the connection. In this case, if the
+    button panel is enabled, then the "Disconnect" button would be
+    changed to "Hide desktop" after the connection is lost.
+
 --> "Defer screen updates" (no GUI equivalent)
 
     Value: time in milliseconds.

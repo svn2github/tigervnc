@@ -357,7 +357,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Add &New Client",             ID_OUTGOING_CONN
         MENUITEM "&Kill All Clients",           ID_KILLCLIENTS
-        MENUITEM "Disable New Clients",         ID_DISABLE_CONN
+        MENUITEM "&Disable New Clients",        ID_DISABLE_CONN
         MENUITEM SEPARATOR
         MENUITEM "&About WinVNC",               ID_ABOUT
         MENUITEM SEPARATOR

@@ -1696,9 +1696,10 @@ vncClientThread::run(void *arg)
 				dirName = m_client->ConvertPath(dirName);
 				FileTransferItemInfo ftfi;
 				char fullPath[MAX_PATH];
-				sprintf(fullPath, "%s\\*", dirName);
+				ftfi.Add(dirName, -1, 0);
 				CARD32 dirFileSize = 0;
 				do {
+					sprintf(fullPath, "%s\\*", ftfi.GetNameAt(0));
 					WIN32_FIND_DATA FindFileData;
 					SetErrorMode(SEM_FAILCRITICALERRORS);
 					HANDLE hFile = FindFirstFile(fullPath, &FindFileData);
@@ -1710,11 +1711,7 @@ vncClientThread::run(void *arg)
 								strcmp(FindFileData.cFileName, "..") != 0) {
 								char buff[MAX_PATH];
 								if ((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {	
-									if (ftfi.GetNumEntries() == 0) {
-										strcpy(buff, FindFileData.cFileName);
-									} else {
-										sprintf(buff, "%s\\%s", ftfi.GetNameAt(0), FindFileData.cFileName);
-									}
+									sprintf(buff, "%s\\%s", ftfi.GetNameAt(0), FindFileData.cFileName);
 									ftfi.Add(buff, -1, 0);
 								} else {
 									dirFileSize += FindFileData.nFileSizeLow;
@@ -1723,7 +1720,6 @@ vncClientThread::run(void *arg)
 						} while (FindNextFile(hFile, &FindFileData));
 					}			
 					FindClose(hFile);
-					sprintf(fullPath, "%s\\%s\\*", dirName, ftfi.GetNameAt(0));
 					ftfi.DeleteAt(0);
 				} while (ftfi.GetNumEntries() > 0);
 				m_client->SendFileDirSizeData(dirFileSize);

@@ -136,6 +136,8 @@ private:
 	void ClientRenameDir();
 	void ServerRenameDir();
 	BOOL CreateRenameDirDlg(HWND hwnd);
+	BOOL CreateTransferConfDlg();
+
 	void SetDefaultBlockSize() { m_dwFileBlockSize = 8192; };
 	void FTClientDelete(FileTransferItemInfo *ftfi);
 

@@ -101,8 +101,11 @@ public:
   // Bind
   //        Bind the attached socket to the specified port
   //		If localOnly is VTrue then the socket is bound only
-  //        to the loopback adapter.
-  VBool Bind(const VCard port, const VBool localOnly=VFalse);
+  //        to the loopback adapter. If checkIfInUse is VTrue,
+  //        then the socket won't be bound to an address which
+  //        is already in use (i.e. accepts connections).
+  VBool Bind(const VCard port, const VBool localOnly = VFalse,
+			 const VBool checkIfInUse = VFalse);
 
   // Connect
   //        Make a stream socket connection to the specified port

@@ -217,7 +217,8 @@ VSocket::Shutdown()
 ////////////////////////////
 
 VBool
-VSocket::Bind(const VCard port, const VBool localOnly)
+VSocket::Bind(const VCard port, const VBool localOnly,
+			  const VBool checkIfInUse)
 {
   struct sockaddr_in addr;
 
@@ -226,7 +227,7 @@ VSocket::Bind(const VCard port, const VBool localOnly)
     return VFalse;
 
   // If a specific port is being set then check it's not already used!
-  if (port != 0)
+  if (port != 0 && checkIfInUse)
   {
 	VSocket dummy;
 

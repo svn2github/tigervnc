@@ -554,7 +554,7 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 		}
 		if (iMsg == MENU_RELOAD_MSG)
 		{
-			// We should load in the prefs for the new user
+			// Reload the preferences
 			_this->m_properties.Load(TRUE);
 
 			// Redraw the tray icon and set it's state
@@ -564,7 +564,6 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 
 			return 0;
 		}
-
 		if (iMsg == MENU_ADD_CLIENT_MSG)
 		{
 			// Add Client message.  This message includes an IP address and

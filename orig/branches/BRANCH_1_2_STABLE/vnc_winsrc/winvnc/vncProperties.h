@@ -85,8 +85,8 @@ protected:
 	BOOL				m_inadvanced;
 
 	// Password handling
-	void LoadPassword(HKEY k, char *buffer, int status);
-	void SavePassword(HKEY k, char *buffer, int status);
+	void LoadPassword(HKEY k, char *buffer, const char *entry_name);
+	void SavePassword(HKEY k, const char *buffer, const char *entry_name);
 
 	// String handling
 	char * LoadString(HKEY k, LPCSTR valname);

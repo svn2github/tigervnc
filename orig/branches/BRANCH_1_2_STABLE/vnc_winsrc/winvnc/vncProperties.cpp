@@ -207,14 +207,14 @@ vncProperties::Show(BOOL show, BOOL usersettings)
 
 				// We're allowed to exit if the password is not empty
 				char passwd[MAXPWLEN];
-				char passwdvo[MAXPWLEN];
+				char passwd_viewonly[MAXPWLEN];
 				m_server->GetPassword(passwd);
-				m_server->GetPasswordViewOnly(passwdvo);
+				m_server->GetPasswordViewOnly(passwd_viewonly);
 				{
 				    vncPasswd::ToText plain(passwd);
-					vncPasswd::ToText plainvo(passwdvo);
+					vncPasswd::ToText plain_viewonly(passwd_viewonly);
 					if ((strlen(plain) != 0) || !m_server->AuthRequired()) {
-						if (strlen(plainvo) == 0) {
+						if (strlen(passwd_viewonly) == 0) {
 							m_server->GetPassword(passwd);
 							m_server->SetPasswordViewOnly(passwd);
 						}
@@ -278,13 +278,11 @@ vncProperties::DialogProc(HWND hwnd,
 			BOOL bConnectSock = _this->m_server->SockConnected();
 			SendMessage(hConnectSock, BM_SETCHECK, bConnectSock, 0);
 
-			// Set the content of the password field to a predefined string.
-		    SetDlgItemText(hwnd, IDC_PASSWORD, "~~~~~~~~");
+			// Set the content of password fields to a predefined string.
+			SetDlgItemText(hwnd, IDC_PASSWORD, "~~~~~~~~");
 			EnableWindow(GetDlgItem(hwnd, IDC_PASSWORD), bConnectSock);
-
-			// Set the content of the password (View Only) field to a predefined string.
-		    SetDlgItemText(hwnd, IDC_PASSWORDVO, "~~~~~~~~");
-			EnableWindow(GetDlgItem(hwnd, IDC_PASSWORDVO), bConnectSock);
+			SetDlgItemText(hwnd, IDC_PASSWORD_VIEWONLY, "~~~~~~~~");
+			EnableWindow(GetDlgItem(hwnd, IDC_PASSWORD_VIEWONLY), bConnectSock);
 
 			// Set display/ports settings
 			_this->InitPortSettings(hwnd);
@@ -370,7 +368,8 @@ vncProperties::DialogProc(HWND hwnd,
 				}
 
 				// Save the password (view only) if one was entered
-				len = GetDlgItemText(hwnd, IDC_PASSWORDVO, (LPSTR)&passwd, MAXPWLEN+1);
+				// FIXME: Code duplication, see above
+				len = GetDlgItemText(hwnd, IDC_PASSWORD_VIEWONLY, (LPSTR)&passwd, MAXPWLEN+1);
 				if (strcmp(passwd, "~~~~~~~~") != 0) {
 					if (len == 0) {
 						vncPasswd::FromClear crypt;
@@ -379,9 +378,6 @@ vncProperties::DialogProc(HWND hwnd,
 						vncPasswd::FromText crypt(passwd);
 						_this->m_server->SetPasswordViewOnly(crypt);
 					}
-				} else {
-					_this->m_server->GetPassword(passwd);
-					_this->m_server->SetPasswordViewOnly(passwd);
 				}
 
 				// Save the new settings to the server
@@ -508,7 +504,7 @@ vncProperties::DialogProc(HWND hwnd,
 										BM_GETCHECK, 0, 0) == BST_CHECKED);
 
 				EnableWindow(GetDlgItem(hwnd, IDC_PASSWORD), bConnectSock);
-				EnableWindow(GetDlgItem(hwnd, IDC_PASSWORDVO), bConnectSock);
+				EnableWindow(GetDlgItem(hwnd, IDC_PASSWORD_VIEWONLY), bConnectSock);
 
 				HWND hPortNoAuto = GetDlgItem(hwnd, IDC_PORTNO_AUTO);
 				EnableWindow(hPortNoAuto, bConnectSock);
@@ -670,25 +666,15 @@ vncProperties::LoadInt(HKEY key, LPCSTR valname, LONG defval)
 }
 
 void
-vncProperties::LoadPassword(HKEY key, char *buffer, int status)
+vncProperties::LoadPassword(HKEY key, char *buffer, const char *entry_name)
 {
 	DWORD type = REG_BINARY;
 	int slen=MAXPWLEN;
 	char inouttext[MAXPWLEN];
-	char valname[] = "PasswordViewOnly";
-	switch (status)
-	{
-	case KEY_PASSWORD:
-			strcpy(valname, "Password");
-			break;
-	case KEY_PASSWORD_VIEW_ONLY:
-			strcpy(valname, "PasswordViewOnly");
-			break;
-	}
 
 	// Retrieve the encrypted password
 	if (RegQueryValueEx(key,
-		(LPCSTR) valname,
+		(LPCSTR) entry_name,
 		NULL,
 		&type,
 		(LPBYTE) &inouttext,
@@ -833,8 +819,8 @@ vncProperties::Load(BOOL usersettings)
 	m_pref_SockConnect=TRUE;
 	m_pref_CORBAConn=FALSE;
 	{
-	    vncPasswd::FromClear crypt;
-	    memcpy(m_pref_passwd, crypt, MAXPWLEN);
+		vncPasswd::FromClear crypt;
+		memcpy(m_pref_passwd, crypt, MAXPWLEN);
 		memcpy(m_pref_passwd_viewonly, crypt, MAXPWLEN);
 	}
 	m_pref_QuerySetting=2;
@@ -928,9 +914,11 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	m_pref_QueryAccept=LoadInt(appkey, "QueryAccept", m_pref_QueryAccept);
 	m_pref_QueryAllowNoPass=LoadInt(appkey, "QueryAllowNoPass", m_pref_QueryAllowNoPass);
 
-	// Load the password
-	LoadPassword(appkey, m_pref_passwd, KEY_PASSWORD);
-	LoadPassword(appkey, m_pref_passwd_viewonly, KEY_PASSWORD_VIEW_ONLY);
+	// Load the primary password
+	LoadPassword(appkey, m_pref_passwd, "Password");
+	// Load the view-only password, default to the primary one
+	memcpy(m_pref_passwd_viewonly, m_pref_passwd, MAXPWLEN);
+	LoadPassword(appkey, m_pref_passwd_viewonly, "PasswordViewOnly");
 	// CORBA Settings
 	m_pref_CORBAConn=LoadInt(appkey, "CORBAConnect", m_pref_CORBAConn);
 
@@ -1007,20 +995,9 @@ vncProperties::SaveInt(HKEY key, LPCSTR valname, LONG val)
 }
 
 void
-vncProperties::SavePassword(HKEY key, char *buffer, int status)
+vncProperties::SavePassword(HKEY key, const char *buffer, const char *entry_name)
 {
-	char valname[] = "PasswordViewOnly";
-	switch (status)
-	{
-	case KEY_PASSWORD:
-		strcpy(valname, "Password");
-		break;
-	case KEY_PASSWORD_VIEW_ONLY:
-		strcpy(valname, "PasswordViewOnly");
-		break;
-	}
-
-	RegSetValueEx(key, valname, 0, REG_BINARY, (LPBYTE) buffer, MAXPWLEN);
+	RegSetValueEx(key, entry_name, 0, REG_BINARY, (LPBYTE) buffer, MAXPWLEN);
 }
 
 void
@@ -1107,10 +1084,9 @@ vncProperties::SaveUserPrefs(HKEY appkey)
 	// Save the password
 	char passwd[MAXPWLEN];
 	m_server->GetPassword(passwd);
-	SavePassword(appkey, passwd, KEY_PASSWORD);
+	SavePassword(appkey, passwd, "Password");
 	m_server->GetPasswordViewOnly(passwd);
-	SavePassword(appkey, passwd, KEY_PASSWORD_VIEW_ONLY);
-
+	SavePassword(appkey, passwd, "PasswordViewOnly");
 
 #if(defined(_CORBA))
 	// Don't save the CORBA enabled flag if CORBA is not compiled in!

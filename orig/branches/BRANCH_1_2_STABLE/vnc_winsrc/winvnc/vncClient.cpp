@@ -301,12 +301,12 @@ vncClientThread::InitAuthenticate()
 			vncEncryptBytes((BYTE *)&challenge, plain);
 
 			// Compare them to the response
-			if (memcmp(challenge, response, 16) != 0) {
-					auth_ok = FALSE;
-				}
+			if (memcmp(challenge, response, sizeof(response)) != 0) {
+				auth_ok = FALSE;
+			}
 			if (!auth_ok) {
 				vncEncryptBytes((BYTE *)&challenge_viewonly, plain_viewonly);
-				if (memcmp(challenge_viewonly, response, 16) == 0) {
+				if (memcmp(challenge_viewonly, response, sizeof(response)) == 0) {
 					m_client->m_pointerenabled = FALSE;
 					m_client->m_keyboardenabled = FALSE;
 					auth_ok = TRUE;

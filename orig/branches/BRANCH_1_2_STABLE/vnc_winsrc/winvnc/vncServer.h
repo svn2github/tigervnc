@@ -266,7 +266,7 @@ protected:
 	UINT				m_port_http;
 	BOOL				m_autoportselect;
 	char				m_password[MAXPWLEN];
-	char				m_passwordviewonly[MAXPWLEN];
+	char				m_password_viewonly[MAXPWLEN];
 	BOOL				m_passwd_required;
 	BOOL				m_loopback_allowed;
 	BOOL				m_httpd_enabled;

@@ -60,9 +60,5 @@ extern Log vnclog;
 // Log everything, including internal table setup, etc.
 #define LL_ALL		10
 
-#define KEY_PASSWORD 1
-#define KEY_PASSWORD_VIEW_ONLY 2
-
-
 // Macros for sticking in the current file name
 #define VNCLOG(s)	(__FILE__ " : " s)

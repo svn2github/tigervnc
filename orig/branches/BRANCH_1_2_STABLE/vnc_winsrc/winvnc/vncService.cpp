@@ -573,6 +573,7 @@ vncService::PostReloadMessage()
 	DWORD processId = GetCurrentProcessId();
 
 	// - Post it to the existing WinVNC
+	// FIXME: Code duplication, see PostUserHelperMessage().
 	int retries = 6;
 	while (!PostToWinVNC(MENU_RELOAD_MSG, 0, (LPARAM)processId) && retries--)
 		omni_thread::sleep(10);

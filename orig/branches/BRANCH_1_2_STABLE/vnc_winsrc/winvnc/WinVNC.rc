@@ -37,7 +37,10 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,13,16,128,12
     LTEXT           "Password:",IDC_PASSWORD_LABEL,19,30,44,12,
                     SS_CENTERIMAGE | NOT WS_GROUP
-    EDITTEXT        IDC_PASSWORD,69,30,68,12,ES_PASSWORD | ES_AUTOHSCROLL
+    EDITTEXT        IDC_PASSWORD,69,30,66,12,ES_PASSWORD | ES_AUTOHSCROLL
+    LTEXT           "Password\n(view only):",IDC_PASSWORD_VIEWONLY_LABEL,19,45,44,
+                    19,NOT WS_GROUP
+    EDITTEXT        IDC_PASSWORD_VIEWONLY,69,49,66,12,ES_PASSWORD | ES_AUTOHSCROLL
     LTEXT           "Display or port numbers to use:",IDC_STATIC,18,66,121,
                     12,NOT WS_GROUP
     CONTROL         "auto",IDC_PORTNO_AUTO,"Button",BS_AUTORADIOBUTTON | 
@@ -55,19 +58,19 @@ BEGIN
     GROUPBOX        "Input Handling",IDC_STATIC,5,133,213,44
     CONTROL         "Disable remote keyboard and pointer (view only)",
                     IDC_DISABLE_INPUTS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    13,144,201,12
+                    13,145,201,12
     CONTROL         "Disable local keyboard and pointer",
                     IDC_DISABLE_LOCAL_INPUTS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,13,159,201,12
+                    WS_TABSTOP,13,160,201,12
     GROUPBOX        "Update Handling",IDC_STATIC,5,183,213,60
     CONTROL         "Poll foreground window",IDC_POLL_FOREGROUND,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,13,196,98,13
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,195,98,13
     CONTROL         "Poll window under cursor",IDC_POLL_UNDER_CURSOR,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,13,210,98,13
     CONTROL         "Poll full screen",IDC_POLL_FULLSCREEN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,13,226,98,13
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,225,98,13
     CONTROL         "Poll console windows only",IDC_CONSOLE_ONLY,"Button",
-                    BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,112,196,102,
+                    BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,112,195,102,
                     13
     CONTROL         "Poll on event received only",IDC_ONEVENT_ONLY,"Button",
                     BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,112,210,102,
@@ -75,10 +78,7 @@ BEGIN
     DEFPUSHBUTTON   "&OK",IDOK,158,8,60,14
     PUSHBUTTON      "&Apply",IDC_APPLY,158,26,60,14
     PUSHBUTTON      "&Cancel",IDCANCEL,158,44,60,14
-    PUSHBUTTON      "Ad&vanced...",IDADVANCED,158,95,60,14
-    LTEXT           "Password: (View Only)",IDC_PASSWORD_LABELVO,19,45,44,19,
-                    NOT WS_GROUP
-    EDITTEXT        IDC_PASSWORDVO,69,49,68,12,ES_PASSWORD | ES_AUTOHSCROLL
+    PUSHBUTTON      "Ad&vanced...",IDADVANCED,158,80,60,14
 END
 
 IDD_ABOUT DIALOG DISCARDABLE  0, 0, 326, 122
@@ -195,12 +195,16 @@ BEGIN
         RIGHTMARGIN, 218
         VERTGUIDE, 13
         VERTGUIDE, 111
+        VERTGUIDE, 135
         VERTGUIDE, 158
         VERTGUIDE, 214
         TOPMARGIN, 5
         BOTTOMMARGIN, 245
-        HORZGUIDE, 85
-        HORZGUIDE, 109
+        HORZGUIDE, 87
+        HORZGUIDE, 104
+        HORZGUIDE, 118
+        HORZGUIDE, 201
+        HORZGUIDE, 216
     END
 
     IDD_ABOUT, DIALOG

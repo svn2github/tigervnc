@@ -104,13 +104,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 			vncService::PostUserHelperMessage();
 			return 0;
 		}
-
-		if (strncmp(&szCmdLine[i], winvncReload, strlen(winvncReload)) == 0)
-		{
-			vncService::PostReloadMessage();
-			return 0;
-		}
-		
 		if (strncmp(&szCmdLine[i], winvncRunService, strlen(winvncRunService)) == 0)
 		{
 			// Run WinVNC as a service
@@ -140,6 +133,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 			// Remove the WinVNC service
 			vncService::RemoveService();
 			i+=strlen(winvncRemoveService);
+			continue;
+		}
+		if (strncmp(&szCmdLine[i], winvncReload, strlen(winvncReload)) == 0)
+		{
+			// Reload Properties from the registry
+			vncService::PostReloadMessage();
+			i+=strlen(winvncReload);
 			continue;
 		}
 		if (strncmp(&szCmdLine[i], winvncShowProperties, strlen(winvncShowProperties)) == 0)

@@ -759,7 +759,15 @@ class VncCanvas extends Canvas
 
     int comp_ctl = rfb.is.readUnsignedByte();
     if (rfb.rec != null) {
-      rfb.rec.writeByte(comp_ctl);
+      if (viewer.recordingFromBeginning ||
+	  comp_ctl == (rfb.TightFill << 4) ||
+	  comp_ctl == (rfb.TightJpeg << 4)) {
+	// Send data exactly as received.
+	rfb.rec.writeByte(comp_ctl);
+      } else {
+	// Tell the decoder to flush each of the four zlib streams.
+	rfb.rec.writeByte(comp_ctl | 0x0F);
+      }
     }
 
     // Flush zlib streams if we are told by the server to do so.
@@ -806,6 +814,9 @@ class VncCanvas extends Canvas
       byte[] jpegData = new byte[rfb.readCompactLen()];
       rfb.is.readFully(jpegData);
       if (rfb.rec != null) {
+	if (!viewer.recordingFromBeginning) {
+	  rfb.recordCompactLen(jpegData.length);
+	}
 	rfb.rec.write(jpegData);
       }
 
@@ -947,7 +958,7 @@ class VncCanvas extends Canvas
       int zlibDataLen = rfb.readCompactLen();
       byte[] zlibData = new byte[zlibDataLen];
       rfb.is.readFully(zlibData);
-      if (rfb.rec != null) {
+      if (rfb.rec != null && viewer.recordingFromBeginning) {
 	rfb.rec.write(zlibData);
       }
       int stream_id = comp_ctl & 0x03;
@@ -956,17 +967,20 @@ class VncCanvas extends Canvas
       }
       Inflater myInflater = tightInflaters[stream_id];
       myInflater.setInput(zlibData);
+      byte[] buf = new byte[dataSize];
+      myInflater.inflate(buf);
+      if (rfb.rec != null && !viewer.recordingFromBeginning) {
+	rfb.recordCompressedData(buf);
+      }
 
       if (numColors != 0) {
 	// Indexed colors.
-	byte[] indexedData = new byte[dataSize];
-	myInflater.inflate(indexedData);
 	if (numColors == 2) {
 	  // Two colors.
 	  if (bytesPixel == 1) {
-	    decodeMonoData(x, y, w, h, indexedData, palette8);
+	    decodeMonoData(x, y, w, h, buf, palette8);
 	  } else {
-	    decodeMonoData(x, y, w, h, indexedData, palette24);
+	    decodeMonoData(x, y, w, h, buf, palette24);
 	  }
 	} else {
 	  // More than two colors (assuming bytesPixel == 4).
@@ -974,32 +988,33 @@ class VncCanvas extends Canvas
 	  for (int dy = y; dy < y + h; dy++) {
 	    for (int dx = x; dx < x + w; dx++) {
 	      pixels24[dy * rfb.framebufferWidth + dx] =
-		palette24[indexedData[i++] & 0xFF];
+		palette24[buf[i++] & 0xFF];
 	    }
 	  }
 	}
       } else if (useGradient) {
 	// Compressed "Gradient"-filtered data (assuming bytesPixel == 4).
-	byte[] buf = new byte[w * h * 3];
-	myInflater.inflate(buf);
 	decodeGradientData(x, y, w, h, buf);
       } else {
 	// Compressed truecolor data.
 	if (bytesPixel == 1) {
-	  for (int dy = y; dy < y + h; dy++) {
-	    myInflater.inflate(pixels8, dy * rfb.framebufferWidth + x, w);
+	  int destOffset = y * rfb.framebufferWidth + x;
+	  for (int dy = 0; dy < h; dy++) {
+	    System.arraycopy(buf, dy * w, pixels8, destOffset, w);
+	    destOffset += rfb.framebufferWidth;
 	  }
 	} else {
-	  byte[] buf = new byte[w * 3];
-	  int i, offset;
-	  for (int dy = y; dy < y + h; dy++) {
+	  int srcOffset = 0;
+	  int destOffset, i;
+	  for (int dy = 0; dy < h; dy++) {
 	    myInflater.inflate(buf);
-	    offset = dy * rfb.framebufferWidth + x;
+	    destOffset = (y + dy) * rfb.framebufferWidth + x;
 	    for (i = 0; i < w; i++) {
-	      pixels24[offset + i] =
-		(buf[i * 3] & 0xFF) << 16 |
-		(buf[i * 3 + 1] & 0xFF) << 8 |
-		(buf[i * 3 + 2] & 0xFF);
+	      pixels24[destOffset + i] =
+		(buf[srcOffset] & 0xFF) << 16 |
+		(buf[srcOffset + 1] & 0xFF) << 8 |
+		(buf[srcOffset + 2] & 0xFF);
+	      srcOffset += 3;
 	    }
 	  }
 	}

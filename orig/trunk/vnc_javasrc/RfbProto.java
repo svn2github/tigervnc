@@ -28,6 +28,7 @@ import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.net.Socket;
+import java.util.zip.*;
 
 class RfbProto {
 
@@ -391,7 +392,8 @@ class RfbProto {
   //
   // Read an integer in compact representation (1..3 bytes).
   // Such format is used as a part of the Tight encoding.
-  // Also, this method records data if session recording is active.
+  // Also, this method records data if session recording is active and
+  // the viewer's recordingFromBeginning variable is set to true.
   //
 
   int readCompactLen() throws IOException {
@@ -410,7 +412,7 @@ class RfbProto {
       }
     }
 
-    if (rec != null)
+    if (rec != null && viewer.recordingFromBeginning)
       for (int i = 0; i < byteCount; i++)
 	rec.writeByte(portion[i]);
 
@@ -806,4 +808,48 @@ class RfbProto {
 
     oldModifiers = newModifiers;
   }
+
+
+  //
+  // Compress and write the data into the recorded session file. This
+  // method assumes the recording is on (rec != null).
+  //
+
+  void recordCompressedData(byte[] data, int off, int len) throws IOException {
+    Deflater deflater = new Deflater();
+    deflater.setInput(data, off, len);
+    int bufSize = len + len / 100 + 12;
+    byte[] buf = new byte[bufSize];
+    deflater.finish();
+    int compressedSize = deflater.deflate(buf);
+    recordCompactLen(compressedSize);
+    System.out.print("[" + compressedSize + "] ");
+    rec.write(buf, 0, compressedSize);
+  }
+
+  void recordCompressedData(byte[] data) throws IOException {
+    recordCompressedData(data, 0, data.length);
+  }
+
+  //
+  // Write an integer in compact representation (1..3 bytes) into the
+  // recorded session file. This method assumes the recording is on
+  // (rec != null).
+  //
+
+  void recordCompactLen(int len) throws IOException {
+    byte[] buf = new byte[3];
+    int bytes = 0;
+    buf[bytes++] = (byte)(len & 0x7F);
+    if (len > 0x7F) {
+      buf[bytes-1] |= 0x80;
+      buf[bytes++] = (byte)(len >> 7 & 0x7F);
+      if (len > 0x3FFF) {
+	buf[bytes-1] |= 0x80;
+	buf[bytes++] = (byte)(len >> 14 & 0xFF);
+      }
+    }
+    rec.write(buf, 0, bytes);
+  }
 }
+

@@ -258,7 +258,7 @@ BEGIN
                     NOT WS_GROUP
 END
 
-IDD_UPDATE_HANDLING DIALOG DISCARDABLE  0, 0, 235, 87
+IDD_UPDATE_HANDLING DIALOG DISCARDABLE  0, 0, 235, 113
 STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -281,9 +281,11 @@ BEGIN
     CONTROL         "Don't use VNCHooks.DLL while polling full screen",
                     IDC_DONT_SET_HOOKS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
                     7,52,209,13
-    CONTROL         "Don't use mirror video driver even if available",
+    CONTROL         "Don't use mirror display driver even if available",
                     IDC_DONT_USE_DRIVER,"Button",BS_AUTOCHECKBOX | 
-                    WS_DISABLED | WS_TABSTOP,7,67,209,13
+                    WS_TABSTOP,7,67,209,13
+    LTEXT           "( driver status unknown )",IDC_STATIC_DRVINFO,7,88,221,
+                    18
 END
 
 IDD_CLIENT_DISCONNECT DIALOG DISCARDABLE  0, 0, 176, 72
@@ -493,7 +495,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 228
         TOPMARGIN, 7
-        BOTTOMMARGIN, 80
+        BOTTOMMARGIN, 106
     END
 
     IDD_CLIENT_DISCONNECT, DIALOG
@@ -831,11 +833,13 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    IDC_STATIC_DRVINFO      "Here you can see information about using the mirror display driver."
     IDC_STATIC_ACTION       "Default action:"
     IDC_STATIC_TEMPORARY    "Temporary"
     IDC_STATIC_CONN_PRIOR   "Connection Priority"
     IDC_STATIC_ADMINISTR    "Administration"
     IDC_STATIC_DISPLAY_PORT "Display or port numbers to use:"
+    IDC_DONT_USE_DRIVER     "Don't ever try to use mirror display driver. Use this option for troubleshooting purposes. Note that toggling this option does not take immediate effect if there is at least one viewer connected."
 END
 
 STRINGTABLE DISCARDABLE 

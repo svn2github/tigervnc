@@ -122,7 +122,7 @@
 #define IDC_HTTP_LABEL                  1086
 #define IDC_TAB                         1087
 #define IDC_DISPLAY_LABEL               1088
-#define IDC_STATIC_SECONDS              1089
+#define IDC_STATIC_DRVINFO              1089
 #define IDC_STATIC_TIMEOUT              1090
 #define IDC_STATIC_ACTION               1091
 #define IDC_STATIC_TEMPORARY            1092

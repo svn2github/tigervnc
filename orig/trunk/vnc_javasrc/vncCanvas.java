@@ -313,7 +313,7 @@ class vncCanvas extends Canvas
 	throw new IOException("Can't handle SetColourMapEntries message");
 
       case rfbProto.Bell:
-	System.out.print((char)7);
+        Toolkit.getDefaultToolkit().beep();
 	break;
 
       case rfbProto.ServerCutText:

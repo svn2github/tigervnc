@@ -237,10 +237,10 @@ class VncCanvas extends Canvas
 	    int pixel, x, y, w, h;
 
 	    if (bytesPixel == 1) {
-	      fillLargeArea(rx, ry, rw, rh, (byte)rfb.is.read());
+	      fillLargeArea(rx, ry, rw, rh, (byte)rfb.is.readUnsignedByte());
 
 	      for (int j = 0; j < nSubrects; j++) {
-		pixel = rfb.is.read();
+		pixel = rfb.is.readUnsignedByte();
 		x = rx + rfb.is.readUnsignedShort();
 		y = ry + rfb.is.readUnsignedShort();
 		w = rfb.is.readUnsignedShort();
@@ -274,14 +274,14 @@ class VncCanvas extends Canvas
 	    int pixel, x, y, w, h;
 
 	    if (bytesPixel == 1) {
-	      fillLargeArea(rx, ry, rw, rh, (byte)rfb.is.read());
+	      fillLargeArea(rx, ry, rw, rh, (byte)rfb.is.readUnsignedByte());
 
 	      for (int j = 0; j < nSubrects; j++) {
-		pixel = rfb.is.read();
-		x = rx + rfb.is.read();
-		y = ry + rfb.is.read();
-		w = rfb.is.read();
-		h = rfb.is.read();
+		pixel = rfb.is.readUnsignedByte();
+		x = rx + rfb.is.readUnsignedByte();
+		y = ry + rfb.is.readUnsignedByte();
+		w = rfb.is.readUnsignedByte();
+		h = rfb.is.readUnsignedByte();
 
 		fillSmallArea(x, y, w, h, (byte)pixel);
 	      }
@@ -290,10 +290,10 @@ class VncCanvas extends Canvas
 
 	      for (int j = 0; j < nSubrects; j++) {
 		pixel = rfb.is.readInt();
-		x = rx + rfb.is.read();
-		y = ry + rfb.is.read();
-		w = rfb.is.read();
-		h = rfb.is.read();
+		x = rx + rfb.is.readUnsignedByte();
+		y = ry + rfb.is.readUnsignedByte();
+		w = rfb.is.readUnsignedByte();
+		h = rfb.is.readUnsignedByte();
 
 		fillSmallArea(x, y, w, h, pixel);
 	      }
@@ -321,7 +321,7 @@ class VncCanvas extends Canvas
 		if (rx + rw - tx < 16)
 		  tw = rx + rw - tx;
 
-		int subencoding = rfb.is.read();
+		int subencoding = rfb.is.readUnsignedByte();
 
 		if ((subencoding & rfb.HextileRaw) != 0) {
 		  if (bytesPixel == 1) {
@@ -347,12 +347,12 @@ class VncCanvas extends Canvas
 
 		if (bytesPixel == 1) {
 		  if ((subencoding & rfb.HextileBackgroundSpecified) != 0)
-		    bg = rfb.is.read();
+		    bg = rfb.is.readUnsignedByte();
 
 		  fillLargeArea(tx, ty, tw, th, (byte)bg);
 
 		  if ((subencoding & rfb.HextileForegroundSpecified) != 0)
-		    fg = rfb.is.read();
+		    fg = rfb.is.readUnsignedByte();
 		} else {
 		  if ((subencoding & rfb.HextileBackgroundSpecified) != 0)
 		    bg = rfb.is.readInt();
@@ -367,15 +367,15 @@ class VncCanvas extends Canvas
 
 		if ((subencoding & rfb.HextileAnySubrects) != 0) {
 
-		  int nSubrects = rfb.is.read();
+		  int nSubrects = rfb.is.readUnsignedByte();
 
 		  if ((subencoding & rfb.HextileSubrectsColoured) != 0) {
 
 		    for (int j = 0; j < nSubrects; j++) {
 		      fg = (bytesPixel == 1) ?
-			rfb.is.read() : rfb.is.readInt();
-		      int b1 = rfb.is.read();
-		      int b2 = rfb.is.read();
+			rfb.is.readUnsignedByte() : rfb.is.readInt();
+		      int b1 = rfb.is.readUnsignedByte();
+		      int b2 = rfb.is.readUnsignedByte();
 		      sx = tx + (b1 >> 4);
 		      sy = ty + (b1 & 0xf);
 		      sw = (b2 >> 4) + 1;
@@ -391,8 +391,8 @@ class VncCanvas extends Canvas
 		  } else {
 
 		    for (int j = 0; j < nSubrects; j++) {
-		      int b1 = rfb.is.read();
-		      int b2 = rfb.is.read();
+		      int b1 = rfb.is.readUnsignedByte();
+		      int b2 = rfb.is.readUnsignedByte();
 		      sx = tx + (b1 >> 4);
 		      sy = ty + (b1 & 0xf);
 		      sw = (b2 >> 4) + 1;
@@ -681,7 +681,7 @@ class VncCanvas extends Canvas
     } else {
       int zlibDataLen = rfb.readCompactLen();
       byte[] zlibData = new byte[zlibDataLen];
-      rfb.is.readFully(zlibData, 0, zlibDataLen);
+      rfb.is.readFully(zlibData);
       int stream_id = comp_ctl & 0x03;
       if (tightInflaters[stream_id] == null) {
 	tightInflaters[stream_id] = new Inflater();
@@ -947,15 +947,15 @@ class VncCanvas extends Canvas
 
       // Read foreground and background colors of the cursor.
       byte[] rgb = new byte[6];
-      rfb.is.readFully(rgb, 0, 6);
+      rfb.is.readFully(rgb);
       int[] colors = { (0xFF000000 | rgb[3] << 16 | rgb[4] << 8 | rgb[5]),
 		       (0xFF000000 | rgb[0] << 16 | rgb[1] << 8 | rgb[2]) };
 
       // Read pixel and mask data.
       byte[] pixBuf = new byte[bytesMaskData];
-      rfb.is.readFully(pixBuf, 0, bytesMaskData);
+      rfb.is.readFully(pixBuf);
       byte[] maskBuf = new byte[bytesMaskData];
-      rfb.is.readFully(maskBuf, 0, bytesMaskData);
+      rfb.is.readFully(maskBuf);
 
       // Decode pixel data into softCursorPixels[].
       byte pixByte, maskByte;
@@ -989,9 +989,9 @@ class VncCanvas extends Canvas
 
       // Read pixel and mask data.
       byte[] pixBuf = new byte[width * height * bytesPixel];
-      rfb.is.readFully(pixBuf, 0, width * height * bytesPixel);
+      rfb.is.readFully(pixBuf);
       byte[] maskBuf = new byte[bytesMaskData];
-      rfb.is.readFully(maskBuf, 0, bytesMaskData);
+      rfb.is.readFully(maskBuf);
 
       // Decode pixel data into softCursorPixels[].
       byte pixByte, maskByte;

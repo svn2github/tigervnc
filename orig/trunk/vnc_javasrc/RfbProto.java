@@ -196,7 +196,7 @@ class RfbProto {
     greenShift = is.readUnsignedByte();
     blueShift = is.readUnsignedByte();
     byte[] pad = new byte[3];
-    is.read(pad);
+    is.readFully(pad);
     int nameLength = is.readInt();
     byte[] name = new byte[nameLength];
     is.readFully(name);
@@ -221,7 +221,7 @@ class RfbProto {
   //
 
   int readServerMessageType() throws IOException {
-    return is.read();
+    return is.readUnsignedByte();
   }
 
 
@@ -275,7 +275,7 @@ class RfbProto {
 
   String readServerCutText() throws IOException {
     byte[] pad = new byte[3];
-    is.read(pad);
+    is.readFully(pad);
     int len = is.readInt();
     byte[] text = new byte[len];
     is.readFully(text);

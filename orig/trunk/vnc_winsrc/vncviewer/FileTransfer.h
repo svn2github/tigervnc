@@ -39,6 +39,7 @@
 
 #define FT_FDSR_DEST_MAIN     200
 #define FT_FDSR_DEST_DOWNLOAD 201
+#define FT_FDSR_DEST_UPLOAD   202
 
 
 #define FT_ID_MYCOMPUTER 0
@@ -160,6 +161,7 @@ private:
 	
 	void FileTransferUpload();
 	void CheckUploadQueue();
+	void MakeUploadQueue();
 	void UploadFile(int num);
 
 	void ClearFTControls();
@@ -169,13 +171,18 @@ private:
 
 	void FileTransferDownload();
 	void CheckDownloadQueue();
-	void ProcessFLRDownload();
 	void DownloadFile(int num);
+
+	void ProcessFLRUpload();
+	void ProcessFLRDownload();
 	void ProcessFDSDMain(DWORD dSize);
 
+	void SetEndTransfer(char *statusText);
 	void EndFTCancelDlg(BOOL result);
 	void SetFTDlgCursor(LPCTSTR cursorType);
 
+	void CutLastName(char *path, char *lastName);
+	int IsExistName(FileTransferItemInfo *ftii, char *name);
 
 	int GetSelectedItems(HWND hwnd, FileTransferItemInfo *pFTII);
 

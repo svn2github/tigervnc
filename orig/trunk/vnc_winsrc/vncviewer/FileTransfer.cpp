@@ -487,60 +487,68 @@ FileTransfer::CheckUploadQueue()
 {
 	int numEntries = m_TransferInfo.GetNumEntries() - 1;
 	if ((numEntries < 0) || (!m_bUploadStarted)) {
-		m_bTransferEnable = FALSE;
-		m_bUploadStarted = FALSE;
-		SetStatusText("Copy Operation Successfully Completed");
-		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
-		if (m_hwndFTCanceling != NULL) EndFTCancelDlg(FALSE);
+		SetEndTransfer("Copy Operation Successfully Completed");
+		SendFileListRequestMessage(m_ServerPath, 0, FT_FLR_DEST_MAIN);
 		return;
 	}
-	char buff[MAX_PATH];
-	char path[MAX_PATH];
-	char name[MAX_PATH];
-	while (m_TransferInfo.GetIntSizeAt(0) < 0) {
-		strcpy(name, m_TransferInfo.GetNameAt(0));
-		sprintf(path, "%s\\%s", m_szRemoteTransPath, name);
-		SendFileCreateDirRequestMessage(strlen(path), path);
-		sprintf(path, "%s\\%s\\*", m_szLocalTransPath, name);
-
-		if ((m_dwNumItemsSel > 0) && (strcmp(m_ServerPath, m_szRemoteTransPath) == 0)) {
-			m_dwNumItemsSel--;
-			SendFileListRequestMessage(m_ServerPath, 0, FT_FLR_DEST_MAIN);
-		}
-
-		WIN32_FIND_DATA FindFileData;
-		SetErrorMode(SEM_FAILCRITICALERRORS);
-		HANDLE hFile = FindFirstFile(path, &FindFileData);
-		SetErrorMode(0);
-
-		if (hFile != INVALID_HANDLE_VALUE) {
-			do {
-				if (strcmp(FindFileData.cFileName, ".") != 0 &&
-					strcmp(FindFileData.cFileName, "..") != 0) {
-					LARGE_INTEGER li;
-					li.LowPart = FindFileData.ftLastWriteTime.dwLowDateTime;
-					li.HighPart = FindFileData.ftLastWriteTime.dwHighDateTime;							
-					li.QuadPart = (li.QuadPart - 1164444736000000000) / 10000000;
-					sprintf(buff, "%s\\%s", name, FindFileData.cFileName);
-					if ((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {	
-						m_TransferInfo.Add(buff, -1, 0);
-					} else {
-						m_TransferInfo.Add(buff, FindFileData.nFileSizeLow, li.HighPart);
-					}
-				}
-			} while (FindNextFile(hFile, &FindFileData));
-		}			
-		FindClose(hFile);
-		m_TransferInfo.DeleteAt(0);
-		if (m_TransferInfo.GetNumEntries() == 0) {
-			m_bTransferEnable = FALSE;
-			m_bUploadStarted = FALSE;
-			SetStatusText("Copy Operation Successfully Completed");
-			if (m_hwndFTCanceling != NULL) EndFTCancelDlg(FALSE);
-			return;
-		}
+/*
+	if ((m_dwNumItemsSel > 0) && (strcmp(m_ServerPath, m_szRemoteTransPath) == 0)) {
+		m_dwNumItemsSel--;
+		SendFileListRequestMessage(m_ServerPath, 0, FT_FLR_DEST_MAIN);
 	}
-	UploadFile(0);
+*/
+	char path[MAX_PATH];
+	if (!m_bOverwriteAll) {
+		sprintf(path, "%s\\%s", m_szRemoteTransPath, m_TransferInfo.GetNameAt(0));
+		char lastName[MAX_PATH];
+		CutLastName(path, lastName);
+		SendFileListRequestMessage(path, 0, FT_FLR_DEST_UPLOAD);
+	} else {
+		while (m_TransferInfo.GetIntSizeAt(0) < 0) {
+			sprintf(path, "%s\\%s", m_szRemoteTransPath, m_TransferInfo.GetNameAt(0));
+			SendFileCreateDirRequestMessage(strlen(path), path);
+			MakeUploadQueue();
+			m_TransferInfo.DeleteAt(0);
+			if (m_TransferInfo.GetNumEntries() == 0) {
+				SetEndTransfer("Copy Operation Successfully Completed");
+				SendFileListRequestMessage(m_ServerPath, 0, FT_FLR_DEST_MAIN);
+				return;
+			}
+		}
+		UploadFile(0);
+	}
+}
+		
+void
+FileTransfer::MakeUploadQueue()		
+{
+	char path[MAX_PATH];
+	sprintf(path, "%s\\%s\\*", m_szLocalTransPath, m_TransferInfo.GetNameAt(0));
+
+	WIN32_FIND_DATA FindFileData;
+	SetErrorMode(SEM_FAILCRITICALERRORS);
+	HANDLE hFile = FindFirstFile(path, &FindFileData);
+	SetErrorMode(0);
+
+	char buff[MAX_PATH];
+	if (hFile != INVALID_HANDLE_VALUE) {
+		do {
+			if (strcmp(FindFileData.cFileName, ".") != 0 &&
+				strcmp(FindFileData.cFileName, "..") != 0) {
+				LARGE_INTEGER li;
+				li.LowPart = FindFileData.ftLastWriteTime.dwLowDateTime;
+				li.HighPart = FindFileData.ftLastWriteTime.dwHighDateTime;							
+				li.QuadPart = (li.QuadPart - 1164444736000000000) / 10000000;
+				sprintf(buff, "%s\\%s", m_TransferInfo.GetNameAt(0), FindFileData.cFileName);
+				if ((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {	
+					m_TransferInfo.Add(buff, -1, 0);
+				} else {
+					m_TransferInfo.Add(buff, FindFileData.nFileSizeLow, li.HighPart);
+				}
+			}
+		} while (FindNextFile(hFile, &FindFileData));
+		FindClose(hFile);
+	}			
 }
 
 void
@@ -557,7 +565,7 @@ FileTransfer::UploadFile(int num)
 	HANDLE hFile = FindFirstFile(path, &FindFileData);
 	SetErrorMode(0);
 	
-	if ( hFile != INVALID_HANDLE_VALUE) {
+	if (hFile != INVALID_HANDLE_VALUE) {
 		m_dwFileSize = FindFileData.nFileSizeLow;
 		m_dwModTime = FiletimeToTime70(FindFileData.ftLastWriteTime);
 	} else {
@@ -632,10 +640,12 @@ FileTransfer::UploadFilePortion()
 		SendMessage(m_hwndProgress, PBM_SETPOS, (WPARAM) 65535, (LPARAM) 0);
 		SetDlgItemText(m_hwndFileTransfer, IDC_CURRENTFILEPERCENT, "100%");
 		CloseHandle(m_hFiletoRead);
+		/*
 		if ((m_dwNumItemsSel > 0) && (strcmp(m_ServerPath, m_szRemoteTransPath) == 0)) {
 			m_dwNumItemsSel--;
 			SendFileListRequestMessage(m_ServerPath, 0, FT_FLR_DEST_MAIN);
 		}
+		*/
 		CheckUploadQueue();
 		return;
 	}
@@ -643,6 +653,22 @@ FileTransfer::UploadFilePortion()
 	delete [] pBuff;
 	IncreaseProgBarPos(dwNumOfBytesRead);
 	PostMessage(m_clientconn->m_hwnd1, fileTransferUploadMessage, (WPARAM) 0, (LPARAM) 0);
+}
+
+void 
+FileTransfer::SetEndTransfer(char *statusText)
+{
+	m_bTransferEnable = FALSE;
+	m_bUploadStarted = FALSE;
+	m_bDownloadStarted = FALSE;
+	m_bOverwriteAll = FALSE;
+	SetStatusText(statusText);
+	if (m_hwndFTCanceling != NULL) EndFTCancelDlg(FALSE);
+	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
+	SendMessage(m_hwndProgress, PBM_SETPOS, (WPARAM) 65535, (LPARAM) 0);
+	SetDlgItemText(m_hwndFileTransfer, IDC_CURRENTFILEPERCENT, "100%");
+	SendMessage(m_hwndFTProgress, PBM_SETPOS, (WPARAM) 65535, (LPARAM) 0);
+	SetDlgItemText(m_hwndFileTransfer, IDC_FILETRANSFERPERCENT, "100%");
 }
 
 void 
@@ -662,6 +688,16 @@ FileTransfer::ProcessFDSDMessage()
 	case FT_FDSR_DEST_DOWNLOAD:
 		m_dwSelFileSize -= dSize;
 		CheckDownloadQueue();
+		break;
+	case FT_FDSR_DEST_UPLOAD:
+		m_dwSelFileSize -= dSize;
+		m_TransferInfo.DeleteAt(0);
+		if (m_TransferInfo.GetNumEntries() == 0) {
+			SetEndTransfer("Copy Operation Successfully Completed");
+			SendFileListRequestMessage(m_ServerPath, 0, FT_FLR_DEST_MAIN);
+			return;
+		}
+		CheckUploadQueue();
 		break;
 	}
 }
@@ -1270,7 +1306,7 @@ FileTransfer::ProcessFLRMessage()
 		ShowServerItems();
 		break;
 	case FT_FLR_DEST_UPLOAD:
-		CheckUploadQueue();
+		ProcessFLRUpload();
 		break;
 	case FT_FLR_DEST_DOWNLOAD:
 		ProcessFLRDownload();
@@ -1280,11 +1316,104 @@ FileTransfer::ProcessFLRMessage()
 }
 
 void
+FileTransfer::ProcessFLRUpload()
+{
+	rfbFileListDataMsg fld;
+	m_clientconn->ReadExact((char *) &fld, sz_rfbFileListDataMsg);
+	if (fld.flags & 0x80) {
+		SetFTDlgCursor(IDC_ARROW);
+		return;
+	}
+	fld.numFiles = Swap16IfLE(fld.numFiles);
+	fld.dataSize = Swap16IfLE(fld.dataSize);
+	fld.compressedSize = Swap16IfLE(fld.compressedSize);
+	FTSIZEDATA *pftSD = new FTSIZEDATA[fld.numFiles];
+	char *pFilenames = new char[fld.dataSize];
+	m_clientconn->ReadExact((char *)pftSD, fld.numFiles * 8);
+	m_clientconn->ReadExact(pFilenames, fld.dataSize);
+	FileTransferItemInfo ftii;
+	CreateItemInfoList(&ftii, pftSD, fld.numFiles, pFilenames, fld.dataSize);
+	delete [] pftSD;
+	delete [] pFilenames;
+	SetFTDlgCursor(IDC_ARROW);
+	char path[MAX_PATH];
+	strcpy(path, m_TransferInfo.GetNameAt(0));
+	char lastName[MAX_PATH];
+	CutLastName(path, lastName);
+	int num = IsExistName(&ftii, lastName);
+	if (num >= 0) {
+		FILETIME ft;
+		SYSTEMTIME st;
+		Time70ToFiletime(m_TransferInfo.GetDataAt(0), &ft);
+		FileTimeToSystemTime(&ft, &st);
+		char transFileData[MAX_PATH + 36];
+		if (st.wHour > 12) {
+			sprintf(transFileData, "%s, modified on %d/%d/%d %d:%d PM", path, 
+				st.wDay, st.wMonth, st.wYear, st.wHour - 12, st.wMinute);
+		} else {
+			sprintf(transFileData, "%s, modified on %d/%d/%d %d:%d AM", path, 
+				st.wDay, st.wMonth, st.wYear, st.wHour, st.wMinute);
+		}
+		Time70ToFiletime(ftii.GetDataAt(num), &ft);
+		FileTimeToSystemTime(&ft, &st);
+		char existFileData[MAX_PATH + 36];
+		if (st.wHour > 12) {
+			sprintf(existFileData, "%s, modified on %d/%d/%d %d:%d PM", ftii.GetNameAt(num), 
+				st.wDay, st.wMonth, st.wYear, st.wHour - 12, st.wMinute);
+		} else {
+			sprintf(existFileData, "%s, modified on %d/%d/%d %d:%d AM", ftii.GetNameAt(num), 
+				st.wDay, st.wMonth, st.wYear, st.wHour, st.wMinute);
+		}
+		char buf[2 * MAX_PATH + 255];
+		if (m_TransferInfo.GetIntSizeAt(0) < 0) {
+			sprintf(buf, "This folder already exists.\n\nWould you like to replace the existing file\n\n%s,\n\nWith this one?\n\n%s\n",
+				existFileData, transFileData);
+		} else {
+			sprintf(buf, "This file already exists.\n\nWould you like to replace the existing file\n\n%s,\n\nWith this one?\n\n%s\n",
+				existFileData, transFileData);
+		}
+		if (!CreateFTConfirmDlg(buf)) {
+			int size = m_TransferInfo.GetIntSizeAt(0);
+			if (size < 0) {
+				sprintf(path, "%s\\%s", m_szRemoteTransPath, m_TransferInfo.GetNameAt(0));
+				SendFileDirSizeRequestMessage(strlen(path), path, FT_FDSR_DEST_UPLOAD);
+				return;
+			} else {
+				m_dwSelFileSize -= size;
+			}
+			m_TransferInfo.DeleteAt(0);
+			if (m_TransferInfo.GetNumEntries() == 0) {
+				SendFileListRequestMessage(m_ServerPath, 0, FT_FLR_DEST_MAIN);
+				SetEndTransfer("Copy Operation Successfully Completed");
+				return;
+			}
+			CheckUploadQueue();
+			return;
+		}
+	}
+	if (m_TransferInfo.GetIntSizeAt(0) < 0) {
+		MakeUploadQueue();
+		sprintf(path, "%s\\%s", m_szRemoteTransPath, m_TransferInfo.GetNameAt(0));
+		SendFileCreateDirRequestMessage(strlen(path), path);
+		m_TransferInfo.DeleteAt(0);
+		if (m_TransferInfo.GetNumEntries() == 0) {
+			SetEndTransfer("Copy Operation Successfully Completed");
+			SendFileListRequestMessage(m_ServerPath, 0, FT_FLR_DEST_MAIN);
+			return;
+		}
+		CheckUploadQueue();
+	} else {
+		UploadFile(0);
+	}
+}
+
+void
 FileTransfer::ProcessFLRDownload()
 {
 	rfbFileListDataMsg fld;
 	m_clientconn->ReadExact((char *) &fld, sz_rfbFileListDataMsg);
 	if (fld.flags & 0x80) {
+		SetFTDlgCursor(IDC_ARROW);
 		return;
 	}
 	fld.numFiles = Swap16IfLE(fld.numFiles);
@@ -2393,4 +2522,39 @@ FileTransfer::FTConfirmDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 		return TRUE;
 	}
 	return FALSE;
+}
+
+int
+FileTransfer::IsExistName(FileTransferItemInfo *ftii, char *name)
+{
+	for (int i = 0; i < ftii->GetNumEntries(); i++) {
+		if (strcmp(ftii->GetNameAt(i), name) == 0) {
+			return i;
+		}
+	}
+	return -1;
+}
+
+void
+FileTransfer::CutLastName(char *path, char *lastName)
+{
+	char buf[MAX_PATH];
+	int _len = strlen(path) - 1;
+	for (int i = _len; i >= 0; i--)
+	{
+		if (path[i] == '\\') {
+			path[i] = '\0';
+			buf[_len - i] = '\0';
+			break;
+		} else {
+			buf[_len - i] = path[i];
+		}
+		buf[_len + 1] = '\0';
+	}
+	_len = strlen(buf) - 1;
+	for (i = _len; i >= 0; i--)
+	{
+		lastName[_len - i] = buf[i];
+	}
+	lastName[_len + 1] = '\0';
 }

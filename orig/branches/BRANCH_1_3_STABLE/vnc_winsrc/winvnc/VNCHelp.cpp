@@ -48,8 +48,8 @@ void VNCHelp::Popup(LPARAM lParam)
 		case IDC_HTTP_LABEL:
 			popup.idString = IDC_PORTHTTP;
 			break;
-		case IDC_DISPLAY_LABEL:
-			popup.idString = IDC_DISPLAYNO;
+		case IDC_STATIC_AND:
+			popup.idString = IDC_SPECPORT;
 			break;
 		case IDC_PASSWORD_LABEL:
 			popup.idString = IDC_PASSWORD;
@@ -69,6 +69,9 @@ void VNCHelp::Popup(LPARAM lParam)
 		case IDC_STATIC_MS:
 		case IDC_POLCYCLMS_LABEL:
 			popup.idString = IDC_POLLING_CYCLE;
+			break;
+		case IDC_STATIC_DRVSTATUS:
+			popup.idString = IDC_STATIC_DRVINFO;
 			break;
 		case IDC_LIVESHARE_LABEL:
 			popup.idString = IDC_LIVESHARE;

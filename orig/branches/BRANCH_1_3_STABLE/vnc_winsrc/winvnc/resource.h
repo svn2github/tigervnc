@@ -24,7 +24,6 @@
 #define IDI_FLASH                       134
 #define IDD_OUTGOING_CONN               135
 #define IDD_ACCEPT_CONN                 136
-#define IDD_ADVPROPERTIES               137
 #define IDI_DISABLED                    138
 #define IDD_LIVESHAREPROP               138
 #define IDR_LSHTRAYMENU                 139
@@ -39,9 +38,7 @@
 #define IDD_ACCEPT_REVERSE              146
 #define IDD_SHARED_DESKTOP_AREA         147
 #define IDD_INCOMING                    148
-#define IDD_INPUT_HANDLING              149
 #define IDD_UPDATE_HANDLING             150
-#define IDD_CLIENT_DISCONNECT           151
 #define IDD_ADMINISTRATION              152
 #define IDR_AUTHUNIXLOGIN_CLASS         153
 #define IDR_CAPINFO_CLASS               154
@@ -65,13 +62,15 @@
 #define IDC_PASSWORD_VIEWONLY_LABEL     1019
 #define IDC_PASSWORD_VIEWONLY           1020
 #define IDC_URL_PARAMS                  1021
+#define IDC_STATIC_DRVSTATUS            1022
+#define IDC_STATIC_TRSH                 1023
 #define IDC_DISABLE_INPUTS              1024
 #define IDC_APPLY                       1025
 #define IDC_PORTNO_AUTO                 1026
 #define IDC_HOSTNAME_EDIT               1027
 #define IDC_DISABLE_LOCAL_INPUTS        1027
 #define IDC_HOSTNAME_STATIC             1028
-#define IDC_NOTE_STATIC                 1029
+#define IDC_STATIC_WNDPOLLING           1029
 #define IDACCEPT                        1030
 #define IDREJECT                        1031
 #define IDC_STATIC_TEXT1                1032
@@ -92,9 +91,7 @@
 #define IDPRIORITY2                     1053
 #define IDPRIORITY1                     1054
 #define IDENABLEHTTPD                   1055
-#define IDC_PARTAGE_BORDER              1056
 #define IDC_SHARINGAREA_BORDER          1056
-#define IDC_PARTAGE_BORDER2             1057
 #define IDC_LIVESHARE_BORDER            1057
 #define IDC_NAME_APPLI                  1058
 #define IDC_LIVESHARE                   1059
@@ -106,6 +103,10 @@
 #define IDC_DISABLE_TIME                1064
 #define IDC_TIMEOUT_LABEL               1065
 #define IDC_SECONDS_LABEL               1066
+#define IDC_STATIC_INCOMING             1067
+#define IDC_STATIC_INPUT                1068
+#define IDC_STATIC_DISCONNECT           1069
+#define IDC_STATIC_POLLING              1070
 #define IDC_SPECDISPLAY                 1071
 #define IDC_SPECPORT                    1072
 #define IDC_POLLING_CYCLE               1073
@@ -123,7 +124,7 @@
 #define IDC_MAIN_LABEL                  1085
 #define IDC_HTTP_LABEL                  1086
 #define IDC_TAB                         1087
-#define IDC_DISPLAY_LABEL               1088
+#define IDC_STATIC_AND                  1088
 #define IDC_STATIC_SECONDS              1089
 #define IDC_STATIC_TIMEOUT              1090
 #define IDC_STATIC_ACTION               1091

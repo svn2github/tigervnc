@@ -59,12 +59,12 @@ void IncomingConnectionsControls::Validate(BOOL InitApply)
 	Enable(IDC_PORTNO_AUTO, bAccept);
 	Enable(IDC_SPECPORT, bAccept);	
 	Enable(IDC_SPECDISPLAY, bAccept);
-	Enable(IDC_DISPLAY_LABEL, bAccept && bDisplay);
 	Enable(IDC_DISPLAYNO, bAccept && bDisplay);	
 	Enable(IDC_PORTRFB, bAccept && bPorts);
 	Enable(IDC_MAIN_LABEL, bAccept && bPorts);
 	Enable(IDC_PORTHTTP, bAccept && bPorts);
 	Enable(IDC_HTTP_LABEL, bAccept && bPorts);
+	Enable(IDC_STATIC_AND, bAccept && bPorts);
 	
 	HWND hFocus = GetFocus();
 	if (hFocus == GetDlgItem(m_hwnd, IDC_CONNECT_SOCK)) {

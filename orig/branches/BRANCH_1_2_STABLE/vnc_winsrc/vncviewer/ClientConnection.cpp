@@ -813,6 +813,8 @@ void ClientConnection::SetFormatAndEncodings()
 	if (m_opts.m_requestShapeUpdates) {
 		encs[se->nEncodings++] = Swap32IfLE(rfbEncodingXCursor);
 		encs[se->nEncodings++] = Swap32IfLE(rfbEncodingRichCursor);
+		if (!m_opts.m_ignoreShapeUpdates)
+			encs[se->nEncodings++] = Swap32IfLE(rfbEncodingPointerPos);
 	}
 
 	// Request JPEG quality level if JPEG compression was enabled by user
@@ -1982,6 +1984,11 @@ void ClientConnection::ReadScreenUpdate() {
 		if ( surh.encoding == rfbEncodingXCursor ||
 			 surh.encoding == rfbEncodingRichCursor ) {
 			ReadCursorShape(&surh);
+			continue;
+		}
+
+		if (surh.encoding == rfbEncodingPointerPos) {
+			ReadCursorPos(&surh);
 			continue;
 		}
 

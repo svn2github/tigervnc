@@ -179,6 +179,7 @@ private:
 	bool rcCursorHidden, rcLockSet;
 
 	void ReadCursorShape(rfbFramebufferUpdateRectHeader *pfburh);
+	void ReadCursorPos(rfbFramebufferUpdateRectHeader *pfburh);
 	void SoftCursorLockArea(int x, int y, int w, int h);
 	void SoftCursorUnlockScreen();
 	void SoftCursorMove(int x, int y);

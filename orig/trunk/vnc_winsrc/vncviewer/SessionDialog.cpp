@@ -68,7 +68,7 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 	// WM_INITDIALOG, which we therafter store with the window and retrieve
 	// as follows:
 	SessionDialog *_this = (SessionDialog *) GetWindowLong(hwnd, GWL_USERDATA);
-	int i,b;
+	int i;
 	TCHAR tmphost[256];
 	TCHAR buffer[256];
 	HWND hCustomRadio = GetDlgItem(hwnd, IDC_CUSTOM_RADIO);
@@ -105,21 +105,7 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 			SendMessage(hcombo, CB_GETLBTEXT, 0, (LPARAM)(int FAR*)buffer );
 			_this->m_pOpt->LoadOpt(buffer, "Software\\ORL\\VNCviewer\\MRU1");
 			
-			b = _this->cmp();
-			if (b == 3) {
-				SendMessage(hCustomRadio, BM_CLICK, 0, 0);
-			}
-			if (b == 1) {
-				SendMessage(hModemRadio, BM_CLICK, 0, 0);
-			}
-			if (b == 2) {
-				SendMessage(hLocNetRadio, BM_CLICK, 0, 0);
-			}
-			if (b == 0) {
-				SendMessage(hLocNetRadio, BM_SETCHECK, 0, 0L);
-				SendMessage(hModemRadio, BM_SETCHECK, 0, 0L);
-				SendMessage(hCustomRadio, BM_SETCHECK, 0, 0L);
-			}
+			_this->cmp(hwnd);
 			
 			SetFocus(hcombo);
             return TRUE;
@@ -146,21 +132,8 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 					SendMessage(hcombo, CB_GETLBTEXT, a, (LPARAM)(int FAR*)buffer );
 					_this->m_pOpt->LoadOpt(buffer,"Software\\ORL\\VNCviewer\\MRU1");
 					
-					b = _this->cmp();
-					if (b == 3) {
-						SendMessage(hCustomRadio, BM_CLICK, 0, 0);
-					}
-					if (b == 1) {
-						SendMessage(hModemRadio, BM_CLICK, 0, 0);
-					}
-					if (b == 2) {
-						SendMessage(hLocNetRadio, BM_CLICK, 0, 0);
-					}
-					if (b == 0) {
-						SendMessage(hLocNetRadio, BM_SETCHECK, 0, 0L);
-						SendMessage(hModemRadio, BM_SETCHECK, 0, 0L);
-						SendMessage(hCustomRadio, BM_SETCHECK, 0, 0L);
-					}
+					 _this->cmp(hwnd);
+					
 					SetFocus(hcombo);
 					return TRUE;
 				}
@@ -174,7 +147,9 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 					FormatDisplay(_this->m_cc->m_port,
 							_this->m_pOpt->m_display,
 							_this->m_cc->m_host);
-					EndDialog(hwnd, TRUE);
+					SetDlgItemText(hwnd, IDC_HOSTNAME_EDIT,
+									_this->m_pOpt->m_display);
+					 _this->cmp(hwnd);
 				}
 				SetFocus(hcombo);
 				return TRUE;
@@ -281,21 +256,8 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 					SendMessage(hcombo, CB_INSERTSTRING, (WPARAM)i, (LPARAM)(int FAR*)buf);
 				}
 				SendMessage(hcombo, CB_SETCURSEL, n, 0);
-				b = _this->cmp();
-				if (b == 3) {				
-					SendMessage(hCustomRadio, BM_CLICK, 0, 0);
-				}
-				if (b == 1) {				
-					SendMessage(hModemRadio, BM_CLICK, 0, 0);
-				}
-				if (b == 2) {				
-					SendMessage(hLocNetRadio, BM_CLICK, 0, 0);
-				}
-				if (b == 0) {				
-					SendMessage(hLocNetRadio, BM_SETCHECK, 0, 0L);
-					SendMessage(hModemRadio, BM_SETCHECK, 0, 0L);
-					SendMessage(hCustomRadio, BM_SETCHECK, 0, 0L);
-				}								
+				 _this->cmp(hwnd);
+									
 				SetFocus(hOptionButton);
 				return TRUE;
 			}
@@ -308,10 +270,12 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 }
 
 
-int SessionDialog::cmp()
+int SessionDialog::cmp(HWND hwnd)
 {
 	int a=1;
-
+	HWND hCustomRadio = GetDlgItem(hwnd, IDC_CUSTOM_RADIO);
+	HWND hModemRadio = GetDlgItem(hwnd, IDC_MODEM_RADIO);
+	HWND hLocNetRadio = GetDlgItem(hwnd, IDC_LOC_NET_RADIO);
 	for (int i = rfbEncodingRaw; i <= LASTENCODING; i++)
 		if ((m_pOpt->m_UseEnc[i] != true) && (i != 3)) a = 0;
 	if (m_pOpt->m_UseEnc[3] != false) a = 0;
@@ -327,7 +291,10 @@ int SessionDialog::cmp()
 		if (m_pOpt->m_jpegQualityLevel != 6) a = 0;
 	}
 
-	if (a == 1) return a;
+	if (a == 1) {
+		SendMessage(hModemRadio, BM_CLICK, 0, 0);
+		return a;
+	}
 
 	a = 2;
 	for (i = rfbEncodingRaw; i <= LASTENCODING; i++)
@@ -335,7 +302,10 @@ int SessionDialog::cmp()
 	if (m_pOpt->m_UseEnc[3] != false) a = 0;
 	if (m_pOpt->m_PreferredEncoding != (rfbEncodingTight - 2)) a = 0;
 		
-	if (a == 2) return a;
+	if (a == 2) {
+		SendMessage(hLocNetRadio, BM_CLICK, 0, 0);
+		return a;
+	}
 
 	a = 3;
 	for (i = rfbEncodingRaw; i <= LASTENCODING; i++)
@@ -347,7 +317,17 @@ int SessionDialog::cmp()
 		a = 0;
 	} else {
 		if (m_pOpt->m_jpegQualityLevel != 6) a = 0;
-	}		
+	}
+	if (a == 3) {
+		SendMessage(hCustomRadio, BM_CLICK, 0, 0);
+		return a;
+	}
+	if (a == 0) {
+		SendMessage(hLocNetRadio, BM_SETCHECK, 0, 0L);
+		SendMessage(hModemRadio, BM_SETCHECK, 0, 0L);
+		SendMessage(hCustomRadio, BM_SETCHECK, 0, 0L);
+		return a;
+	}
 	return a;
 }
  

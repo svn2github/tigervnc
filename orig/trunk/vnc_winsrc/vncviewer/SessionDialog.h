@@ -40,7 +40,7 @@ public:
 	// displayed if the options.. button is clicked.
 	SessionDialog(VNCOptions *pOpt,ClientConnection *cc);
 	int DoDialog();
-	int SessionDialog::cmp();
+	int SessionDialog::cmp(HWND hwnd);
 	int m_port;
 	TCHAR m_host[256];
    	virtual ~SessionDialog();

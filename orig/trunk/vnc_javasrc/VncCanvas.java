@@ -35,7 +35,7 @@ import java.util.zip.*;
 class VncCanvas extends Canvas
   implements KeyListener, MouseListener, MouseMotionListener {
 
-  VncViewer v;
+  VncViewer viewer;
   RfbProto rfb;
   ColorModel cm;
   Color[] colors;
@@ -51,9 +51,9 @@ class VncCanvas extends Canvas
   final static int tightZlibBufferSize = 512;
   Inflater[] tightInflaters;
 
-  VncCanvas(VncViewer v1) throws IOException {
-    v = v1;
-    rfb = v.rfb;
+  VncCanvas(VncViewer v) throws IOException {
+    viewer = v;
+    rfb = viewer.rfb;
 
     cm = new DirectColorModel(8, 7, (7 << 3), (3 << 6));
 
@@ -63,6 +63,19 @@ class VncCanvas extends Canvas
     for (int i = 0; i < 256; i++)
       colors[i] = new Color(cm.getRGB(i));
 
+    updateFramebufferSize();
+
+    if (!viewer.options.viewOnly) {
+      addKeyListener(this);
+      addMouseListener(this);
+      addMouseMotionListener(this);
+    }
+
+    tightInflaters = new Inflater[4];
+  }
+
+  void updateFramebufferSize() {
+
     pixels = new byte[rfb.framebufferWidth * rfb.framebufferHeight];
 
     pixelsSource =
@@ -71,13 +84,11 @@ class VncCanvas extends Canvas
     pixelsSource.setAnimated(true);
     rawPixelsImage = createImage(pixelsSource);
 
-    if (!v.options.viewOnly) {
-      addKeyListener(this);
-      addMouseListener(this);
-      addMouseMotionListener(this);
+    if (viewer.inSeparateFrame) {
+      viewer.vncFrame.pack();
+    } else {
+      setSize(rfb.framebufferWidth, rfb.framebufferHeight);
     }
-
-    tightInflaters = new Inflater[4];
   }
 
   public Dimension getPreferredSize() {
@@ -126,6 +137,12 @@ class VncCanvas extends Canvas
 
 	  if (rfb.updateRectEncoding == rfb.EncodingLastRect)
 	    break;
+
+	  if (rfb.updateRectEncoding == rfb.EncodingNewFBSize) {
+	    rfb.setFramebufferSize(rfb.updateRectW, rfb.updateRectH);
+	    updateFramebufferSize();
+	    break;
+	  }
 
 	  if (rfb.updateRectEncoding == rfb.EncodingXCursor ||
 	      rfb.updateRectEncoding == rfb.EncodingRichCursor) {
@@ -328,7 +345,7 @@ class VncCanvas extends Canvas
 
       case RfbProto.ServerCutText:
 	String s = rfb.readServerCutText();
-	v.clipboard.setCutText(s);
+	viewer.clipboard.setCutText(s);
 	break;
 
       default:
@@ -709,7 +726,7 @@ class VncCanvas extends Canvas
 
     // Ignore cursor shape data if requested by user.
 
-    if (v.options.ignoreCursorUpdates) {
+    if (viewer.options.ignoreCursorUpdates) {
       if (encodingType == rfb.EncodingXCursor) {
 	rfb.is.skipBytes(6 + bytesMaskData * 2);
       } else {

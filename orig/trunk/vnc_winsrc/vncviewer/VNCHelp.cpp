@@ -64,11 +64,14 @@ void VNCHelp::Popup(LPARAM lParam)
 			popup.idString = IDC_HOSTNAME_EDIT;
 			break;
 		case IDC_STATIC_LIST:
+		case IDC_SPIN1:
 			popup.idString = IDC_EDIT_AMOUNT_LIST;
 			break;
 		case IDC_STATIC_LOG_LEVEL:
+		case IDC_SPIN2:
 			popup.idString = IDC_EDIT_LOG_LEVEL;
 			break;
+		case IDC_SPIN3:
 		case IDC_STATIC_PORT:
 			popup.idString = IDC_LISTEN_PORT;
 			break;

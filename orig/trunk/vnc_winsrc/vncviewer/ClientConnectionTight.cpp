@@ -528,7 +528,8 @@ void ClientConnection::FilterPalette (int numRows)
 
 static bool jpegError;
 
-static void JpegSetSrcManager(j_decompress_ptr cinfo, char *compressedData, int compressedLen);
+static void JpegSetSrcManager(j_decompress_ptr cinfo, char *compressedData,
+							  int compressedLen);
 
 void ClientConnection::DecompressJpegRect(int x, int y, int w, int h)
 {
@@ -565,7 +566,7 @@ void ClientConnection::DecompressJpegRect(int x, int y, int w, int h)
   PaletteSelector p(m_hBitmapDC, m_hPalette);
 
   // Two scanlines: for 24bit and COLORREF samples
-  CheckZlibBufferSize(2*2000*4);
+  CheckZlibBufferSize(2*2048*4);
 
   JSAMPROW rowPointer[1];
   rowPointer[0] = (JSAMPROW)m_zlibbuf;
@@ -576,11 +577,11 @@ void ClientConnection::DecompressJpegRect(int x, int y, int w, int h)
     if (jpegError) {
       break;
     }
-    pixelPtr = (COLORREF *)&m_zlibbuf[2000*4];
+    pixelPtr = (COLORREF *)&m_zlibbuf[2048*4];
     for (int dx = 0; dx < w; dx++) {
       *pixelPtr++ = COLOR_FROM_PIXEL24_ADDRESS(&m_zlibbuf[dx*3]);
     }
-    SETPIXELS_NOCONV(&m_zlibbuf[2000*4], x, y + dy, w, 1);
+    SETPIXELS_NOCONV(&m_zlibbuf[2048*4], x, y + dy, w, 1);
   }
 
   if (!jpegError)

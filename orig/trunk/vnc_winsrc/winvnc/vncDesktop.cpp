@@ -1083,7 +1083,13 @@ vncDesktop::SetPixShifts()
 		// Standard 24/32 bit displays
 		if (m_bminfo.bmi.bmiHeader.biCompression == BI_RGB)
 		{
-			redMask = 0xff0000; greenMask = 0xff00; blueMask = 0x00ff;
+			redMask = 0xff0000;
+			greenMask = 0xff00;
+			blueMask = 0x00ff;
+
+			// The real color depth is 24 bits in this case. If the depth
+			// is set to 32, the Tight encoder shows worse performance.
+			m_scrinfo.format.depth = 24;
 		}
 		else
 		{

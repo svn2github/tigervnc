@@ -785,6 +785,9 @@ vncProperties::DialogProc(HWND hwnd,
 				SetDlgItemInt(hwnd, IDC_DISPLAYNO, display, FALSE);
 				SetDlgItemInt(hwnd, IDC_PORTRFB, _this->m_server->GetPort(), FALSE);
 				SetDlgItemInt(hwnd, IDC_PORTHTTP, _this->m_server->GetHttpPort(), FALSE);
+
+				SetFocus(GetDlgItem(hwnd, IDC_DISPLAYNO));
+				SendDlgItemMessage(hwnd, IDC_DISPLAYNO, EM_SETSEL, 0, (LPARAM)-1);
 			}
 			return TRUE;
 
@@ -803,6 +806,9 @@ vncProperties::DialogProc(HWND hwnd,
 				}
 				SetDlgItemInt(hwnd, IDC_PORTRFB, _this->m_server->GetPort(), FALSE);
 				SetDlgItemInt(hwnd, IDC_PORTHTTP, _this->m_server->GetHttpPort(), FALSE);
+
+				SetFocus(GetDlgItem(hwnd, IDC_PORTRFB));
+				SendDlgItemMessage(hwnd, IDC_PORTRFB, EM_SETSEL, 0, (LPARAM)-1);
 			}
 			return TRUE;
 
@@ -838,6 +844,10 @@ vncProperties::DialogProc(HWND hwnd,
 				HWND hRemoteDisable = GetDlgItem(hwnd, IDC_REMOTE_DISABLE);
 				BOOL enabled = (SendMessage(hRemoteDisable, BM_GETCHECK, 0, 0) == BST_CHECKED);
 				EnableWindow(hDisableTime, enabled);
+				if (enabled) {
+					SetFocus(hDisableTime);
+					SendMessage(hDisableTime, EM_SETSEL, 0, (LPARAM)-1);
+				}
 			}
 			return TRUE;
 	

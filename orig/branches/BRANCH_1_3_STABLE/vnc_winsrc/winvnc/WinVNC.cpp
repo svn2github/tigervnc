@@ -46,11 +46,7 @@
 
 // Application instance and name
 HINSTANCE	hAppInstance;
-#ifdef HORIZONLIVE
-const char	*szAppName = "AppShare";
-#else
 const char	*szAppName = "WinVNC";
-#endif
 
 DWORD		mainthreadId;
 VNCHelp help;
@@ -284,16 +280,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 			continue;
 		}
 
-#ifdef HORIZONLIVE
-		if (strncmp(&szCmdLine[i], winvncNoSettings, arglen) == 0 &&
-			arglen == strlen(winvncNoSettings))
-		{
-			// Set nosettings flag
-			vncService::SetNoSettings(true);
-			return WinVNCAppMain();
-		}
-#endif
-
 		// Either the user gave the -help option or there is something odd on the cmd-line!
 
 		// Show the usage dialog
@@ -331,7 +317,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 
 int WinVNCAppMain()
 {
-#ifndef HORIZONLIVE
 	// Set this process to be the last application to be shut down.
 	SetProcessShutdownParameters(0x100, 0);
 	
@@ -343,56 +328,6 @@ int WinVNCAppMain()
 		MessageBox(NULL, "Another instance of WinVNC is already running", szAppName, MB_OK);
 		return 0;
 	}
-#else
-	//
-	// log settings to be used during deep debugging
-	//
-	vnclog.SetLevel( 10 ) ;
-	vnclog.SetMode( 7 ) ;
-	vnclog.Print( LL_NONE, VNCLOG( "Log level set to %d\n" ), vnclog.GetLevel() ) ;
-
-	// setup the appshare log
-	Log* hzlog = new Log( Log::ToFile, 1, const_cast<char*>( hzLogFileName ), true ) ;
-	hzlog->Print( 0, "Starting up AppShare as an application.\n" ) ;
-	
-	// Check for previous instances of WinVNC
-	vncInstHandler instancehan ;
-	
-	if ( ! instancehan.Init() )
-	{
-		// We don't allow multiple instances!
-		char err_msg[80] ;
-		_snprintf( err_msg, 80, "The AppShare host is already running.\n" ) ;
-
-		MessageBox( NULL, err_msg, szAppName, MB_OK ) ;
-
-		// record to the log
-		hzlog->Print( 0, err_msg ) ;
-
-		return 0 ;
-	}
-
-	// Record the AppShare PID (after we check for existing instances)
-	HANDLE hPid = CreateFile(hzPIDFileName,
-							 GENERIC_WRITE,
-							 FILE_SHARE_READ | FILE_SHARE_WRITE,
-							 NULL,
-							 CREATE_ALWAYS,
-							 FILE_ATTRIBUTE_NORMAL,
-							 NULL);
-	if (hPid != INVALID_HANDLE_VALUE) {
-		char buf[32];
-        DWORD byteswritten;
-		sprintf(buf, "%u\n", (unsigned int)GetCurrentProcessId());
-		WriteFile(hPid, buf, strlen(buf), &byteswritten, NULL);
-		CloseHandle(hPid);
-	} else {
-		hzlog->Print(0, "Error opening PID file (id %d)", GetLastError());
-	}
-
-	// Set this process to be the last application to be shut down.
-	SetProcessShutdownParameters(0x100, SHUTDOWN_NORETRY);
-#endif
 
 	// CREATE SERVER
 	vncServer server;
@@ -414,11 +349,6 @@ int WinVNCAppMain()
 	while (GetMessage(&msg, NULL, 0,0) ) {
 		vnclog.Print(LL_INTINFO, VNCLOG("message %d received\n"), msg.message);
 		if (!help.TranslateMsg(&msg)) {
-#ifdef HORIZONLIVE
-			// Handle AppShare quit message
-			if (msg.message == LS_QUIT)
-				PostQuitMessage(0);
-#endif
 			TranslateMessage(&msg);	// convert key ups and downs to chars
 			DispatchMessage(&msg);
 		}
@@ -428,17 +358,6 @@ int WinVNCAppMain()
 
 	if (menu != NULL)
 		delete menu;
-
-#ifdef HORIZONLIVE
-	// release the instance mutex
-	instancehan.Release() ;
-
-	// log shutdown
-	hzlog->Print( 0, "Shutting down AppShare application.\n" ) ;
-
-	// clean up the log
-	delete hzlog ;
-#endif
 
 	return msg.wParam;
 }

@@ -188,6 +188,10 @@ SOURCE=.\PollControls.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\QuerySettingsControls.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\RectList.cpp
 # End Source File
 # Begin Source File
@@ -457,6 +461,10 @@ SOURCE=.\MinMax.h
 # Begin Source File
 
 SOURCE=.\PollControls.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\QuerySettingsControls.h
 # End Source File
 # Begin Source File
 

@@ -88,10 +88,13 @@ BEGIN
     GROUPBOX        "Query Settings",IDC_STATIC,5,5,223,76
     CONTROL         "Query console on incoming connections",IDQUERY,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,13,17,211,12
-    LTEXT           "Query timeout:",IDC_STATIC,25,32,67,12,SS_CENTERIMAGE
+    LTEXT           "Query timeout:",IDC_STATIC_TIMEOUT,25,32,67,12,
+                    SS_CENTERIMAGE
     EDITTEXT        IDQUERYTIMEOUT,95,32,22,12,ES_AUTOHSCROLL | ES_NUMBER
-    LTEXT           "seconds",IDC_STATIC,123,32,101,12,SS_CENTERIMAGE
-    LTEXT           "Default action:",IDC_STATIC,25,47,67,12,SS_CENTERIMAGE
+    LTEXT           "seconds",IDC_STATIC_SECONDS,123,32,101,12,
+                    SS_CENTERIMAGE
+    LTEXT           "Default action:",IDC_STATIC_ACTION,25,47,67,12,
+                    SS_CENTERIMAGE
     CONTROL         "Refuse",IDC_ACTION_REFUSE,"Button",BS_AUTORADIOBUTTON | 
                     WS_GROUP | WS_TABSTOP,95,47,57,12
     CONTROL         "Accept",IDC_ACTION_ACCEPT,"Button",BS_AUTORADIOBUTTON,
@@ -192,7 +195,7 @@ IDD_ACCEPT_REVERSE DIALOGEX 0, 0, 179, 55
 STYLE DS_SYSMODAL | DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | 
     WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "Begin LiveShare Session?"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "&OK",IDACCEPT,17,31,47,17
     PUSHBUTTON      "&Cancel",IDREJECT,113,31,48,17,0,WS_EX_TRANSPARENT
@@ -205,7 +208,7 @@ STYLE DS_MODALFRAME | DS_CENTER | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE |
     WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTROLPARENT
 CAPTION "Property Page"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     CONTROL         "Tab1",IDC_TAB,"SysTabControl32",TCS_MULTILINE | 
                     WS_TABSTOP,7,0,271,135

@@ -1,24 +1,23 @@
-// IncomingConnectionsControls.h: interface for the IncomingConnectionsControls class.
+// QuerySettingsControls.h: interface for the QuerySettingsControls class.
 //
 //////////////////////////////////////////////////////////////////////
 
-#ifndef AFX_INCOMINGCONNECTIONSCONTROLS_H__
-#define AFX_INCOMINGCONNECTIONSCONTROLS_H__
+#ifndef AFX_QUERYSETTINGSCONTROLS_H__
+#define AFX_QUERYSETTINGSCONTROLS_H__
 
 #pragma once
 
 #include "resource.h"
 #include "vncServer.h"
 
-class IncomingConnectionsControls  
+class QuerySettingsControls  
 {
 public:
-	IncomingConnectionsControls(HWND hwnd, vncServer *server);
+	QuerySettingsControls(HWND hwnd, vncServer * m_server);
 	void Validate();
 	void Apply();
 	void Init();
-	virtual ~IncomingConnectionsControls();	
-
+	virtual ~QuerySettingsControls();
 private:
 	inline void Enable(int id, BOOL enable) {
 		EnableWindow(GetDlgItem(m_hwnd, id), enable);
@@ -31,6 +30,7 @@ private:
 	}
   vncServer * m_server;
   HWND m_hwnd;
+
 };
 
 #endif 

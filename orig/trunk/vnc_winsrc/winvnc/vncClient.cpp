@@ -1697,6 +1697,9 @@ vncClient::Init(vncServer *server,
 void
 vncClient::Kill()
 {
+    // Stop download file
+    m_bDownloadEnable = false;
+
 	// Close the socket
 	if (m_socket != NULL)
 		m_socket->Close();

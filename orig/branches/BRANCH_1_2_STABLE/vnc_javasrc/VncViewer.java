@@ -192,6 +192,7 @@ public class VncViewer extends java.applet.Applet
       if (showControls)
 	buttonPanel.enableButtons();
 
+      moveFocusToDesktop();
       vc.processNormalProtocol();
 
     } catch (NoRouteToHostException e) {

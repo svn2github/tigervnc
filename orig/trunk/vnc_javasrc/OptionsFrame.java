@@ -167,6 +167,7 @@ class OptionsFrame extends Frame
     // Make the booleans and encodings array correspond to the state of the GUI
 
     setEncodings();
+    setColorFormat();
     setOtherOptions();
   }
 

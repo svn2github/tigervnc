@@ -85,20 +85,7 @@ public:
 	void FillDisplayInfo(rfbServerInitMsg *scrInfo);
 	void SetLocalInputDisableHook(BOOL enable);
 	void SetLocalInputPriorityHook(BOOL enable);
-	void Translate(
-		rfbTranslateFnType	translator,
-		char				*dest,
-		char				*scrBuff,
-		rfbPixelFormat		cli_pf,
-		const RECT			&rect
-		);
 	void CaptureScreen(RECT &UpdateArea, BYTE *scrBuff, BOOL full_rgn);
-	rectlist ChangedAreas(
-		RECT				&ChangedArea,
-		rectlist			&existingRects,
-		BYTE				*scrBuff,
-		BYTE				*oldBuff
-		);
 	int ScreenBuffSize();
 	HWND Window() { return m_hwnd; }
 

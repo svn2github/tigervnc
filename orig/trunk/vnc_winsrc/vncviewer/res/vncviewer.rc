@@ -93,12 +93,12 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,145,84,145,10
     CONTROL         "Track remote cursor locally",IDC_CSHAPE_ENABLE_RADIO,
                     "Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,145,
-                    111,145,10
+                    115,145,10
     CONTROL         "Let remote server deal with mouse cursor",
                     IDC_CSHAPE_DISABLE_RADIO,"Button",BS_AUTORADIOBUTTON,145,
-                    123,145,10
+                    127,145,10
     CONTROL         "Don't show remote cursor",IDC_CSHAPE_IGNORE_RADIO,
-                    "Button",BS_AUTORADIOBUTTON,145,135,145,10
+                    "Button",BS_AUTORADIOBUTTON,145,139,145,10
     CONTROL         "Use 8-bit color",IDC_8BITCHECK,"Button",BS_AUTOCHECKBOX | 
                     WS_GROUP | WS_TABSTOP,12,29,109,10
     CHECKBOX        "View only (inputs ignored)",IDC_VIEWONLY,12,148,109,10
@@ -106,11 +106,11 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,145,29,145,10
     COMBOBOX        IDC_SCALE_EDIT,181,14,35,74,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    GROUPBOX        "Mouse cursor",IDC_STATIC,136,102,160,48
+    GROUPBOX        "Mouse cursor",IDC_STATIC,136,104,160,49
     GROUPBOX        "Format and encoding",IDC_STATIC,4,4,123,130
-    GROUPBOX        "Mouse",IDC_STATIC,136,61,160,37
+    GROUPBOX        "Mouse",IDC_STATIC,136,61,160,39
     GROUPBOX        "Display",IDC_STATIC,136,4,160,52
-    LTEXT           "Use encoding",IDC_STATIC_ENCODING,12,15,45,10,
+    LTEXT           "Use encoding:",IDC_STATIC_ENCODING,12,15,49,10,
                     SS_CENTERIMAGE
     LTEXT           "%",IDC_STATIC_P,221,15,10,10,SS_CENTERIMAGE
     RTEXT           "fast",IDC_STATIC_FAST,12,55,18,10
@@ -566,7 +566,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDC_OPTIONBUTTON        "Edit connection-specific options for the specified VNC server, or change the configuration of the viewer."
-    IDC_8BITCHECK           "Set this if you don't care about image quality, but want to minimize the amount of pixel data sent over the network."
+    IDC_8BITCHECK           "Check this if you don't care about strict color conformity, but want to minimize the amount of pixel data sent over the network."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -587,8 +587,8 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDC_HOSTNAME_EDIT       "Specify a VNC server to connect to, in one of the following formats: host, host:display, host::port. Host can be either an IP address, or a domain name. Display is an offset from the TCP port 5900. Display 0 will be used if not specified."
-    IDC_BELLDEICONIFY       "When set, the viewer window will be restored on remote Bell events."
-    IDC_VIEWONLY            "When set, you will be able to see the remote desktop, but not control it with your mouse and keyboard."
+    IDC_BELLDEICONIFY       "If checked, the minimized viewer window will be restored on receiving a remote ""Bell"" event."
+    IDC_VIEWONLY            "If checked, you will see the remote desktop, but won't be able to control it remotely with your mouse and keyboard."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -599,23 +599,24 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDC_EDIT_LOG_LEVEL      "Log level:"
-    IDC_SHARED              "Request shared session"
+    IDC_SHARED              "Enable multiple simultaneous viewer connections to the same server desktop. For non-shared sesstions, only one viewer can be connected to the same server at the same time. Unlike the standard VNC, TightVNC defaults to shared sessions."
     IDC_ENCODING            "Encoding refers to the representation of graphics sent over the network. Encodings differ at the required bandwidth and CPU usage. Use Hextile encoding on fast networks, and Tight over slow connections. Raw encoding means no compression at all."
-    IDC_SCALE_EDIT          "Scaling"
+    IDC_SCALE_EDIT          "Reduce or enlarge local copy of the remote dektop."
     IDC_DOTCURSOR_RADIO     "Dotcursor"
     IDC_NOCURSOR_RADIO      "Nocursor"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDC_EMULATECHECK        "Set this if you have two-button mouse but want to send presses of the third button as well. If this option is enabled, pressing left and right buttons at the same time will emulate pressing the middle button."
-    IDC_FULLSCREEN          "Full-screen mode"
+    IDC_EMULATECHECK        "Check this if you have two-button mouse but want to send presses of the third button as well. If this option is enabled, pressing left and right buttons at the same time will emulate pressing the middle button."
+    IDC_FULLSCREEN          "In this mode, the viewer will show only the remote desktop - no local desktop, no toolbar, and no window decorations."
     IDC_DISABLECLIPBOARD    "If checked, the viewer won't try to propagate local clibboard changes to the server."
-    IDC_CSHAPE_DISABLE_RADIO "Let remote server deal with mouse cursor"
+    IDC_CSHAPE_DISABLE_RADIO 
+                            "Receive the remote mouse pointer as usual pixel graphics. This is a compatibility mode - the standard VNC always uses this technique. Mouse movements can be painfully slow, so use this option only if you have troubles with the default setting."
     IDC_QUALITYLEVEL        "Higher JPEG quality levels result less compression but better image quality. Normally, Tight encoder tries to use JPEG only where it does not cause major quality losses, so usually it's ok to choose low quality levels."
     IDC_COMPRESSLEVEL       "Higher compression levels result greater compression ratios, but require more time to encode data. Use lower values on fast networks, and higher levels for slow connections."
-    IDC_CSHAPE_ENABLE_RADIO "Track remote cursor locally"
-    IDC_CSHAPE_IGNORE_RADIO "Don't show remote cursor"
+    IDC_CSHAPE_ENABLE_RADIO "Draw and position the remote mouse pointer locally, on the viewer side. This results in the best mouse responsiveness. The server will send only changes in the cursor shape and, sometimes, new cursor coordinates."
+    IDC_CSHAPE_IGNORE_RADIO "In this mode, the remote mouse pointer won't be shown at all. Cursor shape updates and new coordinates received from the server will be ignored."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -627,12 +628,12 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    ID_SESSION_SWAPMOUSE    "Swap mouse buttons 2 and 3"
+    ID_SESSION_SWAPMOUSE    "Normally, the right mouse button generates button 2 events, the middle mouse button is treated as button 3. Checking this option swaps events generated by these two mouse buttons."
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDC_TAB                 "Here you can choose either connection-specific options, or global settings of the viewer."
+    IDC_TAB                 "Here you can choose editing either connection-specific options, or global settings of the viewer."
     IDC_LOAD                "Load connection info from a file, assuming it was saved earlier by choosing ""Save connection info as..."" in the viewer's system menu."
     IDC_LISTEN_PORT         "Listen port"
     IDC_CONN_PROF           "Choosing a connection profile allows you to select connection  options suitable for a particular network environment."

@@ -29,7 +29,7 @@ class ClipboardFrame extends Frame
   implements WindowListener, ActionListener {
 
   TextArea textArea;
-  Button clear, close;
+  Button clearButton, closeButton;
   String selection;
   VncViewer viewer;
 
@@ -59,15 +59,15 @@ class ClipboardFrame extends Frame
     gbc.weighty = 0.0;
     gbc.gridwidth = 1;
 
-    clear = new Button("Clear");
-    gridbag.setConstraints(clear, gbc);
-    add(clear);
-    clear.addActionListener(this);
+    clearButton = new Button("Clear");
+    gridbag.setConstraints(clearButton, gbc);
+    add(clearButton);
+    clearButton.addActionListener(this);
 
-    close = new Button("Close");
-    gridbag.setConstraints(close, gbc);
-    add(close);
-    close.addActionListener(this);
+    closeButton = new Button("Close");
+    gridbag.setConstraints(closeButton, gbc);
+    add(closeButton);
+    closeButton.addActionListener(this);
 
     pack();
 
@@ -124,9 +124,9 @@ class ClipboardFrame extends Frame
   //
 
   public void actionPerformed(ActionEvent evt) {
-    if (evt.getSource() == clear) {
+    if (evt.getSource() == clearButton) {
       textArea.setText("");
-    } else if (evt.getSource() == close) {
+    } else if (evt.getSource() == closeButton) {
       setVisible(false);
     }
   }

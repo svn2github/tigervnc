@@ -64,7 +64,7 @@ class OptionsFrame extends Frame
 
   Label[] labels = new Label[names.length];
   Choice[] choices = new Choice[names.length];
-  Button close;
+  Button closeButton;
   VncViewer viewer;
 
 
@@ -118,11 +118,11 @@ class OptionsFrame extends Frame
       }
     }
 
-    close = new Button("Close");
+    closeButton = new Button("Close");
     gbc.gridwidth = GridBagConstraints.REMAINDER;
-    gridbag.setConstraints(close, gbc);
-    add(close);
-    close.addActionListener(this);
+    gridbag.setConstraints(closeButton, gbc);
+    add(closeButton);
+    closeButton.addActionListener(this);
 
     pack();
 
@@ -312,7 +312,7 @@ class OptionsFrame extends Frame
   //
 
   public void actionPerformed(ActionEvent evt) {
-    if (evt.getSource() == close) {
+    if (evt.getSource() == closeButton) {
       setVisible(false);
     }
   }

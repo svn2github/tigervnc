@@ -191,9 +191,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 
 					int port = INCOMING_PORT_OFFSET;
 					char *portp = strchr(name, ':');
-					if (portp) {
+					if (portp != NULL) {
 						*portp++ = '\0';
-						port += atoi(portp);
+						if (*portp == ':') {
+							port = atoi(++portp);
+						} else {
+							port += atoi(portp);
+						}
 					}
 
 					VCard32 address = VSocket::Resolve(name);

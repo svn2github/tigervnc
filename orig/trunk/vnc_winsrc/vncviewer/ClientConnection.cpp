@@ -125,6 +125,7 @@ ClientConnection::ClientConnection(VNCviewerApp *pApp, LPTSTR host, int port)
 void ClientConnection::Init(VNCviewerApp *pApp)
 {
 	m_hwnd = 0;
+	m_hwnd1 = 0;
 	m_desktopName = NULL;
 	m_port = -1;
 	m_serverInitiated = false;
@@ -1412,12 +1413,6 @@ void ClientConnection::KillThread()
 {
 	m_bKillThread = true;
 	m_running = false;
-
-	if (m_sock != INVALID_SOCKET) {
-		shutdown(m_sock, SD_BOTH);
-		closesocket(m_sock);
-		m_sock = INVALID_SOCKET;
-	}
 }
 
 // Get the RFB options from another connection.
@@ -1736,15 +1731,16 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 	case WM_DESTROY: 			
 #ifndef UNDER_CE
 		// Remove us from the clipboard viewer chain
-		BOOL res = ChangeClipboardChain( hwnd, _this->m_hwndNextViewer);
+		BOOL res = ChangeClipboardChain( _this->m_hwnd, _this->m_hwndNextViewer);
 #endif
 		if (_this->m_waitingOnEmulateTimer) {
 			
-			KillTimer(hwnd, _this->m_emulate3ButtonsTimer);
+			KillTimer(_this->m_hwnd, _this->m_emulate3ButtonsTimer);
 			_this->m_waitingOnEmulateTimer = false;
 		}
 			
 		_this->m_hwnd1 = 0;
+		_this->m_hwnd = 0;
 		// We are currently in the main thread.
 		// The worker thread should be about to finish if
 		// it hasn't already. Wait for it.

@@ -98,7 +98,7 @@ vncEncodeZlibHex::RequiredBuffSize(UINT width, UINT height)
 	// Add overhead associated with zlib compression, worst case.
 	accumSize += ((accumSize / 100) + 8);
 	// Add zlib/other subencoding overhead, worst case.
-	accumSize += (((width/16)+1) * ((height/16)+1) * 3 * m_remoteformat.bitsPerPixel) / 8;
+	accumSize += (((width/16)+1) * ((height/16)+1) * ((3 * m_remoteformat.bitsPerPixel / 8) + 2));
 
 	return accumSize;
 }
@@ -186,8 +186,10 @@ vncEncodeZlibHex::zlibCompress(BYTE *from_buf, BYTE *to_buf, UINT length, struct
 		compressor->zfree = Z_NULL;
 		compressor->opaque = Z_NULL;
 
+		log.Print(LL_INTINFO, VNCLOG("calling deflateInit2 with zlib level:%d\n"), m_zliblevel);
+
 		deflateResult = deflateInit2( compressor,
-			                          Z_BEST_COMPRESSION,
+			                          m_zliblevel,
 					                  Z_DEFLATED,
 					                  MAX_WBITS,
 					                  MAX_MEM_LEVEL,
@@ -253,7 +255,7 @@ vncEncodeZlibHex::EncodeHextiles##bpp(BYTE *source, BYTE *dest,				\
 	BOOL validBg = FALSE;													\
 	BOOL validFg = FALSE;													\
 	int subEncodedLen;														\
-	CARD##bpp clientPixelData[(16*16+2)*(bpp/8)+8+12];						\
+	CARD##bpp clientPixelData[(16*16+2)*(bpp/8)+8+14+2];						\
 																			\
 	destoffset = 0;															\
 																			\

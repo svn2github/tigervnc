@@ -540,10 +540,21 @@ vncClientThread::run(void *arg)
 
 					// Is this the CopyRect encoding (a special case)?
 					if (Swap32IfLE(encoding) == rfbEncodingCopyRect)
-					{	// omni_mutex_lock l(m_client->m_regionLock);
+					{
 
 						// Client wants us to use CopyRect
 						m_client->m_copyrect_use = TRUE;
+						continue;
+					}
+
+					// Is this a ZlibLevel encoding (a special case)?
+					if ((Swap32IfLE(encoding) >= rfbEncodingZlibLevel0) &&
+						(Swap32IfLE(encoding) <= rfbEncodingZlibLevel9))
+					{
+
+						// Client specified a zlib compression level
+						m_client->m_buffer->SetZlibLevel(Swap32IfLE(encoding) -
+														 rfbEncodingZlibLevel0);
 						continue;
 					}
 

@@ -1,5 +1,5 @@
 
-TridiaVNC 1.2.1 Source Distribution for Windows platforms
+TridiaVNC 1.3.1 Source Distribution for Windows platforms
 =========================================================
 
 TridiaVNC is Copyright (C) 2000 Tridia Corp.  All rights reserved.

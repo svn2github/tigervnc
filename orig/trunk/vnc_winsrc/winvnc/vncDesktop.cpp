@@ -35,6 +35,7 @@
 #include "rectlist.h"
 #include "vncDesktop.h"
 #include "vncService.h"
+#include <fstream.h>
 
 // Constants
 const UINT RFB_SCREEN_UPDATE = RegisterWindowMessage("WinVNC.Update.DrawRect");
@@ -315,10 +316,11 @@ vncDesktop::~vncDesktop()
 BOOL
 vncDesktop::Startup()
 {
+
+	// Configure the display for optimal VNC performance.
+	SetupDisplayForConnection();
+
 	// Initialise the Desktop object
-
-	KillScreenSaver();
-
 	if (!InitDesktop())
 		return FALSE;
 
@@ -431,6 +433,9 @@ vncDesktop::Shutdown()
 		}
 	}
 
+	// Return display settings to previous values.
+	ResetDisplayToNormal();
+
 	return TRUE;
 }
 
@@ -524,6 +529,360 @@ vncDesktop::KillScreenSaver()
 		}
 	}
 }
+
+void vncDesktop::ChangeResNow()
+{
+	BOOL settingsUpdated = false;
+	int i = 0;
+	lpDevMode = new DEVMODE; // *** create an instance of DEVMODE - Jeremy Peaks
+
+	// *** WBB - Obtain the current display settings.
+	if (! EnumDisplaySettings( 0, ENUM_CURRENT_SETTINGS, lpDevMode)) {
+
+		log.Print(LL_INTINFO, VNCLOG("SCR-WBB: could not get current display settings!\n"));
+		delete lpDevMode;
+		lpDevMode = NULL;
+		return;
+
+	}
+
+	log.Print(LL_INTINFO, VNCLOG("SCR-WBB: current display: w=%d h=%d bpp=%d vRfrsh=%d.\n"),
+				lpDevMode->dmPelsWidth,
+				lpDevMode->dmPelsHeight,
+				lpDevMode->dmBitsPerPel,
+				lpDevMode->dmDisplayFrequency );
+
+	origPelsWidth = lpDevMode->dmPelsWidth; // *** sets the original resolution for use later
+	origPelsHeight = lpDevMode->dmPelsHeight; // *** - Jeremy Peaks
+
+	// *** Open the registry key for resolution settings
+	HKEY checkdetails;
+	RegOpenKeyEx(HKEY_LOCAL_MACHINE, 
+				"Software\\ORL\\WinVNC3",
+				0,
+				KEY_READ,
+				&checkdetails);
+	
+	int slen=MAX_REG_ENTRY_LEN;
+	int valType;
+	char inouttext[MAX_REG_ENTRY_LEN];
+
+	memset(inouttext, 0, MAX_REG_ENTRY_LEN);
+	
+	// *** Get the registry values for resolution change - Jeremy Peaks
+	RegQueryValueEx(checkdetails,
+		"ResWidth",
+		NULL,
+		(LPDWORD) &valType,
+		(LPBYTE) &inouttext,
+		(LPDWORD) &slen);
+
+	
+	if ((valType == REG_SZ) &&
+		atol(inouttext)) { // *** if width is 0, then this isn't a valid resolution, so do nothing - Jeremy Peaks
+		lpDevMode->dmPelsWidth = atol(inouttext);
+
+		memset(inouttext, 0, MAX_REG_ENTRY_LEN);
+
+		RegQueryValueEx(checkdetails,
+			"ResHeight",
+			NULL,
+			(LPDWORD) &valType,
+			(LPBYTE) &inouttext,
+			(LPDWORD) &slen);
+		
+		lpDevMode->dmPelsHeight = atol(inouttext);
+		if ((valType == REG_SZ ) &&
+			(lpDevMode->dmPelsHeight > 0)) {
+
+			log.Print(LL_INTINFO, VNCLOG("SCR-WBB: attempting to change resolution w=%d h=%d\n"),
+						lpDevMode->dmPelsWidth, lpDevMode->dmPelsHeight);
+
+			// *** make res change - Jeremy Peaks
+			long resultOfResChange = ChangeDisplaySettings( lpDevMode, CDS_TEST);
+			if (resultOfResChange == DISP_CHANGE_SUCCESSFUL) {
+				ChangeDisplaySettings( lpDevMode, CDS_UPDATEREGISTRY);
+				settingsUpdated = true;
+			}
+		} 
+	}
+
+	if (! settingsUpdated) {
+		// Did not change the resolution.
+		if ( lpDevMode != NULL ) {
+			delete lpDevMode;
+			lpDevMode = NULL;
+		}
+	}
+
+	if (checkdetails != NULL) {
+		RegCloseKey(checkdetails);
+	}
+}
+
+// *** This method is a front-end for the SystemParameterInfo() call.
+// *** First the HKLM\\Software\\ORL\\WinVNC\\<regName> string is checkted
+// *** for presence, string type and Yes/yes/Y/y, if so, SystemParameterInfo
+// *** is called.
+void
+vncDesktop::DisableIfRegSystemParameter(char *regName,
+										int spiCommand,
+										int spiParamInt,
+										void* spiParamPtr,
+										int spiUpdate)
+{
+	// *** Checks to see if reg key is set, then disables the
+	// *** system parameter by invoking SystemParameterInfo().
+	// *** This is placed here rather than vncHooks.cpp as it causes
+	// *** VNC to crash if put there. - Jeremy Peaks
+
+	HKEY checkdetails;
+	RegOpenKeyEx(HKEY_LOCAL_MACHINE, 
+				"Software\\ORL\\WinVNC3",
+				0,
+				KEY_READ,
+				&checkdetails);
+
+	int slen=MAX_REG_ENTRY_LEN;
+	int valType;
+	char inouttext[MAX_REG_ENTRY_LEN];
+
+	memset(inouttext, 0, MAX_REG_ENTRY_LEN);
+
+	// *** Get the registry value - Jeremy Peaks
+	RegQueryValueEx(checkdetails,
+		regName,
+		NULL,
+		(LPDWORD) &valType,
+		(LPBYTE) &inouttext,
+		(LPDWORD) &slen);
+
+	// *** If regName = Yes/yes/Y/y then disable setting
+	// *** - Jeremy Peaks & W. Brian Blevins
+	if ((valType == REG_SZ) &&
+		(inouttext[0] == 'Y' || inouttext[0] == 'y')) {
+
+		log.Print(LL_INTINFO, VNCLOG("SCR-WBB: attempting to %s.\n"), regName);
+
+		SystemParametersInfo(spiCommand, spiParamInt, spiParamPtr, spiUpdate);
+		// SystemParametersInfo(SPI_SETDESKPATTERN, 0, 0, 0);
+	}
+
+	if (checkdetails != NULL) {
+		RegCloseKey(checkdetails);
+	}
+	
+}
+
+// *** Prepare the display settings for the new connection.
+// *** The precise changes depend on a number of registry settings.
+void
+vncDesktop::SetupDisplayForConnection()
+{
+
+	KillScreenSaver();
+
+	ChangeResNow(); // *** - Jeremy Peaks
+	
+	// If all optimizatations are not already enabled, then
+	// check each one individually.
+	if (! OptimizeDisplayForConnection())
+	{
+		DisableIfRegSystemParameter("DisablePattern",
+									SPI_SETDESKPATTERN,
+									0,
+									0,
+									SPIF_SENDCHANGE);
+
+		DisableIfRegSystemParameter("DisableWallpaper",
+									SPI_SETDESKWALLPAPER,
+									0,
+									"",
+									SPIF_SENDCHANGE);
+
+		DisableIfRegSystemParameter("DisableFontSmoothing",
+									SPI_SETFONTSMOOTHING,
+									FALSE,
+									0,
+									SPIF_SENDCHANGE);
+
+		DisableIfRegSystemParameter("DisableFullWindowDrag",
+									SPI_SETDRAGFULLWINDOWS,
+									FALSE,
+									0,
+									SPIF_SENDCHANGE);
+	}
+
+}
+
+// *** If configured, perform a set of display optimizations to
+// *** improve performance over the remote connection.
+BOOL
+vncDesktop::OptimizeDisplayForConnection()
+{
+
+	BOOL result;
+	HKEY checkdetails;
+
+	result = FALSE;
+
+	RegOpenKeyEx(HKEY_LOCAL_MACHINE, 
+				"Software\\ORL\\WinVNC3",
+				0,
+				KEY_READ,
+				&checkdetails);
+
+	int slen=MAX_REG_ENTRY_LEN;
+	int valType;
+	char inouttext[MAX_REG_ENTRY_LEN];
+
+	memset(inouttext, 0, MAX_REG_ENTRY_LEN);
+
+	// *** Get the DisablePattern value - Jeremy Peaks
+	RegQueryValueEx(checkdetails,
+		"OptimizeDesktop",
+		NULL,
+		(LPDWORD) &valType,
+		(LPBYTE) &inouttext,
+		(LPDWORD) &slen);
+
+	// *** If Optimize = Yes/yes/Y/y then turn on all optimizations
+	// *** - W. Brian Blevins
+	if ((valType == REG_SZ) &&
+		(inouttext[0] == 'Y' || inouttext[0] == 'y')) {
+
+		log.Print(LL_INTINFO, VNCLOG("SCR-WBB: desktop optimization enabled.\n"));
+		result = TRUE;
+
+		log.Print(LL_INTINFO, VNCLOG("SCR-WBB: attempting to disable pattern.\n"));
+		SystemParametersInfo(SPI_SETDESKPATTERN, 0, 0, SPIF_SENDCHANGE);
+
+		log.Print(LL_INTINFO, VNCLOG("SCR-WBB: attempting to disable wallpaper.\n"));
+		SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, "", SPIF_SENDCHANGE);
+
+		log.Print(LL_INTINFO, VNCLOG("SCR-WBB: attempting to disable font smoothing.\n"));
+		SystemParametersInfo(SPI_SETFONTSMOOTHING, FALSE, 0, SPIF_SENDCHANGE);
+
+		log.Print(LL_INTINFO, VNCLOG("SCR-WBB: attempting to disable full window drags.\n"));
+		SystemParametersInfo(SPI_SETDRAGFULLWINDOWS, FALSE, 0, SPIF_SENDCHANGE);
+
+	}
+
+	if (checkdetails != NULL) {
+		RegCloseKey(checkdetails);
+	}
+
+	return result;
+}
+
+void
+vncDesktop::ResetDisplayToNormal()
+{
+
+	int slen=MAX_REG_ENTRY_LEN;
+	int valType;
+	char inouttext[MAX_REG_ENTRY_LEN];
+
+	if ( lpDevMode != NULL ) {
+
+		// *** In case the resolution was changed, revert to original settings now
+		lpDevMode->dmPelsWidth = origPelsWidth;
+		lpDevMode->dmPelsHeight = origPelsHeight;
+
+		long resultOfResChange = ChangeDisplaySettings( lpDevMode, CDS_TEST);
+		if (resultOfResChange == DISP_CHANGE_SUCCESSFUL)
+			ChangeDisplaySettings( lpDevMode, CDS_UPDATEREGISTRY);
+
+		delete lpDevMode;
+	}
+
+	// *** The following fixes a bug that existed in that WinNT users
+	// *** wallpapers reverted back to default system settings, rather than
+	// *** their own wallpaper.  The value is now taken from HKEY_CURRENT_USER
+
+	// *** Open the registry key for current users settings
+	HKEY checkdetails;
+	RegOpenKeyEx(HKEY_CURRENT_USER, 
+				"Control Panel\\Desktop",
+				0,
+				KEY_READ,
+				&checkdetails);
+	
+	memset(inouttext, 0, MAX_REG_ENTRY_LEN);
+	
+	// *** Get the Wallpaper value - Jeremy Peaks
+	RegQueryValueEx(checkdetails,
+		"Wallpaper",
+		NULL,
+		(LPDWORD) &valType,
+		(LPBYTE) &inouttext,
+		(LPDWORD) &slen);
+
+	// *** Disconnected now, so just in case the wallpaper was disabled
+	// *** earlier, revert to saved wallpaper settings. - Jeremy Peaks
+	SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, inouttext, SPIF_SENDCHANGE);
+
+	memset(inouttext, 0, MAX_REG_ENTRY_LEN);
+
+	// *** Get the FontSmoothing value - Jeremy Peaks
+	RegQueryValueEx(checkdetails,
+		"FontSmoothing",
+		NULL,
+		(LPDWORD) &valType,
+		(LPBYTE) &inouttext,
+		(LPDWORD) &slen);
+
+	// *** Just in case font smoothing was disabled, re-enable it now
+	// *** - Jeremy Peaks
+	if ((valType == REG_SZ) &&
+		(inouttext[0] == '1')) {
+
+		SystemParametersInfo(SPI_SETFONTSMOOTHING, TRUE, 0, SPIF_SENDCHANGE);
+
+	}
+	
+	// *** Get the Pattern value - Jeremy Peaks
+	long sllen = MAX_REG_ENTRY_LEN;
+
+	memset(inouttext, 0, MAX_REG_ENTRY_LEN);
+
+	RegQueryValueEx(checkdetails,
+		"Pattern",
+		NULL,
+		(LPDWORD) &valType,
+		(LPBYTE) &inouttext,
+		(LPDWORD) &sllen);
+
+
+	// *** Just in case the pattern was disabled, re-enable it now
+	// *** - Jeremy Peaks
+	SystemParametersInfo(SPI_SETDESKPATTERN, 0, inouttext, SPIF_SENDCHANGE);
+
+	memset(inouttext, 0, MAX_REG_ENTRY_LEN);
+
+	// *** Get the DragFullWindows value - W. Brian Blevins
+	RegQueryValueEx(checkdetails,
+		"DragFullWindows",
+		NULL,
+		(LPDWORD) &valType,
+		(LPBYTE) &inouttext,
+		(LPDWORD) &slen);
+
+	// *** Just in case full window dragging was disabled, re-enable it now
+	// *** - W. Brian Blevins
+	if ((valType == REG_SZ) &&
+		(inouttext[0] == '1')) {
+
+		SystemParametersInfo(SPI_SETDRAGFULLWINDOWS, TRUE, 0, SPIF_SENDCHANGE);
+
+	}
+	
+	if (checkdetails != NULL) {
+		RegCloseKey(checkdetails);
+	}
+
+}
+
 
 BOOL
 vncDesktop::InitBitmap()

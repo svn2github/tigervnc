@@ -54,7 +54,7 @@ VNCOptions::VNCOptions()
 	m_Emul3Buttons = true;
 	m_Emul3Timeout = 100; // milliseconds
 	m_Emul3Fuzz = 4;      // pixels away before emulation is cancelled
-	m_Shared = false;
+	m_Shared = true;
 	m_DeiconifyOnBell = false;
 	m_DisableClipboard = false;
 	m_localCursor = DOTCURSOR;
@@ -79,6 +79,8 @@ VNCOptions::VNCOptions()
 	m_configFilename[0] = '\0';
 	m_listening = false;
 	m_restricted = false;
+
+	m_zlibLevel = 5;
 
 #ifdef UNDER_CE
 	m_palmpc = false;
@@ -135,6 +137,8 @@ VNCOptions& VNCOptions::operator=(VNCOptions& s)
 
 	m_listening			= s.m_listening;
 	m_restricted		= s.m_restricted;
+
+	m_zlibLevel			= s.m_zlibLevel;
 
 #ifdef UNDER_CE
 	m_palmpc			= s.m_palmpc;
@@ -351,6 +355,15 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 				Load(m_configFilename);
 				m_configSpecified = true;
 			}
+		} else if ( SwitchMatch(args[j], _T("zliblevel") )) {
+			if (++j == i) {
+				ArgError(_T("No zliblevel specified"));
+				continue;
+			}
+			if (_stscanf(args[j], _T("%d"), &m_zlibLevel) != 1) {
+				ArgError(_T("Invalid zliblevel specified"));
+				continue;
+			}
 		} else if ( SwitchMatch(args[j], _T("register") )) {
 			Register();
 			PostQuitMessage(0);
@@ -410,8 +423,9 @@ void VNCOptions::Save(char *fname)
 	saveInt("emulate3fuzz",			m_Emul3Fuzz,		fname);
 	saveInt("disableclipboard",		m_DisableClipboard, fname);
 	saveInt("localcursor",			m_localCursor,		fname);
-	saveInt("scale_num",			m_scale_num,		fname);
 	saveInt("scale_den",			m_scale_den,		fname);
+	saveInt("scale_num",			m_scale_num,		fname);
+	saveInt("zliblevel",			m_zlibLevel,		fname);
 }
 
 void VNCOptions::Load(char *fname)
@@ -434,8 +448,9 @@ void VNCOptions::Load(char *fname)
 	m_Emul3Fuzz =			readInt("emulate3fuzz",		m_Emul3Fuzz,    fname);
 	m_DisableClipboard =	readInt("disableclipboard", m_DisableClipboard, fname) != 0;
 	m_localCursor =			readInt("localcursor",		m_localCursor,	fname);
-	m_scale_num =			readInt("scale_num",		m_scale_num,	fname);
 	m_scale_den =			readInt("scale_den",		m_scale_den,	fname);
+	m_scale_num =			readInt("scale_num",		m_scale_num,	fname);
+	m_zlibLevel =			readInt("zliblevel",		m_zlibLevel,	fname);
 }
 
 // Record the path to the VNC viewer and the type
@@ -574,6 +589,11 @@ BOOL CALLBACK VNCOptions::OptDlgProc(  HWND hwnd,  UINT uMsg,
  			SendMessage(hEmulate, BM_SETCHECK, _this->m_Emul3Buttons, 0);
 #endif
 
+			SetDlgItemInt( hwnd, IDC_ZLIBLEVEL, _this->m_zlibLevel, FALSE);
+			HWND hZlibLevel = GetDlgItem(hwnd, IDC_ZLIBLEVEL);
+			EnableWindow(hZlibLevel, !_this->m_running);
+			// SendMessage(hZlibLevel, BM_SETCHECK, _this->m_UseEnc[rfbEncodingCopyRect], 0);
+			
 			CentreWindow(hwnd);
 			
 			return TRUE;
@@ -641,6 +661,10 @@ BOOL CALLBACK VNCOptions::OptDlgProc(  HWND hwnd,  UINT uMsg,
  				_this->m_Emul3Buttons =
 				  (SendMessage(hEmulate, BM_GETCHECK, 0, 0) == BST_CHECKED);
 #endif
+
+				_this->m_zlibLevel = GetDlgItemInt( hwnd, IDC_ZLIBLEVEL, NULL, TRUE);
+				if ( _this->m_zlibLevel < 0 ) { _this->m_zlibLevel = 0; }
+				if ( _this->m_zlibLevel > 9 ) { _this->m_zlibLevel = 9; }
 
 				EndDialog(hwnd, TRUE);
 				

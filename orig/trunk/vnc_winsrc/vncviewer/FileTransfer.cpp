@@ -85,13 +85,10 @@ FileTransfer::CreateFileTransferDialog()
 	SetIcon(m_hwndFileTransfer, IDC_SERVERRELOAD, IDI_FILERELOAD);
 	SetIcon(m_hwndFileTransfer, IDC_CLIENTCREATEDIR, IDI_CREATEDIR);
 	SetIcon(m_hwndFileTransfer, IDC_SERVERCREATEDIR, IDI_CREATEDIR);
-	SetIcon(m_hwndFileTransfer, IDC_CLIENTDELETEDIR, IDI_DELETEDIR);
-	SetIcon(m_hwndFileTransfer, IDC_SERVERDELETEDIR, IDI_DELETEDIR);
+	SetIcon(m_hwndFileTransfer, IDC_CLIENTDELETE, IDI_DELETE);
+	SetIcon(m_hwndFileTransfer, IDC_SERVERDELETE, IDI_DELETE);
 	SetIcon(m_hwndFileTransfer, IDC_CLIENTRENAME, IDI_RENAME);
 	SetIcon(m_hwndFileTransfer, IDC_SERVERRENAME, IDI_RENAME);
-
-	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_CLIENTRENAME), FALSE);
-	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_SERVERRENAME), FALSE);
 
 	RECT Rect;
 	GetClientRect(m_hwndFTClientList, &Rect);
@@ -139,6 +136,8 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 					case EN_SETFOCUS:
 						EnableWindow(GetDlgItem(_this->m_hwndFileTransfer, IDC_CLIENTRENAME), FALSE);
 						EnableWindow(GetDlgItem(_this->m_hwndFileTransfer, IDC_SERVERRENAME), FALSE);
+						EnableWindow(GetDlgItem(_this->m_hwndFileTransfer, IDC_CLIENTDELETE), FALSE);
+						EnableWindow(GetDlgItem(_this->m_hwndFileTransfer, IDC_SERVERDELETE), FALSE);
 						SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
 						EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), FALSE);
 						return TRUE;
@@ -150,6 +149,8 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 					case EN_SETFOCUS:
 						EnableWindow(GetDlgItem(_this->m_hwndFileTransfer, IDC_CLIENTRENAME), FALSE);
 						EnableWindow(GetDlgItem(_this->m_hwndFileTransfer, IDC_SERVERRENAME), FALSE);
+						EnableWindow(GetDlgItem(_this->m_hwndFileTransfer, IDC_CLIENTDELETE), FALSE);
+						EnableWindow(GetDlgItem(_this->m_hwndFileTransfer, IDC_SERVERDELETE), FALSE);
 						SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
 						EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), FALSE);
 						return TRUE;
@@ -244,11 +245,11 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 				_this->ClearFTControls();
 				_this->ServerCreateDir();
 				return TRUE;
-			case IDC_CLIENTDELETEDIR:
+			case IDC_CLIENTDELETE:
 				_this->ClearFTControls();
 				_this->ClientDeleteDir();				
 				return TRUE;
-			case IDC_SERVERDELETEDIR:
+			case IDC_SERVERDELETE:
 				_this->ClearFTControls();
 				_this->ServerDeleteDir();
 				return TRUE;
@@ -1504,23 +1505,138 @@ FileTransfer::ServerCreateDir()
 void
 FileTransfer::ClientDeleteDir()
 {
-	if (strlen(m_ClientPath) == 0) {
-		SetStatusText("Illegal local path. Can't delete");
-		return;
-	}
 	FileTransferItemInfo ftfi;
 	int numSel = GetSelectedItems(m_hwndFTClientList, &ftfi);
-	if (numSel <= 0) {
-		SetStatusText("Select file or folder for deleting.");
+	if (numSel == 1) {
+		if (ftfi.GetIntSizeAt(0) < 0) {
+			char buf[MAX_PATH + 38];
+			sprintf(buf, "Are you sure you want to delete '%s' and all its contents?", ftfi.GetNameAt(0));
+			if (MessageBox(m_hwndFileTransfer, 
+				_T(buf),
+				_T("Confirm Folder Delete"),
+				MB_YESNO | MB_ICONQUESTION) == IDYES) {
+				FTClientDelete(&ftfi);
+			}
+		} else {
+			char buf[MAX_PATH + 38];
+			sprintf(buf, "Are you sure you want to delete file '%s'?", ftfi.GetNameAt(0));
+			if (MessageBox(m_hwndFileTransfer, 
+				_T(buf),
+				_T("Confirm File Delete"),
+				MB_YESNO | MB_ICONQUESTION) == IDYES) {
+				FTClientDelete(&ftfi);
+			}
+		}
 		return;
+	} else {
+		if (MessageBox(m_hwndFileTransfer, 
+			_T("Are you sure you want to delete all selected files and folders?"),
+			_T("Confirm Multiple Delete"),
+			MB_YESNO | MB_ICONQUESTION) == IDYES) {
+			FTClientDelete(&ftfi);
+		}
 	}
+}
 
+void
+FileTransfer::FTClientDelete(FileTransferItemInfo *ftfi)
+{
+	char buff[MAX_PATH];
+	ftfi->Sort();
+	int i = ftfi->GetNumEntries() - 1;
+	while (ftfi->GetIntSizeAt(i) >= 0) {
+			sprintf(buff, "%s\\%s", m_ClientPath, ftfi->GetNameAt(i));
+			DeleteFile(buff);
+			ftfi->DeleteAt(i);
+			i -= 1;
+	}
+	if (ftfi->GetNumEntries() == 0) return;
+	char fullPath[MAX_PATH];
+	FileTransferItemInfo delDirInfo;
+	while (ftfi->GetNumEntries() > 0) {
+		sprintf(fullPath, "%s\\%s", m_ClientPath, ftfi->GetNameAt(0));
+		delDirInfo.Add(fullPath, -1, 0);
+		strcat(fullPath, "\\*");
+		WIN32_FIND_DATA FindFileData;
+		SetErrorMode(SEM_FAILCRITICALERRORS);
+		HANDLE hFile = FindFirstFile(fullPath, &FindFileData);
+		SetErrorMode(0);
+		if (hFile != INVALID_HANDLE_VALUE) {
+			do {
+				if (strcmp(FindFileData.cFileName, ".") != 0 &&
+					strcmp(FindFileData.cFileName, "..") != 0) {
+					char buff[MAX_PATH];
+					if ((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {	
+						sprintf(buff, "%s\\%s", ftfi->GetNameAt(0), FindFileData.cFileName);
+						ftfi->Add(buff, -1, 0);
+					} else {
+						sprintf(buff, "%s\\%s\\%s", m_ClientPath, ftfi->GetNameAt(0), FindFileData.cFileName);
+						DeleteFile(buff);
+					}
+				}
+			} while (FindNextFile(hFile, &FindFileData));
+		}			
+		FindClose(hFile);
+		ftfi->DeleteAt(0);
+	}
+	for (i = delDirInfo.GetNumEntries() - 1; i >= 0; i--) {
+		RemoveDirectory(delDirInfo.GetNameAt(i));
+	}
+	ShowClientItems(m_ClientPath);
 }
 
 void
 FileTransfer::ServerDeleteDir()
 {
+	FileTransferItemInfo ftfi;
+	int result = IDNO;;
+	int numSel = GetSelectedItems(m_hwndFTServerList, &ftfi);
+	if (numSel == 1) {
+		if (ftfi.GetIntSizeAt(0) < 0) {
+			char buf[MAX_PATH + 57];
+			sprintf(buf, "Are you sure you want to delete '%s' and all its contents?", ftfi.GetNameAt(0));
+			result = MessageBox(m_hwndFileTransfer, 
+								_T("Are you sure you want to delete all selected files and folders?"),
+								_T("Confirm Folder Delete"),
+								MB_YESNO | MB_ICONQUESTION);
+		} else {
+			char buf[MAX_PATH + 38];
+			sprintf(buf, "Are you sure you want to delete file '%s'?", ftfi.GetNameAt(0));
+			result = MessageBox(m_hwndFileTransfer, 
+								_T(buf),
+								_T("Confirm File Delete"),
+								MB_YESNO | MB_ICONQUESTION);
+		}
+	} else {
+		result = MessageBox(m_hwndFileTransfer, 
+							_T("Are you sure you want to delete all selected files and folders?"),
+							_T("Confirm Multiple Delete"),
+							MB_YESNO | MB_ICONQUESTION);
+	}
+	if (result == IDYES) {
+		char delPath[MAX_PATH];
+		for (int i = 0; i < ftfi.GetNumEntries(); i++) {
+			sprintf(delPath, "%s\\%s", m_ServerPath, ftfi.GetNameAt(i));
+			SendFileDeleteRequestMessage(delPath);
+			SendFileListRequestMessage(m_ServerPath, 0, FT_FLR_DEST_MAIN);
+		}
+	}
+}
 
+void
+FileTransfer::SendFileDeleteRequestMessage(char *path)
+{
+	char _path[MAX_PATH];
+	strcpy(_path, path);
+	int len = strlen(_path);
+	if (_path[len-1] == '\\') _path[len-1] = '\0';
+	ConvertPath(_path);
+	len = strlen(_path);
+	rfbFileDeleteRequestMsg fdr;
+	fdr.type = rfbFileDeleteRequest;
+	fdr.nameLen = Swap16IfLE(len);
+	m_clientconn->WriteExact((char *)&fdr, sz_rfbFileDeleteRequestMsg);
+	m_clientconn->WriteExact(_path, len);
 }
 
 void
@@ -1781,6 +1897,8 @@ FileTransfer::ClearFTControls()
 {
 	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_CLIENTRENAME), FALSE);
 	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_SERVERRENAME), FALSE);
+	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_CLIENTDELETE), FALSE);
+	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_SERVERDELETE), FALSE);
 	SetDlgItemText(m_hwndFileTransfer, IDC_FTCOPY, noactionText);
 	SetDlgItemText(m_hwndFileTransfer, IDC_FILETRANSFERPERCENT, "0%");
 	SetDlgItemText(m_hwndFileTransfer, IDC_CURRENTFILEPERCENT, "0%");
@@ -1795,12 +1913,19 @@ FileTransfer::CheckClientLV()
 {
 	char buf[8];
 	GetWindowText(GetDlgItem(m_hwndFileTransfer, IDC_FTCOPY), buf, 8);
-	if ((ListView_GetSelectedCount(m_hwndFTClientList) == 0) &&
-		(strcmp(buf, noactionText) != 0)) {
-		SetWindowText(GetDlgItem(m_hwndFileTransfer, IDC_FTCOPY), noactionText);
-		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCOPY), FALSE);
+	int selCount = ListView_GetSelectedCount(m_hwndFTClientList);
+	if (selCount == 0) {
+		if (strcmp(buf, noactionText) != 0) {
+			SetWindowText(GetDlgItem(m_hwndFileTransfer, IDC_FTCOPY), noactionText);
+			EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCOPY), FALSE);
+		}
+		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_CLIENTDELETE), FALSE);
+		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_CLIENTRENAME), FALSE);
+	} else {
+		if (strlen(m_ClientPath) != 0)
+			EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_CLIENTDELETE), TRUE);
 	}
-	if (ListView_GetSelectedCount(m_hwndFTClientList) != 1) {
+	if (selCount != 1) {
 		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_CLIENTRENAME), FALSE);
 	} else {
 		if (strlen(m_ClientPath) != 0)
@@ -1813,12 +1938,19 @@ FileTransfer::CheckServerLV()
 {
 	char buf[8];
 	GetWindowText(GetDlgItem(m_hwndFileTransfer, IDC_FTCOPY), buf, 8);
-	if ((ListView_GetSelectedCount(m_hwndFTServerList) == 0) &&
-		(strcmp(buf, noactionText) != 0)) {
-		SetWindowText(GetDlgItem(m_hwndFileTransfer, IDC_FTCOPY), noactionText);
-		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCOPY), FALSE);
+	int selCount = ListView_GetSelectedCount(m_hwndFTServerList);
+	if (selCount == 0) {
+		if (strcmp(buf, noactionText) != 0) {
+			SetWindowText(GetDlgItem(m_hwndFileTransfer, IDC_FTCOPY), noactionText);
+			EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCOPY), FALSE);
+		}
+		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_SERVERDELETE), FALSE);
+		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_SERVERRENAME), FALSE);
+	} else {
+		if (strlen(m_ServerPath) != 0)
+			EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_SERVERDELETE), TRUE);
 	}
-	if (ListView_GetSelectedCount(m_hwndFTServerList) != 1) {
+	if (selCount != 1) {
 		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_SERVERRENAME), FALSE);
 	} else {
 		if (strlen(m_ServerPath) != 0)

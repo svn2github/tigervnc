@@ -44,7 +44,7 @@
 #define IDD_CONNECTING_DIALOG           245
 #define IDI_CREATEDIR                   246
 #define IDD_FTDIRNAME                   247
-#define IDI_DELETEDIR                   248
+#define IDI_DELETE                      248
 #define IDI_RENAME                      249
 #define IDC_HOSTNAME_EDIT               1000
 #define IDC_DPYNUM_EDIT                 1001
@@ -158,7 +158,7 @@
 #define IDC_SERVERRENAME                1133
 #define IDC_SERVERUP                    1134
 #define IDC_BUTTON4                     1135
-#define IDC_CLIENTDELETEDIR             1135
+#define IDC_CLIENTDELETE                1135
 #define IDC_CLIENTRELOAD                1136
 #define IDC_BUTTON5                     1137
 #define IDC_CLIENTUP                    1138
@@ -166,7 +166,7 @@
 #define IDC_SERVERCREATEDIR             1140
 #define IDC_EDITDIRNAME                 1141
 #define IDC_AUTO_SCROLLING              1142
-#define IDC_SERVERDELETEDIR             1143
+#define IDC_SERVERDELETE                1143
 #define IDC_FILETRANSFERPERCENT         1145
 #define IDC_CURRENTFILEPERCENT          1146
 #define IDC_PROGRESS                    1147
@@ -186,7 +186,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        250
+#define _APS_NEXT_RESOURCE_VALUE        251
 #define _APS_NEXT_COMMAND_VALUE         40011
 #define _APS_NEXT_CONTROL_VALUE         1152
 #define _APS_NEXT_SYMED_VALUE           244

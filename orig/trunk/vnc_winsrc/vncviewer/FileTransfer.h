@@ -109,6 +109,7 @@ private:
 	void SendFileDownloadRequestMessage(unsigned short dNameLen, char *dName);
 	void SendFileDirSizeRequestMessage(unsigned short pathLen, char *path);
 	void SendFileRenameRequestMessage(char *pOldName, char *pNewName);
+	void SendFileDeleteRequestMessage(char *path);
 	void CreateItemInfoList(FileTransferItemInfo *pftii, FTSIZEDATA *ftsd, int ftsdNum, char *pfnames, int fnamesSize);
 	void InitProgressBar(int nPosition);
 	void InitFTProgressBar(int nPosition);
@@ -122,6 +123,8 @@ private:
 	void ServerRenameDir();
 	BOOL CreateRenameDirDlg(HWND hwnd);
 	void SetDefaultBlockSize() { m_dwFileBlockSize = 8192; };
+	void FTClientDelete(FileTransferItemInfo *ftfi);
+
 
 	DWORD GetSelectedFileSize(char *path, FileTransferItemInfo *pFTFI);
 

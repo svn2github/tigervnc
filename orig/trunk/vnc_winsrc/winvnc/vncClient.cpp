@@ -1671,6 +1671,66 @@ vncClientThread::run(void *arg)
 			}
 			break;
 
+		case rfbFileDeleteRequest:
+			if (!m_server->FileTransfersEnabled() || !m_client->IsInputEnabled()) {
+				connected = FALSE;
+				break;
+			}
+			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileDeleteRequestMsg-1))
+			{
+				msg.fder.nameLen = Swap16IfLE(msg.fder.nameLen);
+				char *pName = new char[msg.fder.nameLen + 1];
+				m_socket->ReadExact(pName, msg.fder.nameLen);
+				pName[msg.fder.nameLen] = '\0';
+				pName = ConvertPath(pName);
+				WIN32_FIND_DATA FindFileData;
+				SetErrorMode(SEM_FAILCRITICALERRORS);
+				HANDLE hFile = FindFirstFile(pName, &FindFileData);
+				SetErrorMode(0);
+				if (hFile != INVALID_HANDLE_VALUE) {
+					if(!(FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {	
+						DeleteFile(pName);
+					}
+					FindClose(hFile);
+				} else {
+					delete [] pName;
+					break;
+				}
+				char fullPath[MAX_PATH];
+				FileTransferItemInfo ftfi;
+				FileTransferItemInfo delDirInfo;
+				ftfi.Add(pName, -1, 0);
+				do {
+					sprintf(fullPath, "%s\\*", ftfi.GetNameAt(0));
+					delDirInfo.Add(ftfi.GetNameAt(0), -1, 0);
+					WIN32_FIND_DATA FindFileData;
+					SetErrorMode(SEM_FAILCRITICALERRORS);
+					HANDLE hFile = FindFirstFile(fullPath, &FindFileData);
+					SetErrorMode(0);
+					if (hFile != INVALID_HANDLE_VALUE) {
+						do {
+							if (strcmp(FindFileData.cFileName, ".") != 0 &&
+								strcmp(FindFileData.cFileName, "..") != 0) {
+								char buff[MAX_PATH];
+								sprintf(buff, "%s\\%s", ftfi.GetNameAt(0), FindFileData.cFileName);
+								if ((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {	
+									ftfi.Add(buff, -1, 0);
+								} else {
+									DeleteFile(buff);
+								}
+							}
+						} while (FindNextFile(hFile, &FindFileData));
+					}			
+					FindClose(hFile);
+					ftfi.DeleteAt(0);
+				} while (ftfi.GetNumEntries() > 0);
+				for (int i = delDirInfo.GetNumEntries() - 1; i >= 0; i--) {
+					RemoveDirectory(delDirInfo.GetNameAt(i));
+				}
+				delete [] pName;
+			}
+			break;
+			
 		default:
 			// Unknown message, so fail!
 			vnclog.Print(LL_CLIENTS, VNCLOG("invalid message received : %d\n"),

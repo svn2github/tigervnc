@@ -141,6 +141,7 @@ protected:
 	BOOL SendCursorPosUpdate();
 	BOOL SendLastRect();
 	BOOL SendPalette();
+	BOOL isPtInSharedArea(POINT &p);
 
 
 

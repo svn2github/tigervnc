@@ -2224,6 +2224,15 @@ vncClient::SendRFBMsg(CARD8 type, BYTE *buffer, int buflen)
 	return TRUE;
 }
 
+BOOL
+vncClient::isPtInSharedArea(POINT &p)
+{
+    RECT shared_rect = m_server->GetSharedRect();
+    if (p.x >= 0 && p.x < shared_rect.right - shared_rect.left &&
+	p.y >= 0 && p.y < shared_rect.bottom - shared_rect.top) 
+	return TRUE;
+    return FALSE;
+}
 
 BOOL
 vncClient::SendUpdate()
@@ -2254,6 +2263,11 @@ vncClient::SendUpdate()
 			RECT shared_rect = m_server->GetSharedRect();
 			cursor_pos.x -= shared_rect.left;
 			cursor_pos.y -= shared_rect.top;
+#ifdef HORIZONLIVE
+			if (!isPtInSharedArea(cursor_pos)) {
+				m_cursor_pos_changed = FALSE;
+			} 	
+#else
 			if (cursor_pos.x < 0) {
 				cursor_pos.x = 0;
 			} else if (cursor_pos.x >= shared_rect.right - shared_rect.left) {
@@ -2264,6 +2278,7 @@ vncClient::SendUpdate()
 			} else if (cursor_pos.y >= shared_rect.bottom - shared_rect.top) {
 				cursor_pos.y = shared_rect.bottom - shared_rect.top - 1;
 			}
+#endif
 			if (cursor_pos.x == m_cursor_pos.x && cursor_pos.y == m_cursor_pos.y) {
 				m_cursor_pos_changed = FALSE;
 			} else {
@@ -2336,7 +2351,11 @@ vncClient::SendUpdate()
 
 	if (numrects != 0xFFFF) {
 		// Count cursor shape and cursor position updates.
+#ifdef HORIZONLIVE
+		if (m_cursor_update_pending && isPtInSharedArea(m_cursor_pos))
+#else
 		if (m_cursor_update_pending)
+#endif
 			numrects++;
 		if (m_cursor_pos_changed)
 			numrects++;
@@ -2357,7 +2376,11 @@ vncClient::SendUpdate()
 		return TRUE;
 
 	// Send mouse cursor shape update
+#ifdef HORIZONLIVE
+	if (m_cursor_update_pending && isPtInSharedArea(m_cursor_pos)) {
+#else
 	if (m_cursor_update_pending) {
+#endif
 		if (!SendCursorShapeUpdate())
 			return TRUE;
 	}

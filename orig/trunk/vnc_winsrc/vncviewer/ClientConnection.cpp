@@ -522,9 +522,10 @@ void ClientConnection::Authenticate()
 				vnclog.Print(0, _T("VNC authentication succeeded\n"));
 				break;
 			case rfbVncAuthFailed:
-				vnclog.Print(0, _T("VNC authentication failed!"));
+				vnclog.Print(0, _T("VNC authentication failed!\n"));
 				throw AuthException("VNC authentication failed!");
 			case rfbVncAuthTooMany:
+				vnclog.Print(0, _T("VNC authentication failed - too many tries!\n"));
 				throw WarningException(
 					"VNC authentication failed - too many tries!");
 			default:

@@ -96,33 +96,37 @@ Flasher::Flasher(int port)
     addr.sin_addr.s_addr = INADDR_ANY;
 
     m_sock = socket(AF_INET, SOCK_STREAM, 0);
-	if (!m_sock) throw WarningException("Error creating Flasher socket");
+	if (!m_sock)
+		throw WarningException("Error creating Flasher socket");
     
-	try {
-		int one = 1, res = 0;
+	int one = 1, res = 0;
 
-		// If we use the SO_REUSEADDR option then you can run multiple daemons
-		// because the bind doesn't return an error.  Only one gets the accept,
-		// but when that process dies it hands back to another.  This may or may
-		// not be desirable.  We don't use it.
+	// If we use the SO_REUSEADDR option then you can run multiple daemons
+	// because the bind doesn't return an error.  Only one gets the accept,
+	// but when that process dies it hands back to another.  This may or may
+	// not be desirable.  We don't use it.
 
-		//int res = setsockopt(m_sock, SOL_SOCKET, SO_REUSEADDR, (const char *) &one, sizeof(one));
-		//if (res == SOCKET_ERROR) 
-		//	throw WarningException("Error setting Flasher socket options");
+	//res = setsockopt(m_sock, SOL_SOCKET, SO_REUSEADDR, (const char *) &one, sizeof(one));
+	//if (res == SOCKET_ERROR) {
+	//	closesocket(m_sock);
+	//	m_sock = 0;
+	//	throw WarningException("Error setting Flasher socket options");
+	//}
 		
-		res = bind(m_sock, (struct sockaddr *)&addr, sizeof(addr));
-		if (res == SOCKET_ERROR)
-			throw WarningException("Error binding Flasher socket");
-		
-		res = listen(m_sock, 5);
-		if (res == SOCKET_ERROR)
-			throw WarningException("Error when Flasher tries to listen");
-	} catch (...) {
+	res = bind(m_sock, (struct sockaddr *)&addr, sizeof(addr));
+	if (res == SOCKET_ERROR) {
 		closesocket(m_sock);
 		m_sock = 0;
-		throw;
+		throw WarningException("Error binding Flasher socket");
 	}
-	
+		
+	res = listen(m_sock, 5);
+	if (res == SOCKET_ERROR) {
+		closesocket(m_sock);
+		m_sock = 0;
+		throw WarningException("Error when Flasher tries to listen");
+	}
+
 	// Send a message to specified window on an incoming connection
 	WSAAsyncSelect (m_sock,  m_hwnd,  WM_SOCKEVENT, FD_ACCEPT | FD_CLOSE);
 }

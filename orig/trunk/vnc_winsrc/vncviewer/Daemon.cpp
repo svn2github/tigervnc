@@ -84,33 +84,37 @@ Daemon::Daemon(int port)
     addr.sin_addr.s_addr = INADDR_ANY;
 
     m_sock = socket(AF_INET, SOCK_STREAM, 0);
-	if (!m_sock) throw WarningException("Error creating Daemon socket");
-    
-	try {
-		int one = 1, res = 0;
-		//res = setsockopt(m_sock, SOL_SOCKET, SO_REUSEADDR, (const char *) &one, sizeof(one));
-		//if (res == SOCKET_ERROR) 
-		//  throw WarningException("Error setting Daemon socket options");
-		
-		res = bind(m_sock, (struct sockaddr *)&addr, sizeof(addr));
-		if (res == SOCKET_ERROR)
-			throw WarningException("Error binding Daemon socket");
-		
-		res = listen(m_sock, 5);
-		if (res == SOCKET_ERROR)
-			throw WarningException("Error when Daemon listens");
-	} catch (...) {
+	if (!m_sock)
+		throw WarningException("Error creating Daemon socket");
+
+	int one = 1, res = 0;
+	//res = setsockopt(m_sock, SOL_SOCKET, SO_REUSEADDR, (const char *) &one, sizeof(one));
+	//if (res == SOCKET_ERROR)  {
+	//	closesocket(m_sock);
+	//	m_sock = 0;
+	//	throw WarningException("Error setting Daemon socket options");
+	//}
+
+	res = bind(m_sock, (struct sockaddr *)&addr, sizeof(addr));
+	if (res == SOCKET_ERROR) {
 		closesocket(m_sock);
 		m_sock = 0;
-		throw;
+		throw WarningException("Error binding Daemon socket");
 	}
-	
+
+	res = listen(m_sock, 5);
+	if (res == SOCKET_ERROR) {
+		closesocket(m_sock);
+		m_sock = 0;
+		throw WarningException("Error when Daemon listens");
+	}
+
 	// Send a message to specified window on an incoming connection
 	WSAAsyncSelect (m_sock,  m_hwnd,  WM_SOCKEVENT, FD_ACCEPT);
 
 	// Create the tray icon
 	AddTrayIcon();
-	
+
 	// A timer checks that the tray icon is intact
 	m_timer = SetTimer( m_hwnd, IDT_TRAYTIMER,  15000, NULL);
 }

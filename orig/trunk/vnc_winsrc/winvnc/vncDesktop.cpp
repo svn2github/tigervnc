@@ -144,8 +144,8 @@ vncDesktopThread::run_undetached(void *arg)
 	
 	IntersectRect(&rect, &rect, &m_desktop->m_bmrect);
 	m_server->SetSharedRect(rect);
-	m_desktop->m_qtrscreen.right = (rect.right-rect.left)/2;
-	m_desktop->m_qtrscreen.bottom = (rect.bottom - rect.top) /2;
+	m_desktop->m_qtrscreen.right = (rect.right - rect.left) / 2;
+	m_desktop->m_qtrscreen.bottom = (rect.bottom - rect.top) / 2;
 	m_desktop->m_polling_phase = 0;
 	
 	// START PROCESSING DESKTOP MESSAGES

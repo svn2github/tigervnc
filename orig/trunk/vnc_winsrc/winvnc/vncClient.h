@@ -186,6 +186,7 @@ protected:
 	// When the local display is palettized, it sometimes changes...
 	BOOL			m_palettechanged;
 
+	// FIXME: It looks like this is an unused variable.
 	BOOL			m_remoteevent;
 
 	BOOL			m_use_NewFBSize;

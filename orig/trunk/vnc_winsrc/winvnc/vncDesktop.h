@@ -88,7 +88,7 @@ public:
 		rfbPixelFormat		cli_pf,
 		const RECT			&rect
 		);
-	void CaptureScreen(RECT &UpdateArea, BYTE *scrBuff, BYTE *invBuff);
+	void CaptureScreen(RECT &UpdateArea, BYTE *scrBuff, BOOL full_rgn);
 	rectlist ChangedAreas(
 		RECT				&ChangedArea,
 		rectlist			&existingRects,
@@ -111,8 +111,9 @@ public:
 	// Method to obtain the DIBsection buffer if fast blits are enabled
 	// If they're disabled, it'll return NULL
 	inline BYTE *MainBuffer() {return m_mainbuff;};
+	void CopyRect(RECT &dest, POINT &source);
 
-	BOOL	m_initialClipBoardSeen;
+	BOOL			m_initialClipBoardSeen;
 
 	// Implementation
 protected:
@@ -144,7 +145,7 @@ protected:
 
 	void CopyToBuffer(RECT &rect, BYTE *scrBuff);
 	void CalcCopyRects();
-
+	
 	// Routine to attempt enabling optimised DIBsection blits
 	BOOL CreateBuffers();
 
@@ -157,8 +158,6 @@ protected:
 	void PollWindow(HWND hwnd);
 	void CheckRects(vncRegion &rgn, rectlist &rects);
 	void GetChangedRegion(vncRegion &rgn, RECT &rect);											
-	void GrabRegion(vncRegion &rgn);
-
 
 
 	// DATA
@@ -214,13 +213,18 @@ protected:
 	BOOL			m_freemainbuff;
 
 	BOOL			m_formatmunged;
-	vncRegion		m_changed_rgn;
 	RECT			m_qtrscreen;
 	UINT			m_pollingcycle;
 
 	DEVMODE			*lpDevMode; // *** used for res changes - Jeremy Peaks
 	long			origPelsWidth; // *** To set the original resolution
 	long			origPelsHeight; // *** - Jeremy Peaks
+	
+	vncRegion		m_changed_rgn;
+	BOOL			m_copyrect_set;
+	RECT			m_copyrect_rect;
+	POINT			m_copyrect_src;
+
 };
 
 #endif // _WINVNC_VNCDESKTOP

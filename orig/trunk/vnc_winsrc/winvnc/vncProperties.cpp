@@ -87,9 +87,6 @@ vncProperties::Init(vncServer *server)
 	
 	m_inadvanced = FALSE;
 
-//#ifdef HORIZONLIVE
-//	strcpy(m_pref_LiveShareKey,"");
-//#endif
 	
 	// Load the settings from the registry
 	Load(TRUE);
@@ -175,10 +172,6 @@ vncProperties::Show(BOOL show, BOOL usersettings)
 			char username[UNLEN+1];
 			if (!vncService::CurrentUser(username, sizeof(username)))
 				return;
-//			if (strcmp(username, "") == 0) {
-//				MessageBox(NULL, NO_CURRENT_USER_ERR, "WinVNC Error", MB_OK | MB_ICONEXCLAMATION);
-//				return;
-//			}
 		} else {
 			// We're trying to edit the default local settings - verify that we can
 			HKEY hkLocal, hkDefault;
@@ -408,7 +401,8 @@ vncProperties::DialogProc(HWND hwnd,
 				_this->m_server->PollConsoleOnly(),
 				0);
 			EnableWindow(hPollConsoleOnly,
-				_this->m_server->PollUnderCursor() || _this->m_server->PollForeground()
+				(_this->m_server->PollUnderCursor() || _this->m_server->PollForeground()) &&
+				!_this->m_server->PollFullScreen()
 				);
 
 			HWND hPollOnEventOnly = GetDlgItem(hwnd, IDC_ONEVENT_ONLY);
@@ -417,7 +411,8 @@ vncProperties::DialogProc(HWND hwnd,
 				_this->m_server->PollOnEventOnly(),
 				0);
 			EnableWindow(hPollOnEventOnly,
-				_this->m_server->PollUnderCursor() || _this->m_server->PollForeground()
+				(_this->m_server->PollUnderCursor() || _this->m_server->PollForeground()) &&
+				!_this->m_server->PollFullScreen()
 				);
 
 			HWND hPollingTimer = GetDlgItem(hwnd, IDC_POLL_TIMER);
@@ -430,11 +425,11 @@ vncProperties::DialogProc(HWND hwnd,
 #endif
 	
 			if (_this->m_pref_FullScreen) {
-				// hide shared area window
+				// Hide shared area window
 				if (_this->m_pMatchWindow!=NULL) 
 					_this->m_pMatchWindow->Hide();
 
-				// disable window select stuff
+				// Disable window select stuff
 				EnableWindow(bmp_hWnd,FALSE);
 				hNewImage=LoadBitmap(hAppInstance,MAKEINTRESOURCE(IDB_BITMAP3));
 				hOldImage=(HBITMAP)::SendMessage(bmp_hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
@@ -610,7 +605,7 @@ vncProperties::DialogProc(HWND hwnd,
 
 #endif
 
-				// check that Shared window not null
+				// Check that shared window not null
 				if ( _this->m_pref_WindowShared && (_this->m_server->GetWindowShared() == NULL) )
 				{
 					MessageBox(NULL,"You have not yet selected a window to share.\nPlease first select a window with the 'Window Target'\nicon and try again.", "No Window Selected", MB_OK | MB_ICONEXCLAMATION);
@@ -789,9 +784,18 @@ vncProperties::DialogProc(HWND hwnd,
 				HWND hPollForeground = GetDlgItem(hwnd, IDC_POLL_FOREGROUND);
 				HWND hPollUnderCursor = GetDlgItem(hwnd, IDC_POLL_UNDER_CURSOR);
 				
-				BOOL enabled = (SendMessage(hPollFullScreen, BM_GETCHECK, 0, 0) == BST_CHECKED);
-				EnableWindow(hPollForeground, !enabled);
-				EnableWindow(hPollUnderCursor, !enabled);
+				BOOL otherenabled = (SendMessage(hPollFullScreen, BM_GETCHECK, 0, 0) == BST_CHECKED);
+				EnableWindow(hPollForeground, !otherenabled);
+				EnableWindow(hPollUnderCursor, !otherenabled);
+				
+				BOOL enabled = (SendMessage(hPollForeground, BM_GETCHECK, 0, 0) == BST_CHECKED) ||
+					(SendMessage(hPollUnderCursor, BM_GETCHECK, 0, 0) == BST_CHECKED);
+
+				HWND hPollConsoleOnly = GetDlgItem(hwnd, IDC_CONSOLE_ONLY);
+				EnableWindow(hPollConsoleOnly, !otherenabled && enabled);
+
+				HWND hPollOnEventOnly = GetDlgItem(hwnd, IDC_ONEVENT_ONLY);
+				EnableWindow(hPollOnEventOnly, !otherenabled && enabled);
 
 				HWND hPollingTimer = GetDlgItem(hwnd, IDC_POLL_TIMER);
 				EnableWindow(hPollingTimer,enabled || (SendMessage(hPollForeground, BM_GETCHECK, 0, 0) == BST_CHECKED) ||

@@ -706,6 +706,9 @@ vncProperties::LoadInt(HKEY key, LPCSTR valname, LONG defval)
 	ULONG type = REG_DWORD;
 	ULONG prefsize = sizeof(pref);
 
+	if (key == NULL)
+		return defval;
+
 	if (RegQueryValueEx(key,
 		valname,
 		NULL,
@@ -730,6 +733,9 @@ vncProperties::LoadPassword(HKEY key, char *buffer, const char *entry_name)
 	int slen=MAXPWLEN;
 	char inouttext[MAXPWLEN];
 
+	if (key == NULL)
+		return;
+
 	// Retrieve the encrypted password
 	if (RegQueryValueEx(key,
 		(LPCSTR) entry_name,
@@ -751,6 +757,9 @@ vncProperties::LoadString(HKEY key, LPCSTR keyname)
 	DWORD type = REG_SZ;
 	DWORD buflen = 0;
 	BYTE *buffer = 0;
+
+	if (key == NULL)
+		return 0;
 
 	// Get the length of the AuthHosts string
 	if (RegQueryValueEx(key,
@@ -821,23 +830,18 @@ vncProperties::Load(BOOL usersettings)
 		WINVNC_REGISTRY_KEY,
 		0, REG_NONE, REG_OPTION_NON_VOLATILE,
 		KEY_READ, NULL, &hkLocal, &dw) != ERROR_SUCCESS)
-		return;
+		hkLocal = NULL;
 
 	// Now try to get the per-user local key
-	if (RegOpenKeyEx(hkLocal,
-		username,
-		0, KEY_READ,
-		&hkLocalUser) != ERROR_SUCCESS)
+	if ( hkLocal == NULL ||
+		 RegOpenKeyEx(hkLocal, username, 0,
+					  KEY_READ, &hkLocalUser) != ERROR_SUCCESS )
 		hkLocalUser = NULL;
 
 	// Get the default key
-	if (RegCreateKeyEx(hkLocal,
-		"Default",
-		0, REG_NONE, REG_OPTION_NON_VOLATILE,
-		KEY_READ,
-		NULL,
-		&hkDefault,
-		&dw) != ERROR_SUCCESS)
+	if ( hkLocal == NULL ||
+		 RegCreateKeyEx(hkLocal, "Default", 0, REG_NONE, REG_OPTION_NON_VOLATILE,
+						KEY_READ, NULL, &hkDefault, &dw) != ERROR_SUCCESS )
 		hkDefault = NULL;
 
 	// LOAD THE MACHINE-LEVEL PREFS
@@ -963,7 +967,7 @@ vncProperties::Load(BOOL usersettings)
 
 	if (hkLocalUser != NULL) RegCloseKey(hkLocalUser);
 	if (hkDefault != NULL) RegCloseKey(hkDefault);
-	RegCloseKey(hkLocal);
+	if (hkLocal != NULL) RegCloseKey(hkLocal);
 
 	// Make the loaded settings active..
 	ApplyUserPrefs();

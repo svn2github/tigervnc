@@ -444,8 +444,13 @@ BOOL
 vncClientThread::SendInteractionCaps()
 {
 	// Update these constants on changing capability lists!
+#ifndef HORIZONLIVE
 	const int N_SMSG_CAPS = 4;
 	const int N_CMSG_CAPS = 6;
+#else
+	const int N_SMSG_CAPS = 0;
+	const int N_CMSG_CAPS = 0;
+#endif
 	const int N_ENC_CAPS = 14;
 
 	// Create the header structure sent prior to capability lists
@@ -455,9 +460,12 @@ vncClientThread::SendInteractionCaps()
 	intr_caps.nEncodingTypes = Swap16IfLE(N_ENC_CAPS);
 	intr_caps.pad = 0;
 
+	int i;
+
+#ifndef HORIZONLIVE
 	// Supported server->client message types
 	rfbCapabilityInfo smsg_list[N_SMSG_CAPS];
-	int i = 0;
+	i = 0;
 	SetCapInfo(&smsg_list[i++], rfbFileListData,           rfbTightVncVendor);
 	SetCapInfo(&smsg_list[i++], rfbFileDownloadData,       rfbTightVncVendor);
 	SetCapInfo(&smsg_list[i++], rfbFileUploadCancel,       rfbTightVncVendor);
@@ -482,6 +490,7 @@ vncClientThread::SendInteractionCaps()
 					 VNCLOG("assertion failed, i != N_CMSG_CAPS\n"));
 		return FALSE;
 	}
+#endif
 
 	// Encoding types
 	rfbCapabilityInfo enc_list[N_ENC_CAPS];
@@ -509,10 +518,12 @@ vncClientThread::SendInteractionCaps()
 	// Send header and capability lists
 	return (m_socket->SendExact((char *)&intr_caps,
 								sz_rfbInteractionCapsMsg) &&
+#ifndef HORIZONLIVE
 			m_socket->SendExact((char *)&smsg_list[0],
 								sz_rfbCapabilityInfo * N_SMSG_CAPS) &&
 			m_socket->SendExact((char *)&cmsg_list[0],
 								sz_rfbCapabilityInfo * N_CMSG_CAPS) &&
+#endif
 			m_socket->SendExact((char *)&enc_list[0],
 								sz_rfbCapabilityInfo * N_ENC_CAPS));
 }
@@ -1073,6 +1084,8 @@ vncClientThread::run(void *arg)
 				delete [] text;
 			}
 			break;
+
+#ifndef HORIZONLIVE
 		case rfbFileListRequest:
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileListRequestMsg-1))
 			{
@@ -1171,7 +1184,7 @@ vncClientThread::run(void *arg)
 			}
 			break;
 
-			case rfbFileDownloadRequest:
+		case rfbFileDownloadRequest:
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileDownloadRequestMsg-1))
 			{
 				const UINT size = msg.fdr.fnamesize;
@@ -1223,7 +1236,8 @@ vncClientThread::run(void *arg)
 				delete [] pBuff;
 			}
 			break;
-			case rfbFileUploadRequest:
+
+		case rfbFileUploadRequest:
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileUploadRequestMsg-1))
 			{
 				m_socket->ReadExact(m_FullFilename, msg.fupr.fnamesize);
@@ -1232,7 +1246,8 @@ vncClientThread::run(void *arg)
 				m_hFiletoWrite = CreateFile(m_FullFilename, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
 			}				
 			break;
-			case rfbFileUploadData:
+
+		case rfbFileUploadData:
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileUploadDataMsg-1))
 			{
 				msg.fud.amount = Swap16IfLE(msg.fud.amount);
@@ -1250,16 +1265,16 @@ vncClientThread::run(void *arg)
 			}
 			break;
 
-			case rfbFileDownloadCancel:
+		case rfbFileDownloadCancel:
 			break;
 
-			case rfbFileUploadFailed:
-				if(strcmp(m_FullFilename, "") != 0) {
-					CloseHandle(m_hFiletoWrite);
-					DeleteFile(m_FullFilename);
-				}
+		case rfbFileUploadFailed:
+			if (strcmp(m_FullFilename, "") != 0) {
+				CloseHandle(m_hFiletoWrite);
+				DeleteFile(m_FullFilename);
+			}
 			break;
- 
+#endif
 
 		default:
 			// Unknown message, so fail!

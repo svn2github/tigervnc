@@ -100,11 +100,13 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 				}
 				SendMessage(hcombo, CB_INSERTSTRING, (WPARAM)i, (LPARAM)(int FAR*)buf);
 			}
-			
-            SendMessage(hcombo, CB_SETCURSEL, 0, 0);
-			SendMessage(hcombo, CB_GETLBTEXT, 0, (LPARAM)(int FAR*)buffer );
-			_this->m_pOpt->LoadOpt(buffer, "Software\\ORL\\VNCviewer\\MRU1");
-			
+			if (_this->m_pOpt->m_display[0] == '\0') {
+				SendMessage(hcombo, CB_SETCURSEL, 0, 0);
+				SendMessage(hcombo, CB_GETLBTEXT, 0, (LPARAM)(int FAR*)buffer );
+				_this->m_pOpt->LoadOpt(buffer, "Software\\ORL\\VNCviewer\\MRU1");
+			} else {
+				SetDlgItemText(hwnd, IDC_HOSTNAME_EDIT, _this->m_pOpt->m_display);
+			}
 			_this->cmp(hwnd);
 			
 			SetFocus(hcombo);
@@ -115,10 +117,12 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 		return 0;		
 	case WM_ACTIVATE:
 	case WM_ACTIVATEAPP:
-		if ((pApp->m_options.m_listening) || (FindWindow("VNCviewer Daemon", 0) != NULL)) {
+		if ((pApp->m_options.m_listening) || 
+			(FindWindow("VNCviewer Daemon", 0) != NULL)) {
 			EnableWindow( hListMode, FALSE);
 		}
-		if((!pApp->m_options.m_listening) && (FindWindow("VNCviewer Daemon", 0) == NULL)) {
+		if((!pApp->m_options.m_listening) && 
+			(FindWindow("VNCviewer Daemon", 0) == NULL)) {
 			EnableWindow( hListMode, TRUE);
 		}
 		return 0;		
@@ -132,7 +136,7 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 					SendMessage(hcombo, CB_GETLBTEXT, a, (LPARAM)(int FAR*)buffer );
 					_this->m_pOpt->LoadOpt(buffer,"Software\\ORL\\VNCviewer\\MRU1");
 					
-					 _this->cmp(hwnd);
+					_this->cmp(hwnd);
 					
 					SetFocus(hcombo);
 					return TRUE;
@@ -242,16 +246,14 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 			{
 				if (SetForegroundWindow(_this->m_pOpt->m_hParent) != 0) return 0;
 				HWND hOptionButton = GetDlgItem(hwnd, IDC_OPTIONBUTTON);
-				_this->m_pOpt->DoDialog();
-				int n = SendMessage(hcombo, CB_GETCURSEL, 0, 0);
+				_this->m_pOpt->DoDialog();				
+				GetDlgItemText(hwnd, IDC_HOSTNAME_EDIT, 
+								_this->m_pOpt->m_display, 256);
 				SendMessage(hcombo, CB_RESETCONTENT, 0, 0);
 				int dwbuflen = 255;
 				TCHAR valname[256];
 				TCHAR buf[256];
-				int k = pApp->m_options.m_listServer;
-				if (n > k) {
-					n = 0;
-				}
+				int k = pApp->m_options.m_listServer;				
 				for ( i = 0; i < k; i++) { 				
 					itoa(i, valname, 10);
 					dwbuflen = 255;
@@ -261,9 +263,8 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 					}
 					SendMessage(hcombo, CB_INSERTSTRING, (WPARAM)i, (LPARAM)(int FAR*)buf);
 				}
-				SendMessage(hcombo, CB_SETCURSEL, n, 0);
-				 _this->cmp(hwnd);
-									
+				SetDlgItemText(hwnd, IDC_HOSTNAME_EDIT, _this->m_pOpt->m_display); 				
+				_this->cmp(hwnd);									
 				SetFocus(hOptionButton);
 				return TRUE;
 			}

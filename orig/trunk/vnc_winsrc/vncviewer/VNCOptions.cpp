@@ -59,6 +59,7 @@ VNCOptions::VNCOptions()
 	m_scale_num = 100;
 	m_scale_den = 100;
 	
+	m_display[0] = '\0';
 	m_host[0] = '\0';
 	m_port = -1;
 	

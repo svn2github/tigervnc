@@ -322,7 +322,7 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 				ArgError(_T("Invalid scaling specified"));
 				continue;
 			}
-				m_scale_den = 100; // needed if you're overriding a previous setting
+				m_scale_den = 100;
 				m_scaling=true;
 		} else if ( SwitchMatch(args[j], _T("emulate3timeout") )) {
 			if (++j == i) {
@@ -620,11 +620,14 @@ void VNCOptions::ShowUsage(LPTSTR info) {
 #else
 		_T("%s\n\rUsage includes:\n\r"
 			"  vncviewer [/8bit] [/shared] [/noshared] [/swapmouse] \n\r"
-			"      [/belldeiconify] [/listen] [/fullscreen] [/viewonly] \n\r"
-			"      [/emulate3] [/scale a/b] [/config configfile] \n\r"
-			"      [/encoding encname] [/compresslevel n] [/quality n] \n\r"
-			"      [/nojpeg] [/nocursorshape] [/noremotecursor] server[:display]\n\r"
-			"For full details see documentation."), 
+			"      [/belldeiconify] [/listen [<port>]] [/fullscreen] [/restricted] [/viewonly] \n\r"
+			"      [/emulate3] [/noemulate3] [/emulate3timeout <ms>] [/emulate3fuzz <pixels>] \n\r"
+			"      [/notoolbar] [/scale <percentage>] [/config <filename>] [/disableclipboard] \n\r"
+			"      [/encoding <encname>] [/compresslevel <n>] [/quality <n>] \n\r"
+			"      [/loglevel <n>] [/logfile <filename>] [/register] \n\r"
+			"      [/nocursor] [/dotcursor] [/smalldotcursor] [/normalcursor] [/help] \n\r"
+			"      [/nojpeg] [/nocursorshape] [/noremotecursor] [<server>[:<display>]] \n\r"
+			"For full details, see the documentation."),
 #endif
         tmpinf);
     MessageBox(NULL,  msg, _T("VNC error"), MB_OK | MB_ICONSTOP | MB_TOPMOST);

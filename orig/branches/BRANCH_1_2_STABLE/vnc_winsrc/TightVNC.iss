@@ -35,6 +35,7 @@ Source: "README.txt"; DestDir: "{app}"; CopyMode: alwaysoverwrite; Flags: isread
 Source: "LICENCE.txt"; DestDir: "{app}"; CopyMode: alwaysoverwrite
 Source: "TightVNC.url"; DestDir: "{app}"; CopyMode: alwaysoverwrite
 Source: "Web\*"; DestDir: "{app}\Web"; CopyMode: alwaysoverwrite; Components: webdoc
+Source: "Web\logo\*"; DestDir: "{app}\Web\logo"; CopyMode: alwaysoverwrite; Components: webdoc
 Source: "Web\doc\win32\*"; DestDir: "{app}\Web\doc\win32"; CopyMode: alwaysoverwrite; Components: webdoc
 Source: "Web\doc\java\*"; DestDir: "{app}\Web\doc\java"; CopyMode: alwaysoverwrite; Components: webdoc
 Source: "Web\doc\man\*"; DestDir: "{app}\Web\doc\man"; CopyMode: alwaysoverwrite; Components: webdoc
@@ -55,8 +56,8 @@ Name: "{group}\Documentation\About VNC and TightVNC"; FileName: "{app}\Web\index
 Name: "{group}\Documentation\Installation and Getting Started"; FileName: "{app}\Web\winst.html";                      WorkingDir: "{app}\Web"; Components: webdoc
 Name: "{group}\Documentation\Licensing Terms";        FileName: "{app}\LICENCE.txt";                                   WorkingDir: "{app}"
 Name: "{group}\Documentation\TightVNC Web Site";      FileName: "{app}\TightVNC.url"
-Name: "{group}\Documentation\What's New (Detailed Log)"; FileName: "{app}\Web\Win32-ChangeLog.txt";                    WorkingDir: "{app}\Web"; Components: webdoc
-Name: "{group}\Documentation\What's New (Summary)";   FileName: "{app}\Web\WhatsNew.txt";                              WorkingDir: "{app}\Web"; Components: webdoc
+Name: "{group}\Documentation\What's New (Detailed Log)"; FileName: "{app}\Web\changelog-win32.html";                   WorkingDir: "{app}\Web"; Components: webdoc
+Name: "{group}\Documentation\What's New (Summary)";   FileName: "{app}\Web\whatsnew.html";                             WorkingDir: "{app}\Web"; Components: webdoc
 
 [Tasks]
 Name: associate; Description: "&Associate .vnc files with TightVNC Viewer"; GroupDescription: "File associations:"; Components: viewer

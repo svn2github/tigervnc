@@ -612,6 +612,11 @@ BEGIN
     ID_SESSION_SWAPMOUSE    "Swap mouse buttons 2 and 3"
 END
 
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDC_TAB                 "Property Sheet"
+END
+
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 

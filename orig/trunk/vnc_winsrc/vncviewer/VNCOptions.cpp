@@ -728,7 +728,6 @@ BOOL CALLBACK VNCOptions::DlgProc(HWND hwndDlg, UINT uMsg,
 			help.Popup(lParam);
 			return 0;
 		case WM_COMMAND:
-		
 			switch (LOWORD(wParam))	{
 			case IDOK:{ 
 				
@@ -739,8 +738,7 @@ BOOL CALLBACK VNCOptions::DlgProc(HWND hwndDlg, UINT uMsg,
 					
 				return TRUE;
 			}
-			case IDCANCEL:
-			
+			case IDCANCEL:			
 				EndDialog(hwndDlg, FALSE);
 				return TRUE;
 			}
@@ -952,6 +950,7 @@ BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,
 				}
 				return 0;
 			}
+			return 0;
 		case IDC_SCALING:
 			switch (HIWORD(wParam)) {
 			case BN_CLICKED:
@@ -1249,8 +1248,9 @@ BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,
 				}
 				return 0;
 			}
+			return 0;
 		case IDC_EDIT_LOG_LEVEL:
-		switch (HIWORD(wParam)) {
+			switch (HIWORD(wParam)) {
 			case EN_CHANGE:
 				int buf;
 				buf=GetDlgItemInt(hwnd,IDC_EDIT_LOG_LEVEL,
@@ -1261,7 +1261,8 @@ BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,
 								buf, FALSE);
 				}
 				return 0;
-		}
+			}
+			return 0;
 		case IDC_BUTTON_CLEAR_LIST:{
 			HKEY hRegKey;
 			TCHAR value[80];

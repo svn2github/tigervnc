@@ -71,7 +71,7 @@ FileTransfer::CreateFileTransferDialog()
 	RECT Rect;
 	GetClientRect(m_hwndFTClientList, &Rect);
 	int xwidth = Rect.right;
-	int xwidth_ = (int) (0.75 * xwidth);
+	int xwidth_ = (int) (0.7 * xwidth);
 
     LVCOLUMN lvc; 
     lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM | LVCF_ORDER;
@@ -84,9 +84,11 @@ FileTransfer::CreateFileTransferDialog()
     ListView_InsertColumn(m_hwndFTClientList, 0, &lvc);
     ListView_InsertColumn(m_hwndFTServerList, 0, &lvc);
 
+	xwidth_ = (int) (0.25 * xwidth);
+
 	lvc.iSubItem = 1;
 	lvc.pszText = "Size";	
-	lvc.cx = xwidth - xwidth_;
+	lvc.cx = xwidth_;
 	lvc.iOrder = 1;
     ListView_InsertColumn(m_hwndFTClientList, 1, &lvc);
     ListView_InsertColumn(m_hwndFTServerList, 1, &lvc);

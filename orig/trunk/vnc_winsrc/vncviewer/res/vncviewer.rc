@@ -171,19 +171,6 @@ BEGIN
     LTEXT           "",IDC_FTSTATUS,7,252,354,14,SS_CENTERIMAGE
 END
 
-IDD_FILETRANSFER_ABOUT DIALOG DISCARDABLE  0, 0, 257, 94
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "About TightVNC FileTransfer"
-FONT 8, "MS Sans Serif"
-BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,200,75,50,12
-    CONTROL         106,IDC_STATIC,"Static",SS_BITMAP | SS_SUNKEN,7,7,87,80
-    LTEXT           "TightVNC File Transfer version 1.1\nCopyright (C) 2002-2003 Dennis Syrovatsky\nCopyright (C) 2000-2003 Constantin Kaplinsky\nhttp://www.tightvnc.com/",
-                    IDC_STATIC,99,7,151,34
-    LTEXT           "Based on TightVNC Viewer version 1.3\nCopyright (C) 2000-2002 Constantin Kaplinsky\nhttp://www.tightvnc.com/",
-                    IDC_STATIC,99,44,151,27
-END
-
 IDD_SESSION_DLG DIALOGEX 0, 0, 256, 85
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP
@@ -338,14 +325,6 @@ BEGIN
         BOTTOMMARGIN, 266
         HORZGUIDE, 20
         HORZGUIDE, 35
-    END
-
-    IDD_FILETRANSFER_ABOUT, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 250
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 87
     END
 
     IDD_SESSION_DLG, DIALOG

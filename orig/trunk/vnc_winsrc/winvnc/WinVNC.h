@@ -76,7 +76,7 @@ const char winvncNoSettings[]		= "-nosettings";
 // Usage string
 const char winvncUsageText[] =
 	"winvnc [-run] [-kill] [-service] [-servicehelper]\n"
-	" [-connect host[:display]] [-connect host[::port]]\n"
+	" [-connect [host[:display]]] [-connect [host[::port]]]\n"
 	" [-install] [-remove] [-reinstall] [-reload]\n"
 	" [-settings] [-defaultsettings] [-killallclients]\n"
 	" [-sharewindow  \"title\"] [-about] [-help]\n";

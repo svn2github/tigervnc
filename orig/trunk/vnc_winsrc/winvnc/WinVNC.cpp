@@ -209,14 +209,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 			// First, we have to parse the command line to get the hostname to use
 			int start, end;
 			start=i;
-			while (szCmdLine[start] <= ' ') start++;
+			while (szCmdLine[start] && szCmdLine[start] <= ' ') start++;
 			end = start;
 			while (szCmdLine[end] > ' ') end++;
 
 			// Was there a hostname (and optionally a port number) given?
 			if (end-start > 0) {
 				char *name = new char[end-start+1];
-				if (name != 0) {
+				if (name != NULL) {
 					strncpy(name, &(szCmdLine[start]), end-start);
 					name[end-start] = 0;
 
@@ -238,9 +238,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 					}
 					delete [] name;
 				}
-				i=end;
-				continue;
+			} else {
+				// Tell the server to show the Add New Client dialog
+				vncService::PostAddNewClient(0, 0);
 			}
+			i = end;
+			continue;
 		}
 		if (strncmp(&szCmdLine[i], winvncShareWindow, arglen) == 0 &&
 			arglen == strlen(winvncShareWindow))
@@ -249,7 +252,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 			i += arglen;
 
 			int start = i, end;
-			while (szCmdLine[start] <= ' ') start++;
+			while (szCmdLine[start] && szCmdLine[start] <= ' ') start++;
 			if (szCmdLine[start] == '"') {
 				start++;
 				char *ptr = strchr(&szCmdLine[start], '"');
@@ -267,12 +270,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 			}
 			if (end - start > 0) {
 				char *title = new char[end - start + 1];
-				if (title != 0) {
+				if (title != NULL) {
 					strncpy(title, &szCmdLine[start], end - start);
 					title[end - start] = 0;
 					vncService::SharedWindow(vncService::FindWindowByTitle(title));
+					delete [] title;
 				}
-				delete [] title;
 			}
 			continue;
 		}

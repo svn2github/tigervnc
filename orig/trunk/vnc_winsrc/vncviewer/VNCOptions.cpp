@@ -961,8 +961,6 @@ BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,
 	}
 	case WM_HELP:
 	{	
-		HELPINFO hlp=*(LPHELPINFO) lParam;
-
 		LPHELPINFO hlp = (LPHELPINFO)lParam;
 		if (hlp->iCtrlId != 0) {
 			HH_POPUP popup;

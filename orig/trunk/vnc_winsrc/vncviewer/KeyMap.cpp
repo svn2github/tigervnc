@@ -234,6 +234,16 @@ KeyActionSpec KeyMap::PCtoX(UINT virtkey, DWORD keyData) {
 					kas.keycodes[numkeys++] = XK_dead_tilde; break;
 				case '^':
 					kas.keycodes[numkeys++] = XK_dead_circumflex; break;
+                case 168:
+					// dead_tilde / dead_diaeresis
+					if ( (GetKeyState(VK_CONTROL) & 0x8000) &&
+						 (GetKeyState(VK_MENU) & 0x8000) ) {
+						// AltGr is pressed
+						kas.keycodes[numkeys++] = XK_dead_tilde;
+					} else {
+						kas.keycodes[numkeys++] = XK_dead_diaeresis;
+					}
+					break;
 				}
             }
             // if this works, and it's a regular printable character, we just send that

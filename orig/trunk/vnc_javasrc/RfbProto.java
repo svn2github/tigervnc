@@ -89,12 +89,27 @@ class RfbProto {
   // keyPressed() for a "broken" key was called or not. 
   boolean brokenKeyPressed = false;
 
-  // Initially, we set this field to 0, and increment on each
-  // framebuffer update. We don't flush the SessionRecorder data into
-  // the file before the second update. This allows us to write
-  // initial framebuffer update with zero timestamp, to let the player
-  // show initial desktop before playback.
-  int numUpdates;
+  // This will be set to true on the first framebuffer update
+  // containing Zlib- or Tight-encoded data.
+  boolean wereZlibUpdates = false;
+
+  // This will be set to false if the startSession() was called after
+  // we have received at least one Zlib- or Tight-encoded framebuffer
+  // update.
+  boolean recordFromBeginning = true;
+
+  // This fields are needed to show warnings about inefficiently saved
+  // sessions only once per each saved session file.
+  boolean zlibWarningShown;
+  boolean tightWarningShown;
+
+  // Before starting to record each saved session, we set this field
+  // to 0, and increment on each framebuffer update. We don't flush
+  // the SessionRecorder data into the file before the second update. 
+  // This allows us to write initial framebuffer update with zero
+  // timestamp, to let the player show initial desktop before
+  // playback.
+  int numUpdatesInSession;
 
   //
   // Constructor. Make TCP connection to RFB server.
@@ -253,7 +268,13 @@ class RfbProto {
     rec.write(fbsServerInitMsg);
     rec.writeIntBE(desktopName.length());
     rec.write(desktopName.getBytes());
-    numUpdates = 0;
+    numUpdatesInSession = 0;
+
+    if (wereZlibUpdates)
+      recordFromBeginning = false;
+
+    zlibWarningShown = false;
+    tightWarningShown = false;
   }
 
   //
@@ -289,7 +310,7 @@ class RfbProto {
     if (rec != null) {
       if (msgType == Bell) {	// Save Bell messages in session files.
 	rec.writeByte(msgType);
-	if (numUpdates > 0)
+	if (numUpdatesInSession > 0)
 	  rec.flush();
       }
     }
@@ -315,7 +336,7 @@ class RfbProto {
       rec.writeShortBE(updateNRects);
     }
 
-    numUpdates++;
+    numUpdatesInSession++;
   }
 
   // Read a FramebufferUpdate rectangle header
@@ -329,30 +350,44 @@ class RfbProto {
     updateRectH = is.readUnsignedShort();
     updateRectEncoding = is.readInt();
 
+    if (updateRectEncoding == EncodingZlib ||
+	updateRectEncoding == EncodingTight)
+      wereZlibUpdates = true;
+
     // If the session is being recorded:
     if (rec != null) {
-      if (numUpdates > 1)
+      if (numUpdatesInSession > 1)
 	rec.flush();		// Flush the output on each rectangle.
       rec.writeShortBE(updateRectX);
       rec.writeShortBE(updateRectY);
       rec.writeShortBE(updateRectW);
       rec.writeShortBE(updateRectH);
-      if (updateRectEncoding == EncodingZlib &&
-	  !viewer.recordingFromBeginning) {
+      if (updateRectEncoding == EncodingZlib && !recordFromBeginning) {
 	// Here we cannot write Zlib-encoded rectangles because the
 	// decoder won't be able to reproduce zlib stream state.
+	if (!zlibWarningShown) {
+	  System.out.println("Warning: Raw encoding will be used " +
+			     "instead of Zlib in recorded session.");
+	  zlibWarningShown = true;
+	}
 	rec.writeIntBE(EncodingRaw);
       } else {
 	rec.writeIntBE(updateRectEncoding);
+	if (updateRectEncoding == EncodingTight && !recordFromBeginning &&
+	    !tightWarningShown) {
+	  System.out.println("Warning: Re-compressing Tight-encoded " +
+			     "updates for session recording.");
+	  tightWarningShown = true;
+	}
       }
     }
 
-    if ((updateRectEncoding == EncodingLastRect) ||
-	(updateRectEncoding == EncodingNewFBSize))
+    if (updateRectEncoding == EncodingLastRect ||
+	updateRectEncoding == EncodingNewFBSize)
       return;
 
-    if ((updateRectX + updateRectW > framebufferWidth) ||
-	(updateRectY + updateRectH > framebufferHeight)) {
+    if (updateRectX + updateRectW > framebufferWidth ||
+	updateRectY + updateRectH > framebufferHeight) {
       throw new Exception("Framebuffer update rectangle too large: " +
 			  updateRectW + "x" + updateRectH + " at (" +
 			  updateRectX + "," + updateRectY + ")");
@@ -393,7 +428,7 @@ class RfbProto {
   // Read an integer in compact representation (1..3 bytes).
   // Such format is used as a part of the Tight encoding.
   // Also, this method records data if session recording is active and
-  // the viewer's recordingFromBeginning variable is set to true.
+  // the viewer's recordFromBeginning variable is set to true.
   //
 
   int readCompactLen() throws IOException {
@@ -412,7 +447,7 @@ class RfbProto {
       }
     }
 
-    if (rec != null && viewer.recordingFromBeginning)
+    if (rec != null && recordFromBeginning)
       for (int i = 0; i < byteCount; i++)
 	rec.writeByte(portion[i]);
 

@@ -72,7 +72,6 @@ public class VncViewer extends java.applet.Applet
   String sessionFileName;
   boolean recordingActive;
   boolean recordingStatusChanged;
-  boolean recordingFromBeginning;
   String cursorUpdatesDef;
   String eightBitColorsDef;
 
@@ -117,7 +116,6 @@ public class VncViewer extends java.applet.Applet
     sessionFileName = null;
     recordingActive = false;
     recordingStatusChanged = false;
-    recordingFromBeginning = false;
     cursorUpdatesDef = null;
     eightBitColorsDef = null;
 
@@ -475,7 +473,6 @@ public class VncViewer extends java.applet.Applet
     synchronized(recordingSync) {
       sessionFileName = fname;
       recordingStatusChanged = true;
-      recordingFromBeginning = (rfb == null);
     }
   }
 
@@ -523,13 +520,6 @@ public class VncViewer extends java.applet.Applet
       }
 
       System.out.println("Recording the session in " + sessionFileName);
-      if (!recordingFromBeginning) {
-	String enc = options.choices[options.encodingIndex].getSelectedItem();
-	if (enc.equals("Zlib")) {
-	  System.out.println("Warning: Raw encoding will be used " +
-			     "instead of Zlib in recorded session.");
-	}
-      }
       rfb.startSession(sessionFileName);
       recordingActive = true;
     }

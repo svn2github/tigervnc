@@ -297,8 +297,7 @@ vncDesktopThread::run_undetached(void *arg)
 					if (m_desktop->m_videodriver->driver)
 						m_desktop->HandleDriverChanges();
 				} else {
-					// Polling section
-					//If polling timer 
+					// Perform polling
 					if (m_server->GetPollingFlag() || m_desktop->m_polling_phase != 0) {
 						m_server->SetPollingFlag(false);
 
@@ -311,11 +310,12 @@ vncDesktopThread::run_undetached(void *arg)
 						rect.right = rect.left + m_desktop->m_qtrscreen.right;
 						rect.top = (m_desktop->m_polling_phase / 2) * m_desktop->m_qtrscreen.bottom+old_rect.top;
 						rect.bottom = rect.top + m_desktop->m_qtrscreen.bottom;
-						
+
 						if (m_server->PollFullScreen())	{
+							// Polling full screen
 							m_desktop->m_changed_rgn.AddRect(rect);
 						} else {
-							//Other polling 
+							// Polling a window
 							if (m_server->PollForeground())	{
 								// Get the window rectangle for the currently selected window
 								HWND hwnd = GetForegroundWindow();

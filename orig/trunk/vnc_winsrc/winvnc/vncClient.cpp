@@ -55,14 +55,20 @@
 #include "vncPasswd.h"
 #include "vncAcceptDialog.h"
 #include "vncKeymap.h"
-// #include "rfb.h"
 
-inline static void
-SetCapInfo(rfbCapabilityInfo *cap, CARD32 code, char *vendor, char *name)
-{
-	cap->code = Swap32IfLE(code);
-	memcpy(cap->vendorSignature, vendor, sz_rfbCapabilityInfoVendor);
-	memcpy(cap->nameSignature, name, sz_rfbCapabilityInfoName);
+//
+// Normally, using macros is no good, but this macro saves us from
+// writing constants twice -- it constructs signature names from codes.
+// Note that "code_sym" argument should be a single symbol, not an expression.
+//
+
+#define SetCapInfo(cap_ptr, code_sym, vendor)			\
+{														\
+	(cap_ptr)->code = Swap32IfLE(code_sym);				\
+	memcpy((cap_ptr)->vendorSignature, (vendor),		\
+		   sz_rfbCapabilityInfoVendor);					\
+	memcpy((cap_ptr)->nameSignature, sig_##code_sym,	\
+		   sz_rfbCapabilityInfoName);					\
 }
 
 // vncClient thread class
@@ -172,7 +178,7 @@ vncClientThread::InitHandshakingCaps()
 
 	// Inform the client that we do support the standard VNC authentication.
 	rfbCapabilityInfo cap;
-	SetCapInfo(&cap, rfbVncAuth, rfbStandardVendor, rfbVncAuthSignature);
+	SetCapInfo(&cap, rfbVncAuth, rfbStandardVendor);
 	return m_socket->SendExact((char *)&cap, sz_rfbCapabilityInfo);
 }
 
@@ -423,7 +429,7 @@ vncClientThread::InitAuthenticateVNC()
 BOOL
 vncClientThread::SendInteractionCaps()
 {
-	const int NCAPS = 14;
+	const int NCAPS = 14;	/* update this on changing capability lists! */
 
 	rfbInteractionCapsMsg intr_caps;
 	intr_caps.nServerMessageTypes = Swap16IfLE(0);
@@ -433,23 +439,23 @@ vncClientThread::SendInteractionCaps()
 
 	rfbCapabilityInfo capinfo[NCAPS];
 
-	// Encoding types
-	SetCapInfo(&capinfo[0], rfbEncodingCopyRect, rfbStandardVendor,  "COPYRECT");
-	SetCapInfo(&capinfo[1], rfbEncodingRRE,      rfbStandardVendor,  "RRE     ");
-	SetCapInfo(&capinfo[2], rfbEncodingCoRRE,    rfbStandardVendor,  "CORRE   ");
-	SetCapInfo(&capinfo[3], rfbEncodingHextile,  rfbStandardVendor,  "HEXTILE ");
-	SetCapInfo(&capinfo[4], rfbEncodingZlib,     rfbTridiaVncVendor, "ZLIB    ");
-	SetCapInfo(&capinfo[5], rfbEncodingZlibHex,  rfbTridiaVncVendor, "ZLIBHEX ");
-	SetCapInfo(&capinfo[6], rfbEncodingTight,    rfbTightVncVendor,  "TIGHT   ");
+	// Basic encoding types
+	SetCapInfo(&capinfo[0],  rfbEncodingCopyRect,       rfbStandardVendor);
+	SetCapInfo(&capinfo[1],  rfbEncodingRRE,            rfbStandardVendor);
+	SetCapInfo(&capinfo[2],  rfbEncodingCoRRE,          rfbStandardVendor);
+	SetCapInfo(&capinfo[3],  rfbEncodingHextile,        rfbStandardVendor);
+	SetCapInfo(&capinfo[4],  rfbEncodingZlib,           rfbTridiaVncVendor);
+	SetCapInfo(&capinfo[5],  rfbEncodingZlibHex,        rfbTridiaVncVendor);
+	SetCapInfo(&capinfo[6],  rfbEncodingTight,          rfbTightVncVendor);
 
 	// "Fake" encoding types
-	SetCapInfo(&capinfo[7], rfbEncodingCompressLevel0, rfbTightVncVendor, "COMPRLVL");
-	SetCapInfo(&capinfo[8], rfbEncodingQualityLevel0,  rfbTightVncVendor, "JPEGQLVL");
-	SetCapInfo(&capinfo[9], rfbEncodingXCursor,        rfbTightVncVendor, "X11CURSR");
-	SetCapInfo(&capinfo[10], rfbEncodingRichCursor,    rfbTightVncVendor, "RCHCURSR");
-	SetCapInfo(&capinfo[11], rfbEncodingPointerPos,    rfbTightVncVendor, "POINTPOS");
-	SetCapInfo(&capinfo[12], rfbEncodingLastRect,      rfbTightVncVendor, "LASTRECT");
-	SetCapInfo(&capinfo[13], rfbEncodingNewFBSize,     rfbTightVncVendor, "NEWFBSIZ");
+	SetCapInfo(&capinfo[7],  rfbEncodingCompressLevel0, rfbTightVncVendor);
+	SetCapInfo(&capinfo[8],  rfbEncodingQualityLevel0,  rfbTightVncVendor);
+	SetCapInfo(&capinfo[9],  rfbEncodingXCursor,        rfbTightVncVendor);
+	SetCapInfo(&capinfo[10], rfbEncodingRichCursor,     rfbTightVncVendor);
+	SetCapInfo(&capinfo[11], rfbEncodingPointerPos,     rfbTightVncVendor);
+	SetCapInfo(&capinfo[12], rfbEncodingLastRect,       rfbTightVncVendor);
+	SetCapInfo(&capinfo[13], rfbEncodingNewFBSize,      rfbTightVncVendor);
 
 	return (m_socket->SendExact((char *)&intr_caps, sz_rfbInteractionCapsMsg) &&
 			m_socket->SendExact((char *)&capinfo[0], sz_rfbCapabilityInfo * NCAPS));

@@ -222,7 +222,7 @@ typedef struct _rfbHandshakingCapsMsg {
 #define rfbNoAuth 1
 #define rfbVncAuth 2
 
-#define rfbVncAuthSignature "VNCAUTH "
+#define sig_rfbVncAuth "VNCAUTH_"
 
 /*
  * rfbConnFailed:	For some reason the connection failed (e.g. the server
@@ -344,6 +344,12 @@ typedef struct _rfbInteractionCapsMsg {
 #define rfbFileUploadCancel 132
 #define rfbFileDownloadFailed 133
 
+/* signatures for non-standard messages */
+#define sig_rfbFileListData "FTS_LSDT"
+#define sig_rfbFileDownloadData "FTS_DNDT"
+#define sig_rfbFileUploadCancel "FTS_UPCN"
+#define sig_rfbFileDownloadFailed "FTS_DNFL"
+
 
 /* client -> server */
 
@@ -362,6 +368,14 @@ typedef struct _rfbInteractionCapsMsg {
 #define rfbFileDownloadCancel 134
 #define rfbFileUploadFailed 135
 
+/* signatures for non-standard messages */
+#define sig_rfbFileListRequest "FTC_LSRQ"
+#define sig_rfbFileDownloadRequest "FTC_DNRQ"
+#define sig_rfbFileUploadRequest "FTC_UPRQ"
+#define sig_rfbFileUploadData "FTC_UPDT"
+#define sig_rfbFileDownloadCancel "FTC_DNCN"
+#define sig_rfbFileUploadFailed "FTC_UPFL"
+
 /*****************************************************************************
  *
  * Encoding types
@@ -377,6 +391,16 @@ typedef struct _rfbInteractionCapsMsg {
 #define rfbEncodingTight     7
 #define rfbEncodingZlibHex   8
 
+/* signatures for basic encoding types */
+#define sig_rfbEncodingRaw       "RAW_____"
+#define sig_rfbEncodingCopyRect  "COPYRECT"
+#define sig_rfbEncodingRRE       "RRE_____"
+#define sig_rfbEncodingCoRRE     "CORRE___"
+#define sig_rfbEncodingHextile   "HEXTILE_"
+#define sig_rfbEncodingZlib      "ZLIB____"
+#define sig_rfbEncodingTight     "TIGHT___"
+#define sig_rfbEncodingZlibHex   "ZLIBHEX_"
+
 /*
  * Special encoding numbers:
  *   0xFFFFFF00 .. 0xFFFFFF0F -- encoding-specific compression levels;
@@ -384,7 +408,7 @@ typedef struct _rfbInteractionCapsMsg {
  *   0xFFFFFF20 .. 0xFFFFFF2F -- various protocol extensions;
  *   0xFFFFFF30 .. 0xFFFFFFDF -- not allocated yet;
  *   0xFFFFFFE0 .. 0xFFFFFFEF -- quality level for JPEG compressor;
- *   0xFFFFFFF0 .. 0xFFFFFFFF -- cross-encoding compression levels.
+ *   0xFFFFFFF0 .. 0xFFFFFFFF -- not allocated yet.
  */
 
 #define rfbEncodingCompressLevel0  0xFFFFFF00
@@ -415,6 +439,15 @@ typedef struct _rfbInteractionCapsMsg {
 #define rfbEncodingQualityLevel7   0xFFFFFFE7
 #define rfbEncodingQualityLevel8   0xFFFFFFE8
 #define rfbEncodingQualityLevel9   0xFFFFFFE9
+
+/* signatures for "fake" encoding types */
+#define sig_rfbEncodingCompressLevel0  "COMPRLVL"
+#define sig_rfbEncodingXCursor         "X11CURSR"
+#define sig_rfbEncodingRichCursor      "RCHCURSR"
+#define sig_rfbEncodingPointerPos      "POINTPOS"
+#define sig_rfbEncodingLastRect        "LASTRECT"
+#define sig_rfbEncodingNewFBSize       "NEWFBSIZ"
+#define sig_rfbEncodingQualityLevel0   "JPEGQLVL"
 
 
 /*****************************************************************************

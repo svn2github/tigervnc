@@ -182,40 +182,40 @@ void ClientConnection::InitCapabilities()
 	//        both for the server and viewer parts?
 
 	// Supported authentication methods
-	m_authCaps.Add(rfbVncAuth, rfbStandardVendor, rfbVncAuthSignature,
+	m_authCaps.Add(rfbVncAuth, rfbStandardVendor, sig_rfbVncAuth,
 				   "Standard VNC password authentication");
 
 	// Supported encoding types
 	m_encodingCaps.Add(rfbEncodingCopyRect, rfbStandardVendor,
-					   "COPYRECT", "Standard CopyRect encoding");
-	m_encodingCaps.Add(rfbEncodingRRE,      rfbStandardVendor,
-					   "RRE     ", "Standard RRE encoding");
-	m_encodingCaps.Add(rfbEncodingCoRRE,    rfbStandardVendor,
-					   "CORRE   ", "Standard CoRRE encoding");
-	m_encodingCaps.Add(rfbEncodingHextile,  rfbStandardVendor,
-					   "HEXTILE ", "Standard Hextile encoding");
-	m_encodingCaps.Add(rfbEncodingZlib,     rfbTridiaVncVendor,
-					   "ZLIB    ", "Zlib encoding from TridiaVNC");
-	m_encodingCaps.Add(rfbEncodingZlibHex,  rfbTridiaVncVendor,
-					   "ZLIBHEX ", "ZlibHex encoding from TridiaVNC");
-	m_encodingCaps.Add(rfbEncodingTight,    rfbTightVncVendor,
-					   "TIGHT   ", "Tight encoding by Constantin Kaplinsky");
+					   sig_rfbEncodingCopyRect, "Standard CopyRect encoding");
+	m_encodingCaps.Add(rfbEncodingRRE, rfbStandardVendor,
+					   sig_rfbEncodingRRE, "Standard RRE encoding");
+	m_encodingCaps.Add(rfbEncodingCoRRE, rfbStandardVendor,
+					   sig_rfbEncodingCoRRE, "Standard CoRRE encoding");
+	m_encodingCaps.Add(rfbEncodingHextile, rfbStandardVendor,
+					   sig_rfbEncodingHextile, "Standard Hextile encoding");
+	m_encodingCaps.Add(rfbEncodingZlib, rfbTridiaVncVendor,
+					   sig_rfbEncodingZlib, "Zlib encoding from TridiaVNC");
+	m_encodingCaps.Add(rfbEncodingZlibHex, rfbTridiaVncVendor,
+					   sig_rfbEncodingZlibHex, "ZlibHex encoding from TridiaVNC");
+	m_encodingCaps.Add(rfbEncodingTight, rfbTightVncVendor,
+					   sig_rfbEncodingTight, "Tight encoding by Constantin Kaplinsky");
 
 	// Supported "fake" encoding types
 	m_encodingCaps.Add(rfbEncodingCompressLevel0, rfbTightVncVendor,
-					   "COMPRLVL", "Compression level");
+					   sig_rfbEncodingCompressLevel0, "Compression level");
 	m_encodingCaps.Add(rfbEncodingQualityLevel0, rfbTightVncVendor,
-					   "JPEGQLVL", "JPEG quality level");
+					   sig_rfbEncodingQualityLevel0, "JPEG quality level");
 	m_encodingCaps.Add(rfbEncodingXCursor, rfbTightVncVendor,
-					   "X11CURSR", "X-style cursor shape update");
+					   sig_rfbEncodingXCursor, "X-style cursor shape update");
 	m_encodingCaps.Add(rfbEncodingRichCursor, rfbTightVncVendor,
-					   "RCHCURSR", "Rich-color cursor shape update");
+					   sig_rfbEncodingRichCursor, "Rich-color cursor shape update");
 	m_encodingCaps.Add(rfbEncodingPointerPos, rfbTightVncVendor,
-					   "POINTPOS", "Pointer position update");
+					   sig_rfbEncodingPointerPos, "Pointer position update");
 	m_encodingCaps.Add(rfbEncodingLastRect, rfbTightVncVendor,
-					   "LASTRECT", "LastRect protocol extension");
+					   sig_rfbEncodingLastRect, "LastRect protocol extension");
 	m_encodingCaps.Add(rfbEncodingNewFBSize, rfbTightVncVendor,
-					   "NEWFBSIZ", "Framebuffer size change");
+					   sig_rfbEncodingNewFBSize, "Framebuffer size change");
 }
 
 // 

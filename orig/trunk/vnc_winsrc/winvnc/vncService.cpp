@@ -56,10 +56,6 @@ BOOL	g_impersonating_user = 0;
 DWORD	g_version_major;
 DWORD	g_version_minor;
 
-#ifdef HORIZONLIVE
-BOOL	g_nosettings_flag;
-#endif
-
 vncService::vncService()
 {
     OSVERSIONINFO osversioninfo;
@@ -71,27 +67,7 @@ vncService::vncService()
     g_platform_id = osversioninfo.dwPlatformId;
 	g_version_major = osversioninfo.dwMajorVersion;
 	g_version_minor = osversioninfo.dwMinorVersion;
-#ifdef HORIZONLIVE
-	g_nosettings_flag = false;
-#endif
-
 }
-
-
-#ifdef HORIZONLIVE
-void
-vncService::SetNoSettings(bool flag)
-{
-	g_nosettings_flag = flag;
-}
-
-BOOL vncService::GetNoSettings()
-{
-	return g_nosettings_flag;
-}
-
-#endif
-
 
 // GetCurrentUser - fills a buffer with the name of the current user!
 BOOL
@@ -334,6 +310,10 @@ vncService::SelectDesktop(char *name)
 BOOL
 vncService::InputDesktopSelected()
 {
+#ifdef HORIZONLIVE
+	return TRUE ;
+#endif
+
 	// Are we running on NT?
 	if (IsWinNT())
 	{

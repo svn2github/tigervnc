@@ -127,6 +127,10 @@ public:
 	virtual void UpdateClipText(LPSTR text);
 	virtual void UpdatePalette();
 
+	// should the mouse position be sent?
+	virtual void HideCursorFromClient( BOOL hide ) { m_hide_cursor = hide ; } ;
+	virtual BOOL shouldCursorBeHidden( void ) { return m_hide_cursor ; } ;
+
 	// Polling mode handling
 	virtual void PollUnderCursor(BOOL enable) {m_poll_undercursor = enable;};
 	virtual BOOL PollUnderCursor() {return m_poll_undercursor;};
@@ -347,6 +351,9 @@ protected:
 	BOOL				m_remove_wallpaper;
 	BOOL				m_blank_screen;
 	BOOL				m_enable_file_transfers;
+
+	// should the cursor be hidden?
+	BOOL m_hide_cursor ;
 
 	// Polling preferences
 	BOOL				m_poll_fullscreen;

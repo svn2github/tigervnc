@@ -27,6 +27,8 @@
 #ifndef __MATCHWINDOW_H
 #define __MATCHWINDOW_H
 
+class CMatchWindow;
+
 #include "stdhdrs.h"
 #include "vncServer.h"
 

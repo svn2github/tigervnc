@@ -31,6 +31,8 @@
 #include "stdhdrs.h"
 #include <omnithread.h>
 
+#include <wingdi.h>
+
 // Custom headers
 #include "WinVNC.h"
 #include "VNCHooks\VNCHooks.h"
@@ -39,7 +41,13 @@
 #include "rectlist.h"
 #include "vncDesktop.h"
 #include "vncService.h"
+
+#ifdef HORIZONLIVE
+#include <string>
+using std::string ;
+#else
 #include <fstream.h>
+#endif
 
 // Constants
 const UINT RFB_SCREEN_UPDATE = RegisterWindowMessage("WinVNC.Update.DrawRect");
@@ -171,6 +179,7 @@ vncDesktopThread::run_undetached(void *arg)
 	MSG msg;
 	while (TRUE)
 	{
+
 		if (!PeekMessage(&msg, m_desktop->Window(), NULL, NULL, PM_REMOVE))
 		{
 			// Whenever the message queue becomes empty, we check to see whether
@@ -342,8 +351,15 @@ vncDesktop::vncDesktop()
 	m_copyrect_set = FALSE;
 
 	m_videodriver = NULL;
-
 	m_timer_blank_screen = 0;
+
+#ifdef HORIZONLIVE
+	// init polling object factory
+	m_polling_adapter = new horizonPollingAdapter( this ) ;
+	
+	wasWindowOpen = true ;
+	wasWindowOnScreen = true ;
+#endif
 }
 
 vncDesktop::~vncDesktop()
@@ -366,6 +382,14 @@ vncDesktop::~vncDesktop()
 	// Let's call Shutdown just in case something went wrong...
 	Shutdown();
 
+#ifdef HORIZONLIVE
+	// clean-up polling factory
+	if ( m_polling_adapter != NULL )
+	{
+		delete m_polling_adapter ;
+		m_polling_adapter = NULL ;
+	}
+#endif
 }
 
 // Routine to startup and install all the hooks and stuff
@@ -377,32 +401,48 @@ vncDesktop::Startup()
 	SetupDisplayForConnection();
 
 	// Initialise the Desktop object
-	if (!InitDesktop())
+	if (!InitDesktop()) {
+		vnclog.Print(LL_INTINFO, VNCLOG("unable to InitDesktop()\n"));
 		return FALSE;
+	}
 
 	if (InitVideoDriver())
 		InvalidateRect(NULL,NULL,TRUE);
 
-	if (!InitBitmap())
+	if (!InitBitmap()) {
+		vnclog.Print(LL_INTINFO, VNCLOG("unable to InitBitmap()\n"));
 		return FALSE;
+	}
 
-	if (!ThunkBitmapInfo())
+	if (!ThunkBitmapInfo()) {
+		vnclog.Print(LL_INTINFO, VNCLOG("unable to ThunkBitmapInfo()\n"));
 		return FALSE;
+	}
 
-	if (!SetPixFormat())
+	if (!SetPixFormat()) {
+		vnclog.Print(LL_INTINFO, VNCLOG("unable to SetPixFormat()\n"));
 		return FALSE;
+	}
 
-	if (!CreateBuffers())
+	if (!CreateBuffers()) {
+		vnclog.Print(LL_INTINFO, VNCLOG("unable to CreateBuffers()\n"));
 		return FALSE;
+	}
 
-	if (!SetPixShifts())
+	if (!SetPixShifts()) {
+		vnclog.Print(LL_INTINFO, VNCLOG("unable to SetPixShifts()\n"));
 		return FALSE;
+	}
 
-	if (!SetPalette())
+	if (!SetPalette()) {
+		vnclog.Print(LL_INTINFO, VNCLOG("unable to SetPalette()\n"));
 		return FALSE;
+	}
 
-	if (!InitWindow())
+	if (!InitWindow()) {
+		vnclog.Print(LL_INTINFO, VNCLOG("unable to InitWindow()\n"));
 		return FALSE;
+	}
 
 	// Add the system hook
 	ActivateHooks();
@@ -538,27 +578,59 @@ vncDesktop::Shutdown()
 void
 vncDesktop::ActivateHooks()
 {
-	BOOL enable = !(m_server->DontSetHooks() && m_server->PollFullScreen());
-	if (enable && !m_hooks_active) {
-		m_hooks_active = SetHook(m_hwnd,
-								 RFB_SCREEN_UPDATE,
-								 RFB_COPYRECT_UPDATE,
-								 RFB_MOUSE_UPDATE);
-		if (!m_hooks_active) {
-			vnclog.Print(LL_INTERR, VNCLOG("failed to set system hooks\n"));
-			// Switch on full screen polling, so they can see something, at least...
-			m_server->PollFullScreen(TRUE);
-		}
-	} else if (!enable) {
+	//
+	// Disable hooks if DontSetHooks() and PollFullScreen() are TRUE.
+	//
+
+	if (m_server->DontSetHooks() && m_server->PollFullScreen()) {
+		vnclog.Print(LL_INTINFO, VNCLOG("disabling system hooks\n"));
 		ShutdownHooks();
+		return;
 	}
+
+	//
+	// Attempt to enable hooks.
+	//
+
+	vnclog.Print(LL_INTINFO, VNCLOG("attempting to enable system hooks\n"));
+
+	// Hooks are already active
+	if (m_hooks_active) {
+		vnclog.Print(LL_INTINFO, VNCLOG("system hooks were already enabled\n"));
+		return;
+	}
+
+	// Enable hooks
+	m_hooks_active = SetHook(m_hwnd,
+							 RFB_SCREEN_UPDATE,
+							 RFB_COPYRECT_UPDATE,
+							 RFB_MOUSE_UPDATE);
+
+	// Handle activation errors
+	if (!m_hooks_active) {
+		vnclog.Print(LL_INTERR, VNCLOG("failed to enabled system hooks\n"));
+
+		// Switch on full screen polling, so they can see something, at least...
+		m_server->PollFullScreen(TRUE);
+		return;
+	}
+
+	// Report success
+	vnclog.Print(LL_INTINFO, VNCLOG("successfully enabled system hooks\n"));
+
+	// Update m_hooks_active flag
+	m_hooks_active = TRUE;
 }
 
 void
 vncDesktop::ShutdownHooks()
 {
+	// deactivate hooks, if necessary
 	if (m_hooks_active)
-		m_hooks_active = !UnSetHook(m_hwnd);
+		UnSetHook(m_hwnd);
+
+	// update m_hooks_active flag
+	m_hooks_active = FALSE;
 }
 
 void
@@ -799,13 +871,13 @@ vncDesktop::DisableIfRegSystemParameter(char *regName,
 void
 vncDesktop::SetupDisplayForConnection()
 {
-
+#ifndef HORIZONLIVE
 	KillScreenSaver();
 
 	ChangeResNow(); // *** - Jeremy Peaks
 	
 	OptimizeDisplayForConnection();
-	
+#endif
 }
 
 // *** If configured, perform a set of display optimizations to
@@ -813,12 +885,10 @@ vncDesktop::SetupDisplayForConnection()
 BOOL
 vncDesktop::OptimizeDisplayForConnection()
 {
-
 	BOOL result;
 	HKEY checkdetails = NULL;
 	result = FALSE;
 
-#ifndef HORIZONLIVE
 	RegOpenKeyEx(HKEY_LOCAL_MACHINE, 
 				WINVNC_REGISTRY_KEY,
 				0,
@@ -860,11 +930,6 @@ vncDesktop::OptimizeDisplayForConnection()
 		SystemParametersInfo(SPI_SETDRAGFULLWINDOWS, FALSE, 0, SPIF_SENDCHANGE);
 		result = TRUE;
 	}
-#else
-	vnclog.Print(LL_INTINFO, VNCLOG("SCR-WBB: attempting to disable wallpaper.\n"));
-	SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, "", SPIF_SENDCHANGE);
-	result = TRUE;
-#endif
 
 	if (checkdetails != NULL) {
 		RegCloseKey(checkdetails);
@@ -876,11 +941,6 @@ vncDesktop::OptimizeDisplayForConnection()
 void
 vncDesktop::ResetDisplayToNormal()
 {
-
-	int slen=MAX_REG_ENTRY_LEN;
-	int valType;
-	char inouttext[MAX_REG_ENTRY_LEN];
-
 	if ( lpDevMode != NULL ) {
 
 		// *** In case the resolution was changed, revert to original settings now
@@ -895,6 +955,11 @@ vncDesktop::ResetDisplayToNormal()
 		lpDevMode = NULL;
 	}
 
+#ifndef HORIZONLIVE
+	int slen=MAX_REG_ENTRY_LEN;
+	int valType;
+	char inouttext[MAX_REG_ENTRY_LEN];
+
 	// *** The following fixes a bug that existed in that WinNT users
 	// *** wallpapers reverted back to default system settings, rather than
 	// *** their own wallpaper.  The value is now taken from HKEY_CURRENT_USER
@@ -902,8 +967,6 @@ vncDesktop::ResetDisplayToNormal()
 	// *** Open the registry key for current users settings
 	HKEY checkdetails = NULL;
 	HKEY oldvalue = NULL;
-
-#ifndef HORIZONLIVE
 	
 	RegOpenKeyEx(HKEY_LOCAL_MACHINE, 
 				WINVNC_REGISTRY_KEY,
@@ -929,7 +992,6 @@ vncDesktop::ResetDisplayToNormal()
 	// *** - W. Brian Blevins
 	if ((valType == REG_SZ) &&
 		(inouttext[0] == 'Y' || inouttext[0] == 'y')) { 
-#endif
 	
 		RegOpenKeyEx(HKEY_CURRENT_USER, 
 					"Control Panel\\Desktop",
@@ -952,8 +1014,6 @@ vncDesktop::ResetDisplayToNormal()
 		SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, inouttext, SPIF_SENDCHANGE);
 		memset(inouttext, 0, MAX_REG_ENTRY_LEN);
 		slen=MAX_REG_ENTRY_LEN;	
-	
-#ifndef HORIZONLIVE
 
 		// *** Get the FontSmoothing value - Jeremy Peaks
 		RegQueryValueEx(oldvalue,
@@ -998,12 +1058,12 @@ vncDesktop::ResetDisplayToNormal()
 		if ((valType == REG_SZ) && (inouttext[0] == '1')) 
 			SystemParametersInfo(SPI_SETDRAGFULLWINDOWS, TRUE, 0, SPIF_SENDCHANGE);
 	}
-#endif
 		
 	if (oldvalue != NULL) {
 		RegCloseKey(oldvalue);
 		RegCloseKey(HKEY_CURRENT_USER);
 	}
+#endif
 }
 
 
@@ -1659,6 +1719,20 @@ vncDesktop::SetCursor(HCURSOR cursor)
 		m_hcursor = cursor;
 }
 
+void
+vncDesktop::UpdateCursor()
+{
+#if(WINVER>=0x0500)
+    CURSORINFO info;
+    info.cbSize = sizeof(CURSORINFO);
+    if (!GetCursorInfo(&info)) {
+	vnclog.Print(LL_INTERR, VNCLOG("GetCursorInfo() failed.\n"));
+	return;
+    }
+    m_hcursor = info.hCursor;
+#endif
+}
+
 // Manipulation of the clipboard
 void
 vncDesktop::SetClipText(LPSTR text)
@@ -1883,7 +1957,7 @@ DesktopWndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	case WM_TIMER:
 		switch (wParam) {
 		case vncDesktop::TimerID::POLL:
-			_this->SetPollingFlag(true);
+			_this->SetPollingFlag(TRUE);
 			break;
 		case vncDesktop::TimerID::BLANK_SCREEN:
 			if (_this->m_server->GetBlankScreen())
@@ -2045,9 +2119,58 @@ vncDesktop::CheckUpdates()
 	// TRIGGER THE UPDATE
 
 	RECT rect = m_server->GetSharedRect();
-
 	RECT new_rect;
+	
 	if (m_server->WindowShared()) {
+#ifdef HORIZONLIVE 
+		//
+		// make sure the window still exists
+		//
+		
+		HWND hwnd = m_server->GetWindowShared() ;
+		
+		//
+		// window is closed, 
+		// or we can't get the bounding rect
+		//
+		if ( 
+			IsWindow( hwnd ) == FALSE
+			|| GetWindowRect( hwnd, &new_rect ) == FALSE 
+		)
+		{
+			if ( wasWindowOpen == true ) 
+			{
+				// send the window closed message to the viewer
+				sendWindowClosedMessage() ;
+
+				// remember the window was closed
+				wasWindowOpen = false ;
+
+				// prompt the host to pick a new window
+				horizonMenu::GetInstance()->ShowPropertiesDialog() ;
+			}
+					
+			// a new shared-area has been selected
+			return TRUE ;
+		}
+
+		// the window is minimized
+		if ( IsIconic( m_server->GetWindowShared() ) == TRUE )
+		{
+			if ( wasWindowOpen == true )
+			{
+				sendWindowIconicMessage() ;
+
+				// remember the window was closed
+				wasWindowOpen = false ;
+			}
+						
+			return TRUE ;
+		}
+		
+		// remember window was open
+		wasWindowOpen = true ;
+#else
 		HWND hwnd = m_server->GetWindowShared();
 		BOOL success = (hwnd != NULL) && GetWindowRect(hwnd, &new_rect);
 		if (!success) {
@@ -2061,6 +2184,7 @@ vncDesktop::CheckUpdates()
 			m_server->KillAuthClients();
 			return FALSE;
 		}
+#endif
 		if (m_server->GetBlackRgn()) {
 			new_rect = m_bmrect;
 		}
@@ -2069,7 +2193,36 @@ vncDesktop::CheckUpdates()
 	} else {
 		new_rect = m_bmrect;
 	}
+	
+	// intersect the shared rect with the desktop rect
 	IntersectRect(&new_rect, &new_rect, &m_bmrect);
+
+#ifdef HORIZONLIVE 
+	if ( IsRectEmpty( &new_rect ) )
+	{
+		if ( wasWindowOnScreen == true )
+		{
+			// send the window off-screen message to the viewer
+			sendWindowOffScreenMessage() ;
+			
+			// remember window was off-screen
+			wasWindowOnScreen = false ;
+		}
+		return TRUE ;
+	}
+	
+	// remember window was on-screen
+	wasWindowOnScreen = true ;
+#else
+	// Disconnect clients if the shared window is empty (dissapeared).
+	// FIXME: Make this behavior configurable.
+	if (new_rect.right - new_rect.left == 0 ||
+		 new_rect.bottom - new_rect.top == 0) {
+		vnclog.Print(LL_CONNERR, VNCLOG("shared window empty - disconnecting clients\n"));
+		m_server->KillAuthClients();
+		return FALSE;
+	}
+#endif
 
 	// Update screen size if required
 	if (!EqualRect(&new_rect, &rect)) {
@@ -2104,6 +2257,22 @@ vncDesktop::CheckUpdates()
 
 		vncRegion rgn;
 
+#ifdef HORIZONLIVE
+		if ( GetPollingFlag() == TRUE ) 
+		{
+			// reset polling flag
+			SetPollingFlag( FALSE ) ;
+	
+			// inform the PollCycleControl that we're starting to poll
+			PollCycleControl::GetInstance()->MarkPollStart() ;
+
+			// run polling algorithm
+			m_polling_adapter->PerformPolling() ;	
+	
+			// inform the PollCycleControl that we're done polling
+			PollCycleControl::GetInstance()->MarkPollStop() ;
+		}
+#else
 		// Use either a mirror video driver, or perform polling
 		if (m_videodriver != NULL) {
 			// FIXME: If there were no incremental update requests
@@ -2116,6 +2285,7 @@ vncDesktop::CheckUpdates()
 				PerformPolling();
 			}
 		}
+#endif
 
 		// Check for moved windows
 		if (m_server->FullScreen())
@@ -2157,6 +2327,8 @@ vncDesktop::CheckUpdates()
 		CheckRects(rgn, rectsToScan);
 
 		// Update the mouse
+		if (m_server->DontSetHooks())
+		    UpdateCursor();
 		m_server->UpdateMouse();
 
 		// Send changed region data to all clients
@@ -2179,15 +2351,26 @@ vncDesktop::SetPollingTimer()
 	const UINT driverCycle = 30;
 	const UINT minPollingCycle = 5;
 
+	int polling_diviser = 16 ;
+	
+#ifdef HORIZONLIVE	
+	polling_diviser = m_polling_adapter->GetCycleDivisor() ;
+#endif
+
 	UINT msec;
 	if (m_videodriver != NULL) {
 		msec = driverCycle;
 	} else {
-		msec = m_server->GetPollingCycle() / 16;
+		msec = m_server->GetPollingCycle() / polling_diviser ;
 		if (msec < minPollingCycle) {
 			msec = minPollingCycle;
 		}
 	}
+	
+#ifdef HORIZONLIVE
+	PollCycleControl::GetInstance()->SetPollCycle( msec ) ;
+#endif
+
 	m_timer_polling = SetTimer(Window(), TimerID::POLL, msec, NULL);
 }
 
@@ -2672,3 +2855,219 @@ vncDesktop::BlankScreen(BOOL set)
 	}
 }
 
+#ifdef HORIZONLIVE
+
+bool
+vncDesktop::sendWindowClosedMessage( void )
+{
+	static const char* message = 
+		"The shared window was closed.\n"
+		"Please wait for the next update." 
+	;
+ 
+	return displayMessageInViewer( message, strlen( message ) ) ;
+}
+
+bool
+vncDesktop::sendWindowIconicMessage( void )
+{
+	static const char* message = 
+		"The shared window is minimized.\n"
+		"Please wait for the next update." 
+	;
+ 
+	return displayMessageInViewer( message, strlen( message ) ) ;
+}
+
+bool
+vncDesktop::sendWindowOffScreenMessage( void )
+{
+	static const char* message = 
+		"The shared window is off-screen.\n"
+		"Please wait for the next update." 
+	;
+ 
+	return displayMessageInViewer( message, strlen( message ) ) ;
+}
+
+bool 
+vncDesktop::displayMessageInViewer( 
+	const char* message, 
+	int message_length,
+	bool clear_area
+)
+{
+	BOOL rv ;
+
+	// get the shared rect
+	RECT rect = m_server->GetSharedRect() ;
+
+	//
+	// determine if text will fit in shared aread
+	//
+	
+	// get number of lines, since GetTextExtentPoint32() 
+	// doesn't calculate return characters
+	
+	int message_lines = 1 ;
+	char* cp = strchr( message, '\n' ) ;
+	
+	while ( ( cp != NULL ) && ( cp + 1 != NULL ) )
+	{
+		cp = strchr( cp + 1, '\n' ) ; // find next occurance
+		++message_lines ; // increment number of lines
+	}
+
+	// get the extent of the text
+	SIZE text_extent ;
+	rv = GetTextExtentPoint32( m_hmemdc, message, message_length, &text_extent ) ;
+
+	if ( rv == FALSE )
+		return false ;
+
+	// adjust based on lines in the message
+	text_extent.cx = text_extent.cx / message_lines ;
+	text_extent.cy = text_extent.cy * message_lines ;
+
+	// calculate diff of text extant and shared-area
+	int diff_x = ( rect.right - rect.left ) - text_extent.cx ;
+	int diff_y = ( rect.bottom - rect.top ) - text_extent.cy ;
+
+	// inflate the share-area rect, if necessary
+	if ( diff_x < 0 || diff_y < 0 )
+	{
+		// grow the rect
+		InflateRect( &rect, diff_x, diff_y ) ;
+
+		// set the new shared area size
+		m_server->SetSharedRect( rect ) ;
+		
+		// tell server to update frame buffer
+		m_server->SetNewFBSize( TRUE ) ;
+	}
+
+	//
+	// capture the current screen
+	//
+
+	// load the bitmap into the device context
+	HBITMAP oldbitmap = ( HBITMAP )( SelectObject( m_hmemdc, m_membitmap ) ) ;
+	if ( oldbitmap == NULL ) return false ;
+
+	rv = BitBlt(
+		m_hmemdc, 
+		rect.left, rect.top,
+		rect.right - rect.left, 
+		rect.bottom - rect.top,
+		m_hrootdc, 
+		rect.left, rect.top,
+		SRCCOPY
+	) ;
+	
+	if ( rv == FALSE )
+		return false ;
+
+	//
+	// determine the text's rectangle
+	//
+
+	// get rect for text message
+	RECT text_rect ;
+	::CopyRect( &text_rect, &rect ) ;
+
+	// calculate the middle of the shared area
+	int middle_x = rect.left + ( ( rect.right - rect.left ) / 2 ) ;
+	int middle_y = rect.top + ( ( rect.bottom - rect.top ) / 2 ) ;
+
+	// adjust text rect horizontal
+	text_rect.left = middle_x - text_extent.cx ;
+	text_rect.right = middle_x + text_extent.cx ; 
+
+	// adjust text rect veritical
+	text_rect.top = middle_y - text_extent.cy ;
+	text_rect.bottom = middle_y + text_extent.cy ; 
+
+	//
+	// fill the background
+	//
+
+	RECT fill_rect ;
+
+	if ( clear_area == true )
+	{
+		// use the shared-area rectangle
+		::CopyRect( &fill_rect, &rect ) ;
+	}
+	else
+	{
+		// use the text's rectangle
+		::CopyRect( &fill_rect, &text_rect ) ;
+		
+		// add some margins
+		::InflateRect( &fill_rect, 10, 10 ) ;
+	}
+
+	// select the background brush
+	SelectObject( m_hmemdc, GetStockObject( GRAY_BRUSH ) ) ;
+
+	// fill the shared area with the background brush
+	rv = Rectangle( 
+		m_hmemdc,
+		fill_rect.left, fill_rect.top,
+		fill_rect.right, fill_rect.bottom
+	) ;
+
+	if ( rv == FALSE )
+		return false ;
+
+	//
+	// write the message
+	//
+
+	// make text background transparent
+	SetBkMode( m_hmemdc, TRANSPARENT ) ;
+
+	int height = DrawText(
+		m_hmemdc,
+		message, 
+		message_length,
+		&text_rect,
+		DT_CENTER
+	) ;
+
+	//
+	// return device context to previous state
+	//
+	
+	SelectObject( m_hmemdc, oldbitmap ) ;
+
+	//
+	// do the vnc update dance
+	//
+	
+	// copy the rect data in to the real buffer
+	CopyToBuffer( rect, m_mainbuff ) ;
+
+	// create a region with the rect
+	vncRegion message_region ;
+	message_region.Clear() ;
+	
+	// get the new pixels for the shared rect
+	GetChangedRegion( message_region, rect );
+
+	// tell the clients about the updated region
+	m_server->UpdateRegion( message_region ) ;
+
+	// hide the cursor for the upcoming update
+	m_server->HideCursorFromClient( TRUE ) ;
+
+	// send the update to the clients
+	m_server->TriggerUpdate() ;
+
+	// un-hide the cursor
+	m_server->HideCursorFromClient( FALSE ) ;
+
+	return true ;
+}
+
+#endif

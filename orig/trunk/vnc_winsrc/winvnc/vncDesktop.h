@@ -47,6 +47,17 @@ class vncDesktop;
 #include <omnithread.h>
 #include "VideoDriver.h"
 
+#ifdef HORIZONLIVE
+#include "PollCycleControl.h"
+#include "horizon/horizonPollingAdapter.h"
+#include "horizon/horizonPollingType.h"
+#include "horizon/PollingScanLinesAdjacent.h"
+#include "horizon/PollingScanLines.h"
+#include "horizon/PollingQuadrant.h"
+#include "horizon/horizonMenu.h"
+#endif
+
+
 // Constants
 extern const UINT RFB_SCREEN_UPDATE;
 extern const UINT RFB_COPYRECT_UPDATE;
@@ -86,7 +97,7 @@ public:
 	void FillDisplayInfo(rfbServerInitMsg *scrInfo);
 	void SetLocalInputDisableHook(BOOL enable);
 	void SetLocalInputPriorityHook(BOOL enable);
-	void CaptureScreen(RECT &UpdateArea, BYTE *scrBuff);
+	void CaptureScreen(RECT &UpdateArea, BYTE *scrBuff); // could be protected?
 	int ScreenBuffSize();
 	HWND Window() { return m_hwnd; }
 
@@ -96,6 +107,7 @@ public:
 	RECT MouseRect();
 	void SetCursor(HCURSOR cursor);
 	HCURSOR GetCursor() { return m_hcursor; }
+	void UpdateCursor();
 
 	// Clipboard manipulation
 	void SetClipText(LPSTR text);
@@ -106,6 +118,13 @@ public:
 	void CopyRect(RECT &dest, POINT &source);
 
 	BOOL			m_initialClipBoardSeen;
+
+#ifdef HORIZONLIVE
+	// friend classes
+	friend class PollingScanLinesAdjacent ;
+	friend class PollingScanLines ;
+	friend class PollingQuadrant ;
+#endif
 
 	// Implementation
 protected:
@@ -248,6 +267,20 @@ protected:
 
 	static const int m_pollingOrder[32];
 	static int		m_pollingStep;
+	
+#ifdef HORIZONLIVE
+	bool sendWindowClosedMessage( void ) ;
+	bool sendWindowIconicMessage( void ) ;
+	bool sendWindowOffScreenMessage( void ) ;
+
+	bool displayMessageInViewer( const char* message, int message_length, 
+		bool clear_area = true ) ;
+
+	bool wasWindowOpen ;
+	bool wasWindowOnScreen ;
+	
+	horizonPollingAdapter* m_polling_adapter ;
+#endif
 };
 
 #endif // _WINVNC_VNCDESKTOP

@@ -2239,30 +2239,37 @@ vncClient::SendUpdate()
 	vncRegion toBeDone;			// Region to check
 
 	// Prepare to send cursor position update if necessary
-	if (m_cursor_pos_changed) {
-		POINT cursor_pos;
-		if (!GetCursorPos(&cursor_pos)) {
-			cursor_pos.x = 0;
-			cursor_pos.y = 0;
-		}
-		RECT shared_rect = m_server->GetSharedRect();
-		cursor_pos.x -= shared_rect.left;
-		cursor_pos.y -= shared_rect.top;
-		if (cursor_pos.x < 0) {
-			cursor_pos.x = 0;
-		} else if (cursor_pos.x >= shared_rect.right - shared_rect.left) {
-			cursor_pos.x = shared_rect.right - shared_rect.left - 1;
-		}
-		if (cursor_pos.y < 0) {
-			cursor_pos.y = 0;
-		} else if (cursor_pos.y >= shared_rect.bottom - shared_rect.top) {
-			cursor_pos.y = shared_rect.bottom - shared_rect.top - 1;
-		}
-		if (cursor_pos.x == m_cursor_pos.x && cursor_pos.y == m_cursor_pos.y) {
-			m_cursor_pos_changed = FALSE;
-		} else {
-			m_cursor_pos.x = cursor_pos.x;
-			m_cursor_pos.y = cursor_pos.y;
+	if (m_server->shouldCursorBeHidden()) {
+		RECT rr = m_server->GetSharedRect();
+		m_cursor_pos.x = rr.right;
+		m_cursor_pos.y = rr.bottom;
+		m_cursor_pos_changed = TRUE;
+	} else {
+		if (m_cursor_pos_changed) {
+			POINT cursor_pos;
+			if (!GetCursorPos(&cursor_pos)) {
+				cursor_pos.x = 0;
+				cursor_pos.y = 0;
+			}
+			RECT shared_rect = m_server->GetSharedRect();
+			cursor_pos.x -= shared_rect.left;
+			cursor_pos.y -= shared_rect.top;
+			if (cursor_pos.x < 0) {
+				cursor_pos.x = 0;
+			} else if (cursor_pos.x >= shared_rect.right - shared_rect.left) {
+				cursor_pos.x = shared_rect.right - shared_rect.left - 1;
+			}
+			if (cursor_pos.y < 0) {
+				cursor_pos.y = 0;
+			} else if (cursor_pos.y >= shared_rect.bottom - shared_rect.top) {
+				cursor_pos.y = shared_rect.bottom - shared_rect.top - 1;
+			}
+			if (cursor_pos.x == m_cursor_pos.x && cursor_pos.y == m_cursor_pos.y) {
+				m_cursor_pos_changed = FALSE;
+			} else {
+				m_cursor_pos.x = cursor_pos.x;
+				m_cursor_pos.y = cursor_pos.y;
+			}
 		}
 	}
 

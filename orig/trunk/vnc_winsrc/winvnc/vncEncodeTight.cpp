@@ -104,7 +104,7 @@ UINT
 vncEncodeTight::RequiredBuffSize(UINT width, UINT height)
 {
 	// FIXME: Use actual compression level instead of 9?
-	int result = m_conf[9].maxRectSize * (m_remoteformat.bitsPerPixel / 8);
+	int result = m_conf[ m_compresslevel ].maxRectSize * (m_remoteformat.bitsPerPixel / 8);
 	result += result / 100 + 16;
 
 	return result;

@@ -225,6 +225,14 @@ SOURCE=.\ClientConnectionZlibHex.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\ConnectingDialog.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ConnectingDialog.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\COPYING.txt
 # End Source File
 # Begin Source File

@@ -143,6 +143,8 @@ void ClientConnection::Init(VNCviewerApp *pApp)
 	m_encPasswd[0] = '\0';
 	memset(m_encPasswdExt, 0, 2);	// set username and password lengths to zeroes
 
+	m_connDlg = NULL;
+
 	m_enableFileTransfers = false;
 	m_fileTransferDialogShown = false;
 	m_pFileTransfer = new FileTransfer(this, m_pApp);
@@ -264,8 +266,12 @@ void ClientConnection::Run()
 							KEY_VNCVIEWER_HISTORI);
 		}
 	}
+
+	// Show the "Connecting..." dialog box
+	m_connDlg = new ConnectingDialog(m_pApp->m_instance, m_opts.m_display);
+
 	// Connect if we're not already connected
-	if (m_sock == INVALID_SOCKET) 
+	if (m_sock == INVALID_SOCKET)
 		Connect();
 
 	SetSocketOptions();
@@ -277,8 +283,10 @@ void ClientConnection::Run()
 	CreateDisplay();
 
 	SendClientInit();
-	
 	ReadServerInit();
+
+	delete m_connDlg;
+	m_connDlg = NULL;
 
 	// Only for protocol version 3.7t
 	if (m_tightVncProtocol) {
@@ -707,7 +715,10 @@ void ClientConnection::Connect()
 {
 	struct sockaddr_in thataddr;
 	int res;
-	
+
+	if (m_connDlg != NULL)
+		m_connDlg->SetStatus("Connection initiated");
+
 	m_sock = socket(PF_INET, SOCK_STREAM, 0);
 	if (m_sock == INVALID_SOCKET) throw WarningException(_T("Error creating socket"));
 	int one = 1;
@@ -740,6 +751,8 @@ void ClientConnection::Connect()
 	}
 	vnclog.Print(0, _T("Connected to %s port %d\n"), m_host, m_port);
 
+	if (m_connDlg != NULL)
+		m_connDlg->SetStatus("Connection established");
 }
 
 void ClientConnection::SetSocketOptions() {
@@ -765,6 +778,9 @@ void ClientConnection::NegotiateProtocolVersion()
 	}
 
     pv[sz_rfbProtocolVersionMsg] = 0;
+
+	if (m_connDlg != NULL)
+		m_connDlg->SetStatus("Server protocol version received");
 
 	// XXX This is a hack.  Under CE we just return to the server the
 	// version number it gives us without parsing it.  
@@ -805,6 +821,9 @@ void ClientConnection::NegotiateProtocolVersion()
 #endif
 
     WriteExact(pv, sz_rfbProtocolVersionMsg);
+
+	if (m_connDlg != NULL)
+		m_connDlg->SetStatus("Protocol version negotiated");
 
 	vnclog.Print(0, _T("Connected to RFB server, using protocol version %d.%d\n"),
 		m_majorVersion, m_minorVersion);
@@ -864,6 +883,9 @@ int ClientConnection::ReadSecurityType()
 		throw ErrorException("Unknown security type requested!");
     }
 
+	if (m_connDlg != NULL)
+		m_connDlg->SetStatus("Security type received");
+
 	return (int)secType;
 }
 
@@ -886,12 +908,17 @@ int ClientConnection::SelectSecurityType()
 	ReadExact((char *)secTypes, nSecTypes);
 	CARD8 secType = rfbSecTypeInvalid;
 
+	if (m_connDlg != NULL)
+		m_connDlg->SetStatus("List of security types received");
+
 	// Find out if the server supports TightVNC protocol extensions
 	int j;
 	for (j = 0; j < (int)nSecTypes; j++) {
 		if (secTypes[j] == rfbSecTypeTight) {
 			secType = rfbSecTypeTight;
 			WriteExact((char *)&secType, sizeof(secType));
+			if (m_connDlg != NULL)
+				m_connDlg->SetStatus("TightVNC protocol extensions enabled");
 			vnclog.Print(8, _T("Enabling TightVNC protocol extensions\n"));
 			return rfbSecTypeTight;
 		}
@@ -903,6 +930,8 @@ int ClientConnection::SelectSecurityType()
 			if (secTypes[j] == knownSecTypes[i]) {
 				secType = secTypes[j];
 				WriteExact((char *)&secType, sizeof(secType));
+				if (m_connDlg != NULL)
+					m_connDlg->SetStatus("Security type requested");
 				vnclog.Print(8, _T("Choosing security type %s(%d)\n"),
 							 secTypeNames[i], (int)secType);
 				break;
@@ -926,10 +955,14 @@ void ClientConnection::SetupTunneling()
 
 	if (caps.nTunnelTypes) {
 		ReadCapabilityList(&m_tunnelCaps, caps.nTunnelTypes);
+		if (m_connDlg != NULL)
+			m_connDlg->SetStatus("List of tunneling capabilities received");
 
 		// We cannot do tunneling yet.
 		CARD32 tunnelType = Swap32IfLE(rfbNoTunneling);
 		WriteExact((char *)&tunnelType, sizeof(tunnelType));
+		if (m_connDlg != NULL)
+			m_connDlg->SetStatus("Tunneling type requested");
 	}
 }
 
@@ -943,11 +976,16 @@ void ClientConnection::PerformAuthenticationTight()
 	ReadExact((char *)&caps, sz_rfbAuthenticationCapsMsg);
 	caps.nAuthTypes = Swap32IfLE(caps.nAuthTypes);
 
+	if (m_connDlg != NULL)
+		m_connDlg->SetStatus("Header of authentication capability list received");
+
 	if (!caps.nAuthTypes) {
 		vnclog.Print(0, _T("No authentication needed\n"));
 		m_authScheme = rfbSecTypeNone;
 	} else {
 		ReadCapabilityList(&m_authCaps, caps.nAuthTypes);
+		if (m_connDlg != NULL)
+			m_connDlg->SetStatus("Authentication capability list received");
 		if (!m_authCaps.NumEnabled()) {
 			vnclog.Print(0, _T("No suitable authentication schemes offered by the server\n"));
 			throw ErrorException("No suitable authentication schemes offered by the server");
@@ -958,6 +996,8 @@ void ClientConnection::PerformAuthenticationTight()
 		authScheme = Swap32IfLE(authScheme);
 		WriteExact((char *)&authScheme, sizeof(authScheme));
 		authScheme = Swap32IfLE(authScheme);	// convert it back
+		if (m_connDlg != NULL)
+			m_connDlg->SetStatus("Authentication scheme requested");
 		Authenticate(authScheme);
 		m_authScheme = authScheme;
 	}
@@ -998,12 +1038,16 @@ void ClientConnection::Authenticate(CARD32 authScheme)
 	bool tryAgain;
 	if (!(this->*authFuncPtr)(errorMsg, errorMsgSize, &tryAgain)) {
 		vnclog.Print(0, _T("%s\n"), errorMsg);
+		if (m_connDlg != NULL)
+			m_connDlg->SetStatus("Authentication failed");
 		if (tryAgain) {
 			throw AuthException(errorMsg);
 		} else {
 			throw ErrorException(errorMsg);
 		}
 	} else {
+		if (m_connDlg != NULL)
+			m_connDlg->SetStatus("Authentication succeeded");
 		vnclog.Print(0, _T("Authentication succeeded\n"));
 	}
 }
@@ -1272,12 +1316,18 @@ void ClientConnection::SendClientInit()
 	ci.shared = m_opts.m_Shared;
 
     WriteExact((char *)&ci, sz_rfbClientInitMsg);
+
+	if (m_connDlg != NULL)
+		m_connDlg->SetStatus("Client initialization message sent");
 }
 
 void ClientConnection::ReadServerInit()
 {
     ReadExact((char *)&m_si, sz_rfbServerInitMsg);
 	
+	if (m_connDlg != NULL)
+		m_connDlg->SetStatus("Server initialization message received");
+
     m_si.framebufferWidth = Swap16IfLE(m_si.framebufferWidth);
     m_si.framebufferHeight = Swap16IfLE(m_si.framebufferHeight);
     m_si.format.redMax = Swap16IfLE(m_si.format.redMax);
@@ -1323,11 +1373,15 @@ void ClientConnection::ReadInteractionCaps()
 	intr_caps.nServerMessageTypes = Swap16IfLE(intr_caps.nServerMessageTypes);
 	intr_caps.nClientMessageTypes = Swap16IfLE(intr_caps.nClientMessageTypes);
 	intr_caps.nEncodingTypes = Swap16IfLE(intr_caps.nEncodingTypes);
+	if (m_connDlg != NULL)
+		m_connDlg->SetStatus("Interaction capability list header received");
 
 	// Read the lists of server- and client-initiated messages
 	ReadCapabilityList(&m_serverMsgCaps, intr_caps.nServerMessageTypes);
 	ReadCapabilityList(&m_clientMsgCaps, intr_caps.nClientMessageTypes);
 	ReadCapabilityList(&m_encodingCaps, intr_caps.nEncodingTypes);
+	if (m_connDlg != NULL)
+		m_connDlg->SetStatus("Interaction capability list received");
 }
 
 //
@@ -1633,6 +1687,9 @@ ClientConnection::~ClientConnection()
 {
 	if (m_hwnd1 != 0)
 		DestroyWindow(m_hwnd1);
+
+	if (m_connDlg != NULL)
+		delete m_connDlg;
 
 	if (m_sock != INVALID_SOCKET) {
 		shutdown(m_sock, SD_BOTH);

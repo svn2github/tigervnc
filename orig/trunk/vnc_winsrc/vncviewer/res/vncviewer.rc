@@ -302,6 +302,17 @@ BEGIN
     CONTROL         "Tab1",IDC_TAB,"SysTabControl32",WS_TABSTOP,5,5,306,197
 END
 
+IDD_CONNECTING_DIALOG DIALOG DISCARDABLE  0, 0, 210, 61
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Connecting...",IDC_CONNECTING_STATIC,"Static",
+                    SS_LEFTNOWORDWRAP,7,7,196,10
+    PUSHBUTTON      "&Close",IDCLOSE,79,40,50,14
+    LTEXT           "",IDC_STATUS_STATIC,7,21,196,10,NOT WS_GROUP
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -444,6 +455,14 @@ BEGIN
         RIGHTMARGIN, 311
         TOPMARGIN, 5
         BOTTOMMARGIN, 220
+    END
+
+    IDD_CONNECTING_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 203
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 54
     END
 END
 #endif    // APSTUDIO_INVOKED

@@ -40,12 +40,12 @@
 #include "VNCOptions.h"
 #include "VNCviewerApp.h"
 #include "KeyMap.h"
+#include "ConnectingDialog.h"
+#include "FileTransfer.h"
 #include "zlib/zlib.h"
 extern "C" {
 #include "libjpeg/jpeglib.h"
 }
-
-#include "FileTransfer.h"
 
 #define SETTINGS_KEY_NAME "Software\\ORL\\VNCviewer\\Settings"
 #define MAX_HOST_NAME_LEN 250
@@ -85,6 +85,7 @@ private:
 	static LRESULT CALLBACK Proc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
 	void DoBlit();
 	VNCviewerApp *m_pApp;
+	ConnectingDialog *m_connDlg;
 
 	bool m_enableFileTransfers;
 	bool m_fileTransferDialogShown;

@@ -146,6 +146,9 @@ vncClientThread::InitVersion()
 		return FALSE;
 	}
 
+	// Save the minor number of the protocol version
+	m_client->m_protocol_minor_version = minor;
+
 	return TRUE;
 }
 
@@ -466,26 +469,34 @@ vncClientThread::run(void *arg)
 	vnclog.Print(LL_INTINFO, VNCLOG("negotiated protocol version\n"));
 
 	// ADVERTISE OUR TUNNELING AND AUTHENTICATION CAPABILITIES (protocol 3.130)
-	if (!InitHandshakingCaps())
-	{
-		m_server->RemoveClient(m_client->GetClientId());
-		return;
+	if (m_client->m_protocol_minor_version >= 130) {
+		if (!InitHandshakingCaps()) {
+			m_server->RemoveClient(m_client->GetClientId());
+			return;
+		}
+		vnclog.Print(LL_INTINFO, VNCLOG("sent pre-auth capability list\n"));
 	}
-	vnclog.Print(LL_INTINFO, VNCLOG("sent pre-auth capability list\n"));
 
 	// INITIALISE TUNNELING (protocol 3.130)
-	if (!InitTunneling())
-	{
-		m_server->RemoveClient(m_client->GetClientId());
-		return;
+	if (m_client->m_protocol_minor_version >= 130) {
+		if (!InitTunneling()) {
+			m_server->RemoveClient(m_client->GetClientId());
+			return;
+		}
+		vnclog.Print(LL_INTINFO, VNCLOG("negotiated tunneling type\n"));
 	}
-	vnclog.Print(LL_INTINFO, VNCLOG("negotiated tunneling type\n"));
 
 	// AUTHENTICATE LINK
-	if (!InitAuthenticate())
-	{
-		m_server->RemoveClient(m_client->GetClientId());
-		return;
+	if (m_client->m_protocol_minor_version >= 130) {
+		if (!InitAuthenticate()) {
+			m_server->RemoveClient(m_client->GetClientId());
+			return;
+		}
+	} else {
+		if (!InitAuthenticateVNC()) {
+			m_server->RemoveClient(m_client->GetClientId());
+			return;
+		}
 	}
 
 	// Authenticated OK - remove from blacklist and remove timeout
@@ -544,13 +555,14 @@ vncClientThread::run(void *arg)
 	// Inform the client about our interaction capabilities (protocol 3.130)
 	// NOTE: Currently we support only 3.3 message types, so both counts
 	//       are 0, and Swap16IfLE() is there only for future convenience.
-	rfbInteractionCapsMsg intr_caps;
-	intr_caps.nServerMessageTypes = Swap16IfLE(0);
-	intr_caps.nClientMessageTypes = Swap16IfLE(0);
-	if (!m_socket->SendExact((char *)&intr_caps, sz_rfbInteractionCapsMsg))
-	{
-		m_server->RemoveClient(m_client->GetClientId());
-		return;
+	if (m_client->m_protocol_minor_version >= 130) {
+		rfbInteractionCapsMsg intr_caps;
+		intr_caps.nServerMessageTypes = Swap16IfLE(0);
+		intr_caps.nClientMessageTypes = Swap16IfLE(0);
+		if (!m_socket->SendExact((char *)&intr_caps, sz_rfbInteractionCapsMsg)) {
+			m_server->RemoveClient(m_client->GetClientId());
+			return;
+		}
 	}
 
 	// UNLOCK INITIAL SETUP

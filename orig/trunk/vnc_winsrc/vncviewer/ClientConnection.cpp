@@ -202,10 +202,12 @@ void ClientConnection::Run()
 	NegotiateProtocolVersion();
 
 	// Only for protocol version 3.130
-	ReadHandshakingCaps();
+	if (m_minorVersion >= 130)
+		ReadHandshakingCaps();
 
 	// Only for protocol version 3.130
-	SetupTunneling();
+	if (m_minorVersion >= 130)
+		SetupTunneling();
 
 	Authenticate();
 
@@ -217,7 +219,8 @@ void ClientConnection::Run()
 	ReadServerInit();
 
 	// Only for protocol version 3.130
-	ReadInteractionCaps();
+	if (m_minorVersion >= 130)
+		ReadInteractionCaps();
 
 	CreateLocalFramebuffer();
 	
@@ -560,11 +563,17 @@ void ClientConnection::NegotiateProtocolVersion()
 		vnclog.Print(0, _T("Can't use IDEA authentication\n"));
         /* This will be reported later if authentication is requested*/
 
-    } else {
-		
-        /* any other server version, just tell the server what we want */
+	} else if ((m_majorVersion == 3) && (m_minorVersion >= 130)) {
+
+		/* the server supports TightVNC extensions, protocol 3.130 */
 		m_majorVersion = rfbProtocolMajorVersion;
 		m_minorVersion = rfbProtocolMinorVersion;
+
+    } else {
+
+        /* any other server version, request the standard 3.3 */
+		m_majorVersion = rfbProtocolMajorVersion;
+		m_minorVersion = rfbProtocolFallbackMinorVersion;
 
     }
 
@@ -590,8 +599,10 @@ void ClientConnection::Authenticate()
     CARD8 challenge[CHALLENGESIZE];
 
 	// Send our preferred authentication scheme (protocol 3.130).
-	authScheme = Swap32IfLE(rfbVncAuth);
-	WriteExact((char *)&authScheme, sizeof(authScheme));
+	if (m_minorVersion >= 130) {
+		authScheme = Swap32IfLE(rfbVncAuth);
+		WriteExact((char *)&authScheme, sizeof(authScheme));
+	}
 
 	// Read actual authentication scheme.
 	ReadExact((char *)&authScheme, sizeof(authScheme));

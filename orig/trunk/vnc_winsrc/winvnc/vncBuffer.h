@@ -58,7 +58,6 @@ public:
 	RECT GetSize();
 	rfbPixelFormat GetLocalFormat();
 	BYTE *GetClientBuffer();
-	UINT GetClientBuffSize();
 	BOOL GetRemotePalette(RGBQUAD *quadbuff, UINT ncolours);
 
 	// BUFFER MANIPULATION

@@ -21,8 +21,8 @@ const char* szProcessName = "AppShare" ;
 #ifdef _DEBUG
 static const int hzLogLevel = LL_ALL ; // LL_NONE ;
 static const int hzLogMode = Log::ToConsole | Log::ToFile ;
-static const char hzLogFileName[] = "G:\\appshare_debug.log" ;
-// static const char hzLogFileName[] = "..\\logs\\appshare_debug.log" ;
+// static const char hzLogFileName[] = "G:\\appshare_debug.log" ;
+static const char hzLogFileName[] = "..\\logs\\appshare_debug.log" ;
 static const char hzPIDFileName[] = "..\\logs\\appshare.pid" ;
 #else
 static const int hzLogLevel = LL_INTWARN ;
@@ -237,18 +237,17 @@ int AppShareMain( const string& args )
 		
 	while ( GetMessage( &msg, NULL, 0,0 ) )
 	{
-		// log messages that get this far
-		// vnclog.Print( LL_INTINFO, VNCLOG( "message received, id => %d\n" ), msg.message ) ;
-
-		// specialized appshare message 
-		if ( msg.message == LS_QUIT )
-			PostQuitMessage( 0 ) ;
-	
 		TranslateMessage( &msg ) ;
 		DispatchMessage( &msg ) ;
 	}
 
 	vnclog.Print( LL_STATE, VNCLOG( "exited main message loop\n" ) ) ;
+
+	// remove systray menu
+	if ( menu->Shutdown() == true )
+		vnclog.Print( LL_STATE, VNCLOG( "successfully shutdown processing thread\n" ) ) ;			
+	else
+		vnclog.Print( LL_STATE, VNCLOG( "unable shutdown processing thread\n" ) ) ;
 
 	// release the instance mutex
 	instance.Release() ;

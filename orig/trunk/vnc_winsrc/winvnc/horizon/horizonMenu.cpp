@@ -47,41 +47,19 @@ horizonMenu::GetInstance( void )
 horizonMenu::horizonMenu()
 	: m_server( vncServerSingleton::GetInstance() ), 
 		m_properties( horizonProperties::GetInstance() ),
-		_isStarted( false )
+		m_is_started( false )
 {
 }
 
 horizonMenu::~horizonMenu()
 {
-	// Remove the tray icon
-	DelTrayIcon() ;
-	
-	// tell the server to stop notifying us!
-	if ( m_server != NULL )
-		m_server->RemNotify( m_hwnd ) ;
-
-	// clean up the window
-	if ( m_hwnd != NULL )
-	{
-		DestroyWindow( m_hwnd ) ;
-		m_hwnd = NULL ;
-	}
-
-	// clean up the menu
-	if ( m_hmenu != NULL )
-	{
-		DestroyMenu( m_hmenu ) ;
-		m_hmenu = NULL ;
-	}
-	
-	return ;
 }
 
 bool 
 horizonMenu::Start( void )
 {
-	if ( _isStarted == true )
-		return false ;
+	if ( m_is_started == true )
+		return true ;
 
 	// initialize com library
 	// CoInitialize(0);
@@ -175,11 +153,53 @@ horizonMenu::Start( void )
 	
 	m_hmenu = LoadMenu( hAppInstance, MAKEINTRESOURCE( IDR_LSHTRAYMENU ) ) ;
 
+	// display the appshare icon in the systray
 	AddTrayIcon();
 
-	// set _isStarted flag
-	_isStarted = true ;
+	// set m_is_started flag
+	m_is_started = true ;
 
+	return true ;
+}
+
+bool 
+horizonMenu::Shutdown( void )
+{
+	if ( m_is_started == false )
+		return false ;
+	
+	// remove the icon from the systray
+	DelTrayIcon() ;
+
+	if ( m_server != NULL )
+	{
+		// tell the server to drop all client connections
+		m_server->KillAuthClients() ;
+
+		// wait until the clients have died gracefully
+		m_server->WaitUntilAuthEmpty() ;
+
+		// tell the server to stop notifying us	
+		m_server->RemNotify( m_hwnd ) ;
+	}
+
+	// clean up the window handle
+	if ( m_hwnd != NULL )
+	{
+		DestroyWindow( m_hwnd ) ;
+		m_hwnd = NULL ;
+	}
+
+	// clean up the menu
+	if ( m_hmenu != NULL )
+	{
+		DestroyMenu( m_hmenu ) ;
+		m_hmenu = NULL ;
+	}
+	
+	// reset m_is_started flag
+	m_is_started = false ;
+	
 	return true ;
 }
 
@@ -198,7 +218,8 @@ horizonMenu::AddTrayIcon( void )
 void
 horizonMenu::DelTrayIcon( void )
 {
-	SendTrayMsg( NIM_DELETE ) ;
+	// SendTrayMsg( NIM_DELETE ) ;
+	Shell_NotifyIcon( NIM_DELETE, &m_nid ) ; // cut to the chase
 	return ;
 }
 
@@ -243,8 +264,8 @@ horizonMenu::SendTrayMsg( DWORD msg, BOOL flash )
 	string tip( szAppName ) ;
 				
 	tip += ( connected == true )
-		? " : Not Connected" 
-		: " : Connected"
+		? " : Connected"
+		: " : Not Connected"
 	;
 		
 	if ( tip.empty() == false )
@@ -345,21 +366,40 @@ horizonMenu::WndProc( HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 	//
 	
 	case WM_SRV_CLIENT_AUTHENTICATED:
-	case WM_SRV_CLIENT_DISCONNECT:
+	{
 		// Adjust the icon accordingly
 		_this->FlashTrayIcon() ;
 
-		if ( _this->m_server->AuthClientCount() != 0 ) 
+		// kill the background
+		if ( 
+			_this->m_server->RemoveWallpaperEnabled() 
+			&& _this->m_server->AuthClientCount() == 1
+		)
 		{
-			if ( _this->m_server->RemoveWallpaperEnabled() )
-				KillWallpaper() ;
-		} 
-		else 
+			vnclog.Print( LL_INTERR, VNCLOG( "killing wallpaper\n" ) ) ;
+			KillWallpaper() ;
+		}
+			
+		return 0 ;
+	}
+	
+	case WM_SRV_CLIENT_DISCONNECT:
+	{
+		// Adjust the icon accordingly
+		_this->FlashTrayIcon() ;
+
+		// restore the background
+		if ( 
+			_this->m_server->RemoveWallpaperEnabled()
+			&& _this->m_server->AuthClientCount() == 0 
+		)
 		{
+			vnclog.Print( LL_INTERR, VNCLOG( "restoring wallpaper\n" ) ) ;
 			RestoreWallpaper() ;
 		}
 		
 		return 0 ;
+	}
 
 	//
 	// STANDARD MESSAGE HANDLING
@@ -400,8 +440,15 @@ horizonMenu::WndProc( HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		
 				// quit
 				case ID_CLOSE:
-					PostMessage( hwnd, WM_CLOSE, 0, 0 ) ;
+				{
+					// handle calls to quit
+					vnclog.Print( LL_INTINFO, VNCLOG( "!!! ID_CLOSE !!!\n" ) ) ;
+				
+					// tell the system to quit the app
+					PostQuitMessage( 0 ) ;
+			
 					break ;
+				}
 
 				default:
 					break ;
@@ -415,21 +462,18 @@ horizonMenu::WndProc( HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		_this->handleTrayNotify( lParam ) ;
 		return 0 ;
 
-	case WM_CLOSE:
 	case WM_QUERYENDSESSION:	// no-ops
 	case WM_ENDSESSION:			// no-ops
-		break;
-
-	// quit the application
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		return 0;
-
 		break;
 
 	case WM_USERCHANGED:
 		return 0 ;
 	
+	case WM_CLOSE:
+	case WM_QUIT:
+	case WM_DESTROY:
+		return 0 ;
+
 	// handle custom message
 	default:
 		if ( _this->handleCustomMessages( hwnd, iMsg, wParam, lParam ) == true )

@@ -69,6 +69,7 @@ public:
 	static horizonMenu* GetInstance( void ) ;
 
 	bool Start( void ) ;
+	bool Shutdown( void ) ;
 
 	// show dialog functions
 	bool ShowPropertiesDialog( void ) ;
@@ -113,7 +114,7 @@ private:
 	void FlashTrayIcon( void ) ;
 
 	// tray state flag
-	bool _isStarted ;
+	bool m_is_started ;
 
 	//
 	// systray icon handles

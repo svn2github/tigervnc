@@ -95,11 +95,12 @@ private:
 
 	SOCKET m_sock;
 	bool m_serverInitiated;
-	HWND  m_hwnd, m_hbands, m_hwnd1, hToolBar;
+	HWND  m_hwnd, m_hbands, m_hwnd1, m_hToolbar;
 		
 	void Init(VNCviewerApp *pApp);
 	void InitCapabilities();
 	void CreateDisplay();
+	HWND CreateToolbar();
 	void GetConnectDetails();
 	void Connect();
 	void SetSocketOptions();

@@ -535,7 +535,7 @@ IDR_TRAYMENU MENU DISCARDABLE
 BEGIN
     POPUP "t"
     BEGIN
-        MENUITEM "&New connection",             ID_NEWCONN
+        MENUITEM "&New connection...",          ID_NEWCONN
         MENUITEM "Default connection &options...", IDC_OPTIONBUTTON
         MENUITEM SEPARATOR
         MENUITEM "&About TightVNC Viewer...",   IDD_APP_ABOUT

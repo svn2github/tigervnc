@@ -86,7 +86,7 @@ typedef struct _FileToResourceMap {
 	int resourceID;
 } FileMap;
 
-const FileMap filemapping []	={
+const FileMap filemapping [] = {
 	{"/VncViewer.jar", "JavaArchive", IDR_VNCVIEWER_JAR},
 	{"/AuthPanel.class", "JavaClass", IDR_AUTHPANEL_CLASS},
 	{"/ClipboardFrame.class", "JavaClass", IDR_CLIPBOARDFRAME_CLASS},
@@ -97,10 +97,10 @@ const FileMap filemapping []	={
 	{"/VncViewer.class", "JavaClass", IDR_VNCVIEWER_CLASS},
 	{"/ButtonPanel.class", "JavaClass", IDR_BUTTONPANEL_CLASS},
 	{"/RecordingFrame.class", "JavaClass", IDR_RECFRAME_CLASS},
-	{"/SessionRecorder.class", "JavaClass", IDR_SESSIONREC_CLASS}
+	{"/SessionRecorder.class", "JavaClass", IDR_SESSIONREC_CLASS},
 	{"/ReloginPanel.class", "JavaClass", IDR_RELOGINPANEL_CLASS},
-	{"/SocketFactory.class", "JavaClass", IDR_SOCKFACTORY_CLASS},
-	};
+	{"/SocketFactory.class", "JavaClass", IDR_SOCKFACTORY_CLASS}
+};
 const int filemappingsize		= 13;
 
 //

@@ -1,4 +1,4 @@
-//  Copyright (C) 2002-2003 Contantin Kaplinsky. All Rights Reserved.
+//  Copyright (C) 2002-2003 Constantin Kaplinsky. All Rights Reserved.
 //  Copyright (C) 2002 RealVNC Ltd. All Rights Reserved.
 //  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.

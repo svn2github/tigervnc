@@ -49,8 +49,6 @@ class VncCanvas extends Canvas
   byte[] pixels8;
   int[] pixels24;
 
-  Image jpegImage;		///// DEBUG!
-
   byte[] zlibBuf;
   int zlibBufLen = 0;
   Inflater zlibInflater;
@@ -86,6 +84,47 @@ class VncCanvas extends Canvas
       enableInput(true);
 
     tightInflaters = new Inflater[4];
+  }
+
+  public Dimension getPreferredSize() {
+    return new Dimension(rfb.framebufferWidth, rfb.framebufferHeight);
+  }
+
+  public Dimension getMinimumSize() {
+    return new Dimension(rfb.framebufferWidth, rfb.framebufferHeight);
+  }
+
+  public Dimension getMaximumSize() {
+    return new Dimension(rfb.framebufferWidth, rfb.framebufferHeight);
+  }
+
+  public void update(Graphics g) {
+    paint(g);
+  }
+
+  public void paint(Graphics g) {
+    g.drawImage(memImage, 0, 0, this);
+    if (showSoftCursor) {
+      int x0 = cursorX - hotX, y0 = cursorY - hotY;
+      Rectangle r = new Rectangle(x0, y0, cursorWidth, cursorHeight);
+      if (r.intersects(g.getClipBounds())) {
+	g.drawImage(softCursor, x0, y0, this);
+      }
+    }
+  }
+
+  //
+  // Override the ImageObserver interface method.
+  // FIXME: Call repaint() from imageUpdate()?
+  //
+
+  public boolean imageUpdate(Image img, int infoflags,
+                             int x, int y, int width, int height) {
+    if ((infoflags & ALLBITS) == 0) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   //
@@ -150,34 +189,25 @@ class VncCanvas extends Canvas
 				     2 * Math.min(insets.top, insets.bottom));
 
     viewer.vncFrame.pack();
-    viewer.desktopScrollPane.doLayout();
-  }
 
-  public Dimension getPreferredSize() {
-    return new Dimension(rfb.framebufferWidth, rfb.framebufferHeight);
-  }
-
-  public Dimension getMinimumSize() {
-    return new Dimension(rfb.framebufferWidth, rfb.framebufferHeight);
-  }
-
-  public Dimension getMaximumSize() {
-    return new Dimension(rfb.framebufferWidth, rfb.framebufferHeight);
-  }
-
-  public void update(Graphics g) {
-    paint(g);
-  }
-
-  public void paint(Graphics g) {
-    g.drawImage(memImage, 0, 0, this);
-    if (showSoftCursor) {
-      int x0 = cursorX - hotX, y0 = cursorY - hotY;
-      Rectangle r = new Rectangle(x0, y0, cursorWidth, cursorHeight);
-      if (r.intersects(g.getClipBounds())) {
-	g.drawImage(softCursor, x0, y0, this);
-      }
+    // Try to limit the frame size to the screen size.
+    Dimension screenSize = viewer.vncFrame.getToolkit().getScreenSize();
+    Dimension frameSize = viewer.vncFrame.getSize();
+    Dimension newSize = frameSize;
+    boolean needToResizeFrame = false;
+    if (frameSize.height > screenSize.height) {
+      newSize.height = screenSize.height;
+      needToResizeFrame = true;
     }
+    if (frameSize.width > screenSize.width) {
+      newSize.width = screenSize.width;
+      needToResizeFrame = true;
+    }
+    if (needToResizeFrame) {
+      viewer.vncFrame.setSize(newSize);
+    }
+
+    viewer.desktopScrollPane.doLayout();
   }
 
   //
@@ -628,16 +658,16 @@ class VncCanvas extends Canvas
       return;
     }
 
-    ///// DEBUG!
+    // FIXME: createImage() does not load all image data at once.
     if (comp_ctl == rfb.TightJpeg) {
       byte[] jpegData = new byte[rfb.readCompactLen()];
       rfb.is.readFully(jpegData);
-      jpegImage = Toolkit.getDefaultToolkit().createImage(jpegData);
+      Image jpegImage = Toolkit.getDefaultToolkit().createImage(jpegData);
+      Toolkit.getDefaultToolkit().prepareImage(jpegImage, -1, -1, this);
       memGraphics.drawImage(jpegImage, x, y, this);
-      repaint(0, x, y, w, h);
+      scheduleRepaint(x, y, w, h);
       return;
     }
-    ///// DEBUG!
 
     // Read filter id and parameters.
     int numColors = 0, rowSize = w;
@@ -913,21 +943,6 @@ class VncCanvas extends Canvas
     repaint(20, x, y, w, h);
   }
 
-
-  //
-  // Override the ImageObserver interface method.
-  // FIXME: Maybe call repaint() from imageUpdate()?
-  //
-
-  public boolean imageUpdate(Image img, int infoflags,
-                             int x, int y, int width, int height) {
-    if ((infoflags & ALLBITS) == 0) {
-      return true;
-    } else {
-      return false;
-    }
-  }
- 
 
   //
   // Handle events.

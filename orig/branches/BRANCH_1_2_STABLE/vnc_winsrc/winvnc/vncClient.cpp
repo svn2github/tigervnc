@@ -413,7 +413,7 @@ vncClientThread::run(void *arg)
 	
 	// To avoid people connecting and then halting the connection, set a timeout
 	if (!m_socket->SetTimeout(30000))
-		vnclog.Print(LL_INTERR, VNCLOG("failed to set socket timeout, error = %d\n"), GetLastError());
+		vnclog.Print(LL_INTERR, VNCLOG("failed to set socket timeout, error=%d\n"), GetLastError());
 
 	// Initially blacklist the client so that excess connections from it get dropped
 	m_server->AddAuthHostsBlacklist(m_client->GetClientName());

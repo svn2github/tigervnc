@@ -144,66 +144,12 @@ vncClientThread::InitVersion()
 BOOL
 vncClientThread::InitAuthenticate()
 {
-	// store to enable Accept without Password on query
-	BOOL auth_failed = FALSE;
-	
-	// Retrieve the local password
+	// Retrieve local passwords
 	char password[MAXPWLEN];
 	m_server->GetPassword(password);
 	vncPasswd::ToText plain(password);
-
 	m_server->GetPasswordViewOnly(password);
 	vncPasswd::ToText plain_viewonly(password);
-
-	// Verify the peer host name against the AuthHosts string
-	vncServer::AcceptQueryReject verified;
-	if (m_auth) {
-		verified = vncServer::aqrAccept;
-	} else {
-		verified = m_server->VerifyHost(m_socket->GetPeerName());
-	}
-	
-	/*
-	// If necessary, query the connection with a timed dialog
-	int dialog_accept = 0;
-	if (verified == vncServer::aqrQuery) {
-			// rjr - modified to allow an ACCEPT default
-		vncAcceptDialog *acceptDlg = new vncAcceptDialog(m_server->QueryTimeout(), 
-				m_server->QueryAccept(), m_server->QueryAllowNoPass(),
-				m_socket->GetPeerName());
-		if (acceptDlg == 0)
-		{
-			if (m_server->QueryAccept())
-				verified = vncServer::aqrAccept;
-			else
-				verified = vncServer::aqrReject;
-		} else
-		{
-			dialog_accept = acceptDlg->DoDialog(); 
-			if (dialog_accept)
-				verified = vncServer::aqrAccept;
-			else
-				verified = vncServer::aqrReject;
-			delete acceptDlg;
-			// Adjust to indicate whether we should Accept without password
-			dialog_accept = (dialog_accept == 2);
-		}
-	}
-	*/
-
-	if (verified == vncServer::aqrReject) {
-		vnclog.Print(LL_CONNERR, VNCLOG("AuthHosts setting disallows connection - client rejected\n"));
-
-		CARD32 auth_val = Swap32IfLE(rfbConnFailed);
-		char *errmsg = "Your connection has been rejected.";
-		CARD32 errlen = Swap32IfLE(strlen(errmsg));
-		if (!m_socket->SendExact((char *)&auth_val, sizeof(auth_val)))
-			return FALSE;
-		if (!m_socket->SendExact((char *)&errlen, sizeof(errlen)))
-			return FALSE;
-		m_socket->SendExact(errmsg, strlen(errmsg));
-		return FALSE;
-	}
 
 	// By default we disallow passwordless workstations!
 	if ((strlen(plain) == 0) && m_server->AuthRequired())
@@ -227,7 +173,6 @@ vncClientThread::InitAuthenticate()
 	}
 
 	// By default we filter out local loop connections, because they're pointless
-	// (would like to allow this if "Allow No Password" is pressed on query)
 	if (!m_server->LoopbackOk())
 	{
 		char *localname = strdup(m_socket->GetSockName());
@@ -238,11 +183,8 @@ vncClientThread::InitAuthenticate()
 		{
 			BOOL ok = strcmp(localname, remotename) != 0;
 
-			if (localname != NULL)
-				free(localname);
-
-			if (remotename != NULL)
-				free(remotename);
+			free(localname);
+			free(remotename);
 
 			if (!ok)
 			{
@@ -264,8 +206,58 @@ vncClientThread::InitAuthenticate()
 		}
 	}
 
+	// Verify the peer host name against the AuthHosts string
+	vncServer::AcceptQueryReject verified;
+	if (m_auth) {
+		verified = vncServer::aqrAccept;
+	} else {
+		verified = m_server->VerifyHost(m_socket->GetPeerName());
+	}
+
+	// If necessary, query the connection with a timed dialog
+	BOOL skip_auth = FALSE;
+	if (verified == vncServer::aqrQuery) {
+		vncAcceptDialog *acceptDlg =
+			new vncAcceptDialog(m_server->QueryTimeout(),
+								m_server->QueryAccept(),
+								m_server->QueryAllowNoPass(),
+								m_socket->GetPeerName());
+		if (acceptDlg == NULL) {
+			if (m_server->QueryAccept()) {
+				verified = vncServer::aqrAccept;
+			} else {
+				verified = vncServer::aqrReject;
+			}
+		} else {
+			int action = acceptDlg->DoDialog();
+			if (action > 0) {
+				verified = vncServer::aqrAccept;
+				if (action == 2)
+					skip_auth = TRUE;	// accept without authentication
+			} else {
+				verified = vncServer::aqrReject;
+			}
+			delete acceptDlg;
+		}
+	}
+
+	// The connection should be rejected, either due to AuthHosts settings,
+	// or because of the "Reject" action performed in the query dialog
+	if (verified == vncServer::aqrReject) {
+		vnclog.Print(LL_CONNERR, VNCLOG("Client connection rejected\n"));
+		CARD32 auth_val = Swap32IfLE(rfbConnFailed);
+		char *errmsg = "Your connection has been rejected.";
+		CARD32 errlen = Swap32IfLE(strlen(errmsg));
+		if (!m_socket->SendExact((char *)&auth_val, sizeof(auth_val)))
+			return FALSE;
+		if (!m_socket->SendExact((char *)&errlen, sizeof(errlen)))
+			return FALSE;
+		m_socket->SendExact(errmsg, strlen(errmsg));
+		return FALSE;
+	}
+
 	// Authenticate the connection, if required
-	if (m_auth || (strlen(plain) == 0))
+	if (m_auth || strlen(plain) == 0 || skip_auth)
 	{
 		// Send no-auth-required message
 		CARD32 auth_val = Swap32IfLE(rfbNoAuth);
@@ -279,7 +271,7 @@ vncClientThread::InitAuthenticate()
 		if (!m_socket->SendExact((char *)&auth_val, sizeof(auth_val)))
 			return FALSE;
 
-		BOOL auth_ok = TRUE;
+		BOOL auth_ok = FALSE;
 		{
 			// Now create a 16-byte challenge
 			char challenge[16];
@@ -301,10 +293,10 @@ vncClientThread::InitAuthenticate()
 			vncEncryptBytes((BYTE *)&challenge, plain);
 
 			// Compare them to the response
-			if (memcmp(challenge, response, sizeof(response)) != 0) {
-				auth_ok = FALSE;
-			}
-			if (!auth_ok) {
+			if (memcmp(challenge, response, sizeof(response)) == 0) {
+				auth_ok = TRUE;
+			} else {
+				// Check against the view-only password
 				vncEncryptBytes((BYTE *)&challenge_viewonly, plain_viewonly);
 				if (memcmp(challenge_viewonly, response, sizeof(response)) == 0) {
 					m_client->m_pointerenabled = FALSE;
@@ -316,7 +308,7 @@ vncClientThread::InitAuthenticate()
 
 		// Did the authentication work?
 		CARD32 authmsg;
-		if (!auth_ok && !m_server->QueryAllowNoPass())
+		if (!auth_ok)
 		{
 			vnclog.Print(LL_CONNERR, VNCLOG("authentication failed\n"));
 
@@ -326,8 +318,6 @@ vncClientThread::InitAuthenticate()
 		}
 		else
 		{
-			if (!auth_ok)
-				auth_failed = TRUE;
 			// Tell the client we're ok
 			authmsg = Swap32IfLE(rfbVncAuthOK);
 			if (!m_socket->SendExact((char *)&authmsg, sizeof(authmsg)))
@@ -357,27 +347,6 @@ vncClientThread::InitAuthenticate()
 				vnclog.Print(LL_CLIENTS, VNCLOG("connections already exist - client rejected\n"));
 				return FALSE;
 			}
-		}
-	}
-
-	// If necessary, query the connection with a timed dialog
-	if (verified == vncServer::aqrQuery) {
-		vncAcceptDialog *acceptDlg;
-		int res;
-		acceptDlg = new vncAcceptDialog(m_server->QueryTimeout(),
-										m_server->QueryAccept(), m_server->QueryAllowNoPass(),
-										m_socket->GetPeerName());
-		if (acceptDlg)
-			res = acceptDlg->DoDialog();
-		if ((acceptDlg == 0) || !res)
-		{
-			vnclog.Print(LL_CLIENTS, VNCLOG("user rejected client in accept dialog\n"));
-			return FALSE;
-		}
-		if (auth_failed && (res != 2))  // must accept with no password if pwd failed!
-		{
-			vnclog.Print(LL_CLIENTS, VNCLOG("user rejected client (failed auth) in accept dialog\n"));
-			return FALSE;
 		}
 	}
 

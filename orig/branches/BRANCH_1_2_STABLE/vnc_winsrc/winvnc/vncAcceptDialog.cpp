@@ -56,23 +56,26 @@ vncAcceptDialog::~vncAcceptDialog()
 		free(m_ipAddress);
 }
 
-// Routine called to activate the dialog and, once it's done, delete it
+// Routine called to activate the dialog
 
 int vncAcceptDialog::DoDialog()
 {
-	int retVal = DialogBoxParam(hAppInstance, MAKEINTRESOURCE(IDD_ACCEPT_CONN), 
-		NULL, (DLGPROC) vncAcceptDlgProc, (LONG) this);
-	delete this;
-	switch (retVal)
-	{
-		case IDACCEPT:
-			return 1;
-		case IDACCEPT_NOPASS:
-			return 2;
-		case IDREJECT:
-			return 0;
+	int retVal = DialogBoxParam(hAppInstance,
+								MAKEINTRESOURCE(IDD_ACCEPT_CONN),
+								NULL,
+								(DLGPROC)vncAcceptDlgProc,
+								(LPARAM)this);
+	switch (retVal) {
+	case IDREJECT:
+		return 0;
+	case IDACCEPT:
+		return 1;
+	case IDACCEPT_NOPASS:
+		return 2;
 	}
-	return 0;
+
+	// If the dialog box could not be shown, return the default action code
+	return (m_acceptOnTimeout) ? 1 : 0;
 }
 
 // Callback function - handles messages sent to the dialog box

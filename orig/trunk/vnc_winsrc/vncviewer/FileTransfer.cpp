@@ -78,7 +78,7 @@ FileTransfer::setFTDlgStatus(bool status)
 void
 FileTransfer::addTransferQueue(char *pLocalPath, char *pRemotePath, FileInfo *pFI, unsigned int attr)
 {
-	if (m_dw64TotalSize == 0) m_pFileTransferDlg->setStatusText("Starting Copy Operation");
+	if (!isTransferEnable()) m_pFileTransferDlg->setStatusText("Starting Copy Operation");
 
 	m_dwDirSizeRqstNum = 0;
 	m_dw64TotalSize = 0;

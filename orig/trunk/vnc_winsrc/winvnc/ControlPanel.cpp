@@ -202,18 +202,19 @@ BOOL CALLBACK ControlPanel::DialogProc(HWND hwnd, UINT uMsg,
 			{
 				vncClientList selconn;
 				_this->getSelectedConn(&selconn);
+				EndDialog(hwnd, 0);
+				_this->m_hwnd = NULL;				
 				vncClientList::iterator ci;
 				for (ci = selconn.begin(); ci != selconn.end(); ci++) {
 					_this->m_server->GetClient(*ci)->EnableKeyboard(FALSE);
 					_this->m_server->GetClient(*ci)->EnablePointer(FALSE);
 					_this->m_server->GetClient(*ci)->setStopUpdate(TRUE);
-				}
-				_this->UpdateListView();
+				}			
 			} 
 			return false;
 		case IDCANCEL:
-			EndDialog(hwnd, 0);
 			_this->m_hwnd = NULL;
+			EndDialog(hwnd, 0);			
 			return TRUE;
 		}
 			

@@ -1488,7 +1488,75 @@ vncDesktop::UpdateCursor()
 #endif
 }
 
+//
+// DEBUG: Some visualization for LF->CRLF conversion code.
+//
+/*
+static void ShowClipText(char *caption, char *text)
+{
+	int len = strlen(text);
+	char *out_text = new char[len * 4 + 8];
+	int pos = 0;
+
+	out_text[pos++] = '"';
+	for (int i = 0; i < len; i++) {
+		if (text[i] == '\r') {
+			strcpy(&out_text[pos], "\\r");
+			pos += 2;
+		} else if (text[i] == '\n') {
+			strcpy(&out_text[pos], "\\n");
+			pos += 2;
+		} else if (text[i] < ' ') {
+			strcpy(&out_text[pos], "\\?");
+			pos += 2;
+		} else {
+			out_text[pos++] = text[i];
+		}
+	}
+	out_text[pos++] = '"';
+	out_text[pos++] = '\0';
+
+	MessageBox(NULL, out_text, caption, MB_OK);
+
+	delete[] out_text;
+}
+*/
+
+//
+// Convert text from Unix (LF only) format to CR+LF.
+// NOTE: The size of dst[] buffer must be at least (strlen(src) * 2 + 1).
+//
+
+void
+vncDesktop::ConvertClipText(char *dst, const char *src)
+{
+	const char *ptr0 = src;
+	const char *ptr1;
+	int dst_pos = 0;
+
+	while ((ptr1 = strchr(ptr0, '\n')) != NULL) {
+		// Copy the string before the LF
+		if (ptr1 != ptr0) {
+			memcpy(&dst[dst_pos], ptr0, ptr1 - ptr0);
+			dst_pos += ptr1 - ptr0;
+		}
+		// Don't insert CR if there is one already
+		if (ptr1 == ptr0 || *(ptr1 - 1) != '\r') {
+			dst[dst_pos++] = '\r';
+		}
+		// Append LF
+		dst[dst_pos++] = '\n';
+		// Next position in the source text
+		ptr0 = ptr1 + 1;
+	}
+	// Copy the last string with no LF, but with '\0'
+	memcpy(&dst[dst_pos], ptr0, &src[strlen(src)] - ptr0 + 1);
+}
+
+//
 // Manipulation of the clipboard
+//
+
 void
 vncDesktop::SetClipText(LPSTR text)
 {
@@ -1498,14 +1566,15 @@ vncDesktop::SetClipText(LPSTR text)
 		// Empty it
 		if (EmptyClipboard())
 		{
-			HANDLE hMem = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, strlen(text)+1);
+			HANDLE hMem = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE,
+									  strlen(text) * 2 + 1);
 
 			if (hMem != NULL)
 			{
 				LPSTR pMem = (char*)GlobalLock(hMem);
 
-				// Get the data
-				strcpy(pMem, text);
+				// Get the data (with line endings converted to CR+LF)
+				ConvertClipText(pMem, text);
 
 				// Tell the clipboard
 				GlobalUnlock(hMem);

@@ -136,9 +136,10 @@ vncServer::vncServer()
 	m_local_input_priority = TRUE;
 	m_remote_mouse = 1;
 	m_remote_keyboard = 1;
-	m_hide_cursor = FALSE ;
 #endif
 
+	// don't hide cursor until we say so
+	m_hide_cursor = FALSE;
 }
 
 vncServer::~vncServer()

@@ -545,15 +545,14 @@ void ClientConnection::GetConnectDetails()
 {
 	
 	if (m_opts.m_configSpecified) {
-		LoadConnection(m_opts.m_configFilename);
+		LoadConnection(m_opts.m_configFilename, false);
 	} else {
-		SessionDialog sessdlg(&m_opts);
+		SessionDialog sessdlg(&m_opts, this);
 		
 		if (!sessdlg.DoDialog()) {
 			throw QuietException("User Cancelled");
 		}
-		_tcsncpy(m_host, sessdlg.m_host, MAX_HOST_NAME_LEN);
-		m_port = sessdlg.m_port;
+		
 	}
 	// This is a bit of a hack: 
 	// The config file may set various things in the app-level defaults which 

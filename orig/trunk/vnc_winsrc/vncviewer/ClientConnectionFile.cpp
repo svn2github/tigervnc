@@ -27,8 +27,8 @@
 #include "stdhdrs.h"
 #include "vncviewer.h"
 #include "ClientConnection.h"
+#include "SessionDialog.h"
 #include "Exception.h"
-
 #include "vncauth.h"
 
 // This file contains the code for saving and loading connection info.
@@ -103,8 +103,22 @@ void ClientConnection::SaveConnection()
 }
 
 // returns zero if successful
-int ClientConnection::LoadConnection(char *fname)
+int ClientConnection::LoadConnection(char *fname, bool sess)
 {
+	if (sess) {
+		char tname[_MAX_FNAME + _MAX_EXT];
+		ofnInit();
+		
+		ofn.hwndOwner = 0;
+		ofn.lpstrFile = fname;
+		ofn.lpstrFileTitle = tname;
+		ofn.Flags = OFN_HIDEREADONLY;
+
+		if (GetOpenFileName(&ofn)==0) {
+			return -1;
+		}
+	}
+
 	if (GetPrivateProfileString("connection", "host", "", m_host, MAX_HOST_NAME_LEN, fname) == 0) {
 		MessageBox(m_hwnd, "Error reading host name from file", "Config file error", MB_ICONERROR | MB_OK);
 		return -1;
@@ -121,6 +135,10 @@ int ClientConnection::LoadConnection(char *fname)
 			sscanf(buf+i*2, "%2x", &x);
 			m_encPasswd[i] = (unsigned char) x;
 		}
+	}
+	if (sess) {
+		m_opts.Load(fname);
+		m_opts.Register();
 	}
 	return 0;
 }

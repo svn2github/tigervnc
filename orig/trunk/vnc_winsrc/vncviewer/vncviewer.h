@@ -52,6 +52,7 @@ void CentreWindow(HWND hwnd);
 // Convert "host:display" into host and port
 // Returns true if valid.
 bool ParseDisplay(LPTSTR display, LPTSTR phost, int hostlen, int *port);
+void FormatDisplay(int port,LPTSTR display, LPTSTR host);
 extern HWND hwndd;
 
 extern HACCEL hAccel;

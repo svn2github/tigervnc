@@ -35,22 +35,19 @@
 class SessionDialog  
 {
 public:
-	
-	 int SessionDialog::cmp();
-	 
-
-    TCHAR m_passwd[256];
+    
 	// Create a connection dialog, with the options to be
 	// displayed if the options.. button is clicked.
-	SessionDialog(VNCOptions *pOpt);
+	SessionDialog(VNCOptions *pOpt,ClientConnection *cc);
 	int DoDialog();
+	int SessionDialog::cmp();
 	int m_port;
 	TCHAR m_host[256];
    	virtual ~SessionDialog();
     HKEY m_hRegKey;
 	
 private:
-
+	ClientConnection *m_cc;
 	VNCOptions *m_pOpt;
 	TCHAR keyname[40];
 	

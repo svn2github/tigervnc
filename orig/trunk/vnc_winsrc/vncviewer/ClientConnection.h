@@ -68,7 +68,10 @@ public:
 	void Run();
 	void KillThread();
 	void CopyOptions(ClientConnection *source);
-
+	int  LoadConnection(char *fname, bool sess);
+	int m_port;
+    TCHAR m_host[MAX_HOST_NAME_LEN];
+	TCHAR m_display[256];
 	// Exceptions 
 	class UserCancelExc {};
 	class AuthenticationExc {};
@@ -88,9 +91,6 @@ private:
 	bool m_FileTransferEnable;
 	FileTransfer *m_pFileTransfer;
 
-	int m_port;
-    TCHAR m_host[MAX_HOST_NAME_LEN];
-	TCHAR m_display[256];
 	SOCKET m_sock;
 	bool m_serverInitiated;
 	HWND  m_hwnd,m_hbands, m_hwnd1;
@@ -112,7 +112,6 @@ private:
 	void SendClientInit();
 	void CreateLocalFramebuffer();
 	void SaveConnection();
-	int  LoadConnection(char *fname);
 	
 	void SetupPixelFormat();
 	void SetFormatAndEncodings();

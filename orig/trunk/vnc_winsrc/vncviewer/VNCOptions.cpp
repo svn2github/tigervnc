@@ -118,6 +118,10 @@ VNCOptions::VNCOptions()
 				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
 			m_logLevel=buffer;
 		}
+		if ( RegQueryValueEx( hRegKey,  "listenPort", NULL, &valtype, 
+				(LPBYTE) &buffer, &buffersize) == ERROR_SUCCESS) {
+			m_listenPort=buffer;
+		}
 		TCHAR buf[80];
 		buffersize=_MAX_PATH;
 		if (RegQueryValueEx( hRegKey,  "LogFileName", NULL, &valtype, 
@@ -940,14 +944,7 @@ BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,
 		case IDC_SCALE_EDIT:
 			switch (HIWORD(wParam)) {
 			case CBN_EDITCHANGE:
-				int buf;
-				buf=GetDlgItemInt(hwnd,IDC_SCALE_EDIT,
-					NULL, FALSE);
-				if (buf > 150) {
-					buf = 150;
-					SetDlgItemInt(hwnd,IDC_SCALE_EDIT,
-						buf, FALSE);
-				}
+				Lim(hwnd,IDC_SCALE_EDIT,25,150);
 				return 0;
 			}
 			return 0;
@@ -1214,6 +1211,12 @@ BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,
 
 		HWND hSpin2 = GetDlgItem(hwnd, IDC_SPIN2);
 		SendMessage(hSpin2,UDM_SETBUDDY,(WPARAM) (HWND)hEditLevel,0);
+		
+		HWND hListenPort = GetDlgItem(hwnd, IDC_LISTEN_PORT);
+		SetDlgItemInt( hwnd,IDC_LISTEN_PORT,pApp->m_options.m_listenPort,FALSE);
+
+		HWND hSpin3 = GetDlgItem(hwnd, IDC_SPIN3);
+		SendMessage(hSpin3,UDM_SETBUDDY,(WPARAM) (HWND)hListenPort,0);
 
 		SendMessage(hChec,BM_SETCHECK,pApp->m_options.m_logToFile,0);
 		if (SendMessage(hChec,BM_GETCHECK,0,0)==0){
@@ -1235,31 +1238,24 @@ BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,
 		return 0;
 	case WM_COMMAND:{
 		switch (LOWORD(wParam)) {
+		case IDC_LISTEN_PORT:
+			switch (HIWORD(wParam)) {
+			case EN_CHANGE:
+				Lim(hwnd,IDC_LISTEN_PORT,1,6553);				
+				return 0;
+			}
+			return 0;
 		case IDC_EDIT_AMOUNT_LIST:
 			switch (HIWORD(wParam)) {
 			case EN_CHANGE:
-				int buf;
-				buf=GetDlgItemInt(hwnd,IDC_EDIT_AMOUNT_LIST,
-									NULL, FALSE);
-				if (buf > 64) {
-					buf = 64;
-					SetDlgItemInt(hwnd,IDC_EDIT_AMOUNT_LIST,
-									buf, FALSE);
-				}
+				Lim(hwnd,IDC_EDIT_AMOUNT_LIST,1,64);				
 				return 0;
 			}
 			return 0;
 		case IDC_EDIT_LOG_LEVEL:
 			switch (HIWORD(wParam)) {
 			case EN_CHANGE:
-				int buf;
-				buf=GetDlgItemInt(hwnd,IDC_EDIT_LOG_LEVEL,
-								NULL, FALSE);
-				if (buf > 12) {
-					buf = 12;
-					SetDlgItemInt(hwnd,IDC_EDIT_LOG_LEVEL,
-								buf, FALSE);
-				}
+				Lim(hwnd,IDC_EDIT_LOG_LEVEL,1,12);				
 				return 0;
 			}
 			return 0;
@@ -1370,6 +1366,14 @@ BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,
 			RegSetValueEx( hRegKey,"LogFileName" , 
 					NULL,REG_SZ , 
 					(CONST BYTE *)buf, (_tcslen(buf)+1) );
+
+			pApp->m_options.m_listenPort=GetDlgItemInt(hwnd,
+				IDC_LISTEN_PORT,NULL,FALSE);
+ 
+			RegSetValueEx( hRegKey,"listenPort" , 
+				NULL,REG_DWORD , 
+				(CONST BYTE *)&pApp->m_options.m_listenPort,
+				4 );
 				
 			RegCloseKey(hRegKey);
 			return 0;
@@ -1406,7 +1410,6 @@ BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,
 				int h=GetDlgItemInt( hwnd,ctrl, NULL, TRUE);
 				if (lpnmud.iDelta>0){
 					h=h-1;
-					if (h<1)h=1;
 				}else{
 					h=h+1;	
 				}
@@ -1418,6 +1421,21 @@ BOOL CALLBACK VNCOptions::DlgProc2(  HWND hwnd,  UINT uMsg,
 	}
 	}
 	return 0;
+}
+void VNCOptions::Lim(HWND hwnd,int control,DWORD min, DWORD max)
+{
+	int buf;
+	buf=GetDlgItemInt(hwnd,control,
+					NULL, FALSE);
+	if (buf > max) {
+		buf = max;
+	}
+	if (buf < min) {
+		buf = min;
+	}
+	SetDlgItemInt(hwnd,control,
+					buf, FALSE);
+	
 }
 void VNCOptions::LoadOpt(char subkey[256],char keyname[256])
 {

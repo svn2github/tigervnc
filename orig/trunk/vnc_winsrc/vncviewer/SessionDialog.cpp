@@ -34,10 +34,10 @@
 
 
 
-SessionDialog::SessionDialog(VNCOptions *pOpt)
+SessionDialog::SessionDialog(VNCOptions *pOpt,ClientConnection *cc)
 {
 	m_pOpt = pOpt;
-
+	m_cc = cc;
 	DWORD dispos;
 
 	RegCreateKeyEx(HKEY_CURRENT_USER,
@@ -78,7 +78,7 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 
 	switch (uMsg) {
 		case WM_INITDIALOG:{
-		
+			
             SetWindowLong(hwnd, GWL_USERDATA, lParam);
             SessionDialog *_this = (SessionDialog *) lParam;
             CentreWindow(hwnd);
@@ -169,6 +169,16 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 					}
 					return TRUE;
 				}
+				case IDC_LOAD:
+					TCHAR buf[80];
+					buf[0]='\0';
+					if (_this->m_cc->LoadConnection(buf, true) != -1) {
+						FormatDisplay(_this->m_cc->m_port,
+							_this->m_pOpt->m_display,_this->m_cc->m_host);
+
+						EndDialog(hwnd, TRUE);
+					}
+					return TRUE;
 				case IDC_LIST_MODE:{
 					pApp->m_options.LoadOpt(".listen","Software\\ORL\\VNCviewer\\MRU1");
 					pApp->m_options.m_listening=true;
@@ -183,14 +193,14 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 						EndDialog(hwnd, TRUE);
 						return TRUE;
 					}
-					if (!ParseDisplay(display, tmphost, 255, &_this->m_port)){
+					if (!ParseDisplay(display, tmphost, 255, &_this->m_cc->m_port)){
 						MessageBox(NULL, 
 							_T("Invalid VNC server specified.\n\r")
 							_T("Server should be of the form host:display."), 
 							_T("Connection setup"), MB_OK | MB_ICONEXCLAMATION );
 						return TRUE;
 					}else{
-						_tcscpy(_this->m_host, tmphost);
+						_tcscpy(_this->m_cc->m_host, tmphost);
 						_tcscpy(_this->m_pOpt->m_display, display);
 					}
 					EndDialog(hwnd, TRUE);

@@ -128,7 +128,7 @@ public:
 		WPARAM wParam, LPARAM lParam );
 	static BOOL CALLBACK DlgProc2(  HWND hwnd,  UINT uMsg, 
 		WPARAM wParam, LPARAM lParam );
-
+	static void Lim(HWND hwnd,int control,DWORD min, DWORD max);
 	// Register() makes this viewer the app invoked for .vnc files
 	static void Register();
 	HWND m_hPageConnection;
@@ -138,7 +138,6 @@ public:
 private:
     void ShowUsage(LPTSTR info = NULL);
 	void FixScaling();
-
 	// Just for temporary use
 	bool m_running;
 

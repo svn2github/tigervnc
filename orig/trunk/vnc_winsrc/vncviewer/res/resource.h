@@ -109,8 +109,10 @@
 #define IDC_FTPROGRESS                  1091
 #define IDC_FTBROWSEEDIT                1092
 #define IDC_FTSTATUS                    1093
+#define IDC_LOAD                        1093
 #define IDC_BUTTON2                     1094
 #define IDC_SERVERRELOAD                1094
+#define IDC_LISTEN_PORT                 1094
 #define IDC_BUTTON3                     1095
 #define IDC_SERVERUP                    1095
 #define IDC_BUTTON4                     1096
@@ -134,7 +136,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        244
 #define _APS_NEXT_COMMAND_VALUE         40011
-#define _APS_NEXT_CONTROL_VALUE         1093
+#define _APS_NEXT_CONTROL_VALUE         1095
 #define _APS_NEXT_SYMED_VALUE           154
 #endif
 #endif

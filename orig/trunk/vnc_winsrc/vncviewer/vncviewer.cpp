@@ -187,15 +187,18 @@ bool ParseDisplay(LPTSTR display, LPTSTR phost, int hostlen, int *pport)
 
 	// FIXME: We should not overwrite display[] here, buffer overflow
 	// is possible.
-	if (tmp_port == 5900) {
-		_tcscpy(display, phost);
-	} else if (tmp_port > 5900 && tmp_port <= 5999) {
-		_stprintf(display, TEXT("%s:%d"), phost, tmp_port - 5900);
-	} else {
-		_stprintf(display, TEXT("%s::%d"), phost, tmp_port);
-	}
-
+	
+	FormatDisplay(tmp_port,display,phost);
     return true;
 }
 
-
+void FormatDisplay(int port,LPTSTR display, LPTSTR host)
+{
+	if (port == 5900) {
+		_tcscpy(display, host);
+	} else if (port > 5900 && port <= 5999) {
+			_stprintf(display, TEXT("%s:%d"), host, port - 5900);
+	} else {
+		_stprintf(display, TEXT("%s::%d"), host, port);
+	}
+}

@@ -25,20 +25,20 @@ import java.awt.*;
 
 class clipboardFrame extends Frame {
 
-  TextArea ta;
+  TextArea textArea;
   Button clear, dismiss;
   String selection;
-  vncviewer v;
+  vncviewer viewer;
 
 
   //
   // Constructor.
   //
 
-  clipboardFrame(vncviewer v1) {
+  clipboardFrame(vncviewer v) {
     super("TightVNC Clipboard");
 
-    v = v1;
+    viewer = v;
 
     GridBagLayout gridbag = new GridBagLayout();
     setLayout(gridbag);
@@ -48,20 +48,20 @@ class clipboardFrame extends Frame {
     gbc.fill = GridBagConstraints.BOTH;
     gbc.weighty = 1.0;
 
-    ta = new TextArea(5,40);
-    gridbag.setConstraints(ta,gbc);
-    add(ta);
+    textArea = new TextArea(5, 40);
+    gridbag.setConstraints(textArea, gbc);
+    add(textArea);
 
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.weightx = 1.0;
     gbc.weighty = 0.0;
     gbc.gridwidth = 1;
     clear = new Button("Clear");
-    gridbag.setConstraints(clear,gbc);
+    gridbag.setConstraints(clear, gbc);
     add(clear);
 
     dismiss = new Button("Dismiss");
-    gridbag.setConstraints(dismiss,gbc);
+    gridbag.setConstraints(dismiss, gbc);
     add(dismiss);
 
     pack();
@@ -74,9 +74,9 @@ class clipboardFrame extends Frame {
 
   void setCutText(String text) {
     selection = text;
-    ta.setText(text);
+    textArea.setText(text);
     if (isVisible()) {
-      ta.selectAll();
+      textArea.selectAll();
     }
   }
 
@@ -87,11 +87,9 @@ class clipboardFrame extends Frame {
   //
 
   public boolean lostFocus(Event evt, Object arg) {
-    System.out.println("Lost focus");
-    if ((selection != null) && !selection.equals(ta.getText())) {
-      selection = ta.getText();
-      System.out.println("Sending selection: " + selection);
-      v.setCutText(selection);
+    if (selection != null && !selection.equals(textArea.getText())) {
+      selection = textArea.getText();
+      viewer.setCutText(selection);
     }
     return true;
   }
@@ -108,7 +106,7 @@ class clipboardFrame extends Frame {
       return true;
 
     } else if (evt.target == clear) {
-      ta.setText("");
+      textArea.setText("");
       return true;
     }
 

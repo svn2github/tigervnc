@@ -149,8 +149,11 @@ protected:
 	// Enabling & disabling clipboard handling
 	void SetClipboardActive(BOOL active) {m_clipboard_active = active;};
 
+	// Detecting updates
 	BOOL CheckUpdates();
 	void SetPollingTimer();
+	void SetPollingFlag(BOOL set) { m_polling_flag = set; }
+	BOOL GetPollingFlag() { return m_polling_flag; }
 	void PerformPolling();
 	void PollWindow(HWND hwnd);
 	void PollArea(RECT &rect);
@@ -158,7 +161,17 @@ protected:
 	void GetChangedRegion(vncRegion &rgn, const RECT &rect);
 	void UpdateChangedRect(vncRegion &rgn, const RECT &rect);
 	void UpdateChangedSubRect(vncRegion &rgn, const RECT &rect);
+
+	// Blank screen feature
+	void UpdateBlankScreenTimer();
 	void BlankScreen(BOOL set);
+
+	// Timer identifiers (the third one is not used in any real timer)
+	enum TimerID {
+		POLL = 1,
+		BLANK_SCREEN = 2,
+		RESTORE_SCREEN = 3
+	};
 
 	// Video driver stuff
 	BOOL InitVideoDriver();
@@ -170,13 +183,13 @@ protected:
 	vncServer 		*m_server;
 	omni_thread 	*m_thread;
 	HWND			m_hwnd;
-	UINT			m_timerid;
+	BOOL			m_polling_flag;
+	UINT			m_timer_polling;
+	UINT			m_timer_blank_screen;
 	HWND			m_hnextviewer;
 	BOOL			m_clipboard_active;
 	BOOL			m_hooks_active;
 	BOOL			m_hooks_may_change;
-
-	int			m_timer_blank_screen;
 
 	// Video driver stuff
 	vncVideoDriver	*m_videodriver;

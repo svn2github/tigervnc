@@ -292,12 +292,10 @@ public:
 	virtual int MouseCounter() { return m_remote_mouse; }
 	virtual UINT DisableTime() { return m_disable_time; }
 	virtual void SetDisableTime(UINT disabletime) { m_disable_time = disabletime; }
-	virtual void SetPollingFlag(BOOL enable) { m_polling_flag = enable; }
-	virtual BOOL GetPollingFlag() { return m_polling_flag; }
 	virtual UINT GetPollingCycle() { return m_polling_cycle; }
 	virtual void SetPollingCycle(UINT msec);
-	virtual BOOL PollingCycleChanged() { return m_polling_timer_changed; }
-	virtual void PollingCycleChanged(BOOL change) { m_polling_timer_changed = change; }
+	virtual BOOL PollingCycleChanged() { return m_polling_cycle_changed; }
+	virtual void PollingCycleChanged(BOOL change) { m_polling_cycle_changed = change; }
 
   BOOL checkPointer(vncClient *pClient);
 
@@ -372,9 +370,8 @@ protected:
 	INT					m_remote_keyboard;           
 	POINT				m_cursor_pos;
 
-	BOOL				m_polling_flag;
 	UINT				m_polling_cycle;
-	BOOL				m_polling_timer_changed;
+	BOOL				m_polling_cycle_changed;
 
 	// Name of this desktop
 	char				*m_name;

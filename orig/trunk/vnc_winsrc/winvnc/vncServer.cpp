@@ -118,7 +118,6 @@ vncServer::vncServer()
 	RECT temp;
 	GetWindowRect(GetDesktopWindow(), &temp);
 	SetSharedRect(temp);
-	SetPollingFlag(false);
 	SetPollingCycle(300);
 	PollingCycleChanged(false);
 	m_cursor_pos.x = 0;

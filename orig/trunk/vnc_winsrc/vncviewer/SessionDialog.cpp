@@ -198,7 +198,7 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 				_this->m_pOpt->m_compressLevel = 6;
 				_this->m_pOpt->m_enableJpegCompression = false;
 				_this->m_pOpt->m_jpegQualityLevel = 6;
-					
+				_this->m_pOpt->m_Use8Bit = false;	
 				return TRUE;						
 			}				
 			return TRUE;				
@@ -214,7 +214,7 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 				_this->m_pOpt->m_compressLevel = 6;
 				_this->m_pOpt->m_enableJpegCompression = true;
 				_this->m_pOpt->m_jpegQualityLevel = 6;
-						
+				_this->m_pOpt->m_Use8Bit = true;		
 				return TRUE;
 						
 			}				
@@ -232,7 +232,7 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 				_this->m_pOpt->m_compressLevel = 6;
 				_this->m_pOpt->m_enableJpegCompression = true;
 				_this->m_pOpt->m_jpegQualityLevel = 6;
-							
+				_this->m_pOpt->m_Use8Bit = false;			
 				return TRUE;						
 			}				
 			return TRUE; 								  
@@ -283,7 +283,8 @@ int SessionDialog::cmp(HWND hwnd)
 	for (int i = rfbEncodingRaw; i <= LASTENCODING; i++)
 		if ((m_pOpt->m_UseEnc[i] != true) && (i != 3)) a = 0;
 	if (m_pOpt->m_UseEnc[3] != false) a = 0;
-	if (m_pOpt->m_PreferredEncoding != rfbEncodingTight) a = 0;		     
+	if (m_pOpt->m_PreferredEncoding != rfbEncodingTight) a = 0;
+	if (m_pOpt->m_Use8Bit != true) a = 0;
 	if (m_pOpt->m_useCompressLevel != true) {
 		a = 0;
 	} else {
@@ -304,6 +305,7 @@ int SessionDialog::cmp(HWND hwnd)
 	for (i = rfbEncodingRaw; i <= LASTENCODING; i++)
 		if ((m_pOpt->m_UseEnc[i] != true) && (i != 3)) a = 0;
 	if (m_pOpt->m_UseEnc[3] != false) a = 0;
+	if (m_pOpt->m_Use8Bit != false) a = 0;
 	if (m_pOpt->m_PreferredEncoding != (rfbEncodingTight - 2)) a = 0;
 		
 	if (a == 2) {
@@ -317,6 +319,7 @@ int SessionDialog::cmp(HWND hwnd)
 	if (m_pOpt->m_UseEnc[3] != false) a = 0;
 	if (m_pOpt->m_PreferredEncoding != rfbEncodingTight) a = 0;
 	if (m_pOpt->m_useCompressLevel != false) a = 0;
+	if (m_pOpt->m_Use8Bit != false) a = 0;
 	if (m_pOpt->m_enableJpegCompression != true) {
 		a = 0;
 	} else {

@@ -1,4 +1,5 @@
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
+//  Copyright (C) 2001 Const Kaplinsky. All Rights Reserved.
 //
 //  This file is part of the VNC system.
 //
@@ -48,6 +49,7 @@ class VSocket;
 #include <netinet/in.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <errno.h>
 #include <string.h>
 #include <signal.h>
@@ -122,6 +124,7 @@ VSocket::VSocket()
 {
   // Clear out the internal socket fields
   sock = -1;
+  out_queue = NULL;
 }
 
 ////////////////////////////
@@ -179,6 +182,13 @@ VSocket::Close()
 #endif
       sock = -1;
     }
+  while (out_queue)
+	{
+	  AIOBlock *next = out_queue->next;
+	  delete out_queue;
+	  out_queue = next;
+	}
+
   return VTrue;
 }
 
@@ -193,6 +203,13 @@ VSocket::Shutdown()
 
 	  shutdown(sock, SD_BOTH);
     }
+  while (out_queue)
+	{
+	  AIOBlock *next = out_queue->next;
+	  delete out_queue;
+	  out_queue = next;
+	}
+
   return VTrue;
 }
 
@@ -272,10 +289,20 @@ VSocket::Connect(const VString address, const VCard port)
   addr.sin_port = htons(port);
 
   // Actually connect the socket
-  if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) == 0)
-    return VTrue;
+  if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) != 0)
+    return VFalse;
 
-  return VFalse;
+  // Put the socket into non-blocking mode
+#ifdef __WIN32__
+  u_long arg = 1;
+  if (ioctlsocket(sock, FIONBIO, &arg) != 0)
+	return VFalse;
+#else
+  if (fcntl(sock, F_SETFL, O_NDELAY) != 0)
+	return VFalse;
+#endif
+
+  return VTrue;
 }
 
 ////////////////////////////
@@ -322,10 +349,25 @@ VSocket::Accept()
     {
 	  shutdown(new_socket_id, SD_BOTH);
 	  closesocket(new_socket_id);
+	  return NULL;
     }
 
   // Attempt to set the new socket's options
   setsockopt(new_socket->sock, IPPROTO_TCP, TCP_NODELAY, (char *)&one, sizeof(one));
+
+  // Put the socket into non-blocking mode
+#ifdef __WIN32__
+  u_long arg = 1;
+  if (ioctlsocket(new_socket->sock, FIONBIO, &arg) != 0) {
+	delete new_socket;
+	new_socket = NULL;
+  }
+#else
+  if (fcntl(new_socket->sock, F_SETFL, O_NDELAY) != 0) {
+	delete new_socket;
+	new_socket = NULL;
+  }
+#endif
 
   return new_socket;
 }
@@ -426,7 +468,15 @@ VSocket::SetTimeout(VCard32 secs)
 VInt
 VSocket::Send(const char *buff, const VCard bufflen)
 {
-  return send(sock, buff, bufflen, 0);
+	errno = 0;
+
+	VInt bytes = send(sock, buff, bufflen, 0);
+#ifdef __WIN32__
+	if (bytes < 0 && WSAGetLastError() == WSAEWOULDBLOCK)
+		errno = EWOULDBLOCK;
+#endif
+
+	return bytes;
 }
 
 ////////////////////////////
@@ -434,7 +484,91 @@ VSocket::Send(const char *buff, const VCard bufflen)
 VBool
 VSocket::SendExact(const char *buff, const VCard bufflen)
 {
-  return Send(buff, bufflen) == (VInt)bufflen;
+	struct fd_set write_fds;
+	struct timeval tm;
+	int count;
+
+	// Put the data into the queue
+	SendQueued(buff, bufflen);
+
+	while (out_queue) {
+		// Wait until some data can be sent
+		do {
+			FD_ZERO(&write_fds);
+			FD_SET((unsigned int)sock, &write_fds);
+			tm.tv_sec = 1;
+			tm.tv_usec = 0;
+			count = select(sock + 1, NULL, &write_fds, NULL, &tm);
+		} while (count == 0);
+		if (count < 0 || count > 1) {
+			vnclog.Print(LL_SOCKERR, VNCLOG("socket error in select()\n"));
+			return VFalse;
+		}
+		// Actually send some data
+		if (FD_ISSET((unsigned int)sock, &write_fds)) {
+			if (!SendFromQueue())
+				return VFalse;
+		}
+    }
+
+	return VTrue;
+}
+
+////////////////////////////
+
+VBool
+VSocket::SendQueued(const char *buff, const VCard bufflen)
+{
+	omni_mutex_lock l(queue_lock);
+
+	// Just append new bytes to the output queue
+	if (!out_queue) {
+		out_queue = new AIOBlock(bufflen, buff);
+		bytes_sent = 0;
+	} else {
+		AIOBlock *last = out_queue;
+		while (last->next)
+			last = last->next;
+		last->next = new AIOBlock(bufflen, buff);
+	}
+
+	return VTrue;
+}
+
+////////////////////////////
+
+VBool
+VSocket::SendFromQueue()
+{
+	omni_mutex_lock l(queue_lock);
+
+	// Is there something to send?
+	if (!out_queue)
+		return VTrue;
+
+	// Maximum data size to send at once
+	size_t portion_size = out_queue->data_size - bytes_sent;
+	if (portion_size > 32768)
+		portion_size = 32768;
+
+	// Try to send some data
+	int bytes = Send(out_queue->data_ptr + bytes_sent, portion_size);
+	if (bytes > 0) {
+		bytes_sent += bytes;
+	} else if (bytes < 0 && errno != EWOULDBLOCK) {
+		vnclog.Print(LL_SOCKERR, VNCLOG("socket error\n"));
+		return VFalse;
+	}
+
+	// Remove block if all its data has been sent
+	if (bytes_sent == out_queue->data_size) {
+		AIOBlock *sent = out_queue;
+		out_queue = sent->next;
+		bytes_sent = 0;
+		delete sent;
+	}
+
+	return VTrue;
 }
 
 ////////////////////////////
@@ -442,7 +576,16 @@ VSocket::SendExact(const char *buff, const VCard bufflen)
 VInt
 VSocket::Read(char *buff, const VCard bufflen)
 {
-  return recv(sock, buff, bufflen, 0);
+	errno = 0;
+
+	VInt bytes = recv(sock, buff, bufflen, 0);
+
+#ifdef __WIN32__
+	if (bytes < 0 && WSAGetLastError() == WSAEWOULDBLOCK)
+		errno = EWOULDBLOCK;
+#endif
+
+	return bytes;
 }
 
 ////////////////////////////
@@ -450,27 +593,45 @@ VSocket::Read(char *buff, const VCard bufflen)
 VBool
 VSocket::ReadExact(char *buff, const VCard bufflen)
 {
-	int n;
+	int bytes;
 	VCard currlen = bufflen;
-    
-	while (currlen > 0)
-	{
-		// Try to read some data in
-		n = Read(buff, currlen);
+	struct fd_set read_fds, write_fds;
+	struct timeval tm;
+	int count;
 
-		if (n > 0)
-		{
-			// Adjust the buffer position and size
-			buff += n;
-			currlen -= n;
-		} else if (n == 0) {
-			vnclog.Print(LL_SOCKERR, VNCLOG("zero bytes read\n"));
-
+	while (currlen > 0) {
+		// Wait until some data can be read or sent
+		do {
+			FD_ZERO(&read_fds);
+			FD_SET((unsigned int)sock, &read_fds);
+			FD_ZERO(&write_fds);
+			if (out_queue)
+				FD_SET((unsigned int)sock, &write_fds);
+			tm.tv_sec = 1;
+			tm.tv_usec = 0;
+			count = select(sock + 1, &read_fds, &write_fds, NULL, &tm);
+		} while (count == 0);
+		if (count < 0 || count > 2) {
+			vnclog.Print(LL_SOCKERR, VNCLOG("socket error in select()\n"));
 			return VFalse;
-		} else {
-			if (errno != EWOULDBLOCK)
-			{
-				vnclog.Print(LL_SOCKERR, VNCLOG("socket error %d\n"), errno);
+		}
+		if (FD_ISSET((unsigned int)sock, &write_fds)) {
+			// Try to send some data
+			if (!SendFromQueue())
+				return VFalse;
+		}
+		if (FD_ISSET((unsigned int)sock, &read_fds)) {
+			// Try to read some data in
+			bytes = Read(buff, currlen);
+			if (bytes > 0) {
+				// Adjust the buffer position and size
+				buff += bytes;
+				currlen -= bytes;
+			} else if (bytes < 0 && errno != EWOULDBLOCK) {
+				vnclog.Print(LL_SOCKERR, VNCLOG("socket error\n"));
+				return VFalse;
+			} else if (bytes == 0) {
+				vnclog.Print(LL_SOCKERR, VNCLOG("zero bytes read\n"));
 				return VFalse;
 			}
 		}
@@ -478,6 +639,4 @@ VSocket::ReadExact(char *buff, const VCard bufflen)
 
 	return VTrue;
 }
-
-
 

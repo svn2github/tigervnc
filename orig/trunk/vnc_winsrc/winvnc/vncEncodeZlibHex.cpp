@@ -144,7 +144,7 @@ vncEncodeZlibHex::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest, const R
 
 	// Go ahead and send the RFB update header, in case partial updates
 	// are send in EncodeHextiles#() below.
-	outConn->SendExact( (char *)dest, sz_rfbFramebufferUpdateRectHeader );
+	outConn->SendQueued( (char *)dest, sz_rfbFramebufferUpdateRectHeader );
 	transmittedSize += sz_rfbFramebufferUpdateRectHeader;
 
 	// Do the encoding
@@ -243,7 +243,7 @@ static void testColours##bpp(CARD##bpp *data, int size, BOOL *mono,			\
 																			\
 UINT																		\
 vncEncodeZlibHex::EncodeHextiles##bpp(BYTE *source, BYTE *dest,				\
-				  VSocket *outConn, int rx, int ry, int rw, int rh)							\
+				  VSocket *outConn, int rx, int ry, int rw, int rh)			\
 {																			\
     int x, y, w, h;															\
     int rectoffset, destoffset;												\
@@ -254,7 +254,7 @@ vncEncodeZlibHex::EncodeHextiles##bpp(BYTE *source, BYTE *dest,				\
 	BOOL validBg = FALSE;													\
 	BOOL validFg = FALSE;													\
 	int subEncodedLen;														\
-	CARD##bpp clientPixelData[(16*16+2)*(bpp/8)+8+14+2];						\
+	CARD##bpp clientPixelData[(16*16+2)*(bpp/8)+8+14+2];					\
 																			\
 	destoffset = 0;															\
 																			\
@@ -388,18 +388,18 @@ vncEncodeZlibHex::EncodeHextiles##bpp(BYTE *source, BYTE *dest,				\
 		if (destoffset > VNC_ENCODE_ZLIBHEX_MIN_DATAXFER)					\
 		{																	\
 			/* Send the encoded data as partial update */					\
-			outConn->SendExact( (char *)dest, destoffset );					\
+			outConn->SendQueued( (char *)dest, destoffset );				\
 			transmittedSize += destoffset;									\
-			encodedSize += destoffset;									\
+			encodedSize += destoffset;										\
 			destoffset = 0;													\
 																			\
 		}																	\
     }																		\
 	transmittedSize += destoffset;											\
-	encodedSize += destoffset;											\
+	encodedSize += destoffset;												\
 																			\
     return destoffset;														\
-}																		\
+}																			\
 																			\
 static UINT																	\
 subrectEncode##bpp(CARD##bpp *src, BYTE *dest, int w, int h, CARD##bpp bg,	\

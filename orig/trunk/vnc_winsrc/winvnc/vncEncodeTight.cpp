@@ -201,7 +201,7 @@ vncEncodeTight::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest,
 			SetRect(&upperRect, x, y, x + w, y + nMaxRows);
 
 			int size = EncodeRectSimple(source, outConn, dest, upperRect);
-			outConn->SendExact((char *)dest, size);
+			outConn->SendQueued((char *)dest, size);
 			transmittedSize += size;
 
 			y += nMaxRows;
@@ -260,9 +260,9 @@ vncEncodeTight::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest,
 						SendTightHeader(x_best, y_best, w_best, h_best);
 						int size = SendSolidRect(dest);
 
-						outConn->SendExact((char *)m_hdrBuffer,
+						outConn->SendQueued((char *)m_hdrBuffer,
 										   m_hdrBufferBytes);
-						outConn->SendExact((char *)dest, size);
+						outConn->SendQueued((char *)dest, size);
 						transmittedSize += (m_hdrBufferBytes + size);
 						encodedSize += (size + m_hdrBufferBytes -
 										sz_rfbFramebufferUpdateRectHeader);
@@ -272,7 +272,7 @@ vncEncodeTight::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest,
 						continue;
 					}
 					int size = EncodeRect(source, outConn, dest, rects[i]);
-					outConn->SendExact((char *)dest, size);
+					outConn->SendQueued((char *)dest, size);
 					transmittedSize += size;
 				}
 
@@ -441,7 +441,7 @@ vncEncodeTight::EncodeRectSimple(BYTE *source, VSocket *outConn, BYTE *dest,
 											x+dx, y+dy, rw, rh);
 				totalSize += partialSize;
 				if (dy + subrectMaxHeight < h || dx + maxRectWidth < w) {
-					outConn->SendExact((char *)dest, partialSize);
+					outConn->SendQueued((char *)dest, partialSize);
 					transmittedSize += partialSize;
 				}
 			}
@@ -520,7 +520,7 @@ vncEncodeTight::EncodeSubrect(BYTE *source, VSocket *outConn, BYTE *dest,
 	if (encDataSize < 0)
 		return vncEncoder::EncodeRect(source, dest, r);
 
-	outConn->SendExact((char *)m_hdrBuffer, m_hdrBufferBytes);
+	outConn->SendQueued((char *)m_hdrBuffer, m_hdrBufferBytes);
 	transmittedSize += m_hdrBufferBytes;
 
 	encodedSize += encDataSize + m_hdrBufferBytes - sz_rfbFramebufferUpdateRectHeader;

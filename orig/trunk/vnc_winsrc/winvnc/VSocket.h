@@ -36,7 +36,29 @@ class VSocket;
 #if (!defined(_ATT_VSOCKET_DEFINED))
 #define _ATT_VSOCKET_DEFINED
 
+#include <omnithread.h>
 #include "VTypes.h"
+
+// This class is used as a part of output queue
+class AIOBlock
+{
+public:
+	size_t data_size;		// Data size in this block
+	char *data_ptr;			// Beginning of the data buffer
+	AIOBlock *next;			// Next block or NULL for the last block
+
+	AIOBlock(int size, const char *data = NULL) {
+		next = NULL;
+		data_size = size;
+		data_ptr = new char[size];
+		if (data_ptr && data)
+			memcpy(data_ptr, data, size);
+	}
+	~AIOBlock() {
+		if (data_ptr)
+			delete[] data_ptr;
+	}
+};
 
 ////////////////////////////
 // Socket implementation
@@ -128,11 +150,22 @@ public:
   VBool SendExact(const char *buff, const VCard bufflen);
   VBool ReadExact(char *buff, const VCard bufflen);
 
+  // SendQueued sends as much data as possible immediately,
+  // and puts remaining bytes in a queue, to be sent later.
+  VBool SendQueued(const char *buff, const VCard bufflen);
+
   ////////////////////////////
   // Internal structures
 protected:
   // The internal socket id
-  int sock;	      
+  int sock;
+
+  // Output queue
+  size_t bytes_sent;
+  AIOBlock *out_queue;
+  omni_mutex queue_lock;
+
+  VBool SendFromQueue();
 };
 
 #endif // _ATT_VSOCKET_DEFINED

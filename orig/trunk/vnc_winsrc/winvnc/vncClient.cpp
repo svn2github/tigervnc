@@ -1199,7 +1199,7 @@ vncClient::UpdateClipText(LPSTR text)
 		Kill();
 		return;
 	}
-	if (!m_socket->SendExact(text, strlen(text)))
+	if (!m_socket->SendQueued(text, strlen(text)))
 	{
 		Kill();
 		return;
@@ -1229,7 +1229,7 @@ vncClient::SendRFBMsg(CARD8 type, BYTE *buffer, int buflen)
 	((rfbServerToClientMsg *)buffer)->type = type;
 
 	// Send the message
-	if (!m_socket->SendExact((char *) buffer, buflen))
+	if (!m_socket->SendQueued((char *) buffer, buflen))
 	{
 		vnclog.Print(LL_CONNERR, VNCLOG("failed to send RFB message to client\n"));
 
@@ -1508,7 +1508,7 @@ vncClient::SendRectangle(RECT &rect)
 	UINT bytes = m_buffer->TranslateRect(rect, m_socket);
 
 	// Send the encoded data
-	return m_socket->SendExact((char *)(m_buffer->GetClientBuffer()), bytes);
+	return m_socket->SendQueued((char *)(m_buffer->GetClientBuffer()), bytes);
 }
 
 // Send a single CopyRect message
@@ -1529,9 +1529,9 @@ vncClient::SendCopyRect(RECT &dest, POINT &source)
 	copyrectbody.srcY = Swap16IfLE(source.y);
 
 	// Now send the message;
-	if (!m_socket->SendExact((char *)&copyrecthdr, sizeof(copyrecthdr)))
+	if (!m_socket->SendQueued((char *)&copyrecthdr, sizeof(copyrecthdr)))
 		return FALSE;
-	if (!m_socket->SendExact((char *)&copyrectbody, sizeof(copyrectbody)))
+	if (!m_socket->SendQueued((char *)&copyrectbody, sizeof(copyrectbody)))
 		return FALSE;
 
 	return TRUE;
@@ -1550,14 +1550,14 @@ vncClient::SendLastRect()
 	hdr.encoding = Swap32IfLE(rfbEncodingLastRect);
 
 	// Now send the message;
-	if (!m_socket->SendExact((char *)&hdr, sizeof(hdr)))
+	if (!m_socket->SendQueued((char *)&hdr, sizeof(hdr)))
 		return FALSE;
 
 	return TRUE;
 }
 
 // Send the encoder-generated palette to the client
-// This function only returns FALSE if the SendExact fails - any other
+// This function only returns FALSE if the SendQueued fails - any other
 // error is coped with internally...
 BOOL
 vncClient::SendPalette()
@@ -1583,7 +1583,7 @@ vncClient::SendPalette()
 	setcmap.firstColour = Swap16IfLE(0);
 	setcmap.nColours = Swap16IfLE(ncolours);
 
-	if (!m_socket->SendExact((char *) &setcmap, sz_rfbSetColourMapEntriesMsg))
+	if (!m_socket->SendQueued((char *) &setcmap, sz_rfbSetColourMapEntriesMsg))
 	{
 		delete [] rgbquad;
 		return FALSE;
@@ -1600,7 +1600,7 @@ vncClient::SendPalette()
 		pixeldata.g = Swap16IfLE(((CARD16)rgbquad[i].rgbGreen) << 8);
 		pixeldata.b = Swap16IfLE(((CARD16)rgbquad[i].rgbBlue) << 8);
 
-		if (!m_socket->SendExact((char *) &pixeldata, sizeof(pixeldata)))
+		if (!m_socket->SendQueued((char *) &pixeldata, sizeof(pixeldata)))
 		{
 			delete [] rgbquad;
 			return FALSE;

@@ -447,7 +447,7 @@ vncEncoder::SendEmptyCursorShape(VSocket *outConn)
 		hdr.encoding = Swap32IfLE(rfbEncodingRichCursor);
 	}
 
-	return outConn->SendExact((char *)&hdr, sizeof(hdr));
+	return outConn->SendQueued((char *)&hdr, sizeof(hdr));
 }
 
 BOOL
@@ -564,10 +564,10 @@ vncEncoder::SendXCursorShape(VSocket *outConn, BYTE *mask,
 	int maskRowSize = (width + 7) / 8;
 	int maskSize = maskRowSize * height;
 
-	if ( !outConn->SendExact((char *)&hdr, sizeof(hdr)) ||
-		 !outConn->SendExact((char *)colors, 6) ||
-		 !outConn->SendExact((char *)&mask[maskSize], maskSize) ||
-		 !outConn->SendExact((char *)mask, maskSize) ) {
+	if ( !outConn->SendQueued((char *)&hdr, sizeof(hdr)) ||
+		 !outConn->SendQueued((char *)colors, 6) ||
+		 !outConn->SendQueued((char *)&mask[maskSize], maskSize) ||
+		 !outConn->SendQueued((char *)mask, maskSize) ) {
 		return FALSE;
 	}
 	return TRUE;
@@ -597,9 +597,9 @@ vncEncoder::SendRichCursorShape(VSocket *outConn, BYTE *mbits, BYTE *cbits,
 	// Send the data
 	int mask_rowsize = (width + 7) / 8;
 	int mask_size = mask_rowsize * height;
-	if ( !outConn->SendExact((char *)&hdr, sizeof(hdr)) ||
-		 !outConn->SendExact((char *)dstbuf, dstbuf_size) ||
-		 !outConn->SendExact((char *)mbits, mask_size) ) {
+	if ( !outConn->SendQueued((char *)&hdr, sizeof(hdr)) ||
+		 !outConn->SendQueued((char *)dstbuf, dstbuf_size) ||
+		 !outConn->SendQueued((char *)mbits, mask_size) ) {
 		delete[] dstbuf;
 		return FALSE;
 	}

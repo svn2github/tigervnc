@@ -160,7 +160,7 @@ vncEncodeZlib::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest, const RECT
 			( partialSize > 0 ))
 		{
 			// Send the encoded data
-			outConn->SendExact( (char *)dest, partialSize );
+			outConn->SendQueued( (char *)dest, partialSize );
 			transmittedSize += partialSize;
 		}
 

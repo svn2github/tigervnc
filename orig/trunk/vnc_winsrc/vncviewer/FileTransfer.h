@@ -105,8 +105,8 @@ public:
 	static BOOL CALLBACK FTCancelingDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static INT_PTR CALLBACK FTConfirmDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	void CloseUndoneFileTransfers();
-	void UploadFilePortion();
 	void DownloadFilePortion();
+	BOOL UploadFilePortion();
 	BOOL IsTransferEnable() { return m_bTransferEnable; };
 	ClientConnection * m_clientconn;
 	VNCviewerApp * m_pApp; 
@@ -163,7 +163,7 @@ private:
 	void FileTransferUpload();
 	void CheckUploadQueue();
 	void MakeUploadQueue();
-	void UploadFile(int num);
+	BOOL UploadFile(int num);
 
 	void ClearFTControls();
 	void ClearFTButtons();
@@ -180,6 +180,7 @@ private:
 	void ProcessFDSDMain(DWORD dSize);
 
 	void SetEndTransfer(char *statusText);
+	void CheckCantTransferInfo();
 	void EndFTCancelDlg(BOOL result);
 	void SetFTDlgCursor(LPCTSTR cursorType);
 
@@ -225,6 +226,7 @@ private:
 	FileTransferItemInfo m_FTClientItemInfo;
 	FileTransferItemInfo m_FTServerItemInfo;
 	FileTransferItemInfo m_TransferInfo;
+	FileTransferItemInfo m_CantTransferInfo;
 	FileTransferItemInfo m_DeleteInfo;
 
 	char m_szLocalMyDocPath[MAX_PATH];

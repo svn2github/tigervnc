@@ -37,6 +37,8 @@ const char FileTransfer::myPicturesText[] = "My Pictures";
 const char FileTransfer::myMusicText[] = "My Music";
 const char FileTransfer::myDesktopText[] = "Desktop";
 
+#define WM_CHECKUPLOADQUEUE WM_USER+130
+
 
 FileTransfer::FileTransfer(ClientConnection * pCC, VNCviewerApp * pApp)
 {
@@ -383,6 +385,9 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 		break;
 		}
 		break;
+	case WM_CHECKUPLOADQUEUE:
+		_this->CheckUploadQueue();
+		return TRUE;
 	case WM_CLOSE:
 	case WM_DESTROY:
 		if (_this->IsTransferEnable()) {
@@ -473,6 +478,7 @@ FileTransfer::FileTransferUpload()
 	strcpy(m_szRemoteTransPath, m_ServerPath);
 	strcpy(m_szLastRelTransPath, "");
 	if (m_TransferInfo.GetNumEntries() != 0) return;
+	m_CantTransferInfo.Free();
 	m_dwNumItemsSel = GetSelectedItems(m_hwndFTClientList, &m_TransferInfo);
 	m_dwSelFileSize = GetSelectedFileSize(m_ClientPath, &m_TransferInfo);
 	InitFTProgressBar(0);
@@ -487,7 +493,7 @@ FileTransfer::CheckUploadQueue()
 {
 	int numEntries = m_TransferInfo.GetNumEntries() - 1;
 	if ((numEntries < 0) || (!m_bUploadStarted)) {
-		SetEndTransfer("Copy Operation Successfully Completed");
+		CheckCantTransferInfo();
 		SendFileListRequestMessage(m_ServerPath, 0, FT_FLR_DEST_MAIN);
 		return;
 	}
@@ -510,12 +516,12 @@ FileTransfer::CheckUploadQueue()
 			MakeUploadQueue();
 			m_TransferInfo.DeleteAt(0);
 			if (m_TransferInfo.GetNumEntries() == 0) {
-				SetEndTransfer("Copy Operation Successfully Completed");
+				CheckCantTransferInfo();
 				SendFileListRequestMessage(m_ServerPath, 0, FT_FLR_DEST_MAIN);
 				return;
 			}
 		}
-		UploadFile(0);
+		if (!UploadFile(0)) PostMessage(m_hwndFileTransfer, WM_CHECKUPLOADQUEUE, (WPARAM) 0, (LPARAM) 0);
 	}
 }
 		
@@ -551,7 +557,7 @@ FileTransfer::MakeUploadQueue()
 	}			
 }
 
-void
+BOOL
 FileTransfer::UploadFile(int num)
 {
 	char filename[MAX_PATH];
@@ -565,13 +571,18 @@ FileTransfer::UploadFile(int num)
 	HANDLE hFile = FindFirstFile(path, &FindFileData);
 	SetErrorMode(0);
 	
+	char remPath[MAX_PATH];
+	sprintf(remPath, "%s\\%s", m_szRemoteTransPath, filename);
+
 	if (hFile != INVALID_HANDLE_VALUE) {
 		m_dwFileSize = FindFileData.nFileSizeLow;
 		m_dwModTime = FiletimeToTime70(FindFileData.ftLastWriteTime);
 	} else {
 		SetStatusText("File %s missing.", path);
 		FindClose(hFile);
-		return;
+		m_CantTransferInfo.Add(path,m_TransferInfo.GetSizeAt(num), m_TransferInfo.GetDataAt(num));
+		m_TransferInfo.DeleteAt(num);
+		return FALSE;
 	}
 	FindClose(hFile);
 
@@ -580,14 +591,15 @@ FileTransfer::UploadFile(int num)
 	if (m_dwFileSize <= m_dwFileBlockSize) m_dwFileBlockSize = m_dwFileSize;
 	m_hFiletoRead = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
 	if (m_hFiletoRead == INVALID_HANDLE_VALUE) {
-		SetStatusText("File %s unavailable.", path);
+		SetStatusText("Access Denied. Cannot Copy %s.", path);
 		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
-		return;
+		m_CantTransferInfo.Add(path, m_TransferInfo.GetSizeAt(num), m_TransferInfo.GetDataAt(num));
+		m_TransferInfo.DeleteAt(num);
+		return FALSE;
 	}
 	MakeStatusText("UPLOAD:", m_szLocalTransPath, m_szRemoteTransPath, filename);
-	sprintf(path, "%s\\%s", m_szRemoteTransPath, filename);
-	ConvertPath(path);
-	int pathLen = strlen(path);
+	ConvertPath(remPath);
+	int pathLen = strlen(remPath);
 
 	char *pAllFURMessage = new char[sz_rfbFileUploadRequestMsg + pathLen];
 	rfbFileUploadRequestMsg *pFUR = (rfbFileUploadRequestMsg *) pAllFURMessage;
@@ -596,16 +608,16 @@ FileTransfer::UploadFile(int num)
 	pFUR->compressedLevel = 0;
 	pFUR->fNameSize = Swap16IfLE(pathLen);
 	pFUR->position = Swap32IfLE(0);
-	memcpy(pFollowMsg, path, pathLen);
+	memcpy(pFollowMsg, remPath, pathLen);
 	m_clientconn->WriteExact(pAllFURMessage, sz_rfbFileUploadRequestMsg + pathLen); 
 	delete [] pAllFURMessage;
 	
 	InitProgressBar(0);
 	m_TransferInfo.DeleteAt(num);
-	UploadFilePortion();
+	return UploadFilePortion();
 }
 
-void
+BOOL
 FileTransfer::UploadFilePortion()
 {
 	DWORD dwPortionRead = 0;
@@ -626,11 +638,12 @@ FileTransfer::UploadFilePortion()
 		memcpy(pReason, reason, reasonLen);
 		m_clientconn->WriteExact(pFUFMessage, sz_rfbFileUploadFailedMsg + reasonLen);
 		delete [] pFUFMessage;
+		delete [] pBuff;
 		CloseHandle(m_hFiletoRead);
 		m_TransferInfo.Free();
 		m_bUploadStarted = FALSE;
 		m_dwNumItemsSel = 0;
-		return;
+		return FALSE;
 	}
 	DWORD dwNumOfBytesRead = 0;
 	BOOL bResult = ReadFile(m_hFiletoRead, pBuff, m_dwFileBlockSize, &dwNumOfBytesRead, NULL);
@@ -646,13 +659,15 @@ FileTransfer::UploadFilePortion()
 			SendFileListRequestMessage(m_ServerPath, 0, FT_FLR_DEST_MAIN);
 		}
 		*/
-		CheckUploadQueue();
-		return;
+		delete [] pBuff;
+		PostMessage(m_hwndFileTransfer, WM_CHECKUPLOADQUEUE, (WPARAM) 0, (LPARAM) 0);
+		return TRUE;
 	}
 	SendFileUploadDataMessage(dwNumOfBytesRead, pBuff);
 	delete [] pBuff;
 	IncreaseProgBarPos(dwNumOfBytesRead);
 	PostMessage(m_clientconn->m_hwnd1, fileTransferUploadMessage, (WPARAM) 0, (LPARAM) 0);
+	return TRUE;
 }
 
 void 
@@ -693,7 +708,7 @@ FileTransfer::ProcessFDSDMessage()
 		m_dwSelFileSize -= dSize;
 		m_TransferInfo.DeleteAt(0);
 		if (m_TransferInfo.GetNumEntries() == 0) {
-			SetEndTransfer("Copy Operation Successfully Completed");
+			CheckCantTransferInfo();
 			SendFileListRequestMessage(m_ServerPath, 0, FT_FLR_DEST_MAIN);
 			return;
 		}
@@ -727,6 +742,7 @@ FileTransfer::FileTransferDownload()
 	strcpy(m_szRemoteTransPath, m_ServerPath);
 	strcpy(m_szLastRelTransPath, "");
 	if (m_TransferInfo.GetNumEntries() != 0) return;
+	m_CantTransferInfo.Free();
 	m_dwNumItemsSel = GetSelectedItems(m_hwndFTServerList, &m_TransferInfo);
 	m_bDownloadStarted = TRUE;
 	if (!CreateTransferConfDlg()) return;
@@ -759,8 +775,7 @@ void FileTransfer::CheckDownloadQueue()
 		if ((numEntries < 0) || (!m_bDownloadStarted)) {
 			m_bTransferEnable = FALSE;
 			m_bDownloadStarted = FALSE;
-			EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
-			SetStatusText("Copy Operation Successfully Completed");
+			CheckCantTransferInfo();
 			if (m_hwndFTCanceling != NULL) EndFTCancelDlg(FALSE);
 			m_bOverwriteAll = FALSE;
 			return;
@@ -835,7 +850,8 @@ void FileTransfer::CheckDownloadQueue()
 	}
 }
 
-void FileTransfer::DownloadFile(int num)
+void 
+FileTransfer::DownloadFile(int num)
 {
 	char name[MAX_PATH];
 	strcpy(name, m_TransferInfo.GetNameAt(0));
@@ -859,6 +875,7 @@ void FileTransfer::DownloadFile(int num)
 	}	
 	InitProgressBar(0);
 	m_bDownloadStarted = TRUE;
+	m_CantTransferInfo.Add(remPath, m_TransferInfo.GetSizeAt(0), m_TransferInfo.GetDataAt(0));
 	m_TransferInfo.DeleteAt(0);
 
 	SendFileDownloadRequestMessage(strlen(remPath), remPath);
@@ -886,6 +903,7 @@ FileTransfer::DownloadFilePortion()
 			m_dwNumItemsSel--;
 			ShowClientItems(m_ClientPath);
 		}
+		m_CantTransferInfo.DeleteAt(m_CantTransferInfo.GetNumEntries() - 1);
 		CheckDownloadQueue();
 		return;
 	}
@@ -1272,6 +1290,13 @@ FileTransfer::ProcessFLRFMessage()
 	char *pReason = new char [flrf.reasonLen + 1];
 	m_clientconn->ReadExact(pReason, flrf.reasonLen);
 	pReason[flrf.reasonLen] = '\0';
+	if (flrf.typeOfRequest == rfbFileDownloadRequest) {
+		CloseHandle(m_hFiletoWrite);
+	    DeleteFile(m_DownloadFilename);
+		CheckDownloadQueue();
+		delete [] pReason;
+		return;
+	}
 	if (flrf.sysError != 0) {
 		SetStatusText("%s error = %d", pReason, flrf.sysError);
 	} else {
@@ -1431,7 +1456,7 @@ FileTransfer::ProcessFLRUpload()
 			m_TransferInfo.DeleteAt(0);
 			if (m_TransferInfo.GetNumEntries() == 0) {
 				SendFileListRequestMessage(m_ServerPath, 0, FT_FLR_DEST_MAIN);
-				SetEndTransfer("Copy Operation Successfully Completed");
+				CheckCantTransferInfo();
 				return;
 			}
 			CheckUploadQueue();
@@ -1444,13 +1469,13 @@ FileTransfer::ProcessFLRUpload()
 		SendFileCreateDirRequestMessage(strlen(path), path);
 		m_TransferInfo.DeleteAt(0);
 		if (m_TransferInfo.GetNumEntries() == 0) {
-			SetEndTransfer("Copy Operation Successfully Completed");
+			CheckCantTransferInfo();
 			SendFileListRequestMessage(m_ServerPath, 0, FT_FLR_DEST_MAIN);
 			return;
 		}
 		CheckUploadQueue();
 	} else {
-		UploadFile(0);
+		if (!UploadFile(0)) PostMessage(m_hwndFileTransfer, WM_CHECKUPLOADQUEUE, (WPARAM) 0, (LPARAM) 0);
 	}
 }
 
@@ -2608,4 +2633,22 @@ FileTransfer::CutLastName(char *path, char *lastName)
 		lastName[_len - i] = buf[i];
 	}
 	lastName[_len + 1] = '\0';
+}
+
+void
+FileTransfer::CheckCantTransferInfo()
+{
+	int numEntries = m_CantTransferInfo.GetNumEntries();
+	if (numEntries != 0) {
+		char *pText = new char [numEntries * (MAX_PATH + 28) + 48];
+		sprintf(pText, "Access denied. Cannot copy:");
+		for (int i = 0; i < numEntries; i++) {
+			sprintf(pText, "%s\n%s;", pText, m_CantTransferInfo.GetNameAt(i));
+		}
+		SetEndTransfer("Copy Operation Ended");
+		MessageBox(NULL, pText, "Access denied. Cannot copy files.", MB_OK);
+		delete [] pText;
+	} else {
+		SetEndTransfer("Copy Operation Successfully Completed");
+	}
 }

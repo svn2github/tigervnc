@@ -1492,9 +1492,9 @@ vncClientThread::run(void *arg)
 				if ((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) || 
 					(hFile == INVALID_HANDLE_VALUE) || (path_file[0] == '\0')) {
 					FindClose(hFile);
-					char reason[] = "Can't download that file. May be that directory.";
+					char reason[] = "Access denied. File cannot copy.";
 					int reasonLen = strlen(reason);
-					m_client->SendFileDownloadFailed(reasonLen, reason);
+					m_client->SendLastRequestFailed(rfbFileDownloadRequest, reasonLen, GetLastError(), reason);
 					break;
 				}
 				sz_rfbFileSize = FindFileData.nFileSizeLow;
@@ -1510,6 +1510,11 @@ vncClientThread::run(void *arg)
 					if (m_client->m_hFileToRead != INVALID_HANDLE_VALUE) {
 						m_client->m_bDownloadStarted = TRUE;
 						m_client->SendFileDownloadPortion();
+					} else {
+						char reason[] = "Access denied. File cannot copy.";
+						int reasonLen = strlen(reason);
+						m_client->SendLastRequestFailed(rfbFileDownloadRequest, reasonLen, GetLastError(), reason);
+						break;
 					}
 				}
 			}

@@ -1339,10 +1339,10 @@ vncClientThread::run(void *arg)
 				FTSIZEDATA *pftsd = (FTSIZEDATA *) &pAllMessage[sz_rfbFileListDataMsg];
 				char *pFilenames = &pAllMessage[sz_rfbFileListDataMsg + dsSize];
 				pFLD->type = rfbFileListData;
-				pFLD->flags = msg.flr.flags;
+				pFLD->flags = msg.flr.flags&0xF0;
 				pFLD->numFiles = Swap16IfLE(ftii.GetNumEntries());
 				pFLD->dataSize = Swap16IfLE(ftii.GetSummaryNamesLength() + ftii.GetNumEntries());
-				pFLD->compressedSize = Swap16IfLE(msgLen);
+        pFLD->compressedSize = pFLD->dataSize;
 				for (int i = 0; i < ftii.GetNumEntries(); i++) {
 					pftsd[i].size = Swap32IfLE(ftii.GetSizeAt(i));
 					pftsd[i].data = Swap32IfLE(ftii.GetDataAt(i));
@@ -1625,6 +1625,7 @@ vncClient::vncClient()
 	m_remoteevent = FALSE;
 
 	m_bDownloadStarted = FALSE;
+  m_bUploadStarted = FALSE;
 
 	// IMPORTANT: Initially, client is not protocol-ready.
 	m_protocol_ready = FALSE;

@@ -322,8 +322,6 @@ void ClientConnection::Run()
 	start_undetached();
 }
 
-static WNDCLASS wndclass;	// FIXME!
-
 void ClientConnection::CreateDisplay() 
 {
 	// Create the window

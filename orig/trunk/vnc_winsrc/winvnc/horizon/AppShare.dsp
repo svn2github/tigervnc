@@ -58,7 +58,7 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib wsock32.lib omnithread_rtd.lib libjpeg.lib VNCHooks.lib zlib.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"libcmtd.lib" /pdbtype:sept /libpath:"." /libpath:".." /libpath:"$(WINVNC_HOME)" /libpath:"$(WINVNC_HOME)\Debug"
 # SUBTRACT BASE LINK32 /nodefaultlib
-# ADD LINK32 comctl32.lib htmlhelp.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib wsock32.lib shlwapi.lib omnithread_rt.lib libjpeg.a libz.a VNCHOOKS.lib /nologo /subsystem:windows /pdb:none /machine:I386 /out:"C:\Documents and Settings\Administrator\Application Data\HorizonLive\SecureDoor\HZSDControl\2.0.0.0\Doors\appshare_1_8_3\data\Release-AppShare.exe" /libpath:"./lib/libjpeg" /libpath:"./lib/zlib" /libpath:"./HorizonLive" /libpath:"C:\Program Files\HTML Help Workshop\lib"
+# ADD LINK32 comctl32.lib htmlhelp.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib wsock32.lib shlwapi.lib omnithread_rt.lib libjpeg.a libz.a VNCHOOKS.lib /nologo /subsystem:windows /pdb:none /machine:I386 /out:"\\u\u\Temp\jeffo\4.1.x\Release-AppShare.exe" /libpath:"./lib/libjpeg" /libpath:"./lib/zlib" /libpath:"./HorizonLive" /libpath:"C:\Program Files\HTML Help Workshop\lib"
 # SUBTRACT LINK32 /debug
 
 !ELSEIF  "$(CFG)" == "AppShare - Win32 Debug"
@@ -89,7 +89,7 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib wsock32.lib shlwapi.lib omnithread_rt.lib libjpeg.lib VNCHooks.lib zlib.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"libcmt.lib" /out:"./HorizonLive/LiveShare.exe" /pdbtype:sept /libpath:"./HorizonLive"
 # SUBTRACT BASE LINK32 /pdb:none
-# ADD LINK32 comctl32.lib htmlhelp.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib wsock32.lib shlwapi.lib omnithread_rt.lib libjpeg.a libz.a VNCHOOKS.lib /nologo /subsystem:windows /map /debug /machine:I386 /nodefaultlib:"libcmt.lib" /out:"C:\Documents and Settings\Administrator\Application Data\HorizonLive\SecureDoor\HZSDControl\2.0.0.0\Doors\appshare_1_8_5\data\AppShare.exe" /pdbtype:sept /libpath:"./lib/libjpeg" /libpath:"./lib/zlib" /libpath:"./HorizonLiveDebug" /libpath:"C:\Program Files\HTML Help Workshop\lib"
+# ADD LINK32 comctl32.lib htmlhelp.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib wsock32.lib shlwapi.lib omnithread_rt.lib libjpeg.a libz.a VNCHOOKS.lib /nologo /subsystem:windows /map /debug /machine:I386 /nodefaultlib:"libcmt.lib" /out:"C:\Documents and Settings\Administrator\Application Data\HorizonLive\SecureDoor\HZSDControl\2.0.0.0\Doors\appshare_1_8_7\data\AppShare.exe" /pdbtype:sept /libpath:"./lib/libjpeg" /libpath:"./lib/zlib" /libpath:"./HorizonLiveDebug" /libpath:"C:\Program Files\HTML Help Workshop\lib"
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "AppShare - Win32 TightVNC"

@@ -53,7 +53,7 @@ class rfbProto {
 
   final static int EncodingRaw = 0, EncodingCopyRect = 1, EncodingRRE = 2,
     EncodingCoRRE = 4, EncodingHextile = 5, EncodingZlib = 6,
-    EncodingTight = 7;
+    EncodingTight = 7, EncodingCompressLevel0 = 0xFFFFFF00;
 
   final int HextileRaw			= (1 << 0);
   final int HextileBackgroundSpecified	= (1 << 1);

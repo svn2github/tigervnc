@@ -1197,11 +1197,11 @@ vncProperties::Load(BOOL usersettings)
 	m_server->SetDisableTrayIcon(LoadInt(hkLocal, "DisableTrayIcon", false));
 
 	// Authentication required, loopback allowed, loopbackOnly
-	m_server->SetLoopbackOnly(LoadInt(hkLocal, "LoopbackOnly", false));
-	if (m_server->LoopbackOnly())
-		m_server->SetLoopbackOk(true);
+	m_server->SetLoopbackOk(LoadInt(hkLocal, "AllowLoopback", false));
+	if (!m_server->LoopbackOk())
+		m_server->SetLoopbackOnly(false);
 	else
-		m_server->SetLoopbackOk(LoadInt(hkLocal, "AllowLoopback", false));
+		m_server->SetLoopbackOnly(LoadInt(hkLocal, "LoopbackOnly", false));
 	m_server->SetHttpdEnabled(LoadInt(hkLocal, "EnableHTTPDaemon", true),
 							  LoadInt(hkLocal, "EnableURLParams", false));
 	m_server->SetAuthRequired(LoadInt(hkLocal, "AuthRequired", true));

@@ -16,6 +16,8 @@ AdministrationControls::AdministrationControls(HWND hwnd, vncServer * server)
 }
 void AdministrationControls::Validate()
 {
+	if (!IsChecked(IDALLOWLOOPBACK))
+		SetChecked(IDONLYLOOPBACK, false);
 	Enable(IDONLYLOOPBACK, IsChecked(IDALLOWLOOPBACK));
 	Enable(IDLOGLOTS, IsChecked(IDLOG));
 }

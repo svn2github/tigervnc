@@ -74,7 +74,7 @@ VNCOptions::VNCOptions()
 
 	m_useCompressLevel = false;
 	m_compressLevel = 6;
-	m_enableJpegCompression = false;
+	m_enableJpegCompression = true;
 	m_jpegQualityLevel = 6;
 	m_requestShapeUpdates = true;
 	m_ignoreShapeUpdates = false;
@@ -265,6 +265,8 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 			m_Emul3Buttons = true;
 		} else if ( SwitchMatch(args[j], _T("noemulate3") )) {
 			m_Emul3Buttons = false;
+		} else if ( SwitchMatch(args[j], _T("nojpeg") )) {
+			m_enableJpegCompression = false;
 		} else if ( SwitchMatch(args[j], _T("nocursorshape") )) {
 			m_requestShapeUpdates = false;
 		} else if ( SwitchMatch(args[j], _T("noremotecursor") )) {
@@ -407,7 +409,6 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 				ArgError(_T("No image quality level specified"));
 				continue;
 			}
-			m_enableJpegCompression = true;
 			if (_stscanf(args[j], _T("%d"), &m_jpegQualityLevel) != 1) {
 				ArgError(_T("Invalid image quality level specified"));
 				continue;
@@ -513,6 +514,7 @@ void VNCOptions::Load(char *fname)
 		m_compressLevel = level;
 	}
 	level =					readInt("quality",			-1,				fname);
+	m_enableJpegCompression = false;
 	if (level != -1) {
 		m_enableJpegCompression = true;
 		m_jpegQualityLevel = level;
@@ -581,7 +583,7 @@ void VNCOptions::ShowUsage(LPTSTR info) {
 			"      [/belldeiconify] [/listen] [/fullscreen] [/viewonly] \n\r"
 			"      [/emulate3] [/scale a/b] [/config configfile] \n\r"
 			"      [/encoding encname] [/compresslevel n] [/quality n] \n\r"
-			"      [/nocursorshape] [/noremotecursor] server[:display]\n\r"
+			"      [/nojpeg] [/nocursorshape] [/noremotecursor] server[:display]\n\r"
 			"For full details see documentation."), 
 #endif
         tmpinf);

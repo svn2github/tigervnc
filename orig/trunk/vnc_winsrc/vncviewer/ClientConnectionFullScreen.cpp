@@ -91,7 +91,7 @@ bool ClientConnection::BumpScroll(int x, int y)
 	int dy = 0;
 	int rightborder;
 	int bottomborder;
-	if (pApp->m_options.m_AutoScrolling) {
+	if (!InFullScreenMode()) {
 		RECT rect;
 		GetClientRect(m_hwnd, &rect);
 		rightborder	= rect.right-BUMPSCROLLBORDER;

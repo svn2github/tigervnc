@@ -55,6 +55,7 @@ VNCOptions::VNCOptions()
 	m_DeiconifyOnBell = false;
 	m_DisableClipboard = false;
 	m_localCursor = DOTCURSOR;
+	m_FitWindow = false;
 	m_scaling = false;
 	m_scale_num = 100;
 	m_scale_den = 100;
@@ -123,6 +124,7 @@ VNCOptions& VNCOptions::operator=(VNCOptions& s)
 	m_DeiconifyOnBell	= s.m_DeiconifyOnBell;
 	m_DisableClipboard  = s.m_DisableClipboard;
 	m_scaling			= s.m_scaling;
+	m_FitWindow			= s.m_FitWindow;
 	m_scale_num			= s.m_scale_num;
 	m_scale_den			= s.m_scale_den;
 	m_localCursor		= s.m_localCursor;
@@ -187,14 +189,14 @@ int gcd(int a, int b) {
 void VNCOptions::FixScaling() {
 	if (m_scale_num < 1 || m_scale_den < 1) {
 		MessageBox(NULL,  _T("Invalid scale factor - resetting to normal scale"), 
-			_T("Argument error"),MB_OK | MB_TOPMOST | MB_ICONWARNING);
+				_T("Argument error"),MB_OK | MB_TOPMOST | MB_ICONWARNING);
 		m_scale_num = 1;
 		m_scale_den = 1;	
 		m_scaling = false;
 	}
 	int g = gcd(m_scale_num, m_scale_den);
 	m_scale_num /= g;
-	m_scale_den /= g;	
+	m_scale_den /= g;
 }
 
 void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
@@ -313,6 +315,8 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 		} else if ( SwitchMatch(args[j], _T("noremotecursor") )) {
 			m_requestShapeUpdates = true;
 			m_ignoreShapeUpdates = true;
+		} else if ( SwitchMatch(args[j], _T("fitwindow") )) {
+			m_FitWindow = true;
 		} else if ( SwitchMatch(args[j], _T("scale") )) {
 			if (++j == i) {
 				ArgError(_T("No scaling factor specified"));
@@ -469,7 +473,7 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 	// reduce scaling factors by greatest common denominator
 	FixScaling();
 
-	m_scaling = (m_scale_num != 1 || m_scale_den != 1);			
+	m_scaling = (m_scale_num != 1 || m_scale_den != 1 || m_FitWindow);			
 
 	// tidy up
 	delete [] cmd;
@@ -508,6 +512,7 @@ void VNCOptions::Save(char *fname)
 	saveInt("emulate3fuzz",			m_Emul3Fuzz,		fname);
 	saveInt("disableclipboard",		m_DisableClipboard, fname);
 	saveInt("localcursor",			m_localCursor,		fname);
+	saveInt("fitwindow",			m_FitWindow,		fname);
 	saveInt("scale_den",			m_scale_den,		fname);
 	saveInt("scale_num",			m_scale_num,		fname);
 	saveInt("cursorshape",			m_requestShapeUpdates, fname);
@@ -540,6 +545,7 @@ void VNCOptions::Load(char *fname)
 	m_Emul3Fuzz =			readInt("emulate3fuzz",		m_Emul3Fuzz,    fname);
 	m_DisableClipboard =	readInt("disableclipboard", m_DisableClipboard, fname) != 0;
 	m_localCursor =			readInt("localcursor",		m_localCursor,	fname);
+	m_FitWindow =			readInt("fitwindow",		m_FitWindow,	fname) != 0;
 	m_scale_den =			readInt("scale_den",		m_scale_den,	fname);
 	m_scale_num =			readInt("scale_num",		m_scale_num,	fname);
 	m_requestShapeUpdates =	readInt("cursorshape",		m_requestShapeUpdates, fname) != 0;
@@ -785,18 +791,19 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 			
 			HWND hViewOnly = GetDlgItem(hwnd, IDC_VIEWONLY);
 			SendMessage(hViewOnly, BM_SETCHECK, _this->m_ViewOnly, 0);
-			int scalecombo[7] = {
-				25,50,75,90,100,125,150
+			char scalecombo[8][20] = {
+				"25","50","75","90","100","125","150","Auto"
 			};
 			HWND hScalEdit = GetDlgItem(hwnd, IDC_SCALE_EDIT);
-			TCHAR list[4];
-			for (i = 0; i <= 6; i++) {
-				itoa(scalecombo[i],list, 10);
+			for (i = 0; i <= 7; i++) {
 				SendMessage(hScalEdit, CB_INSERTSTRING, (WPARAM)i,
-							(LPARAM)(int FAR*)list);
+							(LPARAM)(int FAR*)scalecombo[i]);
 			}
-						
-			SetDlgItemInt(hwnd, IDC_SCALE_EDIT, (( _this->m_scale_num*100) / _this->m_scale_den), FALSE);
+			if (_this->m_FitWindow) {
+				SetDlgItemText(hwnd, IDC_SCALE_EDIT, "Auto");
+			} else {	
+				SetDlgItemInt(hwnd, IDC_SCALE_EDIT, (( _this->m_scale_num*100) / _this->m_scale_den), FALSE);
+			}
 			
 #ifndef UNDER_CE
 			HWND hFullScreen = GetDlgItem(hwnd, IDC_FULLSCREEN);
@@ -937,15 +944,18 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 				int i = SendMessage(hListBox, CB_GETCURSEL, 0, 0);
 				_this->m_PreferredEncoding = rfbcombo[i].rfbEncoding;					
 				HWND hScalEdit = GetDlgItem(hwnd, IDC_SCALE_EDIT);
-				int error;
-				i = GetDlgItemInt(hwnd, IDC_SCALE_EDIT, &error, FALSE);
+				i = GetDlgItemInt(hwnd, IDC_SCALE_EDIT, NULL, FALSE);
 				if (i > 0) {
 					_this->m_scale_num = i;
 					_this->m_scale_den = 100;
+					_this->m_FitWindow = false;
+				} else {
+					TCHAR buf[20];
+					GetDlgItemText(hwnd, IDC_SCALE_EDIT, buf, 20);
+					_this->m_FitWindow = strcmp(buf, "Auto") == 0;
 				}
-
-				_this->m_scaling = !(_this->m_scale_num == 100);
 				_this->FixScaling();
+				_this->m_scaling = (_this->m_scale_num > 1) || (_this->m_scale_den > 1);
 				
 				HWND hCopyRect = GetDlgItem(hwnd, ID_SESSION_SET_CRECT);
 				_this->m_UseEnc[rfbEncodingCopyRect] =
@@ -1360,14 +1370,15 @@ void VNCOptions::EnableLog(HWND hwnd, bool enable)
 void VNCOptions::Lim(HWND hwnd, int control, DWORD min, DWORD max)
 {
 	int buf;
+	int error;
 	buf=GetDlgItemInt(hwnd, control,
-					NULL, FALSE);
-	if (buf > max) {
+					&error, FALSE);
+	if (buf > max && error) {
 		buf = max;
 		SetDlgItemInt(hwnd, control,
 					buf, FALSE);
 	}
-	if (buf < min) {
+	if (buf < min && error) {
 		buf = min;
 		SetDlgItemInt(hwnd, control,
 					buf, FALSE);
@@ -1399,6 +1410,7 @@ void VNCOptions::LoadOpt(char subkey[256], char keyname[256])
 	m_Emul3Timeout =		read(RegKey, "emulate3timeout",   m_Emul3Timeout         );
 	m_Emul3Fuzz =			read(RegKey, "emulate3fuzz",	  m_Emul3Fuzz            );
 	m_DisableClipboard =	read(RegKey, "disableclipboard",  m_DisableClipboard     ) != 0;
+	m_FitWindow =			read(RegKey, "fitwindow",		  m_FitWindow		     ) != 0;
 	m_scale_den =			read(RegKey, "scale_den",         m_scale_den	         );
 	m_scale_num =			read(RegKey, "scale_num",         m_scale_num	         );
 	m_requestShapeUpdates =	read(RegKey, "cursorshape",       m_requestShapeUpdates	 ) != 0;
@@ -1452,6 +1464,7 @@ int VNCOptions::read(HKEY hkey, char *name, int retrn)
 	save(RegKey, "emulate3timeout",		m_Emul3Timeout		);
 	save(RegKey, "emulate3fuzz",		m_Emul3Fuzz			);
 	save(RegKey, "disableclipboard",	m_DisableClipboard  );
+	save(RegKey, "fitwindow",			m_FitWindow			);
 	save(RegKey, "scale_den",			m_scale_den			);
 	save(RegKey, "scale_num",			m_scale_num			);
 	save(RegKey, "cursorshape",			m_requestShapeUpdates );

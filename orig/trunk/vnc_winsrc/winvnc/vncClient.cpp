@@ -155,7 +155,12 @@ vncClientThread::InitAuthenticate()
 	vncPasswd::ToText plain(password);
 
 	// Verify the peer host name against the AuthHosts string
-	vncServer::AcceptQueryReject verified = m_server->VerifyHost(m_socket->GetPeerName());
+	vncServer::AcceptQueryReject verified;
+	if (m_auth) {
+		verified = vncServer::aqrAccept;
+	} else {
+		verified = m_server->VerifyHost(m_socket->GetPeerName());
+	}
 	
 	// If necessary, query the connection with a timed dialog
 	if (verified == vncServer::aqrQuery) {
@@ -168,12 +173,12 @@ vncClientThread::InitAuthenticate()
 			res = acceptDlg->DoDialog();
 		if ((acceptDlg == 0) || !res)
 		{
-			log.Print(LL_CLIENTS, VNCLOG("user rejected client in accept dialog\n"));
+			vnclog.Print(LL_CLIENTS, VNCLOG("user rejected client in accept dialog\n"));
 			return FALSE;
 		}
 		if (auth_failed && (res != 2))  // must accept with no password if pwd failed!
 		{
-			log.Print(LL_CLIENTS, VNCLOG("user rejected client (failed auth) in accept dialog\n"));
+			vnclog.Print(LL_CLIENTS, VNCLOG("user rejected client (failed auth) in accept dialog\n"));
 			return FALSE;
 		}
 	}
@@ -419,7 +424,7 @@ vncClientThread::run(void *arg)
 
 	// Authenticated OK - remove from blacklist and remove timeout
 	m_server->RemAuthHostsBlacklist(m_client->GetClientName());
-	m_socket->SetTimeout(0);
+	m_socket->SetTimeout(m_server->AutoIdleDisconnectTimeout()*1000);
 	vnclog.Print(LL_INTINFO, VNCLOG("authenticated connection\n"));
 
 	// INIT PIXEL FORMAT
@@ -486,7 +491,8 @@ vncClientThread::run(void *arg)
 	if (m_client->m_keyboardenabled)
 	{
 		ClearKeyState(VK_CAPITAL);
-		ClearKeyState(VK_NUMLOCK);
+		// *** JNW - removed because people complain it's wrong
+		//ClearKeyState(VK_NUMLOCK);
 		ClearKeyState(VK_SCROLL);
 	}
 
@@ -791,15 +797,17 @@ vncClientThread::run(void *arg)
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbClientCutTextMsg-1))
 			{
 				// Allocate storage for the text
-				const length = Swap32IfLE(msg.cct.length);
+				const UINT length = Swap32IfLE(msg.cct.length);
 				char *text = new char [length+1];
 				if (text == NULL)
 					break;
+				text[length] = 0;
 
 				// Read in the text
-				if (!m_socket->ReadExact(text, length))
+				if (!m_socket->ReadExact(text, length)) {
+					delete [] text;
 					break;
-				text[length] = 0;
+				}
 
 				// Get the server to update the local clipboard
 				m_server->UpdateLocalClipText(text);
@@ -1086,9 +1094,9 @@ vncClient::UpdateRegion(vncRegion &region)
 	{	omni_mutex_lock l(m_regionLock);
 		
 		// Merge the two
-vncRegion dummy;
-dummy.AddRect(m_fullscreen);
-region.Intersect(dummy);
+		vncRegion dummy;
+		dummy.AddRect(m_fullscreen);
+		region.Intersect(dummy);
 
 		m_changed_rgn.Combine(region);
 	}

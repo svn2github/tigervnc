@@ -51,6 +51,20 @@ const UINT MENU_SERVICEHELPER_MSG = RegisterWindowMessage("WinVNC.ServiceHelper.
 const UINT MENU_ADD_CLIENT_MSG = RegisterWindowMessage("WinVNC.AddClient.Message");
 const char *MENU_CLASS_NAME = "WinVNC Tray Icon";
 
+static void
+KillWallpaper()
+{
+	// Tell all applications that there is no wallpaper
+	// Note that this doesn't change the wallpaper registry setting!
+	SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, "", SPIF_SENDCHANGE);
+}
+
+static void
+RestoreWallpaper()
+{
+	SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, NULL, SPIF_SENDCHANGE);
+}
+
 // Implementation
 
 vncMenu::vncMenu(vncServer *server)
@@ -293,6 +307,13 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 	case WM_SRV_CLIENT_DISCONNECT:
 		// Adjust the icon accordingly
 		_this->FlashTrayIcon(_this->m_server->AuthClientCount() != 0);
+
+		if (_this->m_server->AuthClientCount() != 0) {
+			if (_this->m_server->RemoveWallpaperEnabled())
+				KillWallpaper();
+		} else {
+			RestoreWallpaper();
+		}
 		return 0;
 
 		// STANDARD MESSAGE HANDLING
@@ -427,17 +448,15 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 		return 0;
 
 	case WM_QUERYENDSESSION:
-		// Are we running as a system service?
-		// Or is the system shutting down (in which case we should check anyway!)
-		if ((!vncService::RunningAsService()) || (lParam == 0))
+		// Are we running as a system service, or shutting the system down?
+		if (!vncService::RunningAsService() || (lParam == 0))
 		{
 			// No, so we are about to be killed
 
 			// If there are remote connections then we should verify
 			// that the user is happy about killing them.
 
-			if ((!vncService::RunningAsService()) &&
-				(_this->m_server->AuthClientCount() > 0))
+			if (!vncService::RunningAsService() && (_this->m_server->AuthClientCount() > 0))
 			{
 				if (MessageBox(NULL,
 					"There are remote clients connected to this computer.\n"

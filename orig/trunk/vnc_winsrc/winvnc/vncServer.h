@@ -239,6 +239,14 @@ public:
 	virtual void SetLockSettings(int ok) {m_lock_on_exit = ok;};
 	virtual int LockSettings() {return m_lock_on_exit;};
 
+	// Timeout for automatic disconnection of idle connections
+	virtual void SetAutoIdleDisconnectTimeout(const UINT timeout) {m_idle_timeout = timeout;};
+	virtual UINT AutoIdleDisconnectTimeout() {return m_idle_timeout;};
+
+	// Removal of desktop wallpaper, etc
+	virtual void EnableRemoveWallpaper(const BOOL enable) {m_remove_wallpaper = enable;};
+	virtual BOOL RemoveWallpaperEnabled() {return m_remove_wallpaper;};
+
 	// Internal stuffs
 protected:
 	// Connection servers
@@ -269,6 +277,9 @@ protected:
 	BOOL				m_queryaccept;
 	BOOL				m_queryallownopass;
 	BOOL				m_clients_disabled;
+	UINT				m_idle_timeout;
+
+	BOOL				m_remove_wallpaper;
 
 	// Polling preferences
 	BOOL				m_poll_fullscreen;

@@ -95,8 +95,8 @@ vncEncodeHexT::NumCodedRects(RECT &rect)
 UINT
 vncEncodeHexT::EncodeRect(BYTE *source, BYTE *dest, const RECT &rect)
 {
-	const rectW = rect.right - rect.left;
-	const rectH = rect.bottom - rect.top;
+	const UINT rectW = rect.right - rect.left;
+	const UINT rectH = rect.bottom - rect.top;
 	int encodedResult;
 
 	// Create the rectangle header

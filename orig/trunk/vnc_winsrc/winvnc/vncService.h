@@ -69,6 +69,8 @@ public:
 	// Routines to establish which OS we're running on
 	static BOOL IsWin95();
 	static BOOL IsWinNT();
+	static DWORD VersionMajor();
+	static DWORD VersionMinor();
 
 	// Routine to establish whether the current instance is running
 	// as a service or not

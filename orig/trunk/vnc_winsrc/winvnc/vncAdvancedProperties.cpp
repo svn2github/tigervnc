@@ -85,9 +85,9 @@ vncAdvancedProperties::Show(BOOL show, BOOL usersettings)
 		if (!m_dlgvisible)
 		{
 			if (usersettings)
-				log.Print(LL_INTINFO, VNCLOG("show per-user Advanced Properties\n"));
+				vnclog.Print(LL_INTINFO, VNCLOG("show per-user Advanced Properties\n"));
 			else
-				log.Print(LL_INTINFO, VNCLOG("show default system Advanced Properties\n"));
+				vnclog.Print(LL_INTINFO, VNCLOG("show default system Advanced Properties\n"));
 
 			// Load in the settings relevant to the user or system
 			Load(usersettings);
@@ -104,7 +104,7 @@ vncAdvancedProperties::Show(BOOL show, BOOL usersettings)
 				if (!m_returncode_valid)
 				    result = IDCANCEL;
 
-				log.Print(LL_INTINFO, VNCLOG("dialog result = %d\n"), result);
+				vnclog.Print(LL_INTINFO, VNCLOG("dialog result = %d\n"), result);
 
 				if (result == -1)
 				{
@@ -214,14 +214,14 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 			if (priority == 0)
 				CheckDlgButton(hwnd, IDPRIORITY0, BST_CHECKED);
 
-			BOOL logstate = (log.GetMode() >= 2);
+			BOOL logstate = (vnclog.GetMode() >= 2);
 			if (logstate)
 				CheckDlgButton(hwnd, IDLOG, BST_CHECKED);
 			else
 				CheckDlgButton(hwnd, IDLOG, BST_UNCHECKED);
 			HWND hLogLots = GetDlgItem(hwnd, IDLOGLOTS);
 			EnableWindow(hLogLots, logstate);
-			if (log.GetLevel() > 5)
+			if (vnclog.GetLevel() > 5)
 				CheckDlgButton(hwnd, IDLOGLOTS, BST_CHECKED);
 			else
 				CheckDlgButton(hwnd, IDLOGLOTS, BST_UNCHECKED);
@@ -282,14 +282,14 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 				_this->m_server->SetLoopbackOnly(IsDlgButtonChecked(hwnd, IDONLYLOOPBACK));
 
 				if (IsDlgButtonChecked(hwnd, IDLOG))
-					log.SetMode(2);
+					vnclog.SetMode(2);
 				else
-					log.SetMode(0);
+					vnclog.SetMode(0);
 
 				if (IsDlgButtonChecked(hwnd, IDLOGLOTS))
-					log.SetLevel(10);
+					vnclog.SetLevel(10);
 				else
-					log.SetLevel(2);
+					vnclog.SetLevel(2);
 
 				// And to the registry
 				_this->Save();
@@ -298,7 +298,7 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 				if (LOWORD(wParam) == IDOK)
 				{
 					// Yes, so close the dialog
-					log.Print(LL_INTINFO, VNCLOG("enddialog (OK)\n"));
+					vnclog.Print(LL_INTINFO, VNCLOG("enddialog (OK)\n"));
 
 					_this->m_returncode_valid = TRUE;
 
@@ -310,7 +310,7 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 			}
 
 		case IDCANCEL:
-			log.Print(LL_INTINFO, VNCLOG("enddialog (CANCEL)\n"));
+			vnclog.Print(LL_INTINFO, VNCLOG("enddialog (CANCEL)\n"));
 
 			_this->m_returncode_valid = TRUE;
 
@@ -477,9 +477,9 @@ vncAdvancedProperties::Load(BOOL usersettings)
 	// LOAD THE MACHINE-LEVEL PREFS
 
 	// Logging/debugging prefs
-	log.Print(LL_INTINFO, VNCLOG("loading local-only settings\n"));
-	log.SetMode(LoadInt(hkLocal, "DebugMode", 0));
-	log.SetLevel(LoadInt(hkLocal, "DebugLevel", 0));
+	vnclog.Print(LL_INTINFO, VNCLOG("loading local-only settings\n"));
+	vnclog.SetMode(LoadInt(hkLocal, "DebugMode", 0));
+	vnclog.SetLevel(LoadInt(hkLocal, "DebugLevel", 0));
 
 	// Authentication required, loopback allowed, loopbackOnly
 	m_server->SetLoopbackOnly(LoadInt(hkLocal, "LoopbackOnly", false));
@@ -505,7 +505,7 @@ vncAdvancedProperties::Load(BOOL usersettings)
 	// LOAD THE USER PREFERENCES
 
 	// Set the default user prefs
-	log.Print(LL_INTINFO, VNCLOG("clearing user settings\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("clearing user settings\n"));
 	m_pref_QuerySetting=2;
 	m_pref_QueryTimeout=30;
 	m_pref_QueryAccept=FALSE;
@@ -514,7 +514,7 @@ vncAdvancedProperties::Load(BOOL usersettings)
 	// Load the local prefs for this user
 	if (hkDefault != NULL)
 	{
-		log.Print(LL_INTINFO, VNCLOG("loading DEFAULT local settings\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("loading DEFAULT local settings\n"));
 		LoadUserPrefs(hkDefault);
 	}
 
@@ -524,7 +524,7 @@ vncAdvancedProperties::Load(BOOL usersettings)
 
 		if (hkLocalUser != NULL)
 		{
-			log.Print(LL_INTINFO, VNCLOG("loading \"%s\" local settings\n"), username);
+			vnclog.Print(LL_INTINFO, VNCLOG("loading \"%s\" local settings\n"), username);
 			LoadUserPrefs(hkLocalUser);
 		}
 
@@ -538,7 +538,7 @@ vncAdvancedProperties::Load(BOOL usersettings)
 				0, REG_NONE, REG_OPTION_NON_VOLATILE,
 				KEY_READ, NULL, &hkGlobalUser, &dw) == ERROR_SUCCESS)
 			{
-				log.Print(LL_INTINFO, VNCLOG("loading \"%s\" global settings\n"), username);
+				vnclog.Print(LL_INTINFO, VNCLOG("loading \"%s\" global settings\n"), username);
 				LoadUserPrefs(hkGlobalUser);
 				RegCloseKey(hkGlobalUser);
 
@@ -547,7 +547,7 @@ vncAdvancedProperties::Load(BOOL usersettings)
 			}
 		}
 	} else {
-		log.Print(LL_INTINFO, VNCLOG("bypassing user-specific settings (both local and global)\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("bypassing user-specific settings (both local and global)\n"));
 	}
 
 	if (hkLocalUser != NULL) RegCloseKey(hkLocalUser);
@@ -601,14 +601,14 @@ vncAdvancedProperties::ApplyUserPrefs()
 	//m_server->SetLoopbackOnly(IsDlgButtonChecked(hwnd, IDONLYLOOPBACK));
 
 	//if (IsDlgButtonChecked(hwnd, IDLOG))
-	//	log.SetMode(2);
+	//	vnclog.SetMode(2);
 	//else
-	//	log.SetMode(0);
+	//	vnclog.SetMode(0);
 
 	//if (IsDlgButtonChecked(hwnd, IDLOGLOTS))
-	//	log.SetLevel(12);
+	//	vnclog.SetLevel(12);
 	//else
-	//	log.SetLevel(2);
+	//	vnclog.SetLevel(2);
 }
 
 void
@@ -678,8 +678,8 @@ vncAdvancedProperties::Save()
 		KEY_WRITE | KEY_READ, NULL, &hkLocal, &dw) != ERROR_SUCCESS)
 		return;
 	SaveInt(hkLocal, "ConnectPriority", m_server->ConnectPriority());
-	SaveInt(hkLocal, "DebugMode", log.GetMode());
-	SaveInt(hkLocal, "DebugLevel", log.GetLevel());
+	SaveInt(hkLocal, "DebugMode", vnclog.GetMode());
+	SaveInt(hkLocal, "DebugLevel", vnclog.GetLevel());
 	SaveInt(hkLocal, "LoopbackOnly", m_server->LoopbackOnly());
 	SaveInt(hkLocal, "AllowLoopback", m_server->LoopbackOk());
 	SaveInt(hkLocal, "AuthRequired", m_server->AuthRequired());
@@ -693,7 +693,7 @@ void
 vncAdvancedProperties::SaveUserPrefs(HKEY appkey)
 {
 	// SAVE THE PER USER PREFS
-	log.Print(LL_INTINFO, VNCLOG("saving current settings to registry\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("saving current settings to registry\n"));
 
 	// Connection querying settings
 	SaveInt(appkey, "QuerySetting", m_server->QuerySetting());

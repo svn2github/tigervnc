@@ -90,6 +90,22 @@ void Log::OpenFile()
 
     m_tofile  = true;
     
+	// If there's an existing log and we're not appending then move it
+	if (!m_append)
+	{
+		// Build the backup filename
+		char *backupfilename = new char[strlen(m_filename)+5];
+		if (backupfilename)
+		{
+			strcpy(backupfilename, m_filename);
+			strcat(backupfilename, ".bak");
+			// Attempt the move and replace any existing backup
+			// Note that failure is silent - where would we log a message to? ;)
+			MoveFileEx(m_filename, backupfilename, MOVEFILE_REPLACE_EXISTING);
+			delete [] backupfilename;
+		}
+	}
+
     // If filename is NULL or invalid we should throw an exception here
     hlogfile = CreateFile(
         m_filename,  GENERIC_WRITE, FILE_SHARE_READ, NULL,

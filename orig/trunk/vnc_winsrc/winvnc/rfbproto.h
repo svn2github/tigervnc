@@ -141,8 +141,8 @@ typedef struct {
  * The server always sends 12 bytes to start which identifies the latest RFB
  * protocol version number which it supports.  These bytes are interpreted
  * as a string of 12 ASCII characters in the format "RFB xxx.yyy\n" where
- * xxx and yyy are the major and minor version numbers (for version 3.3
- * this is "RFB 003.003\n").
+ * xxx and yyy are the major and minor version numbers (for version 3.5
+ * this is "RFB 003.005\n").
  *
  * The client then replies with a similar 12-byte message giving the version
  * number of the protocol which should actually be used (which may be different
@@ -283,9 +283,6 @@ typedef struct {
 #define rfbKeyEvent 4
 #define rfbPointerEvent 5
 #define rfbClientCutText 6
-
-
-
 
 /*****************************************************************************
  *

@@ -29,6 +29,7 @@
 #include "stdhdrs.h"
 #include "vncAcceptDialog.h"
 #include "WinVNC.h"
+#include "vncService.h"
 
 #include "resource.h"
 
@@ -119,7 +120,26 @@ BOOL CALLBACK vncAcceptDialog::vncAcceptDlgProc(HWND hwnd,
 
 			SetForegroundWindow(hwnd);
 
-			MessageBeep(MB_OK);
+			// Attempt to mimic Win98/2000 dialog behaviour
+			if ((vncService::IsWinNT() && (vncService::VersionMajor() <= 4)) ||
+				(vncService::IsWin95() && (vncService::VersionMinor() == 0)))
+			{
+				// Perform special hack to display the dialog safely
+				if (GetWindowThreadProcessId(GetForegroundWindow(), NULL) != GetCurrentProcessId())
+				{
+					// We can't set our dialog as foreground if the foreground window
+					// doesn't belong to us - it's unsafe!
+					SetActiveWindow(hwnd);
+					_this->m_foreground_hack = TRUE;
+					_this->m_flash_state = FALSE;
+				}
+			}
+			if (!_this->m_foreground_hack) {
+				SetForegroundWindow(hwnd);
+			}
+
+			// Beep
+			MessageBeep(MB_ICONEXCLAMATION);
             
 			SetForegroundWindow(hwnd);
 
@@ -138,6 +158,17 @@ BOOL CALLBACK vncAcceptDialog::vncAcceptDlgProc(HWND hwnd,
 			}
 		}
 		_this->m_timeoutCount--;
+
+		// Flash if necessary
+		if (_this->m_foreground_hack) {
+			if (GetWindowThreadProcessId(GetForegroundWindow(), NULL) != GetCurrentProcessId())
+			{
+				_this->m_flash_state = !_this->m_flash_state;
+				FlashWindow(hwnd, _this->m_flash_state);
+			} else {
+				_this->m_foreground_hack = FALSE;
+			}
+		}
 
 		// Update the displayed count
 		char temp[256];

@@ -205,7 +205,7 @@ vncBuffer::CheckBuffer()
 	m_bytesPerRow = m_scrinfo.framebufferWidth * m_scrinfo.format.bitsPerPixel/8;
 
 	// Check the client buffer is sufficient
-	const clientbuffsize =
+	const UINT clientbuffsize =
 	    m_encoder->RequiredBuffSize(m_scrinfo.framebufferWidth,
 					m_scrinfo.framebufferHeight);
 	if (m_clientbuffsize != clientbuffsize)
@@ -417,8 +417,10 @@ vncBuffer::CopyRect(RECT &dest, POINT &source)
 RECT
 vncBuffer::GrabMouse()
 {
-	if (FastCheckMainbuffer())
+	if (FastCheckMainbuffer()) {
+		m_desktop->CaptureScreen(m_desktop->MouseRect(), m_mainbuff, m_mainsize);
 		m_desktop->CaptureMouse(m_mainbuff, m_mainsize);
+	}
 	return m_desktop->MouseRect();
 }
 
@@ -677,19 +679,11 @@ vncBuffer::Clear(RECT &rect)
 UINT
 vncBuffer::TranslateRect(const RECT &rect, VSocket *outConn)
 {
-	int result;
-
 	if (!FastCheckMainbuffer())
 		return 0;
 
 	// Call the encoder to encode the rectangle into the client buffer...
-	result = m_encoder->EncodeRect(m_mainbuff, outConn, m_clientbuff, rect);
-
-	// Output statistics, if logging level high enough.
-	// This is overkill outside of developer testing.  Needed during close/shutdown.
-	// m_encoder->LogStats();
-
-	return result;
+	return m_encoder->EncodeRect(m_backbuff, outConn, m_clientbuff, rect);
 }
 
 // Verify that the fast blit buffer hasn't changed

@@ -125,13 +125,9 @@ vncDesktopThread::run_undetached(void *arg)
 
 	// START PROCESSING DESKTOP MESSAGES
 
-	// Add the window into the clipboard system, so we get notified if it changes
-	// *** This MUST be done AFTER ReturnVal, otherwise a deadlock can occur,
-	// This is because when the SetClipboardViewer function is called, it causes
-	// this thread to attempt to update any clients' clipboards, which involves
-	// locking the vncServer object.  But the vncServer object is already locked
-	// by the thread which is waiting for ReturnVal to be called...
-	m_desktop->m_hnextviewer = SetClipboardViewer(m_desktop->Window());
+	// We set a flag inside the desktop handler here, to indicate it's now safe
+	// to handle clipboard messages
+	m_desktop->SetClipboardActive(TRUE);
 
 	// All UpdateRect messages are cached into a region cache object and are
 	// only passed to clients immediately before TriggerUpdate is called!
@@ -234,8 +230,10 @@ vncDesktopThread::run_undetached(void *arg)
 			rect.top = (SHORT) HIWORD(msg.wParam);
 			rect.right = (SHORT) LOWORD(msg.lParam);
 			rect.bottom = (SHORT) HIWORD(msg.lParam);
-if ((rect.left < 0) || (rect.top < 0) || (rect.right > m_desktop->m_bmrect.right) || (rect.bottom > m_desktop->m_bmrect.bottom))
-	vnclog.Print(LL_INTINFO, VNCLOG("update:(%d,%d)-(%d,%d)\n"), rect.left, rect.top, rect.right, rect.bottom);
+			if ((rect.left < 0) || (rect.top < 0) ||
+				(rect.right > m_desktop->m_bmrect.right) || (rect.bottom > m_desktop->m_bmrect.bottom))
+				vnclog.Print(50, VNCLOG("update:%d,%dx%d,%d\n"),
+					rect.left, rect.top, rect.right, rect.bottom);
 
 			rgncache.AddRect(rect);
 //			m_server->UpdateRect(rect);
@@ -255,6 +253,8 @@ if ((rect.left < 0) || (rect.top < 0) || (rect.right > m_desktop->m_bmrect.right
 			DispatchMessage(&msg);
 	}
 
+	m_desktop->SetClipboardActive(FALSE);
+	
 	vnclog.Print(LL_INTINFO, VNCLOG("quitting desktop server thread\n"));
 
 	// Clear all the hooks and close windows, etc.
@@ -292,6 +292,8 @@ vncDesktop::vncDesktop()
 	// Vars for Will Dean's DIBsection patch
 	m_DIBbits = NULL;
 	m_formatmunged = FALSE;
+
+	m_clipboard_active = FALSE;
 }
 
 vncDesktop::~vncDesktop()
@@ -443,7 +445,6 @@ vncDesktop::Shutdown()
 }
 
 // Routine to ensure we're on the correct NT desktop
-// This routine calls the vncNTOnly class, which implements NT specific WinVNC functions
 
 BOOL
 vncDesktop::InitDesktop()
@@ -462,29 +463,18 @@ KillScreenSaverFunc(HWND hwnd, LPARAM lParam)
 {
 	char buffer[256];
 
-	if (GetClassName(hwnd, buffer, 256) == 0)
-		vnclog.Print(LL_INTINFO, VNCLOG("HWND->null\n"));
-	else
-		vnclog.Print(LL_INTINFO, VNCLOG("HWND->\"%s\"\n"), buffer);
-
-	PostMessage(hwnd, WM_CLOSE, 0, 0);
+	// - ONLY try to close Screen-saver windows!!!
+	if ((GetClassName(hwnd, buffer, 256) != 0) &&
+		(strcmp(buffer, "WindowsScreenSaverClass") == 0))
+		PostMessage(hwnd, WM_CLOSE, 0, 0);
 	return TRUE;
 }
 
 void
 vncDesktop::KillScreenSaver()
 {
-	// *** THIS IS STILL BROKEN! ***
-	// *** THIS CODE CAN CAUSE APPS TO BE CLOSED BY WINVNC ***
-	// *** LOOK INTO THIS... ***
-	return;
-
 	OSVERSIONINFO osversioninfo;
 	osversioninfo.dwOSVersionInfoSize = sizeof(osversioninfo);
-
-	// *** If we're running as a service then we don't kill the screensaver
-	if (vncService::RunningAsService())
-		return;
 
 	// Get the current OS version
 	if (!GetVersionEx(&osversioninfo))
@@ -524,7 +514,7 @@ vncDesktop::KillScreenSaver()
 				EnumDesktopWindows(hDesk, (WNDENUMPROC) &KillScreenSaverFunc, 0);
 				CloseDesktop(hDesk);
 				// Pause long enough for the screen-saver to close
-				Sleep(2000);
+				//Sleep(2000);
 				// Reset the screen saver so it can run again
 				SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, TRUE, 0, SPIF_SENDWININICHANGE); 
 			}
@@ -1227,6 +1217,9 @@ vncDesktop::InitWindow()
 	// Set the "this" pointer for the window
 	SetWindowLong(m_hwnd, GWL_USERDATA, (long)this);
 
+	// Enable clipboard hooking
+	m_hnextviewer = SetClipboardViewer(m_hwnd);
+
 	return TRUE;
 }
 
@@ -1715,7 +1708,8 @@ DesktopWndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	case WM_DRAWCLIPBOARD:
 		// The clipboard contents have changed
 		if((GetClipboardOwner() != _this->Window()) &&
-		    _this->m_initialClipBoardSeen)
+		    _this->m_initialClipBoardSeen &&
+			_this->m_clipboard_active)
 		{
 			LPSTR cliptext = NULL;
 

@@ -120,6 +120,8 @@ protected:
 	// Init routines called by the child thread
 	BOOL InitDesktop();
 	void KillScreenSaver();
+	void KillWallpaper();
+	void RestoreWallpaper();
 
 	void ChangeResNow();
 	void DisablePattern();
@@ -145,6 +147,9 @@ protected:
 	// Convert a bit mask eg. 00111000 to max=7, shift=3
 	static void MaskToMaxAndShift(DWORD mask, CARD16 &max, CARD8 &shift);
 	
+	// Enabling & disabling clipboard handling
+	void SetClipboardActive(BOOL active) {m_clipboard_active = active;};
+
 	// DATA
 
 	// Generally useful stuff
@@ -153,6 +158,7 @@ protected:
 	HWND			m_hwnd;
 	UINT			m_timerid;
 	HWND			m_hnextviewer;
+	BOOL			m_clipboard_active;
 
 	// device contexts for memory and the screen
 	HDC				m_hmemdc;

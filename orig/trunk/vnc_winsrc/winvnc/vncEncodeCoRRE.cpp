@@ -217,8 +217,8 @@ vncEncodeCoRRE::EncodeRect(BYTE *source, BYTE *dest, const RECT &rect)
 	// Do the encoding
 	UINT size = InternalEncodeRect(source, dest, rect);
 
-	const rectW = rect.right - rect.left;
-	const rectH = rect.bottom - rect.top;
+	const UINT rectW = rect.right - rect.left;
+	const UINT rectH = rect.bottom - rect.top;
 
 	// Will this rectangle have been split for encoding?
 	if ((rectW>m_maxwidth) || (rectH>m_maxheight))
@@ -300,8 +300,8 @@ vncEncodeCoRRE::EncodeSmallRect(BYTE *source, BYTE *dest, const RECT &rect)
 {
 	int subrects = -1;
 
-	const rectW = rect.right - rect.left;
-	const rectH = rect.bottom - rect.top;
+	const UINT rectW = rect.right - rect.left;
+	const UINT rectH = rect.bottom - rect.top;
 
 	// Create the rectangle header
 	rfbFramebufferUpdateRectHeader *surh=(rfbFramebufferUpdateRectHeader *)dest;

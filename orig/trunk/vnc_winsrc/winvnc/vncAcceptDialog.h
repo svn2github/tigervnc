@@ -65,6 +65,10 @@ private:
 	UINT m_timeoutSecs;
 	UINT m_timeoutCount;
 
+	// Flashing hack
+	BOOL m_foreground_hack;
+	BOOL m_flash_state;
+
 	// Address of the offending machine
 	char *m_ipAddress;
 

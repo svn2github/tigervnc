@@ -270,8 +270,8 @@ vncEncodeRRE::EncodeRect(BYTE *source, BYTE *dest, const RECT &rect)
 {
 	int subrects = -1;
 
-	const rectW = rect.right - rect.left;
-	const rectH = rect.bottom - rect.top;
+	const UINT rectW = rect.right - rect.left;
+	const UINT rectH = rect.bottom - rect.top;
 
 	// Create the rectangle header
 	rfbFramebufferUpdateRectHeader *surh=(rfbFramebufferUpdateRectHeader *)dest;

@@ -50,6 +50,8 @@ vncService init;
 
 DWORD	g_platform_id;
 BOOL	g_impersonating_user = 0;
+DWORD	g_version_major;
+DWORD	g_version_minor;
 
 vncService::vncService()
 {
@@ -60,6 +62,8 @@ vncService::vncService()
     if (!GetVersionEx(&osversioninfo))
 	    g_platform_id = 0;
     g_platform_id = osversioninfo.dwPlatformId;
+	g_version_major = osversioninfo.dwMajorVersion;
+	g_version_minor = osversioninfo.dwMinorVersion;
 }
 
 // CurrentUser - fills a buffer with the name of the current user!
@@ -161,6 +165,19 @@ BOOL
 vncService::IsWinNT()
 {
 	return (g_platform_id == VER_PLATFORM_WIN32_NT);
+}
+
+// Version info
+DWORD
+vncService::VersionMajor()
+{
+	return g_version_major;
+}
+
+DWORD
+vncService::VersionMinor()
+{
+	return g_version_minor;
 }
 
 // Internal routine to find the WinVNC menu class window and

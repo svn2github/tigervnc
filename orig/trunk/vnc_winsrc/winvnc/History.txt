@@ -1,5 +1,131 @@
 WinVNC Version History
 
+Version 3.3.3 (VNC Version 3.3.3, revision 9)
+Changes from Version 3.3.3 Revision 8:
+
+	Fixed handling of empty (match all) AuthHosts filters.
+
+	WinVNC.log will now be moved to WinVNC.log.bak when WinVNC runs.
+
+Version 3.3.3 (VNC Version 3.3.3, revision 8)
+Changes from Version 3.3.3 Revision 7:
+
+-=-	Bug Fixes to WinVNC:
+
+	Fixed clipboard handling.
+
+	Fixed AddClient semantics in vncServer to avoid a socket leak.
+
+	Fixed AuthHosts dialog display.  Now flashes titlebar/tray button if not foreground window.
+
+	Fixed AuthHosts string parsing.  Filters such as 10.0.0.1 no longer match 10.0.0.10.
+
+	QuerySetting didn't work correctly if the AuthHosts string was empty.  Fixed.
+
+	Closing the screen-saver now works, so it's back in there.
+
+	Changed the shutdown-dialog behaviour.  It now only operates in application mode.
+
+-=-	Bug Fixes to VNCHooks:
+
+	Added HooksType() function to VNChooks so that the library may be replaced with a reliable
+	hooking version easily.
+	
+	VNCHooks DLL did not remove properties from windows correctly when
+	UnsetHooks() was called.  Fixed.
+
+-=-	Minor Fixes
+
+	Implemented the wallpaper-culling feature during remote connections.
+
+	Added automatic culling of "idle" connections, if required, via the IdleTimeout setting.
+	An idle connection is one in which the client has sent no data for a fixed period,
+	whether the data be an update request, input events, or clipboard data.
+
+	Only incoming connections are now checked for validity.  Outgoing (Add New Client)
+	or CORBA-initiated connections are not checked via AuthHosts.
+
+Version 3.3.3 (VNC Version 3.3.3, revision 7)
+Changes from Version 3.3.3 Revision 6:
+
+	WinVNC did not correctly handle Winsock1.1, causing all client connections to be
+	erroneously dropped by the anti-DoS code.  Now fixed.
+
+Version 3.3.3 (VNC Version 3.3.3, revision 6)
+Changes from Version 3.3.3 Revision 4:
+
+	The anti denial-of-service blacklist code was very buggy.  It's now fixed.
+
+	An serious potential deadlock condition in the negotiation phase of new
+	clients has been fixed.  The problem was incredibly rare on uniprocessors
+	but much more noticable on multiprocessors, unsurprisingly.
+
+	Pointer is now rendered slightly better.
+
+Version 3.3.3 (VNC Version 3.3.3, revision 4)
+Changes from Version 3.3.3 Revision 3:
+
+	Implemented some simple Denial-of-Service protection.  After five consecutive failed
+	connection attempts from a client, that client is "blacklisted" for ten seconds.
+	In addition, connections which hang before the authentication stage has completed are
+	timed out after thirty seconds, to prevent malicious users gradually eating up socket
+	resources.
+
+	Corrected a bug initialising the back-buffer.
+
+	Added hooking for dialog boxes, menus and scrollbars.  Seems to fix some dialogs but not
+	many scrollbars or menus..
+
+	Improved the GetChangesRect code with some alignment patches suggested by Will Dean.
+
+	Fixed an *IDIOTIC* bug in the handling of user-specific settings.  They were completely
+	broken before.  Now they should work.  I'm such an idiot.  Idiot idiot idiot.
+	See MS Knowledge Base article Q168877 & Q199190.
+
+	The idiot bug-fix above broke roaming profiles on NT domains!  That's now fixed, too.
+	Idiot idiot idiot.
+
+	Added a dialog to query whether to accept or reject incoming connections.  The dialog is
+	currently controlled ONLY via the registry!  The AuthHosts setting is now extended, while
+	some new user-specific settings are provided so that users can tailor the query feature.
+	Relevant keys are:
+	- QuerySetting (DWORD) (local&global user-specific)
+		[Least secure]
+		0 - Accept or Query.  If AuthHosts says Reject then query, otherwise Accept.
+		1 - Accept or Reject.  Reject if AuthHosts says so, otherwise Accept.
+		2 - Obey AuthHosts.  Obey AuthHosts Accept, Query, Reject settings. [Default!]
+		3 - Query or Reject.  If AuthHosts says Reject then Reject, otherwise Query.
+		4 - Ultimate Paranoia.  If AuthHosts says Accept then Query, otherwise Reject!
+		[Most secure]
+
+		Summary:	Actual Effect
+		Setting		Accept	Query	Reject
+		0			a		a		q
+		1			a		a		r
+		2			a		q		r
+		3			q		q		r
+		4			q		r		r
+
+	- QueryTimeout (DWORD) (local&global user-specific)
+		Number of seconds before Accept/Reject dialog should timeout and reject.
+	- AuthHosts (SZ) (machine-local)
+		Match terms may now start with "-", "+" or "?".  "?" indicates that the connection
+		attempt should be queried.
+
+Version 3.3.3 (VNC Version 3.3.3, revision 3)
+Changes from Version 3.3.3 Revision 2:
+
+	Implemented Will Dean's DIBsection patch to retrive screen data.  This reduces
+	both the retrieval time & the memory usage of WinVNC but currently only works
+	for VNC-format-compatible 16 and 32 bit displays.  If your display is incompatible
+	then WinVNC falls back to the old, slow, memory hungry mode.
+
+	Fixed a bug in VNCHooks which cause very large updates to be spuriously created on occasion.
+
+	vncKeymap now filters out the three Lock keys (CapsLock, NumLock, ScrollLock), so that
+	they can be safely used at the client side without generating random keystrokes on the
+	server.
+
 Version 3.3.3 (VNC Version 3.3.3, revision 2)
 Changes from Version 3.3.3 Revision 1:
 

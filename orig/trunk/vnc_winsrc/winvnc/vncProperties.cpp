@@ -480,7 +480,7 @@ vncProperties::DialogProc(HWND hwnd,
 			return TRUE;
 
 		case IDADVANCED:
-			log.Print(LL_INTINFO, VNCLOG("newdialog (ADVANCED)\n"));
+			vnclog.Print(LL_INTINFO, VNCLOG("newdialog (ADVANCED)\n"));
 			{
 				_this->EnableControls(FALSE, hwnd, _this);
 				_this->m_inadvanced = TRUE;
@@ -822,6 +822,7 @@ vncProperties::Load(BOOL usersettings)
 	m_pref_QueryTimeout=30;
 	m_pref_QueryAccept=FALSE;
 	m_pref_QueryAllowNoPass=FALSE;
+	m_pref_IdleTimeout=0;
 	m_pref_EnableRemoteInputs=TRUE;
 	m_pref_DisableLocalInputs=FALSE;
 	m_pref_LockSettings=-1;
@@ -830,6 +831,7 @@ vncProperties::Load(BOOL usersettings)
 	m_pref_PollFullScreen=FALSE;
 	m_pref_PollConsoleOnly=TRUE;
 	m_pref_PollOnEventOnly=FALSE;
+	m_pref_RemoveWallpaper=TRUE;
 	m_allowshutdown = TRUE;
 	m_allowproperties = TRUE;
 
@@ -898,6 +900,9 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	m_pref_PortNumber=LoadInt(appkey, "PortNumber", m_pref_PortNumber);
 	m_pref_BeepConnect=LoadInt(appkey, "BeepConnect", m_pref_BeepConnect);
 	m_pref_BeepDisconnect=LoadInt(appkey, "BeepDisconnect", m_pref_BeepDisconnect);
+	m_pref_IdleTimeout=LoadInt(appkey, "IdleTimeout", m_pref_IdleTimeout);
+	
+	m_pref_RemoveWallpaper=LoadInt(appkey, "RemoveWallpaper", m_pref_RemoveWallpaper);
 
 	// Connection querying settings
 	m_pref_QuerySetting=LoadInt(appkey, "QuerySetting", m_pref_QuerySetting);
@@ -934,6 +939,8 @@ vncProperties::ApplyUserPrefs()
 	m_server->SetQueryTimeout(m_pref_QueryTimeout);
 	m_server->SetQueryAccept(m_pref_QueryAccept);
 	m_server->SetQueryAllowNoPass(m_pref_QueryAllowNoPass);
+	m_server->SetAutoIdleDisconnectTimeout(m_pref_IdleTimeout);
+	m_server->EnableRemoveWallpaper(m_pref_RemoveWallpaper);
 
 	// Is the listening socket closing?
 	if (!m_pref_SockConnect)
@@ -1059,6 +1066,7 @@ vncProperties::SaveUserPrefs(HKEY appkey)
 		SaveInt(appkey, "PortNumber", m_server->GetPort());
 	SaveInt(appkey, "InputsEnabled", m_server->RemoteInputsEnabled());
 	SaveInt(appkey, "LocalInputsDisabled", m_server->LocalInputsDisabled());
+	SaveInt(appkey, "IdleTimeout", m_server->AutoIdleDisconnectTimeout());
 
 	// Connection querying settings
 	SaveInt(appkey, "QuerySetting", m_server->QuerySetting());
@@ -1082,4 +1090,3 @@ vncProperties::SaveUserPrefs(HKEY appkey)
 	SaveInt(appkey, "OnlyPollConsole", m_server->PollConsoleOnly());
 	SaveInt(appkey, "OnlyPollOnEvent", m_server->PollOnEventOnly());
 }
-

@@ -202,6 +202,7 @@ vncServer::AddClient(VSocket *socket, BOOL auth, BOOL shared,
 		clientid = (clientid+1) % MAX_CLIENTS;
 		if (clientid == m_nextid)
 		{
+			delete socket;
 			return -1;
 		}
 	}
@@ -209,8 +210,10 @@ vncServer::AddClient(VSocket *socket, BOOL auth, BOOL shared,
 
 	// Create a new client and add it to the relevant client list
 	client = new vncClient();
-	if (client == NULL)
+	if (client == NULL) {
+		delete socket;
 		return -1;
+	}
 
 	// Set the client's settings
 	client->SetTeleport(teleport);
@@ -1162,14 +1165,18 @@ vncServer::AuthHosts() {
 }
 
 inline BOOL
-MatchStringToTemplate(const char *str, UINT len,
-				      const char *temp, UINT templen) {
-	if (len < templen)
+MatchStringToTemplate(const char *addr, UINT addrlen,
+				      const char *filtstr, UINT filtlen) {
+	if (filtlen == 0)
+		return 1;
+	if (addrlen < filtlen)
 		return 0;
-	for (int x = 0; x < templen; x++) {
-		if (str[x] != temp[x])
+	for (int x = 0; x < filtlen; x++) {
+		if (addr[x] != filtstr[x])
 			return 0;
 	}
+	if ((addrlen > filtlen) && (addr[filtlen] != '.'))
+		return 0;
 	return 1;
 }
 
@@ -1229,12 +1236,6 @@ vncServer::VerifyHost(const char *hostname) {
 		current = current->_next;
 	}
 
-	// Has an AuthHosts filter been specified?
-	if (m_auth_hosts == 0) {
-		vnclog.Print(LL_INTWARN, VNCLOG("verify succeeded - null filter\n"));
-		return AdjustVerification(vncServer::aqrAccept);
-	}
-
 	// Has a hostname been specified?
 	if (hostname == 0) {
 		vnclog.Print(LL_INTWARN, VNCLOG("verify failed - null hostname\n"));
@@ -1253,61 +1254,62 @@ vncServer::VerifyHost(const char *hostname) {
 	UINT hostNameLen = strlen(hostname);
 
 	// Run through the auth hosts string until we hit the end
-	while (1) {
+	if (m_auth_hosts) {
+		while (1) {
 
-		// Which mode are we in?
-		switch (machineMode) {
+			// Which mode are we in?
+			switch (machineMode) {
 
-			// ExpectIncludeExclude - we should see a + or -.
-		case vh_ExpectIncludeExclude:
-			if (m_auth_hosts[authHostsPos] == '+') {
-				patternType = vncServer::aqrAccept;
-				patternStart = authHostsPos+1;
-				machineMode = vh_ExpectPattern;
-			} else if (m_auth_hosts[authHostsPos] == '-') {	
-				patternType = vncServer::aqrReject;
-				patternStart = authHostsPos+1;
-				machineMode = vh_ExpectPattern;
-			} else if (m_auth_hosts[authHostsPos] == '?') {	
-				patternType = vncServer::aqrQuery;
-				patternStart = authHostsPos+1;
-				machineMode = vh_ExpectPattern;
-			} else if (m_auth_hosts[authHostsPos] != '\0') {
-				vnclog.Print(LL_INTWARN, VNCLOG("verify host - malformed AuthHosts string\n"));
-				machineMode = vh_ExpectDelimiter;
-			}
-			break;
+				// ExpectIncludeExclude - we should see a + or -.
+			case vh_ExpectIncludeExclude:
+				if (m_auth_hosts[authHostsPos] == '+') {
+					patternType = vncServer::aqrAccept;
+					patternStart = authHostsPos+1;
+					machineMode = vh_ExpectPattern;
+				} else if (m_auth_hosts[authHostsPos] == '-') {	
+					patternType = vncServer::aqrReject;
+					patternStart = authHostsPos+1;
+					machineMode = vh_ExpectPattern;
+				} else if (m_auth_hosts[authHostsPos] == '?') {	
+					patternType = vncServer::aqrQuery;
+					patternStart = authHostsPos+1;
+					machineMode = vh_ExpectPattern;
+				} else if (m_auth_hosts[authHostsPos] != '\0') {
+					vnclog.Print(LL_INTWARN, VNCLOG("verify host - malformed AuthHosts string\n"));
+					machineMode = vh_ExpectDelimiter;
+				}
+				break;
 
-			// ExpectPattern - we expect to see a valid pattern
-		case vh_ExpectPattern:
-			// ExpectDelimiter - we're scanning for the next ':', skipping a pattern
-		case vh_ExpectDelimiter:
-			if ((m_auth_hosts[authHostsPos] == ':') ||
-				(m_auth_hosts[authHostsPos] == '\0')) {
-				if (machineMode == vh_ExpectPattern) {
-					if (patternStart == 0) {
-						vnclog.Print(LL_INTWARN, VNCLOG("verify host - pattern processing failed!\n"));
-					} else {
-
-						// Process the match
-						if (MatchStringToTemplate(hostname, hostNameLen,
-							&(m_auth_hosts[patternStart]), authHostsPos-patternStart)) {
-							// The hostname matched - apply the include/exclude rule
-							verifiedHost = patternType;
+				// ExpectPattern - we expect to see a valid pattern
+			case vh_ExpectPattern:
+				// ExpectDelimiter - we're scanning for the next ':', skipping a pattern
+			case vh_ExpectDelimiter:
+				if ((m_auth_hosts[authHostsPos] == ':') ||
+					(m_auth_hosts[authHostsPos] == '\0')) {
+					if (machineMode == vh_ExpectPattern) {
+						if (patternStart == 0) {
+							vnclog.Print(LL_INTWARN, VNCLOG("verify host - pattern processing failed!\n"));
+						} else {
+							// Process the match
+							if (MatchStringToTemplate(hostname, hostNameLen,
+								&(m_auth_hosts[patternStart]), authHostsPos-patternStart)) {
+								// The hostname matched - apply the include/exclude rule
+								verifiedHost = patternType;
+							}
 						}
 					}
+
+					// We now expect another + or -
+					machineMode = vh_ExpectIncludeExclude;
 				}
-
-				// We now expect another + or -
-				machineMode = vh_ExpectIncludeExclude;
+				break;
 			}
-			break;
-		}
 
-		// Have we hit the end of the pattern string?
-		if (m_auth_hosts[authHostsPos] == '\0')
-			break;
-		authHostsPos++;
+			// Have we hit the end of the pattern string?
+			if (m_auth_hosts[authHostsPos] == '\0')
+				break;
+			authHostsPos++;
+		}
 	}
 
 	return AdjustVerification(verifiedHost);

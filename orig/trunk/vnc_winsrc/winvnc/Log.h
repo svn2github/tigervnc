@@ -7,8 +7,8 @@
 //
 // Typical use:
 //
-//       Log log;
-//       log.SetFile( _T("myapp.log") );
+//       Log vnclog;
+//       vnclog.SetFile( _T("myapp.log") );
 //       ...
 //       vnclog.Print(2, _T("x = %d\n"), x);
 //

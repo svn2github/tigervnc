@@ -306,7 +306,7 @@ FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "Query console on incoming connections",IDQUERY,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,7,7,211,12
-    LTEXT           "Query timeout:",IDC_STATIC_TIMEOUT,19,22,67,12,
+    LTEXT           "Query timeout:",IDC_STATIC_TIMEOUT,19,23,67,10,
                     SS_CENTERIMAGE
     EDITTEXT        IDQUERYTIMEOUT,89,22,22,12,ES_AUTOHSCROLL | ES_NUMBER
     LTEXT           "Default action:",IDC_STATIC_ACTION,19,37,67,12,
@@ -318,6 +318,7 @@ BEGIN
     CONTROL         "Allow option to accept without authentication",
                     IDQUERYALLOWNOPASS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
                     7,52,211,12
+    LTEXT           "seconds",IDC_STATIC_SECONDS,115,23,35,11,SS_CENTERIMAGE
 END
 
 IDD_ADMINISTRATION DIALOG DISCARDABLE  0, 0, 292, 115
@@ -510,8 +511,11 @@ BEGIN
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 230
+        VERTGUIDE, 19
         TOPMARGIN, 7
         BOTTOMMARGIN, 83
+        HORZGUIDE, 28
+        HORZGUIDE, 43
     END
 
     IDD_ADMINISTRATION, DIALOG
@@ -795,6 +799,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    IDC_STATIC_DRVINFO      "Here you can see information about using the mirror display driver."
     IDC_CONNECT_SOCK        "This option controls whether it is possible to connect to this computer with a VNC Viewer. Clearing the checkbox will ensure that remote connections won't be accepted."
 END
 
@@ -833,7 +838,6 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDC_STATIC_DRVINFO      "Here you can see information about using the mirror display driver."
     IDC_STATIC_ACTION       "Default action:"
     IDC_STATIC_TEMPORARY    "Temporary"
     IDC_STATIC_CONN_PRIOR   "Connection Priority"

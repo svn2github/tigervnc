@@ -46,6 +46,7 @@
 #define IDR_AUTHUNIXLOGIN_CLASS         153
 #define IDR_CAPINFO_CLASS               154
 #define IDR_CAPSCONTAINER_CLASS         155
+#define IDC_STATIC_DRVINFO              1003
 #define IDC_CONNECT_SOCK                1004
 #define IDC_PASSWORD_LABEL              1007
 #define IDC_DISPLAYNO                   1008
@@ -122,7 +123,7 @@
 #define IDC_HTTP_LABEL                  1086
 #define IDC_TAB                         1087
 #define IDC_DISPLAY_LABEL               1088
-#define IDC_STATIC_DRVINFO              1089
+#define IDC_STATIC_SECONDS              1089
 #define IDC_STATIC_TIMEOUT              1090
 #define IDC_STATIC_ACTION               1091
 #define IDC_STATIC_TEMPORARY            1092

@@ -155,23 +155,22 @@
 #define IDC_CLIENTCREATEDIR             1131
 #define IDC_LISTEN_PORT                 1132
 #define IDC_BUTTON3                     1133
-#define IDC_SERVERRENAME                1133
 #define IDC_SERVERUP                    1134
 #define IDC_BUTTON4                     1135
 #define IDC_CLIENTDELETE                1135
 #define IDC_CLIENTRELOAD                1136
 #define IDC_BUTTON5                     1137
+#define IDC_RENAME                      1137
 #define IDC_CLIENTUP                    1138
 #define IDC_LOG_BROWSE                  1139
 #define IDC_SERVERCREATEDIR             1140
 #define IDC_EDITDIRNAME                 1141
 #define IDC_AUTO_SCROLLING              1142
-#define IDC_SERVERDELETE                1143
 #define IDC_FILETRANSFERPERCENT         1145
 #define IDC_CURRENTFILEPERCENT          1146
 #define IDC_PROGRESS                    1147
-#define IDC_CLIENTRENAME                1150
 #define IDC_MAINTEXT                    1151
+#define IDC_DELETE                      1154
 #define ID_SESSION_SET_CRECT            32777
 #define IDC_ALLOW_COMPRESSLEVEL         32778
 #define IDC_ALLOW_JPEG                  32779
@@ -188,7 +187,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        251
 #define _APS_NEXT_COMMAND_VALUE         40011
-#define _APS_NEXT_CONTROL_VALUE         1154
+#define _APS_NEXT_CONTROL_VALUE         1155
 #define _APS_NEXT_SYMED_VALUE           244
 #endif
 #endif

@@ -191,28 +191,26 @@ void DisableButton::ShowButton(BOOL show)
 }
 
 LRESULT CALLBACK DisableButton::DisableProc(HWND hwnd, UINT iMsg,
-									WPARAM wParam, LPARAM lParam)
+											WPARAM wParam, LPARAM lParam)
 {
-	DisableButton *_this = (DisableButton*)GetWindowLong(hwnd,GWL_USERDATA);
+	DisableButton *_this = (DisableButton*)GetWindowLong(hwnd, GWL_USERDATA);
 
-	switch (iMsg)
-	{
+	switch (iMsg) {
 	case WM_PAINT:
 		{
 			PAINTSTRUCT ps;
 			BeginPaint(hwnd, &ps);
-			BitBlt(ps.hdc, 0, 0, 24, 24, _this->m_hdcCompat,
-					0, 0, SRCCOPY);
-			EndPaint(hwnd, &ps);			
+			BitBlt(ps.hdc, 0, 0, 24, 24, _this->m_hdcCompat, 0, 0, SRCCOPY);
+			EndPaint(hwnd, &ps);
 		}
-		break; 
+		break;
 	case WM_MOUSEMOVE:
 		{
-			POINTS ptsMousePoint=MAKEPOINTS(lParam);
+			POINTS ptsMousePoint = MAKEPOINTS(lParam);
 			POINT ptMousePoint;
 			ptMousePoint.x = ptsMousePoint.x;
 			ptMousePoint.y = ptsMousePoint.y;
-			ClientToScreen(hwnd,&ptMousePoint);
+			ClientToScreen(hwnd, &ptMousePoint);
 			RECT wrect;
 			GetWindowRect(hwnd, &wrect);
 			HWND hOld = GetCapture();
@@ -224,9 +222,8 @@ LRESULT CALLBACK DisableButton::DisableProc(HWND hwnd, UINT iMsg,
 				SetCapture(_this->m_hOldCap);
 				ClipCursor(&_this->m_rectOldCur);
 			}
-			
-			if (_this->m_ButtonDown)
-			{				
+
+			if (_this->m_ButtonDown) {
 				POINT newpos;
 				newpos.x = wrect.left - (_this->m_MousePoint.x - ptMousePoint.x);
 				newpos.y = wrect.top - (_this->m_MousePoint.y - ptMousePoint.y);
@@ -245,17 +242,15 @@ LRESULT CALLBACK DisableButton::DisableProc(HWND hwnd, UINT iMsg,
 		POINTS ptsMousePoint = MAKEPOINTS(lParam);
 		_this->m_MousePoint.x = ptsMousePoint.x;
 		_this->m_MousePoint.y = ptsMousePoint.y;
-		ClientToScreen(hwnd,&_this->m_MousePoint);
-		break;	
+		ClientToScreen(hwnd, &_this->m_MousePoint);
+		break;
 	case WM_LBUTTONUP:
 		_this->m_ButtonDown = FALSE;
 		break;
 	case WM_DESTROY: 
-		// Destroy compatible bitmap, 
-		// and the bitmap.  
-		DeleteDC(_this->m_hdcCompat); 
-		DeleteObject(_this->m_hbmp);  
-		break; 
+		DeleteDC(_this->m_hdcCompat);
+		DeleteObject(_this->m_hbmp);
+		break;
 	default:
 		return DefWindowProc(hwnd, iMsg, wParam, lParam);
 	}

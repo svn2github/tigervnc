@@ -6,6 +6,7 @@ CP = cp
 JC = javac
 JAR = jar
 ARCHIVE = VncViewer.jar
+MANIFEST = MANIFEST.MF
 PAGES = index.vnc
 INSTALL_DIR = /usr/local/vnc/classes
 
@@ -26,8 +27,8 @@ all: $(CLASSES) $(ARCHIVE)
 $(CLASSES): $(SOURCES)
 	$(JC) -O $(SOURCES)
 
-$(ARCHIVE): $(CLASSES)
-	$(JAR) cf $(ARCHIVE) $(CLASSES)
+$(ARCHIVE): $(CLASSES) $(MANIFEST)
+	$(JAR) cfm $(ARCHIVE) $(MANIFEST) $(CLASSES)
 
 install: $(CLASSES) $(ARCHIVE)
 	$(CP) $(CLASSES) $(ARCHIVE) $(PAGES) $(INSTALL_DIR)

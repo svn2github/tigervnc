@@ -194,15 +194,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 					strncpy(name, &(szCmdLine[start]), end-start);
 					name[end-start] = 0;
 
-#ifdef HORIZONLIVE
-					int port = 0;
-#else
 					int port = INCOMING_PORT_OFFSET;
-#endif
 					char *portp = strchr(name, ':');
-					if (portp) {
+					if (portp != NULL) {
 						*portp++ = '\0';
-						port += atoi(portp);
+						if (*portp == ':') {
+							port = atoi(++portp);
+						} else {
+							port += atoi(portp);
+						}
 					}
 
 					VCard32 address = VSocket::Resolve(name);

@@ -115,8 +115,8 @@ vncVideoDriver::Activate_video_driver()
 		vnclog.Print(LL_INTERR, VNCLOG("No '%s' found.\n"), MIRROR_driverName);
 		return FALSE;
 	}
-    vnclog.Print(LL_INTERR, VNCLOG("DevNum:%d\nName:%s\nString:%s\n\n"),devNum,&dd.DeviceName[0],&dd.DeviceString[0]);
-	vnclog.Print(LL_INTERR, VNCLOG("Sreen Settings'%i %i %i'\n"),devmode.dmPelsWidth,devmode.dmPelsHeight,devmode.dmBitsPerPel);
+    vnclog.Print(LL_INTINFO, VNCLOG("DevNum:%d\nName:%s\nString:%s\n\n"),devNum,&dd.DeviceName[0],&dd.DeviceString[0]);
+	vnclog.Print(LL_INTINFO, VNCLOG("Sreen Settings'%i %i %i'\n"),devmode.dmPelsWidth,devmode.dmPelsHeight,devmode.dmBitsPerPel);
 	CHAR deviceNum[MAX_PATH];
 	strcpy(&deviceNum[0], "DEVICE0");
 	HKEY hKeyProfileMirror = (HKEY)0;

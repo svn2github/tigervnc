@@ -1,17 +1,32 @@
-// ControlPanel.h: interface for the ControlPanel class.
+// Copyright (C) 2004 TightVNC Development Team. All Rights Reserved.
 //
-//////////////////////////////////////////////////////////////////////
+//  TightVNC is free software; you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation; either version 2 of the License, or
+//  (at your option) any later version.
+//
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with this program; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
+//  USA.
+//
+// TightVNC homepage on the Web: http://www.tightvnc.com/
 
-#if !defined(AFX_CONTROLPANEL_H__3F8F2C78_5C46_4A06_96B4_66EF1D01F5C7__INCLUDED_)
-#define AFX_CONTROLPANEL_H__3F8F2C78_5C46_4A06_96B4_66EF1D01F5C7__INCLUDED_
+// ControlPanel.h: interface for the ControlPanel class.
+
+#ifndef AFX_CONTROLPANEL_H__
+#define AFX_CONTROLPANEL_H__
 
 #include "resource.h"
 #include "vncServer.h"
 #include "commctrl.h"
 
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
 class ControlPanel  
 {
@@ -42,4 +57,4 @@ protected:
     vncClientList m_clients;
 };
 
-#endif // !defined(AFX_CONTROLPANEL_H__3F8F2C78_5C46_4A06_96B4_66EF1D01F5C7__INCLUDED_)
+#endif

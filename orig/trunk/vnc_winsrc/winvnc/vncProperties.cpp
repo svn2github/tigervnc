@@ -1344,9 +1344,13 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 
 	// Connection querying settings
 	m_pref_QuerySetting=LoadInt(appkey, "QuerySetting", m_pref_QuerySetting);
+	m_server->SetQuerySetting(m_pref_QuerySetting);
 	m_pref_QueryTimeout=LoadInt(appkey, "QueryTimeout", m_pref_QueryTimeout);
+	m_server->SetQueryTimeout(m_pref_QueryTimeout);
 	m_pref_QueryAccept=LoadInt(appkey, "QueryAccept", m_pref_QueryAccept);
+	m_server->SetQueryAccept(m_pref_QueryAccept);
 	m_pref_QueryAllowNoPass=LoadInt(appkey, "QueryAllowNoPass", m_pref_QueryAllowNoPass);
+	m_server->SetQueryAllowNoPass(m_pref_QueryAllowNoPass);
 
 	// Load the primary password
 	LoadPassword(appkey, m_pref_passwd, "Password");

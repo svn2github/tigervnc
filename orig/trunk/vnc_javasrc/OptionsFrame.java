@@ -273,7 +273,6 @@ class OptionsFrame extends Frame
       if (jpegQuality >= 0 && jpegQuality <= 9) {
 	encodings[nEncodings++] =
 	  RfbProto.EncodingQualityLevel0 + jpegQuality;
-	System.out.println("JPEG " + jpegQuality);
       } else {
 	jpegQuality = -1;
       }

@@ -1388,21 +1388,30 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 			LPNMHDR pn = (LPNMHDR)lParam;
 			switch (pn->code) {
 			case UDN_DELTAPOS: 
-				{
+				{	int max;
 					NMUPDOWN lpnmud = *(LPNMUPDOWN) lParam;
 					NMHDR hdr = lpnmud.hdr;
 					HWND hCtrl = (HWND)SendMessage(hdr.hwndFrom, UDM_GETBUDDY, 0, 0);
 					long ctrl = GetDlgCtrlID(hCtrl);
 					int h = GetDlgItemInt( hwnd, ctrl, NULL, TRUE);
 					if (lpnmud.iDelta > 0) {
-						h = h - 1;
-						if (h == 0) {
-							h = 1;
-						}
+						h = h - 1;						
 					} else {
 						h = h + 1;	
 					}
-					SetDlgItemInt( hwnd, ctrl, h, FALSE);				
+					SetDlgItemInt( hwnd, ctrl, h, FALSE);
+					switch (ctrl) {
+					case IDC_EDIT_AMOUNT_LIST:
+						max = 64;
+						break;
+					case IDC_EDIT_LOG_LEVEL:
+						max = 12;
+						break;
+					case IDC_LISTEN_PORT:
+						max = 6553;
+						break;
+					}
+					_this->Lim(hwnd, ctrl, 1, max);
 					return 0;
 				}			
 			}

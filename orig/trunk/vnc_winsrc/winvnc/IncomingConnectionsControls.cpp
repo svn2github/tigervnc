@@ -16,32 +16,35 @@ IncomingConnectionsControls::IncomingConnectionsControls(HWND hwnd, vncServer *s
 	Init();
 }
 
-void IncomingConnectionsControls::Validate(BOOL init)
+void IncomingConnectionsControls::Validate(BOOL InitApply)
 {
 	BOOL bAccept = IsChecked(IDC_CONNECT_SOCK);
 	BOOL bAuto = IsChecked(IDC_PORTNO_AUTO);
-	BOOL bDisplay = IsChecked(IDC_SPECDISPLAY);
-	BOOL bPorts = IsChecked(IDC_SPECPORT);
 	Enable(IDC_PASSWORD_LABEL, bAccept);
 	Enable(IDC_PASSWORD_VIEWONLY_LABEL, bAccept);
 	Enable(IDC_PASSWORD, bAccept);
 	Enable(IDC_PASSWORD_VIEWONLY, bAccept);
-	Enable(IDC_PORTNO_AUTO, bAccept);
-	Enable(IDC_SPECDISPLAY, bAccept);
-	Enable(IDC_SPECPORT, bAccept);
-		
-	if (bAuto && !init) {
+			
+	if (bAuto && !InitApply) {
 		SetDlgItemText(m_hwnd, IDC_PORTRFB, "");
 		SetDlgItemText(m_hwnd, IDC_PORTHTTP, "");
 		SetDlgItemText(m_hwnd, IDC_DISPLAYNO, "");
-	} else {
-		InitPortSettings();
 	}
+	if (!bAuto && !InitApply)
+		InitPortSettings(FALSE);
+	if (InitApply)
+		InitPortSettings(TRUE);
+		
+	BOOL bDisplay = IsChecked(IDC_SPECDISPLAY);
+	BOOL bPorts = IsChecked(IDC_SPECPORT);
+	
+	Enable(IDC_PORTNO_AUTO, bAccept);
+	Enable(IDC_SPECPORT, bAccept);	
+	Enable(IDC_SPECDISPLAY, bAccept);
 	Enable(IDC_DISPLAY_LABEL, bAccept && bDisplay);
 	Enable(IDC_DISPLAYNO, bAccept && bDisplay);	
 	Enable(IDC_PORTRFB, bAccept && bPorts);
 	Enable(IDC_MAIN_LABEL, bAccept && bPorts);
-	Enable(IDC_AND_LABEL, bAccept && bPorts);
 	Enable(IDC_PORTHTTP, bAccept && bPorts);
 	Enable(IDC_HTTP_LABEL, bAccept && bPorts);
 	
@@ -61,6 +64,7 @@ void IncomingConnectionsControls::Validate(BOOL init)
 		SendMessage(GetDlgItem(m_hwnd, IDC_PORTRFB), EM_SETSEL, 0, (LPARAM)-1);
 	}
 }
+
 void IncomingConnectionsControls::Apply()
 {
 	// Save the password if one was entered
@@ -124,18 +128,12 @@ void IncomingConnectionsControls::Apply()
 	// Enabling/disabling file transfers
 	m_server->EnableFileTransfers(IsChecked(IDC_ENABLE_FILE_TRANSFERS));
 	
-	InitPortSettings();
+	Validate(TRUE);
 }
 
 void IncomingConnectionsControls::Init()
 {
 	BOOL bConnectSock = m_server->SockConnected();
-	BOOL bAutoPort = m_server->AutoPortSelect();
-	UINT port_rfb = m_server->GetPort();
-	UINT port_http = m_server->GetHttpPort();
-	int d1 = PORT_TO_DISPLAY(port_rfb);
-	int d2 = HPORT_TO_DISPLAY(port_http);
-	BOOL bValidDisplay = (d1 == d2 && d1 >= 0 && d1 <= 99);
 	
 	if (bConnectSock) {
 		SetFocus(GetDlgItem(m_hwnd, IDC_PASSWORD));
@@ -145,9 +143,6 @@ void IncomingConnectionsControls::Init()
 	}
 	
 	SetChecked(IDC_CONNECT_SOCK, bConnectSock);
-	SetChecked(IDC_PORTNO_AUTO, bAutoPort);
-	SetChecked(IDC_SPECDISPLAY, (!bAutoPort && bValidDisplay));
-	SetChecked(IDC_SPECPORT, (!bAutoPort && !bValidDisplay));
 	SetChecked(IDC_ENABLE_FILE_TRANSFERS, m_server->FileTransfersEnabled());
 	SetChecked(IDC_REMOVE_WALLPAPER, m_server->RemoveWallpaperEnabled());
 	
@@ -155,12 +150,13 @@ void IncomingConnectionsControls::Init()
 	SetDlgItemText(m_hwnd, IDC_PASSWORD_VIEWONLY, "~~~~~~~~");
 
 	SetFocus(GetDlgItem(m_hwnd, IDC_CONNECT_SOCK));
-	
+
 	Validate(TRUE);
 }
 
-void IncomingConnectionsControls::InitPortSettings()
+void IncomingConnectionsControls::InitPortSettings(BOOL CheckedButton)
 {
+	BOOL bAutoPort = m_server->AutoPortSelect();
 	UINT port_rfb = m_server->GetPort();
 	UINT port_http = m_server->GetHttpPort();
 	int d1 = PORT_TO_DISPLAY(port_rfb);
@@ -173,6 +169,11 @@ void IncomingConnectionsControls::InitPortSettings()
 	}
 	SetDlgItemInt(m_hwnd, IDC_PORTRFB, port_rfb, FALSE);
 	SetDlgItemInt(m_hwnd, IDC_PORTHTTP, port_http, FALSE);
+	if (CheckedButton) {
+		SetChecked(IDC_PORTNO_AUTO, bAutoPort);
+		SetChecked(IDC_SPECDISPLAY, (!bAutoPort && bValidDisplay));
+		SetChecked(IDC_SPECPORT, (!bAutoPort && !bValidDisplay));
+	}
 }
 
 IncomingConnectionsControls::~IncomingConnectionsControls()

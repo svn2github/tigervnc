@@ -14,10 +14,10 @@ class IncomingConnectionsControls
 {
 public:
 	IncomingConnectionsControls(HWND hwnd, vncServer *server);
-	void Validate(BOOL init);
+	void Validate(BOOL InitApply);
 	void Apply();
 	void Init();
-	void InitPortSettings();
+	void InitPortSettings(BOOL CheckedButton);
 	virtual ~IncomingConnectionsControls();	
 
 private:

@@ -249,6 +249,8 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 			m_Use8Bit = true;
 		} else if ( SwitchMatch(args[j], _T("shared"))) {
 			m_Shared = true;
+		} else if ( SwitchMatch(args[j], _T("noshared"))) {
+			m_Shared = false;
 		} else if ( SwitchMatch(args[j], _T("swapmouse"))) {
 			m_SwapMouse = true;
 		} else if ( SwitchMatch(args[j], _T("nocursor"))) {
@@ -547,11 +549,11 @@ void VNCOptions::ShowUsage(LPTSTR info) {
 			_T("For full details see documentation."),
 #else
 		_T("%s\n\rUsage includes:\n\r"
-			"  vncviewer [/8bit] [/swapmouse] [/shared] [/belldeiconify] \n\r"
-			"      [/listen] [/fullscreen] [/viewonly] [/emulate3] \n\r"
-			"      [/scale a/b] [/config configfile] [/compresslevel N]\n\r"
-			"      [/quality N] [/nocursorshape] [/noremotecursor]\n\r"
-			"      [server:display]\n\r"
+			"  vncviewer [/8bit] [/swapmouse] [/shared] [/noshared] \n\r"
+			"      [/belldeiconify] [/listen] [/fullscreen] [/viewonly] \n\r"
+			"      [/emulate3] [/scale a/b] [/config configfile] \n\r"
+			"      [/compresslevel N] [/quality N] [/nocursorshape] \n\r"
+			"      [/noremotecursor] [server:display]\n\r"
 			"For full details see documentation."), 
 #endif
         tmpinf);

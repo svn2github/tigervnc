@@ -7,11 +7,11 @@
 
 // constants
 
-static const MAX_POLLING_USAGE = 30 ;
-static const MIN_POLLING_USAGE = 10 ;
+static const int MAX_POLLING_USAGE = 30 ;
+static const int MIN_POLLING_USAGE = 10 ;
 
-static const MAX_POLLING_CYCLE = 400 ;
-static const MIN_POLLING_CYCLE = 100 ;
+static const int MAX_POLLING_CYCLE = 400 ;
+static const int MIN_POLLING_CYCLE = 100 ;
 
 static const POLLING_CYCLE_INTERVAL = 25 ;
 
@@ -38,6 +38,7 @@ PollCycleControl::GetInstance( void )
 }
 
 PollCycleControl::PollCycleControl()
+	: m_ms_per_cycle( 0 )
 {
 }
 
@@ -131,7 +132,7 @@ PollCycleControl::TimerProc( HWND hwnd, UINT uMsg, UINT idEvent, DWORD dwTime )
 	// when the cycle changes +/- 25 percent, 
 	// log the state of the object
 	//
-
+#ifdef CPU_DEBUG
 	// cpu usage
 	vnclog.Print( 
 		LL_ALL, 
@@ -141,6 +142,7 @@ PollCycleControl::TimerProc( HWND hwnd, UINT uMsg, UINT idEvent, DWORD dwTime )
 		m_cpu_hrpc->GetCPUAverage(),
 		polling_cycle
 	) ;
+#endif // CPU_DEBUG
 
 	if ( 
 		polling_cycle >= static_cast< int >( m_last_cycle * 1.25 )
@@ -170,8 +172,8 @@ PollCycleControl::CalculateScreenRefresh( UINT cycle )
 	
 	if ( adjusted_cycle > 0.0 )
 	{
-		max = 1000 / adjusted_cycle ;
-		min = 1000 / ( 32 * adjusted_cycle ) ;
+		max = 1000.0 / adjusted_cycle ;
+		min = 1000.0 / ( 32.0 * adjusted_cycle ) ;
 	}
 
 	vnclog.Print( 
@@ -190,7 +192,10 @@ PollCycleControl::CalculateScreenRefresh( UINT cycle )
 bool
 PollCycleControl::SetPollCycle( unsigned int ms_per_cycle )
 {
-	// CalculateScreenRefresh( ms_per_cycle ) ;
+	// store current cycle 
+	m_ms_per_cycle = ms_per_cycle ;
+	
+	// calibrate performance counter
 	return m_cpu_hrpc->SetPollCycle( ms_per_cycle ) ;
 }
 

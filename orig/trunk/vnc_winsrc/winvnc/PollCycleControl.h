@@ -35,8 +35,10 @@ public:
 	static VOID CALLBACK TimerProc( HWND hwnd, UINT uMsg, 
 		UINT idEvent, DWORD dwTime ) ;
 
+	unsigned int GetPollCycle( void ) { return m_ms_per_cycle ; } ;
+
 	// CPUUsageWin32HRPC adapter methods
-	bool SetPollCycle( unsigned int ms_per_interval ) ;
+	bool SetPollCycle( unsigned int ms_per_interval ) ;	
 	bool MarkPollStart( void ) ;
 	bool MarkPollStop( void ) ;
 
@@ -56,6 +58,9 @@ private:
 	static int m_last_cycle ;
 	
 	static PollCycleControl* m_instance ;
+	
+	// last known polling cycle ( 
+	unsigned int m_ms_per_cycle ;
 } ;
 
 #endif // __POLLCYCLE_CONTROL_H

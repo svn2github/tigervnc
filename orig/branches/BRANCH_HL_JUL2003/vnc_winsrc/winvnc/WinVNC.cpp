@@ -220,7 +220,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 					strncpy(name, &(szCmdLine[start]), end-start);
 					name[end-start] = 0;
 
+#ifdef HORIZONLIVE
+					int port = 0;
+#else
 					int port = INCOMING_PORT_OFFSET;
+#endif
 					char *portp = strchr(name, ':');
 					if (portp != NULL) {
 						*portp++ = '\0';

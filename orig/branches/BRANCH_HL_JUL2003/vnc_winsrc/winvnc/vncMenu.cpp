@@ -689,22 +689,13 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 
 #ifdef HORIZONLIVE
 
-			struct hostent *pHost;
+			char key[_MAX_PATH];
+			char name[10];
 
-			//address.S_un.S_addr = lParam;
-
-			char  key [_MAX_PATH];
-			char name [10];// = inet_ntoa(address);
-			pHost=gethostbyaddr((char *)&lParam,4,AF_INET);
-
-			if (pHost == NULL) {
-				struct in_addr address;
-				address.S_un.S_addr = lParam;
-				strcpy(key, inet_ntoa(address));
-			} else {
-				strcpy(key,pHost->h_name);
-			}
-			strcat(key,":");
+			struct in_addr address;
+			address.S_un.S_addr = lParam;
+			strcpy(key, inet_ntoa(address));
+			strcat(key, ":");
 
 			// Get the port number
 			unsigned short nport = (unsigned short)wParam;

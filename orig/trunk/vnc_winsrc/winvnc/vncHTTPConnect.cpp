@@ -69,7 +69,10 @@ const FileMap filemapping []	={
 	};
 const int filemappingsize		= 9;
 
-// The function for the spawned thread to run
+//
+// Connection thread -- one per each client connection.
+//
+
 class vncHTTPConnectThread : public omni_thread
 {
 public:
@@ -83,9 +86,8 @@ public:
 	virtual void DoHTTP(VSocket *socket);
 	virtual char *ReadLine(VSocket *socket, char delimiter, int max);
 
-	// Fields used internally
-	BOOL		m_shutdown;
 protected:
+	// Fields used internally
 	vncServer	*m_server;
 	VSocket		*m_socket;
 };
@@ -93,14 +95,10 @@ protected:
 // Method implementations
 BOOL vncHTTPConnectThread::Init(VSocket *socket, vncServer *server)
 {
-	// Save the server pointer
 	m_server = server;
-
-	// Save the socket pointer
 	m_socket = socket;
 
 	// Start the thread
-	m_shutdown = FALSE;
 	start_undetached();
 
 	return TRUE;
@@ -109,29 +107,17 @@ BOOL vncHTTPConnectThread::Init(VSocket *socket, vncServer *server)
 // Code to be executed by the thread
 void *vncHTTPConnectThread::run_undetached(void * arg)
 {
-	vnclog.Print(LL_INTINFO, VNCLOG("started HTTP server thread\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("started HTTP client thread\n"));
 
-	// Go into a loop, listening for connections on the given socket
-	while (!m_shutdown)
-	{
-		// Accept an incoming connection
-		VSocket *new_socket = m_socket->Accept();
-		if (new_socket == NULL)
-			break;
+	// Perform the transaction
+	DoHTTP(m_socket);
 
-		vnclog.Print(LL_CLIENTS, VNCLOG("HTTP client connected\n"));
+	// And close the client
+	m_socket->Shutdown();
+	m_socket->Close();
+	delete m_socket;
 
-		// Successful accept - perform the transaction
-		DoHTTP(new_socket);
-
-		// And close the client
-		new_socket->Shutdown();
-		new_socket->Close();
-		delete new_socket;
-	}
-
-	vnclog.Print(LL_INTINFO, VNCLOG("quitting HTTP server thread\n"));
-
+	vnclog.Print(LL_INTINFO, VNCLOG("quitting HTTP client thread\n"));
 	return NULL;
 }
 
@@ -145,39 +131,32 @@ void vncHTTPConnectThread::DoHTTP(VSocket *socket)
 		return;
 
 	// Scan the header for the filename and free the storage
-	int result = sscanf(line, "GET %s ", (char*)&filename);
+	int result = sscanf(line, "GET %s HTTP/", filename);
 	delete [] line;
-	if ((result == 0) || (result == EOF))
+	if (result != 1)
 		return;
 
 	vnclog.Print(LL_CLIENTS, VNCLOG("file %s requested\n"), filename);
 
 	// Read in the rest of the browser's request data and discard...
-	BOOL emptyline=TRUE;
+	BOOL newline = TRUE;
 
-	for (;;)
-	{
-		char c;
-
+	char c;
+	for (;;) {
 		if (!socket->ReadExact(&c, 1))
 			return;
-		if (c=='\n')
-		{
-			if (emptyline)
+		if (c == '\n') {
+			if (newline)
 				break;
-			emptyline = TRUE;
+			newline = TRUE;
+		} else {
+			newline = FALSE;
 		}
-		else
-			if (c >= ' ')
-			{
-				emptyline = FALSE;
-			}
 	}
 
-	vnclog.Print(LL_INTINFO, VNCLOG("parameters read\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("HTTP headers skipped\n"));
 
-    if (filename[0] != '/')
-	{
+    if (filename[0] != '/') {
 		vnclog.Print(LL_CONNERR, VNCLOG("filename didn't begin with '/'\n"));
 		socket->SendExact(HTTP_MSG_NOSUCHFILE, strlen(HTTP_MSG_NOSUCHFILE));
 		return;
@@ -203,7 +182,7 @@ void vncHTTPConnectThread::DoHTTP(VSocket *socket)
 			m_server->GetScreenInfo(width, height, depth);
 
 			// Get the name of this desktop
-			char desktopname[MAX_COMPUTERNAME_LENGTH+1];
+			char desktopname[MAX_COMPUTERNAME_LENGTH + 1];
 			DWORD desktopnamelen = MAX_COMPUTERNAME_LENGTH + 1;
 			if (GetComputerName(desktopname, &desktopnamelen))
 			{
@@ -328,61 +307,120 @@ char *vncHTTPConnectThread::ReadLine(VSocket *socket, char delimiter, int max)
 	}
 }
 
+//
+// Listening thread.
+//
+
+class vncHTTPListenThread : public omni_thread
+{
+public:
+	// Init routine
+	virtual BOOL Init(VSocket *socket, vncServer *server);
+
+	// Code to be executed by the thread
+	virtual void *run_undetached(void * arg);
+
+	// Fields used internally
+	BOOL		m_shutdown;
+
+protected:
+	vncServer	*m_server;
+	VSocket		*m_listen_socket;
+};
+
+BOOL vncHTTPListenThread::Init(VSocket *listen_socket, vncServer *server)
+{
+	m_server = server;
+	m_listen_socket = listen_socket;
+
+	// Start the thread
+	m_shutdown = FALSE;
+	start_undetached();
+
+	return TRUE;
+}
+
+// Code to be executed by the thread
+void *vncHTTPListenThread::run_undetached(void * arg)
+{
+	vnclog.Print(LL_INTINFO, VNCLOG("started HTTP server thread\n"));
+
+	// Go into a loop, listening for connections on the given socket
+	while (!m_shutdown)
+	{
+		// Accept an incoming connection
+		VSocket *new_socket = m_listen_socket->Accept();
+		if (new_socket == NULL)
+			break;
+
+		// Start a client thread for this connection
+		vnclog.Print(LL_CLIENTS, VNCLOG("HTTP client connected\n"));
+		omni_thread *m_thread = new vncHTTPConnectThread; // FIXME.
+		if (m_thread == NULL)
+			break;
+		((vncHTTPConnectThread *)m_thread)->Init(new_socket, m_server);
+	}
+
+	vnclog.Print(LL_INTINFO, VNCLOG("quitting HTTP server thread\n"));
+
+	return NULL;
+}
+
+//
 // The vncSockConnect class implementation
+//
 
 vncHTTPConnect::vncHTTPConnect()
 {
-	m_thread = NULL;
+	m_listen_thread = NULL;
+}
+
+BOOL vncHTTPConnect::Init(vncServer *server, UINT listen_port)
+{
+	// Save the port number
+	m_listen_port = listen_port;
+
+	// Create the listening socket
+	if (!m_listen_socket.Create())
+		return FALSE;
+
+	// Bind it
+	if (!m_listen_socket.Bind(m_listen_port, server->LoopbackOnly()))
+		return FALSE;
+
+	// Set it to listen
+	if (!m_listen_socket.Listen())
+		return FALSE;
+
+	// Create the new thread
+	m_listen_thread = new vncHTTPListenThread;
+	if (m_listen_thread == NULL)
+		return FALSE;
+
+	// And start it running
+	return ((vncHTTPListenThread *)m_listen_thread)->Init(&m_listen_socket, server);
 }
 
 vncHTTPConnect::~vncHTTPConnect()
 {
-    m_socket.Shutdown();
+	m_listen_socket.Shutdown();
 
-    // Join with our lovely thread
-    if (m_thread != NULL)
-    {
-	// *** This is a hack to force the listen thread out of the accept call,
-	// because Winsock accept semantics are broken.
-	((vncHTTPConnectThread *)m_thread)->m_shutdown = TRUE;
+	// Join with our lovely thread
+	if (m_listen_thread != NULL) {
+		// *** This is a hack to force the listen thread out of the accept call,
+		// because Winsock accept semantics are broken.
+		((vncHTTPListenThread *)m_listen_thread)->m_shutdown = TRUE;
 
-	VSocket socket;
-	socket.Create();
-	socket.Bind(0);
-	socket.Connect("localhost", m_port);
-	socket.Close();
+		VSocket tmp_socket;
+		tmp_socket.Create();
+		tmp_socket.Connect("localhost", m_listen_port);
+		tmp_socket.Close();
 
-	void *returnval;
-	m_thread->join(&returnval);
-	m_thread = NULL;
+		void *returnval;
+		m_listen_thread->join(&returnval);
+		m_listen_thread = NULL;
 
-	m_socket.Close();
+		m_listen_socket.Close();
     }
-}
-
-BOOL vncHTTPConnect::Init(vncServer *server, UINT port)
-{
-	// Save the port id
-	m_port = port;
-
-	// Create the listening socket
-	if (!m_socket.Create())
-		return FALSE;
-
-	// Bind it
-	if (!m_socket.Bind(m_port, server->LoopbackOnly()))
-		return FALSE;
-
-	// Set it to listen
-	if (!m_socket.Listen())
-		return FALSE;
-
-	// Create the new thread
-	m_thread = new vncHTTPConnectThread;
-	if (m_thread == NULL)
-		return FALSE;
-
-	// And start it running
-	return ((vncHTTPConnectThread *)m_thread)->Init(&m_socket, server);
 }
 

@@ -54,18 +54,18 @@ public:
 	~vncHTTPConnect();
 
 	// Init
-	virtual VBool Init(vncServer *server, UINT port);
+	virtual VBool Init(vncServer *server, UINT listen_port);
 
 	// Implementation
 protected:
 	// The listening socket
-	VSocket m_socket;
+	VSocket m_listen_socket;
 
 	// The port to listen on
-	UINT m_port;
+	UINT m_listen_port;
 
 	// The in-coming accept thread
-	omni_thread *m_thread;
+	omni_thread *m_listen_thread;
 };
 
 #endif // _WINVNC_VNCHTTPCONNECT

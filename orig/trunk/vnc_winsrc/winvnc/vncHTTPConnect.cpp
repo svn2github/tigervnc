@@ -1,3 +1,4 @@
+//  Copyright (C) 2002 Constantin Kaplinsky. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
 //  This file is part of the VNC system.
@@ -80,7 +81,7 @@ public:
 	virtual BOOL Init(VSocket *socket, vncServer *server);
 
 	// Code to be executed by the thread
-	virtual void *run_undetached(void * arg);
+	virtual void run(void *arg);
 
 	// Routines to handle HTTP requests
 	virtual void DoHTTP(VSocket *socket);
@@ -99,13 +100,13 @@ BOOL vncHTTPConnectThread::Init(VSocket *socket, vncServer *server)
 	m_socket = socket;
 
 	// Start the thread
-	start_undetached();
+	start();
 
 	return TRUE;
 }
 
 // Code to be executed by the thread
-void *vncHTTPConnectThread::run_undetached(void * arg)
+void vncHTTPConnectThread::run(void *arg)
 {
 	vnclog.Print(LL_INTINFO, VNCLOG("started HTTP client thread\n"));
 
@@ -118,7 +119,6 @@ void *vncHTTPConnectThread::run_undetached(void * arg)
 	delete m_socket;
 
 	vnclog.Print(LL_INTINFO, VNCLOG("quitting HTTP client thread\n"));
-	return NULL;
 }
 
 void vncHTTPConnectThread::DoHTTP(VSocket *socket)
@@ -355,7 +355,7 @@ void *vncHTTPListenThread::run_undetached(void * arg)
 
 		// Start a client thread for this connection
 		vnclog.Print(LL_CLIENTS, VNCLOG("HTTP client connected\n"));
-		omni_thread *m_thread = new vncHTTPConnectThread; // FIXME.
+		omni_thread *m_thread = new vncHTTPConnectThread;
 		if (m_thread == NULL)
 			break;
 		((vncHTTPConnectThread *)m_thread)->Init(new_socket, m_server);

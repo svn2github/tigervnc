@@ -64,15 +64,18 @@ public:
 	char m_ClientPathTmp[rfbMAX_PATH];
 	char m_ServerFilename[rfbMAX_PATH];
 	char m_ClientFilename[rfbMAX_PATH];
-  char m_UploadFilename[rfbMAX_PATH];
-  char m_DownloadFilename[rfbMAX_PATH];
+	char m_UploadFilename[rfbMAX_PATH];
+	char m_DownloadFilename[rfbMAX_PATH];
 	void OnGetDispClientInfo(NMLVDISPINFO *plvdi); 
 	void OnGetDispServerInfo(NMLVDISPINFO *plvdi); 
 	static LRESULT CALLBACK FileTransferDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static BOOL CALLBACK FTBrowseDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	void FileTransferDownload();
 	void FileTransferUpload();
-  void CloseUndoneFileTransfers();
+	void CloseUndoneFileTransfers();
+
+	void ReadUploadCancel();
+	void ReadDownloadFailed();
 
 	ClientConnection * m_clientconn;
 	VNCviewerApp * m_pApp; 
@@ -85,7 +88,8 @@ private:
 	unsigned int FiletimeToTime70(FILETIME ftime);
 	void SendFileUploadDataMessage(unsigned short size, char *pFile);
 	void SendFileUploadDataMessage(unsigned int mTime);
-  void SendFileDownloadCancelMessage(unsigned short reasonLen, char *reason);
+	void CancelDownload(char *reason);
+	void SendFileDownloadCancelMessage(unsigned short reasonLen, char *reason);
 	void CreateServerItemInfoList(FileTransferItemInfo *pftii, FTSIZEDATA *ftsd, int ftsdNum, char *pfnames, int fnamesSize);
 	void InitProgressBar(int nPosition, int nMinRange, int nMaxRange, int nStep);
 	HWND m_hwndFileTransfer;
@@ -101,6 +105,7 @@ private:
     BOOL m_bUploadStarted;
     BOOL m_bDownloadStarted;
 	BOOL m_bTransferEnable;
+	BOOL m_bReportUploadCancel;
 	BOOL m_bServerBrowseRequest;
 	BOOL m_bFirstFileDownloadMsg;
 

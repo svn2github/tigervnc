@@ -1439,6 +1439,11 @@ vncClientThread::run(void *arg)
 							 m_client->m_UploadFilename);
 				m_client->m_hFileToWrite = CreateFile(m_client->m_UploadFilename, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
 				m_client->m_bUploadStarted = TRUE;
+				if (m_client->m_hFileToWrite == INVALID_HANDLE_VALUE) {
+					char reason[] = "Could not create file";
+					int reasonLen = strlen(reason);
+					m_client->SendFileUploadCancel(reasonLen, reason);
+				}
 				DWORD dwError = GetLastError();
 				/*
 				SYSTEMTIME systime;

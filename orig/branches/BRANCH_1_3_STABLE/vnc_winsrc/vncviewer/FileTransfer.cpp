@@ -38,6 +38,7 @@ FileTransfer::FileTransfer(ClientConnection * pCC, VNCviewerApp * pApp)
     m_bUploadStarted = FALSE;
     m_bDownloadStarted = FALSE;
 	m_bTransferEnable = FALSE;
+	m_bReportUploadCancel = FALSE;
 	m_bServerBrowseRequest = FALSE;
 	m_bFirstFileDownloadMsg = TRUE;
 	m_hTreeItem = NULL;
@@ -225,6 +226,7 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 					}
 				if (_this->m_bFTCOPY == FALSE) {
 					_this->m_bTransferEnable = TRUE;
+					_this->m_bReportUploadCancel = TRUE;
 					EnableWindow(GetDlgItem(hwnd, IDC_FTCANCEL), TRUE);
 					_this->FileTransferUpload();			
 				} else {
@@ -482,11 +484,11 @@ FileTransfer::FileTransferUpload()
 				SendMessage(m_hwndFTProgress, PBM_STEPIT, 0, 0);
 			}
 		}
-    m_bUploadStarted = FALSE;
+		m_bUploadStarted = FALSE;
 		delete [] pBuff;
 	}
 	SendMessage(m_hwndFTProgress, PBM_SETPOS, 0, 0);
-  SetWindowText(m_hwndFTStatus, "");
+	SetWindowText(m_hwndFTStatus, "");
 	CloseHandle(m_hFiletoRead);
 	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
 	SendFileListRequestMessage(m_ServerPath, 0);
@@ -510,7 +512,6 @@ FileTransfer::CloseUndoneFileTransfers()
 void 
 FileTransfer::FileTransferDownload()
 {
-
 	rfbFileDownloadDataMsg fdd;
 	m_clientconn->ReadExact((char *)&fdd, sz_rfbFileDownloadDataMsg);
 	fdd.realSize = Swap16IfLE(fdd.realSize);
@@ -522,7 +523,8 @@ FileTransfer::FileTransferDownload()
 		m_dwDownloadBlockSize = fdd.compressedSize;
 		sprintf(path, "%s\\%s", m_ClientPath, m_ServerFilename);
 		strcpy(m_DownloadFilename, path);
-		m_hFiletoWrite = CreateFile(path, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+		m_hFiletoWrite = CreateFile(path, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE,
+									NULL, CREATE_ALWAYS, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
 		int amount = m_sizeDownloadFile / ((m_dwDownloadBlockSize + 1) * 10);
 		InitProgressBar(0, 0, amount, 1);
 		m_bFirstFileDownloadMsg = FALSE;
@@ -531,6 +533,12 @@ FileTransfer::FileTransferDownload()
 	if ((fdd.realSize == 0) && (fdd.compressedSize == 0)) {
 		unsigned int mTime;
 		m_clientconn->ReadExact((char *) &mTime, sizeof(unsigned int));
+		if (m_hFiletoWrite == INVALID_HANDLE_VALUE) {
+			CancelDownload("Could not create file");
+			MessageBox(m_hwndFileTransfer, "Download failed: could not create local file",
+					   "Download Failed", MB_ICONEXCLAMATION | MB_OK);
+			return;
+		}
 		FILETIME Filetime;
 		Time70ToFiletime(mTime, &Filetime);
 		SetFileTime(m_hFiletoWrite, &Filetime, &Filetime, &Filetime);
@@ -548,14 +556,14 @@ FileTransfer::FileTransferDownload()
 	DWORD dwNumberOfBytesWritten;
 	m_clientconn->ReadExact(pBuff, fdd.compressedSize);
 	ProcessDlgMessage(m_hwndFileTransfer);
-	if (m_bTransferEnable == FALSE) {
-		char reason [] = "User cancel download";
-		unsigned short reasonLen = strlen(reason);
-		SendFileDownloadCancelMessage(reasonLen, reason);
-		SetWindowText(m_hwndFTStatus, reason);
-		CloseUndoneFileTransfers();		
-		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
-		BlockingFileTransferDialog(TRUE);
+	if (!m_bTransferEnable) {
+		CancelDownload("Download cancelled by user");
+		return;
+	}
+	if (m_hFiletoWrite == INVALID_HANDLE_VALUE) {
+		CancelDownload("Could not create file");
+		MessageBox(m_hwndFileTransfer, "Download failed: could not create local file",
+				   "Download Failed", MB_ICONEXCLAMATION | MB_OK);
 		return;
 	}
 	WriteFile(m_hFiletoWrite, pBuff, fdd.compressedSize, &dwNumberOfBytesWritten, NULL);
@@ -565,6 +573,17 @@ FileTransfer::FileTransferDownload()
 		SendMessage(m_hwndFTProgress, PBM_STEPIT, 0, 0); 
 	}
 	delete [] pBuff;
+}
+
+void
+FileTransfer::CancelDownload(char *reason)
+{
+	SendFileDownloadCancelMessage(strlen(reason), reason);
+	SetWindowText(m_hwndFTStatus, reason);
+	CloseUndoneFileTransfers();
+	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
+	BlockingFileTransferDialog(TRUE);
+	m_bDownloadStarted = FALSE;
 }
 
 void 
@@ -1100,6 +1119,73 @@ FileTransfer::SendFileDownloadCancelMessage(unsigned short reasonLen, char *reas
   delete [] pAllFDCMessage;
 }
 
+void
+FileTransfer::ReadUploadCancel()
+{
+  if (m_bUploadStarted) {
+    m_bUploadStarted = FALSE;
+    CloseHandle(m_hFiletoRead);
+  }
+	// Stop file transfer
+	CloseUndoneFileTransfers();
+
+	// Read the message
+	rfbFileUploadCancelMsg msg;
+	m_clientconn->ReadExact((char *)&msg, sz_rfbFileUploadCancelMsg);
+	int len = Swap16IfLE(msg.reasonLen);
+	char *reason = new char[len + 1];
+	m_clientconn->ReadExact(reason, len);
+	reason[len] = '\0';
+
+	// Report error (only once per upload)
+	if (m_bReportUploadCancel) {
+		char *errmsg = new char[128 + len];
+		sprintf(errmsg, "Upload failed: %s", reason);
+		MessageBox(m_hwndFileTransfer, errmsg, "Upload Failed", MB_ICONEXCLAMATION | MB_OK);
+		SetWindowText(m_hwndFTStatus, errmsg);
+		vnclog.Print(1, _T("Upload failed: %s\n"), reason);
+		m_bReportUploadCancel = FALSE;
+		delete[] errmsg;
+	}
+	delete[] reason;
+
+	// Enable dialog
+	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
+	BlockingFileTransferDialog(TRUE);
+}
+
+void
+FileTransfer::ReadDownloadFailed()
+{
+	// We'll report the error only if we're actually downloading
+	BOOL downloadActive = m_bDownloadStarted;
+
+	// Stop file transfer
+	CloseUndoneFileTransfers();
+
+	// Read the message
+	rfbFileDownloadFailedMsg msg;
+	m_clientconn->ReadExact((char *)&msg, sz_rfbFileDownloadFailedMsg);
+	int len = Swap16IfLE(msg.reasonLen);
+	char *reason = new char[len + 1];
+	m_clientconn->ReadExact(reason, len);
+	reason[len] = '\0';
+
+	// Report error
+	if (downloadActive) {
+		char *errmsg = new char[128 + len];
+		sprintf(errmsg, "Download failed: %s", reason);
+		MessageBox(m_hwndFileTransfer, errmsg, "Download Failed", MB_ICONEXCLAMATION | MB_OK);
+		SetWindowText(m_hwndFTStatus, errmsg);
+		vnclog.Print(1, _T("Download failed: %s\n"), reason);
+		delete[] errmsg;
+	}
+	delete[] reason;
+
+	// Enable dialog
+	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
+	BlockingFileTransferDialog(TRUE);
+}
 
 unsigned int FileTransfer::FiletimeToTime70(FILETIME ftime)
 {

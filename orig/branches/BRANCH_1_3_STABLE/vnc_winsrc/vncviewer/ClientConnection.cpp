@@ -2958,8 +2958,10 @@ void* ClientConnection::run_undetached(void* arg) {
 				m_pFileTransfer->FileTransferDownload();
 				break;
 			case rfbFileUploadCancel:
+				m_pFileTransfer->ReadUploadCancel();
 				break;
 			case rfbFileDownloadFailed:
+				m_pFileTransfer->ReadDownloadFailed();
 				break;
 
 			default:

@@ -30,7 +30,7 @@ files:
     vnc_winsrc/vncviewer/libjpeg/
     vnc_winsrc/winvnc/libjpeg/
 
-Also, TightVNC compilation require Microsoft Html Help SDK which can
+Also, TightVNC compilation requires Microsoft Html Help SDK which can
 be freely downloaded from this page:
 
   http://msdn.microsoft.com/library/en-us/htmlhelp/html/hwMicrosoftHTMLHelpDownloads.asp

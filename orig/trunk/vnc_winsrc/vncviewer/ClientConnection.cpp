@@ -2853,10 +2853,12 @@ void* ClientConnection::run_undetached(void* arg) {
 			  omni_mutex_lock l(m_readMutex);  // we need this if we're not using ReadExact
 			  int bytes = recv(m_sock, (char *) &msgType, 1, MSG_PEEK);
 			  if (bytes == 0) {
+                m_pFileTransfer->CloseUndoneFileTransfers();
 			    vnclog.Print(0, _T("Connection closed\n") );
 			    throw WarningException(_T("Connection closed"));
 			  }
 			  if (bytes < 0) {
+                m_pFileTransfer->CloseUndoneFileTransfers();
 			    vnclog.Print(3, _T("Socket error reading message: %d\n"), WSAGetLastError() );
 			    throw WarningException("Error while waiting for server message");
 			  }

@@ -199,8 +199,16 @@ private:
 	void SendFileDownloadData(unsigned int mTime);
 	void SendFileUploadCancel(unsigned short reasonLen, char *reason);
 	void SendFileDownloadFailed(unsigned short reasonLen, char *reason);
-	BOOL m_bDownloadEnable;
+    void CloseUndoneFileTransfer();
+	BOOL m_bUploadStarted;
+	BOOL m_bDownloadStarted;
+    HANDLE m_hFileToRead;
+    HANDLE m_hFileToWrite;
+    char m_UploadFilename[MAX_PATH];
+    char m_DownloadFilename[MAX_PATH];
 	void Time70ToFiletime(unsigned int mTime, FILETIME *pFiletime);
+    unsigned int beginUploadTime;
+    unsigned int endUploadTime;
 };
 
 #endif

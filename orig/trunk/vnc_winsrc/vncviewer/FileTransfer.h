@@ -58,18 +58,21 @@ public:
 	void CreateFTBrowseDialog(BOOL status);
 	void StrInvert(char *str);
 	void GetTVPath(HWND hwnd, HTREEITEM hTItem, char *path);
-	char m_ClientPath[rfbMAX_PATH];
 	char m_ServerPath[rfbMAX_PATH];
+	char m_ClientPath[rfbMAX_PATH];
 	char m_ServerPathTmp[rfbMAX_PATH];
 	char m_ClientPathTmp[rfbMAX_PATH];
-	char m_ClientFilename[rfbMAX_PATH];
 	char m_ServerFilename[rfbMAX_PATH];
+	char m_ClientFilename[rfbMAX_PATH];
+    char m_UploadFilename[rfbMAX_PATH];
+    char m_DownloadFilename[rfbMAX_PATH];
 	void OnGetDispClientInfo(NMLVDISPINFO *plvdi); 
 	void OnGetDispServerInfo(NMLVDISPINFO *plvdi); 
 	static LRESULT CALLBACK FileTransferDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static BOOL CALLBACK FTBrowseDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	void FileTransferDownload();
 	void FileTransferUpload();
+    void CloseUndoneFileTransfers();
 
 	ClientConnection * m_clientconn;
 	VNCviewerApp * m_pApp; 
@@ -78,7 +81,6 @@ private:
 	DWORD m_dwDownloadRead;
 	DWORD m_dwDownloadBlockSize;
 	int m_sizeDownloadFile;
-	BOOL m_bFirstFileDownloadMsg;
 	void Time70ToFiletime(unsigned int time70, FILETIME *pftime);
 	unsigned int FiletimeToTime70(FILETIME ftime);
 	void SendFileUploadDataMessage(unsigned short size, char *pFile);
@@ -94,11 +96,15 @@ private:
 	HWND m_hwndFTStatus;
 	HWND m_hwndFTBrowse;
 	
-	BOOL m_TransferEnable;
-	BOOL m_bServerBrowseRequest;
 	BOOL m_bFTCOPY;
+    BOOL m_bUploadStarted;
+    BOOL m_bDownloadStarted;
+	BOOL m_bTransferEnable;
+	BOOL m_bServerBrowseRequest;
+	BOOL m_bFirstFileDownloadMsg;
 
 	HANDLE m_hFiletoWrite;
+    HANDLE m_hFiletoRead;
 	HTREEITEM m_hTreeItem;
 	HINSTANCE m_FTInstance;
 

@@ -26,11 +26,11 @@
 #if !defined(FILETRANSFERITEMINFO_H)
 #define FILETRANSFERITEMINFO_H
 
-#define rfbMAX_PATH 255
+#include "windows.h"
 
 typedef struct tagFTITEMINFO
 {
-    char Name[rfbMAX_PATH];
+    char Name[MAX_PATH];
     unsigned int Size;
 	unsigned int Data;
 } FTITEMINFO;

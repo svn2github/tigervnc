@@ -84,8 +84,6 @@ class vncClientThread : public omni_thread
 {
 public:
 	char * ConvertPath(char *path);
-	HANDLE m_hFiletoWrite;
-	char m_FullFilename[255 + 1];
 	
 	// Init
 	virtual BOOL Init(vncClient *client,
@@ -1376,6 +1374,7 @@ vncClientThread::run(void *arg)
 				m_socket->ReadExact(path_file, msg.fdr.fNameSize);
 				path_file[msg.fdr.fNameSize] = '\0';
 				ConvertPath(path_file);
+                strcpy(m_client->m_DownloadFilename, path_file);
 
 				HANDLE hFile;
 				BOOL bResult;
@@ -1408,25 +1407,26 @@ vncClientThread::run(void *arg)
 				} else {
 					if (sz_rfbFileSize <= sz_rfbBlockSize) sz_rfbBlockSize = sz_rfbFileSize;
 					SetErrorMode(SEM_FAILCRITICALERRORS);
-					HANDLE hFiletoRead = CreateFile(path_file, GENERIC_READ, FILE_SHARE_READ, NULL,	OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);				// handle to file with attributes to copy  
+					m_client->m_hFileToRead = CreateFile(path_file, GENERIC_READ, FILE_SHARE_READ, NULL,	OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);				// handle to file with attributes to copy  
 					SetErrorMode(0);
-					m_client->m_bDownloadEnable = TRUE;
-					char *pBuff = new char[sz_rfbBlockSize];
-					if (hFiletoRead != INVALID_HANDLE_VALUE) {
-						while(m_client->m_bDownloadEnable) {
-							bResult = ReadFile(hFiletoRead, pBuff, sz_rfbBlockSize, &dwNumberOfBytesRead, NULL);
+					if (m_client->m_hFileToRead != INVALID_HANDLE_VALUE) {
+    					m_client->m_bDownloadStarted = TRUE;
+    					char *pBuff = new char[sz_rfbBlockSize];
+						while(m_client->m_bDownloadStarted) {
+							bResult = ReadFile(m_client->m_hFileToRead, pBuff, sz_rfbBlockSize, &dwNumberOfBytesRead, NULL);
 							if (bResult && dwNumberOfBytesRead == 0) {
 								/* This is the end of the file. */
 								unsigned int mTime = m_client->FiletimeToTime70(FindFileData.ftLastWriteTime);
 								m_client->SendFileDownloadData(mTime);
-								CloseHandle(hFiletoRead);
-								delete [] pBuff;
 								vnclog.Print(LL_CLIENTS, VNCLOG("file download complete: %s\n"),
 											 path_file);
 								break;
 							}
 							m_client->SendFileDownloadData(dwNumberOfBytesRead, pBuff);
 						}
+                        delete [] pBuff;
+    					CloseHandle(m_client->m_hFileToRead);
+    					m_client->m_bDownloadStarted = FALSE;
 					}
 				}
 			}
@@ -1442,20 +1442,27 @@ vncClientThread::run(void *arg)
 			{
 				msg.fupr.fNameSize = Swap16IfLE(msg.fupr.fNameSize);
 				msg.fupr.position = Swap32IfLE(msg.fupr.position);
-				if (msg.fupr.fNameSize > rfbMAX_PATH) {
+				if (msg.fupr.fNameSize > MAX_PATH) {
 					m_socket->ReadExact(NULL, msg.fupr.fNameSize);
-					char reason[] = "Size of filename large than rfbMAX_PATH value";
+					char reason[] = "Size of filename large than MAX_PATH value";
 					int reasonLen = strlen(reason);
 					m_client->SendFileUploadCancel(reasonLen, reason);
 					break;
 				}
-				m_socket->ReadExact(m_FullFilename, msg.fupr.fNameSize);
-				m_FullFilename[msg.fupr.fNameSize] = '\0';
-				ConvertPath(m_FullFilename);
+				m_socket->ReadExact(m_client->m_UploadFilename, msg.fupr.fNameSize);
+				m_client->m_UploadFilename[msg.fupr.fNameSize] = '\0';
+				ConvertPath(m_client->m_UploadFilename);
 				vnclog.Print(LL_CLIENTS, VNCLOG("file upload requested: %s\n"),
-							 m_FullFilename);
-				m_hFiletoWrite = CreateFile(m_FullFilename, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+							 m_client->m_UploadFilename);
+				m_client->m_hFileToWrite = CreateFile(m_client->m_UploadFilename, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+                m_client->m_bUploadStarted = TRUE;
 				DWORD dwError = GetLastError();
+                SYSTEMTIME systime;
+                FILETIME filetime;
+                GetSystemTime(&systime);
+                SystemTimeToFileTime(&systime, &filetime);
+                m_client->beginUploadTime = m_client->FiletimeToTime70(filetime);
+
 /*
 				DWORD dwFilePtr;
 				if (msg.fupr.position > 0) {
@@ -1489,12 +1496,21 @@ vncClientThread::run(void *arg)
 					mTime = Swap32IfLE(mTime);
 					FILETIME Filetime;
 					m_client->Time70ToFiletime(mTime, &Filetime);
-					if (!SetFileTime(m_hFiletoWrite, &Filetime, &Filetime, &Filetime)) {
+					if (!SetFileTime(m_client->m_hFileToWrite, &Filetime, &Filetime, &Filetime)) {
 						vnclog.Print(LL_INTINFO, VNCLOG("SetFileTime() failed\n"));
 					}
-					CloseHandle(m_hFiletoWrite);
-					vnclog.Print(LL_CLIENTS, VNCLOG("file upload complete: %s\n"),
-								 m_FullFilename);
+                    DWORD dwFileSize = GetFileSize(m_client->m_hFileToWrite, NULL);
+					CloseHandle(m_client->m_hFileToWrite);
+                    m_client->m_bUploadStarted = FALSE;
+                    SYSTEMTIME systime;
+                    FILETIME filetime;
+                    GetSystemTime(&systime);
+                    SystemTimeToFileTime(&systime, &filetime);
+                    m_client->endUploadTime = m_client->FiletimeToTime70(filetime);
+                    unsigned int uploadTime = m_client->endUploadTime - m_client->beginUploadTime + 1;
+                    DWORD dwBytePerSecond = dwFileSize / uploadTime;
+					vnclog.Print(LL_CLIENTS, VNCLOG("file upload complete: %s; Speed (B/s) = %d; FileSize = %d, UploadTime = %d\n"),
+								 m_client->m_UploadFilename, dwBytePerSecond, dwFileSize, uploadTime);
 					break;
 				}
 				DWORD dwNumberOfBytesWritten;
@@ -1504,15 +1520,15 @@ vncClientThread::run(void *arg)
 					char reason[] = "VNCServer don't allow compress data";
 					int reasonLen = strlen(reason);
 					m_client->SendFileUploadCancel(reasonLen, reason);
-					CloseHandle(m_hFiletoWrite);
+                    m_client->CloseUndoneFileTransfer();
 					break;
 				}
-				BOOL bResult = WriteFile(m_hFiletoWrite, pBuff, msg.fud.compressedSize, &dwNumberOfBytesWritten, NULL);
+				BOOL bResult = WriteFile(m_client->m_hFileToWrite, pBuff, msg.fud.compressedSize, &dwNumberOfBytesWritten, NULL);
 				if ((dwNumberOfBytesWritten != msg.fud.compressedSize) || !bResult) {
 					char reason[] = "WriteFile was failed";
 					int reasonLen = strlen(reason);
 					m_client->SendFileUploadCancel(reasonLen, reason);
-					CloseHandle(m_hFiletoWrite);
+                    m_client->CloseUndoneFileTransfer();
 					break;
 				}
 				delete [] pBuff;
@@ -1527,8 +1543,8 @@ vncClientThread::run(void *arg)
 			}
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileDownloadCancelMsg-1))
 			{
-				m_client->m_bDownloadEnable = FALSE;
-				msg.fdc.reasonLen = Swap16IfLE(msg.fdc.reasonLen);
+				m_client->CloseUndoneFileTransfer();
+                msg.fdc.reasonLen = Swap16IfLE(msg.fdc.reasonLen);
 				char *reason = new char[msg.fdc.reasonLen + 1];
 				m_socket->ReadExact(reason, msg.fdc.reasonLen);
 				reason[msg.fdc.reasonLen] = '\0';
@@ -1548,10 +1564,7 @@ vncClientThread::run(void *arg)
 				char *reason = new char[msg.fuf.reasonLen + 1];
 				m_socket->ReadExact(reason, msg.fuf.reasonLen);
 				reason[msg.fuf.reasonLen] = '\0';
-				if (strcmp(m_FullFilename, "") != 0) {
-					CloseHandle(m_hFiletoWrite);
-					DeleteFile(m_FullFilename);
-				}
+                m_client->CloseUndoneFileTransfer();
 				delete [] reason;
 			}
 			break;
@@ -1611,7 +1624,7 @@ vncClient::vncClient()
 	m_pollingcycle = 0;
 	m_remoteevent = FALSE;
 
-	m_bDownloadEnable = FALSE;
+	m_bDownloadStarted = FALSE;
 
 	// IMPORTANT: Initially, client is not protocol-ready.
 	m_protocol_ready = FALSE;
@@ -1697,8 +1710,8 @@ vncClient::Init(vncServer *server,
 void
 vncClient::Kill()
 {
-    // Stop download file
-    m_bDownloadEnable = false;
+    // Close file transfer
+    CloseUndoneFileTransfer();
 
 	// Close the socket
 	if (m_socket != NULL)
@@ -2335,14 +2348,16 @@ vncClient::SendFileUploadCancel(unsigned short reasonLen, char *reason)
 	delete [] pAllFUCMessage;
 }
 
-void vncClient::Time70ToFiletime(unsigned int mTime, FILETIME *pFiletime)
+void 
+vncClient::Time70ToFiletime(unsigned int mTime, FILETIME *pFiletime)
 {
     LONGLONG ll = Int32x32To64(mTime, 10000000) + 116444736000000000;
     pFiletime->dwLowDateTime = (DWORD) ll;
     pFiletime->dwHighDateTime = ll >> 32;
 }
 
-void vncClient::SendFileDownloadFailed(unsigned short reasonLen, char *reason)
+void 
+vncClient::SendFileDownloadFailed(unsigned short reasonLen, char *reason)
 {
 	int msgLen = sz_rfbFileDownloadFailedMsg + reasonLen;
 	char *pAllFDFMessage = new char[msgLen];
@@ -2355,7 +2370,8 @@ void vncClient::SendFileDownloadFailed(unsigned short reasonLen, char *reason)
 	delete [] pAllFDFMessage;
 }
 
-void vncClient::SendFileDownloadData(unsigned int mTime)
+void 
+vncClient::SendFileDownloadData(unsigned int mTime)
 {
 	int msgLen = sz_rfbFileDownloadDataMsg + sizeof(unsigned int);
 	char *pAllFDDMessage = new char[msgLen];
@@ -2370,7 +2386,8 @@ void vncClient::SendFileDownloadData(unsigned int mTime)
 	delete [] pAllFDDMessage;
 }
 
-void vncClient::SendFileDownloadData(unsigned short sizeFile, char *pFile)
+void 
+vncClient::SendFileDownloadData(unsigned short sizeFile, char *pFile)
 {
 	int msgLen = sz_rfbFileDownloadDataMsg + sizeFile;
 	char *pAllFDDMessage = new char[msgLen];
@@ -2386,11 +2403,26 @@ void vncClient::SendFileDownloadData(unsigned short sizeFile, char *pFile)
 
 }
 
-unsigned int vncClient::FiletimeToTime70(FILETIME filetime)
+unsigned int 
+vncClient::FiletimeToTime70(FILETIME filetime)
 {
 	LARGE_INTEGER uli;
 	uli.LowPart = filetime.dwLowDateTime;
 	uli.HighPart = filetime.dwHighDateTime;
 	uli.QuadPart = (uli.QuadPart - 116444736000000000) / 10000000;
 	return uli.LowPart;
+}
+
+void
+vncClient::CloseUndoneFileTransfer()
+{
+  if (m_bUploadStarted) {
+    m_bUploadStarted = FALSE;
+    CloseHandle(m_hFileToWrite);
+    DeleteFile(m_UploadFilename);
+  }
+  if (m_bDownloadStarted) {
+    m_bDownloadStarted = FALSE;
+    CloseHandle(m_hFileToRead);
+  }
 }

@@ -35,7 +35,9 @@ FileTransfer::FileTransfer(ClientConnection * pCC, VNCviewerApp * pApp)
 {
 	m_clientconn = pCC;
 	m_pApp = pApp;
-	m_TransferEnable = FALSE;
+    m_bUploadStarted = FALSE;
+    m_bDownloadStarted = FALSE;
+	m_bTransferEnable = FALSE;
 	m_bServerBrowseRequest = FALSE;
 	m_bFirstFileDownloadMsg = TRUE;
 	m_hTreeItem = NULL;
@@ -187,7 +189,7 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 						SetWindowText(_this->m_hwndFTStatus, buffer);
 						return TRUE;
 					}
-					_this->m_TransferEnable = TRUE;
+					_this->m_bTransferEnable = TRUE;
 					EnableWindow(GetDlgItem(hwnd, IDC_FTCANCEL), TRUE);
 					_this->FileTransferUpload();			
 				} else {
@@ -198,7 +200,7 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 						return TRUE;
 					}
 					char path[rfbMAX_PATH + rfbMAX_PATH];
-					_this->m_TransferEnable = TRUE;
+					_this->m_bTransferEnable = TRUE;
 					EnableWindow(GetDlgItem(hwnd, IDC_FTCANCEL), TRUE);
 					_this->BlockingFileTransferDialog(FALSE);
 					ListView_GetItemText(_this->m_hwndFTServerList, ListView_GetSelectionMark(_this->m_hwndFTServerList), 0, _this->m_ServerFilename, rfbMAX_PATH);
@@ -221,7 +223,7 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 			case IDC_FTCANCEL:
 				SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
 				EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), FALSE);
-				_this->m_TransferEnable = FALSE;
+				_this->m_bTransferEnable = FALSE;
 				EnableWindow(GetDlgItem(hwnd, IDC_FTCANCEL), FALSE);
 				return TRUE;
 			case IDC_CLIENTBROWSE_BUT:
@@ -340,6 +342,7 @@ FileTransfer::FileTransferUpload()
 	BlockingFileTransferDialog(FALSE);
 	ListView_GetItemText(m_hwndFTClientList, nSelItem, 0, m_ClientFilename, rfbMAX_PATH);
 	sprintf(path, "%s\\%s", m_ClientPath, m_ClientFilename);
+    strcpy(m_UploadFilename, path);
 	WIN32_FIND_DATA FindFileData;
 	SetErrorMode(SEM_FAILCRITICALERRORS);
 	HANDLE hFile = FindFirstFile(path, &FindFileData);
@@ -356,8 +359,8 @@ FileTransfer::FileTransferUpload()
 	}
 	FindClose(hFile);
 	if (sz_rfbFileSize <= sz_rfbBlockSize) sz_rfbBlockSize = sz_rfbFileSize;
-	HANDLE hFiletoRead = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
-	if (hFiletoRead == INVALID_HANDLE_VALUE) {
+	m_hFiletoRead = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+	if (m_hFiletoRead == INVALID_HANDLE_VALUE) {
 		SetWindowText(m_hwndFTStatus, "This is not file. Select a file");
 		BlockingFileTransferDialog(TRUE);
 		return;
@@ -389,9 +392,10 @@ FileTransfer::FileTransferUpload()
 
 		DWORD dwPortionRead = 0;
 		char *pBuff = new char [sz_rfbBlockSize];
-		while(1) {
+        m_bUploadStarted = TRUE;
+		while(m_bUploadStarted) {
 			ProcessDlgMessage(m_hwndFileTransfer);
-			if (m_TransferEnable == FALSE) {
+			if (m_bTransferEnable == FALSE) {
 				SetWindowText(m_hwndFTStatus, "File transfer canceled");
 				EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
 				BlockingFileTransferDialog(TRUE);
@@ -407,7 +411,7 @@ FileTransfer::FileTransferUpload()
 				delete [] pFUFMessage;
 				break;
 			}
-			bResult = ReadFile(hFiletoRead, pBuff, sz_rfbBlockSize, &dwNumberOfBytesRead, NULL);
+			bResult = ReadFile(m_hFiletoRead, pBuff, sz_rfbBlockSize, &dwNumberOfBytesRead, NULL);
 			if (bResult && dwNumberOfBytesRead == 0) {
 				/* This is the end of the file. */
 				SendFileUploadDataMessage(mTime);
@@ -420,12 +424,27 @@ FileTransfer::FileTransferUpload()
 				SendMessage(m_hwndFTProgress, PBM_STEPIT, 0, 0);
 			}
 		}
+        m_bUploadStarted = FALSE;
 		delete [] pBuff;
 	}
 	SendMessage(m_hwndFTProgress, PBM_SETPOS, 0, 0);
-	CloseHandle(hFiletoRead);
+	CloseHandle(m_hFiletoRead);
 	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
 	SendFileListRequestMessage(m_ServerPath, 0);
+}
+
+void
+FileTransfer::CloseUndoneFileTransfers()
+{
+  if (m_bUploadStarted) {
+    m_bUploadStarted = FALSE;
+    CloseHandle(m_hFiletoRead);
+  }
+  if (m_bDownloadStarted) {
+    m_bDownloadStarted = FALSE;
+    CloseHandle(m_hFiletoWrite);
+    DeleteFile(m_DownloadFilename);
+  }
 }
 
 void 
@@ -442,10 +461,12 @@ FileTransfer::FileTransferDownload()
 	if (m_bFirstFileDownloadMsg) {
 		m_dwDownloadBlockSize = fdd.compressedSize;
 		sprintf(path, "%s\\%s", m_ClientPath, m_ServerFilename);
+        strcpy(m_DownloadFilename, path);
 		m_hFiletoWrite = CreateFile(path, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
 		int amount = m_sizeDownloadFile / ((m_dwDownloadBlockSize + 1) * 10);
 		InitProgressBar(0, 0, amount, 1);
 		m_bFirstFileDownloadMsg = FALSE;
+        m_bDownloadStarted = TRUE;
 	}
 	if ((fdd.realSize == 0) && (fdd.compressedSize == 0)) {
 		unsigned int mTime;
@@ -459,32 +480,20 @@ FileTransfer::FileTransferDownload()
 		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
 		BlockingFileTransferDialog(TRUE);
 		m_bFirstFileDownloadMsg = TRUE;
+        m_bDownloadStarted = FALSE;
 		return;
 	}
 	char * pBuff = new char [fdd.compressedSize];
 	DWORD dwNumberOfBytesWritten;
 	m_clientconn->ReadExact(pBuff, fdd.compressedSize);
 	ProcessDlgMessage(m_hwndFileTransfer);
-	if (m_TransferEnable == FALSE) {
+	if (m_bTransferEnable == FALSE) {
 		SetWindowText(m_hwndFTStatus, "File transfer canceled");
-		CloseHandle(m_hFiletoWrite);
-		sprintf(path, "%s\\%s", m_ClientPath, m_ServerFilename);
-		DeleteFile(path);
-		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
+        CloseUndoneFileTransfers();		
+        EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
 		BlockingFileTransferDialog(TRUE);
 		return;
 	}
-/*
-	if (fdd.amount == 0) {
-		char tmpBuffer[rfbMAX_PATH + rfbMAX_PATH + 20];
-		sprintf(tmpBuffer, "Can't download %s\\%s", m_ServerPath, m_ServerFilename);
-		SetWindowText(m_hwndFTStatus, tmpBuffer);
-		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
-		BlockingFileTransferDialog(TRUE);
-		return;
-	}
-*/
-
 	WriteFile(m_hFiletoWrite, pBuff, fdd.compressedSize, &dwNumberOfBytesWritten, NULL);
 	m_dwDownloadRead += dwNumberOfBytesWritten;
 	if (m_dwDownloadRead >= (10 * m_dwDownloadBlockSize)) {

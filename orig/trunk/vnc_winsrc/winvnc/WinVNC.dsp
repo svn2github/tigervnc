@@ -300,25 +300,6 @@ SOURCE=.\vncAcceptReverseDlg.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\vncAdvancedProperties.cpp
-
-!IF  "$(CFG)" == "WinVNC - Win32 Release"
-
-# PROP Exclude_From_Build 1
-
-!ELSEIF  "$(CFG)" == "WinVNC - Win32 Debug"
-
-!ELSEIF  "$(CFG)" == "WinVNC - Win32 Profile"
-
-!ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"
-
-# PROP Exclude_From_Build 1
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
 SOURCE=.\vncauth.c
 # End Source File
 # Begin Source File

@@ -1308,22 +1308,17 @@ vncClientThread::run(void *arg)
 				FileTransferItemInfo ftii;
 				if (strlen(path) == 0) {
 					TCHAR szDrivesList[256];
-					char drive[] = "?:\\";
-					if (GetLogicalDriveStrings(256, szDrivesList) == 0) break;
-					for (int i = 0; i < 256; i++) {
-						drive[0] = szDrivesList[i];
-						switch (GetDriveType((LPCTSTR) drive))
-						case DRIVE_REMOVABLE:
-						case DRIVE_FIXED:
-						case DRIVE_REMOTE:
-						case DRIVE_CDROM:
-							{
-								drive[2] = '\0';
-								ftii.Add(drive, -1, 0);
-								strcat(drive, "\\");
-							}
-							i += 3;
-							if (szDrivesList[i+1] == '\0') break;
+					if (GetLogicalDriveStrings(255, szDrivesList) == 0)
+						break;
+					int i = 0;
+					while (szDrivesList[i] != '\0') {
+						char *drive = strdup(&szDrivesList[i]);
+						char *backslash = strrchr(drive, '\\');
+						if (backslash != NULL)
+							*backslash = '\0';
+						ftii.Add(drive, -1, 0);
+						free(drive);
+						i += strcspn(&szDrivesList[i], "\0") + 1;
 					}
 /*
 					char myDocPath[MAX_PATH];

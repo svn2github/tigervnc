@@ -39,22 +39,17 @@ bool
 DirManager::getDriveInfo(FileInfo *pFI)
 {
 	TCHAR szDrivesList[256];
-	char drive[] = "?:\\";
-	if (GetLogicalDriveStrings(256, szDrivesList) == 0) return false;
-	for (int i = 0; i < 256; i++) {
-		drive[0] = szDrivesList[i];
-		switch (GetDriveType((LPCTSTR) drive))
-		case DRIVE_REMOVABLE:
-		case DRIVE_FIXED:
-		case DRIVE_REMOTE:
-		case DRIVE_CDROM:
-			{
-				drive[2] = '\0';
-				pFI->add(drive, 0, 0, FT_ATTR_FOLDER);
-				strcat(drive, "\\");
-			}
-			i += 3;
-			if (szDrivesList[i+1] == '\0') break;
+	if (GetLogicalDriveStrings(255, szDrivesList) == 0)
+		return false;
+	int i = 0;
+	while (szDrivesList[i] != '\0') {
+		char *drive = strdup(&szDrivesList[i]);
+		char *backslash = strrchr(drive, '\\');
+		if (backslash != NULL)
+			*backslash = '\0';
+		pFI->add(drive, 0, 0, FT_ATTR_FOLDER);
+		free(drive);
+		i += strcspn(&szDrivesList[i], "\0") + 1;
 	}
 	m_dwLastError = ERROR_SUCCESS;
 	return true;

@@ -81,7 +81,7 @@ void ClientConnection::HandleHextileEncoding##bpp(int rx, int ry, int rw, int rh
                                                                               \
             if (subencoding & rfbHextileRaw) {                                \
                 ReadExact(m_netbuf, w * h * (bpp / 8));                       \
-                SETPIXELS(m_netbuf, bpp, x,y,w,h)                                       \
+                SETPIXELS(m_netbuf, bpp, x,y,w,h)                             \
                 continue;                                                     \
             }                                                                 \
                                                                               \
@@ -119,7 +119,7 @@ void ClientConnection::HandleHextileEncoding##bpp(int rx, int ry, int rw, int rh
                 }                                                             \
                                                                               \
             } else {                                                          \
-                ReadExact(m_netbuf, nSubrects * 2);                    \
+                ReadExact(m_netbuf, nSubrects * 2);								\
                                                                               \
                 for (i = 0; i < nSubrects; i++) {                             \
                     sx = *ptr >> 4;                                           \

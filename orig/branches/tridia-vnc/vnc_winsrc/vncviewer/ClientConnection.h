@@ -45,6 +45,8 @@
 #define SETTINGS_KEY_NAME "Software\\ORL\\VNCviewer\\Settings"
 #define MAX_HOST_NAME_LEN 250
 
+#define ZLIBHEX_DECOMP_UNINITED (-1)
+
 class ClientConnection  : public omni_thread
 {
 public:
@@ -117,7 +119,19 @@ private:
 	void HandleHextileEncoding16(int x, int y, int w, int h);
 	void HandleHextileEncoding32(int x, int y, int w, int h);
 	void ReadZlibRect(rfbFramebufferUpdateRectHeader *pfburh);
-	
+	void HandleZlibHexEncoding8(int x, int y, int w, int h);
+	void HandleZlibHexEncoding16(int x, int y, int w, int h);
+	void HandleZlibHexEncoding32(int x, int y, int w, int h);
+	void HandleZlibHexSubencodingStream8(int x, int y, int w, int h, int subencoding);
+	void HandleZlibHexSubencodingStream16(int x, int y, int w, int h, int subencoding);
+	void HandleZlibHexSubencodingStream32(int x, int y, int w, int h, int subencoding);
+	void HandleZlibHexSubencodingBuf8(int x, int y, int w, int h, int subencoding, unsigned char * buffer);
+	void HandleZlibHexSubencodingBuf16(int x, int y, int w, int h, int subencoding, unsigned char * buffer);
+	void HandleZlibHexSubencodingBuf32(int x, int y, int w, int h, int subencoding, unsigned char * buffer);
+	void ReadZlibHexRect(rfbFramebufferUpdateRectHeader *pfburh);
+
+	bool zlibDecompress(unsigned char *from_buf, unsigned char *to_buf, unsigned int count, unsigned int size, z_stream *decompressor);
+
 	void ReadRBSRect(rfbFramebufferUpdateRectHeader *pfburh);
 	BOOL DrawRBSRect8(int x, int y, int w, int h, CARD8 **pptr);
 	BOOL DrawRBSRect16(int x, int y, int w, int h, CARD8 **pptr);
@@ -190,6 +204,8 @@ private:
 	// zlib decompression state
 	bool m_decompStreamInited;
 	z_stream m_decompStream;
+	z_stream m_decompStreamRaw;
+	z_stream m_decompStreamEncoded;
 
 	// Bitmap for local copy of screen, and DC for writing to it.
 	HBITMAP m_hBitmap;

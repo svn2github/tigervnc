@@ -1,7 +1,8 @@
 
-VNC Source Distribution for Windows platforms
-=============================================
+TridiaVNC 1.2.1 Source Distribution for Windows platforms
+=========================================================
 
+TridiaVNC is Copyright (C) 2000 Tridia Corp.  All rights reserved.
 VNC is Copyright AT&T Laboratories Cambridge.  This software is
 distributed under the GNU General Public Licence as published by the Free
 Software Foundation.  See the file LICENCE.TXT for the conditions under

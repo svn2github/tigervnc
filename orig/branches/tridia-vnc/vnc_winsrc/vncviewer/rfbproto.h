@@ -302,6 +302,8 @@ typedef struct {
 #define rfbEncodingCoRRE 4
 #define rfbEncodingHextile 5
 #define rfbEncodingZlib 6
+#define rfbEncodingTight 7
+#define rfbEncodingZlibHex 8
 
 
 
@@ -441,6 +443,8 @@ typedef struct {
 #define rfbHextileForegroundSpecified	(1 << 2)
 #define rfbHextileAnySubrects		(1 << 3)
 #define rfbHextileSubrectsColoured	(1 << 4)
+#define rfbHextileZlibRaw			(1 << 5)
+#define rfbHextileZlibHex			(1 << 6)
 
 #define rfbHextilePackXY(x,y) (((x) << 4) | (y))
 #define rfbHextilePackWH(w,h) ((((w)-1) << 4) | ((h)-1))

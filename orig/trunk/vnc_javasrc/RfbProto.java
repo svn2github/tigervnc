@@ -116,7 +116,7 @@ class RfbProto {
 
   int serverMajor, serverMinor;
 
-  void readVersionMsg() throws IOException {
+  void readVersionMsg() throws Exception {
 
     byte[] b = new byte[12];
 
@@ -128,8 +128,8 @@ class RfbProto {
 	|| (b[8] < '0') || (b[8] > '9') || (b[9] < '0') || (b[9] > '9')
 	|| (b[10] < '0') || (b[10] > '9') || (b[11] != '\n'))
     {
-      throw new IOException("Host " + host + " port " + port +
-			    " is not an RFB server");
+      throw new Exception("Host " + host + " port " + port +
+			  " is not an RFB server");
     }
 
     serverMajor = (b[4] - '0') * 100 + (b[5] - '0') * 10 + (b[6] - '0');
@@ -150,7 +150,7 @@ class RfbProto {
   // Find out the authentication scheme.
   //
 
-  int readAuthScheme() throws IOException {
+  int readAuthScheme() throws Exception {
     int authScheme = is.readInt();
 
     switch (authScheme) {
@@ -159,15 +159,15 @@ class RfbProto {
       int reasonLen = is.readInt();
       byte[] reason = new byte[reasonLen];
       is.readFully(reason);
-      throw new IOException(new String(reason));
+      throw new Exception(new String(reason));
 
     case NoAuth:
     case VncAuth:
       return authScheme;
 
     default:
-      throw new IOException("Unknown authentication scheme from RFB " +
-			    "server " + authScheme);
+      throw new Exception("Unknown authentication scheme from RFB server: " +
+			  authScheme);
 
     }
   }
@@ -255,7 +255,7 @@ class RfbProto {
 
   int updateRectX, updateRectY, updateRectW, updateRectH, updateRectEncoding;
 
-  void readFramebufferUpdateRectHdr() throws IOException {
+  void readFramebufferUpdateRectHdr() throws Exception {
     updateRectX = is.readUnsignedShort();
     updateRectY = is.readUnsignedShort();
     updateRectW = is.readUnsignedShort();
@@ -268,9 +268,9 @@ class RfbProto {
 
     if ((updateRectX + updateRectW > framebufferWidth) ||
 	(updateRectY + updateRectH > framebufferHeight)) {
-      throw new IOException("Framebuffer update rectangle too large: " +
-			    updateRectW + "x" + updateRectH + " at (" +
-			    updateRectX + "," + updateRectY + ")");
+      throw new Exception("Framebuffer update rectangle too large: " +
+			  updateRectW + "x" + updateRectH + " at (" +
+			  updateRectX + "," + updateRectY + ")");
     }
   }
 

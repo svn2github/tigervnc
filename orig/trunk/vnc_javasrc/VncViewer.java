@@ -232,7 +232,7 @@ public class VncViewer extends java.applet.Applet
   // Connect to the RFB server and authenticate the user.
   //
 
-  void connectAndAuthenticate() throws IOException {
+  void connectAndAuthenticate() throws Exception {
 
     // The simplest case -- don't ask user a password, get it from the
     // "PASSWORD" parameter instead. Authentication failures would be
@@ -246,7 +246,7 @@ public class VncViewer extends java.applet.Applet
 	validate();
       }
       if (!tryAuthenticate(passwordParam)) {
-	throw new IOException("VNC authentication failed");
+	throw new Exception("VNC authentication failed");
       }
       return;
     }
@@ -304,7 +304,7 @@ public class VncViewer extends java.applet.Applet
   // Try to authenticate with a given password.
   //
 
-  boolean tryAuthenticate(String pw) throws IOException {
+  boolean tryAuthenticate(String pw) throws Exception {
 
     rfb = new RfbProto(host, port, this);
 
@@ -350,16 +350,14 @@ public class VncViewer extends java.applet.Applet
 	System.out.println("VNC authentication failed");
 	break;
       case RfbProto.VncAuthTooMany:
-	throw new IOException("VNC authentication failed - too many tries");
+	throw new Exception("VNC authentication failed - too many tries");
       default:
-	throw new IOException("Unknown VNC authentication result " +
-			      authResult);
+	throw new Exception("Unknown VNC authentication result " + authResult);
       }
       break;
 
     default:
-      throw new IOException("Unknown VNC authentication scheme " +
-			    authScheme);
+      throw new Exception("Unknown VNC authentication scheme " + authScheme);
     }
     return false;
   }

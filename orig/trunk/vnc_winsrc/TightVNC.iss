@@ -3,8 +3,8 @@
 
 [Setup]
 AppName=TightVNC
-AppVerName=TightVNC 1.3dev1
-AppVersion=1.3dev1
+AppVerName=TightVNC 1.3dev3
+AppVersion=1.3dev3
 AppPublisher=Constantin Kaplinsky
 AppPublisherURL=http://www.tightvnc.com
 AppSupportURL=http://www.tightvnc.com

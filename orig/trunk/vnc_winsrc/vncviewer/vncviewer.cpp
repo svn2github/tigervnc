@@ -93,7 +93,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 	Accel[6].key=0x54;
 	Accel[6].cmd=ID_TOOLBAR;
 
-	hAccel=CreateAcceleratorTable((LPACCEL)Accel,7);
+	Accel[7].fVirt=FVIRTKEY|FALT|FCONTROL|FSHIFT|FNOINVERT;
+	Accel[7].key=0x45;
+	Accel[7].cmd=IDD_FILETRANSFER;
+
+	hAccel=CreateAcceleratorTable((LPACCEL)Accel,8);
    
 	try {
 		while ( GetMessage(&msg, NULL, 0,0) ) {

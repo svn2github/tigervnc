@@ -287,6 +287,8 @@ void ClientConnection::Run()
 			// Enable file transfers if the server supports this feature.
 			EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), IDD_FILETRANSFER,
 						   MF_BYCOMMAND | MF_ENABLED);
+			SendMessage(hToolBar, TB_SETSTATE, (WPARAM)IDD_FILETRANSFER,
+						(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
 		}
 	}
 
@@ -421,7 +423,7 @@ void ClientConnection::CreateDisplay()
 				   _T("&Save connection info as...\tCtrl-Alt-Shift-S"));
 		AppendMenu(hsysmenu, MF_SEPARATOR, NULL, NULL);
 		AppendMenu(hsysmenu, MF_STRING | MF_GRAYED, IDD_FILETRANSFER,
-				   _T("Transf&er files..."));
+				   _T("Transf&er files...\tCtrl-Alt-Shift-E"));
 	}
 
 	AppendMenu(hsysmenu, MF_SEPARATOR, NULL, NULL);
@@ -488,17 +490,22 @@ void ClientConnection::CreateDisplay()
 	but[12].fsState		= TBSTATE_ENABLED;
 	but[12].fsStyle		= TBSTYLE_BUTTON;
 
-	but[13].fsStyle		= TBSTYLE_SEP;
+	but[13].iBitmap		= 7;
+	but[13].idCommand	= IDD_FILETRANSFER;
+	but[13].fsState		= TBSTATE_INDETERMINATE;
+	but[13].fsStyle		= TBSTYLE_BUTTON;
 
-	but[14].iBitmap		= 11;
-	but[14].idCommand	= ID_DISCONNECT;
-	but[14].fsState		= TBSTATE_ENABLED;
-	but[14].fsStyle		= TBSTYLE_BUTTON;
+	but[14].fsStyle		= TBSTYLE_SEP;
+
+	but[15].iBitmap		= 11;
+	but[15].idCommand	= ID_DISCONNECT;
+	but[15].fsState		= TBSTATE_ENABLED;
+	but[15].fsStyle		= TBSTYLE_BUTTON;
 
 	hToolBar=CreateToolbarEx(m_hwnd1,
 		WS_CHILD|WS_MAXIMIZE|WS_DLGFRAME|TBSTYLE_TOOLTIPS ,
 		ID_TOOLBAR,13,m_pApp->m_instance,
-		IDB_BITMAP1,but,15,0,0,0,0,sizeof(TBBUTTON));
+		IDB_BITMAP1,but,16,0,0,0,0,sizeof(TBBUTTON));
 
 	m_hwnd = CreateWindow("ChildClass",
 			      NULL,
@@ -1267,6 +1274,9 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 					return 0;
 				case ID_CONN_SAVE_AS:
 					TTStr->lpszText="Save connection info as...";
+					return 0;
+				case IDD_FILETRANSFER:
+					TTStr->lpszText="Transfer files...";
 					return 0;
 			}
 			return 0;

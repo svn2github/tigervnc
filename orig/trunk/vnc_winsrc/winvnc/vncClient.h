@@ -223,6 +223,8 @@ private:
 	void SendFileUploadCancel(unsigned short reasonLen, char *reason);
 	void SendFileDownloadFailed(unsigned short reasonLen, char *reason);
 	void SendFileDirSizeData(CARD32 size);
+	void SendLastRequestFailed(CARD8 typeOfRequest, CARD16 reasonLen, 
+							   CARD32 sysError, char *reason);
 	void CloseUndoneFileTransfer();
 	BOOL m_bUploadStarted;
 	BOOL m_bDownloadStarted;

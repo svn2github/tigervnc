@@ -1593,6 +1593,35 @@ vncClientThread::run(void *arg)
 			}
 			break;
 	
+		case rfbFileRenameRequest:
+			if (!m_server->FileTransfersEnabled() || !m_client->IsInputEnabled()) {
+				connected = FALSE;
+				break;
+			}
+			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileRenameRequestMsg-1))
+			{
+				msg.frr.oldNameLen = Swap16IfLE(msg.frr.oldNameLen);
+				msg.frr.newNameLen = Swap16IfLE(msg.frr.newNameLen);
+				char *pOldName = new char[msg.frr.oldNameLen + 1];
+				char *pNewName = new char[msg.frr.newNameLen + 1];
+				m_socket->ReadExact(pOldName, msg.frr.oldNameLen);
+				m_socket->ReadExact(pNewName, msg.frr.newNameLen);
+				pOldName[msg.frr.oldNameLen] = '\0';
+				pNewName[msg.frr.newNameLen] = '\0';
+				pOldName = ConvertPath(pOldName);
+				pNewName = ConvertPath(pNewName);
+				if (!MoveFile(pOldName, pNewName)) {
+					CARD32 sysError = GetLastError();
+					CARD8 typeOfRequest = rfbFileRenameRequest;
+					char reason[] = "Last request failed";
+					CARD16 reasonLen = strlen(reason);
+					m_client->SendLastRequestFailed(typeOfRequest, reasonLen, sysError, reason);
+				}
+				delete [] pOldName;
+				delete [] pNewName;
+			}
+			break;
+
 		case rfbFileDirSizeRequest:
 			if (!m_server->FileTransfersEnabled() || !m_client->IsInputEnabled()) {
 				connected = FALSE;
@@ -2509,6 +2538,23 @@ vncClient::SendFileDirSizeData(CARD32 size)
 	fdsd.type = rfbFileDirSizeData;
 	fdsd.dSize = Swap32IfLE(size);
 	m_socket->SendExact((char *)&fdsd, sz_rfbFileDirSizeDataMsg);
+}
+
+void 
+vncClient::SendLastRequestFailed(CARD8 typeOfRequest, CARD16 reasonLen, 
+								 CARD32 sysError, char *reason)
+{
+	int msgLen = sz_rfbFileLastRequestFailedMsg + reasonLen;
+	char *pAllFLRFMessage = new char[msgLen];
+	rfbFileLastRequestFailedMsg *pFLRF = (rfbFileLastRequestFailedMsg *) pAllFLRFMessage;
+	char *pFollow = &pAllFLRFMessage[sz_rfbFileLastRequestFailedMsg];
+	pFLRF->type = rfbFileLastRequestFailed;
+	pFLRF->typeOfRequest = typeOfRequest;
+	pFLRF->reasonLen = Swap16IfLE(reasonLen);
+	pFLRF->sysError = Swap32IfLE(sysError);
+	memcpy(pFollow, reason, reasonLen);
+	m_socket->SendExact(pAllFLRFMessage, msgLen);
+	delete [] pAllFLRFMessage;
 }
 
 unsigned int 

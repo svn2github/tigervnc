@@ -386,6 +386,7 @@ typedef struct _rfbInteractionCapsMsg {
 #define rfbFileUploadCancel 132
 #define rfbFileDownloadFailed 133
 #define rfbFileDirSizeData 134
+#define rfbFileLastRequestFailed 135
 
 /* signatures for non-standard messages */
 #define sig_rfbFileListData "FTS_LSDT"
@@ -412,6 +413,9 @@ typedef struct _rfbInteractionCapsMsg {
 #define rfbFileUploadFailed 135
 #define rfbFileCreateDirRequest 136
 #define rfbFileDirSizeRequest 137
+#define	rfbFileRenameRequest 138
+#define rfbFileDeleteRequest 139
+
 
 /* signatures for non-standard messages */
 #define sig_rfbFileListRequest "FTC_LSRQ"
@@ -970,6 +974,20 @@ typedef struct _rfbFileDirSizeDataMsg {
 #define sz_rfbFileDirSizeDataMsg 8
 
 /*-----------------------------------------------------------------------------
+ * rfbFileLastRequestFailed
+ */
+
+typedef struct _rfbFileLastRequestFailedMsg {
+    CARD8 type;
+    CARD8 typeOfRequest;
+	CARD16 reasonLen;
+    CARD32 sysError;
+    /* Followed by reason[reasonLen] */
+} rfbFileLastRequestFailedMsg;
+
+#define sz_rfbFileLastRequestFailedMsg 8
+
+/*-----------------------------------------------------------------------------
  * Union of all server->client messages.
  */
 
@@ -984,6 +1002,7 @@ typedef union _rfbServerToClientMsg {
     rfbFileUploadCancelMsg fuc;
     rfbFileDownloadFailedMsg fdf;
 	rfbFileDirSizeDataMsg fdsd;
+	rfbFileLastRequestFailedMsg flrf;
 } rfbServerToClientMsg;
 
 
@@ -1251,6 +1270,34 @@ typedef struct _rfbFileDirSizeRequestMsg {
 #define sz_rfbFileDirSizeRequestMsg 4
 
 /*-----------------------------------------------------------------------------
+ * FileRenameRequest
+ */
+
+typedef struct _rfbFileRenameRequestMsg {
+    CARD8 type;
+    CARD8 unused;
+    CARD16 oldNameLen;
+	CARD16 newNameLen;
+    /* Followed by oldName[oldNameLen]
+       Followed by newName[newNameLen] */
+} rfbFileRenameRequestMsg;
+
+#define sz_rfbFileRenameRequestMsg 6
+
+/*-----------------------------------------------------------------------------
+ * FileDeleteRequest
+ */
+
+typedef struct _rfbFileDeleteRequestMsg {
+    CARD8 type;
+    CARD8 unused;
+    CARD16 nameLen;
+    /* Followed by name[nameLen] */
+} rfbFileDeleteRequestMsg;
+
+#define sz_rfbFileDeleteRequestMsg 4
+
+/*-----------------------------------------------------------------------------
  * Union of all client->server messages.
  */
 
@@ -1271,4 +1318,6 @@ typedef union _rfbClientToServerMsg {
     rfbFileUploadFailedMsg fuf;
     rfbFileCreateDirRequestMsg fcdr;
 	rfbFileDirSizeRequestMsg fdsr;
+	rfbFileRenameRequestMsg frr;
+	rfbFileDeleteRequestMsg fder;
 } rfbClientToServerMsg;

@@ -59,6 +59,7 @@ public:
 	void ProcessListViewDBLCLK(HWND hwnd, char *Path, char *PathTmp, int iItem);
 	void ProcessFLRMessage();
 	void ProcessFDSDMessage();
+	void ProcessFLRFMessage();
 	void SendFileListRequestMessage(char *filename, unsigned char flags, int dest);
 	void ShowServerItems();
 	void ShowClientItems(char *path);
@@ -80,6 +81,7 @@ public:
 	static LRESULT CALLBACK FileTransferDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static BOOL CALLBACK FTBrowseDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static BOOL CALLBACK FTCreateDirDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	static BOOL CALLBACK FTRenameDirDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	void CloseUndoneFileTransfers();
 	void UploadFilePortion();
 	void DownloadFilePortion();
@@ -106,6 +108,7 @@ private:
 	void SendFileCreateDirRequestMessage(unsigned short dNameLen, char *dName);
 	void SendFileDownloadRequestMessage(unsigned short dNameLen, char *dName);
 	void SendFileDirSizeRequestMessage(unsigned short pathLen, char *path);
+	void SendFileRenameRequestMessage(char *pOldName, char *pNewName);
 	void CreateItemInfoList(FileTransferItemInfo *pftii, FTSIZEDATA *ftsd, int ftsdNum, char *pfnames, int fnamesSize);
 	void InitProgressBar(int nPosition);
 	void InitFTProgressBar(int nPosition);
@@ -115,6 +118,9 @@ private:
 	void ServerCreateDir();
 	void ClientDeleteDir();
 	void ServerDeleteDir();
+	void ClientRenameDir();
+	void ServerRenameDir();
+	BOOL CreateRenameDirDlg(HWND hwnd);
 	void SetDefaultBlockSize() { m_dwFileBlockSize = 8192; };
 
 	DWORD GetSelectedFileSize(char *path, FileTransferItemInfo *pFTFI);
@@ -174,6 +180,10 @@ private:
 	char m_szLastRelTransPath[MAX_PATH];
 	char m_szLocalTransPath[MAX_PATH];
 	char m_szRemoteTransPath[MAX_PATH];
+
+	char m_szRenameDlgText1[MAX_PATH];
+	char m_szRenameDlgText2[MAX_PATH];
+	char m_szRenameDlgText3[MAX_PATH];
 };
 
 #endif // !defined(FILETRANSFER)

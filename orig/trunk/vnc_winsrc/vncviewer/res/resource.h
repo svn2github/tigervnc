@@ -171,6 +171,7 @@
 #define IDC_CURRENTFILEPERCENT          1146
 #define IDC_PROGRESS                    1147
 #define IDC_CLIENTRENAME                1150
+#define IDC_MAINTEXT                    1151
 #define ID_SESSION_SET_CRECT            32777
 #define IDC_ALLOW_COMPRESSLEVEL         32778
 #define IDC_ALLOW_JPEG                  32779
@@ -187,7 +188,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        250
 #define _APS_NEXT_COMMAND_VALUE         40011
-#define _APS_NEXT_CONTROL_VALUE         1151
+#define _APS_NEXT_CONTROL_VALUE         1152
 #define _APS_NEXT_SYMED_VALUE           244
 #endif
 #endif

@@ -252,6 +252,14 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 				_this->ClearFTControls();
 				_this->ServerDeleteDir();
 				return TRUE;
+			case IDC_CLIENTRENAME:
+				_this->ClearFTControls();
+				_this->ClientRenameDir();
+				return TRUE;
+			case IDC_SERVERRENAME:
+				_this->ClearFTControls();
+				_this->ServerRenameDir();
+				return TRUE;
 		}
 		}
 	break;
@@ -1032,6 +1040,19 @@ FileTransfer::ProcessDlgMessage(HWND hwnd)
 }
 
 void
+FileTransfer::ProcessFLRFMessage()
+{
+	rfbFileLastRequestFailedMsg flrf;
+	m_clientconn->ReadExact((char *) &flrf, sz_rfbFileLastRequestFailedMsg);
+	flrf.reasonLen = Swap16IfLE(flrf.reasonLen);
+	flrf.sysError = Swap32IfLE(flrf.sysError);
+	char *pReason = new char [flrf.reasonLen + 1];
+	m_clientconn->ReadExact(pReason, flrf.reasonLen);
+	pReason[flrf.reasonLen] = '\0';
+	SetStatusText("%s error = %d", pReason, flrf.sysError);
+}
+
+void
 FileTransfer::ProcessFLRMessage()
 {
 	switch(m_FLRDest) 
@@ -1163,6 +1184,29 @@ FileTransfer::SendFileDirSizeRequestMessage(unsigned short pathLen, char *path)
 	fdsr.dNameLen = Swap16IfLE(len);
 	m_clientconn->WriteExact((char *)&fdsr, sz_rfbFileDirSizeRequestMsg);
 	m_clientconn->WriteExact(_path, len);
+}
+
+void
+FileTransfer::SendFileRenameRequestMessage(char *pOldName, char *pNewName)
+{
+	char *_pOldName = strdup(pOldName);
+	char *_pNewName = strdup(pNewName);
+	ConvertPath(_pOldName);
+	ConvertPath(_pNewName);
+	CARD16 oldNameLen = strlen(_pOldName);
+	CARD16 newNameLen = strlen(_pNewName);
+	int msgLen = sz_rfbFileRenameRequestMsg + oldNameLen + newNameLen;
+	char *pAllFRRMessage = new char[msgLen];
+	rfbFileRenameRequestMsg *pFRR = (rfbFileRenameRequestMsg *) pAllFRRMessage;
+	char *pFollow1 = &pAllFRRMessage[sz_rfbFileRenameRequestMsg];
+	char *pFollow2 = &pAllFRRMessage[sz_rfbFileRenameRequestMsg + oldNameLen];
+	pFRR->type = rfbFileRenameRequest;
+	pFRR->oldNameLen = Swap16IfLE(oldNameLen);
+	pFRR->newNameLen = Swap16IfLE(newNameLen);
+	memcpy(pFollow1, _pOldName, oldNameLen);
+	memcpy(pFollow2, _pNewName, newNameLen);
+	m_clientconn->WriteExact(pAllFRRMessage, msgLen);
+	delete [] pAllFRRMessage;
 }
 
 void 
@@ -1479,6 +1523,66 @@ FileTransfer::ServerDeleteDir()
 
 }
 
+void
+FileTransfer::ClientRenameDir()
+{
+	if (CreateRenameDirDlg(m_hwndFTClientList)) {
+		char selItemText[MAX_PATH];
+		int selItem = ListView_GetSelectionMark(m_hwndFTClientList);
+		ListView_GetItemText(m_hwndFTClientList, selItem, 0, selItemText, MAX_PATH);
+		char oldName[MAX_PATH];
+		char newName[MAX_PATH];
+		sprintf(oldName, "%s\\%s", m_ClientPath, selItemText);
+		sprintf(newName, "%s\\%s", m_ClientPath, m_szCreateDirName);
+		if (MoveFile(oldName, newName)) {
+			ShowClientItems(m_ClientPath);
+		}
+	}
+}
+
+void
+FileTransfer::ServerRenameDir()
+{
+	if (CreateRenameDirDlg(m_hwndFTServerList)) {
+		char selItemText[MAX_PATH];
+		int selItem = ListView_GetSelectionMark(m_hwndFTServerList);
+		ListView_GetItemText(m_hwndFTServerList, selItem, 0, selItemText, MAX_PATH);
+		char oldName[MAX_PATH];
+		char newName[MAX_PATH];
+		sprintf(oldName, "%s\\%s", m_ServerPath, selItemText);
+		sprintf(newName, "%s\\%s", m_ServerPath, m_szCreateDirName);
+		SendFileRenameRequestMessage(oldName, newName);
+		SendFileListRequestMessage(m_ServerPath, 0, FT_FLR_DEST_MAIN);
+	}
+}
+
+BOOL
+FileTransfer::CreateRenameDirDlg(HWND hwnd)
+{
+	char selItemText0[MAX_PATH];
+	char selItemText1[MAX_PATH];
+	int selItem = ListView_GetSelectionMark(hwnd);
+	ListView_GetItemText(hwnd, selItem, 0, selItemText0, MAX_PATH);
+	ListView_GetItemText(hwnd, selItem, 1, selItemText1, MAX_PATH);
+	if (strcmp(selItemText1, FileTransferItemInfo::folderText) == 0) {
+		strcpy(m_szRenameDlgText1, "Rename Folder");
+		sprintf(m_szRenameDlgText2, "Rename Folder '%s'", selItemText0);
+	} else {
+		strcpy(m_szRenameDlgText1, "Rename File");
+		sprintf(m_szRenameDlgText2, "Rename File '%s'", selItemText0);
+	}
+	strcpy(m_szRenameDlgText3, selItemText0);
+	if (DialogBoxParam(m_pApp->m_instance, 
+					   MAKEINTRESOURCE(IDD_FTDIRNAME), 
+		               m_hwndFileTransfer, 
+					   (DLGPROC) FTRenameDirDlgProc, 
+					   (LONG) this)) {
+		return TRUE;
+	} else {
+		return FALSE;
+	}
+}
+
 int 
 FileTransfer::GetSelectedItems(HWND hwnd, FileTransferItemInfo *pFTII)
 {
@@ -1511,6 +1615,47 @@ FileTransfer::FTCreateDirDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 	case WM_INITDIALOG:
 		SetWindowLong(hwnd, GWL_USERDATA, lParam);
 		SetFocus(GetDlgItem(hwnd, IDC_EDITDIRNAME));
+		return TRUE;
+		break;
+	case WM_COMMAND:
+		{
+			switch (LOWORD(wParam))
+			{
+			case IDOK:
+				GetWindowText(GetDlgItem(hwnd, IDC_EDITDIRNAME), _this->m_szCreateDirName, MAX_PATH);
+				EndDialog(hwnd, TRUE);
+				return TRUE;
+			case IDCANCEL:
+				EndDialog(hwnd, FALSE);
+				return TRUE;
+			}
+		}
+		break;
+	case WM_CLOSE:
+	case WM_DESTROY:
+		EndDialog(hwnd, FALSE);
+		return TRUE;
+	}
+	return FALSE;
+}
+
+BOOL CALLBACK 
+FileTransfer::FTRenameDirDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	FileTransfer *_this = (FileTransfer *) GetWindowLong(hwnd, GWL_USERDATA);
+	switch (uMsg)
+	{
+	case WM_INITDIALOG:
+		SetWindowLong(hwnd, GWL_USERDATA, lParam);
+		SetWindowText(hwnd, (LPCTSTR)((FileTransfer *)lParam)->m_szRenameDlgText1);
+		SetDlgItemText(hwnd, IDC_MAINTEXT, (LPCTSTR)((FileTransfer *)lParam)->m_szRenameDlgText2);
+		SetDlgItemText(hwnd, IDC_EDITDIRNAME, (LPCTSTR)((FileTransfer *)lParam)->m_szRenameDlgText3);
+		SendMessage(GetDlgItem(hwnd, IDC_EDITDIRNAME), EM_SETSEL, (WPARAM) 0, (LPARAM) -1);
+		SetFocus(GetDlgItem(hwnd, IDC_EDITDIRNAME));
+		CentreWindow(hwnd);
+		((FileTransfer *)lParam)->m_szRenameDlgText1[0] = '\0';
+		((FileTransfer *)lParam)->m_szRenameDlgText2[0] = '\0';
+		((FileTransfer *)lParam)->m_szRenameDlgText3[0] = '\0';
 		return TRUE;
 		break;
 	case WM_COMMAND:
@@ -1658,7 +1803,8 @@ FileTransfer::CheckClientLV()
 	if (ListView_GetSelectedCount(m_hwndFTClientList) != 1) {
 		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_CLIENTRENAME), FALSE);
 	} else {
-		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_CLIENTRENAME), TRUE);
+		if (strlen(m_ClientPath) != 0)
+			EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_CLIENTRENAME), TRUE);
 	}
 }
 
@@ -1675,6 +1821,7 @@ FileTransfer::CheckServerLV()
 	if (ListView_GetSelectedCount(m_hwndFTServerList) != 1) {
 		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_SERVERRENAME), FALSE);
 	} else {
-		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_SERVERRENAME), TRUE);
+		if (strlen(m_ServerPath) != 0)
+			EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_SERVERRENAME), TRUE);
 	}
 }

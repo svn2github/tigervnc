@@ -653,9 +653,9 @@ BOOL CALLBACK VNCOptions::DlgProc(HWND hwndDlg, UINT uMsg,
 
 			TCITEM item;
 			item.mask = TCIF_TEXT; 
-			item.pszText="Connection options";
+			item.pszText="Connection";
 			TabCtrl_InsertItem(_this->m_hTab, 0, &item);
-			item.pszText = "Viewer settings";
+			item.pszText = "General";
 			TabCtrl_InsertItem(_this->m_hTab, 1, &item);
 
 			_this->m_hPageConnection = CreateDialogParam(pApp->m_instance,

@@ -1,8 +1,9 @@
 Changes to VNCviewer
 
-1.0.1.0
+3.3.3 R3
 
-Change some AT&T References to Tridia.
+Fixed bug where 'Raw' option was not part of the radio button group and so couldn't be selected exclusively.
+Fixed KillScreenSaver to only kill windows of the appropriate class.
 
 3.3.3 R2
 

@@ -137,9 +137,15 @@ inline int scalechar(char c) {
 }
 
 // We use this on each screen saver window running
-BOOL CALLBACK KillScreenSaverFunc(HWND hwnd, LPARAM lParam)   {
-	PostMessage(hwnd, WM_CLOSE, 0, 0); 
-	return TRUE; 
+BOOL CALLBACK KillScreenSaverFunc(HWND hwnd, LPARAM lParam)
+{
+	char buffer[256];
+
+	// - ONLY try to close Screen-saver windows!!!
+	if ((GetClassName(hwnd, buffer, 256) != 0) &&
+		(strcmp(buffer, "WindowsScreenSaverClass") == 0))
+		PostMessage(hwnd, WM_CLOSE, 0, 0);
+	return TRUE;
 }
 
 // Process window messages

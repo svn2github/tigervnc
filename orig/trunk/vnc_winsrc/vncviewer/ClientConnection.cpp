@@ -1799,9 +1799,25 @@ void* ClientConnection::run_undetached(void* arg) {
 			case rfbServerCutText:
 				ReadServerCutText();
 				break;
+
+			// - VERSION 3.5 and above messages
+			case rfbEnableExtensionRequest:
+				ReadEnableExtension();
+				break;
+			default:
+				if (msgType >= rfbExtensionData) {
+					ReadExtensionData();
+				} else {
+	                vnclog.Print(3, _T("Unknown message type x%02x\n"), msgType );
+					throw WarningException("Unhandled message type received!\n");
+				}
+				break;
+
+			/*
 			default:
                 vnclog.Print(3, _T("Unknown message type x%02x\n"), msgType );
 				throw WarningException("Unhandled message type received!\n");
+			*/
 			}
 
 		}
@@ -1998,6 +2014,32 @@ void ClientConnection::ReadBell() {
 		}
 	}
 	vnclog.Print(6, _T("Bell!\n"));
+}
+
+void ClientConnection::ReadEnableExtension() {
+	rfbEnableExtensionRequestMsg eer;
+	ReadExact((char *) &eer, sz_rfbEnableExtensionRequestMsg);
+
+	const CARD32 length = Swap32IfLE(eer.length);
+	CheckBufferSize(length);
+	if (length != 0) {
+		ReadExact(m_netbuf, length);
+	}
+
+	/* *** Enable the extension here */
+}
+
+void ClientConnection::ReadExtensionData() {
+	rfbExtensionDataMsg ed;
+	ReadExact((char *) &ed, sz_rfbExtensionDataMsg);
+
+	const CARD32 length = Swap32IfLE(ed.length);
+	CheckBufferSize(length);
+	if (length != 0) {
+		ReadExact(m_netbuf, length);
+	}
+
+	/* *** Pass the data to the extension here */
 }
 
 

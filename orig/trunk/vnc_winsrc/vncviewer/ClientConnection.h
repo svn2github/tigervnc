@@ -204,6 +204,9 @@ private:
 	void ReadServerCutText();
 
 	void ReadBell();
+
+	void ReadEnableExtension();
+	void ReadExtensionData();
 	
 	void SendRFBMsg(CARD8 msgType, void* data, int length);
 	void ReadExact(char *buf, int bytes);

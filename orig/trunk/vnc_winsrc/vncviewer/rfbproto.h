@@ -1,37 +1,26 @@
-//  Copyright (C) 2000, 2001 Const Kaplinsky.  All Rights Reserved.
-//  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
-//  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
-//
-//  This file is part of the VNC system.
-//
-//  The VNC system is free software; you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation; either version 2 of the License, or
-//  (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//
-//  You should have received a copy of the GNU General Public License
-//  along with this program; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
-//  USA.
-//
-// For the latest source code, please check:
-//
-// http://www.DevelopVNC.org/
-//
-// or send email to: feedback@developvnc.org.
-//
-// If the source code for the VNC system is not available from the place 
-// whence you received this file, check http://www.uk.research.att.com/vnc or contact
-// the authors on vnc@uk.research.att.com for information on obtaining it.
-
+/*
+ *  Copyright (C) 2000, 2001 Const Kaplinsky.  All Rights Reserved.
+ *  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
+ *  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
+ *
+ *  This is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This software is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this software; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
+ *  USA.
+ */
 
 /*
- * rfbproto.h - header file for the RFB protocol version 3.3
+ * rfbproto.h - header file for the RFB protocol version 3.5
  *
  * Uses types CARD<n> for an n-bit unsigned integer, INT<n> for an n-bit signed
  * integer (for n = 8, 16 and 32).
@@ -145,8 +134,8 @@ typedef struct {
  * The server always sends 12 bytes to start which identifies the latest RFB
  * protocol version number which it supports.  These bytes are interpreted
  * as a string of 12 ASCII characters in the format "RFB xxx.yyy\n" where
- * xxx and yyy are the major and minor version numbers (for version 3.3
- * this is "RFB 003.003\n").
+ * xxx and yyy are the major and minor version numbers (for version 3.5
+ * this is "RFB 003.005\n").
  *
  * The client then replies with a similar 12-byte message giving the version
  * number of the protocol which should actually be used (which may be different
@@ -166,7 +155,7 @@ typedef struct {
 
 #define rfbProtocolVersionFormat "RFB %03d.%03d\n"
 #define rfbProtocolMajorVersion 3
-#define rfbProtocolMinorVersion 3
+#define rfbProtocolMinorVersion 5
 
 typedef char rfbProtocolVersionMsg[13];	/* allow extra byte for null */
 
@@ -288,8 +277,8 @@ typedef struct {
 #define rfbPointerEvent 5
 #define rfbClientCutText 6
 
-
-
+#define rfbEnableExtensionRequest 10
+#define rfbExtensionData 11
 
 /*****************************************************************************
  *
@@ -584,7 +573,49 @@ typedef struct {
 
 #define sz_rfbSetColourMapEntriesMsg 6
 
+/*****************************************************************************
+ *
+ * Bi-directional message types
+ *
+ *****************************************************************************/
 
+/*-----------------------------------------------------------------------------
+ * EnableExtension - tell client/server that a particular extension is available,
+ * or reconfigure an extension.  If the new_msg field is non-zero then the sender
+ * is indicating that the specified protocol uses the given message number.
+ * The recipient may then send rfbExtensionData messages on the given message
+ * number, provided the extension configuration data is recognised.
+ *
+ * The length field in the ExtensionData message may be invalid, if the zeroeth
+ * bit of "flags" was not set in the corresponding EnableExtensionRequest.
+ * If the length field is invalid then obviously the message can't be dealt
+ * with by dumb proxies - avoid this where possible.
+ *
+ * The first bit of the flags field indicates that the extension is a new, named
+ * encoding.  This form is used by servers to tell clients the names of the
+ * encodings they support.  Typically, a receiving client will then dispatch
+ * an "enable encoding" message for the specified encoding number, if supported.
+ */
+typedef struct {
+    CARD8 type;			/* always rfbEnableExtensionRequest */
+	CARD8 new_msg;
+	CARD8 flags;
+    CARD8 pad1;
+	CARD32 length;
+	/* Followed by <length> bytes of data */
+} rfbEnableExtensionRequestMsg;
+
+#define sz_rfbEnableExtensionRequestMsg 8
+
+typedef struct {
+	CARD8 type;			/* always >= rfbExtensionData */
+	CARD8 pad1;
+	CARD16 pad2;
+	CARD32 length;		/* Must be correct if used */
+	/* Followed by <length> bytes of data */
+} rfbExtensionDataMsg;
+
+#define sz_rfbExtensionDataMsg 8
 
 /*-----------------------------------------------------------------------------
  * Bell - ring a bell on the client if it has one.
@@ -623,6 +654,8 @@ typedef union {
     rfbSetColourMapEntriesMsg scme;
     rfbBellMsg b;
     rfbServerCutTextMsg sct;
+	rfbEnableExtensionRequestMsg eer;
+	rfbExtensionDataMsg ed;
 } rfbServerToClientMsg;
 
 
@@ -793,4 +826,6 @@ typedef union {
     rfbKeyEventMsg ke;
     rfbPointerEventMsg pe;
     rfbClientCutTextMsg cct;
+	rfbEnableExtensionRequestMsg eer;
+	rfbExtensionDataMsg ed;
 } rfbClientToServerMsg;

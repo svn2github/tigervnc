@@ -300,7 +300,7 @@ vncBuffer::GetChangedRegion(vncRegion &rgn, RECT &rect)
 		unsigned char * o_row_ptr = o_topleft_ptr;
 		unsigned char * n_row_ptr = n_topleft_ptr;
 
-		const UINT blockbottom = Min(y+BLOCK_SIZE, rect.bottom);
+		const int blockbottom = Min(y+BLOCK_SIZE, rect.bottom);
 		for (x = rect.left; x<rect.right; x+=BLOCK_SIZE)
 		{
 			// Work our way across the row

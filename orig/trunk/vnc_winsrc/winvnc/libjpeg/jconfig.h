@@ -1,6 +1,9 @@
 /* jconfig.vc --- jconfig.h for Microsoft Visual C++ on Windows 95 or NT. */
 /* see jconfig.doc for explanations */
 
+typedef short	INT16; 
+typedef int		INT32;
+
 #define HAVE_PROTOTYPES
 #define HAVE_UNSIGNED_CHAR
 #define HAVE_UNSIGNED_SHORT

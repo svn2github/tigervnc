@@ -80,7 +80,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 	vnclog.Print(LL_STATE, VNCLOG("sockets initialised\n"));
 
 	// Make the command-line lowercase and parse it
-	int i;
+	size_t i;
 	for (i = 0; i < strlen(szCmdLine); i++)
 	{
 		szCmdLine[i] = tolower(szCmdLine[i]);

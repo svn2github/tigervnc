@@ -65,11 +65,11 @@ protected:
 // Implementation
 protected:
 	BYTE		*m_buffer;
-	int			m_bufflen;
+	size_t		m_bufflen;
 
 	// Maximum height & width for CoRRE
-	UINT		m_maxwidth;
-	UINT		m_maxheight;
+	int			m_maxwidth;
+	int			m_maxheight;
 
 	// Last-update stats for CoRRE
 	UINT		m_encodedbytes, m_rectbytes;

@@ -3,8 +3,8 @@
  * truecolour to truecolour translation.
  *
  * This file shouldn't be compiled.  It is included multiple times by
- * translate.c, each time with a different definition of the macro OUT.
- * For each value of OUT, this file defines two functions for initialising
+ * translate.c, each time with a different definition of the macro OUTBPP.
+ * For each value of OUTBPP, this file defines two functions for initialising
  * lookup tables.  One is for truecolour translation using a single lookup
  * table, the other is for truecolour translation using three separate
  * lookup tables for the red, green and blue values.
@@ -13,17 +13,17 @@
  * efficiency is important here.
  */
 
-#if !defined(OUT)
+#if !defined(OUTBPP)
 #error "This file shouldn't be compiled."
 #error "It is included as part of translate.c"
 #endif
 
-#define OUT_T CONCAT2E(CARD,OUT)
-#define SwapOUT(x) CONCAT2E(Swap,OUT) (x)
+#define OUT_T CONCAT2E(CARD,OUTBPP)
+#define SwapOUT(x) CONCAT2E(Swap,OUTBPP) (x)
 #define rfbInitTrueColourSingleTableOUT \
-				CONCAT2E(rfbInitTrueColourSingleTable,OUT)
-#define rfbInitTrueColourRGBTablesOUT CONCAT2E(rfbInitTrueColourRGBTables,OUT)
-#define rfbInitOneRGBTableOUT CONCAT2E(rfbInitOneRGBTable,OUT)
+				CONCAT2E(rfbInitTrueColourSingleTable,OUTBPP)
+#define rfbInitTrueColourRGBTablesOUT CONCAT2E(rfbInitTrueColourRGBTables,OUTBPP)
+#define rfbInitOneRGBTableOUT CONCAT2E(rfbInitOneRGBTable,OUTBPP)
 
 static void
 rfbInitOneRGBTableOUT (OUT_T *table, int inMax, int outMax, int outShift,
@@ -61,7 +61,7 @@ rfbInitTrueColourSingleTableOUT (char **table, rfbPixelFormat *in,
 	t[i] = ((outRed   << out->redShift)   |
 		(outGreen << out->greenShift) |
 		(outBlue  << out->blueShift));
-#if (OUT != 8)
+#if (OUTBPP != 8)
 	if (out->bigEndian != in->bigEndian) {
 	    t[i] = SwapOUT(t[i]);
 	}
@@ -107,7 +107,7 @@ rfbInitOneRGBTableOUT (OUT_T *table, int inMax, int outMax, int outShift,
 
     for (i = 0; i < nEntries; i++) {
 	table[i] = ((i * outMax + inMax / 2) / inMax) << outShift;
-#if (OUT != 8)
+#if (OUTBPP != 8)
 	if (swap) {
 	    table[i] = SwapOUT(table[i]);
 	}

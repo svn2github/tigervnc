@@ -459,7 +459,7 @@ vncClientThread::run(void *arg)
 	if (GetComputerName(desktopname, &desktopnamelen))
 	{
 		// Make the name lowercase
-		for (int x=0; x<strlen(desktopname); x++)
+		for (size_t x=0; x<strlen(desktopname); x++)
 		{
 			desktopname[x] = tolower(desktopname[x]);
 		}
@@ -1609,7 +1609,7 @@ vncClient::SendPalette()
 	}
 
 	// Now send the actual colour data...
-	for (int i=0; i<ncolours; i++)
+	for (UINT i=0; i<ncolours; i++)
 	{
 		struct _PIXELDATA {
 			CARD16 r, g, b;

@@ -156,7 +156,7 @@ vncRegion::Subtract(vncRegion &rgn)
 BOOL vncRegion::Rectangles(rectlist &rects)
 {
 	int buffsize;
-	int x;
+	DWORD x;
 	RGNDATA *buff;
 
 	// If the region is empty then return empty rectangle list

@@ -203,8 +203,8 @@ vncEncodeCoRRE::EncodeRect(BYTE *source, BYTE *dest, const RECT &rect)
 	// Do the encoding
 	UINT size = InternalEncodeRect(source, dest, rect);
 
-	const UINT rectW = rect.right - rect.left;
-	const UINT rectH = rect.bottom - rect.top;
+	const int rectW = rect.right - rect.left;
+	const int rectH = rect.bottom - rect.top;
 
 	// Will this rectangle have been split for encoding?
 	if ((rectW>m_maxwidth) || (rectH>m_maxheight))
@@ -302,18 +302,20 @@ vncEncodeCoRRE::EncodeSmallRect(BYTE *source, BYTE *dest, const RECT &rect)
 	surh->encoding = Swap32IfLE(rfbEncodingCoRRE);
 
 	// create a space big enough for the CoRRE encoded pixels
-	if (m_bufflen < (rectW*rectH*m_remoteformat.bitsPerPixel / 8))
+
+	size_t rectSize = rectW * rectH * (m_remoteformat.bitsPerPixel / 8);
+	if (m_bufflen < rectSize)
 	{
 		if (m_buffer != NULL)
 		{
 			delete [] m_buffer;
 			m_buffer = NULL;
 		}
-		m_buffer = new BYTE [rectW*rectH*m_remoteformat.bitsPerPixel/8+1];
+		m_buffer = new BYTE [rectSize + 1];
 		if (m_buffer == NULL)
 			return vncEncoder::EncodeRect(source, dest, rect);
 
-		m_bufflen = rectW*rectH*m_remoteformat.bitsPerPixel/8;
+		m_bufflen = rectSize;
 	}
 	
 	// Translate the data into our new buffer

@@ -1191,13 +1191,13 @@ vncServer::AuthHosts() {
 }
 
 inline BOOL
-MatchStringToTemplate(const char *addr, UINT addrlen,
-				      const char *filtstr, UINT filtlen) {
+MatchStringToTemplate(const char *addr, size_t addrlen,
+				      const char *filtstr, size_t filtlen) {
 	if (filtlen == 0)
 		return 1;
 	if (addrlen < filtlen)
 		return 0;
-	for (int x = 0; x < filtlen; x++) {
+	for (size_t x = 0; x < filtlen; x++) {
 		if (addr[x] != filtstr[x])
 			return 0;
 	}

@@ -62,7 +62,7 @@ public:
 // Implementation
 protected:
 	BYTE		*m_buffer;
-	int			m_bufflen;
+	size_t		m_bufflen;
 };
 
 #endif // _WINVNC_ENCODERRE

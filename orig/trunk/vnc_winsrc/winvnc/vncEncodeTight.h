@@ -74,9 +74,10 @@ struct TIGHT_CONF {
 	int maxRectSize, maxRectWidth;
 	int monoMinRectSize, gradientMinRectSize;
 	int idxZlibLevel, monoZlibLevel, rawZlibLevel, gradientZlibLevel;
-	int gradientThreshold, gradientThreshold24;
+	unsigned long gradientThreshold, gradientThreshold24;
 	int idxMaxColorsDivisor;
-	int jpegQuality, jpegThreshold, jpegThreshold24;
+	int jpegQuality;
+	unsigned long jpegThreshold, jpegThreshold24;
 };
 
 

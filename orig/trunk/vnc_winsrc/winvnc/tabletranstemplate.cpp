@@ -2,9 +2,9 @@
  * tabletranstemplate.c - template for translation using lookup tables.
  *
  * This file shouldn't be compiled.  It is included multiple times by
- * translate.c, each time with different definitions of the macros IN and OUT.
+ * translate.c, each time with different definitions of the macros INBPP and OUTBPP.
  *
- * For each pair of values IN and OUT, this file defines two functions for
+ * For each pair of values INBPP and OUTBPP, this file defines two functions for
  * translating a given rectangle of pixel data.  One uses a single lookup
  * table, and the other uses three separate lookup tables for the red, green
  * and blue values.
@@ -13,17 +13,17 @@
  * efficiency is important here.
  */
 
-#if !defined(IN) || !defined(OUT)
+#if !defined(INBPP) || !defined(OUTBPP)
 #error "This file shouldn't be compiled."
 #error "It is included as part of translate.c"
 #endif
 
-#define IN_T CONCAT2E(CARD,IN)
-#define OUT_T CONCAT2E(CARD,OUT)
+#define IN_T CONCAT2E(CARD,INBPP)
+#define OUT_T CONCAT2E(CARD,OUTBPP)
 #define rfbTranslateWithSingleTableINtoOUT \
-				CONCAT4E(rfbTranslateWithSingleTable,IN,to,OUT)
+				CONCAT4E(rfbTranslateWithSingleTable,INBPP,to,OUTBPP)
 #define rfbTranslateWithRGBTablesINtoOUT \
-				CONCAT4E(rfbTranslateWithRGBTables,IN,to,OUT)
+				CONCAT4E(rfbTranslateWithRGBTables,INBPP,to,OUTBPP)
 
 /*
  * rfbTranslateWithSingleTableINtoOUT translates a rectangle of pixel data

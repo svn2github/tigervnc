@@ -38,7 +38,7 @@
 #include "rectlist.h"
 #include "vncDesktop.h"
 #include "vncService.h"
-#include <fstream.h>
+#include <fstream>
 
 // Constants
 const UINT RFB_SCREEN_UPDATE = RegisterWindowMessage("WinVNC.Update.DrawRect");
@@ -1638,8 +1638,8 @@ EnumWindowsFn(HWND hwnd, LPARAM arg)
 				if ((source.x != dest.left) || (source.y != dest.top))
 				{
 					// Update the property entry
-					SHORT x = dest.left;
-					SHORT y = dest.top;
+					SHORT x = (SHORT) dest.left;
+					SHORT y = (SHORT) dest.top;
 					SetProp(hwnd,
 						(LPCTSTR) MAKELONG(VNC_WINDOWPOS_ATOM, 0),
 						(HANDLE) MAKELONG(x, y));
@@ -1668,8 +1668,8 @@ EnumWindowsFn(HWND hwnd, LPARAM arg)
 
 			if (GetWindowRect(hwnd, &dest))
 			{
-				SHORT x = dest.left;
-				SHORT y = dest.top;
+				SHORT x = (SHORT) dest.left;
+				SHORT y = (SHORT) dest.top;
 				SetProp(hwnd,
 					(LPCTSTR) MAKELONG(VNC_WINDOWPOS_ATOM, 0),
 					(HANDLE) MAKELONG(x, y));

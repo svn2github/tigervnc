@@ -32,49 +32,47 @@
 #define CONCAT4(a,b,c,d) a##b##c##d
 #define CONCAT4E(a,b,c,d) CONCAT4(a,b,c,d)
 
-// FIXME: Actually, IN and OUT are bad names for these defines.
-
-#define OUT 8
+#define OUTBPP 8
 #include "tableinittctemplate.cpp"
 #include "tableinitcmtemplate.cpp"
-#define IN 8
+#define INBPP 8
 #include "tabletranstemplate.cpp"
-#undef IN
-#define IN 16
+#undef INBPP
+#define INBPP 16
 #include "tabletranstemplate.cpp"
-#undef IN
-#define IN 32
+#undef INBPP
+#define INBPP 32
 #include "tabletranstemplate.cpp"
-#undef IN
-#undef OUT
+#undef INBPP
+#undef OUTBPP
 
-#define OUT 16
+#define OUTBPP 16
 #include "tableinittctemplate.cpp"
 #include "tableinitcmtemplate.cpp"
-#define IN 8
+#define INBPP 8
 #include "tabletranstemplate.cpp"
-#undef IN
-#define IN 16
+#undef INBPP
+#define INBPP 16
 #include "tabletranstemplate.cpp"
-#undef IN
-#define IN 32
+#undef INBPP
+#define INBPP 32
 #include "tabletranstemplate.cpp"
-#undef IN
-#undef OUT
+#undef INBPP
+#undef OUTBPP
 
-#define OUT 32
+#define OUTBPP 32
 #include "tableinittctemplate.cpp"
 #include "tableinitcmtemplate.cpp"
-#define IN 8
+#define INBPP 8
 #include "tabletranstemplate.cpp"
-#undef IN
-#define IN 16
+#undef INBPP
+#define INBPP 16
 #include "tabletranstemplate.cpp"
-#undef IN
-#define IN 32
+#undef INBPP
+#define INBPP 32
 #include "tabletranstemplate.cpp"
-#undef IN
-#undef OUT
+#undef INBPP
+#undef OUTBPP
 
 rfbInitTableFnType rfbInitTrueColourSingleTableFns[3] = {
     rfbInitTrueColourSingleTable8,

@@ -447,10 +447,10 @@ vncService::ShowAboutBox()
 // to connect out to a new client
 
 BOOL
-vncService::PostAddNewClient(unsigned long ipaddress)
+vncService::PostAddNewClient(unsigned long ipaddress, unsigned short port)
 {
 	// Post to the WinVNC menu window
-	if (!PostToWinVNC(MENU_ADD_CLIENT_MSG, 0, ipaddress))
+	if (!PostToWinVNC(MENU_ADD_CLIENT_MSG, (WPARAM)port, (LPARAM)ipaddress))
 	{
 		MessageBox(NULL, "No existing instance of WinVNC could be contacted", szAppName, MB_ICONEXCLAMATION | MB_OK);
 		return FALSE;

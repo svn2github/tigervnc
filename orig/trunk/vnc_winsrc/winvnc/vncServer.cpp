@@ -331,6 +331,13 @@ vncServer::Authenticated(vncClientId clientid)
 			// Tell the client about this new buffer
 			client->SetBuffer(buffer);
 
+			if (m_authClients.empty() && WindowShared() &&
+				IsIconic(GetWindowShared())) {
+				SendMessage(GetWindowShared(), WM_SYSCOMMAND, SC_RESTORE, 0);
+				SetForegroundWindow(GetWindowShared());
+			}
+
+
 			// Add the client to the auth list
 			m_authClients.push_back(clientid);
 

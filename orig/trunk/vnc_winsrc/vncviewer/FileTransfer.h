@@ -24,7 +24,7 @@ class FileTransfer
 public:
 	FileTransfer(ClientConnection * pCC, VNCviewerApp * pApp);
 	void FTInsertColumn(HWND hwnd, char *iText, int iOrder, int xWidth);
-	void ClearFTItemInfo(FTITEMINFO *ftiteminfo);
+	int GetLogicalDriveStringByType(unsigned int DriveType, char *DrivesString);
 	void CreateFileTransferDialog();
 	void ShowListViewItems(HWND hwnd, FTITEMINFO *FTItemInfo, int NumItem);
 	void ConvertPath(char *path);
@@ -36,8 +36,8 @@ public:
 	void ProcessDlgMessage(HWND hwnd);
 	void ShowTreeViewItems(HWND hwnd, LPNMTREEVIEW m_lParam);
 	void CreateFTBrowseDialog(BOOL status);
-	char* strinvert(char str[rfbMAX_PATH]);
-	char* GetTVPath(HWND hwnd, HTREEITEM hTItem, char path[rfbMAX_PATH]);
+	void StrInvert(char *str);
+	void GetTVPath(HWND hwnd, HTREEITEM hTItem, char *path);
 	char m_ClientPath[rfbMAX_PATH];
 	char m_ServerPath[rfbMAX_PATH];
 	char m_ServerPathTmp[rfbMAX_PATH];

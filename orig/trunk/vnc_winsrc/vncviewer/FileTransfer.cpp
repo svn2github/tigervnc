@@ -43,10 +43,8 @@ FileTransfer::FileTransfer(ClientConnection * pCC, VNCviewerApp * pApp)
 
 FileTransfer::~FileTransfer()
 {
-	ClearFTItemInfo(m_FTClientItemInfo);
-	ClearFTItemInfo(m_FTServerItemInfo);
-	delete m_FTClientItemInfo;
-	delete m_FTServerItemInfo;
+	if (m_FTClientItemInfo != NULL) delete [] m_FTClientItemInfo;
+	if (m_FTServerItemInfo != NULL) delete [] m_FTServerItemInfo;
 }
 void 
 FileTransfer::CreateFileTransferDialog()
@@ -131,8 +129,14 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 			break;
 			case IDC_EXIT:
 				_this->m_clientconn->m_fileTransferDialogShown = false;
-				_this->ClearFTItemInfo(_this->m_FTClientItemInfo);
-				_this->ClearFTItemInfo(_this->m_FTServerItemInfo);
+				if (_this->m_FTClientItemInfo != NULL) {
+				delete [] _this->m_FTClientItemInfo;
+				_this->m_FTClientItemInfo = NULL;
+				}
+				if (_this->m_FTServerItemInfo != NULL) {
+				delete [] _this->m_FTServerItemInfo;
+				_this->m_FTServerItemInfo = NULL;
+				}
 				EndDialog(hwnd, TRUE);
 				return TRUE;
 			case IDC_CLIENTUP:
@@ -259,22 +263,20 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 	case WM_CLOSE:
 	case WM_DESTROY:
 		_this->m_clientconn->m_fileTransferDialogShown = false;
-		_this->ClearFTItemInfo(_this->m_FTClientItemInfo);
-		_this->ClearFTItemInfo(_this->m_FTServerItemInfo);
-		EndDialog(hwnd, FALSE);
+		if (_this->m_FTClientItemInfo != NULL) {
+			delete [] _this->m_FTClientItemInfo;
+			_this->m_FTClientItemInfo = NULL;
+		}
+		if (_this->m_FTServerItemInfo != NULL) {
+			delete [] _this->m_FTServerItemInfo;
+			_this->m_FTServerItemInfo = NULL;
+		}
+		EndDialog(hwnd, TRUE);
 		return TRUE;
 	}
 	return 0;
 }
 
-void
-FileTransfer::ClearFTItemInfo(FTITEMINFO *ftiteminfo)
-{
-	if (ftiteminfo != NULL) {
-		delete [] ftiteminfo;
-		ftiteminfo = NULL;
-	}
-}
 
 void 
 FileTransfer::OnGetDispClientInfo(NMLVDISPINFO *plvdi) 
@@ -316,7 +318,7 @@ FileTransfer::FileTransferUpload()
 	DWORD dwNumberOfBytesRead = 0;
 	DWORD dwNumberOfAllBytesRead = 0;
 	char *pBuff = new char[sz_rfbBlockSize];
-	char path[rfbMAX_PATH];
+	char path[rfbMAX_PATH + rfbMAX_PATH + 2];
 	BOOL bResult;
 	HANDLE hFiletoRead;
 	UINT nSelItem;
@@ -348,7 +350,7 @@ FileTransfer::FileTransferUpload()
 		BlockingFileTransferDialog(TRUE);
 		return;
 	}
-	char buffer[rfbMAX_PATH + rfbMAX_PATH + rfbMAX_PATH];
+	char buffer[rfbMAX_PATH + rfbMAX_PATH + rfbMAX_PATH + rfbMAX_PATH + 20];
 	sprintf(buffer, "UPLOAD: %s\\%s to %s\\%s", m_ClientPath, m_ClientFilename, m_ServerPath, m_ServerFilename);
 	SetWindowText(m_hwndFTStatus, buffer);
 	rfbFileUploadDataMsg fud;
@@ -369,7 +371,7 @@ FileTransfer::FileTransferUpload()
 	fur.fnamesize = strlen(path);
 	m_clientconn->WriteExact((char *)&fur, sz_rfbFileUploadRequestMsg);
 	m_clientconn->WriteExact(path, strlen(path));
-	for (int i=1; i<=amount; i++) {
+	for (int i=0; i<amount; i++) {
 		ProcessDlgMessage(m_hwndFileTransfer);
 		if (m_TransferEnable == FALSE) {
 			SetWindowText(m_hwndFTStatus, "File transfer canceled");
@@ -408,9 +410,9 @@ FileTransfer::FileTransferDownload()
 	fdd.amount = Swap16IfLE(fdd.amount);
 	fdd.num = Swap16IfLE(fdd.num);
 	char * pBuff = new char [fdd.size + 1];
-	char path[rfbMAX_PATH + rfbMAX_PATH];
-	HANDLE hFile;
-	WIN32_FIND_DATA FindFileData;
+	char path[rfbMAX_PATH + rfbMAX_PATH + 3];
+//	HANDLE hFile;
+//	WIN32_FIND_DATA FindFileData;
 	DWORD dwNumberOfBytesWritten;
 	m_clientconn->ReadExact(pBuff, fdd.size);
 	ProcessDlgMessage(m_hwndFileTransfer);
@@ -424,13 +426,14 @@ FileTransfer::FileTransferDownload()
 		return;
 	}
 	if (fdd.amount == 0) {
-		char tmpBuffer[rfbMAX_PATH + 20];
+		char tmpBuffer[rfbMAX_PATH + rfbMAX_PATH + 20];
 		sprintf(tmpBuffer, "Can't download %s\\%s", m_ServerPath, m_ServerFilename);
 		SetWindowText(m_hwndFTStatus, tmpBuffer);
 		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
 		BlockingFileTransferDialog(TRUE);
 		return;
 	}
+/*
 	hFile = FindFirstFile(m_ClientPath, &FindFileData);
 	DWORD AvailableBytes;
 	GetDiskFreeSpaceEx((LPCTSTR) m_ClientPath, (PULARGE_INTEGER) &AvailableBytes, NULL, NULL);
@@ -442,6 +445,7 @@ FileTransfer::FileTransferDownload()
 		BlockingFileTransferDialog(TRUE);
 		return;
 	}
+*/
 	if (fdd.num == 0) {
 		sprintf(path, "%s\\%s", m_ClientPath, m_ServerFilename);
 		m_hFiletoWrite = CreateFile(path, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
@@ -464,28 +468,15 @@ FileTransfer::FileTransferDownload()
 void 
 FileTransfer::ShowClientItems(char path[rfbMAX_PATH])
 {
-	char drive[] = "?:\\";
+//	char drive[] = "?:\\";
 	char path_[rfbMAX_PATH];
 	strcpy(path_, path);
 	if (strlen(path_) == 0) {
 		//Show Disks
 		ListView_DeleteAllItems(m_hwndFTClientList); 
-		TCHAR szDrivesList[256];
 		int DrivesNum = 0;
-		char fixeddrive[28] [10];
-		GetLogicalDriveStrings(256, szDrivesList);
-		for (int i=0, p=0; i<=255; i++, p++) {
-			drive[p] = szDrivesList[i];
-			if (szDrivesList[i] == '\0') {
-				p = -1;
-				if (GetDriveType((LPCTSTR) drive) == DRIVE_FIXED) {
-					drive[strlen(drive) - 1] = '\0';
-					strcpy(fixeddrive[DrivesNum], drive);
-					DrivesNum += 1;
-				}
-				if (szDrivesList[i+1] == '\0') break;
-			}
-		}
+		char DrivesString[256];
+		DrivesNum = GetLogicalDriveStringByType(DRIVE_FIXED, DrivesString);
 		if (DrivesNum == 0) {
 			BlockingFileTransferDialog(TRUE);
 			strcpy(m_ClientPathTmp, m_ClientPath);
@@ -494,12 +485,12 @@ FileTransfer::ShowClientItems(char path[rfbMAX_PATH])
 			strcpy(m_ClientPath, m_ClientPathTmp);
 			SetWindowText(m_hwndFTClientPath, m_ClientPath);
 		}
-//		if (m_FTClientItemInfo != NULL) delete [] m_FTClientItemInfo;
-		ClearFTItemInfo(m_FTClientItemInfo);
+		if (m_FTClientItemInfo != NULL) delete [] m_FTClientItemInfo;
 		m_FTClientItemInfo = new FTITEMINFO [DrivesNum];
-		for (int ii=0; ii<DrivesNum; ii++) {
-			strcpy(m_FTClientItemInfo[ii].Name, fixeddrive[ii]);
-			strcpy(m_FTClientItemInfo[ii].Size, "Folder");
+		for (int i=0; i<DrivesNum; i++) {
+			strcpy(m_FTClientItemInfo[i].Name, "?:");
+			m_FTClientItemInfo[i].Name[0] = DrivesString[i];
+			strcpy(m_FTClientItemInfo[i].Size, "Folder");
 		}
 		ShowListViewItems(m_hwndFTClientList, m_FTClientItemInfo, DrivesNum);
 	} else {
@@ -534,8 +525,7 @@ FileTransfer::ShowClientItems(char path[rfbMAX_PATH])
 			return;
 		} 
 		m_handle = FindFirstFile(path_, &m_FindFileData);
-//		if (m_FTClientItemInfo !=NULL) delete [] m_FTClientItemInfo;
-		ClearFTItemInfo(m_FTClientItemInfo);
+		if (m_FTClientItemInfo !=NULL) delete [] m_FTClientItemInfo;
 		m_FTClientItemInfo = new FTITEMINFO [FilesNum];
 		int i=0;
 		while(1) {
@@ -578,26 +568,19 @@ FileTransfer::FTBrowseDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 			} else {
 				TVITEM TVItem;
 				TVINSERTSTRUCT tvins; 
-				TCHAR szDrivesList[256];
+				char DrivesString[256];
 				char drive[] = "?:";
+				int NumDrives = _this->GetLogicalDriveStringByType(DRIVE_FIXED, DrivesString);
 				TVItem.mask = TVIF_CHILDREN | TVIF_TEXT | TVIF_HANDLE;
-				GetLogicalDriveStrings(256, szDrivesList);
-				for (int i=0, p=0; i<=255; i++, p++) {
-					drive[p] = szDrivesList[i];
-					if (szDrivesList[i] == '\0') {
-						p = -1;
-						if (GetDriveType((LPCTSTR) drive) == DRIVE_FIXED) {
-							drive[strlen(drive) - 1] = '\0';
-							TVItem.pszText = drive;
-							TVItem.cChildren = 1;
-							tvins.item = TVItem;
-							tvins.hParent = TreeView_InsertItem(GetDlgItem(hwnd, IDC_FTBROWSETREE), &tvins);
-							tvins.item = TVItem;
-							TreeView_InsertItem(GetDlgItem(hwnd, IDC_FTBROWSETREE), &tvins);
-							tvins.hParent = NULL;
-						}
-						if (szDrivesList[i+1] == '\0') break;
-					}
+				for (int i=0; i<NumDrives; i++) {
+					drive[0] = DrivesString[i];
+					TVItem.pszText = drive;
+					TVItem.cChildren = 1;
+					tvins.item = TVItem;
+					tvins.hParent = TreeView_InsertItem(GetDlgItem(hwnd, IDC_FTBROWSETREE), &tvins);
+					tvins.item = TVItem;
+					TreeView_InsertItem(GetDlgItem(hwnd, IDC_FTBROWSETREE), &tvins);
+					tvins.hParent = NULL;
 				}
 			}
 			return TRUE;
@@ -684,8 +667,8 @@ FileTransfer::CreateFTBrowseDialog(BOOL status)
 	DialogBoxParam(m_pApp->m_instance, MAKEINTRESOURCE(IDD_FTBROWSE_DLG), m_hwndFileTransfer, (DLGPROC) FTBrowseDlgProc, (LONG) this);
 }
 
-char * 
-FileTransfer::GetTVPath(HWND hwnd, HTREEITEM hTItem, char path[rfbMAX_PATH])
+void 
+FileTransfer::GetTVPath(HWND hwnd, HTREEITEM hTItem, char *path)
 {
 	char szText[rfbMAX_PATH];
 	TVITEM _tvi;
@@ -708,7 +691,7 @@ FileTransfer::GetTVPath(HWND hwnd, HTREEITEM hTItem, char path[rfbMAX_PATH])
 	int ii = 0;
 	for (int i = (len-1); i>=0; i--) {
 		if (path[i] == '\\') {
-			strinvert(path_tmp);
+			StrInvert(path_tmp);
 			strcat(path_out, path_tmp);
 			strcat(path_out, "\\");
 			path_tmp[0] = '\0';
@@ -721,11 +704,10 @@ FileTransfer::GetTVPath(HWND hwnd, HTREEITEM hTItem, char path[rfbMAX_PATH])
 	}
 	if (path_out[strlen(path_out)-1] == '\\') path_out[strlen(path_out)-1] = '\0';
 	strcpy(path, path_out);
-	return path;
 }
 
-char * 
-FileTransfer::strinvert(char str[rfbMAX_PATH])
+void
+FileTransfer::StrInvert(char str[rfbMAX_PATH])
 {
 	int len = strlen(str), i;
 	char str_out[rfbMAX_PATH];
@@ -733,7 +715,6 @@ FileTransfer::strinvert(char str[rfbMAX_PATH])
 	for (i = (len-1); i>=0; i--) str_out[len-i-1] = str[i];
 	str_out[len] = '\0';
 	strcpy(str, str_out);
-	return str;
 }
 
 void 
@@ -824,8 +805,8 @@ FileTransfer::ShowServerItems()
 			SetWindowText(m_hwndFTServerPath, m_ServerPath);
 		}
 		if (fld.num == 0) {
-//			if (m_FTServerItemInfo != NULL) delete [] m_FTServerItemInfo;
-			ClearFTItemInfo(m_FTServerItemInfo);
+			if (m_FTServerItemInfo != NULL) delete [] m_FTServerItemInfo;
+//			ClearFTItemInfo(m_FTServerItemInfo);
 			m_FTServerItemInfo = new FTITEMINFO[fld.amount];
 			ListView_DeleteAllItems(m_hwndFTServerList); 
 		}
@@ -955,4 +936,27 @@ FileTransfer::FTInsertColumn(HWND hwnd, char *iText, int iOrder, int xWidth)
     lvc.cx = xWidth;
 	lvc.iOrder = iOrder;
     ListView_InsertColumn(hwnd, iOrder, &lvc);
+}
+
+int
+FileTransfer::GetLogicalDriveStringByType(unsigned int DriveType, char *DrivesString)
+{
+	char szDrivesList[256];
+	char drive[10];
+	int DrivesNum = 0;
+	GetLogicalDriveStrings(256, szDrivesList);
+	for (int i=0, j=0, p=0; i<=255; i++) {
+		drive[p] = szDrivesList[i];
+		p++;
+		if (szDrivesList[i] == '\0') {
+			p = 0;
+			if (GetDriveType((LPCTSTR) drive) == DriveType) {
+				DrivesString[j] = drive[0];
+				DrivesNum++;
+				j++;
+			}
+			if (szDrivesList[i+1] == '\0') break;
+		}
+	}
+	return DrivesNum;
 }

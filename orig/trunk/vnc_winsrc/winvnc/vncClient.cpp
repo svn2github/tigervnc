@@ -792,10 +792,11 @@ vncClientThread::run(void *arg)
 					msg.pe.x = Swap16IfLE(msg.pe.x);
 					msg.pe.y = Swap16IfLE(msg.pe.y);
 
+					
 					// Remember cursor position for this client
 					m_client->m_cursor_pos.x = msg.pe.x;
 					m_client->m_cursor_pos.y = msg.pe.y;
-
+					
 					// if we share only one window...
 			     	
 					RECT coord;
@@ -804,6 +805,7 @@ vncClientThread::run(void *arg)
 					coord = m_server->getSharedRect();
 					}
 					
+					
 					// to put position relative to screen
 					msg.pe.x = msg.pe.x + coord.left;
 					msg.pe.y = msg.pe.y + coord.top;
@@ -811,7 +813,7 @@ vncClientThread::run(void *arg)
 					// Work out the flags for this event
 					DWORD flags = MOUSEEVENTF_ABSOLUTE;
 					flags |= MOUSEEVENTF_MOVE;
-					m_server->SetMouseCounter(1);
+					m_server->SetMouseCounter(1, m_client->m_cursor_pos, false );
 
 					if ( (msg.pe.buttonMask & rfbButton1Mask) != 
 						(m_client->m_ptrevent.buttonMask & rfbButton1Mask) )
@@ -822,14 +824,14 @@ vncClientThread::run(void *arg)
 					    else
 						flags |= (msg.pe.buttonMask & rfbButton1Mask) 
 						    ? MOUSEEVENTF_LEFTDOWN : MOUSEEVENTF_LEFTUP;
-							m_server->SetMouseCounter(1);
+							m_server->SetMouseCounter(1, m_client->m_cursor_pos, false);
 					}
 					if ( (msg.pe.buttonMask & rfbButton2Mask) != 
 						(m_client->m_ptrevent.buttonMask & rfbButton2Mask) )
 					{
 						flags |= (msg.pe.buttonMask & rfbButton2Mask) 
 						    ? MOUSEEVENTF_MIDDLEDOWN : MOUSEEVENTF_MIDDLEUP;
-							m_server->SetMouseCounter(1);
+							m_server->SetMouseCounter(1, m_client->m_cursor_pos, false);
 					}
 					if ( (msg.pe.buttonMask & rfbButton3Mask) != 
 						(m_client->m_ptrevent.buttonMask & rfbButton3Mask) )
@@ -840,7 +842,7 @@ vncClientThread::run(void *arg)
 					    else
 						flags |= (msg.pe.buttonMask & rfbButton3Mask) 
 						    ? MOUSEEVENTF_RIGHTDOWN : MOUSEEVENTF_RIGHTUP;
-							m_server->SetMouseCounter(1);
+							m_server->SetMouseCounter(1, m_client->m_cursor_pos, false);
 					}
 
 					// Treat buttons 4 and 5 presses as mouse wheel events

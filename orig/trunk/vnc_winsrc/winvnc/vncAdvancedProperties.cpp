@@ -179,12 +179,16 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 				BM_SETCHECK,
 				_this->m_server->PollForeground(),
 				0);
+			EnableWindow(hPollForeground, !_this->m_server->PollFullScreen());
+
 
 			HWND hPollUnderCursor = GetDlgItem(hwnd, IDC_POLL_UNDER_CURSOR);
 			SendMessage(hPollUnderCursor,
 				BM_SETCHECK,
 				_this->m_server->PollUnderCursor(),
 				0);
+			EnableWindow(hPollUnderCursor, !_this->m_server->PollFullScreen());
+
 
 			HWND hPollConsoleOnly = GetDlgItem(hwnd, IDC_CONSOLE_ONLY);
 			SendMessage(hPollConsoleOnly,
@@ -192,8 +196,8 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 				_this->m_server->PollConsoleOnly(),
 				0);
 			EnableWindow(hPollConsoleOnly,
-				_this->m_server->PollUnderCursor() || _this->m_server->PollForeground()
-				);
+				(_this->m_server->PollUnderCursor() || _this->m_server->PollForeground()) &&
+				!_this->m_server->PollFullScreen() );
 
 			HWND hPollOnEventOnly = GetDlgItem(hwnd, IDC_ONEVENT_ONLY);
 			SendMessage(hPollOnEventOnly,
@@ -201,9 +205,14 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 				_this->m_server->PollOnEventOnly(),
 				0);
 			EnableWindow(hPollOnEventOnly,
-				_this->m_server->PollUnderCursor() || _this->m_server->PollForeground()
-				);
+				(_this->m_server->PollUnderCursor() || _this->m_server->PollForeground()) &&
+				!_this->m_server->PollFullScreen() );
 
+			HWND hPollingTimer = GetDlgItem(hwnd, IDC_POLL_TIMER);
+			SetDlgItemInt(hwnd, IDC_POLL_TIMER, _this->m_server->GetPollingTimer(), FALSE);
+			EnableWindow(hPollingTimer,
+				_this->m_server->PollUnderCursor() || _this->m_server->PollForeground() ||
+				_this->m_server->PollFullScreen());
 
 			HWND hRemoteDisable = GetDlgItem(hwnd, IDC_REMOTE_DISABLE);
 			SendMessage(hRemoteDisable,
@@ -332,6 +341,12 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 					SendMessage(hPollOnEventOnly, BM_GETCHECK, 0, 0) == BST_CHECKED
 				);
 
+				BOOL success;
+				UINT pollingtimer = GetDlgItemInt(hwnd, IDC_POLL_TIMER, &success, TRUE);
+				if (success)
+					_this->m_server->SetPollingTimer(pollingtimer);
+
+
 
 				HWND hRemoteDisable = GetDlgItem(hwnd, IDC_REMOTE_DISABLE);
 				_this->m_server->LocalInputPriority(
@@ -427,6 +442,7 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 				// Get the poll-mode buttons
 				HWND hPollForeground = GetDlgItem(hwnd, IDC_POLL_FOREGROUND);
 				HWND hPollUnderCursor = GetDlgItem(hwnd, IDC_POLL_UNDER_CURSOR);
+				HWND hPollFullScreen = GetDlgItem(hwnd, IDC_POLL_FULLSCREEN);
 
 				// Determine whether to enable the modifier options
 				BOOL enabled = (SendMessage(hPollForeground, BM_GETCHECK, 0, 0) == BST_CHECKED) ||
@@ -437,8 +453,37 @@ vncAdvancedProperties::DialogProc(HWND hwnd,
 
 				HWND hPollOnEventOnly = GetDlgItem(hwnd, IDC_ONEVENT_ONLY);
 				EnableWindow(hPollOnEventOnly, enabled);
+
+				HWND hPollingTimer = GetDlgItem(hwnd, IDC_POLL_TIMER);
+				EnableWindow(hPollingTimer, enabled || (SendMessage(hPollFullScreen, BM_GETCHECK, 0, 0) == BST_CHECKED));
 			}
 			return TRUE;
+
+		case IDC_POLL_FULLSCREEN:
+			{
+				HWND hPollFullScreen = GetDlgItem(hwnd, IDC_POLL_FULLSCREEN);
+				HWND hPollForeground = GetDlgItem(hwnd, IDC_POLL_FOREGROUND);
+				HWND hPollUnderCursor = GetDlgItem(hwnd, IDC_POLL_UNDER_CURSOR);
+				
+				BOOL otherenabled = (SendMessage(hPollFullScreen, BM_GETCHECK, 0, 0) == BST_CHECKED);
+				EnableWindow(hPollForeground, !otherenabled);
+				EnableWindow(hPollUnderCursor, !otherenabled);
+				
+				BOOL enabled = (SendMessage(hPollForeground, BM_GETCHECK, 0, 0) == BST_CHECKED) ||
+					(SendMessage(hPollUnderCursor, BM_GETCHECK, 0, 0) == BST_CHECKED);
+
+				HWND hPollConsoleOnly = GetDlgItem(hwnd, IDC_CONSOLE_ONLY);
+				EnableWindow(hPollConsoleOnly, !otherenabled && enabled);
+
+				HWND hPollOnEventOnly = GetDlgItem(hwnd, IDC_ONEVENT_ONLY);
+				EnableWindow(hPollOnEventOnly, !otherenabled && enabled);
+
+				HWND hPollingTimer = GetDlgItem(hwnd, IDC_POLL_TIMER);
+				EnableWindow(hPollingTimer,otherenabled || (SendMessage(hPollForeground, BM_GETCHECK, 0, 0) == BST_CHECKED) ||
+					(SendMessage(hPollUnderCursor, BM_GETCHECK, 0, 0) == BST_CHECKED));
+			}
+			return TRUE;
+
 
 #else
 

@@ -278,7 +278,7 @@ public:
 	virtual BOOL LocalInputPriority() {return m_local_input_priority;};                            
 	virtual void SetKeyboardCounter(int count);                                          
 	virtual int KeyboardCounter(){ return m_remote_keyboard;};                           
-	virtual void SetMouseCounter(int count);                                             
+	virtual void SetMouseCounter(int count, POINT &cursor_pos, BOOL mousemove);
 	virtual int MouseCounter(){ return m_remote_mouse;};                                 
 	virtual UINT DisableTime() {return m_disable_time;};
 	virtual void SetDisableTime(UINT disabletime) {m_disable_time = disabletime;};                                             
@@ -349,9 +349,12 @@ protected:
 	BOOL				m_local_input_priority;                    
 	INT					m_remote_mouse;              
 	INT					m_remote_keyboard;           
+	POINT				m_cursor_pos;
+
 	BOOL				m_polling_flag;
 	UINT				m_polling_timer;
 	BOOL				m_polling_timer_changed;
+
 	                                                                     
 
 	// Name of this desktop

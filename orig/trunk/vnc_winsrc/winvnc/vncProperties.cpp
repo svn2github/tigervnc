@@ -402,8 +402,7 @@ vncProperties::DialogProc(HWND hwnd,
 				0);
 			EnableWindow(hPollConsoleOnly,
 				(_this->m_server->PollUnderCursor() || _this->m_server->PollForeground()) &&
-				!_this->m_server->PollFullScreen()
-				);
+				!_this->m_server->PollFullScreen() );
 
 			HWND hPollOnEventOnly = GetDlgItem(hwnd, IDC_ONEVENT_ONLY);
 			SendMessage(hPollOnEventOnly,
@@ -412,8 +411,7 @@ vncProperties::DialogProc(HWND hwnd,
 				0);
 			EnableWindow(hPollOnEventOnly,
 				(_this->m_server->PollUnderCursor() || _this->m_server->PollForeground()) &&
-				!_this->m_server->PollFullScreen()
-				);
+				!_this->m_server->PollFullScreen() );
 
 			HWND hPollingTimer = GetDlgItem(hwnd, IDC_POLL_TIMER);
 			SetDlgItemInt(hwnd, IDC_POLL_TIMER, _this->m_server->GetPollingTimer(), FALSE);

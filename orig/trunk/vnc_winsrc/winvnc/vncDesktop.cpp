@@ -449,9 +449,12 @@ vncDesktopThread::run_undetached(void *arg)
 
 			if (vncService::IsWin95()) 
 			{
-				m_server->SetMouseCounter(-1);
-				if ( m_server->MouseCounter() < 0 )
-				{
+				if (msg.wParam == WM_MOUSEMOVE)
+					m_server->SetMouseCounter(-1, msg.pt, true);
+				else
+					m_server->SetMouseCounter(-1, msg.pt, false);
+				
+				if ( (m_server->MouseCounter() < 0) && (droptime.QuadPart == 0 ) ) {
 					// Get the current time as a 64-bit value
 					GetSystemTime(&systime);
 					SystemTimeToFileTime(&systime, &ftime);
@@ -460,6 +463,7 @@ vncDesktopThread::run_undetached(void *arg)
 					droptime.QuadPart /= 10000000; // Convert it into seconds
 					m_server->SetKeyboardEnabled(false);
 				}
+				
 			} else {
 					// Get the current time as a 64-bit value
 					GetSystemTime(&systime);
@@ -492,7 +496,7 @@ vncDesktopThread::run_undetached(void *arg)
 				m_server->SetKeyboardEnabled(true);
 				droptime.QuadPart = 0;
 				m_server->SetKeyboardCounter(0);
-				m_server->SetMouseCounter(0);
+				m_server->SetMouseCounter(0, msg.pt, false);
 			}						
 		}
 
@@ -547,8 +551,6 @@ vncDesktop::vncDesktop()
 	m_clipboard_active = FALSE;
 	lpDevMode = NULL;
 	m_copyrect_set = FALSE;
-	
-
 
 }
 
@@ -628,11 +630,9 @@ vncDesktop::Startup()
 
 	// Start up the keyboard and mouse hooks  for 
 	// local event priority over remote impl.
-	if(m_server->LocalInputPriority()){
+	if(m_server->LocalInputPriority())
 		SetLocalInputPriorityHook(true);
-		m_server->SetKeyboardCounter(0);
-		m_server->SetMouseCounter(0);
-	}
+		
 
 	// Start a timer to handle Polling Mode.  The timer will cause
 	// an "idle" event once every second, which is necessary if Polling
@@ -1953,8 +1953,6 @@ vncDesktop::SetLocalInputPriorityHook(BOOL enable)
 	if ( vncService::IsWin95() ) {
 		SetKeyboardPriorityHook(enable,RFB_LOCAL_KEYBOARD);
 		SetMousePriorityHook(enable,RFB_LOCAL_MOUSE);
-		m_server->SetKeyboardCounter(0);
-		m_server->SetMouseCounter(0);
 
 	} else {
 

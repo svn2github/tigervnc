@@ -241,7 +241,7 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,19,97,100,12
     CONTROL         "Log info to Winvnc.log",IDLOG,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,5,83,120,12
-    GROUPBOX        "Update Handling",IDC_UPDATE_BORDER,5,5,188,68
+    GROUPBOX        "Update Handling",IDC_UPDATE_BORDER,5,5,196,68
     CONTROL         "Poll Full Screen",IDC_POLL_FULLSCREEN,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,14,105,15
     CONTROL         "Poll Console Windows Only",IDC_CONSOLE_ONLY,"Button",
@@ -255,6 +255,9 @@ BEGIN
     CONTROL         "Disable remote control while local keyboard or mouse in use",
                     IDC_REMOTE_DISABLE,"Button",BS_AUTOCHECKBOX | BS_TOP | 
                     BS_MULTILINE | WS_TABSTOP,150,85,125,20
+    EDITTEXT        IDC_POLL_TIMER,115,55,22,12,ES_AUTOHSCROLL
+    CONTROL         "Polling cycle, ms",IDC_STATIC,"Static",
+                    SS_LEFTNOWORDWRAP | WS_GROUP,142,58,56,11
 END
 
 IDD_ACCEPT_REVERSE DIALOGEX 0, 0, 179, 55

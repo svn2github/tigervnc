@@ -114,6 +114,8 @@ vncServer::vncServer()
 	m_polling_flag = false;
 	m_polling_timer = 300;
 	m_polling_timer_changed = false;
+	m_cursor_pos.x = 0;
+	m_cursor_pos.y = 0;
 
 #ifdef HORIZONLIVE
 	m_full_screen = FALSE;
@@ -948,6 +950,8 @@ void vncServer::LocalInputPriority(BOOL disable)
 	if( m_local_input_priority != disable )
 	{
 		m_local_input_priority = disable;
+		m_remote_mouse = 0;
+		m_remote_keyboard = 0;
 		if ( AuthClientCount() != 0 )
 			m_desktop->SetLocalInputPriorityHook(disable);
 	}
@@ -1520,23 +1524,37 @@ vncServer::SetMatchSizeFields(int left,int top,int right,int bottom)
 void 
 vncServer::SetKeyboardCounter(int count)
 {
+		
+	omni_mutex_lock l(m_clientsLock);
 	if (LocalInputPriority() && vncService::IsWin95())
 	{
 		m_remote_keyboard += count;
 		if (count == 0)
 			m_remote_keyboard = 0;
 	}       
+	
 }
 
 void 
-vncServer::SetMouseCounter(int count)
+vncServer::SetMouseCounter(int count, POINT &cursor_pos, BOOL mousemove)
 {
+	if( (mousemove) && ( abs (m_cursor_pos.x - cursor_pos.x)==0 
+		&&  abs (m_cursor_pos.y - cursor_pos.y)==0 ) ) 
+		return;
+	
+	omni_mutex_lock l(m_clientsLock);
 	if (LocalInputPriority() && vncService::IsWin95())
 	{
 		m_remote_mouse += count;
 		if (count == 0)
 			m_remote_mouse = 0;
+
+		m_cursor_pos.x = cursor_pos.x;
+		m_cursor_pos.y = cursor_pos.y;
+		
+	
 	}
+	
 }
 
 void 

@@ -466,11 +466,11 @@ class vncCanvas extends Canvas
     }
 
     // Read filter id and parameters.
-    int filter_id;
     int numColors = 0;
+    int rowSize = w;
     byte palette[] = new byte[2];
     if ((comp_ctl & rfb.TightExplicitFilter) != 0) {
-      filter_id = rfb.is.readUnsignedByte();
+      int filter_id = rfb.is.readUnsignedByte();
       if (filter_id == rfb.TightFilterPalette) {
         numColors = rfb.is.readUnsignedByte() + 1; // Must be 2.
         if (numColors != 2) {
@@ -478,104 +478,141 @@ class vncCanvas extends Canvas
         }
         palette[0] = rfb.is.readByte();
         palette[1] = rfb.is.readByte();
-      } else if (filter_id != TightFilterCopy) {
+        rowSize = (w + 7) / 8;
+      } else if (filter_id != rfb.TightFilterCopy) {
         throw new IOException("Incorrect tight filter id: " + filter_id);
       }
     }
 
-    byte[] rawData = new byte[w * h];
-    int stream_id = comp_ctl & 0x03;
+    // Read and optionally uncompress data.
+    int rawDataLen = h * rowSize;
+    byte[] rawData = new byte[rawDataLen];
 
-    if (numColors == 2) {
-      // Handle bi-color rectangles.
-
-      int rowSize = (w + 7) / 8;
-      int bicolorDataLen = h * rowSize;
-      byte[] bicolorData = new byte[bicolorDataLen];
-      if (bicolorDataLen < rfb.TightMinToCompress) {
-        rfb.is.readFully(bicolorData, 0, bicolorDataLen);
-      } else {
-        int compressedDataLen = rfb.readCompactLen();
-        byte[] compressedData = new byte[compressedDataLen];
-        rfb.is.readFully(compressedData, 0, compressedDataLen);
-
-        if (tightInflaters[stream_id] == null) {
-          tightInflaters[stream_id] = new Inflater();
-        }
-        tightInflaters[stream_id].setInput(compressedData, 0,
-                                           compressedDataLen);
-        try {
-          tightInflaters[stream_id].inflate(bicolorData, 0, bicolorDataLen);
-        }
-        catch(DataFormatException dfe) {
-          throw new IOException(dfe.toString());
-        }
-      }
-      tightPaletteFilter(rawData, bicolorData, w, h, palette);
+    if (rawDataLen < rfb.TightMinToCompress) {
+      rfb.is.readFully(rawData, 0, rawDataLen);
     }
     else {
-    // Handle full-color rectangles.
-
-      if (w * h < rfb.TightMinToCompress) {
-        rfb.is.readFully(rawData, 0, w * h);
-      } else {
-        int compressedDataLen = rfb.readCompactLen();
-        byte[] compressedData = new byte[compressedDataLen];
-        rfb.is.readFully(compressedData, 0, compressedDataLen);
-
-        if (tightInflaters[stream_id] == null) {
-          tightInflaters[stream_id] = new Inflater();
+      int zlibDataLen = rfb.readCompactLen();
+      byte[] zlibData = new byte[zlibDataLen];
+      rfb.is.readFully(zlibData, 0, zlibDataLen);
+      int stream_id = comp_ctl & 0x03;
+      if (tightInflaters[stream_id] == null) {
+        tightInflaters[stream_id] = new Inflater();
+      }
+      Inflater myInflater = tightInflaters[stream_id];
+      myInflater.setInput(zlibData, 0, zlibDataLen);
+      try {
+        if (numColors != 2 && !v.options.drawEachPixelForRawRects) {
+          // Speed optimization for special case.
+          for (int j = y; j < (y + h); j++) {
+            myInflater.inflate(pixels, j * rfb.framebufferWidth + x, w);
+          }
+          handleUpdatedPixels(x, y, w, h);
+          return;
         }
-        tightInflaters[stream_id].setInput(compressedData, 0,
-                                           compressedDataLen);
-        try {
-          tightInflaters[stream_id].inflate(rawData, 0, w * h);
+        else {
+          // Generic case -- use extra buffering layer.
+          myInflater.inflate(rawData, 0, rawDataLen);
         }
-        catch(DataFormatException dfe) {
-          throw new IOException(dfe.toString());
-        }
+      }
+      catch(DataFormatException dfe) {
+        throw new IOException(dfe.toString());
       }
     }
 
-    // Draw rectangle.
-    Color myColor;
-    if (v.options.drawEachPixelForRawRects) {
-      for (int l = 0; l < h; l++) {
-        for (int k = 0; k < w; k++) {
-          myColor = colors[ 0x000000ff & rawData[l * w + k] ];
-          sg.setColor(myColor);
-          sg.fillRect(x + k, y + l, 1, 1);
-          pig.setColor(myColor);
-          pig.fillRect(x + k, y + l, 1, 1);
-        }
-      }
+    // Handle bi-color rectangle.
+    if (numColors == 2) {
+      drawMonoData(x, y, w, h, rawData, palette);
       return;
     }
 
-    for (int l = 0; l < h; l++) { // FIXME: Inefficient.
-      for (int k = 0; k < w; k++) {
-        pixels[(y + l) * rfb.framebufferWidth + (x + k)] = rawData[l * w + k];
+    // Draw full-color rectangle.
+    Color myColor;
+    int dx, dy;
+    if (v.options.drawEachPixelForRawRects) {
+      for (dy = 0; dy < h; dy++) {
+        for (dx = 0; dx < w; dx++) {
+          myColor = colors[ 0x000000ff & rawData[dy * w + dx] ];
+          sg.setColor(myColor);
+          sg.fillRect(x + dx, y + dy, 1, 1);
+          pig.setColor(myColor);
+          pig.fillRect(x + dx, y + dy, 1, 1);
+        }
       }
+    } else {
+      for (dy = 0; dy < h; dy++) {
+        for (dx = 0; dx < w; dx++) {
+          pixels[(y + dy) * rfb.framebufferWidth + (x + dx)] =
+            rawData[dy * w + dx];
+        }
+      }
+      handleUpdatedPixels(x, y, w, h);
     }
-    handleUpdatedPixels(x, y, w, h);
   }
 
 
   //
-  // Display newly updated area of pixels.
+  // Decode and draw 1bpp-encoded bi-color rectangle.
   //
 
-  void tightPaletteFilter(byte[] dst, byte[] src, int w, int h, byte[] pal) {
-    int rowBytes = (w + 7) / 8;
-    int x, y, b;
-    for (y = 0; y < h; y++) {
-      for (x = 0; x < w / 8; x++) {
-	for (b = 7; b >= 0; b--)
-	  dst[y*w+x*8+7-b] = pal[src[y*rowBytes+x] >> b & 1];
+  void drawMonoData(int x, int y, int w, int h,
+                    byte[] src, byte[] palette)
+    throws IOException {
+
+    if (v.options.drawEachPixelForRawRects) {
+      // "Reliable" drawing mode
+
+      Color myColor;
+      int rowBytes = (w + 7) / 8;
+      int dx, dy, i, n;
+      byte b;
+
+      Color myPalette[] = new Color[2];
+      myPalette[0] = colors[0xFF & palette[0]];
+      myPalette[1] = colors[0xFF & palette[1]];
+
+      for (dy = 0; dy < h; dy++) {
+        i = x;
+        for (dx = 0; dx < w / 8; dx++) {
+          b = src[dy*rowBytes+dx];
+          for (n = 7; n >= 0; n--) {
+            myColor = myPalette[b >> n & 1];
+            sg.setColor(myColor);
+            sg.fillRect(i, y + dy, 1, 1);
+            pig.setColor(myColor);
+            pig.fillRect(i, y + dy, 1, 1);
+            i++;
+          }
+        }
+        for (n = 7; n >= 8 - w % 8; n--) {
+          myColor = myPalette[src[dy*rowBytes+dx] >> n & 1];
+          sg.setColor(myColor);
+          sg.fillRect(i, y + dy, 1, 1);
+          pig.setColor(myColor);
+          pig.fillRect(i, y + dy, 1, 1);
+          i++;
+        }
       }
-      for (b = 7; b >= 8 - w % 8; b--) {
-	dst[y*w+x*8+7-b] = pal[src[y*rowBytes+x] >> b & 1];
+    } else {
+      // "Fast" drawing mode
+
+      int i = y * rfb.framebufferWidth + x;
+      int rowBytes = (w + 7) / 8;
+      int dx, dy, n;
+      byte b;
+
+      for (dy = 0; dy < h; dy++) {
+        for (dx = 0; dx < w / 8; dx++) {
+          b = src[dy*rowBytes+dx];
+          for (n = 7; n >= 0; n--)
+            pixels[i++] = palette[b >> n & 1];
+        }
+        for (n = 7; n >= 8 - w % 8; n--) {
+          pixels[i++] = palette[src[dy*rowBytes+dx] >> n & 1];
+        }
+        i += (rfb.framebufferWidth - w);
       }
+      handleUpdatedPixels(x, y, w, h);
     }
   }
 

@@ -714,6 +714,27 @@ IDR_SOCKFACTORY_CLASS$(WITH_JAVA_VIEWER) JAVACLASS DISCARDABLE   "res\\SocketFac
 IDR_SOCKFACTORY_CLASS   JAVACLASS DISCARDABLE   "res\\SocketFactory.class"
 #endif
 #endif
+#if defined(APSTUDIO_INVOKED) || defined(WITH_JAVA_VIEWER)
+#if defined(APSTUDIO_INVOKED)
+IDR_AUTHUNIXLOGIN_CLASS$(WITH_JAVA_VIEWER) JAVACLASS DISCARDABLE   "res\\AuthUnixLoginPanel.class"
+#else
+IDR_AUTHUNIXLOGIN_CLASS JAVACLASS DISCARDABLE   "res\\AuthUnixLoginPanel.class"
+#endif
+#endif
+#if defined(APSTUDIO_INVOKED) || defined(WITH_JAVA_VIEWER)
+#if defined(APSTUDIO_INVOKED)
+IDR_CAPINFO_CLASS$(WITH_JAVA_VIEWER) JAVACLASS DISCARDABLE   "res\\CapabilityInfo.class"
+#else
+IDR_CAPINFO_CLASS       JAVACLASS DISCARDABLE   "res\\CapabilityInfo.class"
+#endif
+#endif
+#if defined(APSTUDIO_INVOKED) || defined(WITH_JAVA_VIEWER)
+#if defined(APSTUDIO_INVOKED)
+IDR_CAPSCONTAINER_CLASS$(WITH_JAVA_VIEWER) JAVACLASS DISCARDABLE   "res\\CapsContainer.class"
+#else
+IDR_CAPSCONTAINER_CLASS JAVACLASS DISCARDABLE   "res\\CapsContainer.class"
+#endif
+#endif
 
 /////////////////////////////////////////////////////////////////////////////
 //

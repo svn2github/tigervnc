@@ -688,7 +688,19 @@ SOURCE=.\res\AuthPanel.class
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\AuthUnixLoginPanel.class
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\ButtonPanel.class
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\CapabilityInfo.class
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\CapsContainer.class
 # End Source File
 # Begin Source File
 

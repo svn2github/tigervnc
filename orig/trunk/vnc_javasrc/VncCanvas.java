@@ -311,6 +311,8 @@ class VncCanvas extends Canvas
       case RfbProto.FramebufferUpdate:
 	rfb.readFramebufferUpdate();
 
+	boolean cursorPosReceived = false;
+
 	for (int i = 0; i < rfb.updateNRects; i++) {
 	  rfb.readFramebufferUpdateRectHdr();
 	  int rx = rfb.updateRectX, ry = rfb.updateRectY;
@@ -333,6 +335,7 @@ class VncCanvas extends Canvas
 
 	  if (rfb.updateRectEncoding == rfb.EncodingPointerPos) {
 	    softCursorMove(rx, ry);
+	    cursorPosReceived = true;
 	    continue;
 	  }
 
@@ -372,8 +375,11 @@ class VncCanvas extends Canvas
 	  fullUpdateNeeded = true;
 
 	// Defer framebuffer update request if necessary. But wake up
-	// immediately on keyboard or mouse event.
-	if (viewer.deferUpdateRequests > 0) {
+	// immediately on keyboard or mouse event. Also, don't sleep
+	// if there is some data to receive, or if the last update
+	// included a PointerPos message.
+	if (viewer.deferUpdateRequests > 0 &&
+	    rfb.is.available() == 0 && !cursorPosReceived) {
 	  synchronized(rfb) {
 	    try {
 	      rfb.wait(viewer.deferUpdateRequests);

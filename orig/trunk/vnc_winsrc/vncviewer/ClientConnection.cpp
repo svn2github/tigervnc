@@ -1484,12 +1484,9 @@ void ClientConnection::SizeWindow(bool centered)
 				y = workrect.bottom - m_winheight1;
 		}
 	}	
-	SetWindowPos(m_hwnd1, HWND_TOP, 
-					 x,
-					 y,
-					 m_winwidth1,
-					 m_winheight1,
-					 SWP_SHOWWINDOW);	
+	SetWindowPos(m_hwnd1, HWND_TOP, x, y, m_winwidth1, m_winheight1,
+				SWP_SHOWWINDOW);
+	
 	SetForegroundWindow(m_hwnd1);
 }
 
@@ -1969,35 +1966,41 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 	case WM_KILLFOCUS:
 		if ( _this->m_opts.m_ViewOnly) return 0;
 		_this->SwitchOffKey();
-		return 0; 
-	case WM_GETMINMAXINFO:
-		RECT workrect;
-		RECT rtb;
-		MINMAXINFO win;
-			
-		SystemParametersInfo(SPI_GETWORKAREA, 0, &workrect, 0);
-		GetWindowRect(_this->m_hToolbar, &rtb);
-		win = *(LPMINMAXINFO) lParam;
-		if (!_this->InFullScreenMode()) {
-			if (GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
-				ID_TOOLBAR,MF_BYCOMMAND) == MF_CHECKED) {
-				win.ptMaxSize.x = _this->m_winwidth1;
-				win.ptMaxSize.y = min((_this->m_winheight1 + rtb.bottom - rtb.top - 4),
-						(workrect.bottom -  workrect.top));
-				win.ptMaxTrackSize.x = _this->m_winwidth1;
-				win.ptMaxTrackSize.y = min((_this->m_winheight1 + rtb.bottom - rtb.top - 4),
-						(workrect.bottom -  workrect.top));
-			} else {
-				win.ptMaxSize.x = _this->m_winwidth1;
-				win.ptMaxSize.y = _this->m_winheight1;
-				win.ptMaxTrackSize.x = _this->m_winwidth1;
-				win.ptMaxTrackSize.y = _this->m_winheight1;
-			}
-		}
-		*(LPMINMAXINFO) lParam = win;
 		return 0;
+	case WM_SIZING:
+		{
+			// Don't allow sizing larger than framebuffer
+			RECT *lprc = (LPRECT) lParam;
+			switch (wParam) {
+			case WMSZ_RIGHT: 
+			case WMSZ_TOPRIGHT:
+			case WMSZ_BOTTOMRIGHT:
+				lprc->right = min(lprc->right, lprc->left + _this->m_winwidth1+1);
+				break;
+			case WMSZ_LEFT:
+			case WMSZ_TOPLEFT:
+			case WMSZ_BOTTOMLEFT:
+				lprc->left = max(lprc->left, lprc->right - _this->m_winwidth1);
+				break;
+			}
+			
+			switch (wParam) {
+			case WMSZ_TOP:
+			case WMSZ_TOPLEFT:
+			case WMSZ_TOPRIGHT:
+				lprc->top = max(lprc->top, lprc->bottom - _this->m_winheight1);
+				break;
+			case WMSZ_BOTTOM:
+			case WMSZ_BOTTOMLEFT:
+			case WMSZ_BOTTOMRIGHT:
+				lprc->bottom = min(lprc->bottom, lprc->top + _this->m_winheight1);
+				break;
+			}
+
+			return 0;
+		}	
 	case WM_SIZE:
-		RECT rwn;
+		RECT rwn, rtb;
 		GetClientRect(hwnd, &rwn);
 		if (GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
 				ID_TOOLBAR, MF_BYCOMMAND) == MF_CHECKED) {
@@ -2349,39 +2352,7 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
         break;
 
 #ifndef UNDER_CE 
-	case WM_SIZING:
-		{
-			// Don't allow sizing larger than framebuffer
-			RECT *lprc = (LPRECT) lParam;
-			switch (wParam) {
-			case WMSZ_RIGHT: 
-			case WMSZ_TOPRIGHT:
-			case WMSZ_BOTTOMRIGHT:
-				lprc->right = min(lprc->right, lprc->left + _this->m_fullwinwidth+1);
-				break;
-			case WMSZ_LEFT:
-			case WMSZ_TOPLEFT:
-			case WMSZ_BOTTOMLEFT:
-				lprc->left = max(lprc->left, lprc->right - _this->m_fullwinwidth);
-				break;
-			}
-			
-			switch (wParam) {
-			case WMSZ_TOP:
-			case WMSZ_TOPLEFT:
-			case WMSZ_TOPRIGHT:
-				lprc->top = max(lprc->top, lprc->bottom - _this->m_fullwinheight);
-				break;
-			case WMSZ_BOTTOM:
-			case WMSZ_BOTTOMLEFT:
-			case WMSZ_BOTTOMRIGHT:
-				lprc->bottom = min(lprc->bottom, lprc->top + _this->m_fullwinheight);
-				break;
-			}
-
-			return 0;
-		}
-	
+		
 	case WM_SETCURSOR:
 		{
 			// if we have the focus, let the cursor change as normal

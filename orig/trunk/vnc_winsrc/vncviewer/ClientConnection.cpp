@@ -131,7 +131,7 @@ void ClientConnection::Init(VNCviewerApp *pApp)
 	m_hwnd1 = NULL;
 	m_hwndscroll = NULL;
 	m_hToolbar = NULL;
-	m_DisButton = NULL;
+	m_QuitFSW = NULL;
 	m_desktopName = NULL;
 	m_port = -1;
 	m_serverInitiated = false;
@@ -514,7 +514,7 @@ void ClientConnection::CreateDisplay()
 	}
 	SaveListConnection();
 
-	m_DisButton = new DisableButton(m_pApp, this);
+	m_QuitFSW = new QuitFullScreenWindow(m_pApp, this);
 	
 	// record which client created this window
 	
@@ -1917,7 +1917,7 @@ ClientConnection::~ClientConnection()
 		DeleteObject(m_hBitmap);
 	if (m_hPalette != NULL)
 		DeleteObject(m_hPalette);
-	delete m_DisButton;
+	delete m_QuitFSW;
 	
 	m_pApp->DeregisterConnection(this);
 }
@@ -2402,7 +2402,7 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 	case WM_SETFOCUS:
 		if (_this->InFullScreenMode()) {
 			SetWindowPos(hwnd, HWND_TOPMOST, 0,0,100,100, SWP_NOMOVE | SWP_NOSIZE);
-			_this->m_DisButton->ShowButton(TRUE);
+			_this->m_QuitFSW->ShowButton(TRUE);
 		}
 		return 0;
 	// Cacnel modifiers when we lose focus
@@ -2422,7 +2422,7 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 				}
 
 				SetWindowPos(_this->m_hwnd1, hwndafter, 0,0,100,100, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-				_this->m_DisButton->ShowButton(FALSE);
+				_this->m_QuitFSW->ShowButton(FALSE);
 			}
 			vnclog.Print(6, _T("Losing focus - cancelling modifiers\n"));
 			return 0;

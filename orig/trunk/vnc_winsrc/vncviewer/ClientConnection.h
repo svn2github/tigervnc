@@ -43,6 +43,7 @@
 #include "ConnectingDialog.h"
 #include "FileTransfer.h"
 #include "zlib/zlib.h"
+#include "QuitFullScreenWindow.h"
 extern "C" {
 #include "libjpeg/jpeglib.h"
 }
@@ -56,10 +57,9 @@ extern "C" {
 
 extern const UINT fileTransferUploadMessage;
 
-class ClientConnection;
 typedef void (ClientConnection:: *tightFilterFunc)(int);
 
-class DisableButton;
+class QuitFullScreenWindow;
 
 class ClientConnection  : public omni_thread
 {
@@ -88,6 +88,7 @@ private:
 	void DoBlit();
 	VNCviewerApp *m_pApp;
 	ConnectingDialog *m_connDlg;
+	QuitFullScreenWindow *m_QuitFSW;
 
 	bool m_enableFileTransfers;
 	bool m_fileTransferDialogShown;
@@ -380,9 +381,6 @@ private:
 	DWORD m_emulateKeyFlags;
 	int m_emulateButtonPressedX;
 	int m_emulateButtonPressedY;
-
-	DisableButton *m_DisButton;
-
 };
 
 // Some handy classes for temporary GDI object selection
@@ -417,26 +415,6 @@ public:
 	operator HDC() {return m_hdc;};
 	HDC m_hdc;
 	HWND m_hwnd;
-};
-
-class DisableButton
-{
-public:
-	DisableButton(VNCviewerApp *pApp, ClientConnection * CConn);
-	void ShowButton(BOOL show);
-	virtual ~DisableButton();
-protected:
-	static LRESULT CALLBACK DisableProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
-	
-	VNCviewerApp *m_pApp;
-	ClientConnection * m_CConn;
-	HWND m_hwndButton;
-	HWND m_hOldCap;
-	POINT m_MousePoint;
-	HDC m_hdcCompat;
-	HBITMAP m_hbmp;
-	BOOL m_ButtonDown;
-	RECT m_rectOldCur;
 };
 
 // Colour decoding utility functions

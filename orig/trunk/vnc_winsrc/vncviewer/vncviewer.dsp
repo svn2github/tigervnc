@@ -409,6 +409,14 @@ SOURCE=.\LoginAuthDialog.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\QuitFullScreenWindow.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\QuitFullScreenWindow.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\resource.h
 # End Source File
 # Begin Source File

@@ -16,6 +16,8 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 //  USA.
+//
+// TightVNC distribution homepage on the Web: http://www.tightvnc.com/
 
 // SharedData.h : Declarations for the global data in the DLL
 // This file is used only when your compiler is Borland C++.

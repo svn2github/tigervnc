@@ -1,6 +1,6 @@
 
-TightVNC 1.1p9 Source Distribution for Windows platforms
-========================================================
+TightVNC 1.2 Source Distribution for Windows platforms
+======================================================
 
 This distribution is mostly TridiaVNC 1.4.0 with new low-bandwidth
 optimizations such as "tight" encoding with optional JPEG compression,

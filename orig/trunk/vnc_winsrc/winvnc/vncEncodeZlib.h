@@ -18,14 +18,10 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 //  USA.
 //
-// For the latest source code, please check:
-//
-// http://www.DevelopVNC.org/
-//
-// or send email to: feedback@developvnc.org.
+// TightVNC distribution homepage on the Web: http://www.tightvnc.com/
 //
 // If the source code for the VNC system is not available from the place 
-// whence you received this file, check http://www.tridiavnc.com/vnc or contact
+// whence you received this file, check http://www.uk.research.att.com/vnc or contact
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
 

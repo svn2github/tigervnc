@@ -17,13 +17,6 @@
  *  along with this software; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  *  USA.
- *
- * For the latest source code, please check:
- *
- * http://www.DevelopVNC.org/
- *
- * or send email to: feedback@developvnc.org.
- *
  */
 
 /*

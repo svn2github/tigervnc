@@ -307,17 +307,21 @@ public class VncViewer extends java.applet.Applet
 
     rfb.writeVersionMsg();
 
-    int authScheme = rfb.readAuthScheme();
+    showConnectionStatus("Using RFB protocol version " +
+			 rfb.clientMajor + "." + rfb.clientMinor);
+
+    int authScheme = rfb.negotiateSecurity();
     boolean success = false;
 
     switch (authScheme) {
 
-    case RfbProto.NoAuth:
+    case RfbProto.SecTypeNone:
       showConnectionStatus("No authentication needed");
       success = true;
       break;
 
-    case RfbProto.VncAuth:
+    case RfbProto.SecTypeVncAuth:
+      showConnectionStatus("Performing standard VNC authentication");
       if (authenticator.isInteractionNecessary()) {
 	showAuthPanel();
       }

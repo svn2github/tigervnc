@@ -32,8 +32,9 @@ import java.util.zip.*;
 
 class RfbProto {
 
-  final String versionMsg = "RFB 003.003\n";
-  final static int ConnFailed = 0, NoAuth = 1, VncAuth = 2;
+  final String versionMsg_3_3 = "RFB 003.003\n";
+  final String versionMsg_3_7 = "RFB 003.007\n";
+  final static int SecTypeInvalid = 0, SecTypeNone = 1, SecTypeVncAuth = 2;
   final static int VncAuthOK = 0, VncAuthFailed = 1, VncAuthTooMany = 2;
 
   final static int FramebufferUpdate = 0, SetColourMapEntries = 1, Bell = 2,
@@ -170,6 +171,8 @@ class RfbProto {
   //
 
   int serverMajor, serverMinor;
+  int clientMajor, clientMinor;
+  boolean protocolTightVNC;
 
   void readVersionMsg() throws Exception {
 
@@ -189,6 +192,10 @@ class RfbProto {
 
     serverMajor = (b[4] - '0') * 100 + (b[5] - '0') * 10 + (b[6] - '0');
     serverMinor = (b[8] - '0') * 100 + (b[9] - '0') * 10 + (b[10] - '0');
+
+    if (serverMajor < 3) {
+      throw new Exception("RFB server does not support protocol version 3");
+    }
   }
 
 
@@ -197,34 +204,91 @@ class RfbProto {
   //
 
   void writeVersionMsg() throws IOException {
-    os.write(versionMsg.getBytes());
+    clientMajor = 3;
+    if (serverMajor > 3 || serverMinor >= 7) {
+      clientMinor = 7;
+      os.write(versionMsg_3_7.getBytes());
+    } else {
+      clientMinor = 3;
+      os.write(versionMsg_3_3.getBytes());
+    }
+    protocolTightVNC = false;
   }
 
 
   //
-  // Find out the authentication scheme.
+  // Negotiate the authentication scheme.
   //
 
-  int readAuthScheme() throws Exception {
-    int authScheme = is.readInt();
+  int negotiateSecurity() throws Exception {
+    return (clientMinor >= 7) ?
+      selectSecurityType() : readSecurityType();
+  }
 
-    switch (authScheme) {
+  //
+  // Read security type from the server (protocol version 3.3).
+  //
 
-    case ConnFailed:
-      int reasonLen = is.readInt();
-      byte[] reason = new byte[reasonLen];
-      is.readFully(reason);
-      throw new Exception(new String(reason));
+  int readSecurityType() throws Exception {
+    int secType = is.readInt();
 
-    case NoAuth:
-    case VncAuth:
-      return authScheme;
-
+    switch (secType) {
+    case SecTypeInvalid:
+      readConnFailedReason();
+      return SecTypeInvalid;	// should never be executed
+    case SecTypeNone:
+    case SecTypeVncAuth:
+      return secType;
     default:
-      throw new Exception("Unknown authentication scheme from RFB server: " +
-			  authScheme);
-
+      throw new Exception("Unknown security type from RFB server: " + secType);
     }
+  }
+
+  //
+  // Select security type from the server's list (protocol version 3.7).
+  //
+
+  int selectSecurityType() throws Exception {
+    int secType = SecTypeInvalid;
+
+    // Read the list of secutiry types.
+    int nSecTypes = is.readUnsignedByte();
+    if (nSecTypes == 0) {
+      readConnFailedReason();
+      return SecTypeInvalid;	// should never be executed
+    }
+    byte[] secTypes = new byte[nSecTypes];
+    is.readFully(secTypes);
+
+    // FIXME: Find out if the server supports TightVNC protocol extensions
+
+    // Find first supported security type.
+    for (int i = 0; i < nSecTypes; i++) {
+      if (secTypes[i] == SecTypeNone || secTypes[i] == SecTypeVncAuth) {
+	secType = secTypes[i];
+	break;
+      }
+    }
+
+    if (secType == SecTypeInvalid) {
+      throw new Exception("Server did not offer supported security type");
+    } else {
+      os.write(secType);
+    }
+
+    return secType;
+  }
+
+  //
+  // Read the string describing the reason for a connection failure,
+  // and throw an exception.
+  //
+
+  void readConnFailedReason() throws Exception {
+    int reasonLen = is.readInt();
+    byte[] reason = new byte[reasonLen];
+    is.readFully(reason);
+    throw new Exception(new String(reason));
   }
 
 
@@ -283,8 +347,8 @@ class RfbProto {
   void startSession(String fname) throws IOException {
     rec = new SessionRecorder(fname);
     rec.writeHeader();
-    rec.write(versionMsg.getBytes());
-    rec.writeIntBE(NoAuth);
+    rec.write(versionMsg_3_3.getBytes());
+    rec.writeIntBE(SecTypeNone);
     rec.writeShortBE(framebufferWidth);
     rec.writeShortBE(framebufferHeight);
     byte[] fbsServerInitMsg =	{

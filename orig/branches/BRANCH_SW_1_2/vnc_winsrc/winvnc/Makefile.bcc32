@@ -16,7 +16,7 @@ OBJS=d3des.obj vncauth.obj Log.obj MinMax.obj RectList.obj stdhdrs.obj \
 	vncInstHandler.obj vncKeymap.obj vncMenu.obj vncProperties.obj \
 	vncRegion.obj vncServer.obj vncService.obj vncSockConnect.obj \
 	vncTimedMsgBox.obj VSocket.obj vncAdvancedProperties.obj WinVNC.obj \
-	omnithread\omnithread.obj
+	MatchWindow.obj omnithread\omnithread.obj
 
 LIBS=zlib\zlib.lib libjpeg\libjpeg.lib VNCHooks\VNCHooks.lib
 

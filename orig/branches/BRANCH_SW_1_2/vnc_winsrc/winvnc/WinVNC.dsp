@@ -1570,6 +1570,10 @@ SOURCE=.\Log.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\MatchWindow.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\MinMax.h
 # End Source File
 # Begin Source File

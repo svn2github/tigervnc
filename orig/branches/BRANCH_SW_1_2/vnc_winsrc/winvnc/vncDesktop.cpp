@@ -1403,22 +1403,19 @@ vncDesktop::CaptureScreen(RECT &rect, BYTE *scrBuff, UINT scrBuffSize)
 		return;
 
 	// Capture screen into bitmap
-BOOL blitok;
+	BOOL blitok;
 
-		if (m_server->OneSharedAppli() && !m_server->WindowShared())
-		{
+	if (m_server->OneSharedAppli() && !m_server->WindowShared()) {
 		RECT coord = m_server->getSharedRect();
-		BOOL blitok = BitBlt(m_hmemdc, rect.left, rect.top,
-		(rect.right-rect.left),
-		(rect.bottom-rect.top),
-		m_hrootdc, rect.left+coord.left, rect.top+coord.top, SRCCOPY);
-		}
-		else
-			BOOL blitok = BitBlt(m_hmemdc, rect.left, rect.top,
-			(rect.right-rect.left),
-			(rect.bottom-rect.top),
-			m_hrootdc, rect.left, rect.top, SRCCOPY);
-
+		blitok = BitBlt(m_hmemdc, rect.left, rect.top,
+						rect.right - rect.left, rect.bottom - rect.top,
+						m_hrootdc, rect.left + coord.left, rect.top + coord.top,
+						SRCCOPY);
+	} else {
+		blitok = BitBlt(m_hmemdc, rect.left, rect.top,
+						rect.right - rect.left, rect.bottom - rect.top,
+						m_hrootdc, rect.left, rect.top, SRCCOPY);
+	}
 
 	// Select the old bitmap back into the memory DC
 	SelectObject(m_hmemdc, oldbitmap);
@@ -1427,7 +1424,6 @@ BOOL blitok;
 		// Copy the new data to the screen buffer (CopyToBuffer optimises this if possible)
 		CopyToBuffer(rect, scrBuff, scrBuffSize);
 	}
-
 }
 
 // Add the mouse pointer to the buffer

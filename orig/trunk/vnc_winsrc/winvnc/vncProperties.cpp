@@ -294,6 +294,8 @@ vncProperties::ParentDlgProc(HWND hwnd,
 			TabCtrl_InsertItem(_this->m_hTab, 5, &item);
 			item.pszText = "Administration";
 			TabCtrl_InsertItem(_this->m_hTab, 6, &item);
+			item.pszText = "Connections Acces";
+			TabCtrl_InsertItem(_this->m_hTab, 7, &item);
 
 			_this->m_hShared = CreateDialogParam(hAppInstance, 
 				MAKEINTRESOURCE(IDD_SHARED_DESKTOP_AREA),
@@ -336,6 +338,11 @@ vncProperties::ParentDlgProc(HWND hwnd,
 				hwnd,
 				(DLGPROC)_this->AdministrationDlgProc,
 				(LONG)_this);
+			_this->m_hConnectionsAccess = CreateDialogParam(hAppInstance, 
+				MAKEINTRESOURCE(IDD_CONNECTIONS_ACCESS),
+				hwnd,
+				(DLGPROC)_this->ConnectionsAccessDlgProc,
+				(LONG)_this);
 
 			// Position child dialogs, to fit the Tab control's display area
 			RECT rc;
@@ -361,6 +368,9 @@ vncProperties::ParentDlgProc(HWND hwnd,
 						 rc.right - rc.left, rc.bottom - rc.top,
 						 SWP_HIDEWINDOW);
 			SetWindowPos(_this->m_hAdministration, HWND_TOP, rc.left, rc.top,
+						 rc.right - rc.left, rc.bottom - rc.top,
+						 SWP_HIDEWINDOW);
+			SetWindowPos(_this->m_hConnectionsAccess, HWND_TOP, rc.left, rc.top,
 						 rc.right - rc.left, rc.bottom - rc.top,
 						 SWP_HIDEWINDOW);
 
@@ -413,6 +423,9 @@ vncProperties::ParentDlgProc(HWND hwnd,
 				case 6:						
 					ShowWindow(_this->m_hAdministration, style);						
 					return 0;
+				case 7:						
+					ShowWindow(_this->m_hConnectionsAccess, style);						
+					return 0;
 					}
 					return 0;
 				}
@@ -432,6 +445,7 @@ vncProperties::ParentDlgProc(HWND hwnd,
 			SendMessage(_this->m_hDisconnect, WM_COMMAND, IDC_APPLY,0);
 			SendMessage(_this->m_hQuerySettings, WM_COMMAND, IDC_APPLY,0);
 			SendMessage(_this->m_hAdministration, WM_COMMAND, IDC_APPLY,0);
+			SendMessage(_this->m_hConnectionsAccess, WM_COMMAND, IDC_APPLY,0);
 
 			_this->Save();
         
@@ -444,6 +458,7 @@ vncProperties::ParentDlgProc(HWND hwnd,
 				_this->m_returncode_valid = TRUE;
 
 				EndDialog(hwnd, IDOK);
+				DestroyWindow(hwnd);
 				_this->m_dlgvisible = FALSE;
 				_this->m_hTab = NULL;
 			}
@@ -453,6 +468,7 @@ vncProperties::ParentDlgProc(HWND hwnd,
 			vnclog.Print(LL_INTINFO, VNCLOG("enddialog (CANCEL)\n"));
 			_this->m_returncode_valid = TRUE;
 			EndDialog(hwnd, IDCANCEL);
+			DestroyWindow(hwnd);
 			_this->m_dlgvisible = FALSE;
 			_this->m_hTab = NULL;
 			return TRUE;		
@@ -501,6 +517,59 @@ BOOL CALLBACK vncProperties::IncomingDlgProc(HWND hwnd, UINT uMsg,
 		delete _this->m_incConnCtrl;      
 		_this->m_incConnCtrl = NULL;  
 		_this->m_hIncoming = NULL;  
+		return 0;
+	}
+	return 0;
+}
+BOOL CALLBACK vncProperties::ConnectionsAccessDlgProc(HWND hwnd, UINT uMsg,
+                                             WPARAM wParam, LPARAM lParam)
+{
+	// We use the dialog-box's USERDATA to store a _this pointer
+	// This is set only once WM_INITDIALOG has been recieved, though!
+	vncProperties *_this = (vncProperties *) GetWindowLong(hwnd, GWL_USERDATA);
+	
+	switch (uMsg)
+	{
+	case WM_INITDIALOG:
+		{
+			// Retrieve the Dialog box parameter and use it as a pointer
+			// to the calling vncProperties object
+			SetWindowLong(hwnd, GWL_USERDATA, lParam);
+			vncProperties *_this = (vncProperties *) lParam;
+			_this->m_ConnAccessCtrl = new ConnectionsAccess(_this->m_server, hwnd);
+			return 0;
+		}
+	case WM_HELP:	
+		help.Popup(lParam);
+		return 0;
+    case WM_COMMAND:		
+		switch (LOWORD(wParam))
+		{
+		      
+		case IDC_APPLY:
+			_this->m_ConnAccessCtrl->Apply();
+			return TRUE;
+		case IDC_HOST_ADD:
+			_this->m_ConnAccessCtrl->Add();
+			return TRUE;
+		case IDC_HOST_EDIT:
+			_this->m_ConnAccessCtrl->Edit();
+			return TRUE;
+		case IDC_HOST_REMOVE:
+			_this->m_ConnAccessCtrl->Remove();
+			return TRUE;
+		case IDC_HOST_UP:
+			_this->m_ConnAccessCtrl->MoveUp();
+			return TRUE;
+		case IDC_HOST_DOWN:
+			_this->m_ConnAccessCtrl->MoveDown();
+			return TRUE;
+		}
+		return 0;
+	case WM_DESTROY:
+		delete _this->m_ConnAccessCtrl;      
+		_this->m_ConnAccessCtrl = NULL;  
+		_this->m_hConnectionsAccess = NULL;  
 		return 0;
 	}
 	return 0;
@@ -841,7 +910,12 @@ vncProperties::LoadPassword(HKEY key, char *buffer, const char *entry_name)
 
 	memcpy(buffer, inouttext, MAXPWLEN);
 }
-
+void
+vncProperties::SaveString(HKEY key, LPCSTR keyname, const char *buffer)
+{
+	RegSetValueEx(key, keyname, 0,
+		REG_SZ, (const unsigned char *)buffer, strlen(buffer));
+}
 char *
 vncProperties::LoadString(HKEY key, LPCSTR keyname)
 {
@@ -1276,6 +1350,7 @@ vncProperties::Save()
 	SaveInt(hkLocal, "EnableURLParams", m_server->HttpdParamsEnabled());
 	SaveInt(hkLocal, "AllowLoopback", m_server->LoopbackOk());
 	SaveInt(hkLocal, "AuthRequired", m_server->AuthRequired());
+	SaveString(hkLocal, "AuthHosts", m_server->AuthHosts());
 
 	SaveInt(hkLocal, "DebugMode", vnclog.GetMode());
 	SaveInt(hkLocal, "DebugLevel", vnclog.GetLevel());

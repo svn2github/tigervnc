@@ -52,6 +52,7 @@ class vncProperties;
 #include "IncomingConnectionsControls.h"
 #include "QuerySettingsControls.h"
 #include "AdministrationControls.h"
+#include "ConnectionsAccess.h"
 #include "commctrl.h"
 // The vncProperties class itself
 class vncProperties
@@ -73,6 +74,7 @@ public:
 	static BOOL CALLBACK DisconnectDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static BOOL CALLBACK QuerySettingsDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static BOOL CALLBACK AdministrationDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	static BOOL CALLBACK ConnectionsAccessDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	// Display the properties dialog
 	// If usersettings is TRUE then the per-user settings come up
@@ -190,6 +192,7 @@ private:
 	HWND m_hDisconnect;
 	HWND m_hQuerySettings;
 	HWND m_hAdministration;
+	HWND m_hConnectionsAccess;
 	CMatchWindow* m_pMatchWindow;
 	PollControls* m_pollcontrols;
 	InputHandlingControls* m_inputhandcontr;
@@ -197,6 +200,7 @@ private:
 	IncomingConnectionsControls* m_incConnCtrl;
 	QuerySettingsControls * m_QSControls;
 	AdministrationControls * m_AdminControls;
+	ConnectionsAccess * m_ConnAccessCtrl;
 };
 
 #endif // _WINVNC_VNCPROPERTIES

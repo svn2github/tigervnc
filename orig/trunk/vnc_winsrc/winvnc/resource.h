@@ -46,7 +46,9 @@
 #define IDR_AUTHUNIXLOGIN_CLASS         153
 #define IDD_CONTROL_PANEL               153
 #define IDR_CAPINFO_CLASS               154
+#define IDD_CONNECTIONS_ACCESS          154
 #define IDR_CAPSCONTAINER_CLASS         155
+#define IDD_CONN_HOST                   155
 #define IDC_STATIC_DRVINFO              1003
 #define IDC_CONNECT_SOCK                1004
 #define IDC_BLANK_SCREEN                1005
@@ -149,6 +151,17 @@
 #define IDC_FULL_CONTROL_CON            1116
 #define IDC_VIEW_ONLY_CON               1117
 #define IDC_STOP_UPDATE                 1118
+#define IDC_LIST_HOSTS                  1119
+#define IDC_HOST_ADD                    1120
+#define IDC_HOST_REMOVE                 1121
+#define IDC_HOST_UP                     1122
+#define IDC_HOST_DOWN                   1123
+#define IDC_HOST_EDIT                   1124
+#define IDC_HOST_PATTERN                1127
+#define IDC_HOST_MASK                   1128
+#define IDC_RADIO_ALLOW                 1129
+#define IDC_RADIO_DENY                  1130
+#define IDC_RADIO_QUERY                 1131
 #define ID_PROPERTIES                   40001
 #define ID_CLOSE                        40002
 #define ID_KILLCLIENTS                  40003
@@ -164,7 +177,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        156
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1119
+#define _APS_NEXT_CONTROL_VALUE         1132
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

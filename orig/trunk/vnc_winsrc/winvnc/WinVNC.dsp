@@ -160,6 +160,10 @@ SOURCE=.\AdministrationControls.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\ConnectionsAccess.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\ControlPanel.cpp
 # End Source File
 # Begin Source File
@@ -421,6 +425,10 @@ SOURCE=.\WinVNC.rc
 # Begin Source File
 
 SOURCE=.\AdministrationControls.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ConnectionsAccess.h
 # End Source File
 # Begin Source File
 

@@ -2198,7 +2198,6 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 		}
 		break;
 	case WM_SETFOCUS:
-	case WM_ACTIVATEAPP:
 		SetFocus(_this->m_hwnd);
 		break;
 	case WM_ACTIVATE:

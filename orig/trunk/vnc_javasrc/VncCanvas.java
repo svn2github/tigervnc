@@ -331,6 +331,11 @@ class VncCanvas extends Canvas
 	    continue;
 	  }
 
+	  if (rfb.updateRectEncoding == rfb.EncodingPointerPos) {
+	    softCursorMove(rx, ry);
+	    continue;
+	  }
+
 	  switch (rfb.updateRectEncoding) {
 	  case RfbProto.EncodingRaw:
 	    handleRawRect(rx, ry, rw, rh);

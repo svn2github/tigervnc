@@ -55,8 +55,11 @@ class RfbProto {
     EncodingQualityLevel0  = 0xFFFFFFE0,
     EncodingXCursor        = 0xFFFFFF10,
     EncodingRichCursor     = 0xFFFFFF11,
+    EncodingPointerPos     = 0xFFFFFF18,
     EncodingLastRect       = 0xFFFFFF20,
     EncodingNewFBSize      = 0xFFFFFF21;
+
+  final static int MaxNormalEncoding = 7;
 
   final int HextileRaw			= (1 << 0);
   final int HextileBackgroundSpecified	= (1 << 1);
@@ -406,8 +409,7 @@ class RfbProto {
       }
     }
 
-    if (updateRectEncoding == EncodingLastRect ||
-	updateRectEncoding == EncodingNewFBSize)
+    if (updateRectEncoding < 0 || updateRectEncoding > MaxNormalEncoding)
       return;
 
     if (updateRectX + updateRectW > framebufferWidth ||

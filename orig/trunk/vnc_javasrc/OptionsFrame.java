@@ -283,6 +283,8 @@ class OptionsFrame extends Frame
       encodings[nEncodings++] = RfbProto.EncodingRichCursor;
       ignoreCursorUpdates =
 	choices[cursorUpdatesIndex].getSelectedItem().equals("Ignore");
+      if (!ignoreCursorUpdates)
+	encodings[nEncodings++] = RfbProto.EncodingPointerPos;
     }
 
     encodings[nEncodings++] = RfbProto.EncodingLastRect;

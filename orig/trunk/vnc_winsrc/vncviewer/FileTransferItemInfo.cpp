@@ -125,6 +125,14 @@ int FileTransferItemInfo::GetIntSizeAt(int Number)
 	return ConvertCharToInt(GetSizeAt(Number));
 }
 
+bool FileTransferItemInfo::IsFile(int Number)
+{
+	if ((Number < 0) && (Number > m_NumEntries)) 
+		return FALSE;
+    if (strcmp(m_pEntries[Number].Size, folderText) != 0) return TRUE;
+	return FALSE;
+}
+
 int FileTransferItemInfo::ConvertCharToInt(char *pStr)
 {
 	int strLen = strlen(pStr);

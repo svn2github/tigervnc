@@ -182,29 +182,31 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 			case IDC_FTCOPY:
 				SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
 				EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), FALSE);
-				if (_this->m_bFTCOPY == FALSE) {
-					if (strcmp(_this->m_ServerPath, "") == 0) {
-						char buffer[rfbMAX_PATH];
-						sprintf(buffer, "Illegal TightVNC Server path. Upload impossible.");
-						SetWindowText(_this->m_hwndFTStatus, buffer);
-						return TRUE;
+    			if ((strcmp(_this->m_ClientPath, "") == 0) | (strcmp(_this->m_ServerPath, "") == 0)) {
+					char buffer[rfbMAX_PATH];
+					sprintf(buffer, "Illegal Local Computer or TightVNC Server path. File Transfer impossible.");
+					SetWindowText(_this->m_hwndFTStatus, buffer);
+					return TRUE;
 					}
+				if (_this->m_bFTCOPY == FALSE) {
 					_this->m_bTransferEnable = TRUE;
 					EnableWindow(GetDlgItem(hwnd, IDC_FTCANCEL), TRUE);
 					_this->FileTransferUpload();			
 				} else {
-					char buffer[rfbMAX_PATH + rfbMAX_PATH + rfbMAX_PATH];
-					if (strcmp(_this->m_ClientPath, "") == 0) {
-						sprintf(buffer, "Illegal Local Computer path. Download impossible.");
-						SetWindowText(_this->m_hwndFTStatus, buffer);
-						return TRUE;
-					}
 					char path[rfbMAX_PATH + rfbMAX_PATH];
 					_this->m_bTransferEnable = TRUE;
-					EnableWindow(GetDlgItem(hwnd, IDC_FTCANCEL), TRUE);
+                    int nListViewItem = ListView_GetSelectionMark(_this->m_hwndFTServerList);
+                    if ((nListViewItem < 0) | (!_this->m_FTServerItemInfo.IsFile(nListViewItem))) {
+                        char buf[MAX_PATH];
+						sprintf(buf, "No file selected. Select file for copy to local side");
+						SetWindowText(_this->m_hwndFTStatus, buf);
+						return TRUE;
+					}
 					_this->BlockingFileTransferDialog(FALSE);
-					ListView_GetItemText(_this->m_hwndFTServerList, ListView_GetSelectionMark(_this->m_hwndFTServerList), 0, _this->m_ServerFilename, rfbMAX_PATH);
+					EnableWindow(GetDlgItem(hwnd, IDC_FTCANCEL), TRUE);
+					ListView_GetItemText(_this->m_hwndFTServerList, nListViewItem, 0, _this->m_ServerFilename, rfbMAX_PATH);
 					strcpy(_this->m_ClientFilename, _this->m_ServerFilename);
+					char buffer[rfbMAX_PATH + rfbMAX_PATH + rfbMAX_PATH];
 					sprintf(buffer, "DOWNLOAD: %s\\%s to %s\\%s", _this->m_ServerPath, _this->m_ServerFilename, _this->m_ClientPath, _this->m_ClientFilename);
 					SetWindowText(_this->m_hwndFTStatus, buffer);
 					_this->m_sizeDownloadFile = _this->m_FTServerItemInfo.GetIntSizeAt(ListView_GetSelectionMark(_this->m_hwndFTServerList));
@@ -332,9 +334,9 @@ FileTransfer::FileTransferUpload()
 	unsigned int mTime = 0;
 	char path[rfbMAX_PATH + rfbMAX_PATH + 2];
 	BOOL bResult;
-	UINT nSelItem = ListView_GetSelectionMark(m_hwndFTClientList);
-	if (nSelItem == -1) {
-		SetWindowText(m_hwndFTStatus, "Select file for copy to server side");
+	int nSelItem = ListView_GetSelectionMark(m_hwndFTClientList);
+	if (nSelItem < 0) {
+		SetWindowText(m_hwndFTStatus, "No file selected. Select file for copy to server side");
 		BlockingFileTransferDialog(TRUE);
 		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
 		return;
@@ -363,6 +365,7 @@ FileTransfer::FileTransferUpload()
 	if (m_hFiletoRead == INVALID_HANDLE_VALUE) {
 		SetWindowText(m_hwndFTStatus, "This is not file. Select a file");
 		BlockingFileTransferDialog(TRUE);
+		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
 		return;
 	}
 	char buffer[rfbMAX_PATH + rfbMAX_PATH + rfbMAX_PATH + rfbMAX_PATH + 20];

@@ -50,6 +50,7 @@ public:
 	char * GetSizeAt(int Number);
 	char * GetNameAt(int Number);
 	unsigned int GetDataAt(int Number);
+    bool IsFile(int Number);    
 	void Sort();
 	void Free();
 	void Add(char *Name, char *Size, unsigned int Data);

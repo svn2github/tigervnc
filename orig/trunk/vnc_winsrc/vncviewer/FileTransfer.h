@@ -4,6 +4,7 @@
 
 #if !defined(FILETRANSFER)
 #define FILETRANSFER
+
 #define rfbMAX_PATH 255
 
 #include "windows.h"
@@ -22,7 +23,7 @@ class FileTransfer
 {
 public:
 	void ShowListViewItems(HWND hwnd, FTITEMINFO *FTItemInfo, int NumItem);
-	char *ConvertPath(char *path);
+	void ConvertPath(char *path);
 	void ProcessListViewDBLCLK(HWND hwnd, char *Path, char *PathTmp, int iItem);
 	void SendFileListRequestMessage(char *filename);
 	HANDLE m_hFiletoWrite;

@@ -1090,7 +1090,7 @@ vncClientThread::run(void *arg)
 				m_socket->ReadExact(path, size);
 				path[size] = '\0';
 				ConvertPath(path);
-				if (strcmp(path, "") == 0) {
+				if(strlen(path) == 0) {
 					TCHAR szDrivesList[256];
 					int szDrivesNum = 0;
 					char fixeddrive [28] [4];
@@ -1909,6 +1909,7 @@ vncClientThread::ConvertPath(char *path)
 {
 	int len = strlen(path);
 	if(len >= 255) return path;
+	if((path[0] == '/') && (len == 1)) {path[0] = '\0'; return path;}
 	if(path[0] == '/') {
 		for(int i = 0; i < (len - 1); i++) {
 			if(path[i+1] == '/') path[i+1] = '\\';

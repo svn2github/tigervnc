@@ -683,9 +683,18 @@ vncProperties::DialogProc(HWND hwnd,
 
 				// Check that shared window not null
 				if ( _this->m_pref_WindowShared && (_this->m_server->GetWindowShared() == NULL) )
-				{
-					MessageBox(NULL,"You have not yet selected a window to share.\nPlease first select a window with the 'Window Target'\nicon and try again.", "No Window Selected", MB_OK | MB_ICONEXCLAMATION);
-					return true;
+				{	
+					TCHAR titlewindow[80];
+					GetDlgItemText(hwnd, IDC_NAME_APPLI, titlewindow, 80);
+					HWND hwndwindow = vncService::GetSharedWindow(titlewindow);					
+					if (hwndwindow == NULL) {
+						MessageBox(NULL,"You have not yet selected a window to share.\n"
+										"Please first select a window with the 'Window Target'\n"
+										"icon, or print a substring of a title of the window,\n"
+										"and try again.", "No Window Selected", MB_OK | MB_ICONEXCLAMATION);
+						return true;
+					}
+					_this->m_server->SetWindowShared(hwndwindow);
 				}
 
 				// Handle the share one window stuff

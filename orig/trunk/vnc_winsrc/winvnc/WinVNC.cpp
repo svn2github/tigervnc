@@ -216,6 +216,30 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 				continue;
 			}
 		}
+		if (strncmp(&szCmdLine[i], winvncShareWindow, strlen(winvncShareWindow)) == 0)
+		{
+			
+			i+=strlen(winvncShareWindow);
+			int start, end, current;
+			start=i;
+			while ((szCmdLine[start] != '"') && (start < strlen(szCmdLine))) start++;
+			start = start++;
+			end = start;
+			for (current = start; current < strlen(szCmdLine); current++) {
+				if (szCmdLine[current] == '"') end = current - 1;
+			}
+			if (end-start > 0) {
+				char *title = new char[end-start+1];
+				if (title != 0) {
+					strncpy(title, &(szCmdLine[start]), end - start  );
+					title[end-start] = 0;					
+					vncService::SharedWindow(vncService::GetSharedWindow(title));
+				}
+				delete [] title;
+			}
+			i=end+2;
+			continue;
+		}
 
 #ifdef HORIZONLIVE
 		if (strncmp(&szCmdLine[i], winvncNoSettings, strlen(winvncNoSettings)) == 0)

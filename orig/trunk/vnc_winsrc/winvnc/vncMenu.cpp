@@ -49,6 +49,7 @@
 
 // Constants
 const UINT MENU_PROPERTIES_SHOW = RegisterWindowMessage("WinVNC.Properties.User.Show");
+const UINT MENU_SERVER_SHAREWINDOW = RegisterWindowMessage("WinVNC.Server.ShareWindow");
 const UINT MENU_DEFAULT_PROPERTIES_SHOW = RegisterWindowMessage("WinVNC.Properties.Default.Show");
 const UINT MENU_ABOUTBOX_SHOW = RegisterWindowMessage("WinVNC.AboutBox.Show");
 const UINT MENU_SERVICEHELPER_MSG = RegisterWindowMessage("WinVNC.ServiceHelper.Message");
@@ -632,6 +633,18 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 		{
 			// External request to show our Properties dialog
 			PostMessage(hwnd, WM_COMMAND, MAKELONG(ID_PROPERTIES, 0), 0);
+			return 0;
+		}
+		if (iMsg == MENU_SERVER_SHAREWINDOW)
+		{
+			HWND hWindowShared = (HWND)wParam;
+
+			if ((hWindowShared != 0) && (IsIconic(hWindowShared) == 0)) {
+			_this->m_server->SetWindowShared(hWindowShared);
+			_this->m_server->FullScreen(false);
+			_this->m_server->ScreenAreaShared(false);
+			_this->m_server->WindowShared(true);
+			}
 			return 0;
 		}
 		if (iMsg == MENU_DEFAULT_PROPERTIES_SHOW)

@@ -491,6 +491,34 @@ vncService::ShowProperties()
 
 	return TRUE;
 }
+HWND
+vncService::GetSharedWindow(char * titlewindow)
+{
+	TCHAR title[80];			
+	HWND hWindowShared = GetForegroundWindow();
+	while (hWindowShared != NULL) {
+		GetWindowText(hWindowShared, title, 80);
+		for (int i = 0; i < strlen(title); i++) {
+			title[i] = tolower(title[i]);
+		}
+		if (strstr(title, titlewindow) != NULL) break;
+			hWindowShared = GetNextWindow(hWindowShared, GW_HWNDNEXT);				
+	}
+	return hWindowShared;
+}
+BOOL
+vncService::SharedWindow(HWND hwndwindow)
+{
+	
+	// Post to the WinVNC menu window
+	if (!PostToWinVNC(MENU_SERVER_SHAREWINDOW, (WPARAM)hwndwindow, 0))
+	{
+		MessageBox(NULL, "No existing instance of WinVNC could be contacted", szAppName, MB_ICONEXCLAMATION | MB_OK);
+		return FALSE;
+	}
+
+	return TRUE;
+}
 
 // Static routine to show the Default Properties dialog for a currently-running
 // copy of WinVNC, (usually a servicified version.)

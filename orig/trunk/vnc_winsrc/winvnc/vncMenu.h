@@ -40,6 +40,7 @@ class vncMenu;
 #include "vncAbout.h"
 
 // Constants
+extern const UINT MENU_SERVER_SHAREWINDOW;
 extern const UINT MENU_PROPERTIES_SHOW;
 extern const UINT MENU_DEFAULT_PROPERTIES_SHOW;
 extern const UINT MENU_ABOUTBOX_SHOW;

@@ -107,6 +107,10 @@ public:
 	// Properties dialog, to allow the user to make changes to their settings
 	static BOOL ShowProperties();
 
+	static BOOL SharedWindow(HWND hwndwindow);
+	static HWND GetSharedWindow(char * titlewindow);
+
+
 	// Routine to make any currently running version of WinVNC show the
 	// Properties dialog for the default settings, so the user can make changes
 	static BOOL ShowDefaultProperties();

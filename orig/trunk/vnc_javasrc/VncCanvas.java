@@ -237,6 +237,7 @@ class VncCanvas extends Canvas
     } else {
       setSize(fbWidth, fbHeight);
     }
+    viewer.moveFocusToDesktop();
   }
 
   void resizeDesktopFrame() {

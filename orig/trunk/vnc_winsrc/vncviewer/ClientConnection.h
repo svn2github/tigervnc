@@ -432,8 +432,10 @@ protected:
 	ClientConnection * m_CConn;
 	HWND m_hwndButton;
 	POINT m_MousePoint;
-	HDC hdcCompat;
-	HBITMAP hbmp;
+	HDC m_hdcCompat;
+	HBITMAP m_hbmp;
+	BOOL m_ButtonDown;
+	BOOL m_ButtonUp;
 };
 
 // Colour decoding utility functions

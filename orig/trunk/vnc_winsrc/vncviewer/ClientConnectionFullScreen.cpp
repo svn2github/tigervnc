@@ -130,6 +130,8 @@ DisableButton::DisableButton(VNCviewerApp *pApp, ClientConnection * CConn)
 {
 	m_pApp = pApp;
 	m_CConn = CConn;
+	m_ButtonDown = FALSE;
+	m_ButtonUp = TRUE;
 
 	//Creating button window.
 	WNDCLASSEX wcex;
@@ -168,14 +170,14 @@ DisableButton::DisableButton(VNCviewerApp *pApp, ClientConnection * CConn)
 	ShowButton(FALSE);
 
 	// Load the bitmap resource. 	
-	hbmp = LoadBitmap(m_pApp->m_instance, MAKEINTRESOURCE(IDB_DISABLE_FS));
+	m_hbmp = LoadBitmap(m_pApp->m_instance, MAKEINTRESOURCE(IDB_DISABLE_FS));
 	
 	// Create a device context (DC) to hold the bitmap. 
 	// The bitmap is copied from this DC to the window's DC 
 	// whenever it must be drawn. 	
 	HDC hdc = GetDC(m_hwndButton); 
-	hdcCompat = CreateCompatibleDC(hdc);
-	SelectObject(hdcCompat, hbmp);
+	m_hdcCompat = CreateCompatibleDC(hdc);
+	SelectObject(m_hdcCompat, m_hbmp);
 	ReleaseDC(m_hwndButton, hdc);
 }
 
@@ -199,13 +201,14 @@ LRESULT CALLBACK DisableButton::DisableProc(HWND hwnd, UINT iMsg,
 		{
 			PAINTSTRUCT ps;
 			BeginPaint(hwnd, &ps);
-			BitBlt(ps.hdc, 0, 0, 24, 24, _this->hdcCompat,
+			BitBlt(ps.hdc, 0, 0, 24, 24, _this->m_hdcCompat,
 					0, 0, SRCCOPY);
 			EndPaint(hwnd, &ps);			
 		}
 		break; 
 	case WM_MOUSEMOVE:
-		if (GetCapture() == hwnd)
+		_this->m_ButtonDown = FALSE;
+		if (!_this->m_ButtonUp)
 		{
 			POINTS ptsMousePoint=MAKEPOINTS(lParam);
 			POINT ptMousePoint;
@@ -225,8 +228,11 @@ LRESULT CALLBACK DisableButton::DisableProc(HWND hwnd, UINT iMsg,
 		break;
 	case WM_LBUTTONDBLCLK:
 		_this->m_CConn->SetFullScreenMode(false);
+		_this->m_ButtonDown = FALSE;
 		break;
 	case WM_LBUTTONDOWN:
+		_this->m_ButtonUp = FALSE;
+		_this->m_ButtonDown = TRUE;
 		SetCapture(hwnd);
 		POINTS ptsMousePoint = MAKEPOINTS(lParam);
 		_this->m_MousePoint.x = ptsMousePoint.x;
@@ -234,14 +240,19 @@ LRESULT CALLBACK DisableButton::DisableProc(HWND hwnd, UINT iMsg,
 		ClientToScreen(hwnd,&_this->m_MousePoint);
 		break;	
 	case WM_LBUTTONUP:
-		ReleaseCapture();
-		ClipCursor(NULL);
+		if (!_this->m_ButtonDown) {
+			ReleaseCapture();
+			ClipCursor(NULL);
+		} else {
+			_this->m_ButtonDown = FALSE;
+		}
+		_this->m_ButtonUp = TRUE;
 		break;
 	case WM_DESTROY: 
 		// Destroy compatible bitmap, 
 		// and the bitmap.  
-		DeleteDC(_this->hdcCompat); 
-		DeleteObject(_this->hbmp);  
+		DeleteDC(_this->m_hdcCompat); 
+		DeleteObject(_this->m_hbmp);  
 		break; 
 	default:
 		return DefWindowProc(hwnd, iMsg, wParam, lParam);

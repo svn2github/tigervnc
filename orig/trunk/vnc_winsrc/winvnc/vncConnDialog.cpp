@@ -89,9 +89,19 @@ BOOL CALLBACK vncConnDialog::vncConnDlgProc(HWND hwnd,
 			// User clicked OK or pressed return
 		case IDOK:
 			char hostname[_MAX_PATH];
+			char *portp;
+			int port;
 
 			// Get the hostname of the VNCviewer
 			GetDlgItemText(hwnd, IDC_HOSTNAME_EDIT, hostname, _MAX_PATH);
+
+			// Calculate the Display and Port offset.
+			port = INCOMING_PORT_OFFSET;
+			portp = strchr(hostname, ':');
+			if (portp) {
+				*portp++ = '\0';
+				port += atoi(portp);
+			}
 
 			// Attempt to create a new socket
 			VSocket *tmpsock;
@@ -103,7 +113,7 @@ BOOL CALLBACK vncConnDialog::vncConnDlgProc(HWND hwnd,
 			// To be really good, we should allow a display number here but
 			// for now we'll just assume we're connecting to display zero
 			tmpsock->Create();
-			if (tmpsock->Connect(hostname, INCOMING_PORT_OFFSET)) {
+			if (tmpsock->Connect(hostname, port)) {
 				// Add the new client to this server
 				_this->m_server->AddClient(tmpsock, TRUE, TRUE);
 

@@ -68,7 +68,6 @@ public:
 	virtual BOOL Init(vncDesktop *desktop, vncServer *server);
 	virtual void *run_undetached(void *arg);
 	virtual void ReturnVal(BOOL result);
-	virtual BOOL HandleDriverChanges();
 
 protected:
 	vncServer *m_server;
@@ -113,33 +112,6 @@ vncDesktopThread::ReturnVal(BOOL result)
 	m_returnset = TRUE;
 	m_return = result;
 	m_returnsig->signal();
-}
-
-BOOL
-vncDesktopThread::HandleDriverChanges()
-{   
-	// FIXME: What is aantal???
-	// FIXME: In vncVideoDriver, add methods instead of accessing the data dirrectly.
-
-	int oldaantal = m_desktop->m_videodriver->oldaantal;
-	int counter = m_desktop->m_videodriver->bufdata.buffer->counter;
-	if (oldaantal == counter)
-		return FALSE;
-
-	ULONG i;
-	if (oldaantal < counter) {
-		for (i = oldaantal; i < counter; i++)
-			m_desktop->m_changed_rgn.AddRect(m_desktop->m_videodriver->bufdata.buffer->pointrect[i].rect);
-	} else {
-		for (i = oldaantal; i < MAXCHANGES_BUF; i++)
-			m_desktop->m_changed_rgn.AddRect(m_desktop->m_videodriver->bufdata.buffer->pointrect[i].rect);
-		// FIXME: i = 1 or i = 0 here?
-		for (i = 1; i < counter; i++)
-			m_desktop->m_changed_rgn.AddRect(m_desktop->m_videodriver->bufdata.buffer->pointrect[i].rect);
-	}
-
-	m_desktop->m_videodriver->oldaantal = counter;
-	return TRUE;
 }
 
 void *
@@ -323,7 +295,7 @@ vncDesktopThread::run_undetached(void *arg)
 				// Use videodriver if we have 
 				if (m_desktop->m_videodriver != NULL) {
 					if (m_desktop->m_videodriver->driver)
-						HandleDriverChanges();
+						m_desktop->HandleDriverChanges();
 				} else {
 					// Polling section
 					//If polling timer 
@@ -2259,6 +2231,33 @@ vncDesktop::GetChangedRegion(vncRegion &rgn, RECT &rect)
 
 	if (!IsRectEmpty(&new_rect))
 		rgn.AddRect(new_rect);
+}
+
+BOOL
+vncDesktop::HandleDriverChanges()
+{
+	// FIXME: What is aantal???
+	// FIXME: In vncVideoDriver, add methods instead of accessing the data dirrectly.
+
+	int oldaantal = m_videodriver->oldaantal;
+	int counter = m_videodriver->bufdata.buffer->counter;
+	if (oldaantal == counter)
+		return FALSE;
+
+	ULONG i;
+	if (oldaantal < counter) {
+		for (i = oldaantal; i < counter; i++)
+			m_changed_rgn.AddRect(m_videodriver->bufdata.buffer->pointrect[i].rect);
+	} else {
+		for (i = oldaantal; i < MAXCHANGES_BUF; i++)
+			m_changed_rgn.AddRect(m_videodriver->bufdata.buffer->pointrect[i].rect);
+		// FIXME: i = 1 or i = 0 here?
+		for (i = 1; i < counter; i++)
+			m_changed_rgn.AddRect(m_videodriver->bufdata.buffer->pointrect[i].rect);
+	}
+
+	m_videodriver->oldaantal = counter;
+	return TRUE;
 }
 
 void

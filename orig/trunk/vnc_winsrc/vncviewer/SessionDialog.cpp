@@ -125,33 +125,27 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
             return TRUE;
 		}
 		case WM_HELP:
-	
-			HELPINFO hlp;
-			HH_POPUP popup;
+		{
+			LPHELPINFO hlp = (LPHELPINFO)lParam;
+			if (hlp->iCtrlId != 0) {
+				HH_POPUP popup;
+				popup.cbStruct = sizeof(popup);
+				popup.hinst = pApp->m_instance;
+				popup.idString = (UINT)hlp->iCtrlId;
+				SetRect(&popup.rcMargins, -1, -1, -1, -1);
+				popup.pszFont = "MS Sans Serif,8";
+				popup.clrForeground = -1;
+				popup.clrBackground = -1;
+				popup.pt.x = -1;
+				popup.pt.y = -1;
 
-			hlp=*(LPHELPINFO) lParam;
-		
-			popup.cbStruct=sizeof(hlp);
-			popup.hinst=pApp->m_instance;
-			popup.idString=(UINT)hlp.iCtrlId;
-			popup.rcMargins.top=-1;
-			popup.rcMargins.left=-1;
-			popup.rcMargins.top=-1;
-			popup.rcMargins.bottom=-1;
-			popup.rcMargins.right=-1;
-			popup.pszFont="MS Sans Serif,8,,";
-			popup.clrForeground =-1;
-			popup.clrBackground=-1;
-			popup.pt.x=-1;
-			popup.pt.y=-1;
-
-			HtmlHelp(
-				(HWND)hlp.hItemHandle,
-				NULL,
-				HH_DISPLAY_TEXT_POPUP,
-				(DWORD)&popup) ;
-		
+				HtmlHelp((HWND)hlp->hItemHandle,
+						 NULL,
+						 HH_DISPLAY_TEXT_POPUP,
+						 (DWORD)&popup);
+			}
 			return 0;
+		}
 		case WM_ACTIVATE:
 		case WM_ACTIVATEAPP:
 			if((pApp->m_options.m_listening)||(FindWindow("VNCviewer Daemon",0)!=NULL))

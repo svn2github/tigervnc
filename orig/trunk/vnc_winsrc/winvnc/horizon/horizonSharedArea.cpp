@@ -538,7 +538,7 @@ void horizonSharedArea::SetWindowCaption(HWND hWnd)
 	char strWindowText[256];
 	if (hWnd == NULL) 
 	{
-		strcpy(strWindowText, "* No Window Selected *");
+		strcpy(strWindowText, "<< Drag icon to select window");
 	} else {
 		GetWindowText(hWnd, strWindowText, sizeof(strWindowText));
 		if (!strWindowText[0]) 

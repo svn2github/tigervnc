@@ -5,6 +5,7 @@
 #include "ConnectionsAccess.h"
 #include "WinVNC.h"
 #include "VNCHelp.h"
+
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -14,8 +15,6 @@ ConnectionsAccess::ConnectionsAccess(vncServer * server, HWND hwnd)
 	m_server = server;
 	m_hwnd = hwnd;
 	m_hwnd_edit_dialog = NULL;
-	strcpy(ItemString[0],"");
-	strcpy(ItemString[1],"");
 	Init();
 }
 
@@ -26,63 +25,60 @@ void ConnectionsAccess::Apply()
 		m_server->SetAuthHosts(0);
 		return;
 	}
-	char *authosts = strdup("");
+
+	// Allocate 17 bytes per each pattern (IP, action and separator)
+	char *auth_hosts = (char *)malloc(count * 17);
+	auth_hosts[0] = '\0';
+
 	for (int i = count - 1; i >= 0; i--) {
-
 		GetListViewItem(i, ItemString);
-		FormatPattern(FALSE, ItemString[0]);
+		if (!FormatPattern(FALSE, ItemString[0]))
+			continue;
 
-		if (strcmp(ItemString[1], "Allow") == 0)
-			strcat(authosts, "+");
+		if (strcmp(ItemString[1], "Allow") == 0) {
+			strcat(auth_hosts, "+");
+		} else if (strcmp(ItemString[1], "Deny") == 0) {
+			strcat(auth_hosts, "-");
+		} else if (strcmp(ItemString[1], "Query") == 0) {
+			strcat(auth_hosts, "?");
+		}
 
-		if (strcmp(ItemString[1], "Deny") == 0)			
-			strcat(authosts, "-");
-
-		if (strcmp(ItemString[1], "Query") == 0)			
-			strcat(authosts, "?");
-
-		strcat(authosts, ItemString[0]);
+		strcat(auth_hosts, ItemString[0]);
 		if (i != 0)
-			strcat(authosts, ":");
-
+			strcat(auth_hosts, ":");
 	}
-	m_server->SetAuthHosts(authosts);
-	//delete [] authosts;
+
+	m_server->SetAuthHosts(auth_hosts);
+	free(auth_hosts);
 }
+
 void ConnectionsAccess::Init()
 {
 	InitListViewColumns();
-	char *authosts = strdup(m_server->AuthHosts());
-	strcpy(ItemString[0],"");
-	strcpy(ItemString[1],"");
-	int authHostsPos = 0;
-	int startPattern = 0;
-	if (strlen(authosts) > 0) {
-		while (1) {
-			if ((authosts[authHostsPos] == ':') || 
-				(authosts[authHostsPos] == '\0')) {			
-				ItemString[0][authHostsPos - startPattern - 1] = '\0';
-				if (FormatPattern(TRUE, ItemString[0]))
-					InsertListViewItem(0, ItemString);
-				if (authosts[authHostsPos] == '\0')
-					break;
-			} else if (authosts[authHostsPos] == '+') {				
-				strcpy(ItemString[1], "Allow");
-				startPattern = authHostsPos;				
-			} else if (authosts[authHostsPos] == '-') {
-				strcpy(ItemString[1], "Deny");
-				startPattern = authHostsPos;
-			} else if (authosts[authHostsPos] == '?') {
-				strcpy(ItemString[1], "Query");
-				startPattern = authHostsPos;
-			} else {			
-				ItemString[0][authHostsPos - startPattern - 1] = authosts[authHostsPos];
+	char *auth_hosts = m_server->AuthHosts();
+
+	char *pattern = auth_hosts;
+	for (;;) {
+		int len = strcspn(pattern, ":");
+		if (strspn(pattern, "+-?") == 1 && len <= 256) {
+			memcpy(ItemString[0], &pattern[1], len - 1);
+			ItemString[0][len - 1] = '\0';
+			switch (pattern[0]) {
+			case '+': strcpy(ItemString[1], "Allow"); break;
+			case '-': strcpy(ItemString[1], "Deny"); break;
+			case '?': strcpy(ItemString[1], "Query"); break;
 			}
-			authHostsPos++;			 
+			if (FormatPattern(TRUE, ItemString[0]))
+				InsertListViewItem(0, ItemString);
 		}
+		if (pattern[len] == '\0')
+			break;
+		pattern += len + 1;
 	}
-	delete [] authosts;
+
+	free(auth_hosts);
 }
+
 void ConnectionsAccess::MoveUp()
 {
 	if (m_hwnd_edit_dialog != NULL) 
@@ -95,6 +91,7 @@ void ConnectionsAccess::MoveUp()
 	DeleteItem(number + 1);
 	SetSelectedItem(number - 1);
 }
+
 void ConnectionsAccess::MoveDown()
 {
 	if (m_hwnd_edit_dialog != NULL) 
@@ -107,6 +104,7 @@ void ConnectionsAccess::MoveDown()
 	DeleteItem(number);
 	SetSelectedItem(number + 1);
 }
+
 void ConnectionsAccess::Remove()
 {
 	if (m_hwnd_edit_dialog != NULL) 
@@ -116,6 +114,7 @@ void ConnectionsAccess::Remove()
 		return;
 	DeleteItem(number);
 }
+
 void ConnectionsAccess::Add()
 {
 	if (m_hwnd_edit_dialog != NULL) {
@@ -128,6 +127,7 @@ void ConnectionsAccess::Add()
 	InsertListViewItem(0, ItemString);
 	SetSelectedItem(0);
 }
+
 void ConnectionsAccess::Edit()
 {
 	if (m_hwnd_edit_dialog != NULL) {
@@ -152,19 +152,23 @@ DWORD ConnectionsAccess::DoEditDialog()
 	return DialogBoxParam(hAppInstance, MAKEINTRESOURCE(IDD_CONN_HOST), 
 		NULL, (DLGPROC) EditDlgProc, (LONG) this);
 }
+
 int ConnectionsAccess::GetItemCount()
 {
 	return ListView_GetItemCount(GetDlgItem(m_hwnd, IDC_LIST_HOSTS));
 }
+
 void ConnectionsAccess::SetSelectedItem(int number)
 {
 	ListView_SetItemState(GetDlgItem(m_hwnd, IDC_LIST_HOSTS),
 				number, LVIS_SELECTED, LVIS_SELECTED);
 }
+
 void ConnectionsAccess::DeleteItem(int number)
 {
 	ListView_DeleteItem(GetDlgItem(m_hwnd, IDC_LIST_HOSTS), number);
 }
+
 int ConnectionsAccess::GetSelectedItem()
 {
 	int count = ListView_GetItemCount(GetDlgItem(m_hwnd, IDC_LIST_HOSTS));
@@ -178,6 +182,7 @@ int ConnectionsAccess::GetSelectedItem()
 	}
 		return numbersel;
 }
+
 void ConnectionsAccess::GetListViewItem(int Numbe, TCHAR ItemString[2][256])
 {
 	for (int i = 0; i < 2; i++) {
@@ -207,100 +212,70 @@ BOOL ConnectionsAccess::InsertListViewItem(int Numbe, TCHAR ItemString[2][256])
 	return TRUE;
 }
 
-BOOL ConnectionsAccess::InitListViewColumns() 
-{ 
-	ListView_SetExtendedListViewStyle(GetDlgItem(m_hwnd, IDC_LIST_HOSTS), 
-		LVS_EX_FULLROWSELECT);
-	char szText[256];      
-	LVCOLUMN lvc; 
-	int iCol;
-    
+BOOL ConnectionsAccess::InitListViewColumns()
+{
+	ListView_SetExtendedListViewStyle(GetDlgItem(m_hwnd, IDC_LIST_HOSTS),
+									  LVS_EX_FULLROWSELECT);
 	TCHAR *ColumnsStrings[] = {
 		"IP pattern",
 		"Action"
 	};
-	
-	lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM; 
-	
-	for (iCol = 0; iCol < 2; iCol++) { 
+
+	LVCOLUMN lvc;
+	lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
+
+	for (int iCol = 0; iCol < 2; iCol++) {
 		lvc.iSubItem = iCol;
-		lvc.pszText = szText;	
-		lvc.cx = 97;           
+		lvc.pszText = ColumnsStrings[iCol];
+		lvc.cx = 97;
 		lvc.fmt = LVCFMT_LEFT;
-		
-		strcpy(szText, ColumnsStrings[iCol]); 
-		if (ListView_InsertColumn(GetDlgItem(m_hwnd, IDC_LIST_HOSTS), iCol, &lvc) == -1) 
-			return FALSE; 
-	} 
-	return TRUE; 
+
+		if (ListView_InsertColumn(GetDlgItem(m_hwnd, IDC_LIST_HOSTS), iCol, &lvc) == -1)
+			return FALSE;
+	}
+	return TRUE;
 }
 
 BOOL ConnectionsAccess::FormatPattern(BOOL toList, TCHAR strpattern[256])
 {
-	int point = 0;
-	int prev = 0;
-	int i = 0;
-	int lenpattern = strlen(strpattern);
+	char *cut_ptr = strpattern;
+	int num_components = 0;
+	int num_asterisks = 0;
 
-	if (strpattern[0] == '.')
-		strpattern[0] = '0';
-	if (strpattern[lenpattern - 1] == '.')
-		strpattern[0] = '\0';
-
-	for (i = lenpattern; i >= 0; i--) {
-		if (strpattern[i] == '*' && i == 0) {
-			strpattern[i] = '\0';
-			break;
-		}
-		if (strpattern[i] == '*' && strpattern[i - 1] == '.')
-			strpattern[i - 1] = '\0';
-	}
-	BOOL cor = TRUE;
-	lenpattern = strlen(strpattern);
-	char *buf = strdup(strpattern);
-	int j = 0;
-	for (i = 0; i < lenpattern; i++) {
-		if (buf[i] == '.') {
-			strpattern[j] = buf[i];
-			j++;
-			cor = TRUE;
-			if (i == 0 || i == lenpattern - 1 || i - prev == 1) {
-				delete [] buf;
-				return FALSE;
+	if (strpattern[0] != '\0') {
+		char *component = strpattern;
+		for (;;) {
+			int len = strcspn(component, ".");
+			if (++num_components > 4) {
+				return FALSE;		// too many components in IP pattern
 			}
-			prev = i;
-			point++;
-		} else if (buf[i] != '0' || buf[i + 1] == '.' || buf[i + 1] == '\0') {
-			cor = FALSE;
-		}
-		if (!cor) {
-			strpattern[j] = buf[i];
-			j++;
+			if (len == 1 && component[0] == '*') {
+				num_asterisks++;
+			} else if (num_asterisks != 0) {
+				return FALSE;		// non-'*' found after there was '*'
+			} else {
+				if ( len < 1 || len > 3 ||
+					strspn(component, "0123456789") != len ||
+					atoi(component) > 255 ) {
+					return FALSE;	// not a number from the range 0..255
+				}
+				cut_ptr = &component[len];
+			}
+			if (component[len] == '\0')
+				break;
+			component += len + 1;
 		}
 	}
-	delete []buf;
-	strpattern[j] = '\0';
-	lenpattern = strlen(strpattern);
 
-	for (i = 0; i < 3 - point; i++) {
-			strpattern[lenpattern++] = '.';
-			strpattern[lenpattern++] = '0';
-			strpattern[lenpattern] = '\0';
-		}
-	
-	unsigned long adrr = inet_addr(strpattern);
-	if (adrr == INADDR_NONE)
-		return FALSE;
-	
-	strpattern[lenpattern - (3 - point) * 2] = '\0';
+	// Now we are sure the format is correct.
 
-	lenpattern = strlen(strpattern);
-	
+	*cut_ptr = '\0';
 	if (toList) {
-		for (i = 0; i < 3 - point; i++) {
-			if (strcmp(strpattern, "") == 0)
-				strcpy(strpattern, "*");
-			strcat(strpattern, ".*");
+		if (cut_ptr == strpattern) {
+			strcpy(strpattern, "*.*.*.*");
+		} else {
+			num_asterisks = 4 - (num_components - num_asterisks);
+			strncat(strpattern, ".*.*.*", num_asterisks * 2);
 		}
 	}
 	return TRUE;
@@ -337,8 +312,7 @@ BOOL CALLBACK ConnectionsAccess::EditDlgProc(HWND hwnd,
 			} else {
 				SendDlgItemMessage(hwnd, IDC_RADIO_ALLOW, BM_SETCHECK, TRUE, 0);
 			}
-			SetFocus(GetDlgItem(hwnd, IDC_HOST_PATTERN));
-			return FALSE;
+			return TRUE;
 		}
 	case WM_HELP:	
 		help.Popup(lParam);
@@ -357,12 +331,13 @@ BOOL CALLBACK ConnectionsAccess::EditDlgProc(HWND hwnd,
 						   "Error", MB_ICONSTOP | MB_OK);
 				return TRUE;
 			}
-			if (SendDlgItemMessage(hwnd, IDC_RADIO_ALLOW, BM_GETCHECK, 0, 0) == BST_CHECKED)
+			if (SendDlgItemMessage(hwnd, IDC_RADIO_ALLOW, BM_GETCHECK, 0, 0) == BST_CHECKED) {
 				strcpy(_this->ItemString[1], "Allow");
-			if (SendDlgItemMessage(hwnd, IDC_RADIO_DENY, BM_GETCHECK, 0, 0) == BST_CHECKED)
+			} else if (SendDlgItemMessage(hwnd, IDC_RADIO_DENY, BM_GETCHECK, 0, 0) == BST_CHECKED) {
 				strcpy(_this->ItemString[1], "Deny");
-			if (SendDlgItemMessage(hwnd, IDC_RADIO_QUERY, BM_GETCHECK, 0, 0) == BST_CHECKED)
+			} else if (SendDlgItemMessage(hwnd, IDC_RADIO_QUERY, BM_GETCHECK, 0, 0) == BST_CHECKED) {
 				strcpy(_this->ItemString[1], "Query");
+			}
 			EndDialog(hwnd, IDOK);
 			_this->m_hwnd_edit_dialog = NULL;
 			return TRUE;

@@ -44,8 +44,8 @@ void ClientConnection::ReadTightRect(rfbFramebufferUpdateRectHeader *pfburh)
   if (m_myFormat.bitsPerPixel != 8 &&
       m_myFormat.bitsPerPixel != 16 &&
       m_myFormat.bitsPerPixel != 32) {
-    log.Print(0, _T("Invalid number of bits per pixel: %d\n"),
-              m_myFormat.bitsPerPixel);
+    vnclog.Print(0, _T("Invalid number of bits per pixel: %d\n"),
+                 m_myFormat.bitsPerPixel);
     return;
   }
 
@@ -58,10 +58,10 @@ void ClientConnection::ReadTightRect(rfbFramebufferUpdateRectHeader *pfburh)
       int err = inflateEnd (&m_tightZlibStream[i]);
       if (err != Z_OK) {
         if (m_tightZlibStream[i].msg != NULL) {
-          log.Print(0, _T("zlib inflateEnd() error: %s\n"),
-                    m_tightZlibStream[i].msg);
+          vnclog.Print(0, _T("zlib inflateEnd() error: %s\n"),
+                       m_tightZlibStream[i].msg);
         } else {
-          log.Print(0, _T("zlib inflateEnd() error: %d\n"), err);
+          vnclog.Print(0, _T("zlib inflateEnd() error: %d\n"), err);
         }
         return;
       }
@@ -113,7 +113,7 @@ void ClientConnection::ReadTightRect(rfbFramebufferUpdateRectHeader *pfburh)
 
   /* Quit on unsupported subencoding value. */
   if (comp_ctl >= rfbTightMaxSubencoding) {
-    log.Print(0, _T("Tight encoding: bad subencoding value received.\n"));
+    vnclog.Print(0, _T("Tight encoding: bad subencoding value received.\n"));
     return;
   }
 
@@ -139,14 +139,14 @@ void ClientConnection::ReadTightRect(rfbFramebufferUpdateRectHeader *pfburh)
       bitsPixel = InitFilterGradient(pfburh->r.w, pfburh->r.h);
       break;
     default:
-      log.Print(0, _T("Tight encoding: unknown filter code received.\n"));
+      vnclog.Print(0, _T("Tight encoding: unknown filter code received.\n"));
       return;
     }
   } else {
     bitsPixel = InitFilterCopy(pfburh->r.w, pfburh->r.h);
   }
   if (bitsPixel == 0) {
-    log.Print(0, _T("Tight encoding: error receiving palette.\n"));
+    vnclog.Print(0, _T("Tight encoding: error receiving palette.\n"));
     return;
   }
 
@@ -173,7 +173,7 @@ void ClientConnection::ReadTightRect(rfbFramebufferUpdateRectHeader *pfburh)
 
   int compressedLen = ReadCompactLen();
   if (compressedLen <= 0) {
-    log.Print(0, _T("Tight encoding: bad data received from server.\n"));
+    vnclog.Print(0, _T("Tight encoding: bad data received from server.\n"));
     return;
   }
 
@@ -187,9 +187,9 @@ void ClientConnection::ReadTightRect(rfbFramebufferUpdateRectHeader *pfburh)
     int err = inflateInit(zs);
     if (err != Z_OK) {
       if (zs->msg != NULL) {
-        log.Print(0, _T("zlib inflateInit() error: %s.\n"), zs->msg);
+        vnclog.Print(0, _T("zlib inflateInit() error: %s.\n"), zs->msg);
       } else {
-        log.Print(0, _T("zlib inflateInit() error: %d.\n"), err);
+        vnclog.Print(0, _T("zlib inflateInit() error: %d.\n"), err);
       }
       return;
     }
@@ -231,9 +231,9 @@ void ClientConnection::ReadTightRect(rfbFramebufferUpdateRectHeader *pfburh)
         break;
       if (err != Z_OK && err != Z_STREAM_END) {
         if (zs->msg != NULL) {
-          log.Print(0, _T("zlib inflate() error: %s.\n"), zs->msg);
+          vnclog.Print(0, _T("zlib inflate() error: %s.\n"), zs->msg);
         } else {
-          log.Print(0, _T("zlib inflate() error: %d.\n"), err);
+          vnclog.Print(0, _T("zlib inflate() error: %d.\n"), err);
         }
         return;
       }
@@ -259,7 +259,7 @@ void ClientConnection::ReadTightRect(rfbFramebufferUpdateRectHeader *pfburh)
   }
 
   if (rowsProcessed != pfburh->r.h) {
-    log.Print(0, _T("Tight encoding: wrong number of scan lines received.\n"));
+    vnclog.Print(0, _T("Tight encoding: wrong number of scan lines.\n"));
   }
 }
 
@@ -542,7 +542,7 @@ void ClientConnection::DecompressJpegRect(int x, int y, int w, int h)
 
   int compressedLen = (int)ReadCompactLen();
   if (compressedLen <= 0) {
-    log.Print(0, _T("Incorrect data received from the server.\n"));
+    vnclog.Print(0, _T("Incorrect data received from the server.\n"));
     return;
   }
 
@@ -560,7 +560,7 @@ void ClientConnection::DecompressJpegRect(int x, int y, int w, int h)
   jpeg_start_decompress(&cinfo);
   if ((int)cinfo.output_width != w || (int)cinfo.output_height != h ||
       cinfo.output_components != 3) {
-    log.Print(0, _T("Tight Encoding: Wrong JPEG data received.\n"));
+    vnclog.Print(0, _T("Tight Encoding: Wrong JPEG data received.\n"));
     jpeg_destroy_decompress(&cinfo);
     return;
   }

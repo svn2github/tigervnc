@@ -45,13 +45,13 @@
 
 void ClientConnection::ProcessLocalClipboardChange()
 {
-	log.Print(2, _T("Clipboard changed\n"));
+	vnclog.Print(2, _T("Clipboard changed\n"));
 	
 	HWND hOwner = GetClipboardOwner();
 	if (hOwner == m_hwnd) {
-		log.Print(2, _T("We changed it - ignore!\n"));
+		vnclog.Print(2, _T("We changed it - ignore!\n"));
 	} else if (!m_initialClipboardSeen) {
-		log.Print(2, _T("Don't send initial clipboard!\n"));
+		vnclog.Print(2, _T("Don't send initial clipboard!\n"));
 		m_initialClipboardSeen = true;
 	} else if (!m_opts.m_DisableClipboard) {
 		
@@ -82,7 +82,7 @@ void ClientConnection::ProcessLocalClipboardChange()
 				try {
 					SendClientCutText(unixcontents, strlen(unixcontents));
 				} catch (WarningException &e) {
-					log.Print(0, _T("Exception while sending clipboard text : %s\n"), e.m_info);
+					vnclog.Print(0, _T("Exception while sending clipboard text : %s\n"), e.m_info);
 					DestroyWindow(m_hwnd);
 				}
 				delete [] contents; 

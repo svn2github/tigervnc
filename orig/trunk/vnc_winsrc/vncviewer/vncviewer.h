@@ -45,7 +45,7 @@
 extern VNCviewerApp *pApp;
 
 // Global logger - may be used by anything
-extern Log log;
+extern Log vnclog;
 
 // Display given window in centre of screen
 void CentreWindow(HWND hwnd);

@@ -39,7 +39,7 @@
 #endif
 
 // All logging is done via the log object
-Log log;
+Log vnclog;
 
 #ifdef UNDER_CE
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdLine, int iCmdShow)
@@ -79,7 +79,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 	// Clean up winsock
 	WSACleanup();
 
-    log.Print(3, _T("Exiting\n"));
+	vnclog.Print(3, _T("Exiting\n"));
 
 	return msg.wParam;
 }

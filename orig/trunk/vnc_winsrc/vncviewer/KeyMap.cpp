@@ -130,10 +130,10 @@ KeyActionSpec KeyMap::PCtoX(UINT virtkey, DWORD keyData) {
     kas.releaseModifiers = 0;
 
     bool extended = ((keyData & 0x1000000) != 0);
-    log.Print(8,_T(" keyData %04x "), keyData);
+    vnclog.Print(8,_T(" keyData %04x "), keyData);
     
     if (extended) { 
-        log.Print(8, _T(" (extended) "));
+        vnclog.Print(8, _T(" (extended) "));
         switch (virtkey) {
         case VK_MENU :
             virtkey = VK_RMENU; break;
@@ -157,11 +157,11 @@ KeyActionSpec KeyMap::PCtoX(UINT virtkey, DWORD keyData) {
 
     if (numkeys != 0) {
         UINT key = kas.keycodes[numkeys-1];
-        log.Print(8, _T("keymap gives %u (%x) "), key, key);
+        vnclog.Print(8, _T("keymap gives %u (%x) "), key, key);
 
     } else {
         // not found in table
-        log.Print(8, _T("not in special keymap, "));
+        vnclog.Print(8, _T("not in special keymap, "));
 		
 		// Under CE, we're not so concerned about this bit because we handle a WM_CHAR message later
 
@@ -201,12 +201,12 @@ KeyActionSpec KeyMap::PCtoX(UINT virtkey, DWORD keyData) {
                if (kas.releaseModifiers == 0)
                    kas.releaseModifiers = KEYMAP_LCONTROL | KEYMAP_LALT | KEYMAP_RALT;
 
-               log.Print(8, _T("Ctrl-Alt pressed: ToAscii (without modifiers) returns %d byte(s): "), ret);
+               vnclog.Print(8, _T("Ctrl-Alt pressed: ToAscii (without modifiers) returns %d byte(s): "), ret);
                 for (int i = 0; i < ret; i++) {
                    kas.keycodes[numkeys++] = *(buf+i);
-                   log.Print(8, _T("%02x (%c) "), *(buf+i) , *(buf+i));
+                   vnclog.Print(8, _T("%02x (%c) "), *(buf+i) , *(buf+i));
                 }
-                log.Print(8,_T("\n"));
+                vnclog.Print(8,_T("\n"));
            } 
 
         } 
@@ -235,10 +235,10 @@ KeyActionSpec KeyMap::PCtoX(UINT virtkey, DWORD keyData) {
             }
             // if this works, and it's a regular printable character, we just send that
             if (ret >= 1) {
-                log.Print(8,_T("ToAscii (without ctrl) returns %d byte(s): "), ret);
+                vnclog.Print(8,_T("ToAscii (without ctrl) returns %d byte(s): "), ret);
                 for (int i = 0; i < ret; i++) {
                    kas.keycodes[numkeys++] = *(buf+i);
-                  log.Print(8, _T("%02x (%c) "), *(buf+i) , *(buf+i));
+                  vnclog.Print(8, _T("%02x (%c) "), *(buf+i) , *(buf+i));
                 }
             }
         }

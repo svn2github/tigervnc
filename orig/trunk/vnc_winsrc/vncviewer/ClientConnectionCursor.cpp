@@ -37,8 +37,8 @@
 
 void ClientConnection::ReadCursorShape(rfbFramebufferUpdateRectHeader *pfburh) {
 
-	log.Print(6, _T("Receiving cursor shape update, cursor %dx%d\n"),
-			  (int)pfburh->r.w, (int)pfburh->r.h);
+	vnclog.Print(6, _T("Receiving cursor shape update, cursor %dx%d\n"),
+				 (int)pfburh->r.w, (int)pfburh->r.h);
 
 	int bytesPerRow = (pfburh->r.w + 7) / 8;
 	int bytesMaskData = bytesPerRow * pfburh->r.h;
@@ -288,7 +288,7 @@ void ClientConnection::SoftCursorSaveArea() {
 	PaletteSelector ps2(m_hSavedAreaDC, m_hPalette);
 
 	if (!BitBlt(m_hSavedAreaDC, 0, 0, w, h, m_hBitmapDC, x, y, SRCCOPY)) {
-		log.Print(0, _T("Error in blit in ClientConnection::Cursor\n"));
+		vnclog.Print(0, _T("Error in blit in ClientConnection::Cursor\n"));
 	}
 }
 
@@ -309,7 +309,7 @@ void ClientConnection::SoftCursorRestoreArea() {
 
 	if (!BitBlt(m_hBitmapDC, r.left, r.top, r.right - r.left, r.bottom - r.top,
 				m_hSavedAreaDC, 0, 0, SRCCOPY)) {
-		log.Print(0, _T("Error in blit in ClientConnection::Cursor\n"));
+		vnclog.Print(0, _T("Error in blit in ClientConnection::Cursor\n"));
 	}
 
 	DeleteObject(m_hSavedAreaBitmap);

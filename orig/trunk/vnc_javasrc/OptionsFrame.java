@@ -1,6 +1,6 @@
 //
 //  Copyright (C) 2001 HorizonLive.com, Inc.  All Rights Reserved.
-//  Copyright (C) 2001 Const Kaplinsky.  All Rights Reserved.
+//  Copyright (C) 2001 Constantin Kaplinsky.  All Rights Reserved.
 //  Copyright (C) 2000 Tridia Corporation.  All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge.  All Rights Reserved.
 //
@@ -39,7 +39,7 @@ class OptionsFrame extends Frame
     "JPEG image quality",
     "Cursor shape updates",
     "Use CopyRect",
-    "8-bit colors",
+    "Restricted colors",
     "Mouse buttons 2 and 3",
     "View only",
     "Share desktop",
@@ -146,8 +146,8 @@ class OptionsFrame extends Frame
     choices[useCopyRectIndex].select("Yes");
     choices[eightBitColorsIndex].select("No");
     choices[mouseButtonIndex].select("Normal");
-    choices[shareDesktopIndex].select("Yes");
     choices[viewOnlyIndex].select("No");
+    choices[shareDesktopIndex].select("Yes");
 
     // But let them be overridden by parameters
 

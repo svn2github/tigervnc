@@ -36,8 +36,6 @@ class optionsFrame extends Frame {
     "Cursor shape updates",
     "Use CopyRect",
     "Mouse buttons 2 and 3",
-    "Raw pixel drawing",
-    "CopyRect",
     "Share desktop",
   };
 
@@ -47,8 +45,6 @@ class optionsFrame extends Frame {
     { "Enable", "Ignore", "Disable" },
     { "Yes", "No" },
     { "Normal", "Reversed" },
-    { "Fast", "Reliable" },
-    { "Fast", "Reliable" },
     { "Yes", "No" },
   };
 
@@ -58,9 +54,7 @@ class optionsFrame extends Frame {
     cursorUpdatesIndex   = 2,
     useCopyRectIndex     = 3,
     mouseButtonIndex     = 4,
-    rawPixelDrawingIndex = 5,
-    copyRectFastIndex    = 6,
-    shareDesktopIndex    = 7;
+    shareDesktopIndex    = 5;
 
   Label[] labels = new Label[names.length];
   Choice[] choices = new Choice[names.length];
@@ -81,10 +75,6 @@ class optionsFrame extends Frame {
   boolean ignoreCursorUpdates;
 
   boolean reverseMouseButtons2And3;
-
-  boolean drawEachPixelForRawRects;
-
-  boolean copyRectFast;
 
   boolean shareDesktop;
 
@@ -135,8 +125,6 @@ class optionsFrame extends Frame {
     choices[cursorUpdatesIndex].select("Enable");
     choices[useCopyRectIndex].select("Yes");
     choices[mouseButtonIndex].select("Normal");
-    choices[rawPixelDrawingIndex].select("Fast");
-    choices[copyRectFastIndex].select("Fast");
     choices[shareDesktopIndex].select("Yes");
 
     // But let them be overridden by parameters
@@ -261,12 +249,6 @@ class optionsFrame extends Frame {
     reverseMouseButtons2And3
       = choices[mouseButtonIndex].getSelectedItem().equals("Reversed");
 
-    drawEachPixelForRawRects
-      = choices[rawPixelDrawingIndex].getSelectedItem().equals("Reliable");
-
-    copyRectFast
-      = choices[copyRectFastIndex].getSelectedItem().equals("Fast");
-
     shareDesktop
       = choices[shareDesktopIndex].getSelectedItem().equals("Yes");
   }
@@ -292,8 +274,6 @@ class optionsFrame extends Frame {
       return true;
 
     } else if ((evt.target == choices[mouseButtonIndex]) ||
-	       (evt.target == choices[rawPixelDrawingIndex]) ||
-	       (evt.target == choices[copyRectFastIndex]) ||
 	       (evt.target == choices[shareDesktopIndex])) {
 
       setOtherOptions();

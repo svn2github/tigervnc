@@ -41,7 +41,11 @@
 #define NOCURSOR 0
 #define DOTCURSOR 1
 #define NORMALCURSOR 2
-
+#define MAX_LEN_COMBO 7
+struct COMBOSTRING {
+		TCHAR NameString[20];
+		int rfbEncoding;
+};
 class VNCOptions  
 {
 public:
@@ -142,12 +146,8 @@ private:
 	void FixScaling();
 	// Just for temporary use
 	bool m_running;
-
-	struct COMBOSTRING {
-		TCHAR NameString[20];
-		int rfbEncoding;
-	};
-	COMBOSTRING rfbcombo[7];	
+	
+	
 };
 
 #endif // VNCOPTIONS_H__

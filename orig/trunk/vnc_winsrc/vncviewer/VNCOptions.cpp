@@ -86,27 +86,6 @@ VNCOptions::VNCOptions()
 	m_requestShapeUpdates = true;
 	m_ignoreShapeUpdates = false;
 
-	strcpy(rfbcombo[0].NameString, "Raw");
-	rfbcombo[0].rfbEncoding = rfbEncodingRaw;
-
-	strcpy(rfbcombo[1].NameString, "Hextile");
-	rfbcombo[1].rfbEncoding = rfbEncodingHextile;
-
-	strcpy(rfbcombo[2].NameString, "Tight");
-	rfbcombo[2].rfbEncoding = rfbEncodingTight;
-
-	strcpy(rfbcombo[3].NameString, "RRE");
-	rfbcombo[3].rfbEncoding = rfbEncodingRRE;
-
-	strcpy(rfbcombo[4].NameString, "CoRRE");
-	rfbcombo[4].rfbEncoding = rfbEncodingCoRRE;
-
-	strcpy(rfbcombo[5].NameString, "Zlib(pure)");
-	rfbcombo[5].rfbEncoding = rfbEncodingZlib;
-
-	strcpy(rfbcombo[6].NameString, "ZlibHex(mix)");
-	rfbcombo[6].rfbEncoding = rfbEncodingZlibHex;
-	
 	LoadGenOpt();
 
 	
@@ -125,6 +104,7 @@ VNCOptions::VNCOptions()
 	m_slowgdi = false;
 #endif
 }
+
 
 VNCOptions& VNCOptions::operator=(VNCOptions& s)
 {
@@ -769,6 +749,16 @@ BOOL CALLBACK VNCOptions::DlgProc(HWND hwndDlg, UINT uMsg,
     return 0;
 }
 
+static COMBOSTRING rfbcombo[MAX_LEN_COMBO] = {
+	"Raw",rfbEncodingRaw,
+	"Hextile",rfbEncodingHextile,
+	"Tight",rfbEncodingTight,
+	"RRE",rfbEncodingRRE,
+	"CoRRE",rfbEncodingCoRRE,
+	"Zlib(pure)",rfbEncodingZlib,
+	"ZlibHex(mix)",rfbEncodingZlibHex
+};
+
 BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 											 WPARAM wParam, LPARAM lParam) {
 	// This is a static method, so we don't know which instantiation we're 
@@ -785,12 +775,13 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 			VNCOptions *_this = (VNCOptions *) lParam;
 
 			// Initialise the controls
+			
 			HWND hListBox = GetDlgItem(hwnd, IDC_ENCODING);
-			for (int i = 0; i <= 6; i++) {			
+			for (int i = 0; i <= (MAX_LEN_COMBO - 1); i++) {			
 				SendMessage(hListBox, CB_INSERTSTRING, 
 							(WPARAM)i, 
-							(LPARAM)(int FAR*)_this->rfbcombo[i].NameString);
-				if (_this->rfbcombo[i].rfbEncoding == _this->m_PreferredEncoding) {
+							(LPARAM)(int FAR*)rfbcombo[i].NameString);
+				if (rfbcombo[i].rfbEncoding == _this->m_PreferredEncoding) {
 					SendMessage(hListBox, CB_SETCURSEL, i, 0);
 				}
 			}			
@@ -967,7 +958,7 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 			{		 
 				HWND hListBox = GetDlgItem(hwnd, IDC_ENCODING);
 				int i = SendMessage(hListBox, CB_GETCURSEL, 0, 0);
-				_this->m_PreferredEncoding = _this->rfbcombo[i].rfbEncoding;					
+				_this->m_PreferredEncoding = rfbcombo[i].rfbEncoding;					
 				HWND hScalEdit = GetDlgItem(hwnd, IDC_SCALE_EDIT);
 				int error;
 				i = GetDlgItemInt(hwnd, IDC_SCALE_EDIT, &error, FALSE);
@@ -1054,7 +1045,7 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 					HWND hAllowJpeg = GetDlgItem(hwnd, IDC_ALLOW_JPEG);					
 					HWND hListBox = GetDlgItem(hwnd, IDC_ENCODING);
 					int i = SendMessage(hListBox ,CB_GETCURSEL, 0, 0);
-					switch (_this->rfbcombo[i].rfbEncoding) {
+					switch (rfbcombo[i].rfbEncoding) {
 					case rfbEncodingTight:
 						if (SendMessage(h8bit, BM_GETCHECK, 0, 0) == 0) {
 							_this->EnableJpeg(hwnd, (SendMessage(hAllowJpeg,

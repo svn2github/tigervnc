@@ -188,15 +188,22 @@ class VncCanvas extends Canvas
     int fbWidth = rfb.framebufferWidth;
     int fbHeight = rfb.framebufferHeight;
 
-    if (memImage == null ||
-	memImage.getWidth(null) != fbWidth ||
-	memImage.getHeight(null) != fbHeight) {
+    // Create new off-screen image either if it does not exist, or if
+    // its geometry should be changed. It's not necessary to replace
+    // existing image if only pixel format should be changed.
+    if (memImage == null) {
+      memImage = viewer.createImage(fbWidth, fbHeight);
+      memGraphics = memImage.getGraphics();
+    } else if (memImage.getWidth(null) != fbWidth ||
+	       memImage.getHeight(null) != fbHeight) {
       synchronized(memImage) {
 	memImage = viewer.createImage(fbWidth, fbHeight);
 	memGraphics = memImage.getGraphics();
       }
     }
 
+    // Images with raw pixels should be re-allocated on every change
+    // of geometry or pixel format.
     if (bytesPixel == 1) {
       pixels24 = null;
       pixels8 = new byte[fbWidth * fbHeight];
@@ -210,10 +217,10 @@ class VncCanvas extends Canvas
       pixelsSource =
 	new MemoryImageSource(fbWidth, fbHeight, cm24, pixels24, 0, fbWidth);
     }
-
     pixelsSource.setAnimated(true);
     rawPixelsImage = createImage(pixelsSource);
 
+    // Update the size of desktop containers.
     if (viewer.inSeparateFrame) {
       if (viewer.desktopScrollPane != null)
 	resizeDesktopFrame();
@@ -577,8 +584,19 @@ class VncCanvas extends Canvas
 	  }
 
 	}
-	rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
-					  rfb.framebufferHeight, true);
+
+	// Before requesting framebuffer update, check if the pixel
+	// format should be changed. If it should, request full update
+	// instead of incremental one.
+	if (viewer.options.eightBitColors != (bytesPixel == 1)) {
+	  setPixelFormat();
+	  rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
+					    rfb.framebufferHeight, false);
+	} else {
+	  rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
+					    rfb.framebufferHeight, true);
+	}
+
 	break;
 
       case RfbProto.SetColourMapEntries:

@@ -55,7 +55,9 @@ public:
 	void AddRect(RECT &rect);				// Add another rectangle to the regions
 	void SubtractRect(RECT &rect);			// Subtract a rectangle from the regions
 	void Clear();							// Clear the current set of rectangles
-	BOOL IsEmpty();							// Is the region empty?
+	inline BOOL IsEmpty() {					// Is the region empty?
+		return region == NULL;
+	}
 	void Combine(vncRegion &rgn);			// Combine with another region
 	void Intersect(vncRegion &rgn);			// Intersect with another region
 	void Subtract(vncRegion &rgn);			// Subtract another region from this one

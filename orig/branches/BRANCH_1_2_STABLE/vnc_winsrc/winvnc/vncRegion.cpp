@@ -97,11 +97,6 @@ void vncRegion::Clear()
 	}
 }
 
-BOOL vncRegion::IsEmpty()
-{
-	return region == NULL;
-}
-
 void
 vncRegion::Combine(vncRegion &rgn)
 {

@@ -166,9 +166,8 @@ public class vncviewer extends java.applet.Applet
       f.pack();
       f.show();
     }
-
     authenticator.getPasswordField().requestFocus();
- 
+
     boolean authenticationDone = false;
 
     while (!authenticationDone) {

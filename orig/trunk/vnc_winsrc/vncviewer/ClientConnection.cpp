@@ -61,6 +61,8 @@ extern "C" {
 #define MAX_ENCODINGS 20
 #define VWR_WND_CLASS_NAME _T("VNCviewer")
 
+const UINT fileTransferUploadMessage = RegisterWindowMessage("VNCViewer.1.3.FileTransferUploadMessage");
+
 /*
  * Macro to compare pixel formats.
  */
@@ -2186,6 +2188,10 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 		}	
 		return 0;						 
 	}
+	if ((iMsg == fileTransferUploadMessage) && (_this->m_pFileTransfer != NULL)){
+		_this->m_pFileTransfer->UploadFilePortion();
+		return 0;
+	}
 	return DefWindowProc(hwnd, iMsg, wParam, lParam);
 }	
 
@@ -2420,7 +2426,6 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 	
 #endif
 	}
-
 	return DefWindowProc(hwnd, iMsg, wParam, lParam);
 }
 
@@ -2901,10 +2906,10 @@ void* ClientConnection::run_undetached(void* arg) {
 				ReadServerCutText();
 				break;
 			case rfbFileListData:
-				m_pFileTransfer->ShowServerItems();
+				m_pFileTransfer->ProcessFLRMessage();
 				break;
 			case rfbFileDownloadData:
-				m_pFileTransfer->FileTransferDownload();
+				m_pFileTransfer->DownloadFilePortion();
 				break;
 			case rfbFileUploadCancel:
 				break;

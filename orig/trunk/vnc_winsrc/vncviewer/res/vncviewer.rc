@@ -27,6 +27,42 @@ LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
 //
 
 IDB_BITMAP1             BITMAP  DISCARDABLE     "toolbar.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_FTDIRNAME DIALOG DISCARDABLE  0, 0, 121, 62
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Directory name request"
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_EDITDIRNAME,11,19,103,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,7,41,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,64,41,50,14
+    LTEXT           "Directory name:",IDC_STATIC,7,7,78,8
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_FTDIRNAME, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 114
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 55
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
 #endif    // Russian resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -186,6 +222,8 @@ BEGIN
     PUSHBUTTON      "Cancel",IDC_FTCANCEL,359,242,50,14,WS_DISABLED
     LTEXT           "",IDC_FTSTATUS,7,261,346,14,SS_CENTERIMAGE
     PUSHBUTTON      "&Close",IDC_EXIT,359,261,50,14
+    PUSHBUTTON      "",IDC_SERVERCREATEDIR,211,40,14,12,BS_ICON
+    PUSHBUTTON      "",IDC_CLIENTCREATEDIR,192,40,14,12,BS_ICON
 END
 
 IDD_SESSION_DLG DIALOGEX 0, 0, 253, 85
@@ -567,6 +605,7 @@ IDR_TRAY                ICON    DISCARDABLE     "idr_tray.ico"
 IDI_MAINICON            ICON    DISCARDABLE     "vncviewer.ico"
 IDI_FILEUP              ICON    DISCARDABLE     "fileup.ico"
 IDI_FILERELOAD          ICON    DISCARDABLE     "filereload.ico"
+IDI_CREATEDIR           ICON    DISCARDABLE     "createdi.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

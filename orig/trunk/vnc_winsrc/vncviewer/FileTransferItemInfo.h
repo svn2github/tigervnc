@@ -26,11 +26,11 @@
 #if !defined(FILETRANSFERITEMINFO_H)
 #define FILETRANSFERITEMINFO_H
 
-#define rfbMAX_PATH 255
+#include "windows.h"
 
 typedef struct tagFTITEMINFO
 {
-    char Name[rfbMAX_PATH];
+    char Name[MAX_PATH];
     char Size[16];
 	unsigned int Data;
 } FTITEMINFO;
@@ -50,10 +50,11 @@ public:
 	char * GetSizeAt(int Number);
 	char * GetNameAt(int Number);
 	unsigned int GetDataAt(int Number);
-    bool IsFile(int Number);    
 	void Sort();
 	void Free();
 	void Add(char *Name, char *Size, unsigned int Data);
+	void Add(char *Name, int Size, int Data);
+	void DeleteAt(int Number);
 	FileTransferItemInfo();
 	virtual ~FileTransferItemInfo();
 

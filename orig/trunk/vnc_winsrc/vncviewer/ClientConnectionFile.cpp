@@ -175,7 +175,7 @@ int ClientConnection::LoadConnection(char *fname, bool sess)
 			sscanf(buf+i*2, "%2x", &x);
 			m_encPasswd[i] = (unsigned char) x;
 		}
-	}
+  }
 	GetPrivateProfileString("connection", "username_ext", "", m_usernameExt, 256, fname);
 	if (GetPrivateProfileString("connection", "password_ext", "", buf, 1026, fname) >= 2) {
 		int len = strlen(buf) / 2;

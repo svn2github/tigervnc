@@ -74,8 +74,8 @@ BOOL CALLBACK AuthDialog::DlgProc(  HWND hwnd,  UINT uMsg,
 			{
 				UINT res= GetDlgItemText( hwnd,  IDC_PASSWD_EDIT,
 					_this->m_passwd, 256);
-				
-				EndDialog(hwnd, TRUE);
+
+        EndDialog(hwnd, TRUE);
 
 				return TRUE;
 			}

@@ -61,6 +61,7 @@ extern "C" {
 }
 
 #include "FileTransferItemInfo.h"
+#include "shlobj.h"
 #include "vncMenu.h"
 
 //
@@ -1315,6 +1316,10 @@ vncClientThread::run(void *arg)
 							i += 3;
 							if (szDrivesList[i+1] == '\0') break;
 					}
+					char myDocPath[MAX_PATH];
+					BOOL bCreate = FALSE;
+					if (SHGetSpecialFolderPath(NULL, myDocPath, CSIDL_PERSONAL, bCreate))
+						ftii.Add(myDocPath, -2, 0);
 				} else {
 					strcat(path, "\\*");
 					HANDLE FLRhandle;
@@ -1396,7 +1401,7 @@ vncClientThread::run(void *arg)
 				path_file[msg.fdr.fNameSize] = '\0';
 				ConvertPath(path_file);
 				strcpy(m_client->m_DownloadFilename, path_file);
-
+				
 				HANDLE hFile;
 				DWORD sz_rfbFileSize;
 				DWORD sz_rfbBlockSize = 8192;

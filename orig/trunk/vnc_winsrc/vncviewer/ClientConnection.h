@@ -54,6 +54,8 @@ extern "C" {
 
 #define TIGHT_ZLIB_BUFFER_SIZE 512
 
+extern const UINT fileTransferUploadMessage;
+
 class ClientConnection;
 typedef void (ClientConnection:: *tightFilterFunc)(int);
 

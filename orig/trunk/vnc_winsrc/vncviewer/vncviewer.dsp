@@ -92,6 +92,10 @@ LINK32=link.exe
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;cnt;rtf;gif;jpg;jpeg;jpe"
 # Begin Source File
 
+SOURCE=.\res\createdi.ico
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\cursor1.cur
 # End Source File
 # Begin Source File

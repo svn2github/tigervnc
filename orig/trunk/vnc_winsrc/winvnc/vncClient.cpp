@@ -1122,12 +1122,26 @@ vncClientThread::run(void *arg)
 			{				
 				if (m_client->IsKeyboardEnabled() && !m_client->IsInputBlocked())
 				{
-					msg.ke.key = Swap32IfLE(msg.ke.key);
+					BOOL allow = TRUE;
+					if (m_server->WindowShared() && m_server->GetBlackRgn()) {				
+						allow = FALSE;
+						HWND hwnd = GetForegroundWindow();
+						if (hwnd != NULL) {
+							DWORD id;
+							GetWindowThreadProcessId(hwnd, &id);
+							if (id == m_server->GetWindowIdProcess())
+								allow = TRUE;
+						}
+					}
 
-					// Get the keymapper to do the work
-					vncKeymap::keyEvent(msg.ke.key, msg.ke.down != 0,
-						m_client->m_server);
-					m_client->m_remoteevent = TRUE;
+					if (allow) {
+						msg.ke.key = Swap32IfLE(msg.ke.key);
+
+						// Get the keymapper to do the work
+						vncKeymap::keyEvent(msg.ke.key, msg.ke.down != 0,
+											m_client->m_server);
+						m_client->m_remoteevent = TRUE;
+					}
 				}
 			}
 			break;

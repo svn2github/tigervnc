@@ -19,11 +19,10 @@ const char* szProcessName = "AppShare" ;
 
 // log and pid filenames
 #ifdef _DEBUG
-static const int hzLogLevel = LL_NONE ; // LL_ALL ;
+static const int hzLogLevel = LL_ALL ; // LL_NONE ;
 static const int hzLogMode = Log::ToConsole | Log::ToFile ;
-// static const char hzLogFileName[] = "G:\\appshare_debug.log" ;
-// static const char hzPIDFileName[] = "G:\\appshare.pid" ;
-static const char hzLogFileName[] = "..\\logs\\appshare_debug.log" ;
+static const char hzLogFileName[] = "G:\\appshare_debug.log" ;
+// static const char hzLogFileName[] = "..\\logs\\appshare_debug.log" ;
 static const char hzPIDFileName[] = "..\\logs\\appshare.pid" ;
 #else
 static const int hzLogLevel = LL_INTWARN ;
@@ -108,117 +107,23 @@ int WINAPI WinMain(
 	std::transform( args.begin(), args.end(), args.begin(), tolower ) ;
 	
 	//
-	// handle -nosettings flag
+	// check for -connect flag
 	//
 	
-	if ( args.find( "-nosettings" ) != string::npos )
+	if ( args.find( "-connect" ) == string::npos )
 	{
-		vnclog.Print( LL_STATE, VNCLOG( "found '-nosettings' flag\n" ) ) ;
-	
-		// start appshare without making a connection to the server
-		return AppShareMain( args ) ;
-	}
-	
-	//
-	// handle -connect flag
-	//
-	
-	size_t p1 ;
-	size_t p2 ;
-	
-	if ( ( p1 = args.find( "-connect" ) ) != string::npos )
-	{
-		vnclog.Print( LL_STATE, VNCLOG( "found '-connect' flag\n" ) ) ;
+		vnclog.Print( LL_STATE, VNCLOG( "did not find '-connect' flag\n" ) ) ;
 
-		//
-		// make client connection
-		//
+		// show usage and exit
+		AppShareUsage( args ) ;
 		
-		// determine hostname
-		p1 = args.find_first_of( " ", p1 ) ;
-		p2 = args.find_first_of( ":", p1 ) ;
-		
-		if ( p1 == string::npos || p2 == string::npos )
-		{
-			AppShareUsage( args ) ;
-			return -1 ;
-		}
-	
-		string hostname = args.substr( p1 + 1, p2 - p1 - 1 ) ;
-
-		// determine the port
-		p1 = args.find_first_of( " ", p2 ) ;
-		
-		if ( p1 == string::npos )
-			p1 = args.length() ;
-		
-		string port = args.substr( p2 + 1 , p1 - p2 - 1 ) ;
-		
-		//
-		// resolve the hostname
-		//
-		
-		// resolve address
-		VCard32 host_x = VSocket::Resolve( hostname.c_str() ) ;
-		
-		if ( host_x == 0 )
-		{
-			vnclog.Print( 
-				LL_INTERR, 
-				VNCLOG( "unable to resolve hostname, hostname => %s\n" ),
-				hostname.c_str()
-			) ;
-			
-			MessageBox( NULL, "Unable to resolve hostname.", 
-				szAppName, MB_OK | MB_ICONERROR ) ;
-			
-			return -1 ;
-		}
-
-		//
-		// convert display into port
-		//
-
-		unsigned short port_x = static_cast<unsigned short>( 
-			atoi( port.c_str() ) + INCOMING_PORT_OFFSET ) ;
-
-		//
-		// tell the running instance to connect to the host and port
-		//
-				
-		vnclog.Print( LL_STATE, VNCLOG( "sending connect message, hostname => %s, port => %s\n" ),
-			hostname.c_str(), port.c_str() ) ;
-
-		// ( PostToWinVNC is defined in vncService.h )
-		BOOL posted = PostToWinVNC( 
-			APPSHARE_ADD_CLIENT_MSG, 
-			( WPARAM )( port_x ), 
-			( LPARAM )( host_x ) 
-		) ;
-		
-		// Post to the WinVNC menu window
-		if ( posted == FALSE )
-		{
-			vnclog.Print( LL_INTERR, VNCLOG( "unable to connect to AppShare instance\n" ) ) ;
-			
-			MessageBox( NULL, "Unable to connect to AppShare instance.", 
-				szAppName, MB_OK| MB_ICONERROR ) ;
-
-			return -1 ;
-		}
-
-		vnclog.Print( LL_STATE, VNCLOG( "sent connect message to existing instance\n" ) ) ;
-		
-		return 0 ;
+		return -1 ;
 	}
 
-	// !!! TESTING !!!
-	return AppShareMain( args ) ;
-
-	// show the AppShareUsage dialog
-	AppShareUsage( args ) ;
-
-	return -1 ;
+	// start appshare
+	int rv = AppShareMain( args ) ;
+	
+	return rv ;
 }
 
 // This is the main routine for WinVNC when running as an application
@@ -313,6 +218,16 @@ int AppShareMain( const string& args )
 	vnclog.Print( LL_STATE, VNCLOG( "install systray menu\n" ) ) ;
 
 	//
+	// make connection to server
+	//
+
+	if ( ConnectToServer( args ) == false )
+	{
+		vnclog.Print( LL_STATE, VNCLOG( "unable to connect to server\n" ) ) ;
+		return -1 ;
+	}
+
+	//
 	// main event loop
 	//
 
@@ -341,6 +256,104 @@ int AppShareMain( const string& args )
 	vnclog.Print( LL_STATE, VNCLOG( "exiting AppShareMain()\n" ) ) ;
 
 	return 0 ;
+}
+
+bool
+ConnectToServer( const string& args )
+{
+	//
+	// find connect flag
+	//
+
+	size_t p1 ;
+	size_t p2 ;
+	
+	if ( ( p1 = args.find( "-connect" ) ) == string::npos )
+	{
+		vnclog.Print( LL_STATE, VNCLOG( "unable to find '-connect' flag\n" ) ) ;
+		return false ;
+	}
+
+	//
+	// make client connection
+	//
+	
+	// determine hostname
+	p1 = args.find_first_of( " ", p1 ) ;
+	p2 = args.find_first_of( ":", p1 ) ;
+	
+	if ( p1 == string::npos || p2 == string::npos )
+	{
+		AppShareUsage( args ) ;
+		return false ;
+	}
+
+	string hostname = args.substr( p1 + 1, p2 - p1 - 1 ) ;
+
+	// determine the port
+	p1 = args.find_first_of( " ", p2 ) ;
+	
+	if ( p1 == string::npos )
+		p1 = args.length() ;
+	
+	string port = args.substr( p2 + 1 , p1 - p2 - 1 ) ;
+	
+	//
+	// resolve the hostname
+	//
+	
+	// resolve address
+	VCard32 host_x = VSocket::Resolve( hostname.c_str() ) ;
+	
+	if ( host_x == 0 )
+	{
+		vnclog.Print( 
+			LL_INTERR, 
+			VNCLOG( "unable to resolve hostname, hostname => %s\n" ),
+			hostname.c_str()
+		) ;
+		
+		MessageBox( NULL, "Unable to resolve hostname.", 
+			szAppName, MB_OK | MB_ICONERROR ) ;
+		
+		return false ;
+	}
+
+	//
+	// convert display into port
+	//
+
+	unsigned short port_x = static_cast<unsigned short>( 
+		atoi( port.c_str() ) + INCOMING_PORT_OFFSET ) ;
+
+	//
+	// tell the running instance to connect to the host and port
+	//
+			
+	vnclog.Print( LL_STATE, VNCLOG( "sending connect message, hostname => %s, port => %s\n" ),
+		hostname.c_str(), port.c_str() ) ;
+
+	// ( PostToWinVNC is defined in vncService.h )
+	BOOL posted = PostToWinVNC( 
+		APPSHARE_ADD_CLIENT_MSG, 
+		( WPARAM )( port_x ), 
+		( LPARAM )( host_x ) 
+	) ;
+	
+	// Post to the WinVNC menu window
+	if ( posted == FALSE )
+	{
+		vnclog.Print( LL_INTERR, VNCLOG( "unable to connect to AppShare instance\n" ) ) ;
+		
+		MessageBox( NULL, "Unable to connect to AppShare instance.", 
+			szAppName, MB_OK| MB_ICONERROR ) ;
+
+		return false ;
+	}
+
+	vnclog.Print( LL_STATE, VNCLOG( "sent connect message to existing instance\n" ) ) ;
+
+	return true ;
 }
 
 void 

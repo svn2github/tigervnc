@@ -69,6 +69,7 @@ const char winvncRunServiceHelper[]	= "-servicehelper" ;
 //
 
 int AppShareMain( const string& args ) ;
+bool ConnectToServer( const string& args ) ; 
 void AppShareUsage( const string& args ) ;
 
 int WinVNCAppMain( void ) ;

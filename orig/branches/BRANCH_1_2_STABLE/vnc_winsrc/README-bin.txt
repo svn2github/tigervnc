@@ -1,5 +1,5 @@
 
-TightVNC 1.2.8 Binary Distribution for Windows platforms
+TightVNC 1.2.9 Binary Distribution for Windows platforms
 ========================================================
 
 This distribution is based on the standard VNC source with

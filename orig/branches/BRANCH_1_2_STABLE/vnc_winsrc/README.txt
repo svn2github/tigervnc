@@ -1,5 +1,5 @@
 
-TightVNC 1.2.8 Source Distribution for Windows platforms
+TightVNC 1.2.9 Source Distribution for Windows platforms
 ========================================================
 
 This distribution is based on the standard VNC source and includes new
@@ -11,7 +11,7 @@ cursor" feature), improved WinVNC advanced settings, and more.
 	Copyright (C) 2000 Tridia Corp.
 	Copyright (C) 2002 RealVNC Ltd.
 	Copyright (C) 2000,2001,2002,2003 Constantin Kaplinsky.
-	Copyright (C) 2001,2002 HorizonLive.com, Inc.
+	Copyright (C) 2001,2002,2003 HorizonLive.com, Inc.
 	All rights reserved.
 
 This software is distributed under the GNU General Public Licence as

@@ -3,8 +3,8 @@
 
 [Setup]
 AppName=TightVNC
-AppVerName=TightVNC 1.2.8
-AppVersion=1.2.8
+AppVerName=TightVNC 1.2.9
+AppVersion=1.2.9
 AppPublisher=Constantin Kaplinsky
 AppPublisherURL=http://www.tightvnc.com
 AppSupportURL=http://www.tightvnc.com
@@ -35,6 +35,7 @@ Source: "README.txt"; DestDir: "{app}"; CopyMode: alwaysoverwrite; Flags: isread
 Source: "LICENCE.txt"; DestDir: "{app}"; CopyMode: alwaysoverwrite
 Source: "TightVNC.url"; DestDir: "{app}"; CopyMode: alwaysoverwrite
 Source: "Web\*"; DestDir: "{app}\Web"; CopyMode: alwaysoverwrite; Components: webdoc
+Source: "Web\images\*"; DestDir: "{app}\Web\images"; CopyMode: alwaysoverwrite; Components: webdoc
 Source: "Web\logo\*"; DestDir: "{app}\Web\logo"; CopyMode: alwaysoverwrite; Components: webdoc
 Source: "Web\doc\win32\*"; DestDir: "{app}\Web\doc\win32"; CopyMode: alwaysoverwrite; Components: webdoc
 Source: "Web\doc\java\*"; DestDir: "{app}\Web\doc\java"; CopyMode: alwaysoverwrite; Components: webdoc

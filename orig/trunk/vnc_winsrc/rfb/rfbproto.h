@@ -897,7 +897,7 @@ typedef struct _rfbServerCutTextMsg {
  * FileListData
  */
 
-typedef struct {
+typedef struct _rfbFileListDataMsg {
     CARD8 type;
     CARD8 flags;
     CARD16 numFiles;
@@ -913,7 +913,7 @@ typedef struct {
  * FileDownloadData
  */
 
-typedef struct {
+typedef struct _rfbFileDownloadDataMsg {
     CARD8 type;
     CARD8 compressLevel;
     CARD16 realSize;
@@ -928,7 +928,7 @@ typedef struct {
  * FileUploadCancel
  */
 
-typedef struct {
+typedef struct _rfbFileUploadCancelMsg {
     CARD8 type;
     CARD8 unused;
     CARD16 reasonLen;
@@ -941,7 +941,7 @@ typedef struct {
  * FileDownloadFailed
  */
 
-typedef struct {
+typedef struct _rfbFileDownloadFailedMsg {
     CARD8 type;
     CARD8 unused;
     CARD16 reasonLen;
@@ -1125,7 +1125,7 @@ typedef struct _rfbClientCutTextMsg {
  * FileListRequest
  */
 
-typedef struct {
+typedef struct _rfbFileListRequestMsg {
     CARD8 type;
     CARD8 flags;
 	CARD16 dirNameSize;
@@ -1138,7 +1138,7 @@ typedef struct {
  * FileDownloadRequest
  */
 
-typedef struct {
+typedef struct _rfbFileDownloadRequestMsg {
     CARD8 type;
 	CARD8 compressedLevel;
     CARD16 fNameSize;
@@ -1152,7 +1152,7 @@ typedef struct {
  * FileUploadRequest
  */
 
-typedef struct {
+typedef struct _rfbFileUploadRequestMsg {
     CARD8 type;
 	CARD8 compressedLevel;
     CARD16 fNameSize;
@@ -1167,7 +1167,7 @@ typedef struct {
  * FileUploadData
  */
 
-typedef struct {
+typedef struct _rfbFileUploadDataMsg {
     CARD8 type;
     CARD8 compressedLevel;
     CARD16 realSize;
@@ -1181,7 +1181,7 @@ typedef struct {
  * FileDownloadCancel
  */
 
-typedef struct {
+typedef struct _rfbFileDownloadCancelMsg {
     CARD8 type;
 	CARD8 unused;
 	CARD16 reasonLen;
@@ -1194,7 +1194,7 @@ typedef struct {
  * FileUploadFailed
  */
 
-typedef struct {
+typedef struct _rfbFileUploadFailedMsg {
     CARD8 type;
 	CARD8 unused;
 	CARD16 reasonLen;
@@ -1207,7 +1207,7 @@ typedef struct {
  * FileCreateDirRequest
  */
 
-typedef struct {
+typedef struct _rfbFileCreateDirRequestMsg {
     CARD8 type;
 	CARD8 unused;
 	CARD16 dNameLen;

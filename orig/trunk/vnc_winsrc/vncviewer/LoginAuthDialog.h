@@ -36,7 +36,7 @@ public:
 	TCHAR m_username[256];
 	TCHAR m_passwd[256];
 
-	LoginAuthDialog(char *title = NULL);
+	LoginAuthDialog(char *vnchost, char *title = NULL);
 	virtual ~LoginAuthDialog();
 	int DoDialog();
 
@@ -44,6 +44,7 @@ public:
 								 WPARAM wParam, LPARAM lParam);
 private:
 	char m_title[256];
+	char *m_vnchost;
 };
 
 #endif // LOGINAUTHDIALOG_H__

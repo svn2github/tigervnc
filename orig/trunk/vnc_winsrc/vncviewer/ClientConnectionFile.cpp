@@ -121,11 +121,13 @@ int ClientConnection::LoadConnection(char *fname, bool sess)
 	if (GetPrivateProfileString("connection", "host", "", m_host, MAX_HOST_NAME_LEN, fname) == 0) {
 		MessageBox(m_hwnd, "Error reading host name from file", "Config file error", MB_ICONERROR | MB_OK);
 		return -1;
-	};
-	if ( (m_port = GetPrivateProfileInt("connection", "port", 0, fname)) == 0) {
+	}
+	if ((m_port = GetPrivateProfileInt("connection", "port", 0, fname)) == 0) {
 		MessageBox(m_hwnd, "Error reading port number from file", "Config file error", MB_ICONERROR | MB_OK);
 		return -1;
-	};
+	}
+	FormatDisplay(m_port, m_opts.m_display, m_host);
+
 	char buf[32];
 	m_encPasswd[0] = '\0';
 	if (GetPrivateProfileString("connection", "password", "", buf, 32, fname) > 0) {

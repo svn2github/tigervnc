@@ -147,10 +147,10 @@
 #define IDC_STATIC_LCURSOR              1117
 #define IDC_STATIC_LMODE                1118
 #define IDC_STATIC_PICTURE              1119
-#define IDC_BUTTON1                     1120
 #define IDC_FTCOPY                      1120
 #define IDC_LOG_BROWSE                  1120
 #define IDC_SMALLDOTCURSOR_RADIO        1121
+#define IDC_VNCHOST                     1124
 #define ID_SESSION_SET_CRECT            32777
 #define IDC_ALLOW_COMPRESSLEVEL         32778
 #define IDC_ALLOW_JPEG                  32779
@@ -158,7 +158,6 @@
 #define ID_CLOSEDAEMON                  40001
 #define ID_SHOWWINDOW                   40004
 #define ID_NEWCONN                      40006
-#define ID_MENUITEM40007                40007
 #define IDS_HELP                        40007
 #define IDD_FILETRANSFER                40010
 
@@ -168,7 +167,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        245
 #define _APS_NEXT_COMMAND_VALUE         40011
-#define _APS_NEXT_CONTROL_VALUE         1122
+#define _APS_NEXT_CONTROL_VALUE         1125
 #define _APS_NEXT_SYMED_VALUE           244
 #endif
 #endif

@@ -721,8 +721,10 @@ void ClientConnection::Connect()
 		lphost = gethostbyname(m_host);
 		
 		if (lphost == NULL) { 
-			throw WarningException("Failed to get server address.\n\r"
-				"Did you type the host name correctly?"); 
+			char msg[512];
+			sprintf(msg, "Failed to get server address (%s).\n"
+					"Did you type the host name correctly?", m_host);
+			throw WarningException(msg);
 		};
 		thataddr.sin_addr.s_addr = ((LPIN_ADDR) lphost->h_addr)->s_addr;
 	};
@@ -730,7 +732,11 @@ void ClientConnection::Connect()
 	thataddr.sin_family = AF_INET;
 	thataddr.sin_port = htons(m_port);
 	res = connect(m_sock, (LPSOCKADDR) &thataddr, sizeof(thataddr));
-	if (res == SOCKET_ERROR) throw WarningException("Failed to connect to server");
+	if (res == SOCKET_ERROR) {
+		char msg[512];
+		sprintf(msg, "Failed to connect to server (%.255s)", m_opts.m_display);
+		throw WarningException(msg);
+	}
 	vnclog.Print(0, _T("Connected to %s port %d\n"), m_host, m_port);
 
 }
@@ -1076,7 +1082,7 @@ bool ClientConnection::AuthenticateUnixLogin(char *errBuf, int errBufSize, bool 
 	char username[256];
 	char passwd[256];
 
-	LoginAuthDialog ad;
+	LoginAuthDialog ad(m_opts.m_display);
 	ad.DoDialog();	
 #ifndef UNDER_CE
 	strcpy(username, ad.m_username);
@@ -1156,7 +1162,7 @@ bool ClientConnection::AuthenticateExternal(char *errBuf, int errBufSize, bool *
 	char username[256];
 	char passwd[256];
 
-	LoginAuthDialog ad("External Authentication");
+	LoginAuthDialog ad(m_opts.m_display, "External Authentication");
 	ad.DoDialog();	
 #ifndef UNDER_CE
 	strcpy(username, ad.m_username);

@@ -71,7 +71,6 @@ public:
 	int  LoadConnection(char *fname, bool sess);
 	int m_port;
     TCHAR m_host[MAX_HOST_NAME_LEN];
-	TCHAR m_display[256];
 	HWND m_hSess;
 	// Exceptions 
 	class UserCancelExc {};
@@ -79,8 +78,7 @@ public:
 	class SocketExc {};
 	class ProtocolExc {};
 	class Fatal {};
-	
-	
+
 private:
 	static LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
 	static LRESULT CALLBACK WndProc1(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);

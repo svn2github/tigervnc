@@ -121,6 +121,7 @@ private:
 	
 	void resizeTotalSize64();
 	void setFTBoolean(bool status);
+	void onEndTransfer();
 
 	ClientConnection *m_pCC;
 	VNCviewerApp *m_pApp;

@@ -92,6 +92,7 @@ FileTransfer::addTransferQueue(char *pLocalPath, char *pRemotePath, FileInfo *pF
 	if (isTransferEnable()) {
 		m_bResizeNeeded = true;
 	} else {
+		m_bFileTransfer = true;
 		resizeTotalSize64();
 	}
 }
@@ -99,6 +100,12 @@ FileTransfer::addTransferQueue(char *pLocalPath, char *pRemotePath, FileInfo *pF
 void
 FileTransfer::resizeTotalSize64()
 {
+	if (m_bFTCancel) {
+		if (m_bFTDlgStatus) m_pFileTransferDlg->setStatusText("Copy Operation Cancelled");
+		closeUndoneTransfer();
+		return;
+	}
+
 	for (unsigned int i = m_dwDirSizeRqstNum; i < m_fileTransferInfoEx.getNumEntries(); i++) {
 		unsigned int flags = m_fileTransferInfoEx.getFlagsAt(i);
 		if (flags & FT_ATTR_FILE) {
@@ -257,17 +264,23 @@ FileTransfer::downloadFile()
 }
 
 void
+FileTransfer::onEndTransfer()
+{
+	m_dw64TotalSize = 0;
+	setFTBoolean(false);
+	m_pFileTransferDlg->m_pToolBar->setAllButtonsState(-1, -1, -1, -1, 0);
+	m_pFileTransferDlg->m_bEndFTDlgOnYes = false;
+	m_pFileTransferDlg->endCancelingDlg(FALSE);
+}
+
+void
 FileTransfer::checkTransferQueue()
 {
 	if ((m_fileTransferInfoEx.getNumEntries() == 0) && (!m_bResizeNeeded)) {
 		m_pFileTransferDlg->m_pStatusBox->setStatusText("File Transfer Operation Completed Successfully");
 		m_pFileTransferDlg->reloadLocalFileList();
 		m_pFileTransferDlg->reloadRemoteFileList();
-		m_dw64TotalSize = 0;
-		setFTBoolean(false);
-		m_pFileTransferDlg->m_pToolBar->setAllButtonsState(-1, -1, -1, -1, 0);
-		m_pFileTransferDlg->m_bEndFTDlgOnYes = false;
-		m_pFileTransferDlg->endCancelingDlg(FALSE);
+		onEndTransfer();
 		return;
 	}
 	
@@ -295,6 +308,7 @@ FileTransfer::checkTransferQueue()
 		}
 		if (flags & FT_ATTR_FOLDER) {
 			char *pFullPath = m_fileTransferInfoEx.getFullRemPathAt(0);
+			m_pFileTransferDlg->m_pStatusBox->setStatusText("Creating Remote Folder. %s", pFullPath);
 			sendFileCreateDirRqstMsg(strlen(pFullPath), pFullPath);
 			char *pPath = m_fileTransferInfoEx.getRemPathAt(0);
 			m_fileTransferInfoEx.setFlagsAt(0, (m_fileTransferInfoEx.getFlagsAt(0) | FT_ATTR_FLR_UPLOAD_CHECK));
@@ -309,31 +323,37 @@ FileTransfer::checkTransferQueue()
 			}
 			if (flags & FT_ATTR_FOLDER) {
 				DirManager dm;
+				m_pFileTransferDlg->m_pStatusBox->setStatusText("Creating Local Folder. %s", m_fileTransferInfoEx.getFullLocPathAt(0));
 				if (!dm.createDirectory(m_fileTransferInfoEx.getFullLocPathAt(0))) {
 					if (dm.getLastError() == ERROR_ALREADY_EXISTS) {
-						FILEINFO fiStruct1, fiStruct2;
-						dm.getInfo(m_fileTransferInfoEx.getFullLocPathAt(0), &fiStruct1);
-						strcpy(fiStruct2.name, m_fileTransferInfoEx.getRemNameAt(0));
-						fiStruct2.info.size = m_fileTransferInfoEx.getSizeAt(0);
-						fiStruct2.info.data = m_fileTransferInfoEx.getDataAt(0);
-						fiStruct2.info.flags = m_fileTransferInfoEx.getFlagsAt(0);
-						switch (m_pFileTransferDlg->createConfirmDlg(&fiStruct1, &fiStruct2))
-						{
-						case IDOK:
+						if (!m_bOverwriteAll) {
+							FILEINFO fiStruct1, fiStruct2;
+							dm.getInfo(m_fileTransferInfoEx.getFullLocPathAt(0), &fiStruct1);
+							strcpy(fiStruct2.name, m_fileTransferInfoEx.getRemNameAt(0));
+							fiStruct2.info.size = m_fileTransferInfoEx.getSizeAt(0);
+							fiStruct2.info.data = m_fileTransferInfoEx.getDataAt(0);
+							fiStruct2.info.flags = m_fileTransferInfoEx.getFlagsAt(0);
+							switch (m_pFileTransferDlg->createConfirmDlg(&fiStruct1, &fiStruct2))
+							{
+							case IDOK:
+								bOverwrite = true;
+								break;
+							case IDCANCEL:
+								m_fileTransferInfoEx.deleteAt(0);
+								PostMessage(m_pCC->m_hwnd, (UINT) WM_FT_CHECKTRANSFERQUEUE, (WPARAM) 0, (LPARAM) 0);
+								return;
+							case IDC_CONFIRM_YESTOALL:
+								m_bOverwriteAll = true;
+								bOverwrite = true;
+								break;
+	/*
+							case IDC_CONFIRM_RENAME:
+								MessageBox(NULL, "IDRENAME", NULL, MB_OK);
+								return;
+	*/
+							}
+						} else {
 							bOverwrite = true;
-							break;
-						case IDCANCEL:
-							m_fileTransferInfoEx.deleteAt(0);
-							return;
-						case IDC_CONFIRM_YESTOALL:
-							m_bOverwriteAll = true;
-							bOverwrite = true;
-							break;
-/*
-						case IDC_CONFIRM_RENAME:
-							MessageBox(NULL, "IDRENAME", NULL, MB_OK);
-							return;
-*/
 						}
 					} else {
 						m_pFileTransferDlg->m_pProgress->increase(m_fileTransferInfoEx.getSizeAt(0));
@@ -368,10 +388,14 @@ FileTransfer::closeUndoneTransfer()
 	m_fileWriter.close();
 	m_fileReader.close();
 	m_fileTransferInfoEx.free();
+	m_fileDelInfoEx.free();
+	m_fileRenInfoEx.free();
+	m_fileLastRqstFailedMsgs.free();
+	m_fileListRequestQueue.free();
 
 	if (m_pFileTransferDlg->m_bEndFTDlgOnYes) {
 		m_pFileTransferDlg->m_bEndFTDlgOnYes = false;
-		m_pFileTransferDlg->closeFileTransferDialog();
+		m_pFileTransferDlg->endFileTransferDialog();
 	}
 	
 	if (m_bSendWMCloseOnYes) PostMessage(m_pCC->m_hwnd1, WM_CLOSE, (WPARAM) 0, (LPARAM) 0);
@@ -384,6 +408,7 @@ FileTransfer::deleteLocal(char *pPathPrefix, FileInfo *pFI)
 		m_fileDelInfoEx.add(pPathPrefix, "", pFI->getNameAt(i), "", pFI->getSizeAt(i), 
 							pFI->getDataAt(i), pFI->getFlagsAt(i) | FT_ATTR_DELETE_LOCAL);
 	}
+	m_bFileTransfer = true;
 	checkDeleteQueue();
 }
 
@@ -394,6 +419,7 @@ FileTransfer::deleteRemote(char *pPathPrefix, FileInfo *pFI)
 		m_fileDelInfoEx.add("", pPathPrefix, "", pFI->getNameAt(i), pFI->getSizeAt(i), 
 							pFI->getDataAt(i), pFI->getFlagsAt(i) | FT_ATTR_DELETE_REMOTE);
 	}
+	m_bFileTransfer = true;
 	checkDeleteQueue();
 }
 
@@ -437,6 +463,7 @@ FileTransfer::checkDeleteQueue()
 		} else {
 			m_pFileTransferDlg->m_pStatusBox->setStatusText("Delete Operation Completed Successfully");
 		}
+		onEndTransfer();
 	}
 }
 
@@ -501,6 +528,7 @@ FileTransfer::checkRenameQueue()
 		} else {
 			m_pFileTransferDlg->m_pStatusBox->setStatusText("Rename Operation Completed Successfully");
 		}
+		onEndTransfer();
 	}
 }
 
@@ -893,6 +921,13 @@ bool
 FileTransfer::procFLRUpload(unsigned short numFiles, FileInfo *pFI)
 {
 	bool bOverwrite = false;
+
+	if (m_bFTCancel) {
+		if (m_bFTDlgStatus) m_pFileTransferDlg->setStatusText("File Transfer Operation Cancelled");
+		closeUndoneTransfer();
+		return false;
+	}
+
 	unsigned int flags = m_fileTransferInfoEx.getFlagsAt(0);
 	if (flags & FT_ATTR_FLR_UPLOAD_CHECK) {
 		int num = isExistName(pFI, m_fileTransferInfoEx.getRemNameAt(0));
@@ -933,6 +968,7 @@ FileTransfer::procFLRUpload(unsigned short numFiles, FileInfo *pFI)
 		} else {
 			if (flags & FT_ATTR_FOLDER) {
 				m_fileTransferInfoEx.deleteAt(0);
+				m_pFileTransferDlg->m_pStatusBox->setStatusText("Create Remote Folder Failed.");
 				bOverwrite = false;
 			} else {
 				bOverwrite = true;
@@ -962,6 +998,12 @@ FileTransfer::procFLRUpload(unsigned short numFiles, FileInfo *pFI)
 bool
 FileTransfer::procFLRDownload(unsigned short numFiles, FileInfo *pFI)
 {
+	if (m_bFTCancel) {
+		if (m_bFTDlgStatus) m_pFileTransferDlg->setStatusText("Copy Operation Cancelled");
+		closeUndoneTransfer();
+		return false;
+	}
+	
 	unsigned int flags = m_fileTransferInfoEx.getFlagsAt(0);
 
 	if (flags & FT_ATTR_FLR_DOWNLOAD_CHECK) {
@@ -987,6 +1029,12 @@ FileTransfer::procFLRDownload(unsigned short numFiles, FileInfo *pFI)
 bool
 FileTransfer::procFLRDelete(unsigned short numFiles, FileInfo *pFI)
 {
+	if (m_bFTCancel) {
+		if (m_bFTDlgStatus) m_pFileTransferDlg->setStatusText("Delete Operation Cancelled");
+		closeUndoneTransfer();
+		return false;
+	}
+
 	if (isExistName(pFI, m_fileDelInfoEx.getRemNameAt(0)) >= 0) {
 		m_dwNumDelError++;
 		m_pFileTransferDlg->m_pStatusBox->setStatusText("Delete Operation Failed: %s", 
@@ -1004,6 +1052,12 @@ FileTransfer::procFLRDelete(unsigned short numFiles, FileInfo *pFI)
 bool
 FileTransfer::procFLRRename(unsigned short numFiles, FileInfo *pFI)
 {
+	if (m_bFTCancel) {
+		if (m_bFTDlgStatus) m_pFileTransferDlg->setStatusText("Rename Operation Cancelled");
+		closeUndoneTransfer();
+		return false;
+	}
+
 	bool bRename = false;
 	if (m_fileRenInfoEx.getNumEntries() > 0) {
 		if ((isExistName(pFI, m_fileRenInfoEx.getLocNameAt(0)) < 0) &&
@@ -1048,7 +1102,6 @@ FileTransfer::isExistName(FileInfo *pFI, char *pName)
 	}
 	return -1;
 }
-
 
 bool 
 FileTransfer::procFileSpecDirDataMsg()

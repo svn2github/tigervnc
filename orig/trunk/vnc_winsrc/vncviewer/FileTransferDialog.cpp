@@ -183,7 +183,12 @@ FileTransferDialog::closeFileTransferDialog()
 		if (m_hwndFTCanceling == NULL) createCancelingDlg();
 		return;
 	}
+	endFileTransferDialog();
+}
 
+void
+FileTransferDialog::endFileTransferDialog()
+{
 	if (m_pLocalLV != NULL) {
 		m_pLocalLV->deleteAllItems();
 		delete m_pLocalLV;
@@ -217,6 +222,7 @@ FileTransferDialog::closeFileTransferDialog()
 	
 	EndDialog(m_hwndFileTransfer, TRUE);
 	m_bDlgShown = false;
+	m_bEndFTDlgOnYes = false;
 	m_pFileTransfer->setFTDlgStatus(false);
 }
 
@@ -600,6 +606,7 @@ FileTransferDialog::confirmDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
 			{
 			case IDC_CONFIRM_YESTOALL:
 				EndDialog(hwnd, IDC_CONFIRM_YESTOALL);
+				UpdateWindow(_this->m_hwndFileTransfer);
 				return TRUE;
 /*
 			case IDC_CONFIRM_RENAME:
@@ -608,9 +615,11 @@ FileTransferDialog::confirmDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
 */
 			case IDOK:
 				EndDialog(hwnd, IDOK);
+				UpdateWindow(_this->m_hwndFileTransfer);
 				return TRUE;
 			case IDCANCEL:
 				EndDialog(hwnd, IDCANCEL);
+				UpdateWindow(_this->m_hwndFileTransfer);
 				return TRUE;
 			}
 		}
@@ -618,6 +627,7 @@ FileTransferDialog::confirmDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
 	case WM_CLOSE:
 	case WM_DESTROY:
 		EndDialog(hwnd, IDCANCEL);
+		UpdateWindow(_this->m_hwndFileTransfer);
 		return TRUE;
 	}
 	return FALSE;
@@ -678,6 +688,7 @@ FileTransferDialog::endCancelingDlg(BOOL result)
 		if (result) {
 			m_pFileTransfer->m_bFTCancel = true;
 		}
+		if (m_bEndFTDlgOnYes) endFileTransferDialog();
 	}
 }
 
@@ -760,6 +771,7 @@ FileTransferDialog::onFTDelete()
 		}
 	}
 	if (bDel) {
+		m_pToolBar->setAllButtonsState(-1, -1, -1, -1, 1);
 		if (m_dwCheckedLV == 1) {
 			m_pFileTransfer->deleteLocal(m_szLocalPath, &fi);
 			reloadLocalFileList();
@@ -782,11 +794,13 @@ FileTransferDialog::onFTCreateFolder()
 	}
 	if (m_dwCheckedLV == 1) {
 		sprintf(dirName, "%s\\%s", m_szLocalPath, m_szCreateDirName);
+		m_pStatusBox->setStatusText("Creating Local Folder. %s", dirName);
 		CreateDirectory(dirName, NULL);
 		showLocalFiles(m_szLocalPath);
 	} else {
 		if (m_dwCheckedLV == 2) {
 			sprintf(dirName, "%s\\%s", m_szRemotePath, m_szCreateDirName);
+			m_pStatusBox->setStatusText("Creating Remote Folder. %s", dirName);
 			m_pFileTransfer->sendFileCreateDirRqstMsg(strlen(dirName), dirName);
 			m_pFileTransfer->sendFileListRqstMsg(strlen(m_szRemotePath),m_szRemotePath,
 												 FT_FLR_DEST_MAIN, 0);

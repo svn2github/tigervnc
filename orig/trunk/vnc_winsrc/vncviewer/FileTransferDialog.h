@@ -44,6 +44,7 @@ public:
 
 	bool createFileTransferDialog();
 	void closeFileTransferDialog();
+	void endFileTransferDialog();
 	void processDlgMessage(HWND hwnd);
 	
 	static BOOL CALLBACK fileTransferDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);

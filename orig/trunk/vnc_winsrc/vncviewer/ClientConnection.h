@@ -97,6 +97,7 @@ private:
 	HWND	hToolBar;
 	
 	void Init(VNCviewerApp *pApp);
+	void InitCapabilities();
 	void CreateDisplay();
 	void GetConnectDetails();
 	void Connect();
@@ -315,6 +316,7 @@ private:
 	CapsContainer m_authCaps;		// known authentication schemes
 	CapsContainer m_serverMsgCaps;	// known non-standard server messages
 	CapsContainer m_clientMsgCaps;	// known non-standard client messages
+	CapsContainer m_encodingCaps;	// known encodings besides Raw
 
 	TCHAR *m_desktopName;
 	unsigned char m_encPasswd[8];

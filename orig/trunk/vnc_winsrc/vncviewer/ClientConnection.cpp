@@ -139,8 +139,7 @@ void ClientConnection::Init(VNCviewerApp *pApp)
 	m_encPasswd[0] = '\0';
 
 	// Initialize our capability lists
-	m_authCaps.AddCapability(rfbVncAuth, rfbStandardVendor, rfbVncAuthSignature,
-							 "Standard VNC password authentication");
+	InitCapabilities();
 
 	m_pFileTransfer = new FileTransfer(this, m_pApp);
 	m_FileTransferEnable = false;
@@ -175,6 +174,48 @@ void ClientConnection::Init(VNCviewerApp *pApp)
 	CheckBufferSize(INITIALNETBUFSIZE);
 
 	m_pApp->RegisterConnection(this);
+}
+
+void ClientConnection::InitCapabilities()
+{
+	// FIXME: Move signatures into one place, to make them available
+	//        both for the server and viewer parts?
+
+	// Supported authentication methods
+	m_authCaps.Add(rfbVncAuth, rfbStandardVendor, rfbVncAuthSignature,
+				   "Standard VNC password authentication");
+
+	// Supported encoding types
+	m_encodingCaps.Add(rfbEncodingCopyRect, rfbStandardVendor,
+					   "COPYRECT", "Standard CopyRect encoding");
+	m_encodingCaps.Add(rfbEncodingRRE,      rfbStandardVendor,
+					   "RRE     ", "Standard RRE encoding");
+	m_encodingCaps.Add(rfbEncodingCoRRE,    rfbStandardVendor,
+					   "CORRE   ", "Standard CoRRE encoding");
+	m_encodingCaps.Add(rfbEncodingHextile,  rfbStandardVendor,
+					   "HEXTILE ", "Standard Hextile encoding");
+	m_encodingCaps.Add(rfbEncodingZlib,     rfbTridiaVncVendor,
+					   "ZLIB    ", "Zlib encoding from TridiaVNC");
+	m_encodingCaps.Add(rfbEncodingZlibHex,  rfbTridiaVncVendor,
+					   "ZLIBHEX ", "ZlibHex encoding from TridiaVNC");
+	m_encodingCaps.Add(rfbEncodingTight,    rfbTightVncVendor,
+					   "TIGHT   ", "Tight encoding by Constantin Kaplinsky");
+
+	// Supported "fake" encoding types
+	m_encodingCaps.Add(rfbEncodingCompressLevel0, rfbTightVncVendor,
+					   "COMPRLVL", "Compression level");
+	m_encodingCaps.Add(rfbEncodingQualityLevel0, rfbTightVncVendor,
+					   "JPEGQLVL", "JPEG quality level");
+	m_encodingCaps.Add(rfbEncodingXCursor, rfbTightVncVendor,
+					   "X11CURSR", "X-style cursor shape update");
+	m_encodingCaps.Add(rfbEncodingRichCursor, rfbTightVncVendor,
+					   "RCHCURSR", "Rich-color cursor shape update");
+	m_encodingCaps.Add(rfbEncodingPointerPos, rfbTightVncVendor,
+					   "POINTPOS", "Pointer position update");
+	m_encodingCaps.Add(rfbEncodingLastRect, rfbTightVncVendor,
+					   "LASTRECT", "LastRect protocol extension");
+	m_encodingCaps.Add(rfbEncodingNewFBSize, rfbTightVncVendor,
+					   "NEWFBSIZ", "Framebuffer size change");
 }
 
 // 
@@ -788,10 +829,12 @@ void ClientConnection::ReadInteractionCaps()
 	ReadExact((char *)&intr_caps, sz_rfbInteractionCapsMsg);
 	intr_caps.nServerMessageTypes = Swap16IfLE(intr_caps.nServerMessageTypes);
 	intr_caps.nClientMessageTypes = Swap16IfLE(intr_caps.nClientMessageTypes);
+	intr_caps.nEncodingTypes = Swap16IfLE(intr_caps.nEncodingTypes);
 
 	// Read the lists of server- and client-initiated messages
 	ReadCapabilityList(&m_serverMsgCaps, intr_caps.nServerMessageTypes);
 	ReadCapabilityList(&m_clientMsgCaps, intr_caps.nClientMessageTypes);
+	ReadCapabilityList(&m_encodingCaps, intr_caps.nEncodingTypes);
 }
 
 //
@@ -806,7 +849,7 @@ void ClientConnection::ReadCapabilityList(CapsContainer *caps, int count)
 	for (int i = 0; i < count; i++) {
 		ReadExact((char *)&msginfo, sz_rfbCapabilityInfo);
 		msginfo.code = Swap32IfLE(msginfo.code);
-		caps->EnableCapability(&msginfo);		
+		caps->Enable(&msginfo);
 	}
 }
 

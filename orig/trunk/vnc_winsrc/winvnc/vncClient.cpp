@@ -57,6 +57,14 @@
 #include "vncKeymap.h"
 // #include "rfb.h"
 
+inline static void
+SetCapInfo(rfbCapabilityInfo *cap, CARD32 code, char *vendor, char *name)
+{
+	cap->code = Swap32IfLE(code);
+	memcpy(cap->vendorSignature, vendor, sz_rfbCapabilityInfoVendor);
+	memcpy(cap->nameSignature, name, sz_rfbCapabilityInfoName);
+}
+
 // vncClient thread class
 
 class vncClientThread : public omni_thread
@@ -79,6 +87,7 @@ public:
 	virtual BOOL InitTunneling();
 	virtual BOOL InitAuthenticate();
 	virtual BOOL InitAuthenticateVNC();
+	virtual BOOL SendInteractionCaps();
 
 	// The main thread function
 	virtual void run(void *arg);
@@ -163,10 +172,7 @@ vncClientThread::InitHandshakingCaps()
 
 	// Inform the client that we do support the standard VNC authentication.
 	rfbCapabilityInfo cap;
-	cap.code = Swap32IfLE(rfbVncAuth);
-	memcpy(cap.vendorSignature, rfbStandardVendor, sz_rfbCapabilityInfoVendor);
-	memcpy(cap.nameSignature, rfbVncAuthSignature, sz_rfbCapabilityInfoName);
-
+	SetCapInfo(&cap, rfbVncAuth, rfbStandardVendor, rfbVncAuthSignature);
 	return m_socket->SendExact((char *)&cap, sz_rfbCapabilityInfo);
 }
 
@@ -414,6 +420,41 @@ vncClientThread::InitAuthenticateVNC()
 	return m_server->Authenticated(m_client->GetClientId());
 }
 
+BOOL
+vncClientThread::SendInteractionCaps()
+{
+	const int NCAPS = 14;
+
+	rfbInteractionCapsMsg intr_caps;
+	intr_caps.nServerMessageTypes = Swap16IfLE(0);
+	intr_caps.nClientMessageTypes = Swap16IfLE(0);
+	intr_caps.nEncodingTypes = Swap16IfLE(NCAPS);
+	intr_caps.pad = 0;
+
+	rfbCapabilityInfo capinfo[NCAPS];
+
+	// Encoding types
+	SetCapInfo(&capinfo[0], rfbEncodingCopyRect, rfbStandardVendor,  "COPYRECT");
+	SetCapInfo(&capinfo[1], rfbEncodingRRE,      rfbStandardVendor,  "RRE     ");
+	SetCapInfo(&capinfo[2], rfbEncodingCoRRE,    rfbStandardVendor,  "CORRE   ");
+	SetCapInfo(&capinfo[3], rfbEncodingHextile,  rfbStandardVendor,  "HEXTILE ");
+	SetCapInfo(&capinfo[4], rfbEncodingZlib,     rfbTridiaVncVendor, "ZLIB    ");
+	SetCapInfo(&capinfo[5], rfbEncodingZlibHex,  rfbTridiaVncVendor, "ZLIBHEX ");
+	SetCapInfo(&capinfo[6], rfbEncodingTight,    rfbTightVncVendor,  "TIGHT   ");
+
+	// "Fake" encoding types
+	SetCapInfo(&capinfo[7], rfbEncodingCompressLevel0, rfbTightVncVendor, "COMPRLVL");
+	SetCapInfo(&capinfo[8], rfbEncodingQualityLevel0,  rfbTightVncVendor, "JPEGQLVL");
+	SetCapInfo(&capinfo[9], rfbEncodingXCursor,        rfbTightVncVendor, "X11CURSR");
+	SetCapInfo(&capinfo[10], rfbEncodingRichCursor,    rfbTightVncVendor, "RCHCURSR");
+	SetCapInfo(&capinfo[11], rfbEncodingPointerPos,    rfbTightVncVendor, "POINTPOS");
+	SetCapInfo(&capinfo[12], rfbEncodingLastRect,      rfbTightVncVendor, "LASTRECT");
+	SetCapInfo(&capinfo[13], rfbEncodingNewFBSize,     rfbTightVncVendor, "NEWFBSIZ");
+
+	return (m_socket->SendExact((char *)&intr_caps, sz_rfbInteractionCapsMsg) &&
+			m_socket->SendExact((char *)&capinfo[0], sz_rfbCapabilityInfo * NCAPS));
+}
+
 void
 ClearKeyState(BYTE key)
 {
@@ -474,7 +515,7 @@ vncClientThread::run(void *arg)
 			m_server->RemoveClient(m_client->GetClientId());
 			return;
 		}
-		vnclog.Print(LL_INTINFO, VNCLOG("sent pre-auth capability list\n"));
+		vnclog.Print(LL_INTINFO, VNCLOG("sent handshaking capability list\n"));
 	}
 
 	// INITIALISE TUNNELING (protocol 3.130)
@@ -553,16 +594,12 @@ vncClientThread::run(void *arg)
 	vnclog.Print(LL_INTINFO, VNCLOG("sent pixel format to client\n"));
 
 	// Inform the client about our interaction capabilities (protocol 3.130)
-	// NOTE: Currently we support only 3.3 message types, so both counts
-	//       are 0, and Swap16IfLE() is there only for future convenience.
 	if (m_client->m_protocol_minor_version >= 130) {
-		rfbInteractionCapsMsg intr_caps;
-		intr_caps.nServerMessageTypes = Swap16IfLE(0);
-		intr_caps.nClientMessageTypes = Swap16IfLE(0);
-		if (!m_socket->SendExact((char *)&intr_caps, sz_rfbInteractionCapsMsg)) {
+		if (!SendInteractionCaps()) {
 			m_server->RemoveClient(m_client->GetClientId());
 			return;
 		}
+		vnclog.Print(LL_INTINFO, VNCLOG("list of interaction capabilities sent\n"));
 	}
 
 	// UNLOCK INITIAL SETUP

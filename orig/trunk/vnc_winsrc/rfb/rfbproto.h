@@ -139,10 +139,11 @@ typedef struct _rfbCapabilityInfo {
 #define sz_rfbCapabilityInfo 16
 
 /*
- * Vendors known by TightVNC: standard VNC/RealVNC, and TightVNC.
+ * Vendors known by TightVNC: standard VNC/RealVNC, TridiaVNC, and TightVNC.
  */
 
 #define rfbStandardVendor "STDV"
+#define rfbTridiaVncVendor "TRDV"
 #define rfbTightVncVendor "TGHT"
 
 
@@ -291,17 +292,23 @@ typedef struct _rfbServerInitMsg {
  *
  * In the protocol version 3.130, the server informs the client what message
  * types it supports in addition to ones defined in the protocol version 3.3.
+ * Also, the server sends the list of all supported encodings (note that it's
+ * not necessary to advertise the "raw" encoding sinse it MUST be supported in
+ * RFB 3.x protocols).
+ *
  * This data immediately follows the server initialisation message.
  */
 
 typedef struct _rfbInteractionCapsMsg {
 	CARD16 nServerMessageTypes;
 	CARD16 nClientMessageTypes;
+	CARD16 nEncodingTypes;
+	CARD16 pad;	/* reserved, must be 0 */
 	/* followed by nServerMessageTypes * rfbCapabilityInfo structures */
 	/* followed by nClientMessageTypes * rfbCapabilityInfo structures */
 } rfbInteractionCapsMsg;
 
-#define sz_rfbInteractionCapsMsg 4
+#define sz_rfbInteractionCapsMsg 8
 
 
 /*
@@ -397,7 +404,6 @@ typedef struct _rfbInteractionCapsMsg {
 
 #define rfbEncodingLastRect        0xFFFFFF20
 #define rfbEncodingNewFBSize       0xFFFFFF21
-
 
 #define rfbEncodingQualityLevel0   0xFFFFFFE0
 #define rfbEncodingQualityLevel1   0xFFFFFFE1

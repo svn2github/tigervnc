@@ -51,7 +51,7 @@ public:
 	~vncEncodeCoRRE();
 
 	virtual void Init();
-	virtual void LogStats();
+	virtual const char* GetEncodingName() { return "CoRRE"; }
 
 	virtual UINT RequiredBuffSize(UINT width, UINT height);
 	virtual UINT NumCodedRects(RECT &rect);

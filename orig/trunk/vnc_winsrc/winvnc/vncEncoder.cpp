@@ -80,11 +80,16 @@ vncEncoder::Init()
 void
 vncEncoder::LogStats()
 {
-	vnclog.Print(LL_INTINFO, VNCLOG("Raw encoder stats: dataSize=%d, "
-									"rectangleOverhead=%d, encodedSize=%d, "
-									"transmittedSize=%d, efficiency=%.3f\n"),
-				 dataSize, rectangleOverhead, encodedSize, transmittedSize,
-				 ((((float)dataSize-transmittedSize)*100)/dataSize));
+	vnclog.Print(LL_INTINFO, VNCLOG("%s encoder stats: data=%d, overhead=%d, "
+									"encoded=%d, sent=%d\n"),
+				 GetEncodingName(),
+				 dataSize, rectangleOverhead, encodedSize, transmittedSize);
+
+	if (dataSize != 0) {
+		vnclog.Print(LL_INTINFO, VNCLOG("%s encoder efficiency: %.3f%%\n"),
+					 GetEncodingName(),
+					 (double)((double)((dataSize - transmittedSize) * 100) / dataSize));
+	}
 }
 
 UINT

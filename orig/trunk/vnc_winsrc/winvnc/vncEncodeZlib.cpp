@@ -65,16 +65,6 @@ vncEncodeZlib::Init()
 	vncEncoder::Init();
 }
 
-void
-vncEncodeZlib::LogStats()
-{
-	vnclog.Print(LL_INTINFO, VNCLOG("Zlib (pure) encoder stats: dataSize=%d, "
-									"rectangleOverhead=%d, encodedSize=%d, "
-									"transmittedSize=%d, efficiency=%.3f\n"),
-				 dataSize, rectangleOverhead, encodedSize, transmittedSize,
-				 ((((float)dataSize-transmittedSize)*100)/dataSize));
-}
-
 UINT
 vncEncodeZlib::RequiredBuffSize(UINT width, UINT height)
 {
@@ -273,8 +263,7 @@ vncEncodeZlib::EncodeOneRect(BYTE *source, BYTE *dest, const RECT &rect)
 	rfbZlibHeader *zlibh=(rfbZlibHeader *)(dest+sz_rfbFramebufferUpdateRectHeader);
 	zlibh->nBytes = Swap32IfLE(totalCompDataLen);
 
-	// Log some statistics
-	// vnclog.Print(LL_INTINFO, VNCLOG("rawSize=%d compSize=%d totalRaw=%d totalComp=%d\n"), rawDataSize, totalCompDataLen, compStream.total_in, compStream.total_out);
+	// Update statistics
 	encodedSize += sz_rfbZlibHeader + totalCompDataLen;
 
 	// Return the amount of data sent	

@@ -76,16 +76,6 @@ vncEncodeZlibHex::Init()
 	vncEncoder::Init();
 }
 
-void
-vncEncodeZlibHex::LogStats()
-{
-	vnclog.Print(LL_INTINFO, VNCLOG("ZlibHex encoder stats: dataSize=%d, "
-									"rectangleOverhead=%d, encodedSize=%d, "
-									"transmittedSize=%d, efficiency=%.3f\n"),
-				 dataSize, rectangleOverhead, encodedSize, transmittedSize,
-				 ((((float)dataSize-transmittedSize)*100)/dataSize));
-}
-
 UINT
 vncEncodeZlibHex::RequiredBuffSize(UINT width, UINT height)
 {

@@ -56,6 +56,9 @@ public:
 	// Initialisation
 	virtual void Init();
 
+	// A method to return the encoding name, used by the LogStats() method
+	virtual const char* GetEncodingName() { return "Raw"; }
+
 	// Central method for outputing encoding statistics
 	virtual void LogStats();
 

@@ -52,7 +52,7 @@ public:
 	~vncEncodeRRE();
 
 	virtual void Init();
-	virtual void LogStats();
+	virtual const char* GetEncodingName() { return "RRE"; }
 
 	virtual UINT RequiredBuffSize(UINT width, UINT height);
 	virtual UINT NumCodedRects(RECT &rect);

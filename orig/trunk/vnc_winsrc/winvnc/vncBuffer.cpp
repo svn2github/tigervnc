@@ -81,57 +81,39 @@ vncBuffer::vncBuffer(vncDesktop *desktop)
 vncBuffer::~vncBuffer()
 {
 
-	if (m_freemainbuff) {
+	if (m_freemainbuff && m_mainbuff != NULL) {
 		// We need to free the slow-blit buffer
-		if (m_mainbuff != NULL)
-		{
-			delete [] m_mainbuff;
-			m_mainbuff = NULL;
-		}
+		delete [] m_mainbuff;
+		m_mainbuff = NULL;
 	}
-	if (m_backbuff != NULL)
-	{
+	if (m_backbuff != NULL) {
 		delete [] m_backbuff;
 		m_backbuff = NULL;
 	}
-	if (m_hold_zlib_encoder != m_encoder)
-	{
-		if (m_hold_zlib_encoder != NULL)
-		{
-			m_hold_zlib_encoder->LogStats();
-			delete m_hold_zlib_encoder;
-			m_hold_zlib_encoder = NULL;
-		}
+	if (m_hold_zlib_encoder != NULL && m_hold_zlib_encoder != m_encoder) {
+		m_hold_zlib_encoder->LogStats();
+		delete m_hold_zlib_encoder;
+		m_hold_zlib_encoder = NULL;
 	}
-	if (m_hold_tight_encoder != m_encoder)
-	{
-		if (m_hold_tight_encoder != NULL)
-		{
-			delete m_hold_tight_encoder;
-			m_hold_tight_encoder = NULL;
-		}
+	if (m_hold_tight_encoder != NULL && m_hold_tight_encoder != m_encoder) {
+		m_hold_tight_encoder->LogStats();
+		delete m_hold_tight_encoder;
+		m_hold_tight_encoder = NULL;
 	}
-	if (m_hold_zlibhex_encoder != m_encoder)
-	{
-		if (m_hold_zlibhex_encoder != NULL)
-		{
-			m_hold_zlibhex_encoder->LogStats();
-			delete m_hold_zlibhex_encoder;
-			m_hold_zlibhex_encoder = NULL;
-		}
+	if (m_hold_zlibhex_encoder != NULL && m_hold_zlibhex_encoder != m_encoder) {
+		m_hold_zlibhex_encoder->LogStats();
+		delete m_hold_zlibhex_encoder;
+		m_hold_zlibhex_encoder = NULL;
 	}
-	if (m_encoder != NULL)
-	{
+	if (m_encoder != NULL) {
 		m_encoder->LogStats();
 		delete m_encoder;
 		m_encoder = NULL;
 		m_hold_zlib_encoder = NULL;
 		m_hold_tight_encoder = NULL;
 		m_hold_zlibhex_encoder = NULL;
-
 	}
-	if (m_clientbuff != NULL)
-	{
+	if (m_clientbuff != NULL) {
 		delete m_clientbuff;
 		m_clientbuff = NULL;
 	}
@@ -462,6 +444,7 @@ vncBuffer::SetEncoding(CARD32 encoding)
 		}
 		else
 		{
+			m_encoder->LogStats();
 			delete m_encoder;
 		}
 		m_encoder = NULL;

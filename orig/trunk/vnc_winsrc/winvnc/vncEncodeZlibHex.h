@@ -70,7 +70,7 @@ public:
 	~vncEncodeZlibHex();
 
 	void Init();
-	virtual void LogStats();
+	virtual const char* GetEncodingName() { return "ZlibHex"; }
 
 	virtual UINT RequiredBuffSize(UINT width, UINT height);
 	virtual UINT NumCodedRects(RECT &rect);

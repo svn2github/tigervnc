@@ -94,16 +94,6 @@ vncEncodeTight::Init()
 	vncEncoder::Init();
 }
 
-void
-vncEncodeTight::LogStats()
-{
-	vnclog.Print(LL_INTINFO, VNCLOG("Tight encoder stats: dataSize=%d, "
-									"rectangleOverhead=%d, encodedSize=%d, "
-									"transmittedSize=%d, efficiency=%.3f\n"),
-				 dataSize, rectangleOverhead, encodedSize, transmittedSize,
-				 ((((float)dataSize-transmittedSize)*100)/dataSize));
-}
-
 /*****************************************************************************
  *
  * Routines to implement Tight Encoding.
@@ -202,7 +192,6 @@ vncEncodeTight::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest,
 
 			int size = EncodeRectSimple(source, outConn, dest, upperRect);
 			outConn->SendQueued((char *)dest, size);
-			transmittedSize += size;
 
 			y += nMaxRows;
 			h -= nMaxRows;
@@ -260,12 +249,11 @@ vncEncodeTight::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest,
 						SendTightHeader(x_best, y_best, w_best, h_best);
 						int size = SendSolidRect(dest);
 
-						outConn->SendQueued((char *)m_hdrBuffer,
-										   m_hdrBufferBytes);
+						outConn->SendQueued((char *)m_hdrBuffer, m_hdrBufferBytes);
 						outConn->SendQueued((char *)dest, size);
-						transmittedSize += (m_hdrBufferBytes + size);
-						encodedSize += (size + m_hdrBufferBytes -
+						encodedSize += (m_hdrBufferBytes + size -
 										sz_rfbFramebufferUpdateRectHeader);
+						transmittedSize += (m_hdrBufferBytes + size);
 					}
 					if ( rects[i].left == rects[i].right ||
 						 rects[i].top  == rects[i].bottom ) {
@@ -273,7 +261,6 @@ vncEncodeTight::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest,
 					}
 					int size = EncodeRect(source, outConn, dest, rects[i]);
 					outConn->SendQueued((char *)dest, size);
-					transmittedSize += size;
 				}
 
 				// Return after all recursive calls done (0 == data sent).
@@ -424,7 +411,6 @@ vncEncodeTight::EncodeRectSimple(BYTE *source, VSocket *outConn, BYTE *dest,
 	const int maxRectSize = m_conf[m_compresslevel].maxRectSize;
 	const int maxRectWidth = m_conf[m_compresslevel].maxRectWidth;
 
-	int totalSize = 0;
 	int partialSize = 0;
 
 	if (w > maxRectWidth || w * h > maxRectSize) {
@@ -439,19 +425,15 @@ vncEncodeTight::EncodeRectSimple(BYTE *source, VSocket *outConn, BYTE *dest,
 
 				partialSize = EncodeSubrect(source, outConn, dest,
 											x+dx, y+dy, rw, rh);
-				totalSize += partialSize;
 				if (dy + subrectMaxHeight < h || dx + maxRectWidth < w) {
 					outConn->SendQueued((char *)dest, partialSize);
-					transmittedSize += partialSize;
 				}
 			}
 		}
 	} else {
 		partialSize = EncodeSubrect(source, outConn, dest, x, y, w, h);
-		totalSize += partialSize;
 	}
 
-	transmittedSize += partialSize;
 	return partialSize;
 }
 
@@ -521,9 +503,10 @@ vncEncodeTight::EncodeSubrect(BYTE *source, VSocket *outConn, BYTE *dest,
 		return vncEncoder::EncodeRect(source, dest, r);
 
 	outConn->SendQueued((char *)m_hdrBuffer, m_hdrBufferBytes);
-	transmittedSize += m_hdrBufferBytes;
 
-	encodedSize += encDataSize + m_hdrBufferBytes - sz_rfbFramebufferUpdateRectHeader;
+	encodedSize += m_hdrBufferBytes - sz_rfbFramebufferUpdateRectHeader + encDataSize;
+	transmittedSize += m_hdrBufferBytes + encDataSize;
+
 	return encDataSize;
 }
 

@@ -76,16 +76,6 @@ void vncEncodeCoRRE::Init()
 	vncEncoder::Init();
 }
 
-void
-vncEncodeCoRRE::LogStats()
-{
-	vnclog.Print(LL_INTINFO, VNCLOG("CoRRE encoder stats: dataSize=%d, "
-									"rectangleOverhead=%d, encodedSize=%d, "
-									"transmittedSize=%d, efficiency=%.3f\n"),
-				 dataSize, rectangleOverhead, encodedSize, transmittedSize,
-				 ((((float)dataSize-transmittedSize)*100)/dataSize));
-}
-
 UINT vncEncodeCoRRE::RequiredBuffSize(UINT width, UINT height)
 {
 	RECT fullscreen;

@@ -330,8 +330,7 @@ public class VncViewer extends java.applet.Applet
 
 
   //
-  // setEncodings() - send the current encodings from the options frame
-  // to the RFB server.
+  // Send current encoding list to the RFB server.
   //
 
   void setEncodings() {

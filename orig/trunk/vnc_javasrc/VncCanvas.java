@@ -84,15 +84,7 @@ class VncCanvas extends Canvas
     for (int i = 0; i < 256; i++)
       colors[i] = new Color(cm8.getRGB(i));
 
-    if (viewer.options.eightBitColors) {
-      rfb.writeSetPixelFormat(8, 8, false, true, 7, 7, 3, 0, 3, 6);
-      bytesPixel = 1;
-    } else {
-      rfb.writeSetPixelFormat(32, 24, true, true, 255, 255, 255, 16, 8, 0);
-      bytesPixel = 4;
-    }
-
-    updateFramebufferSize();
+    setPixelFormat();
 
     listenersInstalled = false;
     if (!viewer.options.viewOnly)
@@ -124,7 +116,9 @@ class VncCanvas extends Canvas
   }
 
   public void paint(Graphics g) {
-    g.drawImage(memImage, 0, 0, null);
+    synchronized(memImage) {
+      g.drawImage(memImage, 0, 0, null);
+    }
     if (showSoftCursor) {
       int x0 = cursorX - hotX, y0 = cursorY - hotY;
       Rectangle r = new Rectangle(x0, y0, cursorWidth, cursorHeight);
@@ -177,25 +171,44 @@ class VncCanvas extends Canvas
     }
   }
 
+  public void setPixelFormat() throws IOException {
+    if (viewer.options.eightBitColors) {
+      rfb.writeSetPixelFormat(8, 8, false, true, 7, 7, 3, 0, 3, 6);
+      bytesPixel = 1;
+    } else {
+      rfb.writeSetPixelFormat(32, 24, true, true, 255, 255, 255, 16, 8, 0);
+      bytesPixel = 4;
+    }
+    updateFramebufferSize();
+  }
+
   void updateFramebufferSize() {
 
-    memImage = viewer.createImage(rfb.framebufferWidth, rfb.framebufferHeight);
-    memGraphics = memImage.getGraphics();
+    // Useful shortcuts.
+    int fbWidth = rfb.framebufferWidth;
+    int fbHeight = rfb.framebufferHeight;
+
+    if (memImage == null ||
+	memImage.getWidth(null) != fbWidth ||
+	memImage.getHeight(null) != fbHeight) {
+      synchronized(memImage) {
+	memImage = viewer.createImage(fbWidth, fbHeight);
+	memGraphics = memImage.getGraphics();
+      }
+    }
 
     if (bytesPixel == 1) {
       pixels24 = null;
-      pixels8 = new byte[rfb.framebufferWidth * rfb.framebufferHeight];
+      pixels8 = new byte[fbWidth * fbHeight];
 
       pixelsSource =
-	new MemoryImageSource(rfb.framebufferWidth, rfb.framebufferHeight,
-			      cm8, pixels8, 0, rfb.framebufferWidth);
+	new MemoryImageSource(fbWidth, fbHeight, cm8, pixels8, 0, fbWidth);
     } else {
       pixels8 = null;
-      pixels24 = new int[rfb.framebufferWidth * rfb.framebufferHeight];
+      pixels24 = new int[fbWidth * fbHeight];
 
       pixelsSource =
-	new MemoryImageSource(rfb.framebufferWidth, rfb.framebufferHeight,
-			      cm24, pixels24, 0, rfb.framebufferWidth);
+	new MemoryImageSource(fbWidth, fbHeight, cm24, pixels24, 0, fbWidth);
     }
 
     pixelsSource.setAnimated(true);
@@ -205,7 +218,7 @@ class VncCanvas extends Canvas
       if (viewer.desktopScrollPane != null)
 	resizeDesktopFrame();
     } else {
-      setSize(rfb.framebufferWidth, rfb.framebufferHeight);
+      setSize(fbWidth, fbHeight);
     }
   }
 
@@ -707,7 +720,8 @@ class VncCanvas extends Canvas
       synchronized(jpegRect) {
 	Toolkit.getDefaultToolkit().prepareImage(jpegImage, -1, -1, this);
 	try {
-	  jpegRect.wait();
+	  // Wait no longer than three seconds.
+	  jpegRect.wait(3000);
 	} catch (InterruptedException e) {
 	  throw new IOException("Interrupted while decoding JPEG image");
 	}
@@ -973,8 +987,7 @@ class VncCanvas extends Canvas
   // Display newly updated area of pixels.
   //
 
-  void
-  handleUpdatedPixels(int x, int y, int w, int h) {
+  void handleUpdatedPixels(int x, int y, int w, int h) {
 
     // Draw updated pixels of the off-screen image.
     pixelsSource.newPixels(x, y, w, h);
@@ -987,8 +1000,7 @@ class VncCanvas extends Canvas
   // Tell JVM to repaint specified desktop area.
   //
 
-  void
-  scheduleRepaint(int x, int y, int w, int h) {
+  void scheduleRepaint(int x, int y, int w, int h) {
     // Request repaint delayed by 20 milliseconds.
     repaint(20, x, y, w, h);
   }

@@ -128,6 +128,8 @@ private:
 	void UploadFile(int num);
 
 	void ClearFTControls();
+	void CheckClientLV();
+	void CheckServerLV();
 
 	void FileTransferDownload();
 	void CheckDownloadQueue();

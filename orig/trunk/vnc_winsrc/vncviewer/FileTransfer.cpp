@@ -90,6 +90,9 @@ FileTransfer::CreateFileTransferDialog()
 	SetIcon(m_hwndFileTransfer, IDC_CLIENTRENAME, IDI_RENAME);
 	SetIcon(m_hwndFileTransfer, IDC_SERVERRENAME, IDI_RENAME);
 
+	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_CLIENTRENAME), FALSE);
+	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_SERVERRENAME), FALSE);
+
 	RECT Rect;
 	GetClientRect(m_hwndFTClientList, &Rect);
 	int xwidth = (int) (0.7 * Rect.right);
@@ -134,6 +137,8 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 				switch (HIWORD (wParam))
 				{
 					case EN_SETFOCUS:
+						EnableWindow(GetDlgItem(_this->m_hwndFileTransfer, IDC_CLIENTRENAME), FALSE);
+						EnableWindow(GetDlgItem(_this->m_hwndFileTransfer, IDC_SERVERRENAME), FALSE);
 						SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
 						EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), FALSE);
 						return TRUE;
@@ -143,6 +148,8 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 				switch (HIWORD (wParam))
 				{
 					case EN_SETFOCUS:
+						EnableWindow(GetDlgItem(_this->m_hwndFileTransfer, IDC_CLIENTRENAME), FALSE);
+						EnableWindow(GetDlgItem(_this->m_hwndFileTransfer, IDC_SERVERRENAME), FALSE);
 						SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
 						EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), FALSE);
 						return TRUE;
@@ -255,32 +262,57 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 		case IDC_FTCLIENTLIST:
 			switch (((LPNMHDR) lParam)->code)
 			{
+				case NM_CLICK:
+				case NM_RCLICK:
+					_this->CheckClientLV();
+					return TRUE;
 				case NM_SETFOCUS:
 					SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), uploadText);
 					EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), TRUE);
+					EnableWindow(GetDlgItem(_this->m_hwndFileTransfer, IDC_SERVERRENAME), FALSE);
+					_this->CheckClientLV();
 					_this->m_bFTCOPY = FALSE;
+					return TRUE;
+				case LVN_ITEMCHANGED:
+					SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), uploadText);
+					EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), TRUE);
+					_this->CheckClientLV();
 					return TRUE;
 				case LVN_GETDISPINFO:
 					_this->OnGetDispClientInfo((NMLVDISPINFO *) lParam); 
 					return TRUE;
 				case LVN_ITEMACTIVATE:
+					EnableWindow(GetDlgItem(_this->m_hwndFileTransfer, IDC_CLIENTRENAME), FALSE);
 					LPNMITEMACTIVATE lpnmia = (LPNMITEMACTIVATE)lParam;
 					_this->ProcessListViewDBLCLK(_this->m_hwndFTClientList, _this->m_ClientPath, _this->m_ClientPathTmp, lpnmia->iItem);
+					_this->CheckClientLV();
 					return TRUE;
 			}
 		break;
 		case IDC_FTSERVERLIST:
 			switch (((LPNMHDR) lParam)->code)
 			{
+				case NM_CLICK:
+				case NM_RCLICK:
+					_this->CheckServerLV();
+					return TRUE;
 				case NM_SETFOCUS:
 					SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), downloadText);
 					EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), TRUE);
+					EnableWindow(GetDlgItem(_this->m_hwndFileTransfer, IDC_CLIENTRENAME), FALSE);
+					_this->CheckServerLV();
 					_this->m_bFTCOPY = TRUE;
+					return TRUE;
+				case LVN_ITEMCHANGED:
+					SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), downloadText);
+					EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), TRUE);
+					_this->CheckServerLV();
 					return TRUE;
 				case LVN_GETDISPINFO: 
 					_this->OnGetDispServerInfo((NMLVDISPINFO *) lParam); 
 					return TRUE;
 				case LVN_ITEMACTIVATE:
+					EnableWindow(GetDlgItem(_this->m_hwndFileTransfer, IDC_SERVERRENAME), FALSE);
 					LPNMITEMACTIVATE lpnmia = (LPNMITEMACTIVATE)lParam;
 					_this->ProcessListViewDBLCLK(_this->m_hwndFTServerList, _this->m_ServerPath, _this->m_ServerPathTmp, lpnmia->iItem);
 					return TRUE;
@@ -1070,6 +1102,7 @@ FileTransfer::ShowServerItems()
 			CreateItemInfoList(&m_FTServerItemInfo, pftSD, fld.numFiles, pFilenames, fld.dataSize);
 			m_FTServerItemInfo.Sort();
 			ShowListViewItems(m_hwndFTServerList, &m_FTServerItemInfo);
+			CheckServerLV();
 		}
 	} else {
 		while (TreeView_GetChild(GetDlgItem(m_hwndFTBrowse, IDC_FTBROWSETREE), m_hTreeItem) != NULL) {
@@ -1601,6 +1634,8 @@ FileTransfer::GetSelectedFileSize(char *path, FileTransferItemInfo *pFTFI)
 void
 FileTransfer::ClearFTControls()
 {
+	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_CLIENTRENAME), FALSE);
+	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_SERVERRENAME), FALSE);
 	SetDlgItemText(m_hwndFileTransfer, IDC_FTCOPY, noactionText);
 	SetDlgItemText(m_hwndFileTransfer, IDC_FILETRANSFERPERCENT, "0%");
 	SetDlgItemText(m_hwndFileTransfer, IDC_CURRENTFILEPERCENT, "0%");
@@ -1608,4 +1643,38 @@ FileTransfer::ClearFTControls()
 	SendMessage(m_hwndProgress, PBM_SETPOS, 0, 0);
 	SendMessage(m_hwndFTProgress, PBM_SETPOS, 0, 0);
 	ClearStatusText();
+}
+
+void
+FileTransfer::CheckClientLV()
+{
+	char buf[8];
+	GetWindowText(GetDlgItem(m_hwndFileTransfer, IDC_FTCOPY), buf, 8);
+	if ((ListView_GetSelectedCount(m_hwndFTClientList) == 0) &&
+		(strcmp(buf, noactionText) != 0)) {
+		SetWindowText(GetDlgItem(m_hwndFileTransfer, IDC_FTCOPY), noactionText);
+		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCOPY), FALSE);
+	}
+	if (ListView_GetSelectedCount(m_hwndFTClientList) != 1) {
+		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_CLIENTRENAME), FALSE);
+	} else {
+		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_CLIENTRENAME), TRUE);
+	}
+}
+
+void
+FileTransfer::CheckServerLV()
+{
+	char buf[8];
+	GetWindowText(GetDlgItem(m_hwndFileTransfer, IDC_FTCOPY), buf, 8);
+	if ((ListView_GetSelectedCount(m_hwndFTServerList) == 0) &&
+		(strcmp(buf, noactionText) != 0)) {
+		SetWindowText(GetDlgItem(m_hwndFileTransfer, IDC_FTCOPY), noactionText);
+		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCOPY), FALSE);
+	}
+	if (ListView_GetSelectedCount(m_hwndFTServerList) != 1) {
+		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_SERVERRENAME), FALSE);
+	} else {
+		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_SERVERRENAME), TRUE);
+	}
 }

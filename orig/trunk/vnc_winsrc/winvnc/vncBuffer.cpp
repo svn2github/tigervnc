@@ -61,6 +61,8 @@ vncBuffer::vncBuffer(vncDesktop *desktop)
 	zlibhex_encoder_in_use = false;
 	m_hold_zlibhex_encoder = NULL;
 	m_compresslevel = 6;
+	m_qualitylevel = -1;
+	m_use_lastrect = FALSE;
 
 	m_mainbuff = NULL;
 	m_backbuff = NULL;
@@ -585,6 +587,7 @@ vncBuffer::SetEncoding(CARD32 encoding)
 			m_scrinfo.framebufferWidth,
 			m_scrinfo.framebufferHeight);
 	m_encoder->SetCompressLevel(m_compresslevel);
+	m_encoder->SetQualityLevel(m_qualitylevel);
 	if (m_clientfmtset)
 		if (!m_encoder->SetRemoteFormat(m_clientformat))
 		{
@@ -600,15 +603,39 @@ vncBuffer::SetEncoding(CARD32 encoding)
 BOOL
 vncBuffer::SetCompressLevel(CARD32 level)
 {
-	BOOL result = false;
-	if ((level >= 0) && (level <= 9)) {
+	if (level >= 0 && level <= 9) {
 		m_compresslevel = level;
-		if (m_encoder != NULL) {
-			m_encoder->SetCompressLevel(m_compresslevel);
-		}
-		result = true;
+	} else {
+		m_compresslevel = 6;
 	}
-	return result;
+	if (m_encoder != NULL) {
+		m_encoder->SetCompressLevel(m_compresslevel);
+	}
+	return TRUE;
+}
+
+BOOL
+vncBuffer::SetQualityLevel(CARD32 level)
+{
+	if (level >= 0 && level <= 9) {
+		m_qualitylevel = level;
+	} else {
+		m_qualitylevel = -1;
+	}
+	if (m_encoder != NULL) {
+		m_encoder->SetQualityLevel(m_qualitylevel);
+	}
+	return TRUE;
+}
+
+BOOL
+vncBuffer::EnableLastRect(BOOL enable)
+{
+	m_use_lastrect = enable;
+	if (m_encoder != NULL) {
+		m_encoder->EnableLastRect(enable);
+	}
+	return TRUE;
 }
 
 void
@@ -660,3 +687,9 @@ vncBuffer::FastCheckMainbuffer() {
 		return CheckBuffer();
 	return TRUE;
 }
+
+HCURSOR
+vncBuffer::GetCursor() {
+	return m_desktop->GetCursor();
+}
+

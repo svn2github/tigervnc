@@ -46,7 +46,7 @@ typedef unsigned char  CARD8;
 // Define the port number offsets
 #define FLASH_PORT_OFFSET 5400
 #define INCOMING_PORT_OFFSET 5500
-#define HTTP_PORT_OFFSET 5800	// we don't use this in Venice
+#define HTTP_PORT_OFFSET 5800
 #define RFB_PORT_OFFSET 5900
 
 #define PORT_TO_DISPLAY(p) ( (p) - RFB_PORT_OFFSET )

@@ -35,10 +35,11 @@
 
 // HTTP messages/message formats
 const char HTTP_MSG_OK []			="HTTP/1.0 200 OK\n\n";
-const char HTTP_FMT_INDEX[]			="<HTML><TITLE>TridiaVNC desktop [%.256s]</TITLE>\n"
+const char HTTP_FMT_INDEX[]			="<HTML><TITLE>TightVNC desktop [%.256s]</TITLE>\n"
 	"<APPLET CODE=vncviewer.class ARCHIVE=vncviewer.jar WIDTH=%d HEIGHT=%d>\n"
-	"<param name=PORT value=%d></APPLET>\n<A href=\"http://www.tridiavnc.com/\">www.TridiaVNC.com</A></HTML>\n";
-const char HTTP_MSG_NOSOCKCONN []	="<HTML><TITLE>TridiaVNC desktop</TITLE>\n"
+	"<param name=PORT value=%d><param name=ENCODING value=Tight></APPLET>\n"
+	"<A href=\"http://www.tightvnc.com/\">www.TightVNC.com</A></HTML>\n";
+const char HTTP_MSG_NOSOCKCONN []	="<HTML><TITLE>TightVNC desktop</TITLE>\n"
 	"<BODY>The requested desktop is not configured to accept incoming connections.</BODY>\n"
 	"</HTML>\n";
 const char HTTP_MSG_NOSUCHFILE []	="HTTP/1.0 404 Not found\n\n"

@@ -40,21 +40,22 @@
 
 // Compression level stuff. The following array contains various
 // encoder parameters for each of 10 compression levels (0..9).
+// Last three parameters correspond to JPEG quality levels (0..9).
 //
 // NOTE: m_conf[9].maxRectSize should be >= m_conf[i].maxRectSize,
 // where i in [0..8]. RequiredBuffSize() method depends on this.
 
 const TIGHT_CONF vncEncodeTight::m_conf[10] = {
-	{   512,   32,   6, 65536, 0, 0, 0, 0,   0,   0,   4 },
-	{  2048,  128,   6, 65536, 1, 1, 1, 0,   0,   0,   8 },
-	{  6144,  256,   8, 65536, 3, 3, 2, 0,   0,   0,  24 },
-	{ 10240, 1024,  12, 65536, 5, 5, 3, 0,   0,   0,  32 },
-	{ 16384, 2048,  12, 65536, 6, 6, 4, 0,   0,   0,  32 },
-	{ 32768, 2048,  12,  4096, 7, 7, 5, 4, 150, 380,  32 },
-	{ 65536, 2048,  16,  4096, 7, 7, 6, 4, 170, 420,  48 },
-	{ 65536, 2048,  16,  4096, 8, 8, 7, 5, 180, 450,  64 },
-	{ 65536, 2048,  32,  8192, 9, 9, 8, 6, 190, 475,  64 },
-	{ 65536, 2048,  32,  8192, 9, 9, 9, 6, 200, 500,  96 }
+	{	512,   32,	 6, 65536, 0, 0, 0, 0,	 0,   0,   4, 20, 10000, 25000 },
+	{  2048,  128,	 6, 65536, 1, 1, 1, 0,	 0,   0,   8, 30,  8000, 18000 },
+	{  6144,  256,	 8, 65536, 3, 3, 2, 0,	 0,   0,  24, 40,  6500, 15000 },
+	{ 10240, 1024,	12, 65536, 5, 5, 3, 0,	 0,   0,  32, 50,  5000, 12000 },
+	{ 16384, 2048,	12, 65536, 6, 6, 4, 0,	 0,   0,  32, 55,  4000, 10000 },
+	{ 32768, 2048,	12,  4096, 7, 7, 5, 4, 150, 380,  32, 60,  3000,  8000 },
+	{ 65536, 2048,	16,  4096, 7, 7, 6, 4, 170, 420,  48, 65,  2000,  5000 },
+	{ 65536, 2048,	16,  4096, 8, 8, 7, 5, 180, 450,  64, 70,  1000,  2500 },
+	{ 65536, 2048,	32,  8192, 9, 9, 8, 6, 190, 475,  64, 75,	500,  1200 },
+	{ 65536, 2048,	32,  8192, 9, 9, 9, 6, 200, 500,  96, 80,	200,   500 }
 };
 
 vncEncodeTight::vncEncodeTight()
@@ -65,7 +66,6 @@ vncEncodeTight::vncEncodeTight()
 	m_hdrBuffer = new BYTE [sz_rfbFramebufferUpdateRectHeader + 8 + 256*4];
 	m_prevRowBuf = NULL;
 
-	m_compresslevel = TIGHT_DEFAULT_COMPRESSION;
 	for (int i = 0; i < 4; i++)
 		m_zsActive[i] = false;
 }
@@ -99,6 +99,16 @@ vncEncodeTight::LogStats()
 				dataSize, rectangleOverhead, encodedSize, transmittedSize, ((((float)dataSize-transmittedSize)*100)/dataSize));
 }
 
+/*****************************************************************************
+ *
+ * Routines to implement Tight Encoding.
+ *
+ */
+
+#define MIN_SPLIT_RECT_SIZE 	4096
+#define MIN_SOLID_SUBRECT_SIZE	4096
+#define MIN_SOLID_SUBRECT_SIDE	  32
+
 UINT
 vncEncodeTight::RequiredBuffSize(UINT width, UINT height)
 {
@@ -115,6 +125,12 @@ vncEncodeTight::NumCodedRects(RECT &rect)
 	const int w = rect.right - rect.left;
 	const int h = rect.bottom - rect.top;
 
+	// No matter how many rectangles we will send if LastRect markers
+	// are used to terminate rectangle stream.
+	if (m_use_lastrect && w * h >= MIN_SPLIT_RECT_SIZE) {
+		return 0;
+	}
+
 	const int maxRectSize = m_conf[m_compresslevel].maxRectSize;
 	const int maxRectWidth = m_conf[m_compresslevel].maxRectWidth;
 
@@ -128,13 +144,6 @@ vncEncodeTight::NumCodedRects(RECT &rect)
 	}
 }
 
-
-/*****************************************************************************
- *
- * Routines to implement Tight Encoding.
- *
- */
-
 UINT
 vncEncodeTight::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest,
 						   const RECT &rect)
@@ -142,17 +151,9 @@ vncEncodeTight::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest,
 	const int x = rect.left, y = rect.top;
 	const int w = rect.right - x, h = rect.bottom - y;
 
-	if ( m_remoteformat.depth == 24 && m_remoteformat.redMax == 0xFF &&
-		 m_remoteformat.greenMax == 0xFF && m_remoteformat.blueMax == 0xFF ) {
-		m_usePixelFormat24 = true;
-	} else {
-		m_usePixelFormat24 = false;
-	}
-
 	const int maxRectSize = m_conf[m_compresslevel].maxRectSize;
-	const int maxRectWidth = m_conf[m_compresslevel].maxRectWidth;
-
 	const int rawDataSize = maxRectSize * (m_remoteformat.bitsPerPixel / 8);
+
 	if (m_bufflen < rawDataSize) {
 		if (m_buffer != NULL)
 			delete [] m_buffer;
@@ -163,6 +164,200 @@ vncEncodeTight::EncodeRect(BYTE *source, VSocket *outConn, BYTE *dest,
 
 		m_bufflen = rawDataSize;
 	}
+
+	if (!m_use_lastrect || w * h < MIN_SPLIT_RECT_SIZE)
+		return EncodeRectDumb(source, outConn, dest, rect);
+
+	// Set usePixelFormat24 variable for SendSolidRect().
+
+	if ( m_remoteformat.depth == 24 && m_remoteformat.redMax == 0xFF &&
+		 m_remoteformat.greenMax == 0xFF && m_remoteformat.blueMax == 0xFF ) {
+		m_usePixelFormat24 = true;
+	} else {
+		m_usePixelFormat24 = false;
+	}
+
+	// Try to find large solid-color areas and send them separately.
+
+	CARD32 colorValue;
+	int w_best, h_best;
+	int dx, dy, dw, dh;
+
+	FILE *log = fopen("d:\\winvnc.log", "a");
+	fprintf(log,
+			"DBG: sending rectangle: (%d,%d)-(%d,%d)\n",
+			rect.left, rect.top, rect.right, rect.bottom);
+	fclose(log);
+
+	for (dy = y; dy < y + h; dy += 16) {
+		dh = (dy + 16 <= y + h) ? 16 : y + h - dy;
+		for (dx = x; dx < x + w; dx += 16) {
+			dw = (dx + 16 <= x + w) ? 16 : x + w - dx;
+			log = fopen("d:\\winvnc.log", "a");
+			fprintf(log,
+					"DBG: checking area: (%d,%d)-(%d,%d)\n",
+					dx, dy, dw, dh);
+			fclose(log);
+			if (CheckSolidTile(source, dx, dy, dw, dh, &colorValue, FALSE)) {
+
+				// Get dimensions of solid-color area.
+
+				FindBestSolidArea(source, dx, dy, w - (dx - x), h - (dy - y),
+								  colorValue, &w_best, &h_best);
+
+				// Make sure a solid rectangle is large enough.
+
+				if ( w_best < MIN_SOLID_SUBRECT_SIDE ||
+					 h_best < MIN_SOLID_SUBRECT_SIDE ||
+					 w_best * h_best < MIN_SOLID_SUBRECT_SIZE )
+					continue;
+
+				log = fopen("d:\\winvnc.log", "a");
+				fprintf(log,
+						"DBG: solid-color area found: (%d,%d)-(%d,%d)\n",
+						dx, dy, dx + w_best, dy + h_best);
+				fclose(log);
+
+				// Send solid rectangle.
+
+				RECT onePixel;
+				SetRect(&onePixel, dx, dy, dx + 1, dy + 1);
+				Translate(source, m_buffer, onePixel);
+
+				SendTightHeader(dx, dy, w_best, h_best);
+				int size = SendSolidRect(dest);
+
+				outConn->SendExact((char *)m_hdrBuffer, m_hdrBufferBytes);
+				transmittedSize += m_hdrBufferBytes;
+				outConn->SendExact((char *)dest, size);
+				transmittedSize += size;
+				encodedSize += size + m_hdrBufferBytes - sz_rfbFramebufferUpdateRectHeader;
+
+				// Send surrounding rectangles.
+
+				RECT rects[4];
+				SetRect(&rects[0], x, y, x + w, dy);
+				SetRect(&rects[1], x, dy, dx, dy + h_best);
+				SetRect(&rects[2], dx + w_best, dy, x + w, dy + h_best);
+				SetRect(&rects[3], x, dy + h_best, x + w, y + h);
+				for (int i = 0; i < 4; i++) {
+					log = fopen("d:\\winvnc.log", "a");
+					fprintf(log,
+							"DBG: rectangle: (%d,%d)-(%d,%d)\n",
+							rects[i].left, rects[i].top, rects[i].right, rects[i].bottom);
+					fclose(log);
+					if (rects[i].left == rects[i].right || rects[i].top == rects[i].bottom)
+						continue;
+					log = fopen("d:\\winvnc.log", "a");
+					fprintf(log,
+							"DBG: about to send rectangle: (%d,%d)-(%d,%d)\n",
+							rects[i].left, rects[i].top, rects[i].right, rects[i].bottom);
+					fclose(log);
+					size = EncodeRect(source, outConn, dest, rects[i]);
+					outConn->SendExact((char *)dest, size);
+					transmittedSize += size;
+				}
+
+				// Return after all recursive calls done (0 == data sent).
+
+				return 0;
+			}
+		}
+	}
+
+	/* No suitable solid-color rectangles found. */
+
+	return EncodeRectDumb(source, outConn, dest, rect);
+}
+
+void
+vncEncodeTight::FindBestSolidArea(BYTE *source, int x, int y, int w, int h,
+								  CARD32 colorValue, int *w_ptr, int *h_ptr)
+{
+	int dx, dy, dw, dh;
+	int w_prev;
+	int w_best = 0, h_best = 0;
+
+	w_prev = w;
+
+	for (dy = y; dy < y + h; dy += 16) {
+		dh = (dy + 16 <= y + h) ? 16 : y + h - dy;
+		dw = (w_prev > 16) ? 16 : w_prev;
+		if (!CheckSolidTile(source, x, dy, dw, dh, &colorValue, TRUE))
+			break;
+		for (dx = x + dw; dx < x + w_prev;) {
+			dw = (dx + 16 <= x + w_prev) ? 16 : x + w_prev - dx;
+			if (!CheckSolidTile(source, dx, dy, dw, dh, &colorValue, TRUE))
+				break;
+		dx += dw;
+		}
+		w_prev = dx - x;
+		if (w_prev * (dy + dh - y) > w_best * h_best) {
+			w_best = w_prev;
+			h_best = dy + dh - y;
+		}
+	}
+
+	*w_ptr = w_best;
+	*h_ptr = h_best;
+}
+
+bool
+vncEncodeTight::CheckSolidTile(BYTE *source, int x, int y, int w, int h,
+							   CARD32 *colorPtr, bool needSameColor)
+{
+	switch(m_localformat.bitsPerPixel) {
+	case 32:
+		return CheckSolidTile32(source, x, y, w, h, colorPtr, needSameColor);
+	case 16:
+		return CheckSolidTile16(source, x, y, w, h, colorPtr, needSameColor);
+	default:
+		return CheckSolidTile8(source, x, y, w, h, colorPtr, needSameColor);
+	}
+}
+
+#define DEFINE_CHECK_SOLID_FUNCTION(bpp)									  \
+																			  \
+bool 																		  \
+vncEncodeTight::CheckSolidTile##bpp(BYTE *source, int x, int y, int w, int h, \
+									CARD32 *colorPtr, bool needSameColor)	  \
+{																			  \
+	CARD##bpp *fbptr;														  \
+	CARD##bpp colorValue;													  \
+	int dx, dy; 															  \
+																			  \
+	fbptr = (CARD##bpp *)													  \
+		&source[y * m_bytesPerRow + x * (bpp/8)];							  \
+																			  \
+	colorValue = *fbptr;													  \
+	if (needSameColor && (CARD32)colorValue != *colorPtr)					  \
+		return false;														  \
+																			  \
+	for (dy = 0; dy < h; dy++) {											  \
+		for (dx = 0; dx < w; dx++) {										  \
+			if (colorValue != fbptr[dx])									  \
+				return false;												  \
+		}																	  \
+		fbptr = (CARD##bpp *)((BYTE *)fbptr + m_bytesPerRow);				  \
+	}																		  \
+																			  \
+	*colorPtr = (CARD32)colorValue; 										  \
+	return true;															  \
+}
+
+DEFINE_CHECK_SOLID_FUNCTION(8)
+DEFINE_CHECK_SOLID_FUNCTION(16)
+DEFINE_CHECK_SOLID_FUNCTION(32)
+
+UINT
+vncEncodeTight::EncodeRectDumb(BYTE *source, VSocket *outConn, BYTE *dest,
+							   const RECT &rect)
+{
+	const int x = rect.left, y = rect.top;
+	const int w = rect.right - x, h = rect.bottom - y;
+
+	const int maxRectSize = m_conf[m_compresslevel].maxRectSize;
+	const int maxRectWidth = m_conf[m_compresslevel].maxRectWidth;
 
 	int totalSize = 0;
 	int partialSize = 0;
@@ -199,19 +394,7 @@ UINT
 vncEncodeTight::EncodeSubrect(BYTE *source, VSocket *outConn, BYTE *dest,
 							  int x, int y, int w, int h)
 {
-	rfbFramebufferUpdateRectHeader hdr;
-
-	hdr.r.x = Swap16IfLE(x);
-	hdr.r.y = Swap16IfLE(y);
-	hdr.r.w = Swap16IfLE(w);
-	hdr.r.h = Swap16IfLE(h);
-	hdr.encoding = Swap32IfLE(rfbEncodingTight);
-
-	dataSize += ( w * h * m_remoteformat.bitsPerPixel) / 8;
-	rectangleOverhead += sz_rfbFramebufferUpdateRectHeader;
-
-	memcpy(m_hdrBuffer, (BYTE *)&hdr, sz_rfbFramebufferUpdateRectHeader);
-	m_hdrBufferBytes = sz_rfbFramebufferUpdateRectHeader;
+	SendTightHeader(x, y, w, h);
 
 	RECT r;
 	r.left = x; r.top = y;
@@ -239,14 +422,19 @@ vncEncodeTight::EncodeSubrect(BYTE *source, VSocket *outConn, BYTE *dest,
 	case 0:
 		// Truecolor image
 		if (DetectStillImage(w, h)) {
-			encDataSize = SendGradientRect(dest, w, h);
+			if (m_qualitylevel != -1) {
+				encDataSize = SendJpegRect(dest, w, h,
+										   m_conf[m_qualitylevel].jpegQuality);
+			} else {
+				encDataSize = SendGradientRect(dest, w, h);
+			}
 		} else {
 			encDataSize = SendFullColorRect(dest, w, h);
 		}
 		break;
 	case 1:
 		// Solid rectangle
-		encDataSize = SendSolidRect(dest, w, h);
+		encDataSize = SendSolidRect(dest);
 		break;
 	case 2:
 		// Two-color rectangle
@@ -254,7 +442,14 @@ vncEncodeTight::EncodeSubrect(BYTE *source, VSocket *outConn, BYTE *dest,
 		break;
 	default:
 		// Up to 256 different colors
-		encDataSize = SendIndexedRect(dest, w, h);
+		if ( m_paletteNumColors > 64 &&
+			 m_qualitylevel != -1 && m_qualitylevel <= 3 &&
+			 DetectStillImage(w, h) ) {
+			encDataSize = SendJpegRect(dest, w, h,
+									   m_conf[m_qualitylevel].jpegQuality);
+		} else {
+			encDataSize = SendIndexedRect(dest, w, h);
+		}
 	}
 
 	if (encDataSize < 0)
@@ -267,13 +462,30 @@ vncEncodeTight::EncodeSubrect(BYTE *source, VSocket *outConn, BYTE *dest,
 	return encDataSize;
 }
 
+void
+vncEncodeTight::SendTightHeader(int x, int y, int w, int h)
+{
+	rfbFramebufferUpdateRectHeader rect;
+
+	rect.r.x = Swap16IfLE(x);
+	rect.r.y = Swap16IfLE(y);
+	rect.r.w = Swap16IfLE(w);
+	rect.r.h = Swap16IfLE(h);
+	rect.encoding = Swap32IfLE(rfbEncodingTight);
+
+	dataSize += w * h * (m_remoteformat.bitsPerPixel / 8);
+	rectangleOverhead += sz_rfbFramebufferUpdateRectHeader;
+
+	memcpy(m_hdrBuffer, (BYTE *)&rect, sz_rfbFramebufferUpdateRectHeader);
+	m_hdrBufferBytes = sz_rfbFramebufferUpdateRectHeader;
+}
 
 //
 // Subencoding implementations.
 //
 
 int
-vncEncodeTight::SendSolidRect(BYTE *dest, int w, int h)
+vncEncodeTight::SendSolidRect(BYTE *dest)
 {
 	int len;
 
@@ -511,8 +723,12 @@ vncEncodeTight::CompressData(BYTE *dest, int streamId, int dataLen,
 		return -1;
 	}
 
-	int compressedLen = outBufferSize - pz->avail_out;
+	return SendCompressedData(outBufferSize - pz->avail_out);
+}
 
+int
+vncEncodeTight::SendCompressedData(int compressedLen)
+{
 	// Prepare compressed data size for sending.
 	m_hdrBuffer[m_hdrBufferBytes++] = compressedLen & 0x7F;
 	if (compressedLen > 0x7F) {
@@ -523,10 +739,8 @@ vncEncodeTight::CompressData(BYTE *dest, int streamId, int dataLen,
 			m_hdrBuffer[m_hdrBufferBytes++] = compressedLen >> 14 & 0xFF;
 		}
 	}
-
 	return compressedLen;
 }
-
 
 void
 vncEncodeTight::FillPalette8(int count)
@@ -541,7 +755,7 @@ vncEncodeTight::FillPalette8(int count)
 	for (i = 1; i < count && data[i] == c0; i++);
 	if (i == count) {
 		m_paletteNumColors = 1;
-		return;                 // Solid rectangle
+		return; 				// Solid rectangle
 	}
 
 	if (m_paletteMaxColors < 2)
@@ -573,7 +787,7 @@ vncEncodeTight::FillPalette8(int count)
 #define DEFINE_FILL_PALETTE_FUNCTION(bpp)									  \
 																			  \
 void																		  \
-vncEncodeTight::FillPalette##bpp(int count)									  \
+vncEncodeTight::FillPalette##bpp(int count) 								  \
 {																			  \
 	CARD##bpp *data = (CARD##bpp *)m_buffer;								  \
 	CARD##bpp c0, c1, ci;													  \
@@ -582,21 +796,21 @@ vncEncodeTight::FillPalette##bpp(int count)									  \
 	c0 = data[0];															  \
 	for (i = 1; i < count && data[i] == c0; i++);							  \
 	if (i == count) {														  \
-		m_paletteNumColors = 1;	/* Solid rectangle */						  \
-		return;																  \
+		m_paletteNumColors = 1; /* Solid rectangle */						  \
+		return; 															  \
 	}																		  \
 																			  \
 	if (m_paletteMaxColors < 2) {											  \
 		m_paletteNumColors = 0; /* Full-color format preferred */			  \
-		return;																  \
+		return; 															  \
 	}																		  \
 																			  \
-	n0 = i;																	  \
+	n0 = i; 																  \
 	c1 = data[i];															  \
-	n1 = 0;																	  \
-	for (i++; i < count; i++) {												  \
+	n1 = 0; 																  \
+	for (i++; i < count; i++) { 											  \
 		ci = data[i];														  \
-		if (ci == c0) {														  \
+		if (ci == c0) { 													  \
 			n0++;															  \
 		} else if (ci == c1) {												  \
 			n1++;															  \
@@ -611,23 +825,23 @@ vncEncodeTight::FillPalette##bpp(int count)									  \
 			m_monoBackground = (CARD32)c1;									  \
 			m_monoForeground = (CARD32)c0;									  \
 		}																	  \
-		m_paletteNumColors = 2;	/* Two colors */							  \
-		return;																  \
+		m_paletteNumColors = 2; /* Two colors */							  \
+		return; 															  \
 	}																		  \
 																			  \
-	PaletteReset();															  \
+	PaletteReset(); 														  \
 	PaletteInsert (c0, (CARD32)n0, bpp);									  \
 	PaletteInsert (c1, (CARD32)n1, bpp);									  \
 																			  \
-	ni = 1;																	  \
-	for (i++; i < count; i++) {												  \
+	ni = 1; 																  \
+	for (i++; i < count; i++) { 											  \
 		if (data[i] == ci) {												  \
 			ni++;															  \
 		} else {															  \
 			if (!PaletteInsert (ci, (CARD32)ni, bpp))						  \
-				return;														  \
+				return; 													  \
 			ci = data[i];													  \
-			ni = 1;															  \
+			ni = 1; 														  \
 		}																	  \
 	}																		  \
 	PaletteInsert (ci, (CARD32)ni, bpp);									  \
@@ -658,7 +872,7 @@ vncEncodeTight::PaletteInsert(CARD32 rgb, int numPixels, int bpp)
 	COLOR_LIST *prev_pnode = NULL;
 	int hash_key, idx, new_idx, count;
 
-    hash_key = (bpp == 16) ? HASH_FUNC16(rgb) : HASH_FUNC32(rgb);
+	hash_key = (bpp == 16) ? HASH_FUNC16(rgb) : HASH_FUNC32(rgb);
 
 	pnode = m_palette.hash[hash_key];
 
@@ -755,13 +969,13 @@ vncEncodeTight::Pack24(BYTE *buf, int count)
 // Converting truecolor samples into palette indices.
 //
 
-#define DEFINE_IDX_ENCODE_FUNCTION(bpp)										  \
+#define DEFINE_IDX_ENCODE_FUNCTION(bpp) 									  \
 																			  \
 void																		  \
 vncEncodeTight::EncodeIndexedRect##bpp(BYTE *buf, int count)				  \
 {																			  \
 	COLOR_LIST *pnode;														  \
-	CARD##bpp *src;															  \
+	CARD##bpp *src; 														  \
 	CARD##bpp rgb;															  \
 	int rep = 0;															  \
 																			  \
@@ -773,11 +987,11 @@ vncEncodeTight::EncodeIndexedRect##bpp(BYTE *buf, int count)				  \
 			rep++, src++, count--;											  \
 		}																	  \
 		pnode = m_palette.hash[HASH_FUNC##bpp(rgb)];						  \
-		while (pnode != NULL) {												  \
-			if ((CARD##bpp)pnode->rgb == rgb) {								  \
-				*buf++ = (CARD8)pnode->idx;									  \
+		while (pnode != NULL) { 											  \
+			if ((CARD##bpp)pnode->rgb == rgb) { 							  \
+				*buf++ = (CARD8)pnode->idx; 								  \
 				while (rep) {												  \
-					*buf++ = (CARD8)pnode->idx;								  \
+					*buf++ = (CARD8)pnode->idx; 							  \
 					rep--;													  \
 				}															  \
 				break;														  \
@@ -795,7 +1009,7 @@ DEFINE_IDX_ENCODE_FUNCTION(32)
 void																		  \
 vncEncodeTight::EncodeMonoRect##bpp(BYTE *buf, int w, int h)				  \
 {																			  \
-	CARD##bpp *ptr;															  \
+	CARD##bpp *ptr; 														  \
 	CARD##bpp bg;															  \
 	unsigned int value, mask;												  \
 	int aligned_width;														  \
@@ -807,19 +1021,19 @@ vncEncodeTight::EncodeMonoRect##bpp(BYTE *buf, int w, int h)				  \
 																			  \
 	for (y = 0; y < h; y++) {												  \
 		for (x = 0; x < aligned_width; x += 8) {							  \
-			for (bg_bits = 0; bg_bits < 8; bg_bits++) {						  \
+			for (bg_bits = 0; bg_bits < 8; bg_bits++) { 					  \
 				if (*ptr++ != bg)											  \
 					break;													  \
 			}																  \
-			if (bg_bits == 8) {												  \
-				*buf++ = 0;													  \
+			if (bg_bits == 8) { 											  \
+				*buf++ = 0; 												  \
 				continue;													  \
 			}																  \
-			mask = 0x80 >> bg_bits;											  \
+			mask = 0x80 >> bg_bits; 										  \
 			value = mask;													  \
 			for (bg_bits++; bg_bits < 8; bg_bits++) {						  \
-				mask >>= 1;													  \
-				if (*ptr++ != bg) {											  \
+				mask >>= 1; 												  \
+				if (*ptr++ != bg) { 										  \
 					value |= mask;											  \
 				}															  \
 			}																  \
@@ -828,14 +1042,14 @@ vncEncodeTight::EncodeMonoRect##bpp(BYTE *buf, int w, int h)				  \
 																			  \
 		mask = 0x80;														  \
 		value = 0;															  \
-		if (x >= w)															  \
+		if (x >= w) 														  \
 			continue;														  \
 																			  \
 		for (; x < w; x++) {												  \
-			if (*ptr++ != bg) {												  \
+			if (*ptr++ != bg) { 											  \
 				value |= mask;												  \
 			}																  \
-			mask >>= 1;														  \
+			mask >>= 1; 													  \
 		}																	  \
 		*buf++ = (CARD8)value;												  \
 	}																		  \
@@ -918,7 +1132,7 @@ vncEncodeTight::FilterGradient##bpp(CARD##bpp *buf, int w, int h)			  \
 	int *prevRowPtr;														  \
 	int maxColor[3], shiftBits[3];											  \
 	int pixHere[3], pixUpper[3], pixLeft[3], pixUpperLeft[3];				  \
-	int prediction;															  \
+	int prediction; 														  \
 	int x, y, c;															  \
 																			  \
 	memset (m_prevRowBuf, 0, w * 3 * sizeof(int));							  \
@@ -928,18 +1142,18 @@ vncEncodeTight::FilterGradient##bpp(CARD##bpp *buf, int w, int h)			  \
 	maxColor[0] = m_remoteformat.redMax;									  \
 	maxColor[1] = m_remoteformat.greenMax;									  \
 	maxColor[2] = m_remoteformat.blueMax;									  \
-	shiftBits[0] = m_remoteformat.redShift;									  \
+	shiftBits[0] = m_remoteformat.redShift; 								  \
 	shiftBits[1] = m_remoteformat.greenShift;								  \
 	shiftBits[2] = m_remoteformat.blueShift;								  \
 																			  \
 	for (y = 0; y < h; y++) {												  \
 		for (c = 0; c < 3; c++) {											  \
 			pixUpper[c] = 0;												  \
-			pixHere[c] = 0;													  \
+			pixHere[c] = 0; 												  \
 		}																	  \
 		prevRowPtr = m_prevRowBuf;											  \
 		for (x = 0; x < w; x++) {											  \
-			pix = *buf;														  \
+			pix = *buf; 													  \
 			if (endianMismatch) {											  \
 				pix = Swap##bpp(pix);										  \
 			}																  \
@@ -949,11 +1163,11 @@ vncEncodeTight::FilterGradient##bpp(CARD##bpp *buf, int w, int h)			  \
 				pixLeft[c] = pixHere[c];									  \
 				pixUpper[c] = *prevRowPtr;									  \
 				pixHere[c] = (int)(pix >> shiftBits[c] & maxColor[c]);		  \
-				*prevRowPtr++ = pixHere[c];									  \
+				*prevRowPtr++ = pixHere[c]; 								  \
 																			  \
 				prediction = pixLeft[c] + pixUpper[c] - pixUpperLeft[c];	  \
 				if (prediction < 0) {										  \
-					prediction = 0;											  \
+					prediction = 0; 										  \
 				} else if (prediction > maxColor[c]) {						  \
 					prediction = maxColor[c];								  \
 				}															  \
@@ -961,7 +1175,7 @@ vncEncodeTight::FilterGradient##bpp(CARD##bpp *buf, int w, int h)			  \
 					<< shiftBits[c];										  \
 			}																  \
 			if (endianMismatch) {											  \
-				diff = Swap##bpp(diff);										  \
+				diff = Swap##bpp(diff); 									  \
 			}																  \
 			*buf++ = diff;													  \
 		}																	  \
@@ -977,31 +1191,51 @@ DEFINE_GRADIENT_FILTER_FUNCTION(32)
 // compression.
 //
 
+#define JPEG_MIN_RECT_SIZE	4096
+
 #define DETECT_SUBROW_WIDTH   7
-#define DETECT_MIN_WIDTH      8
-#define DETECT_MIN_HEIGHT     8
+#define DETECT_MIN_WIDTH	  8
+#define DETECT_MIN_HEIGHT	  8
 
 int
 vncEncodeTight::DetectStillImage (int w, int h)
 {
-	if ( m_remoteformat.bitsPerPixel == 8 ||
-		 w * h < m_conf[m_compresslevel].gradientMinRectSize ||
+	if ( m_localformat.bitsPerPixel == 8 || m_remoteformat.bitsPerPixel == 8 ||
 		 w < DETECT_MIN_WIDTH || h < DETECT_MIN_HEIGHT ) {
 		return 0;
 	}
 
-	if (m_remoteformat.bitsPerPixel == 32) {
-		if (m_usePixelFormat24) {
-			return DetectStillImage24(w, h);
-		} else {
-			return DetectStillImage32(w, h);
+	if (m_qualitylevel != -1) {
+		if (w * h < JPEG_MIN_RECT_SIZE) {
+			return 0;
 		}
 	} else {
-		return DetectStillImage16(w, h);
+		// if (w * h < m_conf[m_compresslevel].gradientMinRectSize) {
+			return 0;
+		// }
 	}
+
+	unsigned long avgError;
+	if (m_remoteformat.bitsPerPixel == 32) {
+		if (m_usePixelFormat24) {
+			avgError = DetectStillImage24(w, h);
+			if (m_qualitylevel != -1) {
+				return (avgError < m_conf[m_qualitylevel].jpegThreshold24);
+			}
+			return (avgError < m_conf[m_compresslevel].gradientThreshold24);
+		} else {
+			avgError = DetectStillImage32(w, h);
+		}
+	} else {
+		avgError = DetectStillImage16(w, h);
+	}
+	if (m_qualitylevel != -1) {
+		return (avgError < m_conf[m_qualitylevel].jpegThreshold);
+	}
+	return (avgError < m_conf[m_compresslevel].gradientThreshold);
 }
 
-int
+unsigned long
 vncEncodeTight::DetectStillImage24 (int w, int h)
 {
 	int diffStat[256];
@@ -1054,29 +1288,29 @@ vncEncodeTight::DetectStillImage24 (int w, int h)
 	}
 	avgError /= (pixelCount * 3 - diffStat[0]);
 
-	return (avgError < m_conf[m_compresslevel].gradientThreshold24);
+	return avgError;
 }
 
-#define DEFINE_DETECT_FUNCTION(bpp)											  \
+#define DEFINE_DETECT_FUNCTION(bpp) 										  \
 																			  \
-int																			  \
+unsigned long																  \
 vncEncodeTight::DetectStillImage##bpp (int w, int h)						  \
 {																			  \
 	bool endianMismatch;													  \
 	CARD##bpp pix;															  \
 	int maxColor[3], shiftBits[3];											  \
-	int x, y, d, dx, c;														  \
+	int x, y, d, dx, c; 													  \
 	int diffStat[256];														  \
-	int pixelCount = 0;														  \
+	int pixelCount = 0; 													  \
 	int sample, sum, left[3];												  \
-	unsigned long avgError;													  \
+	unsigned long avgError; 												  \
 																			  \
 	endianMismatch = (!m_localformat.bigEndian != !m_remoteformat.bigEndian); \
 																			  \
 	maxColor[0] = m_remoteformat.redMax;									  \
 	maxColor[1] = m_remoteformat.greenMax;									  \
 	maxColor[2] = m_remoteformat.blueMax;									  \
-	shiftBits[0] = m_remoteformat.redShift;									  \
+	shiftBits[0] = m_remoteformat.redShift; 								  \
 	shiftBits[1] = m_remoteformat.greenShift;								  \
 	shiftBits[2] = m_remoteformat.blueShift;								  \
 																			  \
@@ -1085,14 +1319,14 @@ vncEncodeTight::DetectStillImage##bpp (int w, int h)						  \
 	y = 0, x = 0;															  \
 	while (y < h && x < w) {												  \
 		for (d = 0; d < h - y && d < w - x - DETECT_SUBROW_WIDTH; d++) {	  \
-			pix = ((CARD##bpp *)m_buffer)[(y+d)*w+x+d];						  \
+			pix = ((CARD##bpp *)m_buffer)[(y+d)*w+x+d]; 					  \
 			if (endianMismatch) {											  \
 				pix = Swap##bpp(pix);										  \
 			}																  \
 			for (c = 0; c < 3; c++) {										  \
-				left[c] = (int)(pix >> shiftBits[c] & maxColor[c]);			  \
+				left[c] = (int)(pix >> shiftBits[c] & maxColor[c]); 		  \
 			}																  \
-			for (dx = 1; dx <= DETECT_SUBROW_WIDTH; dx++) {					  \
+			for (dx = 1; dx <= DETECT_SUBROW_WIDTH; dx++) { 				  \
 				pix = ((CARD##bpp *)m_buffer)[(y+d)*w+x+d+dx];				  \
 				if (endianMismatch) {										  \
 					pix = Swap##bpp(pix);									  \
@@ -1110,11 +1344,11 @@ vncEncodeTight::DetectStillImage##bpp (int w, int h)						  \
 			}																  \
 		}																	  \
 		if (w > h) {														  \
-			x += h;															  \
+			x += h; 														  \
 			y = 0;															  \
 		} else {															  \
 			x = 0;															  \
-			y += w;															  \
+			y += w; 														  \
 		}																	  \
 	}																		  \
 																			  \
@@ -1130,11 +1364,187 @@ vncEncodeTight::DetectStillImage##bpp (int w, int h)						  \
 	for (; c < 256; c++) {													  \
 		avgError += (unsigned long)diffStat[c] * (unsigned long)(c * c);	  \
 	}																		  \
-	avgError /= (pixelCount - diffStat[0]);									  \
+	avgError /= (pixelCount - diffStat[0]); 								  \
 																			  \
-	return (avgError < m_conf[m_compresslevel].gradientThreshold);			  \
+	return avgError;														  \
 }
 
 DEFINE_DETECT_FUNCTION(16)
 DEFINE_DETECT_FUNCTION(32)
+
+//
+// JPEG compression stuff.
+//
+
+static bool jpegError;
+static int jpegDstDataLen;
+
+static void JpegSetDstManager(j_compress_ptr cinfo, JOCTET *buf, size_t buflen);
+
+int
+vncEncodeTight::SendJpegRect(BYTE *dst, int w, int h, int quality)
+{
+	struct jpeg_compress_struct cinfo;
+	struct jpeg_error_mgr jerr;
+
+	if (m_localformat.bitsPerPixel == 8)
+		return SendFullColorRect(dst, w, h);
+
+	BYTE *srcBuf = new byte[w * 3];
+	JSAMPROW rowPointer[1];
+	rowPointer[0] = (JSAMPROW)srcBuf;
+
+	cinfo.err = jpeg_std_error(&jerr);
+	jpeg_create_compress(&cinfo);
+
+	cinfo.image_width = w;
+	cinfo.image_height = h;
+	cinfo.input_components = 3;
+	cinfo.in_color_space = JCS_RGB;
+
+	jpeg_set_defaults(&cinfo);
+	jpeg_set_quality(&cinfo, quality, TRUE);
+
+	JpegSetDstManager (&cinfo, dst, w * h * (m_localformat.bitsPerPixel / 8));
+
+	jpeg_start_compress(&cinfo, TRUE);
+
+	for (int dy = 0; dy < h; dy++) {
+		PrepareRowForJpeg(srcBuf, dy, w);
+		jpeg_write_scanlines(&cinfo, rowPointer, 1);
+		if (jpegError)
+			break;
+	}
+
+	if (!jpegError)
+		jpeg_finish_compress(&cinfo);
+
+	jpeg_destroy_compress(&cinfo);
+	delete[] srcBuf;
+
+	if (jpegError)
+		return SendFullColorRect(dst, w, h);
+
+	m_hdrBuffer[m_hdrBufferBytes++] = rfbTightJpeg << 4;
+
+	return SendCompressedData(jpegDstDataLen);
+}
+
+void
+vncEncodeTight::PrepareRowForJpeg(BYTE *dst, int y, int w)
+{
+	if (m_remoteformat.bitsPerPixel == 32) {
+		CARD32 *src = (CARD32 *)&m_buffer[y * w * sizeof(CARD32)];
+		if (m_usePixelFormat24) {
+			PrepareRowForJpeg24(dst, src, w);
+		} else {
+			PrepareRowForJpeg32(dst, src, w);
+		}
+	} else {
+		/* 16 bpp assumed. */
+		CARD16 *src = (CARD16 *)&m_buffer[y * w * sizeof(CARD16)];
+		PrepareRowForJpeg16(dst, src, w);
+	}
+}
+
+void
+vncEncodeTight::PrepareRowForJpeg24(BYTE *dst, CARD32 *src, int count)
+{
+	int r_shift, g_shift, b_shift;
+	if (!m_localformat.bigEndian == !m_remoteformat.bigEndian) {
+		r_shift = m_remoteformat.redShift;
+		g_shift = m_remoteformat.greenShift;
+		b_shift = m_remoteformat.blueShift;
+	} else {
+		r_shift = 24 - m_remoteformat.redShift;
+		g_shift = 24 - m_remoteformat.greenShift;
+		b_shift = 24 - m_remoteformat.blueShift;
+	}
+
+	CARD32 pix;
+	while (count--) {
+		pix = *src++;
+		*dst++ = (BYTE)(pix >> r_shift);
+		*dst++ = (BYTE)(pix >> g_shift);
+		*dst++ = (BYTE)(pix >> b_shift);
+	}
+}
+
+#define DEFINE_JPEG_GET_ROW_FUNCTION(bpp)									\
+																			\
+void																		\
+vncEncodeTight::PrepareRowForJpeg##bpp(BYTE *dst, CARD##bpp *src, int count)\
+{																			\
+	bool endianMismatch =													\
+		(!m_localformat.bigEndian != !m_remoteformat.bigEndian);			\
+																			\
+	int r_shift, g_shift, b_shift;											\
+		r_shift = m_remoteformat.redShift;									\
+		g_shift = m_remoteformat.greenShift;								\
+		b_shift = m_remoteformat.blueShift; 								\
+																			\
+	CARD##bpp pix;															\
+	while (count--) {														\
+		pix = *src++;														\
+		if (endianMismatch) {												\
+			pix = Swap##bpp(pix);											\
+		}																	\
+		*dst++ = (BYTE)(pix >> m_remoteformat.redShift &					\
+						m_remoteformat.redMax); 							\
+		*dst++ = (BYTE)(pix >> m_remoteformat.greenShift &					\
+						m_remoteformat.greenMax);							\
+		*dst++ = (BYTE)(pix >> m_remoteformat.blueShift &					\
+						m_remoteformat.blueMax);							\
+	}																		\
+}
+
+DEFINE_JPEG_GET_ROW_FUNCTION(16)
+DEFINE_JPEG_GET_ROW_FUNCTION(32)
+
+/*
+ * Destination manager implementation for JPEG library.
+ */
+
+static struct jpeg_destination_mgr jpegDstManager;
+static JOCTET *jpegDstBuffer;
+static size_t jpegDstBufferLen;
+
+static void JpegInitDestination(j_compress_ptr cinfo);
+static boolean JpegEmptyOutputBuffer(j_compress_ptr cinfo);
+static void JpegTermDestination(j_compress_ptr cinfo);
+
+static void
+JpegInitDestination(j_compress_ptr cinfo)
+{
+	jpegError = false;
+	jpegDstManager.next_output_byte = jpegDstBuffer;
+	jpegDstManager.free_in_buffer = jpegDstBufferLen;
+}
+
+static boolean
+JpegEmptyOutputBuffer(j_compress_ptr cinfo)
+{
+	jpegError = true;
+	jpegDstManager.next_output_byte = jpegDstBuffer;
+	jpegDstManager.free_in_buffer = jpegDstBufferLen;
+
+	return TRUE;
+}
+
+static void
+JpegTermDestination(j_compress_ptr cinfo)
+{
+	jpegDstDataLen = jpegDstBufferLen - jpegDstManager.free_in_buffer;
+}
+
+static void
+JpegSetDstManager(j_compress_ptr cinfo, JOCTET *buf, size_t buflen)
+{
+	jpegDstBuffer = buf;
+	jpegDstBufferLen = buflen;
+	jpegDstManager.init_destination = JpegInitDestination;
+	jpegDstManager.empty_output_buffer = JpegEmptyOutputBuffer;
+	jpegDstManager.term_destination = JpegTermDestination;
+	cinfo->dest = &jpegDstManager;
+}
 

@@ -75,13 +75,18 @@ public:
 	// SCREEN CAPTURE
 	void GrabRect(RECT &rect);
 	void CopyRect(RECT &dest, POINT &source);
-	RECT GrabMouse();					
+	RECT GrabMouse();
 	BOOL SetClientFormat(rfbPixelFormat &format);
 
 	// ENCODING
 	BOOL SetEncoding(CARD32 encoding);
 	UINT TranslateRect(const RECT &rect, VSocket *outConn);
 	BOOL SetCompressLevel(CARD32 level);
+	BOOL SetQualityLevel(CARD32 level);
+	BOOL EnableLastRect(BOOL enable);
+	BOOL IsLastRectEnabled() { return m_use_lastrect; }
+
+	HCURSOR GetCursor();
 
 // Implementation
 protected:
@@ -113,6 +118,8 @@ protected:
 	bool           zlibhex_encoder_in_use;
 	vncEncoder     *m_hold_zlibhex_encoder;
 	UINT			m_compresslevel;
+	UINT			m_qualitylevel;
+	BOOL            m_use_lastrect;
 };
 
 #endif // _WINVNC_VNCBUFFER

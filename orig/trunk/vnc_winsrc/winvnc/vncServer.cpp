@@ -1,3 +1,4 @@
+//  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
 //  This file is part of the VNC system.
@@ -16,6 +17,12 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 //  USA.
+//
+// For the latest source code, please check:
+//
+// http://www.DevelopVNC.org/
+//
+// or send email to: feedback@developvnc.org.
 //
 // If the source code for the VNC system is not available from the place 
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
@@ -46,11 +53,14 @@ vncServer::vncServer()
 	// Initialise some important stuffs...
 	m_socketConn = NULL;
 	m_corbaConn = NULL;
+	m_httpConn = NULL;
 	m_desktop = NULL;
 	m_name = NULL;
 	m_port = DISPLAY_TO_PORT(0);
 	m_autoportselect = TRUE;
 	m_passwd_required = TRUE;
+	m_beepConnect = FALSE;
+	m_beepDisconnect = FALSE;
 	m_auth_hosts = 0;
 	m_blacklist = 0;
 	{
@@ -73,6 +83,7 @@ vncServer::vncServer()
 
 	// General options
 	m_loopbackOnly = FALSE;
+	m_disableTrayIcon = FALSE;
 	m_loopback_allowed = FALSE;
 	m_lock_on_exit = 0;
 	m_connect_pri = 0;
@@ -105,6 +116,12 @@ vncServer::~vncServer()
 	{
 		delete m_corbaConn;
 		m_corbaConn = NULL;
+	}
+
+	if (m_httpConn != NULL)
+	{
+		delete m_httpConn;
+		m_httpConn = NULL;
 	}
 
 	// Remove any active clients!
@@ -273,6 +290,13 @@ vncServer::Authenticated(vncClientId clientid)
 	DoNotify(WM_SRV_CLIENT_AUTHENTICATED, 0, 0);
 
 	log.Print(LL_INTINFO, VNCLOG("Authenticated() done\n"));
+
+	// If so configured, beep to indicate the new connection is
+	// present.
+	if (authok && GetBeepConnect())
+	{
+		MessageBeep(MB_OK);
+	}
 
 	return authok;
 }
@@ -566,6 +590,13 @@ vncServer::RemoveClient(vncClientId clientid)
 		m_clientquitsig->signal();
 
 	} // Unlock the clientLock
+
+	// If so configured, beep to indicate the old connection is
+	// gone.
+	if (GetBeepDisconnect())
+	{
+		MessageBeep(MB_OK);
+	}
 
 	// Are there any authorised clients connected?
 	if (m_authClients.empty() && (m_desktop != NULL))
@@ -923,6 +954,22 @@ vncServer::SockConnect(BOOL On)
 				}
 			}
 
+			// Now let's start the HTTP connection stuff
+			if (m_httpConn == NULL)
+			{
+				m_httpConn = new vncHTTPConnect;
+				if (m_httpConn != NULL)
+				{
+					// Start up the HTTP server
+					if (!m_httpConn->Init(this,
+					    PORT_TO_DISPLAY(m_port) + HTTP_PORT_OFFSET))
+					{
+						delete m_httpConn;
+						m_httpConn = NULL;
+						return FALSE;
+					}
+				}
+			}
 		}
 	}
 	else
@@ -941,6 +988,13 @@ vncServer::SockConnect(BOOL On)
 			m_socketConn = NULL;
 		}
 
+		// Is there an HTTP socket active?
+		if (m_httpConn != NULL)
+		{
+			// Close the socket
+			delete m_httpConn;
+			m_httpConn = NULL;
+		}
 	}
 
 	return TRUE;
@@ -969,6 +1023,22 @@ BOOL
 vncServer::LoopbackOnly()
 {
 	return m_loopbackOnly;
+}
+
+BOOL
+vncServer::SetDisableTrayIcon(BOOL disableTrayIcon)
+{
+	if (disableTrayIcon != m_disableTrayIcon)
+	{
+		m_disableTrayIcon = disableTrayIcon;
+	}
+	return TRUE;
+}
+
+BOOL
+vncServer::GetDisableTrayIcon()
+{
+	return m_disableTrayIcon;
 }
 
 // CORBA connection handling

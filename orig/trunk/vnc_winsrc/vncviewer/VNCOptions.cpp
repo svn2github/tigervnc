@@ -82,7 +82,12 @@ VNCOptions::VNCOptions()
 	m_listening = false;
 	m_restricted = false;
 
+	m_useCompressLevel = false;
 	m_compressLevel = 6;
+	m_enableJpegCompression = false;
+	m_jpegQualityLevel = 6;
+	m_requestShapeUpdates = true;
+	m_ignoreShapeUpdates = false;
 
 #ifdef UNDER_CE
 	m_palmpc = false;
@@ -140,7 +145,12 @@ VNCOptions& VNCOptions::operator=(VNCOptions& s)
 	m_listening			= s.m_listening;
 	m_restricted		= s.m_restricted;
 
-	m_compressLevel		= s.m_compressLevel;
+	m_useCompressLevel		= s.m_useCompressLevel;
+	m_compressLevel			= s.m_compressLevel;
+	m_enableJpegCompression	= s.m_enableJpegCompression;
+	m_jpegQualityLevel		= s.m_jpegQualityLevel;
+	m_requestShapeUpdates	= s.m_requestShapeUpdates;
+	m_ignoreShapeUpdates	= s.m_ignoreShapeUpdates;
 
 #ifdef UNDER_CE
 	m_palmpc			= s.m_palmpc;
@@ -263,6 +273,11 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 			m_Emul3Buttons = true;
 		} else if ( SwitchMatch(args[j], _T("noemulate3") )) {
 			m_Emul3Buttons = false;
+		} else if ( SwitchMatch(args[j], _T("nocursorshape") )) {
+			m_requestShapeUpdates = false;
+		} else if ( SwitchMatch(args[j], _T("noremotecursor") )) {
+			m_requestShapeUpdates = true;
+			m_ignoreShapeUpdates = true;
 		} else if ( SwitchMatch(args[j], _T("scale") )) {
 			if (++j == i) {
 				ArgError(_T("No scaling factor specified"));
@@ -362,8 +377,19 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 				ArgError(_T("No compression level specified"));
 				continue;
 			}
+			m_useCompressLevel = true;
 			if (_stscanf(args[j], _T("%d"), &m_compressLevel) != 1) {
 				ArgError(_T("Invalid compression level specified"));
+				continue;
+			}
+		} else if ( SwitchMatch(args[j], _T("quality") )) {
+			if (++j == i) {
+				ArgError(_T("No image quality level specified"));
+				continue;
+			}
+			m_enableJpegCompression = true;
+			if (_stscanf(args[j], _T("%d"), &m_jpegQualityLevel) != 1) {
+				ArgError(_T("Invalid image quality level specified"));
 				continue;
 			}
 		} else if ( SwitchMatch(args[j], _T("register") )) {
@@ -427,7 +453,14 @@ void VNCOptions::Save(char *fname)
 	saveInt("localcursor",			m_localCursor,		fname);
 	saveInt("scale_den",			m_scale_den,		fname);
 	saveInt("scale_num",			m_scale_num,		fname);
-	saveInt("compresslevel",		m_compressLevel,	fname);
+	saveInt("cursorshape",			m_requestShapeUpdates, fname);
+	saveInt("noremotecursor",		m_ignoreShapeUpdates, fname);
+	if (m_useCompressLevel) {
+		saveInt("compresslevel",	m_compressLevel,	fname);
+	}
+	if (m_enableJpegCompression) {
+		saveInt("quality",			m_jpegQualityLevel,	fname);
+	}
 }
 
 void VNCOptions::Load(char *fname)
@@ -452,7 +485,16 @@ void VNCOptions::Load(char *fname)
 	m_localCursor =			readInt("localcursor",		m_localCursor,	fname);
 	m_scale_den =			readInt("scale_den",		m_scale_den,	fname);
 	m_scale_num =			readInt("scale_num",		m_scale_num,	fname);
-	m_compressLevel =		readInt("compresslevel",	m_compressLevel, fname);
+	m_requestShapeUpdates =	readInt("cursorshape",		m_requestShapeUpdates, fname) != 0;
+	m_ignoreShapeUpdates =	readInt("noremotecursor",	m_ignoreShapeUpdates, fname) != 0;
+	m_compressLevel =		readInt("compresslevel",	-1,				fname);
+	if (m_compressLevel != -1) {
+		m_useCompressLevel = true;
+	}
+	m_jpegQualityLevel =	readInt("quality",			-1,				fname);
+	if (m_jpegQualityLevel != -1) {
+		m_enableJpegCompression = true;
+	}
 }
 
 // Record the path to the VNC viewer and the type
@@ -515,7 +557,9 @@ void VNCOptions::ShowUsage(LPTSTR info) {
 		_T("%s\n\rUsage includes:\n\r"
 			"  vncviewer [/8bit] [/swapmouse] [/shared] [/belldeiconify] \n\r"
 			"      [/listen] [/fullscreen] [/viewonly] [/emulate3] \n\r"
-			"      [/scale a/b] [/config configfile] [server:display]\n\r"
+			"      [/scale a/b] [/config configfile] [/compresslevel N]\n\r"
+			"      [/quality N] [/nocursorshape] [/noremotecursor]\n\r"
+			"      [server:display]\n\r"
 			"For full details see documentation."), 
 #endif
         tmpinf);
@@ -591,9 +635,25 @@ BOOL CALLBACK VNCOptions::OptDlgProc(  HWND hwnd,  UINT uMsg,
  			SendMessage(hEmulate, BM_SETCHECK, _this->m_Emul3Buttons, 0);
 #endif
 
+			HWND hAllowCompressLevel = GetDlgItem(hwnd, IDC_ALLOW_COMPRESSLEVEL);
+			SendMessage(hAllowCompressLevel, BM_SETCHECK, _this->m_useCompressLevel, 0);
+
+			HWND hAllowJpeg = GetDlgItem(hwnd, IDC_ALLOW_JPEG);
+			SendMessage(hAllowJpeg, BM_SETCHECK, _this->m_enableJpegCompression, 0);
+
 			SetDlgItemInt( hwnd, IDC_COMPRESSLEVEL, _this->m_compressLevel, FALSE);
-			HWND hCompressLevel = GetDlgItem(hwnd, IDC_COMPRESSLEVEL);
-			
+			SetDlgItemInt( hwnd, IDC_QUALITYLEVEL, _this->m_jpegQualityLevel, FALSE);
+
+			HWND hRemoteCursor;
+			if (_this->m_requestShapeUpdates && !_this->m_ignoreShapeUpdates) {
+				hRemoteCursor = GetDlgItem(hwnd, IDC_CSHAPE_ENABLE_RADIO);
+			} else if (_this->m_requestShapeUpdates) {
+				hRemoteCursor = GetDlgItem(hwnd, IDC_CSHAPE_IGNORE_RADIO);
+			} else {
+				hRemoteCursor = GetDlgItem(hwnd, IDC_CSHAPE_DISABLE_RADIO);
+			}
+			SendMessage(hRemoteCursor, BM_SETCHECK,	true, 0);
+
 			CentreWindow(hwnd);
 			
 			return TRUE;
@@ -662,9 +722,34 @@ BOOL CALLBACK VNCOptions::OptDlgProc(  HWND hwnd,  UINT uMsg,
 				  (SendMessage(hEmulate, BM_GETCHECK, 0, 0) == BST_CHECKED);
 #endif
 
+				HWND hAllowCompressLevel = GetDlgItem(hwnd, IDC_ALLOW_COMPRESSLEVEL);
+				_this->m_useCompressLevel = 
+					(SendMessage(hAllowCompressLevel, BM_GETCHECK, 0, 0) == BST_CHECKED);
+
 				_this->m_compressLevel = GetDlgItemInt( hwnd, IDC_COMPRESSLEVEL, NULL, TRUE);
 				if ( _this->m_compressLevel < 0 ) { _this->m_compressLevel = 0; }
 				if ( _this->m_compressLevel > 9 ) { _this->m_compressLevel = 9; }
+
+				HWND hAllowJpeg = GetDlgItem(hwnd, IDC_ALLOW_JPEG);
+				_this->m_enableJpegCompression = 
+					(SendMessage(hAllowJpeg, BM_GETCHECK, 0, 0) == BST_CHECKED);
+
+				_this->m_jpegQualityLevel = GetDlgItemInt( hwnd, IDC_QUALITYLEVEL, NULL, TRUE);
+				if ( _this->m_jpegQualityLevel < 0 ) { _this->m_jpegQualityLevel = 0; }
+				if ( _this->m_jpegQualityLevel > 9 ) { _this->m_jpegQualityLevel = 9; }
+
+				_this->m_requestShapeUpdates = false;
+				_this->m_ignoreShapeUpdates = false;
+				HWND hRemoteCursor = GetDlgItem(hwnd, IDC_CSHAPE_ENABLE_RADIO);
+				if (SendMessage(hRemoteCursor, BM_GETCHECK, 0, 0) == BST_CHECKED) {
+						_this->m_requestShapeUpdates = true;
+				} else {
+					hRemoteCursor = GetDlgItem(hwnd, IDC_CSHAPE_IGNORE_RADIO);
+					if (SendMessage(hRemoteCursor, BM_GETCHECK, 0, 0) == BST_CHECKED) {
+						_this->m_requestShapeUpdates = true;
+						_this->m_ignoreShapeUpdates = true;
+					}
+				}
 
 				EndDialog(hwnd, TRUE);
 				

@@ -98,6 +98,7 @@ public:
 	void CaptureMouse(BYTE *scrBuff, UINT scrBuffSize);
 	RECT MouseRect();
 	void SetCursor(HCURSOR cursor);
+	HCURSOR GetCursor() { return m_hcursor; }
 
 	// Clipboard manipulation
 	void SetClipText(LPSTR text);

@@ -1,3 +1,4 @@
+//  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
 //  This file is part of the VNC system.
@@ -16,6 +17,12 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 //  USA.
+//
+// For the latest source code, please check:
+//
+// http://www.DevelopVNC.org/
+//
+// or send email to: feedback@developvnc.org.
 //
 // If the source code for the VNC system is not available from the place 
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
@@ -88,9 +95,6 @@ vncMenu::vncMenu(vncServer *server)
 		return;
 	}
 
-	// Timer to trigger icon updating
-	SetTimer(m_hwnd, 1, 5000, NULL);
-
 	// record which client created this window
 	SetWindowLong(m_hwnd, GWL_USERDATA, (LONG) this);
 
@@ -102,6 +106,13 @@ vncMenu::vncMenu(vncServer *server)
 	{
 		PostQuitMessage(0);
 		return;
+	}
+
+	// Only enable the timer if the tray icon will be displayed.
+	if ( ! server->GetDisableTrayIcon())
+	{
+		// Timer to trigger icon updating
+		SetTimer(m_hwnd, 1, 5000, NULL);
 	}
 
 	// Load the icons for the tray
@@ -134,7 +145,14 @@ vncMenu::AddTrayIcon()
 {
 	// If the user name is non-null then we have a user!
 	if (strcmp(m_username, "") != 0)
-		SendTrayMsg(NIM_ADD, FALSE);
+	{
+		// Make sure the server has not been configured to
+		// suppress the tray icon.
+		if ( ! m_server->GetDisableTrayIcon())
+		{
+			SendTrayMsg(NIM_ADD, FALSE);
+		}
+	}
 }
 
 void
@@ -254,7 +272,7 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 	case WM_TIMER:
 	    	// *** HACK for running servicified
 		if (vncService::RunningAsService()) {
-		    // Attempt to add the cion if it's not already there
+		    // Attempt to add the icon if it's not already there
 		    _this->AddTrayIcon();
 		    // Trigger a check of the current user
 		    PostMessage(hwnd, WM_USERCHANGED, 0, 0);

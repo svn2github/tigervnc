@@ -232,7 +232,7 @@ vncDesktopThread::run_undetached(void *arg)
 			rect.right = (SHORT) LOWORD(msg.lParam);
 			rect.bottom = (SHORT) HIWORD(msg.lParam);
 if ((rect.left < 0) || (rect.top < 0) || (rect.right > m_desktop->m_bmrect.right) || (rect.bottom > m_desktop->m_bmrect.bottom))
-	log.Print(LL_INTINFO, VNCLOG("update:%d,%dx%d,%d\n"), rect.left, rect.top, rect.right, rect.bottom);
+	log.Print(LL_INTINFO, VNCLOG("update:(%d,%d)-(%d,%d)\n"), rect.left, rect.top, rect.right, rect.bottom);
 
 			rgncache.AddRect(rect);
 //			m_server->UpdateRect(rect);
@@ -944,7 +944,7 @@ vncDesktop::InitBitmap()
 	if (result == 0) {
 		return FALSE;
 	}
-	result = ::GetDIBits(m_hmemdc, m_membitmap,  0, 1, NULL, &m_bminfo.bmi, DIB_RGB_COLORS);
+	result = ::GetDIBits(m_hmemdc, m_membitmap, 0, 1, NULL, &m_bminfo.bmi, DIB_RGB_COLORS);
 	if (result == 0) {
 		return FALSE;
 	}

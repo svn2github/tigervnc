@@ -1,3 +1,4 @@
+//  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
 //  This file is part of the VNC system.
@@ -16,6 +17,12 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 //  USA.
+//
+// For the latest source code, please check:
+//
+// http://www.DevelopVNC.org/
+//
+// or send email to: feedback@developvnc.org.
 //
 // If the source code for the VNC system is not available from the place 
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
@@ -181,6 +188,10 @@ public:
 	virtual BOOL SetLoopbackOnly(BOOL loopbackOnly);
 	virtual BOOL LoopbackOnly();
 
+	// Tray icon disposition
+	virtual BOOL SetDisableTrayIcon(BOOL disableTrayIcon);
+	virtual BOOL GetDisableTrayIcon();
+
 	// CORBA connection handling
 	virtual BOOL CORBAConnect(BOOL on);
 	virtual BOOL CORBAConnected();
@@ -189,6 +200,12 @@ public:
 	// Allow connections if no password is set?
 	virtual void SetAuthRequired(BOOL reqd) {m_passwd_required = reqd;};
 	virtual BOOL AuthRequired() {return m_passwd_required;};
+
+	// Beep on connect/disconnect?
+	virtual void SetBeepConnect(BOOL beepConn) {m_beepConnect = beepConn;};
+	virtual BOOL GetBeepConnect() {return m_beepConnect;};
+	virtual void SetBeepDisconnect(BOOL beepDisconn) {m_beepDisconnect = beepDisconn;};
+	virtual BOOL GetBeepDisconnect() {return m_beepDisconnect;};
 
 	// Handling of per-client connection authorisation
 	virtual void SetAuthHosts(const char *hostlist);
@@ -206,6 +223,8 @@ public:
 	virtual UINT QuerySetting() {return m_querysetting;};
 	virtual void SetQueryTimeout(const UINT setting) {m_querytimeout = setting;};
 	virtual UINT QueryTimeout() {return m_querytimeout;};
+	virtual void SetQueryAccept(const bool setting) {m_queryaccept = setting;};
+	virtual bool QueryAccept() {return m_queryaccept;};
 
 	// Whether or not to allow connections from the local machine
 	virtual void SetLoopbackOk(BOOL ok) {m_loopback_allowed = ok;};
@@ -220,6 +239,7 @@ protected:
 	// Connection servers
 	vncSockConnect		*m_socketConn;
 	vncCorbaConnect		*m_corbaConn;
+	vncHTTPConnect		*m_httpConn;
 
 	// The desktop handler
 	vncDesktop			*m_desktop;
@@ -231,13 +251,17 @@ protected:
 	BOOL				m_passwd_required;
 	BOOL				m_loopback_allowed;
 	BOOL				m_loopbackOnly;
+	BOOL				m_disableTrayIcon;
 	char				*m_auth_hosts;
 	BOOL				m_enable_remote_inputs;
 	BOOL				m_disable_local_inputs;
 	int					m_lock_on_exit;
 	int					m_connect_pri;
+	BOOL				m_beepConnect;
+	BOOL				m_beepDisconnect;
 	UINT				m_querysetting;
 	UINT				m_querytimeout;
+	bool				m_queryaccept;
 
 	// Polling preferences
 	BOOL				m_poll_fullscreen;

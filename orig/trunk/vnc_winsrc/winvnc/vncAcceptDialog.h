@@ -36,7 +36,9 @@ class vncAcceptDialog
 public:
 
 	// Create an outgoing-connection dialog
-	vncAcceptDialog(UINT timeoutSecs, const char *ipAddress);
+	vncAcceptDialog(UINT timeoutSecs,
+					bool acceptOnTimeout,
+					const char *ipAddress);
 
 	// Destructor
 	virtual ~vncAcceptDialog();
@@ -62,6 +64,10 @@ private:
 
 	// Address of the offending machine
 	char *m_ipAddress;
+
+	// Whether to accept or reject on default/timeout
+	bool m_acceptOnTimeout;
+
 };
 
 #endif

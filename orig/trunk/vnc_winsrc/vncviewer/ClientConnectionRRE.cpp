@@ -26,7 +26,7 @@
 // If the source code for the VNC system is not available from the place 
 // whence you received this file, check http://www.uk.research.att.com/vnc or 
 // contact the authors on vnc@uk.research.att.com for information on obtaining it.
-//
+
 // RRE (Rising Rectangle Encoding)
 //
 // The bits of the ClientConnection object to do with RRE.
@@ -58,18 +58,21 @@ void ClientConnection::ReadRRERect(rfbFramebufferUpdateRectHeader *pfburh)
             color = COLOR_FROM_PIXEL32_ADDRESS(pcolor); break;
     }
 
-	// No other threads can use bitmap DC
-	omni_mutex_lock l(m_bitmapdcMutex);
-	ObjectSelector b(m_hBitmapDC, m_hBitmap);
-	PaletteSelector ps(m_hBitmapDC, m_hPalette);
-		
 	// Draw the background of the rectangle
-	FillSolidRect(pfburh->r.x, pfburh->r.y, pfburh->r.w, pfburh->r.h, color);
-	
+	{
+		omni_mutex_lock l(m_bitmapdcMutex);
+		ObjectSelector b(m_hBitmapDC, m_hBitmap);
+		PaletteSelector ps(m_hBitmapDC, m_hPalette);
+
+		FillSolidRect(pfburh->r.x, pfburh->r.y, pfburh->r.w, pfburh->r.h, color);
+	}
+		
     if (prreh->nSubrects == 0) return;
 	
 	// Draw the sub-rectangles
-    rfbRectangle rect, *pRect;
+	rfbRectangle *pRect;
+    rfbRectangle rect;
+
 	// The size of an RRE subrect including color info
 	int subRectSize = m_minPixelBytes + sz_rfbRectangle;
     
@@ -77,6 +80,12 @@ void ClientConnection::ReadRRERect(rfbFramebufferUpdateRectHeader *pfburh)
 	CheckBufferSize(subRectSize * prreh->nSubrects);
     ReadExact(m_netbuf, subRectSize * prreh->nSubrects);
 	BYTE *p = (BYTE *) m_netbuf;
+
+	// No other threads can use bitmap DC
+	omni_mutex_lock l(m_bitmapdcMutex);
+	ObjectSelector b(m_hBitmapDC, m_hBitmap);
+	PaletteSelector ps(m_hBitmapDC, m_hPalette);
+
 	for (CARD32 i = 0; i < prreh->nSubrects; i++) {
 		pRect = (rfbRectangle *) (p + m_minPixelBytes);
 		
@@ -95,6 +104,6 @@ void ClientConnection::ReadRRERect(rfbFramebufferUpdateRectHeader *pfburh)
 		rect.h = Swap16IfLE(pRect->h);
 		
 		FillSolidRect(rect.x, rect.y, rect.w, rect.h, color);
-		p+=subRectSize;
+		p += subRectSize;
 	}
 }

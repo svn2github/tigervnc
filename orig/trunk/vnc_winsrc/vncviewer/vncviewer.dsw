@@ -3,6 +3,18 @@ Microsoft Developer Studio Workspace File, Format Version 6.00
 
 ###############################################################################
 
+Project: "libjpeg"=".\jpeg-6b\libjpeg\libjpeg.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "omnithread"=.\omnithread\omnithread.dsp - Package Owner=<4>
 
 Package=<5>
@@ -28,6 +40,9 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name zlib
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libjpeg
     End Project Dependency
 }}}
 

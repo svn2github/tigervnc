@@ -79,6 +79,8 @@ public:
 	BOOL SetLocalFormat(rfbPixelFormat &pixformat, int width, int height);
 	BOOL SetRemoteFormat(rfbPixelFormat &pixformat);
 	BOOL SetCompressLevel(UINT level);
+	BOOL SetQualityLevel(UINT level);
+	BOOL EnableLastRect(BOOL enable) { m_use_lastrect = enable; }
 
 	// Colour map handling
 	BOOL GetRemotePalette(RGBQUAD *quadlist, UINT ncolours);
@@ -100,6 +102,8 @@ protected:
 	int					encodedSize;			// Total size of encoded data
 	int					transmittedSize;		// Total amount of data sent
 	int					m_compresslevel;		// Encoding-specific compression level (if needed).
+	int					m_qualitylevel;			// Image quality level for lossy compression.
+	BOOL				m_use_lastrect;			// LastRect pseudo-encoding allowed.
 };
 
 #endif // vncENCODER_DEFINED

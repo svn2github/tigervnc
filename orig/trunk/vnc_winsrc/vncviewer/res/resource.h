@@ -50,8 +50,14 @@
 #define IDC_SCALING                     1030
 #define IDC_SCALE_NUM                   1031
 #define IDC_SCALE_DEN                   1032
-#define IDC_COMPRESSLEVEL               1034
+#define IDC_CSHAPE_DISABLE_RADIO        1033
+#define IDC_QUALITYLEVEL                1034
+#define IDC_COMPRESSLEVEL               1035
+#define IDC_CSHAPE_ENABLE_RADIO         1036
+#define IDC_CSHAPE_IGNORE_RADIO         1037
 #define ID_SESSION_SET_CRECT            32777
+#define IDC_ALLOW_COMPRESSLEVEL         32778
+#define IDC_ALLOW_JPEG                  32779
 #define ID_SESSION_SWAPMOUSE            32785
 #define ID_CLOSEDAEMON                  40001
 #define ID_SHOWWINDOW                   40004
@@ -64,7 +70,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        155
 #define _APS_NEXT_COMMAND_VALUE         40010
-#define _APS_NEXT_CONTROL_VALUE         1035
+#define _APS_NEXT_CONTROL_VALUE         1041
 #define _APS_NEXT_SYMED_VALUE           154
 #endif
 #endif

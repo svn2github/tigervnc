@@ -1,3 +1,4 @@
+//  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
 //  This file is part of the VNC system.
@@ -77,11 +78,13 @@ VNCviewerApp32::VNCviewerApp32(HINSTANCE hInstance, PSTR szCmdLine) :
 
 void VNCviewerApp32::NewConnection() {
 	bool keepTrying = true;
+	int retries = 0;
 	ClientConnection *pcc;
 	ClientConnection *old_pcc;
 
 	pcc = new ClientConnection(this);
-	while ( keepTrying ) {
+	while (( keepTrying ) &&
+		   ( retries < MAX_AUTH_RETRIES )) {
 		try {
 			pcc->Run();
 			keepTrying = false;
@@ -98,17 +101,24 @@ void VNCviewerApp32::NewConnection() {
 			delete pcc;
 			keepTrying = false;
 		}
+		retries++;
+	}
+	// If too many retries, cleanup the last connection.
+	if ( retries >= MAX_AUTH_RETRIES ) {
+		delete pcc;
 	}
 
 }
 
 void VNCviewerApp32::NewConnection(TCHAR *host, int port) {
 	bool keepTrying = true;
+	int retries = 0;
 	ClientConnection *pcc;
 	ClientConnection *old_pcc;
 
 	pcc = new ClientConnection(this, host, port);
-	while ( keepTrying ) {
+	while (( keepTrying ) &&
+		   ( retries < MAX_AUTH_RETRIES )) {
 		try {
 			pcc->Run();
 			keepTrying = false;
@@ -125,17 +135,24 @@ void VNCviewerApp32::NewConnection(TCHAR *host, int port) {
 			delete pcc;
 			keepTrying = false;
 		}
+		retries++;
+	}
+	// If too many retries, cleanup the last connection.
+	if ( retries >= MAX_AUTH_RETRIES ) {
+		delete pcc;
 	}
 
 }
 
 void VNCviewerApp32::NewConnection(SOCKET sock) {
 	bool keepTrying = true;
+	int retries = 0;
 	ClientConnection *pcc;
 	ClientConnection *old_pcc;
 
 	pcc = new ClientConnection(this, sock);
-	while ( keepTrying ) {
+	while (( keepTrying ) &&
+		   ( retries < MAX_AUTH_RETRIES )) {
 		try {
 			pcc->Run();
 			keepTrying = false;
@@ -152,6 +169,11 @@ void VNCviewerApp32::NewConnection(SOCKET sock) {
 			delete pcc;
 			keepTrying = false;
 		}
+		retries++;
+	}
+	// If too many retries, cleanup the last connection.
+	if ( retries >= MAX_AUTH_RETRIES ) {
+		delete pcc;
 	}
 
 }

@@ -1,3 +1,4 @@
+//  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
 //  This file is part of the VNC system.
@@ -27,7 +28,9 @@
 class VNCviewerApp;
 
 // I doubt we'll ever want more simultaneous connections than this
-#define MAX_CONNECTIONS 128
+#define MAX_CONNECTIONS    (128)
+
+#define MAX_AUTH_RETRIES   (3)
 
 #include "ClientConnection.h"
 

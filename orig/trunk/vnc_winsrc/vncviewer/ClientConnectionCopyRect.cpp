@@ -41,6 +41,10 @@ void ClientConnection::ReadCopyRect(rfbFramebufferUpdateRectHeader *pfburh) {
 	cr.srcX = Swap16IfLE(cr.srcX); 
 	cr.srcY = Swap16IfLE(cr.srcY);
 
+	// If *Cursor encoding is used, we should extend our "cursor lock area"
+	// (previously set to destination rectangle) to the source rect as well.
+	SoftCursorLockArea(cr.srcX, cr.srcY, pfburh->r.w, pfburh->r.h);
+
 	omni_mutex_lock l(m_bitmapdcMutex);									  
 	ObjectSelector b(m_hBitmapDC, m_hBitmap);							  
 	PaletteSelector p(m_hBitmapDC, m_hPalette);							  

@@ -51,6 +51,8 @@ vncEncoder::vncEncoder()
 	m_localpalette = NULL;
 	m_bytesPerRow = 0;
 	m_compresslevel = 6;
+	m_qualitylevel = -1;
+	m_use_lastrect = FALSE;
 }
 
 vncEncoder::~vncEncoder()
@@ -405,6 +407,21 @@ vncEncoder::SetRemoteFormat(rfbPixelFormat &pixformat)
 BOOL
 vncEncoder::SetCompressLevel(UINT level)
 {
-	m_compresslevel = level;
+	if (level >= 0 && level <= 9) {
+		m_compresslevel = level;
+	} else {
+		m_compresslevel = 6;
+	}
+	return true;
+}
+
+BOOL
+vncEncoder::SetQualityLevel(UINT level)
+{
+	if (level >= 0 && level <= 9) {
+		m_qualitylevel = level;
+	} else {
+		m_qualitylevel = -1;
+	}
 	return true;
 }

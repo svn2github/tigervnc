@@ -77,7 +77,12 @@ public:
 	int     m_localCursor;
 	bool	m_scaling;
 	int		m_scale_num, m_scale_den; // Numerator & denominator
+	bool	m_useCompressLevel;
 	int		m_compressLevel;
+	bool	m_enableJpegCompression;
+	int		m_jpegQualityLevel;
+	bool	m_requestShapeUpdates;
+	bool	m_ignoreShapeUpdates;
 
 	// Keyboard can be specified on command line as 8-digit hex
 	TCHAR	m_kbdname[9];

@@ -1,3 +1,4 @@
+//  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
 //  This file is part of the VNC system.
@@ -84,6 +85,7 @@ BOOL CALLBACK AuthDialog::DlgProc(  HWND hwnd,  UINT uMsg,
 			}
 		case IDCANCEL:
 			EndDialog(hwnd, FALSE);
+			throw QuietException("User canceled connection.");
 			return TRUE;
 		}
 		break;

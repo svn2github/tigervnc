@@ -1,3 +1,4 @@
+//  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
 //  This file is part of the VNC system.
@@ -105,10 +106,13 @@ protected:
 	BOOL m_pref_SockConnect;
 	BOOL m_pref_AutoPortSelect;
 	LONG m_pref_PortNumber;
+	BOOL m_pref_BeepConnect;
+	BOOL m_pref_BeepDisconnect;
 	char m_pref_passwd[MAXPWLEN];
 	BOOL m_pref_CORBAConn;
 	UINT m_pref_QuerySetting;
 	UINT m_pref_QueryTimeout;
+	BOOL m_pref_QueryAccept;
 	BOOL m_pref_EnableRemoteInputs;
 	int m_pref_LockSettings;
 	BOOL m_pref_DisableLocalInputs;

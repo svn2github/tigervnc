@@ -1,3 +1,4 @@
+//  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
 //  This file is part of the VNC system.
@@ -679,6 +680,9 @@ vncProperties::Load(BOOL usersettings)
 	log.SetMode(LoadInt(hkLocal, "DebugMode", 0));
 	log.SetLevel(LoadInt(hkLocal, "DebugLevel", 0));
 
+	// Disable Tray Icon
+	m_server->SetDisableTrayIcon(LoadInt(hkLocal, "DisableTrayIcon", false));
+
 	// Authentication required, loopback allowed, loopbackOnly
 	m_server->SetLoopbackOnly(LoadInt(hkLocal, "LoopbackOnly", false));
 	if (m_server->LoopbackOnly())
@@ -713,6 +717,7 @@ vncProperties::Load(BOOL usersettings)
 	}
 	m_pref_QuerySetting=2;
 	m_pref_QueryTimeout=30;
+	m_pref_QueryAccept=FALSE;
 	m_pref_EnableRemoteInputs=TRUE;
 	m_pref_DisableLocalInputs=FALSE;
 	m_pref_LockSettings=-1;
@@ -787,10 +792,13 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	m_pref_SockConnect=LoadInt(appkey, "SocketConnect", m_pref_SockConnect);
 	m_pref_AutoPortSelect=LoadInt(appkey, "AutoPortSelect", m_pref_AutoPortSelect);
 	m_pref_PortNumber=LoadInt(appkey, "PortNumber", m_pref_PortNumber);
+	m_pref_BeepConnect=LoadInt(appkey, "BeepConnect", m_pref_BeepConnect);
+	m_pref_BeepDisconnect=LoadInt(appkey, "BeepDisconnect", m_pref_BeepDisconnect);
 
 	// Connection querying settings
 	m_pref_QuerySetting=LoadInt(appkey, "QuerySetting", m_pref_QuerySetting);
 	m_pref_QueryTimeout=LoadInt(appkey, "QueryTimeout", m_pref_QueryTimeout);
+	m_pref_QueryAccept=LoadInt(appkey, "QueryAccept", m_pref_QueryAccept);
 
 	// Load the password
 	LoadPassword(appkey, m_pref_passwd);
@@ -819,6 +827,7 @@ vncProperties::ApplyUserPrefs()
 	// Update the connection querying settings
 	m_server->SetQuerySetting(m_pref_QuerySetting);
 	m_server->SetQueryTimeout(m_pref_QueryTimeout);
+	m_server->SetQueryAccept(m_pref_QueryAccept);
 
 	// Is the listening socket closing?
 	if (!m_pref_SockConnect)
@@ -838,6 +847,10 @@ vncProperties::ApplyUserPrefs()
 	if (!m_pref_AutoPortSelect)
 		m_server->SetPort(m_pref_PortNumber);
 	m_server->SockConnect(m_pref_SockConnect);
+
+	// Set the beep options
+	m_server->SetBeepConnect(m_pref_BeepConnect);
+	m_server->SetBeepDisconnect(m_pref_BeepDisconnect);
 	
 	// Set the CORBA connection status
 	m_server->CORBAConnect(m_pref_CORBAConn);

@@ -1,3 +1,4 @@
+//  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
 //  This file is part of the VNC system.
@@ -33,9 +34,12 @@
 
 // Constructor
 
-vncAcceptDialog::vncAcceptDialog(UINT timeoutSecs, const char *ipAddress)
+vncAcceptDialog::vncAcceptDialog(UINT timeoutSecs,
+								 bool acceptOnTimeout,
+								 const char *ipAddress)
 {
 	m_timeoutSecs = timeoutSecs;
+	m_acceptOnTimeout = acceptOnTimeout;
 	m_ipAddress = strdup(ipAddress);
 }
 
@@ -88,19 +92,29 @@ BOOL CALLBACK vncAcceptDialog::vncAcceptDlgProc(HWND hwnd,
 
 			MessageBeep(MB_OK);
             
-            // Return success!
-			return TRUE;
+            // Return false to prevent accept button from gaining
+			// focus.
+			return FALSE;
 		}
 
 		// Timer event
 	case WM_TIMER:
-		if ((_this->m_timeoutCount) == 0)
-			EndDialog(hwnd, IDREJECT);
+		if ((_this->m_timeoutCount) == 0) {
+			if ( _this->m_acceptOnTimeout ) {
+				EndDialog(hwnd, IDACCEPT);
+			} else {
+				EndDialog(hwnd, IDREJECT);
+			}
+		}
 		_this->m_timeoutCount--;
 
 		// Update the displayed count
 		char temp[256];
-		sprintf(temp, "AutoReject:%u", (_this->m_timeoutCount));
+		if ( _this->m_acceptOnTimeout ) {
+			sprintf(temp, "Auto-ACCEPT:%u", (_this->m_timeoutCount));
+		} else {
+			sprintf(temp, "Auto-REJECT:%u", (_this->m_timeoutCount));
+		}
 		SetDlgItemText(hwnd, IDC_ACCEPT_TIMEOUT, temp);
 		break;
 

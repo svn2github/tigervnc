@@ -149,6 +149,10 @@ void ClientConnection::Init(VNCviewerApp *pApp)
 	for (int i = 0; i < 4; i++)
 		m_tightZlibStreamActive[i] = false;
 
+	prevCursorSet = false;
+	rcCursorX = 0;
+	rcCursorY = 0;
+
 	// Create a buffer for various network operations
 	CheckBufferSize(INITIALNETBUFSIZE);
 
@@ -781,21 +785,30 @@ void ClientConnection::SetFormatAndEncodings()
 		}
 	}
 
-
 	// Request desired compression level if applicable
-	if ( useCompressLevel &&
+	if ( useCompressLevel && m_opts.m_useCompressLevel &&
 		 m_opts.m_compressLevel >= 0 &&
 		 m_opts.m_compressLevel <= 9) {
 		encs[se->nEncodings++] = Swap32IfLE( rfbEncodingCompressLevel0 +
 											 m_opts.m_compressLevel );
 	}
 
+	// Request cursor shape updates if enabled by user
+	if (m_opts.m_requestShapeUpdates) {
+		encs[se->nEncodings++] = Swap32IfLE(rfbEncodingXCursor);
+		encs[se->nEncodings++] = Swap32IfLE(rfbEncodingRichCursor);
+	}
 
-	// Request XCursor encoding
-	// FIXME: Request this only if not disabled by user
-	// FIXME: Re-request after connection options have been changed
-	// FIXME: Request RichCursor encoding as well
-	encs[se->nEncodings++] = Swap32IfLE(rfbEncodingXCursor);
+	// Request JPEG quality level if JPEG compression was enabled by user
+	if ( m_opts.m_enableJpegCompression &&
+		 m_opts.m_jpegQualityLevel >= 0 &&
+		 m_opts.m_jpegQualityLevel <= 9) {
+		encs[se->nEncodings++] = Swap32IfLE( rfbEncodingQualityLevel0 +
+											 m_opts.m_jpegQualityLevel );
+	}
+
+	// Notify the server that we support LastRect markers
+	encs[se->nEncodings++] = Swap32IfLE(rfbEncodingLastRect);
 
 	len = sz_rfbSetEncodingsMsg + se->nEncodings * 4;
 
@@ -1466,6 +1479,7 @@ ClientConnection::SendPointerEvent(int x, int y, int buttonMask)
     pe.buttonMask = buttonMask;
     if (x < 0) x = 0;
     if (y < 0) y = 0;
+	SoftCursorMove(x, y);
     pe.x = Swap16IfLE(x);
     pe.y = Swap16IfLE(y);
 	WriteExact((char *)&pe, sz_rfbPointerEventMsg);
@@ -1872,12 +1886,26 @@ void ClientConnection::ReadScreenUpdate() {
 
 		rfbFramebufferUpdateRectHeader surh;
 		ReadExact((char *) &surh, sz_rfbFramebufferUpdateRectHeader);
+
+		surh.encoding = Swap32IfLE(surh.encoding);
+		if (surh.encoding == rfbEncodingLastRect)
+			break;
+
 		surh.r.x = Swap16IfLE(surh.r.x);
 		surh.r.y = Swap16IfLE(surh.r.y);
 		surh.r.w = Swap16IfLE(surh.r.w);
 		surh.r.h = Swap16IfLE(surh.r.h);
-		surh.encoding = Swap32IfLE(surh.encoding);
 		
+		if ( surh.encoding == rfbEncodingXCursor ||
+			 surh.encoding == rfbEncodingRichCursor ) {
+			ReadCursorShape(&surh);
+			continue;
+		}
+
+		// If *Cursor encoding is used, we should prevent collisions
+		// between framebuffer updates and cursor drawing operations.
+		SoftCursorLockArea(surh.r.x, surh.r.y, surh.r.w, surh.r.h);
+
 		switch (surh.encoding) {
 		case rfbEncodingRaw:
 			ReadRawRect(&surh);
@@ -1902,12 +1930,6 @@ void ClientConnection::ReadScreenUpdate() {
 			break;
 		case rfbEncodingZlibHex:
 			ReadZlibHexRect(&surh);
-			break;
-		case rfbEncodingXCursor:
-			ReadXCursorShape(&surh);
-			break;
-		case rfbEncodingRichCursor:
-			ReadRichCursorShape(&surh);
 			break;
 		default:
 			log.Print(0, _T("Unknown encoding %d - not supported!\n"), surh.encoding);
@@ -1940,7 +1962,13 @@ void ClientConnection::ReadScreenUpdate() {
 			rect.bottom = rect.top  + surh.r.h;
 		}
 		InvalidateRect(m_hwnd, &rect, FALSE);
+
+		// Now we may discard "soft cursor locks".
+		SoftCursorUnlockScreen();
 	}	
+
+
+
 	// Inform the other thread that an update is needed.
 	PostMessage(m_hwnd, WM_REGIONUPDATED, NULL, NULL);
 }	

@@ -24,9 +24,8 @@
 // or send email to: feedback@developvnc.org.
 //
 // If the source code for the VNC system is not available from the place 
-// whence you received this file, check http://www.uk.research.att.com/vnc or contact
-// the authors on vnc@uk.research.att.com for information on obtaining it.
-
+// whence you received this file, check http://www.uk.research.att.com/vnc or
+// contact the authors on vnc@uk.research.att.com for information on obtaining it.
 
 // CoRRE (Compact Rising Rectangle Encoding)
 //
@@ -35,7 +34,6 @@
 #include "stdhdrs.h"
 #include "vncviewer.h"
 #include "ClientConnection.h"
-
 
 void ClientConnection::ReadCoRRERect(rfbFramebufferUpdateRectHeader *pfburh)
 {
@@ -49,7 +47,6 @@ void ClientConnection::ReadCoRRERect(rfbFramebufferUpdateRectHeader *pfburh)
 	prreh->nSubrects = Swap32IfLE(prreh->nSubrects);
 
 	SETUP_COLOR_SHORTCUTS;
-
     COLORREF color;
     switch (m_myFormat.bitsPerPixel) {
         case 8:
@@ -62,7 +59,13 @@ void ClientConnection::ReadCoRRERect(rfbFramebufferUpdateRectHeader *pfburh)
     }
 
     // Draw the background of the rectangle
-    FillSolidRect(pfburh->r.x, pfburh->r.y, pfburh->r.w, pfburh->r.h, color);
+	{
+		omni_mutex_lock l(m_bitmapdcMutex);
+		ObjectSelector b(m_hBitmapDC, m_hBitmap);
+		PaletteSelector ps(m_hBitmapDC, m_hPalette);
+
+		FillSolidRect(pfburh->r.x, pfburh->r.y, pfburh->r.w, pfburh->r.h, color);
+	}
 
     if (prreh->nSubrects == 0) return;
 
@@ -78,32 +81,29 @@ void ClientConnection::ReadCoRRERect(rfbFramebufferUpdateRectHeader *pfburh)
     ReadExact(m_netbuf, subRectSize * prreh->nSubrects);
 	BYTE *p = (BYTE *) m_netbuf;
 
-	{
-		omni_mutex_lock l(m_bitmapdcMutex);									  \
-		ObjectSelector b(m_hBitmapDC, m_hBitmap);							  \
-		PaletteSelector ps(m_hBitmapDC, m_hPalette);							  \
+	// No other threads can use bitmap DC
+	omni_mutex_lock l(m_bitmapdcMutex);
+	ObjectSelector b(m_hBitmapDC, m_hBitmap);
+	PaletteSelector ps(m_hBitmapDC, m_hPalette);
 
-		for (CARD32 i = 0; i < prreh->nSubrects; i++) {
+	for (CARD32 i = 0; i < prreh->nSubrects; i++) {
+		pRect = (rfbCoRRERectangle *) (p + m_minPixelBytes);
 			
-			pRect = (rfbCoRRERectangle *) (p + m_minPixelBytes);
+		switch (m_myFormat.bitsPerPixel) {
+		case 8:
+			color = COLOR_FROM_PIXEL8_ADDRESS(p); break;
+		case 16:
+			color = COLOR_FROM_PIXEL16_ADDRESS(p); break;
+		case 32:
+			color = COLOR_FROM_PIXEL32_ADDRESS(p); break;
+		};
 			
-			switch (m_myFormat.bitsPerPixel) {
-			case 8:
-				color = COLOR_FROM_PIXEL8_ADDRESS(p); break;
-			case 16:
-				color = COLOR_FROM_PIXEL16_ADDRESS(p); break;
-			case 32:
-				color = COLOR_FROM_PIXEL32_ADDRESS(p); break;
-			};
-			
-			// color = COLOR_FROM_PIXEL8_ADDRESS(netbuf);
-			rect.x = pRect->x + pfburh->r.x;
-			rect.y = pRect->y + pfburh->r.y;
-			rect.w = pRect->w;
-			rect.h = pRect->h;
-			FillSolidRect(rect.x, rect.y, rect.w, rect.h, color);
-			p+=subRectSize;
-		}
+		rect.x = pRect->x + pfburh->r.x;
+		rect.y = pRect->y + pfburh->r.y;
+		rect.w = pRect->w;
+		rect.h = pRect->h;
+
+		FillSolidRect(rect.x, rect.y, rect.w, rect.h, color);
+		p += subRectSize;
 	}
-
 }

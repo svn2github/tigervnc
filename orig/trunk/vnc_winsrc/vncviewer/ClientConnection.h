@@ -41,6 +41,9 @@
 #include "VNCviewerApp.h"
 #include "KeyMap.h"
 #include "zlib/zlib.h"
+extern "C" {
+#include "libjpeg/jpeglib.h"
+}
 
 #define SETTINGS_KEY_NAME "Software\\ORL\\VNCviewer\\Settings"
 #define MAX_HOST_NAME_LEN 250
@@ -127,6 +130,7 @@ private:
 
 	// ClientConnectionTight.cpp
 	void ReadTightRect(rfbFramebufferUpdateRectHeader *pfburh);
+	int ReadCompactLen();
 	int InitFilterCopy (int rw, int rh);
 	int InitFilterGradient (int rw, int rh);
 	int InitFilterPalette (int rw, int rh);
@@ -139,6 +143,7 @@ private:
 	void FilterGradient24 (int numRows);
 	void FilterGradient32 (int numRows);
 	void FilterPalette (int numRows);
+	void DecompressJpegRect(int x, int y, int w, int h);
 
 	// ClientConnectionZlibHex.cpp
 	void HandleZlibHexEncoding8(int x, int y, int w, int h);
@@ -160,9 +165,26 @@ private:
 	BOOL DrawRBSRect32(int x, int y, int w, int h, CARD8 **pptr);
 
 	// ClientConnectionCursor.cpp
-	void ReadXCursorShape(rfbFramebufferUpdateRectHeader *pfburh);
-	void ReadRichCursorShape(rfbFramebufferUpdateRectHeader *pfburh);
-	void SetDefaultCursor();
+	bool prevCursorSet;
+	HDC m_hSavedAreaDC;
+	HBITMAP m_hSavedAreaBitmap;
+	COLORREF *rcSource;
+	bool *rcMask;
+	int rcHotX, rcHotY, rcWidth, rcHeight;
+	int rcCursorX, rcCursorY;
+	int rcLockX, rcLockY, rcLockWidth, rcLockHeight;
+	bool rcCursorHidden, rcLockSet;
+
+	void ReadCursorShape(rfbFramebufferUpdateRectHeader *pfburh);
+	void SoftCursorLockArea(int x, int y, int w, int h);
+	void SoftCursorUnlockScreen();
+	void SoftCursorMove(int x, int y);
+	void SoftCursorFree();
+	bool SoftCursorInLockedArea();
+	void SoftCursorSaveArea();
+	void SoftCursorRestoreArea();
+	void SoftCursorDraw();
+	void SoftCursorToScreen(RECT *screenArea, POINT *cursorOffset);
 
 	// ClientConnectionFullScreen.cpp
 	void SetFullScreenMode(bool enable);
@@ -234,7 +256,7 @@ private:
 	z_stream m_decompStreamRaw;
 	z_stream m_decompStreamEncoded;
 
-	// Valiables used by tight encoding:
+	// Variables used by tight encoding:
 
 	// Separate buffer for tight-compressed data.
 	char m_tightbuf[TIGHT_ZLIB_BUFFER_SIZE];

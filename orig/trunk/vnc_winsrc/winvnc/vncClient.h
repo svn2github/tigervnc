@@ -113,9 +113,20 @@ protected:
 	BOOL SendRectangles(rectlist &rects);
 	BOOL SendRectangle(RECT &rect);
 	BOOL SendCopyRect(RECT &dest, POINT &source);
+	BOOL SendLastRect();
 	BOOL SendPalette();
 
 	void PollWindow(HWND hwnd);
+
+	// Support for cursor shape updates
+protected:
+	void CheckCursorShape();
+	BOOL IsCursorShapeGood();
+	BOOL SendCursorShape();
+	BOOL SendEmptyCursorShape(CARD32 encoding);
+	BOOL SendCursorShapeData(int xhot, int yhot, int width, int height,
+							 int bytesPixel, BYTE *maskData, BYTE *colorData,
+							 CARD32 encoding);
 
 	// Internal stuffs
 protected:
@@ -148,6 +159,12 @@ protected:
 	BOOL			m_mousemoved;
 	rfbPointerEventMsg	m_ptrevent;
 	vncKeymap		m_keymap;
+
+	// Support for cursor shape updates
+	BOOL			m_xcursor_enabled;
+	BOOL			m_xcursor_active;
+	BOOL			m_xcursor_pending;
+	HCURSOR			m_hcursor;
 
 	// Region structures used when preparing updates
 	// - region of rects which may have changed since last update

@@ -35,14 +35,13 @@ class vncEncodeTight;
 #include "vncEncoder.h"
 
 #include "zlib/zlib.h"
+extern "C" {
+#include "libjpeg/jpeglib.h"
+}
 
 // Minimum amount of data to be compressed. This value should not be
 // changed, doing so will break compatibility with existing clients.
 #define TIGHT_MIN_TO_COMPRESS 12
-
-// Default compression level for the tight encoder (1..9). This value
-// may be changed.
-#define TIGHT_DEFAULT_COMPRESSION  6
 
 // C-style structures to store palette entries and compression paramentes.
 // Such code probably should be converted into C++ classes.
@@ -70,6 +69,7 @@ struct TIGHT_CONF {
 	int idxZlibLevel, monoZlibLevel, rawZlibLevel, gradientZlibLevel;
 	int gradientThreshold, gradientThreshold24;
 	int idxMaxColorsDivisor;
+	int jpegQuality, jpegThreshold, jpegThreshold24;
 };
 
 
@@ -116,15 +116,30 @@ protected:
 
 	// Protected member functions.
 
+	void FindBestSolidArea(BYTE *source, int x, int y, int w, int h,
+						   CARD32 colorValue, int *w_ptr, int *h_ptr);
+	bool CheckSolidTile   (BYTE *source, int x, int y, int w, int h,
+						   CARD32 *colorPtr, bool needSameColor);
+	bool CheckSolidTile8  (BYTE *source, int x, int y, int w, int h,
+						   CARD32 *colorPtr, bool needSameColor);
+	bool CheckSolidTile16 (BYTE *source, int x, int y, int w, int h,
+						   CARD32 *colorPtr, bool needSameColor);
+	bool CheckSolidTile32 (BYTE *source, int x, int y, int w, int h,
+						   CARD32 *colorPtr, bool needSameColor);
+
+	UINT EncodeRectDumb(BYTE *source, VSocket *outConn, BYTE *dest,
+						const RECT &rect);
 	UINT EncodeSubrect(BYTE *source, VSocket *outConn, BYTE *dest,
 					   int x, int y, int w, int h);
-	int SendSolidRect(BYTE *dest, int w, int h);
+	void SendTightHeader(int x, int y, int w, int h);
+	int SendSolidRect(BYTE *dest);
 	int SendMonoRect(BYTE *dest, int w, int h);
 	int SendIndexedRect(BYTE *dest, int w, int h);
 	int SendFullColorRect(BYTE *dest, int w, int h);
 	int SendGradientRect(BYTE *dest, int w, int h);
 	int CompressData(BYTE *dest, int streamId, int dataLen,
 					 int zlibLevel, int zlibStrategy);
+	int SendCompressedData(int compressedLen);
 
 	void FillPalette8(int count);
 	void FillPalette16(int count);
@@ -147,9 +162,15 @@ protected:
 	void FilterGradient32(CARD32 *buf, int w, int h);
 
 	int DetectStillImage (int w, int h);
-	int DetectStillImage24 (int w, int h);
-	int DetectStillImage16 (int w, int h);
-	int DetectStillImage32 (int w, int h);
+	unsigned long DetectStillImage24 (int w, int h);
+	unsigned long DetectStillImage16 (int w, int h);
+	unsigned long DetectStillImage32 (int w, int h);
+
+	int SendJpegRect(BYTE *dst, int w, int h, int quality);
+	void PrepareRowForJpeg(BYTE *dst, int y, int w);
+	void PrepareRowForJpeg24(BYTE *dst, CARD32 *src, int count);
+	void PrepareRowForJpeg16(BYTE *dst, CARD16 *src, int count);
+	void PrepareRowForJpeg32(BYTE *dst, CARD32 *src, int count);
 };
 
 #endif // _WINVNC_ENCODETIGHT

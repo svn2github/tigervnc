@@ -304,7 +304,7 @@ void ClientConnection::Run()
 	start_undetached();
 }
 
-static WNDCLASS wndclass;
+static WNDCLASS wndclass;	// FIXME!
 
 void ClientConnection::CreateDisplay() 
 {
@@ -899,10 +899,10 @@ void ClientConnection::Authenticate(CARD32 authScheme)
 
 	switch(authScheme) {
 	case rfbVncAuth:
-		authFuncPtr = AuthenticateVNC;
+		authFuncPtr = &ClientConnection::AuthenticateVNC;
 		break;
 	case rfbUnixLoginAuth:
-		authFuncPtr = AuthenticateUnixLogin;
+		authFuncPtr = &ClientConnection::AuthenticateUnixLogin;
 		break;
 	default:
 		vnclog.Print(0, _T("Unknown authentication scheme: %d\n"),
@@ -1209,9 +1209,9 @@ void ClientConnection::SizeWindow(bool centered)
 		GetWindowRect(m_hToolbar, &rtb);
 		SetWindowPos(m_hwnd1, HWND_TOP,
 					 (workwidth - m_winwidth1) / 2,
-					 (workheight - min(m_winheight1 + rtb.bottom - rtb.top - 4, workheight)) / 2,
+					 (workheight - min(m_winheight1 + int(rtb.bottom - rtb.top) - 4, workheight)) / 2,
 					 m_winwidth1,
-					 min(m_winheight1 + rtb.bottom - rtb.top - 4, workheight),
+					 min(m_winheight1 + int(rtb.bottom - rtb.top) - 4, workheight),
 					 style);
 	} else {
 		SetWindowPos(m_hwnd1, HWND_TOP, 

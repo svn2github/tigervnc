@@ -256,7 +256,8 @@ int SessionDialog::cmp(HWND hwnd)
 	HWND hCustomRadio = GetDlgItem(hwnd, IDC_CUSTOM_RADIO);
 	HWND hModemRadio = GetDlgItem(hwnd, IDC_MODEM_RADIO);
 	HWND hLocNetRadio = GetDlgItem(hwnd, IDC_LOC_NET_RADIO);
-	for (int i = rfbEncodingRaw; i <= LASTENCODING; i++)
+	int i;
+	for (i = rfbEncodingRaw; i <= LASTENCODING; i++)
 		if ((m_pOpt->m_UseEnc[i] != true) && (i != 3)) a = 0;
 	if (m_pOpt->m_UseEnc[3] != false) a = 0;
 	if (m_pOpt->m_PreferredEncoding != rfbEncodingTight) a = 0;

@@ -5,7 +5,7 @@ CC=bcc32
 RC=brc32
 LD=ilink32
 
-CFLAGS= -v- -O2 -3 -tWM -xd- -q -Iomnithread -w-8057 -w-8004 -w-8066 -w-8027 -w-8012 -w-8022 -DXMD_H
+CFLAGS= -v- -O2 -3 -tWM -xd- -q -Iomnithread -I.. -w-8057 -w-8004 -w-8066 -w-8027 -w-8012 -w-8022 -DXMD_H
 LDFLAGS= /c /Tpe /aa /Gn /B:0x400000
 
 OBJS=d3des.obj vncauth.obj Log.obj MinMax.obj RectList.obj stdhdrs.obj \

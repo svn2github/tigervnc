@@ -251,7 +251,8 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 		}
 	}
 	i++;
-	for (int j = 0; j < i; j++) {
+	int j;
+	for (j = 0; j < i; j++) {
 	TCHAR phost[256];
 	if (ParseDisplay(args[j], phost, 255, &m_port) && (f == 0) &&
 		(_tcsstr( args[j], "/") == NULL))
@@ -259,7 +260,7 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 	}
 	bool hostGiven = false, portGiven = false;
 	// take in order.
-	for ( j = 0; j < i; j++) {
+	for (j = 0; j < i; j++) {
 		if ( SwitchMatch(args[j], _T("help")) ||
 			SwitchMatch(args[j], _T("?")) ||
 			SwitchMatch(args[j], _T("h"))) {
@@ -780,7 +781,8 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 			// Initialise the controls
 			
 			HWND hListBox = GetDlgItem(hwnd, IDC_ENCODING);
-			for (int i = 0; i <= (MAX_LEN_COMBO - 1); i++) {			
+			int i;
+			for (i = 0; i <= (MAX_LEN_COMBO - 1); i++) {			
 				SendMessage(hListBox, CB_INSERTSTRING, 
 							(WPARAM)i, 
 							(LPARAM)(int FAR*)rfbcombo[i].NameString);

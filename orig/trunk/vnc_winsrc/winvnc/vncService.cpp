@@ -530,7 +530,7 @@ vncService::FindWindowByTitle(char *substr)
 }
 
 BOOL
-vncService::SharedWindow(HWND hwndwindow)
+vncService::NewSharedWindow(HWND hwndwindow)
 {
 	
 	// Post to the WinVNC menu window

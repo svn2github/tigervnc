@@ -92,6 +92,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 	}
 
 	BOOL argfound = FALSE;
+	char *connectName = NULL;
+	int connectPort;
+	bool cancelConnect = false;
+
 	for (i = 0; i < strlen(szCmdLine); i++)
 	{
 		if (szCmdLine[i] <= ' ')
@@ -200,56 +204,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 			i += arglen;
 			continue;
 		}
-		if (strncmp(&szCmdLine[i], winvncAddNewClient, arglen) == 0 &&
-			arglen == strlen(winvncAddNewClient))
-		{
-			// Add a new client to an existing copy of winvnc
-			i += arglen;
-
-			// First, we have to parse the command line to get the hostname to use
-			int start, end;
-			start=i;
-			while (szCmdLine[start] && szCmdLine[start] <= ' ') start++;
-			end = start;
-			while (szCmdLine[end] > ' ') end++;
-
-			// Was there a hostname (and optionally a port number) given?
-			if (end-start > 0) {
-				char *name = new char[end-start+1];
-				if (name != NULL) {
-					strncpy(name, &(szCmdLine[start]), end-start);
-					name[end-start] = 0;
-
-					int port = INCOMING_PORT_OFFSET;
-					char *portp = strchr(name, ':');
-					if (portp != NULL) {
-						*portp++ = '\0';
-						if (*portp == ':') {
-							port = atoi(++portp);
-						} else {
-							port += atoi(portp);
-						}
-					}
-
-					VCard32 address = VSocket::Resolve(name);
-					if (address != 0) {
-						// Post the IP address to the server
-						vncService::PostAddNewClient(address, port);
-					}
-					delete [] name;
-				}
-			} else {
-				// Tell the server to show the Add New Client dialog
-				vncService::PostAddNewClient(0, 0);
-			}
-			i = end;
-			continue;
-		}
 		if (strncmp(&szCmdLine[i], winvncShareWindow, arglen) == 0 &&
 			arglen == strlen(winvncShareWindow))
 		{
 			// Find a window to share, by its title
 			i += arglen;
+
+			cancelConnect = true;	// Ignore the -connect option unless
+									// there will be valid window to share
 
 			int start = i, end;
 			while (szCmdLine[start] && szCmdLine[start] <= ' ') start++;
@@ -273,10 +235,52 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 				if (title != NULL) {
 					strncpy(title, &szCmdLine[start], end - start);
 					title[end - start] = 0;
-					vncService::SharedWindow(vncService::FindWindowByTitle(title));
+					HWND hwndFound = vncService::FindWindowByTitle(title);
+					if (hwndFound != NULL)
+						cancelConnect = false;
+					vncService::NewSharedWindow(hwndFound);
 					delete [] title;
 				}
 			}
+			continue;
+		}
+		if (strncmp(&szCmdLine[i], winvncAddNewClient, arglen) == 0 &&
+			arglen == strlen(winvncAddNewClient) && connectName == NULL)
+		{
+			// Add a new client to an existing copy of winvnc
+			i += arglen;
+
+			// First, we have to parse the command line to get the hostname to use
+			int start, end;
+			start=i;
+			while (szCmdLine[start] && szCmdLine[start] <= ' ') start++;
+			end = start;
+			while (szCmdLine[end] > ' ') end++;
+
+			connectName = new char[end-start+1];
+
+			// Was there a hostname (and optionally a port number) given?
+			if (end-start > 0) {
+				if (connectName != NULL) {
+					strncpy(connectName, &(szCmdLine[start]), end-start);
+					connectName[end-start] = 0;
+
+					connectPort = INCOMING_PORT_OFFSET;
+					char *portp = strchr(connectName, ':');
+					if (portp != NULL) {
+						*portp++ = '\0';
+						if (*portp == ':') {
+							connectPort = atoi(++portp);
+						} else {
+							connectPort += atoi(portp);
+						}
+					}
+				}
+			} else {
+				if (connectName != NULL)
+					connectName[0] = '\0';
+			}
+			i = end;
 			continue;
 		}
 
@@ -300,6 +304,22 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 	// If no arguments were given then just run
 	if (!argfound)
 		return WinVNCAppMain();
+
+	// Process the -connect option at the end
+	if (connectName != NULL && !cancelConnect) {
+		if (connectName[0] != '\0') {
+			VCard32 address = VSocket::Resolve(connectName);
+			if (address != 0) {
+				// Post the IP address to the server
+				vncService::PostAddNewClient(address, connectPort);
+			}
+		} else {
+			// Tell the server to show the Add New Client dialog
+			vncService::PostAddNewClient(0, 0);
+		}
+	}
+	if (connectName != NULL)
+		delete[] connectName;
 
 	return 0;
 }

@@ -1319,9 +1319,12 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 					SendMessage(hwnd,WM_SIZE,0,0);
 					return 0;
 				case ID_CONN_SAVE_AS:
+					
 					_this->SaveConnection();
 					return 0;
+					
 				case IDC_OPTIONBUTTON:{ 
+					if (SetForegroundWindow(_this->m_opts.m_hParent) != 0) return 0;
 					int prev_scale_num = _this->m_opts.m_scale_num;
 					int prev_scale_den = _this->m_opts.m_scale_den;
 

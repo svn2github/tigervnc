@@ -689,7 +689,7 @@ BOOL CALLBACK VNCOptions::DlgProc(HWND hwndDlg, UINT uMsg,
             VNCOptions *_this = (VNCOptions *) lParam;
 			InitCommonControls();
 			CentreWindow(hwndDlg);
-			
+			_this->m_hParent = hwndDlg;
 			RECT rc;
 			TCITEM item;
 			

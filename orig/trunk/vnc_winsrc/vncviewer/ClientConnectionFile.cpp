@@ -55,13 +55,16 @@ void ClientConnection::SaveConnection()
 {
 	vnclog.Print(2, _T("Saving connection info\n"));	
 	char fname[_MAX_PATH];
+	char title[80];
 	char tname[_MAX_FNAME + _MAX_EXT];
+	strcpy(title, "Save as VNC file");
 	ofnInit();
 	int disp = PORT_TO_DISPLAY(m_port);
 	sprintf(fname, "%.10s-%d.vnc", m_host, (disp > 0 && disp < 100) ? disp : m_port);
 	ofn.hwndOwner = m_hwnd;
 	ofn.lpstrFile = fname;
 	ofn.lpstrFileTitle = tname;
+	ofn.lpstrTitle = title; 
 	ofn.Flags = OFN_HIDEREADONLY;
 	if (!GetSaveFileName(&ofn)) {
 		DWORD err = CommDlgExtendedError();
@@ -106,13 +109,15 @@ int ClientConnection::LoadConnection(char *fname, bool sess)
 {
 	if (sess) {
 		char tname[_MAX_FNAME + _MAX_EXT];
-
+		char title[80];
+		strcpy(title, "Open VNC file");
 		ofnInit();
 		
 		ofn.hwndOwner = 0;
 		ofn.lpstrFile = fname;
 		ofn.lpstrFileTitle = tname;
 		ofn.Flags = OFN_HIDEREADONLY;
+		ofn.lpstrTitle = title;
 
 		if (GetOpenFileName(&ofn) == 0) {
 			return -1;

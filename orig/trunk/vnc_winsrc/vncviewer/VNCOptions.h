@@ -131,9 +131,8 @@ public:
 	static void Lim(HWND hwnd,int control,DWORD min, DWORD max);
 	// Register() makes this viewer the app invoked for .vnc files
 	static void Register();
-	HWND m_hPageConnection;
-	HWND m_hPageGeneral;
-	HWND m_hTab;
+	HWND m_hPageConnection, m_hPageGeneral, m_hTab, m_hParent;
+	
 
 private:
     void ShowUsage(LPTSTR info = NULL);

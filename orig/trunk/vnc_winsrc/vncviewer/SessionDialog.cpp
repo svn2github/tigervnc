@@ -168,6 +168,9 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 					return TRUE;
 				}
 				case IDC_LOAD:
+					{
+					HWND hOpen = FindWindow(NULL,"Open VNC file");
+					if (SetForegroundWindow(hOpen) != 0) return TRUE;
 					TCHAR buf[80];
 					buf[0]='\0';
 					if (_this->m_cc->LoadConnection(buf, true) != -1) {
@@ -177,6 +180,7 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 					}
 					SetFocus(hcombo);
 					return TRUE;
+					}
 				case IDC_LIST_MODE: {
 					pApp->m_options.LoadOpt(".listen", "Software\\ORL\\VNCviewer\\MRU1");
 					pApp->m_options.m_listening=true;
@@ -265,7 +269,9 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 					return TRUE; 
 				}
 								  
-				case IDC_OPTIONBUTTON:{	
+				case IDC_OPTIONBUTTON:
+					{
+					if (SetForegroundWindow(_this->m_pOpt->m_hParent) != 0) return 0;
 					HWND hOptionButton = GetDlgItem(hwnd, IDC_OPTIONBUTTON);
 					_this->m_pOpt->DoDialog();
 					int n = SendMessage(hcombo, CB_GETCURSEL, 0, 0);

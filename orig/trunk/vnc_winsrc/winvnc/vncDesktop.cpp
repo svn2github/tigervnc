@@ -2128,7 +2128,6 @@ vncDesktop::CheckRects(vncRegion &rgn, rectlist &rects)
 #pragma function(memcpy, memcmp)
 
 static const int BLOCK_SIZE = 32;
-static const int BLOCK_PIXELS = BLOCK_SIZE * BLOCK_SIZE;
 
 void
 vncDesktop::GetChangedRegion(vncRegion &rgn, const RECT &rect)

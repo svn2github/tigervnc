@@ -502,7 +502,8 @@ vncClientThread::SendInteractionCaps()
 	rfbCapabilityInfo smsg_list[MAX_SMSG_CAPS];
 	i = 0;
 #ifndef HORIZONLIVE
-	if (m_client->m_keyboardenabled || m_client->m_pointerenabled) {
+	if (m_server->FileTransfersEnabled() &&
+		(m_client->m_keyboardenabled || m_client->m_pointerenabled)) {
 		SetCapInfo(&smsg_list[i++], rfbFileListData,       rfbTightVncVendor);
 		SetCapInfo(&smsg_list[i++], rfbFileDownloadData,   rfbTightVncVendor);
 		SetCapInfo(&smsg_list[i++], rfbFileUploadCancel,   rfbTightVncVendor);
@@ -520,7 +521,8 @@ vncClientThread::SendInteractionCaps()
 	rfbCapabilityInfo cmsg_list[MAX_CMSG_CAPS];
 	i = 0;
 #ifndef HORIZONLIVE
-	if (m_client->m_keyboardenabled || m_client->m_pointerenabled) {
+	if (m_server->FileTransfersEnabled() &&
+		(m_client->m_keyboardenabled || m_client->m_pointerenabled)) {
 		SetCapInfo(&cmsg_list[i++], rfbFileListRequest,    rfbTightVncVendor);
 		SetCapInfo(&cmsg_list[i++], rfbFileDownloadRequest,rfbTightVncVendor);
 		SetCapInfo(&cmsg_list[i++], rfbFileUploadRequest,  rfbTightVncVendor);
@@ -1136,7 +1138,8 @@ vncClientThread::run(void *arg)
 
 #ifndef HORIZONLIVE
 		case rfbFileListRequest:
-			if (!m_client->m_keyboardenabled && !m_client->m_pointerenabled) {
+			if (!m_server->FileTransfersEnabled() ||
+				(!m_client->m_keyboardenabled && !m_client->m_pointerenabled)) {
 				connected = FALSE;
 				break;
 			}
@@ -1250,7 +1253,8 @@ vncClientThread::run(void *arg)
 			break;
 
 		case rfbFileDownloadRequest:
-			if (!m_client->m_keyboardenabled && !m_client->m_pointerenabled) {
+			if (!m_server->FileTransfersEnabled() ||
+				(!m_client->m_keyboardenabled && !m_client->m_pointerenabled)) {
 				connected = FALSE;
 				break;
 			}
@@ -1311,7 +1315,8 @@ vncClientThread::run(void *arg)
 			break;
 
 		case rfbFileUploadRequest:
-			if (!m_client->m_keyboardenabled && !m_client->m_pointerenabled) {
+			if (!m_server->FileTransfersEnabled() ||
+				(!m_client->m_keyboardenabled && !m_client->m_pointerenabled)) {
 				connected = FALSE;
 				break;
 			}
@@ -1327,7 +1332,8 @@ vncClientThread::run(void *arg)
 			break;
 
 		case rfbFileUploadData:
-			if (!m_client->m_keyboardenabled && !m_client->m_pointerenabled) {
+			if (!m_server->FileTransfersEnabled() ||
+				(!m_client->m_keyboardenabled && !m_client->m_pointerenabled)) {
 				connected = FALSE;
 				break;
 			}
@@ -1351,14 +1357,16 @@ vncClientThread::run(void *arg)
 			break;
 
 		case rfbFileDownloadCancel:
-			if (!m_client->m_keyboardenabled && !m_client->m_pointerenabled) {
+			if (!m_server->FileTransfersEnabled() ||
+				(!m_client->m_keyboardenabled && !m_client->m_pointerenabled)) {
 				connected = FALSE;
 				break;
 			}
 			break;
 
 		case rfbFileUploadFailed:
-			if (!m_client->m_keyboardenabled && !m_client->m_pointerenabled) {
+			if (!m_server->FileTransfersEnabled() ||
+				(!m_client->m_keyboardenabled && !m_client->m_pointerenabled)) {
 				connected = FALSE;
 				break;
 			}

@@ -367,6 +367,13 @@ vncProperties::DialogProc(HWND hwnd,
 				_this->m_server->RemoveWallpaperEnabled(),
 				0);
 
+			// Enable file transfers
+			HWND hEnableFileTransfers = GetDlgItem(hwnd, IDC_ENABLE_FILE_TRANSFERS);
+			SendMessage(hEnableFileTransfers,
+				BM_SETCHECK,
+				_this->m_server->FileTransfersEnabled(),
+				0);
+
 			// Lock settings
 			HWND hLockSetting;
 			switch (_this->m_server->LockSettings()) {
@@ -474,6 +481,12 @@ vncProperties::DialogProc(HWND hwnd,
 				HWND hRemoveWallpaper = GetDlgItem(hwnd, IDC_REMOVE_WALLPAPER);
 				_this->m_server->EnableRemoveWallpaper(
 					SendMessage(hRemoveWallpaper, BM_GETCHECK, 0, 0) == BST_CHECKED
+					);
+
+				// Enabling/disabling file transfers
+				HWND hEnableFileTransfers = GetDlgItem(hwnd, IDC_ENABLE_FILE_TRANSFERS);
+				_this->m_server->EnableFileTransfers(
+					SendMessage(hEnableFileTransfers, BM_GETCHECK, 0, 0) == BST_CHECKED
 					);
 
 				// Lock settings handling
@@ -997,6 +1010,7 @@ vncProperties::Load(BOOL usersettings)
 	m_pref_PollOnEventOnly=FALSE;
 	m_pref_DontSetHooks=FALSE;
 	m_pref_RemoveWallpaper=TRUE;
+	m_pref_EnableFileTransfers = TRUE;
 	m_alloweditclients = TRUE;
 	m_allowshutdown = TRUE;
 	m_allowproperties = TRUE;
@@ -1086,6 +1100,7 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	m_pref_IdleTimeout=LoadInt(appkey, "IdleTimeout", m_pref_IdleTimeout);
 	
 	m_pref_RemoveWallpaper=LoadInt(appkey, "RemoveWallpaper", m_pref_RemoveWallpaper);
+	m_pref_EnableFileTransfers=LoadInt(appkey, "EnableFileTransfers", m_pref_EnableFileTransfers);
 
 	m_pref_LocalInputPriority=LoadInt(appkey, "LocalInputsPriority", m_pref_LocalInputPriority);
 	m_pref_PriorityTime =LoadInt(appkey, "LocalInputsPriorityTime", m_pref_PriorityTime);
@@ -1140,6 +1155,7 @@ vncProperties::ApplyUserPrefs()
 	m_server->SetQueryAllowNoPass(m_pref_QueryAllowNoPass);
 	m_server->SetAutoIdleDisconnectTimeout(m_pref_IdleTimeout);
 	m_server->EnableRemoveWallpaper(m_pref_RemoveWallpaper);
+	m_server->EnableFileTransfers(m_pref_EnableFileTransfers);
 
 	// Update the password
 	m_server->SetPassword(m_pref_passwd);
@@ -1287,6 +1303,9 @@ vncProperties::SaveUserPrefs(HKEY appkey)
 
 	// Wallpaper removal
 	SaveInt(appkey, "RemoveWallpaper", m_server->RemoveWallpaperEnabled());
+
+	// File transfers control
+	SaveInt(appkey, "EnableFileTransfers", m_server->FileTransfersEnabled());
 
 	// Save the password
 	char passwd[MAXPWLEN];

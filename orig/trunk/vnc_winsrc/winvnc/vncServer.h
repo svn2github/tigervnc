@@ -253,6 +253,10 @@ public:
 	virtual void EnableRemoveWallpaper(const BOOL enable) {m_remove_wallpaper = enable;};
 	virtual BOOL RemoveWallpaperEnabled() {return m_remove_wallpaper;};
 
+	// Whether or not to allow file transfers
+	virtual void EnableFileTransfers(const BOOL enable) {m_enable_file_transfers = enable;}
+	virtual BOOL FileTransfersEnabled() {return m_enable_file_transfers;}
+
     // handling to share only one window                                                    
     virtual void WindowShared(BOOL enable) { m_WindowShared = enable; };                    
     virtual BOOL WindowShared() { return m_WindowShared; };                                 
@@ -328,6 +332,7 @@ protected:
 	UINT				m_disable_time;
 
 	BOOL				m_remove_wallpaper;
+	BOOL				m_enable_file_transfers;
 
 	// Polling preferences
 	BOOL				m_poll_fullscreen;

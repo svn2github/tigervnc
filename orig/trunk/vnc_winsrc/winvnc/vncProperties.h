@@ -137,6 +137,7 @@ protected:
 	BOOL m_pref_QueryAllowNoPass;
 	UINT m_pref_IdleTimeout;
 	BOOL m_pref_RemoveWallpaper;
+	BOOL m_pref_EnableFileTransfers;
 	BOOL m_pref_EnableRemoteInputs;
 	int m_pref_LockSettings;
 	BOOL m_pref_DisableLocalInputs;

@@ -309,7 +309,7 @@ FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "Connecting...",IDC_CONNECTING_STATIC,"Static",
                     SS_LEFTNOWORDWRAP,7,7,196,10
-    PUSHBUTTON      "&Close",IDCLOSE,79,40,50,14
+    PUSHBUTTON      "&Hide",IDCLOSE,79,40,50,14
     LTEXT           "",IDC_STATUS_STATIC,7,21,196,10,NOT WS_GROUP
 END
 

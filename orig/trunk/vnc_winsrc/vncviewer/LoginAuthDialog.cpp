@@ -84,9 +84,12 @@ BOOL CALLBACK LoginAuthDialog::DlgProc(HWND hwnd, UINT uMsg,
 		if (_this->m_title[0] != '\0')
 			SetWindowText(hwnd, _this->m_title);
 		SetDlgItemText(hwnd, IDC_VNCHOST, _this->m_vnchost);
-		if (_this->m_username != NULL)
-			SetDlgItemText(hwnd, IDC_LOGIN_EDIT, _this->m_username);
 		CentreWindow(hwnd);
+		if (_this->m_username[0] != '\0') {
+			SetDlgItemText(hwnd, IDC_LOGIN_EDIT, _this->m_username);
+			SetFocus(GetDlgItem(hwnd, IDC_PASSWD_EDIT));
+			return FALSE;
+		}
 		return TRUE;
 	case WM_COMMAND:
 		switch (LOWORD(wParam)) {

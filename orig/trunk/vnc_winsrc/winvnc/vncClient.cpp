@@ -1225,7 +1225,7 @@ vncClientThread::run(void *arg)
           m_client->m_remoteevent = TRUE;
           
           // Flag that the mouse moved
-          // FIXME: Is it necessary?
+          // FIXME: It should not set m_cursor_pos_changed here.
           m_client->UpdateMouse();
           
           // Trigger an update
@@ -1774,24 +1774,16 @@ vncClient::TriggerUpdate()
 void
 vncClient::UpdateMouse()
 {
-  POINT cursor;
-  GetCursorPos(&cursor);
-  // If mouse was moved
-  if (!PtInRect(&m_oldmousepos, cursor)) {
-    
-    if (!m_mousemoved && !m_cursor_update_sent)	{
-      omni_mutex_lock l(m_regionLock);
-      
-      if (IntersectRect(&m_oldmousepos, &m_oldmousepos, &m_server->GetSharedRect()))
-        m_changed_rgn.AddRect(m_oldmousepos);
-      
-      m_mousemoved = TRUE;
-      m_updatewanted = TRUE;
-      
-    } else if (m_use_PointerPos) {
-      m_cursor_pos_changed = TRUE;
-    }
-  }
+	if (!m_mousemoved && !m_cursor_update_sent)	{
+		omni_mutex_lock l(m_regionLock);
+
+		if (IntersectRect(&m_oldmousepos, &m_oldmousepos, &m_server->GetSharedRect()))
+			m_changed_rgn.AddRect(m_oldmousepos);
+
+		m_mousemoved = TRUE;
+	} else if (m_use_PointerPos) {
+		m_cursor_pos_changed = TRUE;
+	}
 }
 
 void

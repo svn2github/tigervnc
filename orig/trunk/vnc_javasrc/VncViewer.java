@@ -300,8 +300,7 @@ public class VncViewer extends java.applet.Applet
 	System.out.println("VNC authentication failed");
 	break;
       case RfbProto.VncAuthTooMany:
-	throw new IOException("VNC authentication failed - " +
-			      "too many tries");
+	throw new IOException("VNC authentication failed - too many tries");
       default:
 	throw new IOException("Unknown VNC authentication result " +
 			      authResult);

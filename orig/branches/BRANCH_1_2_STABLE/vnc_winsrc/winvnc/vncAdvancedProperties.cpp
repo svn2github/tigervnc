@@ -656,7 +656,6 @@ vncAdvancedProperties::Save()
 			WINVNC_REGISTRY_KEY,
 			0, REG_NONE, REG_OPTION_NON_VOLATILE,
 			KEY_READ, NULL, &hkLocal, &dw) != ERROR_SUCCESS) {
-			MessageBox(NULL, "MB1", "WVNC", MB_OK);
 			return;
 		}
 		if (RegCreateKeyEx(hkLocal,

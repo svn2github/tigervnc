@@ -47,7 +47,6 @@
 #define IDR_CAPINFO_CLASS               154
 #define IDR_CAPSCONTAINER_CLASS         155
 #define IDC_CONNECT_SOCK                1004
-#define IDC_CONNECT_HTTP                1006
 #define IDC_PASSWORD_LABEL              1007
 #define IDC_DISPLAYNO                   1008
 #define IDC_PASSWORD                    1009
@@ -63,7 +62,7 @@
 #define IDC_PORTRFB                     1018
 #define IDC_PASSWORD_VIEWONLY_LABEL     1019
 #define IDC_PASSWORD_VIEWONLY           1020
-#define IDC_URLPARAMS                   1021
+#define IDC_URL_PARAMS                  1021
 #define IDC_DISABLE_INPUTS              1024
 #define IDC_APPLY                       1025
 #define IDC_PORTNO_AUTO                 1026

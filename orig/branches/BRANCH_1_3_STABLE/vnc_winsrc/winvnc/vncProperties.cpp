@@ -738,6 +738,7 @@ BOOL CALLBACK vncProperties::AdministrationDlgProc(HWND hwnd, UINT uMsg,
 		{
 		case IDALLOWLOOPBACK:
 		case IDLOG:
+		case IDENABLEHTTPD:
 			_this->m_AdminControls->Validate();
 			return TRUE;      
 		case IDC_APPLY:

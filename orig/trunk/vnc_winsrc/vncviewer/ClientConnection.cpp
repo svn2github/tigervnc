@@ -283,17 +283,14 @@ void ClientConnection::Run()
 	
 	ReadServerInit();
 
-	// Only for protocol version 3.130
+		// Only for protocol version 3.130
 	if (m_minorVersion >= 130) {
 		ReadInteractionCaps();
-		if (m_clientMsgCaps.IsEnabled(rfbFileListRequest)) {
-			// Enable file transfers if the server supports this feature.
-			EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), IDD_FILETRANSFER,
-						   MF_BYCOMMAND | MF_ENABLED);
-			SendMessage(hToolBar, TB_SETSTATE, (WPARAM)IDD_FILETRANSFER,
-						(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
-		}
+		m_FileTransferControl = (m_clientMsgCaps.IsEnabled(rfbFileListRequest));
+		// Enable file transfers if the server supports this feature.
 	}
+
+	EnableFullControlOptions();
 
 	CreateLocalFramebuffer();
 	
@@ -534,6 +531,7 @@ void ClientConnection::CreateDisplay()
 		CheckMenuItem(GetSystemMenu(m_hwnd1, FALSE),
 					ID_TOOLBAR, MF_BYCOMMAND|MF_CHECKED);
 	}
+	
 	if (!m_serverInitiated) {
 		TCHAR  valname[3];
 		int dwbuflen = 255;
@@ -594,6 +592,67 @@ void ClientConnection::CreateDisplay()
 	m_initialClipboardSeen = false;
 	m_hwndNextViewer = SetClipboardViewer(m_hwnd);
 #endif
+}
+
+void ClientConnection::EnableFullControlOptions()
+{
+	if (m_opts.m_ViewOnly) {
+		SwitchOffKey();
+		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), IDD_FILETRANSFER,
+						   MF_BYCOMMAND | MF_GRAYED);
+		SendMessage(hToolBar, TB_SETSTATE, (WPARAM)IDD_FILETRANSFER,
+						(LPARAM)MAKELONG(TBSTATE_INDETERMINATE,0));
+		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_CONN_CTLALTDEL,
+						   MF_BYCOMMAND | MF_GRAYED);
+		SendMessage(hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_CTLALTDEL,
+						(LPARAM)MAKELONG(TBSTATE_INDETERMINATE,0));
+		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_CONN_CTLDOWN,
+						   MF_BYCOMMAND | MF_GRAYED);
+		SendMessage(hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_CTLDOWN,
+						(LPARAM)MAKELONG(TBSTATE_INDETERMINATE,0));
+		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_CONN_ALTDOWN,
+						   MF_BYCOMMAND | MF_GRAYED);
+		SendMessage(hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_ALTDOWN,
+						(LPARAM)MAKELONG(TBSTATE_INDETERMINATE,0));
+	} else {
+		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_CONN_CTLALTDEL,
+						   MF_BYCOMMAND | MF_ENABLED);
+		SendMessage(hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_CTLALTDEL,
+						(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
+		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_CONN_CTLDOWN,
+						   MF_BYCOMMAND | MF_ENABLED);
+		SendMessage(hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_CTLDOWN,
+						(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
+		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_CONN_ALTDOWN,
+						   MF_BYCOMMAND | MF_ENABLED);
+		SendMessage(hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_ALTDOWN,
+						(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
+		if (m_FileTransferControl) {
+			EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), IDD_FILETRANSFER,
+						   MF_BYCOMMAND | MF_ENABLED);
+			SendMessage(hToolBar, TB_SETSTATE, (WPARAM)IDD_FILETRANSFER,
+						(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
+		}
+	
+	}
+}
+
+void ClientConnection::SwitchOffKey()
+{
+	CheckMenuItem(GetSystemMenu(m_hwnd1, FALSE),
+					ID_CONN_ALTDOWN, MF_BYCOMMAND|MF_UNCHECKED);
+	CheckMenuItem(GetSystemMenu(m_hwnd1, FALSE),
+					ID_CONN_CTLDOWN, MF_BYCOMMAND|MF_UNCHECKED);
+	SendMessage(hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_CTLDOWN,
+					(LPARAM)MAKELONG(TBSTATE_ENABLED, 0));
+	SendMessage(hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_ALTDOWN,
+					(LPARAM)MAKELONG(TBSTATE_ENABLED, 0));
+	SendKeyEvent(XK_Alt_L,     false);
+	SendKeyEvent(XK_Control_L, false);
+	SendKeyEvent(XK_Shift_L,   false);
+	SendKeyEvent(XK_Alt_R,     false);
+	SendKeyEvent(XK_Control_R, false);
+	SendKeyEvent(XK_Shift_R,   false);
 }
 
 void ClientConnection::GetConnectDetails()
@@ -1358,7 +1417,7 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 		}
 		return 0;
 	}
-	case WM_SETFOCUS:
+	case WM_SETFOCUS:		
 		hwndd = hwnd;
 		return 0;
 	case WM_COMMAND:
@@ -1416,6 +1475,7 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 						_this->RealiseFullScreenMode(true);
 					}
 				}
+				
 				if (_this->m_serverInitiated) {
 					_this->m_opts.SaveOpt(".listen", 
 										"Software\\ORL\\VNCviewer\\MRU1");
@@ -1423,6 +1483,7 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 					_this->m_opts.SaveOpt(_this->m_opts.m_display,
 										"Software\\ORL\\VNCviewer\\MRU1");
 				}
+				_this->EnableFullControlOptions();
 				return 0;
 			}
 		case IDD_APP_ABOUT:
@@ -1498,21 +1559,9 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 		}
 		break;		
 	case WM_KILLFOCUS:
-		CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
-					ID_CONN_ALTDOWN, MF_BYCOMMAND|MF_UNCHECKED);
-		SendMessage(_this->hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_ALTDOWN,
-					(LPARAM)MAKELONG(TBSTATE_ENABLED, 0));
-		CheckMenuItem(GetSystemMenu(_this->m_hwnd1, FALSE),
-					ID_CONN_CTLDOWN, MF_BYCOMMAND|MF_UNCHECKED);
-		SendMessage(_this->hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_CTLDOWN,
-			(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
-		_this->SendKeyEvent(XK_Alt_L,     false);
-		_this->SendKeyEvent(XK_Control_L, false);
-		_this->SendKeyEvent(XK_Shift_L,   false);
-		_this->SendKeyEvent(XK_Alt_R,     false);
-		_this->SendKeyEvent(XK_Control_R, false);
-		_this->SendKeyEvent(XK_Shift_R,   false);
-		return 0;
+		if ( _this->m_opts.m_ViewOnly) return 0;
+		_this->SwitchOffKey();
+		return 0; 
 	case WM_GETMINMAXINFO:
 		RECT workrect;
 		RECT rtb;
@@ -1558,6 +1607,7 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 			SetWindowPos(_this->m_hwnd, HWND_TOP, 0, 0,
 					rwn.right, rwn.bottom, SWP_SHOWWINDOW);
 		}
+		
 		return 0;
 	case WM_CLOSE:		
 		// Close the worker thread as well
@@ -1671,6 +1721,8 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 	case WM_SYSKEYDOWN:
 	case WM_SYSKEYUP:
 		{
+			if (!_this->m_running) return 0;
+			if ( _this->m_opts.m_ViewOnly) return 0;
 			bool down = (((DWORD) lParam & 0x80000000l) == 0);
 			if ((int) wParam == 0x11) {
 				if (!down) {
@@ -1698,8 +1750,7 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 								(LPARAM)MAKELONG(TBSTATE_CHECKED|TBSTATE_ENABLED, 0));
 				}
 			}
-			if (!_this->m_running) return 0;
-			if ( _this->m_opts.m_ViewOnly) return 0;
+			
             _this->ProcessKeyEvent((int) wParam, (DWORD) lParam);
 			return 0;
 		}

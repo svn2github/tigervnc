@@ -91,6 +91,7 @@ private:
 	friend class FileTransfer;
 	bool m_FileTransferEnable;
 	FileTransfer *m_pFileTransfer;
+	bool m_FileTransferControl;
 
 	SOCKET m_sock;
 	bool m_serverInitiated;
@@ -129,12 +130,14 @@ private:
 	void SendPointerEvent(int x, int y, int buttonMask);
     void ProcessKeyEvent(int virtkey, DWORD keyData);
 	void SendKeyEvent(CARD32 key, bool down);
+	void SwitchOffKey();
 
 	void ReadScreenUpdate();
 	void Update(RECT *pRect);
 	void SizeWindow(bool centered);
 	bool ScrollScreen(int dx, int dy);
 	void UpdateScrollbars();
+	void EnableFullControlOptions();
 
 	void InvalidateScreenRect(const RECT *pRect);
 

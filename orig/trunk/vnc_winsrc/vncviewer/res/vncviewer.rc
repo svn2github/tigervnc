@@ -102,8 +102,7 @@ BEGIN
     CONTROL         "Restrict pixels to 8-bit (for slow networks)",
                     IDC_8BITCHECK,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
                     WS_TABSTOP,148,113,143,10
-    CONTROL         "View only (inputs ignored)",IDC_VIEWONLY,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,148,125,96,10
+    CHECKBOX        "View only (inputs ignored)",IDC_VIEWONLY,148,125,96,10
     CONTROL         "Full-screen mode",IDC_FULLSCREEN,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,148,137,69,8
     COMBOBOX        IDC_SCALE_EDIT,195,145,37,66,CBS_DROPDOWN | 

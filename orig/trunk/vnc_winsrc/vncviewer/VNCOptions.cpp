@@ -846,6 +846,9 @@ BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,
 			SendMessage(hEmulate, BM_SETCHECK, _this->m_Emul3Buttons, 0);
 #endif
 			
+			EnableWindow(hSwap,!_this->m_ViewOnly);
+			EnableWindow(hEmulate,!_this->m_ViewOnly);
+
 			HWND hAllowCompressLevel = GetDlgItem(hwnd, IDC_ALLOW_COMPRESSLEVEL);
 			SendMessage(hAllowCompressLevel, BM_SETCHECK, _this->m_useCompressLevel, 0);
 			
@@ -926,6 +929,24 @@ BOOL CALLBACK VNCOptions::DlgProc1(  HWND hwnd,  UINT uMsg,
 				} else {
 					EnableWindow( hJpeg, FALSE);
 					SendMessage(hAllowJpeg, BM_SETCHECK, FALSE, 0);
+				}
+				return 0;
+			}
+			return 0;
+		case IDC_VIEWONLY:
+		switch (HIWORD(wParam)) {
+			case BN_CLICKED:
+				HWND hViewOnly = GetDlgItem(hwnd, IDC_VIEWONLY);
+				HWND hSwap = GetDlgItem(hwnd, ID_SESSION_SWAPMOUSE);
+				HWND hEmulate = GetDlgItem(hwnd, IDC_EMULATECHECK);
+				if (SendMessage(hViewOnly, BM_GETCHECK, 0, 0) == 0) {
+					EnableWindow( hSwap, FALSE);
+					EnableWindow( hEmulate, FALSE);
+					SendMessage(hViewOnly, BM_SETCHECK, TRUE, 0);
+				} else {
+					EnableWindow( hSwap, TRUE);
+					EnableWindow( hEmulate, TRUE);
+					SendMessage(hViewOnly, BM_SETCHECK, FALSE, 0);
 				}
 				return 0;
 			}

@@ -1047,7 +1047,7 @@ vncProperties::Load(BOOL usersettings)
 
 	if (hkLocalUser != NULL) RegCloseKey(hkLocalUser);
 	if (hkDefault != NULL) RegCloseKey(hkDefault);
-	RegCloseKey(hkLocal);
+	if (hkLocal != NULL) RegCloseKey(hkLocal);
 
 	// Make the loaded settings active..
 	ApplyUserPrefs();

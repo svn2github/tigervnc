@@ -31,21 +31,6 @@
 #include "FileInfoEx.h"
 #include "FileTransferDialog.h"
 
-DWORD NumWritten;
-HANDLE hLogFile = CreateFile("e:\\vnc2.log", GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
-
-void 
-qw(LPCSTR format,...)
-{
-	char text[1024];
-	va_list args;
-	va_start(args, format);
-	int nSize = _vsnprintf(text, sizeof(text), format, args);
-	strcat(text, "\n");
-	nSize = strlen(text);
-	WriteFile(hLogFile, text, nSize, &NumWritten, NULL);
-}
-
 FileTransfer::FileTransfer(ClientConnection * pCC, VNCviewerApp * pApp)
 {
 	m_pCC = pCC;

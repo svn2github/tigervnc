@@ -73,54 +73,6 @@ FTStatusBox::setStatusText(LPCSTR format,...)
 	return setText(text);
 }
 
-/*
-bool 
-FTStatusBox::makeStatusText(char *prefix, char *path1, char *path2, char *name1, char *name2)
-{
-	int length = strlen(prefix) + strlen(path1) + strlen(path2) + strlen(name1) + strlen(name2) + 7;
-	if (length > 120) {
-		char buf[MAX_PATH];
-		char _name1[MAX_PATH]; strcpy(_name1, name1);
-		char _name2[MAX_PATH]; strcpy(_name2, name2);
-		char _path1[MAX_PATH]; strcpy(_path1, path1);
-		char _path2[MAX_PATH]; strcpy(_path2, path2);
-		strcpy(buf, name);
-		for (int i = strlen(buf) - 2; i > 0; i--) {
-			if (buf[i] == '\\') {
-				strcpy(_name, &buf[i + 1]);
-				buf[i] = '\0';
-				sprintf(_path1, "%s\\%s", _path1, buf);
-				sprintf(_path2, "%s\\%s", _path2, buf);
-				break;
-			}
-		}
-		char *path;
-		do {
-			if (strlen(_path1) > strlen(_path2)) {
-				path = _path1;
-			} else {
-				path = _path2;
-			}
-			buf[0] = '\0';
-			for (int i = strlen(path) - 1, j = 0; i > 0; i--, j++) {
-				if ((path[i] == '\\') && (strcmp(buf, delimeter) != 0)) {
-					path[i + 1] = '\0';
-					strcat(path, delimeter);
-					break;
-				}
-				buf[j] = path[i];
-				buf[j + 1] = '\0';
-			}
-			length = strlen(prefix) + strlen(path1) + strlen(path2) + strlen(name1) + strlen(name2) + 13;
-			if ((strlen(_path1) < 7) && (strlen(_path2) < 7)) break;
-		} while(length > 120);
-		return setStatusText("%s %s\\%s to %s\\%s", prefix, _path1, _name, _path2, _name);
-	} else {
-		return setStatusText("%s %s\\%s to %s\\%s", prefix, path1, name, path2, name);
-	}
-}
-*/
-
 bool 
 FTStatusBox::makeStatusText(char *pPrefix, char *pPath1, char *pPath2, char *pName1, char *pName2)
 {

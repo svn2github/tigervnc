@@ -553,8 +553,8 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 		}
 		if (iMsg == MENU_ADD_CLIENT_MSG)
 		{
-			// Add Client message.  This message includes an IP address
-			// of a listening client, to which we should connect.
+			// Add Client message.  This message includes an IP address and
+			// a port numbrt of a listening client, to which we should connect.
 
 			// Get the IP address stringified
 			struct in_addr address;
@@ -566,6 +566,11 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 			if (nameDup == 0)
 				return 0;
 
+			// Get the port number
+			unsigned short nport = (unsigned short)wParam;
+			if (nport == 0)
+				nport = INCOMING_PORT_OFFSET;
+
 			// Attempt to create a new socket
 			VSocket *tmpsock;
 			tmpsock = new VSocket;
@@ -573,7 +578,7 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 
 				// Connect out to the specified host on the VNCviewer listen port
 				tmpsock->Create();
-				if (tmpsock->Connect(nameDup, INCOMING_PORT_OFFSET)) {
+				if (tmpsock->Connect(nameDup, nport)) {
 					// Add the new client to this server
 					_this->m_server->AddClient(tmpsock, TRUE, TRUE);
 				} else {

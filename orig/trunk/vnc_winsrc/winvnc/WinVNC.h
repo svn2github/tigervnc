@@ -65,4 +65,4 @@ const char winvncAddNewClient[]		= "-connect";
 const char winvncShowHelp[]			= "-help";
 
 // Usage string
-const char winvncUsageText[]		= "winvnc [-run] [-kill] [-connect] [-install] [-remove] [-settings] [-defaultsettings] [-about]\n";
+const char winvncUsageText[]		= "winvnc [-run] [-kill] [-connect host[:display]] [-install] [-remove] [-settings] [-defaultsettings] [-about]\n";

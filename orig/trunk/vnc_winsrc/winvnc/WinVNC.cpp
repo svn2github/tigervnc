@@ -161,23 +161,31 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 			// Add a new client to an existing copy of winvnc
 			i+=strlen(winvncAddNewClient);
 
-			// First, we have to parse the command line to get the filename to use
+			// First, we have to parse the command line to get the hostname to use
 			int start, end;
 			start=i;
 			while (szCmdLine[start] <= ' ') start++;
 			end = start;
 			while (szCmdLine[end] > ' ') end++;
 
-			// Was there a filename given?
+			// Was there a hostname (and optionally a port number) given?
 			if (end-start > 0) {
 				char *name = new char[end-start+1];
 				if (name != 0) {
 					strncpy(name, &(szCmdLine[start]), end-start);
 					name[end-start] = 0;
+
+					int port = INCOMING_PORT_OFFSET;
+					char *portp = strchr(name, ':');
+					if (portp) {
+						*portp++ = '\0';
+						port += atoi(portp);
+					}
+
 					VCard32 address = VSocket::Resolve(name);
 					if (address != 0) {
 						// Post the IP address to the server
-						vncService::PostAddNewClient(address);
+						vncService::PostAddNewClient(address, port);
 					}
 					delete [] name;
 				}

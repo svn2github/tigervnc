@@ -419,55 +419,8 @@ vncProperties::DialogProc(HWND hwnd,
 				0);
 
 			// Set the polling options
-			HWND hPollFullScreen = GetDlgItem(hwnd, IDC_POLL_FULLSCREEN);
-			SendMessage(hPollFullScreen,
-				BM_SETCHECK,
-				_this->m_server->PollFullScreen(),
-				0);
-
-			HWND hPollForeground = GetDlgItem(hwnd, IDC_POLL_FOREGROUND);
-			SendMessage(hPollForeground,
-				BM_SETCHECK,
-				_this->m_server->PollForeground(),
-				0);
-			EnableWindow(hPollForeground, !_this->m_server->PollFullScreen());
-
-			HWND hPollUnderCursor = GetDlgItem(hwnd, IDC_POLL_UNDER_CURSOR);
-			SendMessage(hPollUnderCursor,
-				BM_SETCHECK,
-				_this->m_server->PollUnderCursor(),
-				0);
-			EnableWindow(hPollUnderCursor, !_this->m_server->PollFullScreen());
-
-
-			HWND hPollConsoleOnly = GetDlgItem(hwnd, IDC_CONSOLE_ONLY);
-			SendMessage(hPollConsoleOnly,
-				BM_SETCHECK,
-				_this->m_server->PollConsoleOnly(),
-				0);
-			EnableWindow(hPollConsoleOnly,
-				(_this->m_server->PollUnderCursor() || _this->m_server->PollForeground()) &&
-				!_this->m_server->PollFullScreen() );
-
-			HWND hPollOnEventOnly = GetDlgItem(hwnd, IDC_ONEVENT_ONLY);
-			SendMessage(hPollOnEventOnly,
-				BM_SETCHECK,
-				_this->m_server->PollOnEventOnly(),
-				0);
-			EnableWindow(hPollOnEventOnly,
-				(_this->m_server->PollUnderCursor() || _this->m_server->PollForeground()) &&
-				!_this->m_server->PollFullScreen() );
-
-			HWND hPollingTimer = GetDlgItem(hwnd, IDC_POLL_TIMER);
-			SetDlgItemInt(hwnd, IDC_POLL_TIMER, _this->m_server->GetPollingTimer(), FALSE);
-			EnableWindow(hPollingTimer,
-				_this->m_server->PollUnderCursor() || _this->m_server->PollForeground() ||
-				_this->m_server->PollFullScreen());
-
-			HWND hDontSetHooks = GetDlgItem(hwnd, IDC_DONT_SET_HOOKS);
-			SendMessage(hDontSetHooks, BM_SETCHECK, _this->m_server->DontSetHooks(), 0);
-			EnableWindow(hDontSetHooks, _this->m_server->PollFullScreen());
-
+			_this->m_pollcontrols = new PollControls(hwnd, _this->m_server);
+			
 #endif
 	
 			if (_this->m_pref_FullScreen) {
@@ -639,36 +592,7 @@ vncProperties::DialogProc(HWND hwnd,
 				}
 
 				// Handle the polling stuff
-				HWND hPollFullScreen = GetDlgItem(hwnd, IDC_POLL_FULLSCREEN);
-				_this->m_server->PollFullScreen(
-					SendMessage(hPollFullScreen, BM_GETCHECK, 0, 0) == BST_CHECKED
-					);
-
-				HWND hPollForeground = GetDlgItem(hwnd, IDC_POLL_FOREGROUND);
-				_this->m_server->PollForeground(
-					SendMessage(hPollForeground, BM_GETCHECK, 0, 0) == BST_CHECKED
-					);
-
-				HWND hPollUnderCursor = GetDlgItem(hwnd, IDC_POLL_UNDER_CURSOR);
-				_this->m_server->PollUnderCursor(
-					SendMessage(hPollUnderCursor, BM_GETCHECK, 0, 0) == BST_CHECKED
-					);
-
-				HWND hPollConsoleOnly = GetDlgItem(hwnd, IDC_CONSOLE_ONLY);
-				_this->m_server->PollConsoleOnly(
-					SendMessage(hPollConsoleOnly, BM_GETCHECK, 0, 0) == BST_CHECKED
-					);
-
-				HWND hPollOnEventOnly = GetDlgItem(hwnd, IDC_ONEVENT_ONLY);
-				_this->m_server->PollOnEventOnly(
-					SendMessage(hPollOnEventOnly, BM_GETCHECK, 0, 0) == BST_CHECKED
-					);
-
-				// This should appear AFTER calling m_server->PollFullScreen(...)
-				HWND hDontSetHooks = GetDlgItem(hwnd, IDC_DONT_SET_HOOKS);
-				_this->m_server->DontSetHooks(
-					SendMessage(hDontSetHooks, BM_GETCHECK, 0, 0) == BST_CHECKED
-					);
+				_this->m_pollcontrols->ApplyControlsContents(hwnd);
 
 				HWND hRemoteDisable = GetDlgItem(hwnd, IDC_REMOTE_DISABLE);
 				_this->m_server->LocalInputPriority(
@@ -679,11 +603,6 @@ vncProperties::DialogProc(HWND hwnd,
 				UINT disabletime = GetDlgItemInt(hwnd, IDC_DISABLE_TIME, &success, TRUE);
 				if (success)
 					_this->m_server->SetDisableTime(disabletime);
-
-				UINT pollingtimer = GetDlgItemInt(hwnd, IDC_POLL_TIMER, &success, TRUE);
-				if (success)
-					_this->m_server->SetPollingTimer(pollingtimer);
-
 #else
 				_this->m_server->SetLiveShareKey(_this->m_pref_LiveShareKey);
 #endif
@@ -775,6 +694,7 @@ vncProperties::DialogProc(HWND hwnd,
 #endif					
 					
 					// Yes, so close the dialog
+					delete _this->m_pollcontrols;
 					vnclog.Print(LL_INTINFO, VNCLOG("enddialog (OK)\n"));
 
 					_this->m_returncode_valid = TRUE;
@@ -787,6 +707,7 @@ vncProperties::DialogProc(HWND hwnd,
 			}
 
 		case IDCANCEL:
+			delete _this->m_pollcontrols;
 			vnclog.Print(LL_INTINFO, VNCLOG("enddialog (CANCEL)\n"));
 
 			_this->m_returncode_valid = TRUE;
@@ -844,52 +765,14 @@ vncProperties::DialogProc(HWND hwnd,
 		case IDC_POLL_UNDER_CURSOR:
 			// User has clicked on one of the polling mode buttons
 			// affected by the pollconsole and pollonevent options
-			{
-				// Get the poll-mode buttons
-				HWND hPollForeground = GetDlgItem(hwnd, IDC_POLL_FOREGROUND);
-				HWND hPollUnderCursor = GetDlgItem(hwnd, IDC_POLL_UNDER_CURSOR);
-				HWND hPollFullScreen = GetDlgItem(hwnd, IDC_POLL_FULLSCREEN);
-
-				// Determine whether to enable the modifier options
-				BOOL enabled = (SendMessage(hPollForeground, BM_GETCHECK, 0, 0) == BST_CHECKED) ||
-					(SendMessage(hPollUnderCursor, BM_GETCHECK, 0, 0) == BST_CHECKED);
-
-				HWND hPollConsoleOnly = GetDlgItem(hwnd, IDC_CONSOLE_ONLY);
-				EnableWindow(hPollConsoleOnly, enabled);
-
-				HWND hPollOnEventOnly = GetDlgItem(hwnd, IDC_ONEVENT_ONLY);
-				EnableWindow(hPollOnEventOnly, enabled);
-
-				HWND hPollingTimer = GetDlgItem(hwnd, IDC_POLL_TIMER);
-				EnableWindow(hPollingTimer, enabled || (SendMessage(hPollFullScreen, BM_GETCHECK, 0, 0) == BST_CHECKED));
-			}
+			
+			// Get the poll-mode buttons
+			_this->m_pollcontrols->EnablePollCustom(hwnd);
+			
 			return TRUE;
 
 		case IDC_POLL_FULLSCREEN:
-			{
-				HWND hPollFullScreen = GetDlgItem(hwnd, IDC_POLL_FULLSCREEN);
-				HWND hPollForeground = GetDlgItem(hwnd, IDC_POLL_FOREGROUND);
-				HWND hPollUnderCursor = GetDlgItem(hwnd, IDC_POLL_UNDER_CURSOR);
-				
-				BOOL full_polling = (SendMessage(hPollFullScreen, BM_GETCHECK, 0, 0) == BST_CHECKED);
-				EnableWindow(hPollForeground, !full_polling);
-				EnableWindow(hPollUnderCursor, !full_polling);
-				
-				BOOL window_polling = (SendMessage(hPollForeground, BM_GETCHECK, 0, 0) == BST_CHECKED) ||
-					(SendMessage(hPollUnderCursor, BM_GETCHECK, 0, 0) == BST_CHECKED);
-
-				HWND hPollConsoleOnly = GetDlgItem(hwnd, IDC_CONSOLE_ONLY);
-				EnableWindow(hPollConsoleOnly, !full_polling && window_polling);
-
-				HWND hPollOnEventOnly = GetDlgItem(hwnd, IDC_ONEVENT_ONLY);
-				EnableWindow(hPollOnEventOnly, !full_polling && window_polling);
-
-				HWND hPollingTimer = GetDlgItem(hwnd, IDC_POLL_TIMER);
-				EnableWindow(hPollingTimer, full_polling || window_polling);
-
-				HWND hDontSetHooks = GetDlgItem(hwnd, IDC_DONT_SET_HOOKS);
-				EnableWindow(hDontSetHooks, full_polling);
-			}
+			_this->m_pollcontrols->EnablePollFullScreen(hwnd);
 			return TRUE;
 
 		case IDC_PORTNO_AUTO:

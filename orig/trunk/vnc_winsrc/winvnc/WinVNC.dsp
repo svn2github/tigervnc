@@ -172,6 +172,10 @@ SOURCE=.\MinMax.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\PollControls.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\RectList.cpp
 # End Source File
 # Begin Source File
@@ -421,6 +425,10 @@ SOURCE=.\MatchWindow.h
 # Begin Source File
 
 SOURCE=.\MinMax.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\PollControls.h
 # End Source File
 # Begin Source File
 

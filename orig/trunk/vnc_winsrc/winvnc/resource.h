@@ -103,6 +103,8 @@
 #define IDC_LOCKSETTING_LOCK            1078
 #define IDC_LOCKSETTING_LOGOFF          1079
 #define IDC_DONT_SET_HOOKS              1080
+#define IDC_STATIC_PCYCLE               1081
+#define IDC_STATIC_MS                   1082
 #define ID_PROPERTIES                   40001
 #define ID_CLOSE                        40002
 #define ID_KILLCLIENTS                  40003
@@ -117,7 +119,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        147
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1081
+#define _APS_NEXT_CONTROL_VALUE         1083
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

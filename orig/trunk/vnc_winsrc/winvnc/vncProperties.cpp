@@ -1381,6 +1381,12 @@ vncProperties::Load(BOOL usersettings)
 				vnclog.Print(LL_INTINFO, VNCLOG("loading \"%s\" global settings\n"), username);
 				LoadUserPrefs(hkGlobalUser);
 				RegCloseKey(hkGlobalUser);
+
+				// Close the user registry hive so it can unload if required
+				RegCloseKey(HKEY_CURRENT_USER);
+			} else {
+				// DEBUG!
+				MessageBox(NULL, "We have a problem...", "Oops", MB_OK);
 			}
 		}
 	} else {

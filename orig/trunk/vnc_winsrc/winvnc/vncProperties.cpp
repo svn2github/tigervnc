@@ -327,6 +327,7 @@ vncProperties::DialogProc(HWND hwnd,
 			if (_this->m_server->AuthClientCount() != 0)
 				EnableWindow(hLiveShare,false);
 
+			return TRUE;
 #else
 			// Set the dialog box's title to indicate which Properties we're editting
 			if (_this->m_usersettings) {
@@ -393,14 +394,7 @@ vncProperties::DialogProc(HWND hwnd,
 			
 			// Set the polling options
 			_this->m_pollcontrols = new PollControls(hwnd, _this->m_server);
-			
-#endif
-	
-			
 
-#ifdef HORIZONLIVE
-			return TRUE;
-#else
 			// We return FALSE because we set the keyboard focus explicitly.
 			return FALSE;
 #endif
@@ -504,13 +498,12 @@ vncProperties::DialogProc(HWND hwnd,
 					return true;
 
 				// Handle the polling stuff
-				_this->m_pollcontrols->ApplyControlsContents(hwnd);
+				_this->m_pollcontrols->Apply();
 				
 #else
 				_this->m_server->SetLiveShareKey(_this->m_pref_LiveShareKey);
 #endif
 
-				
 				// And to the registry
 				_this->Save();
 
@@ -634,16 +627,8 @@ vncProperties::DialogProc(HWND hwnd,
 
 		case IDC_POLL_FOREGROUND:
 		case IDC_POLL_UNDER_CURSOR:
-			// User has clicked on one of the polling mode buttons
-			// affected by the pollconsole and pollonevent options
-			
-			// Get the poll-mode buttons
-			_this->m_pollcontrols->EnablePollCustom(hwnd);
-			
-			return TRUE;
-
 		case IDC_POLL_FULLSCREEN:
-			_this->m_pollcontrols->EnablePollFullScreen(hwnd);
+			_this->m_pollcontrols->Validate();
 			return TRUE;
 
 		case IDC_PORTNO_AUTO:

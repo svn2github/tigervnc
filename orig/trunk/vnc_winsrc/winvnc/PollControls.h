@@ -14,13 +14,22 @@ class PollControls
 {
 public:
 	PollControls(HWND hwnd, vncServer *server);
-	void ApplyControlsContents(HWND hwnd);	
-	void EnablePollCustom(HWND hwnd);
-	void EnablePollFullScreen(HWND hwnd);
-	virtual ~PollControls();
+	void Validate();
+	void Apply();	
+
 private:
-	void EnablePollingTimer(HWND hwnd, bool enable);
-	vncServer *		m_server;
+	inline void Enable(int id, BOOL enable) {
+		EnableWindow(GetDlgItem(m_hwnd, id), enable);
+	}
+	inline void SetChecked(int id, BOOL checked) {
+		SendDlgItemMessage(m_hwnd, id, BM_SETCHECK, checked, 0);
+	}
+	inline BOOL IsChecked(int id) {
+		return (SendDlgItemMessage(m_hwnd, id, BM_GETCHECK, 0, 0) == BST_CHECKED);
+	}
+
+	HWND m_hwnd;
+	vncServer *m_server;
 };
 
 #endif 

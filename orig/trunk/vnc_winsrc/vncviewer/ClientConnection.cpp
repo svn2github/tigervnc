@@ -1425,6 +1425,12 @@ void ClientConnection::KillThread()
 {
 	m_bKillThread = true;
 	m_running = false;
+
+	if (m_sock != INVALID_SOCKET) {
+		shutdown(m_sock, SD_BOTH);
+		closesocket(m_sock);
+		m_sock = INVALID_SOCKET;
+	}
 }
 
 // Get the RFB options from another connection.
@@ -2838,6 +2844,9 @@ void ClientConnection::ReadBell() {
 // Reads the number of bytes specified into the buffer given
 void ClientConnection::ReadExact(char *inbuf, int wanted)
 {
+	if (m_sock == INVALID_SOCKET && m_bKillThread)
+		throw QuietException("Connection closed.");
+
 	omni_mutex_lock l(m_readMutex);
 
 	int offset = 0;
@@ -2872,7 +2881,9 @@ inline void ClientConnection::ReadString(char *buf, int length)
 // Sends the number of bytes specified from the buffer
 inline void ClientConnection::WriteExact(char *buf, int bytes)
 {
-	if (bytes == 0) return;
+	if (bytes == 0 || m_sock == INVALID_SOCKET)
+		return;
+
 	omni_mutex_lock l(m_writeMutex);
 	vnclog.Print(10, _T("  writing %d bytes\n"), bytes);
 

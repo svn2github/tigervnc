@@ -782,12 +782,27 @@ vncClientThread::run(void *arg)
 						    ? MOUSEEVENTF_RIGHTDOWN : MOUSEEVENTF_RIGHTUP;
 					}
 
+					// Treat buttons 4 and 5 presses as mouse wheel events
+					DWORD wheel_movement = 0;
+					if ((msg.pe.buttonMask & rfbButton4Mask) != 0 &&
+						(m_client->m_ptrevent.buttonMask & rfbButton4Mask) == 0)
+					{
+						flags |= MOUSEEVENTF_WHEEL;
+						wheel_movement = (DWORD)+120;
+					}
+					else if ((msg.pe.buttonMask & rfbButton5Mask) != 0 &&
+							 (m_client->m_ptrevent.buttonMask & rfbButton5Mask) == 0)
+					{
+						flags |= MOUSEEVENTF_WHEEL;
+						wheel_movement = (DWORD)-120;
+					}
+
 					// Generate coordinate values
 					unsigned long x = (msg.pe.x *  65535) / (m_client->m_fullscreen.right);
 					unsigned long y = (msg.pe.y * 65535) / (m_client->m_fullscreen.bottom);
 
 					// Do the pointer event
-					::mouse_event(flags, (DWORD) x, (DWORD) y, 0, 0);
+					::mouse_event(flags, (DWORD)x, (DWORD)y, wheel_movement, 0);
 					// Save the old position
 					m_client->m_ptrevent = msg.pe;
 

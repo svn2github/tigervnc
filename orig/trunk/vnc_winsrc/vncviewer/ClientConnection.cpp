@@ -921,17 +921,40 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 	case WM_RBUTTONDOWN:
 	case WM_RBUTTONUP:
 	case WM_MOUSEMOVE:
+	case WM_MOUSEWHEEL:
 		{
-			if (!_this->m_running) return 0;
-			if (GetFocus() != hwnd) return 0;
-			int x = LOWORD(lParam);
-			int y = HIWORD(lParam);
+			if (!_this->m_running)
+				return 0;
+			if (GetFocus() != hwnd)
+				return 0;
+
+			POINT coords;
+			coords.x = LOWORD(lParam);
+			coords.y = HIWORD(lParam);
+
+			if (iMsg == WM_MOUSEWHEEL) {
+				// Convert coordinates to position in our client area,
+				// make sure the pointer is inside the client area.
+				if ( WindowFromPoint(coords) != hwnd ||
+					 !ScreenToClient(hwnd, &coords) ||
+					 coords.x < 0 || coords.y < 0 ||
+					 coords.x >= _this->m_cliwidth ||
+					 coords.y >= _this->m_cliheight ) {
+					return 0;
+				}
+			} else {
+				// Make sure the high-order word in wParam is zero.
+				wParam = MAKEWPARAM(LOWORD(wParam), 0);
+			}
+
 			if (_this->InFullScreenMode()) {
-				if (_this->BumpScroll(x,y))
+				if (_this->BumpScroll(coords.x, coords.y))
 					return 0;
 			}
-			if ( _this->m_opts.m_ViewOnly) return 0;
-			_this->ProcessPointerEvent(x,y, wParam, iMsg);
+			if ( _this->m_opts.m_ViewOnly)
+				return 0;
+
+			_this->ProcessPointerEvent(coords.x, coords.y, wParam, iMsg);
 			return 0;
 		}
 
@@ -1323,6 +1346,7 @@ LRESULT CALLBACK ClientConnection::WndProc(HWND hwnd, UINT iMsg,
 
 // ProcessPointerEvent handles the delicate case of emulating 3 buttons
 // on a two button mouse, then passes events off to SubProcessPointerEvent.
+
 void
 ClientConnection::ProcessPointerEvent(int x, int y, DWORD keyflags, UINT msg) 
 {
@@ -1437,24 +1461,40 @@ ClientConnection::ProcessPointerEvent(int x, int y, DWORD keyflags, UINT msg)
 // SubProcessPointerEvent takes windows positions and flags and converts 
 // them into VNC ones.
 
-inline void 
-ClientConnection::SubProcessPointerEvent(int x, int y, DWORD keyflags) 
+inline void
+ClientConnection::SubProcessPointerEvent(int x, int y, DWORD keyflags)
 {
-  int mask;
+	int mask;
   
-  if (m_opts.m_SwapMouse) {
+	if (m_opts.m_SwapMouse) {
 		mask = ( ((keyflags & MK_LBUTTON) ? rfbButton1Mask : 0) |
-			((keyflags & MK_MBUTTON) ? rfbButton3Mask : 0) |
-			((keyflags & MK_RBUTTON) ? rfbButton2Mask : 0)  );
+				 ((keyflags & MK_MBUTTON) ? rfbButton3Mask : 0) |
+				 ((keyflags & MK_RBUTTON) ? rfbButton2Mask : 0) );
 	} else {
 		mask = ( ((keyflags & MK_LBUTTON) ? rfbButton1Mask : 0) |
-			((keyflags & MK_MBUTTON) ? rfbButton2Mask : 0) |
-			((keyflags & MK_RBUTTON) ? rfbButton3Mask : 0)  );
+				 ((keyflags & MK_MBUTTON) ? rfbButton2Mask : 0) |
+				 ((keyflags & MK_RBUTTON) ? rfbButton3Mask : 0) );
+	}
+
+	if ((short)HIWORD(keyflags) > 0) {
+		mask |= rfbButton4Mask;
+	} else if ((short)HIWORD(keyflags) < 0) {
+		mask |= rfbButton5Mask;
 	}
 	
 	try {
-		SendPointerEvent((x + m_hScrollPos) * m_opts.m_scale_den / m_opts.m_scale_num, 
-						 (y + m_vScrollPos) * m_opts.m_scale_den / m_opts.m_scale_num, mask);
+		int x_scaled =
+			(x + m_hScrollPos) * m_opts.m_scale_den / m_opts.m_scale_num;
+		int y_scaled =
+			(y + m_vScrollPos) * m_opts.m_scale_den / m_opts.m_scale_num;
+
+		SendPointerEvent(x_scaled, y_scaled, mask);
+
+		if ((short)HIWORD(keyflags) != 0) {
+			// Immediately send a "button-up" after mouse wheel event.
+			mask &= !(rfbButton4Mask | rfbButton5Mask);
+			SendPointerEvent(x_scaled, y_scaled, mask);
+		}
 	} catch (Exception &e) {
 		e.Report();
 		PostMessage(m_hwnd, WM_CLOSE, 0, 0);

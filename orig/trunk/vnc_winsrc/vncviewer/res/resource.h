@@ -4,6 +4,7 @@
 //
 #define IDR_TRAY                        101
 #define IDD_HELP                        101
+#define ID_CONN_CTLESC                  102  
 #define IDR_TRAYMENU                    103
 #define ID_CONN_ABOUT                   103
 #define IDI_MAINICON                    104

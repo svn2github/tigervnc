@@ -418,6 +418,8 @@ void ClientConnection::CreateDisplay()
 				   _T("Ctrl key down"));
 		AppendMenu(hsysmenu, MF_STRING, ID_CONN_ALTDOWN,
 				   _T("Alt key down"));
+		AppendMenu(hsysmenu, MF_STRING, ID_CONN_CTLESC,
+				   _T("Send Ctl-Esc"));
 		AppendMenu(hsysmenu, MF_SEPARATOR, NULL, NULL);
 		AppendMenu(hsysmenu, MF_STRING, ID_NEWCONN,
 				   _T("&New connection...\tCtrl-Alt-Shift-N"));
@@ -438,7 +440,7 @@ void ClientConnection::CreateDisplay()
 	}
 	DrawMenuBar(m_hwnd1);
 
-	static TBBUTTON but[16];
+	static TBBUTTON but[17];
 	but[0].fsStyle		= TBSTYLE_SEP;
 
 	but[1].iBitmap		= 0;
@@ -465,49 +467,54 @@ void ClientConnection::CreateDisplay()
 
 	but[6].fsStyle		= TBSTYLE_SEP;
 
-	but[7].iBitmap		= 8;
-	but[7].idCommand	= ID_CONN_CTLALTDEL;
+	but[7].iBitmap		= 6;
+	but[7].idCommand	= ID_CONN_CTLESC;
 	but[7].fsState		= TBSTATE_ENABLED;
 	but[7].fsStyle		= TBSTYLE_BUTTON;
 
-	but[8].iBitmap		= 4;
-	but[8].idCommand	= ID_CONN_CTLDOWN;
+	but[8].iBitmap		= 8;
+	but[8].idCommand	= ID_CONN_CTLALTDEL;
 	but[8].fsState		= TBSTATE_ENABLED;
-	but[8].fsStyle		= TBSTYLE_CHECK;
+	but[8].fsStyle		= TBSTYLE_BUTTON;
 
-	but[9].iBitmap		= 5;
-	but[9].idCommand	= ID_CONN_ALTDOWN;
+	but[9].iBitmap		= 4;
+	but[9].idCommand	= ID_CONN_CTLDOWN;
 	but[9].fsState		= TBSTATE_ENABLED;
 	but[9].fsStyle		= TBSTYLE_CHECK;
 
-	but[10].fsStyle		= TBSTYLE_SEP;
+	but[10].iBitmap		= 5;
+	but[10].idCommand	= ID_CONN_ALTDOWN;
+	but[10].fsState		= TBSTATE_ENABLED;
+	but[10].fsStyle		= TBSTYLE_CHECK;
 
-	but[11].iBitmap		= 10;
-	but[11].idCommand	= ID_NEWCONN;
-	but[11].fsState		= TBSTATE_ENABLED;
-	but[11].fsStyle		= TBSTYLE_BUTTON	;
+	but[11].fsStyle		= TBSTYLE_SEP;
 
-	but[12].iBitmap		= 2;
-	but[12].idCommand	= ID_CONN_SAVE_AS;
+	but[12].iBitmap		= 10;
+	but[12].idCommand	= ID_NEWCONN;
 	but[12].fsState		= TBSTATE_ENABLED;
-	but[12].fsStyle		= TBSTYLE_BUTTON;
+	but[12].fsStyle		= TBSTYLE_BUTTON	;
 
-	but[13].iBitmap		= 7;
-	but[13].idCommand	= IDD_FILETRANSFER;
-	but[13].fsState		= TBSTATE_INDETERMINATE;
+	but[13].iBitmap		= 2;
+	but[13].idCommand	= ID_CONN_SAVE_AS;
+	but[13].fsState		= TBSTATE_ENABLED;
 	but[13].fsStyle		= TBSTYLE_BUTTON;
 
-	but[14].fsStyle		= TBSTYLE_SEP;
+	but[14].iBitmap		= 7;
+	but[14].idCommand	= IDD_FILETRANSFER;
+	but[14].fsState		= TBSTATE_INDETERMINATE;
+	but[14].fsStyle		= TBSTYLE_BUTTON;
 
-	but[15].iBitmap		= 11;
-	but[15].idCommand	= ID_DISCONNECT;
-	but[15].fsState		= TBSTATE_ENABLED;
-	but[15].fsStyle		= TBSTYLE_BUTTON;
+	but[15].fsStyle		= TBSTYLE_SEP;
+
+	but[16].iBitmap		= 11;
+	but[16].idCommand	= ID_DISCONNECT;
+	but[16].fsState		= TBSTATE_ENABLED;
+	but[16].fsStyle		= TBSTYLE_BUTTON;
 
 	hToolBar=CreateToolbarEx(m_hwnd1,
 		WS_CHILD|WS_MAXIMIZE|WS_DLGFRAME|TBSTYLE_TOOLTIPS,
 		ID_TOOLBAR, 13, m_pApp->m_instance,
-		IDB_BITMAP1, but, 16, 0, 0, 0, 0, sizeof(TBBUTTON));
+		IDB_BITMAP1, but, 17, 0, 0, 0, 0, sizeof(TBBUTTON));
 
 	m_hwnd = CreateWindow("ChildClass",
 			      NULL,
@@ -618,6 +625,10 @@ void ClientConnection::EnableFullControlOptions()
 						   MF_BYCOMMAND | MF_GRAYED);
 		SendMessage(hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_ALTDOWN,
 						(LPARAM)MAKELONG(TBSTATE_INDETERMINATE,0));
+		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_CONN_CTLESC,
+						   MF_BYCOMMAND | MF_GRAYED);
+		SendMessage(hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_CTLESC,
+						(LPARAM)MAKELONG(TBSTATE_INDETERMINATE,0));
 	} else {
 		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_CONN_CTLALTDEL,
 						   MF_BYCOMMAND | MF_ENABLED);
@@ -630,6 +641,10 @@ void ClientConnection::EnableFullControlOptions()
 		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_CONN_ALTDOWN,
 						   MF_BYCOMMAND | MF_ENABLED);
 		SendMessage(hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_ALTDOWN,
+						(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
+		EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), ID_CONN_CTLESC,
+						   MF_BYCOMMAND | MF_ENABLED);
+		SendMessage(hToolBar, TB_SETSTATE, (WPARAM)ID_CONN_CTLESC,
 						(LPARAM)MAKELONG(TBSTATE_ENABLED,0));
 		if (m_FileTransferControl) {
 			EnableMenuItem(GetSystemMenu(m_hwnd1, FALSE), IDD_FILETRANSFER,
@@ -1422,6 +1437,9 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 		case IDD_FILETRANSFER:
 			TTStr->lpszText = "Transfer files...";
 			return 0;
+		case ID_CONN_CTLESC:
+			TTStr->lpszText = "Send Ctrl-Esc";
+			return 0;
 		}
 		return 0;
 	}
@@ -1516,6 +1534,12 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 			// Request a full-screen update
 			_this->SendFullFramebufferUpdateRequest();
 			return 0;
+		case ID_CONN_CTLESC:
+			_this->SendKeyEvent(XK_Control_L, true);
+			_this->SendKeyEvent(XK_Escape,     true);
+			_this->SendKeyEvent(XK_Escape,     false);
+			_this->SendKeyEvent(XK_Control_L, false);
+			return 0;
 		case ID_CONN_CTLALTDEL:
 			_this->SendKeyEvent(XK_Control_L, true);
 			_this->SendKeyEvent(XK_Alt_L,     true);
@@ -1607,7 +1631,7 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 		if (GetMenuState(GetSystemMenu(_this->m_hwnd1, FALSE),
 				ID_TOOLBAR, MF_BYCOMMAND) == MF_CHECKED) {
 			GetWindowRect(_this->hToolBar, &rtb);
-			SetWindowPos(_this->m_hwnd, HWND_TOP, 0, rtb.bottom - rtb.top - 4,
+			SetWindowPos(_this->m_hwnd, HWND_TOP, 0, rtb.bottom - rtb.top - 3 ,
 					rwn.right, rwn.bottom - (rtb.bottom - rtb.top) + 4, SWP_SHOWWINDOW);
 			SetWindowPos(_this->hToolBar, HWND_TOP, 0, 0,
 					rwn.right - rwn.left, rtb.bottom - rtb.top, SWP_SHOWWINDOW);

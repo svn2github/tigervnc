@@ -1,5 +1,5 @@
 
-TightVNC 1.3dev5 Binary Distribution for Windows platforms
+TightVNC 1.3dev6 Binary Distribution for Windows platforms
 ==========================================================
 
 IMPORTANT NOTE: this is a development version and may be unstable.

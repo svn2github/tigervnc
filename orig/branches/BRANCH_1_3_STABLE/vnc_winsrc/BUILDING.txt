@@ -1,4 +1,4 @@
-BUILDING vncviewer and WinVNC (TightVNC 1.3dev5 development release)
+BUILDING vncviewer and WinVNC (TightVNC 1.3dev6 development release)
 ====================================================================
 
 IMPORTANT NOTE: This is a development version and may be unstable.

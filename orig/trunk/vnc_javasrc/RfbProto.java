@@ -578,6 +578,7 @@ class RfbProto {
       case KeyEvent.VK_PAGE_UP:   key = 0xff55; break;
       case KeyEvent.VK_PAGE_DOWN: key = 0xff56; break;
       case KeyEvent.VK_END:       key = 0xff57; break;
+      case KeyEvent.VK_INSERT:    key = 0xff63; break;
       case KeyEvent.VK_F1:        key = 0xffbe; break;
       case KeyEvent.VK_F2:        key = 0xffbf; break;
       case KeyEvent.VK_F3:        key = 0xffc0; break;

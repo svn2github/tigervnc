@@ -1,6 +1,6 @@
 Summary:   A remote display system.
 Name:      tightvnc
-Version:   1.2.8
+Version:   1.2.9
 Release:   1
 URL:       http://www.tightvnc.com/
 Source0:   tightvnc-%{version}_unixsrc.tar.bz2
@@ -134,6 +134,9 @@ fi
 %{_mandir}/man1/vncpasswd.1*
 
 %changelog
+* Thu Jul 31 2003 Constantin Kaplinsky <const@ce.cctpu.edu.ru>
+- TightVNC 1.2.9 update.
+
 * Wed Jan 29 2003 Constantin Kaplinsky <const@ce.cctpu.edu.ru>
 - TightVNC 1.2.8 update.
 - Dependencies on /sbin/chkconfig and /sbin/service has been removed

@@ -60,8 +60,6 @@ const char *MENU_CLASS_NAME = "WinVNC Tray Icon";
 
 vncMenu::vncMenu(vncServer *server)
 {
-	CoInitialize(0);
-
 	// Save the server pointer
 	m_server = server;
 
@@ -300,13 +298,6 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 	case WM_SRV_CLIENT_DISCONNECT:
 		// Adjust the icon accordingly
 		_this->FlashTrayIcon(_this->m_server->AuthClientCount() != 0);
-
-		if (_this->m_server->AuthClientCount() != 0) {
-			if (_this->m_server->RemoveWallpaperEnabled())
-				KillWallpaper();
-		} else {
-			RestoreWallpaper();
-		}
 		return 0;
 
 		// STANDARD MESSAGE HANDLING

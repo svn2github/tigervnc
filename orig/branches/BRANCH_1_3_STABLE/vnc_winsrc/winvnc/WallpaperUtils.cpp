@@ -23,10 +23,22 @@
 
 #include "WallpaperUtils.h"
 
-bool g_restore_ActiveDesktop = false;
+WallpaperUtils::WallpaperUtils()
+{
+	m_restore_ActiveDesktop = false;
+	m_restore_wallpaper = false;
+
+	// NOTE: All functions must be called in the same thread.
+	CoInitialize(NULL);
+}
+
+WallpaperUtils::~WallpaperUtils()
+{
+	CoUninitialize();
+}
 
 void
-KillActiveDesktop()
+WallpaperUtils::KillActiveDesktop()
 {
   vnclog.Print(LL_INTERR, VNCLOG("KillActiveDesktop\n"));
 
@@ -51,7 +63,7 @@ KillActiveDesktop()
   }
 
   // Disable if currently active
-  g_restore_ActiveDesktop = (options.fActiveDesktop != 0);
+  m_restore_ActiveDesktop = (options.fActiveDesktop != 0);
   if (options.fActiveDesktop) {
     vnclog.Print(LL_INTINFO, VNCLOG("attempting to disable Active Desktop\n"));
     options.fActiveDesktop = FALSE;
@@ -70,17 +82,20 @@ KillActiveDesktop()
 }
 
 void
-KillWallpaper()
+WallpaperUtils::KillWallpaper()
 {
-	KillActiveDesktop();
+	if (!m_restore_wallpaper) {
+		// Tell all applications that there is no wallpaper
+		// Note that this doesn't change the wallpaper registry setting!
+		SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, "", SPIF_SENDCHANGE);
+		m_restore_wallpaper = true;
+	}
 
-	// Tell all applications that there is no wallpaper
-	// Note that this doesn't change the wallpaper registry setting!
-	SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, "", SPIF_SENDCHANGE);
+	KillActiveDesktop();
 }
 
 void
-RestoreActiveDesktop()
+WallpaperUtils::RestoreActiveDesktop()
 {
   // Contact Active Desktop if possible
   HRESULT result;
@@ -103,8 +118,8 @@ RestoreActiveDesktop()
   }
 
   // Re-enable if previously disabled
-  if (g_restore_ActiveDesktop) {
-    g_restore_ActiveDesktop = false;
+  if (m_restore_ActiveDesktop) {
+    m_restore_ActiveDesktop = false;
     vnclog.Print(LL_INTINFO, VNCLOG("attempting to re-enable Active Desktop\n"));
     options.fActiveDesktop = TRUE;
     result = active_desktop->SetDesktopItemOptions(&options, 0);
@@ -120,9 +135,13 @@ RestoreActiveDesktop()
 }
 
 void
-RestoreWallpaper()
+WallpaperUtils::RestoreWallpaper()
 {
 	RestoreActiveDesktop();
-	SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, NULL, SPIF_SENDCHANGE);
+
+	if (m_restore_wallpaper) {
+		SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, NULL, SPIF_SENDCHANGE);
+		m_restore_wallpaper = false;
+	}
 }
 

@@ -119,8 +119,6 @@ protected:
 	// Init routines called by the child thread
 	BOOL InitDesktop();
 	void KillScreenSaver();
-	void KillWallpaper();
-	void RestoreWallpaper();
 
 	void ChangeResNow();
 	void DisablePattern();

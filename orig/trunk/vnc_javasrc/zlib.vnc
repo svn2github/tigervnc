@@ -13,5 +13,6 @@ $USER's $DESKTOP desktop ($DISPLAY)
 <param name=PORT value=$PORT>
 <param name=ENCODING value=Zlib>
 </APPLET>
+<BR>
 <A href="http://www.tightvnc.com/">www.TightVNC.com</A>
 </HTML>

@@ -12,5 +12,6 @@ $USER's $DESKTOP desktop ($DISPLAY) [shared]
 <param name=PORT value=$PORT>
 <param name="share desktop" value=yes>
 </APPLET>
+<BR>
 <A href="http://www.tightvnc.com/">www.TightVNC.com</A>
 </HTML>

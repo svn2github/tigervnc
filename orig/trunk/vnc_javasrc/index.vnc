@@ -12,5 +12,6 @@ $USER's $DESKTOP desktop ($DISPLAY)
         WIDTH=$APPLETWIDTH HEIGHT=$APPLETHEIGHT>
 <param name=PORT value=$PORT>
 </APPLET>
+<BR>
 <A href="http://www.tightvnc.com/">www.TightVNC.com</A>
 </HTML>

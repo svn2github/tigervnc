@@ -1,3 +1,5 @@
+//  Copyright (C) 2003 Constantin Kaplinsky. All Rights Reserved.
+//  Copyright (C) 2002 RealVNC Ltd. All Rights Reserved.
 //  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
@@ -34,6 +36,8 @@
 #include "vncService.h"
 #include "vncConnDialog.h"
 #include <lmcons.h>
+#include <wininet.h>
+#include <shlobj.h>
 
 // Header
 
@@ -46,19 +50,109 @@ const UINT MENU_ABOUTBOX_SHOW = RegisterWindowMessage("WinVNC.AboutBox.Show");
 const UINT MENU_SERVICEHELPER_MSG = RegisterWindowMessage("WinVNC.ServiceHelper.Message");
 const UINT MENU_RELOAD_MSG = RegisterWindowMessage("WinVNC.Reload.Message");
 const UINT MENU_ADD_CLIENT_MSG = RegisterWindowMessage("WinVNC.AddClient.Message");
+const UINT MENU_REMOVE_CLIENTS_MSG = RegisterWindowMessage("WinVNC.RemoveClients.Message");
 const char *MENU_CLASS_NAME = "WinVNC Tray Icon";
+
+bool g_restore_ActiveDesktop = false;
+
+static void
+KillActiveDesktop()
+{
+  vnclog.Print(LL_INTERR, VNCLOG("KillActiveDesktop\n"));
+
+  // Contact Active Desktop if possible
+  HRESULT result;
+  IActiveDesktop* active_desktop = 0;
+  result = CoCreateInstance(CLSID_ActiveDesktop, NULL, CLSCTX_INPROC_SERVER,
+    IID_IActiveDesktop, (void**)&active_desktop);
+  if (result != S_OK) {
+    vnclog.Print(LL_INTERR, VNCLOG("unable to access Active Desktop object:%x\n"), result);
+    return;
+  }
+
+  // Get Active Desktop options
+  COMPONENTSOPT options;
+  options.dwSize = sizeof(options);
+  result = active_desktop->GetDesktopItemOptions(&options, 0);
+  if (result != S_OK) {
+    vnclog.Print(LL_INTERR, VNCLOG("unable to fetch Active Desktop options:%x\n"), result);
+    active_desktop->Release();
+    return;
+  }
+
+  // Disable if currently active
+  g_restore_ActiveDesktop = (options.fActiveDesktop != 0);
+  if (options.fActiveDesktop) {
+    vnclog.Print(LL_INTINFO, VNCLOG("attempting to disable Active Desktop\n"));
+    options.fActiveDesktop = FALSE;
+    result = active_desktop->SetDesktopItemOptions(&options, 0);
+    if (result != S_OK) {
+      vnclog.Print(LL_INTERR, VNCLOG("unable to disable Active Desktop:%x\n"), result);
+      active_desktop->Release();
+      return;
+    }
+  } else {
+    vnclog.Print(LL_INTINFO, VNCLOG("Active Desktop not enabled - ignoring\n"));
+  }
+
+  active_desktop->ApplyChanges(AD_APPLY_REFRESH);
+  active_desktop->Release();
+}
 
 static void
 KillWallpaper()
 {
+	KillActiveDesktop();
+
 	// Tell all applications that there is no wallpaper
 	// Note that this doesn't change the wallpaper registry setting!
 	SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, "", SPIF_SENDCHANGE);
 }
 
 static void
+RestoreActiveDesktop()
+{
+  // Contact Active Desktop if possible
+  HRESULT result;
+  IActiveDesktop* active_desktop = 0;
+  result = CoCreateInstance(CLSID_ActiveDesktop, NULL, CLSCTX_INPROC_SERVER,
+    IID_IActiveDesktop, (void**)&active_desktop);
+  if (result != S_OK) {
+    vnclog.Print(LL_INTERR, VNCLOG("unable to access Active Desktop object:%x\n"), result);
+    return;
+  }
+
+  // Get Active Desktop options
+  COMPONENTSOPT options;
+  options.dwSize = sizeof(options);
+  result = active_desktop->GetDesktopItemOptions(&options, 0);
+  if (result != S_OK) {
+    vnclog.Print(LL_INTERR, VNCLOG("unable to fetch Active Desktop options:%x\n"), result);
+    active_desktop->Release();
+    return;
+  }
+
+  // Re-enable if previously disabled
+  if (g_restore_ActiveDesktop) {
+    g_restore_ActiveDesktop = false;
+    vnclog.Print(LL_INTINFO, VNCLOG("attempting to re-enable Active Desktop\n"));
+    options.fActiveDesktop = TRUE;
+    result = active_desktop->SetDesktopItemOptions(&options, 0);
+    if (result != S_OK) {
+      vnclog.Print(LL_INTERR, VNCLOG("unable to re-enable Active Desktop:%x\n"), result);
+      active_desktop->Release();
+      return;
+    }
+  }
+
+  active_desktop->ApplyChanges(AD_APPLY_REFRESH);
+  active_desktop->Release();
+}
+
+static void
 RestoreWallpaper()
 {
+	RestoreActiveDesktop();
 	SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, NULL, SPIF_SENDCHANGE);
 }
 
@@ -66,6 +160,8 @@ RestoreWallpaper()
 
 vncMenu::vncMenu(vncServer *server)
 {
+	CoInitialize(0);
+
 	// Save the server pointer
 	m_server = server;
 
@@ -102,9 +198,13 @@ vncMenu::vncMenu(vncServer *server)
 				NULL);
 	if (m_hwnd == NULL)
 	{
+		vnclog.Print(LL_INTERR, VNCLOG("unable to CreateWindow:%d\n"), GetLastError());
 		PostQuitMessage(0);
 		return;
 	}
+
+	// Timer to trigger icon updating
+	SetTimer(m_hwnd, 1, 5000, NULL);
 
 	// record which client created this window
 	SetWindowLong(m_hwnd, GWL_USERDATA, (LONG) this);
@@ -115,15 +215,9 @@ vncMenu::vncMenu(vncServer *server)
 	// Initialise the properties dialog object
 	if (!m_properties.Init(m_server))
 	{
+		vnclog.Print(LL_INTERR, VNCLOG("unable to initialise Properties dialog\n"));
 		PostQuitMessage(0);
 		return;
-	}
-
-	// Only enable the timer if the tray icon will be displayed.
-	if ( ! server->GetDisableTrayIcon())
-	{
-		// Timer to trigger icon updating
-		SetTimer(m_hwnd, 1, 5000, NULL);
 	}
 
 	// Load the icons for the tray
@@ -259,6 +353,10 @@ vncMenu::SendTrayMsg(DWORD msg, BOOL flash)
 			m_properties.AllowShutdown() ? MF_ENABLED : MF_GRAYED);
 		EnableMenuItem(m_hmenu, ID_DISABLE_CONN,
 			m_properties.AllowShutdown() ? MF_ENABLED : MF_GRAYED);
+		EnableMenuItem(m_hmenu, ID_KILLCLIENTS,
+			m_properties.AllowEditClients() ? MF_ENABLED : MF_GRAYED);
+		EnableMenuItem(m_hmenu, ID_OUTGOING_CONN,
+			m_properties.AllowEditClients() ? MF_ENABLED : MF_GRAYED);
 	} else {
 		if (!vncService::RunningAsService())
 		{
@@ -268,6 +366,7 @@ vncMenu::SendTrayMsg(DWORD msg, BOOL flash)
 				// as the main program window
 				vnclog.Print(LL_INTINFO, VNCLOG("opening dialog box\n"));
 				m_properties.Show(TRUE, TRUE);
+				vnclog.Print(LL_INTERR, VNCLOG("unable to add tray icon\n"), GetLastError());
 				PostQuitMessage(0);
 			}
 		}
@@ -441,33 +540,24 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 
 	case WM_DESTROY:
 		// The user wants WinVNC to quit cleanly...
+		vnclog.Print(LL_INTERR, VNCLOG("quitting from WM_DESTROY\n"));
 		PostQuitMessage(0);
 		return 0;
 
 	case WM_QUERYENDSESSION:
+		vnclog.Print(LL_INTERR, VNCLOG("WM_QUERYENDSESSION\n"));
+		break;
+
+	case WM_ENDSESSION:
+		vnclog.Print(LL_INTERR, VNCLOG("WM_ENDSESSION\n"));
+		break;
+
+/*
+	case WM_ENDSESSION:
 		// Are we running as a system service, or shutting the system down?
-		if (!vncService::RunningAsService() || (lParam == 0))
+		if (wParam && (lParam == 0))
 		{
-			// No, so we are about to be killed
-
-			// If there are remote connections then we should verify
-			// that the user is happy about killing them.
-
-			if (!vncService::RunningAsService() && (_this->m_server->AuthClientCount() > 0))
-			{
-				if (MessageBox(NULL,
-					"There are remote clients connected to this computer.\n"
-					"Ending the session will disconnect them and close down WinVNC.\n"
-					"Are you sure you want to do this?",
-					"WinVNC Warning",
-					MB_OKCANCEL | MB_ICONWARNING) == IDCANCEL)
-				{
-					// User doesn't want to log-out, so stop the logout.
-					return FALSE;
-				}
-			}
-
-			// The user wishes to log out (or no users are connected)
+			// Shutdown!
 			// Try to clean ourselves up nicely, if possible...
 
 			// Firstly, disable incoming CORBA or socket connections
@@ -479,14 +569,11 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 			_this->m_server->KillUnauthClients();
 			_this->m_server->WaitUntilAuthEmpty();
 			_this->m_server->WaitUntilUnauthEmpty();
-
-			// Finally, post a quit message, just in case
-			PostQuitMessage(0);
-			return TRUE;
 		}
 
 		// Tell the OS that we've handled it anyway
-		return TRUE;
+		return 0;
+		*/
 
 	case WM_USERCHANGED:
 		// The current user may have changed.
@@ -569,6 +656,13 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 			// Add Client message.  This message includes an IP address and
 			// a port numbrt of a listening client, to which we should connect.
 
+			// If there is no IP address then show the connection dialog
+			if (!lParam) {
+				vncConnDialog *newconn = new vncConnDialog(_this->m_server);
+				if (newconn) newconn->DoDialog();
+				return 0;
+			}
+
 			// Get the IP address stringified
 			struct in_addr address;
 			address.S_un.S_addr = lParam;
@@ -602,6 +696,11 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 			// Free the duplicate name
 			free(nameDup);
 			return 0;
+		}
+		if (iMsg == MENU_REMOVE_CLIENTS_MSG)
+		{
+			// Kill all connected clients
+			_this->m_server->KillAuthClients();
 		}
 	}
 

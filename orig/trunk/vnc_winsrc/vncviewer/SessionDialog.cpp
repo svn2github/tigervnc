@@ -188,54 +188,56 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 			return TRUE;				
 		case IDC_LOC_NET_RADIO:
 			switch (HIWORD(wParam)) {
-			case   BN_CLICKED: 
+			case BN_CLICKED:
+				// FIXME: Eliminate code duplication, see below
+				// (handle connection profiles in one place, in VNCOptions?)
 				for (int i = rfbEncodingRaw; i <= LASTENCODING; i++)
 					_this->m_pOpt->m_UseEnc[i] = true;
-					
+
 				_this->m_pOpt->m_UseEnc[3] = false;
-				_this->m_pOpt->m_PreferredEncoding = rfbEncodingTight - 2;
+				_this->m_pOpt->m_PreferredEncoding = rfbEncodingHextile;
 				_this->m_pOpt->m_useCompressLevel = false;
 				_this->m_pOpt->m_compressLevel = 6;
 				_this->m_pOpt->m_enableJpegCompression = false;
 				_this->m_pOpt->m_jpegQualityLevel = 6;
-				_this->m_pOpt->m_Use8Bit = false;	
-				return TRUE;						
-			}				
-			return TRUE;				
-		case IDC_MODEM_RADIO: 			
+				_this->m_pOpt->m_Use8Bit = false;
+				return TRUE;
+			}
+			return TRUE;
+		case IDC_MODEM_RADIO:
 			switch (HIWORD(wParam)) {
-			case   BN_CLICKED: 					
-				for ( i = rfbEncodingRaw; i <= LASTENCODING; i++)
+			case BN_CLICKED:
+				// FIXME: Eliminate code duplication, see above and below.
+				for (i = rfbEncodingRaw; i <= LASTENCODING; i++)
 					_this->m_pOpt->m_UseEnc[i] = true;
-						
+
 				_this->m_pOpt->m_UseEnc[3] = false;
 				_this->m_pOpt->m_PreferredEncoding = rfbEncodingTight;
 				_this->m_pOpt->m_useCompressLevel = true;
 				_this->m_pOpt->m_compressLevel = 6;
 				_this->m_pOpt->m_enableJpegCompression = true;
 				_this->m_pOpt->m_jpegQualityLevel = 6;
-				_this->m_pOpt->m_Use8Bit = true;		
+				_this->m_pOpt->m_Use8Bit = true;
 				return TRUE;
-						
-			}				
-			return TRUE; 				
-		case IDC_CUSTOM_RADIO:			
+			}
+			return TRUE;
+		case IDC_CUSTOM_RADIO:
 			switch (HIWORD(wParam)) {
-			case   BN_CLICKED: 
-							
-				for ( i = rfbEncodingRaw; i <= LASTENCODING; i++)
+			case BN_CLICKED:
+				// FIXME: Eliminate code duplication, see above.
+				for (i = rfbEncodingRaw; i <= LASTENCODING; i++)
 						_this->m_pOpt->m_UseEnc[i] = true;
-							
+
 				_this->m_pOpt->m_UseEnc[3] = false;
 				_this->m_pOpt->m_PreferredEncoding = rfbEncodingTight;
 				_this->m_pOpt->m_useCompressLevel = false;
 				_this->m_pOpt->m_compressLevel = 6;
 				_this->m_pOpt->m_enableJpegCompression = true;
 				_this->m_pOpt->m_jpegQualityLevel = 6;
-				_this->m_pOpt->m_Use8Bit = false;			
-				return TRUE;						
-			}				
-			return TRUE; 								  
+				_this->m_pOpt->m_Use8Bit = false;
+				return TRUE;
+			}
+			return TRUE;
 		case IDC_OPTIONBUTTON:
 			{
 				if (SetForegroundWindow(_this->m_pOpt->m_hParent) != 0) return 0;

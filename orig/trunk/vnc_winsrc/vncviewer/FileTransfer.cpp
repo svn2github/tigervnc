@@ -9,14 +9,16 @@ const char FileTransfer::uploadText[] = ">>>";
 const char FileTransfer::downloadText[] = "<<<";
 const char FileTransfer::noactionText[] = "<--->";
 
+const char FileTransfer::folderText[] = "<Folder>";
+
 int 
 CompareFTItemInfo(const void *F, const void *S)
 {
 	if (strcmp(((FTITEMINFO *)F)->Size, ((FTITEMINFO *)S)->Size) == 0) {
 		return stricmp(((FTITEMINFO *)F)->Name, ((FTITEMINFO *)S)->Name);
 	} else {
-		if (strcmp(((FTITEMINFO *)F)->Size, "Folder") == 0) return -1;
-		if (strcmp(((FTITEMINFO *)S)->Size, "Folder") == 0) {
+		if (strcmp(((FTITEMINFO *)F)->Size, FileTransfer::folderText) == 0) return -1;
+		if (strcmp(((FTITEMINFO *)S)->Size, FileTransfer::folderText) == 0) {
 			return 1;
 		} else {
 		return stricmp(((FTITEMINFO *)F)->Name, ((FTITEMINFO *)S)->Name);
@@ -471,7 +473,7 @@ FileTransfer::ShowClientItems(char *path)
 		for (int i=0; i<DrivesNum; i++) {
 			strcpy(m_FTClientItemInfo[i].Name, "?:");
 			m_FTClientItemInfo[i].Name[0] = DrivesString[i];
-			strcpy(m_FTClientItemInfo[i].Size, "Folder");
+			strcpy(m_FTClientItemInfo[i].Size, folderText);
 		}
 		ShowListViewItems(m_hwndFTClientList, m_FTClientItemInfo, DrivesNum);
 	} else {
@@ -522,7 +524,7 @@ FileTransfer::ShowClientItems(char *path)
 					sprintf(buffer, "%d", m_FindFileData.nFileSizeLow);
 					strcpy(m_FTClientItemInfo[i].Size, buffer);
 				} else {
-					strcpy(m_FTClientItemInfo[i].Size, "Folder");
+					strcpy(m_FTClientItemInfo[i].Size, folderText);
 				}
 				strcpy(m_FTClientItemInfo[i].Name, m_FindFileData.cFileName);
 				i++;
@@ -806,7 +808,7 @@ FileTransfer::ShowServerItems()
 				strcpy(m_FTServerItemInfo[fld.num].Size, buffer_);
 				break;
 			case 0x0001:
-				strcpy(m_FTServerItemInfo[fld.num].Size, "Folder");
+				strcpy(m_FTServerItemInfo[fld.num].Size, folderText);
 				break;
 			default:
 				strcpy(m_FTServerItemInfo[fld.num].Size, "Unknown");
@@ -871,7 +873,7 @@ FileTransfer::ProcessListViewDBLCLK(HWND hwnd, char *Path, char *PathTmp, int iI
 	char buffer_tmp[16];
 	ListView_GetItemText(hwnd, iItem, 0, buffer, rfbMAX_PATH);
 	ListView_GetItemText(hwnd, iItem, 1, buffer_tmp, 16);
-	if (strcmp(buffer_tmp, "Folder") == 0) {
+	if (strcmp(buffer_tmp, folderText) == 0) {
 			BlockingFileTransferDialog(FALSE);
 			if (strlen(PathTmp) >= 2) strcat(PathTmp, "\\");
 			strcat(PathTmp, buffer);
@@ -916,7 +918,7 @@ FileTransfer::FTInsertColumn(HWND hwnd, char *iText, int iOrder, int xWidth)
 {
     LVCOLUMN lvc; 
     lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM | LVCF_ORDER;
-	lvc.fmt = LVCFMT_CENTER;
+	lvc.fmt = LVCFMT_RIGHT;
 	lvc.iSubItem = iOrder;
     lvc.pszText = iText;	
 	lvc.cchTextMax = 10;

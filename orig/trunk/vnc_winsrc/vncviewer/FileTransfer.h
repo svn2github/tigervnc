@@ -21,12 +21,17 @@ typedef struct tagFTITEMINFO
 
 class FileTransfer  
 {
+private:
 	static const char uploadText[];
 	static const char downloadText[];
 	static const char noactionText[];
 
 public:
+	static const char folderText[];
+
 	FileTransfer(ClientConnection * pCC, VNCviewerApp * pApp);
+	~FileTransfer();
+
 	void FTInsertColumn(HWND hwnd, char *iText, int iOrder, int xWidth);
 	int GetLogicalDriveStringByType(unsigned int DriveType, char *DrivesString);
 	void CreateFileTransferDialog();
@@ -60,6 +65,7 @@ public:
 	ClientConnection * m_clientconn;
 	VNCviewerApp * m_pApp; 
 	
+private:
 	HWND m_hwndFileTransfer;
 	HWND m_hwndFTClientList;
 	HWND m_hwndFTServerList;
@@ -76,8 +82,6 @@ public:
 	HANDLE m_hFiletoWrite;
 	HTREEITEM m_hTreeItem;
 	HINSTANCE m_FTInstance;
-
-	virtual ~FileTransfer();
 };
 
 #endif // !defined(FILETRANSFER)

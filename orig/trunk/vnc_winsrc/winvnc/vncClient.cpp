@@ -864,7 +864,6 @@ vncClientThread::run(void *arg)
 
 		// Continuously try to blank the server's screen, if configured so
 		// FIXME: Why we do this from each client's thread?
-		m_server->BlankScreen();
 
 		// Ensure that we're running in the correct desktop
 		if (!vncService::InputDesktopSelected())

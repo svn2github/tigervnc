@@ -217,6 +217,15 @@ is the full list of parameters supported in TightVNC Java viewer:
     If set to "Yes", then all keyboard and mouse events in the desktop window
     will be silently ignored and will not be passed to the remote side.
 
+--> "Scale remote cursor"
+
+    Values: "No", "50%", "75%", "125%", "150%".
+    Default: "No".
+
+    If a percentage value is specified, the remote cursor is reduced
+    or enlarged accordingly. Scaling takes place only when "View only"
+    is set to "No", and "Cursor shape updates" is set to "Enable".
+
 --> "Share desktop"
 
     Values: "Yes", "No".

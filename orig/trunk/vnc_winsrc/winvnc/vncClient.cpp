@@ -1081,45 +1081,38 @@ vncClient::TriggerUpdate()
 {
 	// Lock the updates stored so far
 	omni_mutex_lock l(m_regionLock);
-	if (!m_protocol_ready) return;
+	if (!m_protocol_ready)
+		return;
 
-	RECT SharedRect, CurrentRect;
+	RECT old_rect, new_rect;
 
-	if (m_server->WindowShared())
-		GetWindowRect(m_server->GetWindowShared(), &CurrentRect);
-	else
-	{
-		if (m_server->ScreenAreaShared())
-			CurrentRect = m_server->GetScreenAreaRect();
-		else
-			CurrentRect = m_fullscreen;
+	if (m_server->WindowShared()) {
+		GetWindowRect(m_server->GetWindowShared(), &new_rect);
+	} else if (m_server->ScreenAreaShared()) {
+		new_rect = m_server->GetScreenAreaRect();
+	} else {
+		new_rect = m_fullscreen;
 	}
 	
-	SharedRect = m_server->getSharedRect();
-	IntersectRect(&CurrentRect, &CurrentRect, &m_fullscreen);
+	old_rect = m_server->getSharedRect();
+	IntersectRect(&new_rect, &new_rect, &m_fullscreen);
 	
-	if ( !EqualRect( &CurrentRect, &SharedRect) )
-	{
-
-		m_server->setSharedRect( CurrentRect);
+	if (!EqualRect(&new_rect, &old_rect)) {
+		m_server->setSharedRect(new_rect);
 		m_full_rgn.Clear();
 		m_incr_rgn.Clear();
 	
-		if ( (SharedRect.right-SharedRect.left != CurrentRect.right - CurrentRect.left) ||
-			( SharedRect.bottom-SharedRect.top != CurrentRect.bottom - CurrentRect.top) ) 
-		{
+		if ( old_rect.right - old_rect.left != new_rect.right - new_rect.left ||
+			 old_rect.bottom - old_rect.top != new_rect.bottom - new_rect.top ) {
 			SendNewFBSize(); 
-			//m_changed_rgn.AddRect(CurrentRect) ;
-			m_full_rgn.AddRect(CurrentRect);
-		} else 
-			if (m_server->WindowShared())
-				return;
-			else 
-				m_full_rgn.AddRect(CurrentRect);
-				
+			m_full_rgn.AddRect(new_rect);
+		} else if (m_server->WindowShared()) {
+			return;
+		} else {
+			m_full_rgn.AddRect(new_rect);
+		}
 	}
 
-	
 	if (m_updatewanted)
 	{
 		// Handle the three polling modes
@@ -1137,7 +1130,6 @@ vncClient::TriggerUpdate()
 				m_pollingcycle = (m_pollingcycle + 1) % 4;
 						
 			}
-			
 		}
 
 		if (m_server->PollForeground())

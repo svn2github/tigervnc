@@ -13,9 +13,9 @@ CLASSES = vncviewer.class rfbProto.class authenticationPanel.class \
 	  vncCanvas.class optionsFrame.class clipboardFrame.class \
 	  animatedMemoryImageSource.class DesCipher.class
 
-SOURCES = vncviewer.java rfbProto.java authenticationPanel.java \
+SOURCES = rfbProto.java authenticationPanel.java \
 	  vncCanvas.java optionsFrame.java clipboardFrame.java \
-	  animatedMemoryImageSource.java DesCipher.java
+	  animatedMemoryImageSource.java DesCipher.java vncviewer.java
 
 all: $(CLASSES) $(ARCHIVE)
 

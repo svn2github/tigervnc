@@ -39,7 +39,7 @@ class optionsFrame extends Frame {
   };
 
   static String[][] values = {
-    { "Raw", "RRE", "CoRRE", "Hextile", "Zlib" },
+    { "Raw", "RRE", "CoRRE", "Hextile", "Zlib", "Tight" },
     { "Yes", "No" },
     { "Normal", "Reversed" },
     { "Fast", "Reliable" },
@@ -171,6 +171,8 @@ class optionsFrame extends Frame {
       preferredEncoding = rfbProto.EncodingHextile;
     } else if (choices[encodingIndex].getSelectedItem().equals("Zlib")) {
       preferredEncoding = rfbProto.EncodingZlib;
+    } else if (choices[encodingIndex].getSelectedItem().equals("Tight")) {
+      preferredEncoding = rfbProto.EncodingTight;
     }
 
     if ((preferredEncoding == rfbProto.EncodingRaw) ||
@@ -180,17 +182,20 @@ class optionsFrame extends Frame {
     }
 
     encodings[nEncodings++] = preferredEncoding;
-    if (preferredEncoding != rfbProto.EncodingRRE) {
-      encodings[nEncodings++] = rfbProto.EncodingRRE;
+    if (preferredEncoding != rfbProto.EncodingHextile) {
+      encodings[nEncodings++] = rfbProto.EncodingHextile;
+    }
+    if (preferredEncoding != rfbProto.EncodingTight) {
+      encodings[nEncodings++] = rfbProto.EncodingTight;
+    }
+    if (preferredEncoding != rfbProto.EncodingZlib) {
+      encodings[nEncodings++] = rfbProto.EncodingZlib;
     }
     if (preferredEncoding != rfbProto.EncodingCoRRE) {
       encodings[nEncodings++] = rfbProto.EncodingCoRRE;
     }
-    if (preferredEncoding != rfbProto.EncodingHextile) {
-      encodings[nEncodings++] = rfbProto.EncodingHextile;
-    }
-    if (preferredEncoding != rfbProto.EncodingZlib) {
-      encodings[nEncodings++] = rfbProto.EncodingZlib;
+    if (preferredEncoding != rfbProto.EncodingRRE) {
+      encodings[nEncodings++] = rfbProto.EncodingRRE;
     }
 
     v.setEncodings();

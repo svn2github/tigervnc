@@ -52,13 +52,23 @@ class rfbProto {
     ClientCutText = 6;
 
   final static int EncodingRaw = 0, EncodingCopyRect = 1, EncodingRRE = 2,
-    EncodingCoRRE = 4, EncodingHextile = 5, EncodingZlib = 6;
+    EncodingCoRRE = 4, EncodingHextile = 5, EncodingZlib = 6,
+    EncodingTight = 7;
 
   final int HextileRaw			= (1 << 0);
   final int HextileBackgroundSpecified	= (1 << 1);
   final int HextileForegroundSpecified	= (1 << 2);
   final int HextileAnySubrects		= (1 << 3);
   final int HextileSubrectsColoured	= (1 << 4);
+
+  final static int TightExplicitFilter  = 0x04;
+  final static int TightFill            = 0x08;
+  final static int TightMaxSubencoding  = 0x08;
+  final static int TightFilterCopy      = 0x00;
+  final static int TightFilterPalette   = 0x01;
+  final static int TightFilterGradient  = 0x02;
+
+  final static int TightMinToCompress   = 12;
 
   String host;
   int port;
@@ -265,6 +275,25 @@ class rfbProto {
     byte[] text = new byte[len];
     is.readFully(text);
     return new String(text, 0);
+  }
+
+
+  //
+  // Read integer in compact representation
+  //
+
+  int readCompactLen() throws IOException {
+    int portion = is.readUnsignedByte();
+    int len = portion & 0x7F;
+    if ((portion & 0x80) != 0) {
+      portion = is.readUnsignedByte();
+      len |= (portion & 0x7F) << 7;
+      if ((portion & 0x80) != 0) {
+        portion = is.readUnsignedByte();
+        len |= (portion & 0xFF) << 14;
+      }
+    }
+    return len;
   }
 
 

@@ -1,5 +1,6 @@
 //
 //  Copyright (C) 2001,2002 HorizonLive.com, Inc.  All Rights Reserved.
+//  Copyright (C) 2002 Constantin Kaplinsky.  All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge.  All Rights Reserved.
 //
 //  This is free software; you can redistribute it and/or modify
@@ -66,10 +67,16 @@ public class VncViewer extends java.applet.Applet
   RecordingFrame rec;
   ClipboardFrame clipboard;
 
+  // Control session recording.
+  String sessionFileName;
+  boolean recordingActive;
+  boolean recordingStatusChanged;
+  String cursorUpdatesSetting;
+  String eightBitColorsSetting;
+
   // Variables read from parameter values.
   String host;
   int port;
-  String sessionFileName;
   String passwordParam;
   String encPasswordParam;
   boolean showControls;
@@ -101,6 +108,10 @@ public class VncViewer extends java.applet.Applet
     rec = new RecordingFrame(this);
     clipboard = new ClipboardFrame(this);
     authenticator = new AuthPanel();
+
+    sessionFileName = null;
+    recordingActive = false;
+    recordingStatusChanged = false;
 
     if (inSeparateFrame)
       vncFrame.addWindowListener(this);
@@ -449,24 +460,48 @@ public class VncViewer extends java.applet.Applet
 
   //
   // Start session recording.
-  // FIXME: It's a temporary hack.
+  // FIXME: Synchronization.
   //
 
   void startRecording(String fname) {
-    sessionFileName = fname;
+
+    // Save settings to restore them after recording the session.
+    if (sessionFileName == null) {
+      cursorUpdatesSetting =
+	options.choices[options.cursorUpdatesIndex].getSelectedItem();
+      eightBitColorsSetting =
+	options.choices[options.eightBitColorsIndex].getSelectedItem();
+    }
+
+    // Set options to values suitable for recording.
     options.choices[options.cursorUpdatesIndex].select("Disable");
+    options.choices[options.cursorUpdatesIndex].setEnabled(false);
     options.setEncodings();
     options.choices[options.eightBitColorsIndex].select("No");
+    options.choices[options.eightBitColorsIndex].setEnabled(false);
     options.setColorFormat();
+
+    sessionFileName = fname;
+    recordingStatusChanged = true;
   }
 
   //
   // Stop session recording.
-  // FIXME: It's a temporary hack.
+  // FIXME: Synchronization.
   //
 
   void stopRecording() {
+
+    // Restore options.
+    options.choices[options.cursorUpdatesIndex].select(cursorUpdatesSetting);
+    options.choices[options.cursorUpdatesIndex].setEnabled(true);
+    options.setEncodings();
+    options.choices[options.eightBitColorsIndex].select(eightBitColorsSetting);
+    options.choices[options.eightBitColorsIndex].setEnabled(true);
+    options.setColorFormat();
+
     sessionFileName = null;
+    recordingStatusChanged = true;
   }
 
   //
@@ -497,9 +532,6 @@ public class VncViewer extends java.applet.Applet
     encPasswordParam = readParameter("ENCPASSWORD", false);
     if (encPasswordParam == null)
       passwordParam = readParameter("PASSWORD", false);
-
-    // This parameter tells the viewer to save VNC session in a file.
-    sessionFileName = readParameter("Save Session", false);
 
     // "Show Controls" set to "No" disables button panel.
     showControls = true;

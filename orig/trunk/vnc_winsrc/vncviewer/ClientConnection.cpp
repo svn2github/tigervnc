@@ -446,7 +446,7 @@ void ClientConnection::CreateDisplay()
 
 	m_hwnd = CreateWindow("ChildClass",
 			      NULL,
-			       WS_VSCROLL|WS_HSCROLL | WS_CHILD,
+			       WS_VSCROLL|WS_HSCROLL | WS_CHILD | WS_CLIPSIBLINGS,
 			      CW_USEDEFAULT,
 			      CW_USEDEFAULT,
 			      CW_USEDEFAULT,       // x-size
@@ -561,7 +561,8 @@ HWND ClientConnection::CreateToolbar()
 	assert(numButtons <= MAX_TOOLBAR_BUTTONS);
 
 	return CreateToolbarEx(m_hwnd1,
-		WS_CHILD | WS_MAXIMIZE | WS_DLGFRAME | TBSTYLE_TOOLTIPS,
+		WS_CHILD | WS_MAXIMIZE | WS_DLGFRAME | TBSTYLE_TOOLTIPS |
+		WS_CLIPSIBLINGS,
 		ID_TOOLBAR, 12, m_pApp->m_instance,
 		IDB_BITMAP1, but, numButtons, 0, 0, 0, 0, sizeof(TBBUTTON));
 }

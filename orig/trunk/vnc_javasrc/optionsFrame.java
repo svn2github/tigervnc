@@ -66,7 +66,7 @@ class optionsFrame extends Frame {
   // The actual data which other classes look at:
   //
 
-  int[] encodings = new int[15];
+  int[] encodings = new int[20];
   int nEncodings;
 
   int compressLevel;

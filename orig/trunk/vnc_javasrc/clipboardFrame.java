@@ -36,7 +36,7 @@ class clipboardFrame extends Frame {
   //
 
   clipboardFrame(vncviewer v1) {
-    super("VNC Clipboard");
+    super("TightVNC Clipboard");
 
     v = v1;
 

@@ -194,6 +194,7 @@ private:
 	DWORD m_dwFTProgBarValue;
 	DWORD m_dwFTProgBarPercent;
 	DWORD m_dwNumDelItems;
+	DWORD m_dwNumUndel;
 	DWORD m_dwNumDelFiles;
 	DWORD m_dwNumDelFolders;
 

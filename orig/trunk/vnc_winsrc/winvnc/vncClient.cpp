@@ -1692,7 +1692,7 @@ vncClientThread::run(void *arg)
 				if (!MoveFile(pOldName, pNewName)) {
 					CARD32 sysError = GetLastError();
 					CARD8 typeOfRequest = rfbFileRenameRequest;
-					char reason[] = "Last request failed";
+					char reason[] = "File Cannot be renamed";
 					CARD16 reasonLen = strlen(reason);
 					m_client->SendLastRequestFailed(typeOfRequest, reasonLen, sysError, reason);
 				}
@@ -1764,17 +1764,31 @@ vncClientThread::run(void *arg)
 				SetErrorMode(0);
 				if (hFile != INVALID_HANDLE_VALUE) {
 					if(!(FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {	
-						DeleteFile(pName);
+						FindClose(hFile);
+						if (!DeleteFile(pName)) {
+							CARD32 sysError = GetLastError();
+							CARD8 typeOfRequest = rfbFileDeleteRequest;
+							char reason[] = "File Cannot be delete";
+							CARD16 reasonLen = strlen(reason);
+							m_client->SendLastRequestFailed(typeOfRequest, reasonLen, sysError, reason);
+							break;
+						}
 					}
-					FindClose(hFile);
 				} else {
 					delete [] pName;
+					CARD32 sysError = GetLastError();
+					CARD8 typeOfRequest = rfbFileDeleteRequest;
+					char reason[] = "File Cannot be delete";
+					CARD16 reasonLen = strlen(reason);
+					m_client->SendLastRequestFailed(typeOfRequest, reasonLen, sysError, reason);
 					break;
 				}
 				char fullPath[MAX_PATH];
 				FileTransferItemInfo ftfi;
 				FileTransferItemInfo delDirInfo;
 				ftfi.Add(pName, -1, 0);
+				delete [] pName;
+				BOOL bError = FALSE;
 				do {
 					sprintf(fullPath, "%s\\*", ftfi.GetNameAt(0));
 					delDirInfo.Add(ftfi.GetNameAt(0), -1, 0);
@@ -1791,18 +1805,41 @@ vncClientThread::run(void *arg)
 								if ((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {	
 									ftfi.Add(buff, -1, 0);
 								} else {
-									DeleteFile(buff);
+									if (!DeleteFile(buff)) {
+										bError = TRUE;
+										break;
+									}
 								}
 							}
 						} while (FindNextFile(hFile, &FindFileData));
+						if (bError) break;
 					}			
 					FindClose(hFile);
 					ftfi.DeleteAt(0);
 				} while (ftfi.GetNumEntries() > 0);
-				for (int i = delDirInfo.GetNumEntries() - 1; i >= 0; i--) {
-					RemoveDirectory(delDirInfo.GetNameAt(i));
+				if (bError) {
+					CARD32 sysError = GetLastError();
+					CARD8 typeOfRequest = rfbFileDeleteRequest;
+					char reason[] = "Folder Cannot be delete";
+					CARD16 reasonLen = strlen(reason);
+					m_client->SendLastRequestFailed(typeOfRequest, reasonLen, sysError, reason);
+					break;
 				}
-				delete [] pName;
+				for (int i = delDirInfo.GetNumEntries() - 1; i >= 0; i--) {
+					if (!RemoveDirectory(delDirInfo.GetNameAt(i))) {
+						bError = TRUE;
+						break;
+					}
+				if (bError) {
+					CARD32 sysError = GetLastError();
+					CARD8 typeOfRequest = rfbFileDeleteRequest;
+					char reason[] = "Folder Cannot be delete";
+					CARD16 reasonLen = strlen(reason);
+					m_client->SendLastRequestFailed(typeOfRequest, reasonLen, sysError, reason);
+					break;
+				}
+
+				}
 			}
 			break;
 			

@@ -1290,21 +1290,22 @@ FileTransfer::ProcessFLRFMessage()
 	char *pReason = new char [flrf.reasonLen + 1];
 	m_clientconn->ReadExact(pReason, flrf.reasonLen);
 	pReason[flrf.reasonLen] = '\0';
-	if (flrf.typeOfRequest == rfbFileDownloadRequest) {
+	switch (flrf.typeOfRequest) 
+	{
+	case rfbFileDownloadRequest:
 		CloseHandle(m_hFiletoWrite);
 	    DeleteFile(m_DownloadFilename);
 		CheckDownloadQueue();
-		delete [] pReason;
-		return;
-	}
-	if (flrf.sysError != 0) {
-		SetStatusText("%s error = %d", pReason, flrf.sysError);
-	} else {
+		break;
+	case rfbFileListRequest:
+	case rfbFileRenameRequest:
+	case rfbFileDeleteRequest:
 		SetStatusText(pReason);
+		strcpy(m_ServerPathTmp, m_ServerPath);
+		SendFileListRequestMessage(m_ServerPathTmp, 0, FT_FLR_DEST_MAIN);
+		break;
 	}
 	delete [] pReason;
-	strcpy(m_ServerPathTmp, m_ServerPath);
-	SendFileListRequestMessage(m_ServerPathTmp, 0, FT_FLR_DEST_MAIN);
 }
 
 void
@@ -1361,7 +1362,7 @@ FileTransfer::ProcessFLRDelete()
 	FileTransferItemInfo ftii;
 	CreateItemInfoList(&ftii, pftSD, fld.numFiles, pFilenames, fld.dataSize);
 	int num = m_DeleteInfo.GetNumEntries() - 1;
-	int numDel = m_dwNumDelFiles + m_dwNumDelFolders;
+	int numDel = m_dwNumDelFiles + m_dwNumDelFolders + m_dwNumUndel;
 	if ((num < 0) || ((numDel) > num)) return;
 	if (IsExistName(&ftii, m_DeleteInfo.GetNameAt(numDel)) < 0) {
 		SetStatusText("%s\\%s deleted", m_ServerPath, m_DeleteInfo.GetNameAt(numDel));
@@ -1370,14 +1371,23 @@ FileTransfer::ProcessFLRDelete()
 		} else {
 			m_dwNumDelFiles++;
 		}
+	} else {
+		if (m_DeleteInfo.GetIntSizeAt(numDel) < 0) {
+			SetStatusText("Folder %s\\%s cannot be deleted.", m_ServerPath, m_DeleteInfo.GetNameAt(numDel));
+		} else {
+			SetStatusText("File %s\\%s cannot be deleted.", m_ServerPath, m_DeleteInfo.GetNameAt(numDel));
+		}
+		m_dwNumUndel++;
 	}
 	if ((numDel + 1) == m_dwNumDelItems) {
-		SetStatusText("Delete Operation Successfully Completed. %d folder(s), %d file(s) deleted.", 
-					  m_dwNumDelFolders, m_dwNumDelFiles);
-		m_dwNumDelFolders = 0; m_dwNumDelFiles = 0;
+		if (m_dwNumUndel == 0) {
+			SetStatusText("Delete Operation Successfully Completed. %d folder(s), %d file(s) deleted.", 
+						  m_dwNumDelFolders, m_dwNumDelFiles);
+		}
+		m_dwNumDelFolders = 0; m_dwNumDelFiles = 0; m_dwNumUndel = 0;
 		m_DeleteInfo.Free();
 		SetFTDlgCursor(IDC_ARROW);
-	}
+	} 
 	m_FTServerItemInfo.Free();
 	ListView_DeleteAllItems(m_hwndFTServerList); 
 	CreateItemInfoList(&m_FTServerItemInfo, pftSD, fld.numFiles, pFilenames, fld.dataSize);
@@ -1982,10 +1992,14 @@ FileTransfer::FTClientDelete(FileTransferItemInfo *ftfi)
 	char buff[MAX_PATH];
 	ftfi->Sort();
 	int numDir = ftfi->GetNumEntries();
+	int cantDel = 0;
 	int i = numDir - 1;
 	while (ftfi->GetIntSizeAt(i) >= 0) {
 			sprintf(buff, "%s\\%s", m_ClientPath, ftfi->GetNameAt(i));
-			DeleteFile(buff);
+			if (!DeleteFile(buff)) {
+				SetStatusText("File %s cannot be deleted.", ftfi->GetNameAt(i));
+				cantDel++;
+			}
 			ftfi->DeleteAt(i);
 			i -= 1;
 			if (i < 0) {
@@ -1994,7 +2008,7 @@ FileTransfer::FTClientDelete(FileTransferItemInfo *ftfi)
 				return;
 			}
 	}
-	int numFiles = numDir - i - 1;
+	int numFiles = numDir - i - 1 - cantDel;
 	numDir -= numFiles;
 	if (ftfi->GetNumEntries() == 0) return;
 	char fullPath[MAX_PATH];
@@ -2017,7 +2031,11 @@ FileTransfer::FTClientDelete(FileTransferItemInfo *ftfi)
 						ftfi->Add(buff, -1, 0);
 					} else {
 						sprintf(buff, "%s\\%s\\%s", m_ClientPath, ftfi->GetNameAt(0), FindFileData.cFileName);
-						DeleteFile(buff);
+						if (!DeleteFile(buff)) {
+							SetStatusText("File %s cannot be deleted.", buff);
+							cantDel++;
+						}
+
 					}
 				}
 			} while (FindNextFile(hFile, &FindFileData));
@@ -2026,12 +2044,17 @@ FileTransfer::FTClientDelete(FileTransferItemInfo *ftfi)
 		ftfi->DeleteAt(0);
 	}
 	for (i = delDirInfo.GetNumEntries() - 1; i >= 0; i--) {
-		RemoveDirectory(delDirInfo.GetNameAt(i));
+		if (!RemoveDirectory(delDirInfo.GetNameAt(i))) {
+			SetStatusText("Folder %s cannot be deleted.", delDirInfo.GetNameAt(i));
+			cantDel++;
+		}
 	}
 	m_bClientRefresh = TRUE;
 	ShowClientItems(m_ClientPath);
 	CheckClientLV();
-	SetStatusText("Delete Operation Successfully Completed. %d folder(s), %d file(s) deleted.", numDir, numFiles);
+	if (cantDel == 0) {
+		SetStatusText("Delete Operation Successfully Completed. %d folder(s), %d file(s) deleted.", numDir, numFiles);
+	}
 }
 
 void
@@ -2063,7 +2086,7 @@ FileTransfer::ServerDeleteDir()
 	}
 	if (result == IDYES) {
 		char delPath[MAX_PATH];
-		m_dwNumDelFiles = 0; m_dwNumDelFolders = 0;
+		m_dwNumDelFolders = 0; m_dwNumDelFiles = 0; m_dwNumUndel = 0;
 		SetFTDlgCursor(IDC_WAIT);
 		for (int i = 0; i < m_DeleteInfo.GetNumEntries(); i++) {
 			sprintf(delPath, "%s\\%s", m_ServerPath, m_DeleteInfo.GetNameAt(i));
@@ -2103,6 +2126,8 @@ FileTransfer::ClientRenameDir()
 		if (MoveFile(oldName, newName)) {
 			m_bClientRefresh = TRUE;
 			ShowClientItems(m_ClientPath);
+		} else {
+			SetStatusText("Access Denied. File Cannot be renamed");
 		}
 	}
 }

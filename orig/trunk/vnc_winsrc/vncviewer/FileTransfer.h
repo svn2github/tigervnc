@@ -63,7 +63,7 @@ public:
 	FileTransfer(ClientConnection * pCC, VNCviewerApp * pApp);
 	~FileTransfer();
 
-	void FTInsertColumn(HWND hwnd, char *iText, int iOrder, int xWidth);
+	void FTInsertColumn(HWND hwnd, char *iText, int iOrder, int xWidth, int alignFmt);
 	void CreateFileTransferDialog();
 	void ShowListViewItems(HWND hwnd, FileTransferItemInfo *ftii);
 	void ConvertPath(char *path);

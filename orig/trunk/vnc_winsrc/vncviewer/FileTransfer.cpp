@@ -94,13 +94,17 @@ FileTransfer::CreateFileTransferDialog()
 
 	RECT Rect;
 	GetClientRect(m_hwndFTClientList, &Rect);
-	int xwidth = (int) (0.7 * Rect.right);
-	int xwidth_ = (int) (0.25 * Rect.right);
+	Rect.right -= GetSystemMetrics(SM_CXHSCROLL);
+	int xwidth0 = (int) (0.39 * Rect.right);
+	int xwidth1 = (int) (0.22 * Rect.right);
+	int xwidth2 = (int) (0.39 * Rect.right);
 
-	FTInsertColumn(m_hwndFTClientList, "Name", 0, xwidth);
-	FTInsertColumn(m_hwndFTClientList, "Size", 1, xwidth_);
-	FTInsertColumn(m_hwndFTServerList, "Name", 0, xwidth);
-	FTInsertColumn(m_hwndFTServerList, "Size", 1, xwidth_);
+	FTInsertColumn(m_hwndFTClientList, "Name", 0, xwidth0, LVCFMT_LEFT);
+	FTInsertColumn(m_hwndFTClientList, "Size", 1, xwidth1, LVCFMT_RIGHT);
+	FTInsertColumn(m_hwndFTClientList, "Modified", 2, xwidth2, LVCFMT_RIGHT);
+	FTInsertColumn(m_hwndFTServerList, "Name", 0, xwidth0, LVCFMT_LEFT);
+	FTInsertColumn(m_hwndFTServerList, "Size", 1, xwidth1, LVCFMT_RIGHT);
+	FTInsertColumn(m_hwndFTServerList, "Modified", 2, xwidth2, LVCFMT_RIGHT);
 
 	SendDlgItemMessage(m_hwndFileTransfer, IDC_CLIENTPATH, CB_INSERTSTRING, (WPARAM) FT_ID_MYCOMPUTER, (LPARAM) myComputerText);
 	SendDlgItemMessage(m_hwndFileTransfer, IDC_CLIENTPATH, CB_INSERTSTRING, (WPARAM) FT_ID_MYDOCUMENTS, (LPARAM) myDocumentsText);
@@ -119,6 +123,7 @@ FileTransfer::CreateFileTransferDialog()
 	ShowClientItems(m_ClientPathTmp);
 	CheckClientLV();
 	SendFileListRequestMessage(m_ServerPathTmp, 0, FT_FLR_DEST_MAIN);
+
 }
 
 LRESULT CALLBACK 
@@ -412,34 +417,68 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 void 
 FileTransfer::OnGetDispClientInfo(NMLVDISPINFO *plvdi) 
 {
-  switch (plvdi->item.iSubItem)
+	switch (plvdi->item.iSubItem)
     {
     case 0:
 		plvdi->item.pszText = m_FTClientItemInfo.GetNameAt(plvdi->item.iItem);
-      break;
+		break;
     case 1:
 		plvdi->item.pszText = m_FTClientItemInfo.GetSizeAt(plvdi->item.iItem);
-      break;
+		break;
+	case 2:
+		if (strlen(m_ClientPath) == 0) {
+			plvdi->item.pszText = "Unspecified";
+		} else {
+			char szData[32];
+			FILETIME ft;
+			Time70ToFiletime(m_FTClientItemInfo.GetDataAt(plvdi->item.iItem), &ft);
+			SYSTEMTIME st;
+			FileTimeToSystemTime(&ft, &st);
+			if (st.wHour > 12) {
+				sprintf(szData, "%d/%d/%d %d:%d PM", st.wDay, st.wMonth, st.wYear, st.wHour - 12, st.wMinute);
+			} else {
+				sprintf(szData, "%d/%d/%d %d:%d AM", st.wDay, st.wMonth, st.wYear, st.wHour, st.wMinute);
+			}
+			plvdi->item.pszText = szData;
+		}
+		break;
     default:
-      break;
+		break;
     }
- } 
+} 
 
 void 
 FileTransfer::OnGetDispServerInfo(NMLVDISPINFO *plvdi) 
 {
-  switch (plvdi->item.iSubItem)
-  {
+	switch (plvdi->item.iSubItem)
+	{
     case 0:
 		plvdi->item.pszText = m_FTServerItemInfo.GetNameAt(plvdi->item.iItem);
-      break;
+		break;
     case 1:
 		plvdi->item.pszText = m_FTServerItemInfo.GetSizeAt(plvdi->item.iItem);
-      break;
+		break;
+	case 2:
+		if (strlen(m_ServerPath) == 0) {
+			plvdi->item.pszText = "Unspecified";
+		} else {
+			char szData[32];
+			FILETIME ft;
+			Time70ToFiletime(m_FTServerItemInfo.GetDataAt(plvdi->item.iItem), &ft);
+			SYSTEMTIME st;
+			FileTimeToSystemTime(&ft, &st);
+			if (st.wHour > 12) {
+				sprintf(szData, "%d/%d/%d %d:%d PM", st.wDay, st.wMonth, st.wYear, st.wHour - 12, st.wMinute);
+			} else {
+				sprintf(szData, "%d/%d/%d %d:%d AM", st.wDay, st.wMonth, st.wYear, st.wHour, st.wMinute);
+			}
+			plvdi->item.pszText = szData;
+		}
+		break;
     default:
-      break;
+		break;
     }
- } 
+} 
 
 void 
 FileTransfer::FileTransferUpload()
@@ -858,16 +897,16 @@ FileTransfer::ShowClientItems(char *path)
 		while(1) {
 			if ((strcmp(m_FindFileData.cFileName, ".") != 0) &&
 		       (strcmp(m_FindFileData.cFileName, "..") != 0)) {
+				LARGE_INTEGER li;
+				li.LowPart = m_FindFileData.ftLastWriteTime.dwLowDateTime;
+				li.HighPart = m_FindFileData.ftLastWriteTime.dwHighDateTime;
+				li.QuadPart = (li.QuadPart - 116444736000000000) / 10000000;
 				if (!(m_FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
 					sprintf(buffer, "%d", m_FindFileData.nFileSizeLow);
-					LARGE_INTEGER li;
-					li.LowPart = m_FindFileData.ftLastWriteTime.dwLowDateTime;
-					li.HighPart = m_FindFileData.ftLastWriteTime.dwHighDateTime;
-					li.QuadPart = (li.QuadPart - 116444736000000000) / 10000000;
 					m_FTClientItemInfo.Add(m_FindFileData.cFileName, buffer, li.LowPart);
 				} else {
 					strcpy(buffer, m_FTClientItemInfo.folderText);
-					m_FTClientItemInfo.Add(m_FindFileData.cFileName, buffer, 0);
+					m_FTClientItemInfo.Add(m_FindFileData.cFileName, buffer, li.LowPart);
 				}
 			}
 			if (!FindNextFile(m_handle, &m_FindFileData)) break;
@@ -1330,11 +1369,11 @@ FileTransfer::ShowListViewItems(HWND hwnd, FileTransferItemInfo *ftii)
 }
 
 void
-FileTransfer::FTInsertColumn(HWND hwnd, char *iText, int iOrder, int xWidth)
+FileTransfer::FTInsertColumn(HWND hwnd, char *iText, int iOrder, int xWidth, int alignFmt)
 {
 	LVCOLUMN lvc; 
 	lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM | LVCF_ORDER;
-	lvc.fmt = LVCFMT_RIGHT;
+	lvc.fmt = alignFmt;
 	lvc.iSubItem = iOrder;
 	lvc.pszText = iText;	
 	lvc.cchTextMax = 10;

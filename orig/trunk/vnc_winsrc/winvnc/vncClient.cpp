@@ -1334,12 +1334,12 @@ vncClientThread::run(void *arg)
 								LARGE_INTEGER li;
 								li.LowPart = FindFileData.ftLastWriteTime.dwLowDateTime;
 								li.HighPart = FindFileData.ftLastWriteTime.dwHighDateTime;							
-								li.QuadPart = (li.QuadPart - 1164444736000000000) / 10000000;
+								li.QuadPart = (li.QuadPart - 116444736000000000) / 10000000;
 								if ((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {	
-									ftii.Add(FindFileData.cFileName, -1, 0);
+									ftii.Add(FindFileData.cFileName, -1, li.LowPart);
 								} else {
 									if (!(msg.flr.flags & 0x10))
-										ftii.Add(FindFileData.cFileName, FindFileData.nFileSizeLow, li.HighPart);
+										ftii.Add(FindFileData.cFileName, FindFileData.nFileSizeLow, li.LowPart);
 								}
 							}
 

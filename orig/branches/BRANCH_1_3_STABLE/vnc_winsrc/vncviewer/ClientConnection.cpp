@@ -295,8 +295,12 @@ void ClientConnection::Run()
 	if (m_tightVncProtocol) {
 		// Determine which protocol messages and encodings are supported.
 		ReadInteractionCaps();
-		// Enable file transfers if the server supports this feature.
-		m_enableFileTransfers = m_clientMsgCaps.IsEnabled(rfbFileListRequest);
+		// Enable file transfers only if the server supports that.
+		m_enableFileTransfers = false;
+		if ( m_clientMsgCaps.IsEnabled(rfbFileListRequest) &&
+			 m_serverMsgCaps.IsEnabled(rfbFileListData) ) {
+			m_enableFileTransfers = true;
+		}
 	}
 
 	// Close the "Connecting..." dialog box if not closed yet.

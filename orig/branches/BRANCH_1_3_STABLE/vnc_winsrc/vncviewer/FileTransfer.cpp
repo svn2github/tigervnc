@@ -190,6 +190,31 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 				_this->SendFileListRequestMessage(_this->m_ServerPathTmp, 0);
 				return TRUE;
 			case IDC_FTCOPY:
+				// First, check if the action is supported by the server.
+				if (_this->m_bFTCOPY == FALSE) {
+					// Upload was requested.
+					if ( !_this->m_clientconn->m_clientMsgCaps.IsEnabled(rfbFileUploadRequest) ||
+						 !_this->m_clientconn->m_clientMsgCaps.IsEnabled(rfbFileUploadData) ) {
+						MessageBox(hwnd, "Sorry but the server does not support uploading files.",
+								   "Error", MB_OK | MB_ICONEXCLAMATION);
+						char buf[MAX_PATH];
+						sprintf(buf, "File upload not supported by server");
+						SetWindowText(_this->m_hwndFTStatus, buf);
+						return TRUE;
+					}
+				} else {
+					// Download was requested.
+					if ( !_this->m_clientconn->m_clientMsgCaps.IsEnabled(rfbFileDownloadRequest) ||
+						 !_this->m_clientconn->m_serverMsgCaps.IsEnabled(rfbFileDownloadData) ) {
+						MessageBox(hwnd, "Sorry but the server does not support downloading files.",
+								   "Error", MB_OK | MB_ICONEXCLAMATION);
+						char buf[MAX_PATH];
+						sprintf(buf, "File download not supported by server");
+						SetWindowText(_this->m_hwndFTStatus, buf);
+						return TRUE;
+					}
+				}
+				// Now, try to upload/download.
 				SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
 				EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), FALSE);
     			if ((strcmp(_this->m_ClientPath, "") == 0) | (strcmp(_this->m_ServerPath, "") == 0)) {
@@ -233,6 +258,22 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 				}
 				return TRUE;
 			case IDC_FTCANCEL:
+				// Check if we allowed to interrupt the transfer.
+				if ( _this->m_bUploadStarted &&
+					 !_this->m_clientconn->m_clientMsgCaps.IsEnabled(rfbFileUploadFailed) ) {
+					char buf[MAX_PATH];
+					sprintf(buf, "Sorry, but interrupting upload is not supported by the server");
+					SetWindowText(_this->m_hwndFTStatus, buf);
+					return TRUE;
+				}
+				if ( _this->m_bDownloadStarted &&
+					 !_this->m_clientconn->m_clientMsgCaps.IsEnabled(rfbFileDownloadCancel) ) {
+					char buf[MAX_PATH];
+					sprintf(buf, "Sorry, but interrupting download is not supported by the server");
+					SetWindowText(_this->m_hwndFTStatus, buf);
+					return TRUE;
+				}
+				// Now try to cancel the operation.
 				SetWindowText(GetDlgItem(hwnd, IDC_FTCOPY), noactionText);
 				EnableWindow(GetDlgItem(hwnd, IDC_FTCOPY), FALSE);
 				_this->m_bTransferEnable = FALSE;

@@ -27,6 +27,7 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.net.*;
 
 public class VncViewer extends java.applet.Applet
   implements java.lang.Runnable, WindowListener {
@@ -165,14 +166,40 @@ public class VncViewer extends java.applet.Applet
       }
 
       if (options.showControls)
-        buttonPanel.enableButtons();
+	buttonPanel.enableButtons();
 
       moveFocusToDesktop();
       vc.processNormalProtocol();
 
-    } catch (Exception e) {
+    } catch (NoRouteToHostException e) {
       e.printStackTrace();
-      fatalError(e.toString());
+      fatalError("Network error: no route to server: " + host);
+    } catch (UnknownHostException e) {
+      e.printStackTrace();
+      fatalError("Network error: server name unknown: " + host);
+    } catch (ConnectException e) {
+      e.printStackTrace();
+      fatalError("Network error: could not connect to server: " +
+		 host + ":" + port);
+    } catch (EOFException e) {
+      e.printStackTrace();
+      fatalError("Network error: remote side closed connection");
+    } catch (IOException e) {
+      String str = e.getMessage();
+      e.printStackTrace();
+      if (str != null && str.length() != 0) {
+	fatalError("Network Error: " + str);
+      } else {
+	fatalError(e.toString());
+      }
+    } catch (Exception e) {
+      String str = e.getMessage();
+      e.printStackTrace();
+      if (str != null && str.length() != 0) {
+	fatalError("Error: " + str);
+      } else {
+	fatalError(e.toString());
+      }
     }
     
   }

@@ -7,7 +7,7 @@
 // $Id$
 
 #ifdef USE_ALT_SOCKETS
-	// see horizonMainHZTC.cpp
+	// see horizonMainAlt.cpp
 #else
 
 #include "horizonMain.h"

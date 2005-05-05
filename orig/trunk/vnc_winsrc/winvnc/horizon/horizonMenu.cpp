@@ -377,7 +377,7 @@ horizonMenu::WndProc( HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		)
 		{
 			vnclog.Print( LL_INTERR, VNCLOG( "killing wallpaper\n" ) ) ;
-			KillWallpaper() ;
+//			KillWallpaper() ;
 		}
 			
 		return 0 ;
@@ -395,7 +395,7 @@ horizonMenu::WndProc( HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		)
 		{
 			vnclog.Print( LL_INTERR, VNCLOG( "restoring wallpaper\n" ) ) ;
-			RestoreWallpaper() ;
+//			RestoreWallpaper() ;
 		}
 		
 		return 0 ;

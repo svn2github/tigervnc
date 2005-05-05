@@ -46,8 +46,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I ".." /I "..\.." /I "$(WINVNC_HOME)\VNCHooks" /I "$(WINVNC_HOME)\libjpeg" /I "$(WINVNC_HOME)\omnithread" /I "$(WINVNC_HOME)\zlib" /D "__WIN32__" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_OMNITHREAD_DLL" /FD /GZ /c
 # SUBTRACT BASE CPP /X /u /YX
-# ADD CPP /nologo /MT /W3 /GX /Od /Ob2 /I "./lib" /I ".." /I "../.." /I "../omnithread" /I "$(PATH_TO_VNC_1_2)/winvnc" /I "C:\Program Files\HTML Help Workshop\include" /D WINVER=0x0500 /D "__WIN32__" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_OMNITHREAD_DLL" /D "HORIZONLIVE" /FD /GZ /c
-# SUBTRACT CPP /X /u /YX
+# ADD CPP /nologo /MT /W3 /GX /O2 /Ob2 /I "./lib" /I ".." /I "../.." /I "../omnithread" /D WINVER=0x0500 /D _WIN32_WINNT=0x0500 /D "__WIN32__" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_OMNITHREAD_DLL" /D "HORIZONLIVE" /D "USE_ALT_SOCKETS" /FD /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
@@ -58,7 +57,7 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib wsock32.lib omnithread_rtd.lib libjpeg.lib VNCHooks.lib zlib.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"libcmtd.lib" /pdbtype:sept /libpath:"." /libpath:".." /libpath:"$(WINVNC_HOME)" /libpath:"$(WINVNC_HOME)\Debug"
 # SUBTRACT BASE LINK32 /nodefaultlib
-# ADD LINK32 comctl32.lib htmlhelp.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib wsock32.lib shlwapi.lib omnithread_rt.lib libjpeg.a libz.a VNCHOOKS.lib /nologo /subsystem:windows /pdb:none /machine:I386 /out:"\\u\u\Temp\jeffo\4.1.x\Release-AppShare.exe" /libpath:"./lib/libjpeg" /libpath:"./lib/zlib" /libpath:"./HorizonLive" /libpath:"C:\Program Files\HTML Help Workshop\lib"
+# ADD LINK32 comctl32.lib htmlhelp.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib wsock32.lib shlwapi.lib omnithread_rt.lib libjpeg.a libz.a wininet.lib VNCHOOKS.lib /nologo /subsystem:windows /pdb:none /machine:I386 /nodefaultlib:"libcmtd.lib" /out:"C:\Documents and Settings\Administrator\Application Data\HorizonWimba\JSecureDoor\appshare_0.0.1\data\Release-AppShare.exe" /libpath:"./lib/libjpeg" /libpath:"./lib/zlib" /libpath:"./HorizonLive"
 # SUBTRACT LINK32 /debug
 
 !ELSEIF  "$(CFG)" == "AppShare - Win32 Debug"
@@ -77,8 +76,8 @@ LINK32=link.exe
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /Od /I ".." /I "../.." /I "../VNCHooks" /I "../libjpeg" /I "../omnithread" /I "../zlib" /D "__WIN32__" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_OMNITHREAD_DLL" /D "ZLIB_EXPORTS" /D "_ZLIB_DLL" /D "ZLIB_DLL" /D "HORIZONLIVE" /FD /GZ /c
 # SUBTRACT BASE CPP /X /u /YX
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "./lib" /I ".." /I "../.." /I "../omnithread" /I "C:\Program Files\HTML Help Workshop\include" /D WINVER=0x0500 /D "__WIN32__" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_OMNITHREAD_DLL" /D "HORIZONLIVE" /FR /FD /GZ /c
-# SUBTRACT CPP /X /u /YX
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "./lib" /I ".." /I "../.." /I "../omnithread" /D WINVER=0x0500 /D _WIN32_WINNT=0x0500 /D "__WIN32__" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_OMNITHREAD_DLL" /D "HORIZONLIVE" /D "USE_ALT_SOCKETS" /FR /FD /GZ /c
+# SUBTRACT CPP /Gy /X /u /YX
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
@@ -89,7 +88,7 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib wsock32.lib shlwapi.lib omnithread_rt.lib libjpeg.lib VNCHooks.lib zlib.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"libcmt.lib" /out:"./HorizonLive/LiveShare.exe" /pdbtype:sept /libpath:"./HorizonLive"
 # SUBTRACT BASE LINK32 /pdb:none
-# ADD LINK32 comctl32.lib htmlhelp.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib wsock32.lib shlwapi.lib omnithread_rt.lib libjpeg.a libz.a VNCHOOKS.lib /nologo /subsystem:windows /map /debug /machine:I386 /nodefaultlib:"libcmt.lib" /out:"C:\Documents and Settings\Administrator\Application Data\HorizonLive\SecureDoor\HZSDControl\2.0.0.0\Doors\appshare_1_8_7\data\AppShare.exe" /pdbtype:sept /libpath:"./lib/libjpeg" /libpath:"./lib/zlib" /libpath:"./HorizonLiveDebug" /libpath:"C:\Program Files\HTML Help Workshop\lib"
+# ADD LINK32 comctl32.lib htmlhelp.lib kernel32.lib shell32.lib user32.lib gdi32.lib advapi32.lib ole32.lib wsock32.lib shlwapi.lib omnithread_rt.lib libjpeg.a libz.a VNCHOOKS.lib wininet.lib /nologo /subsystem:windows /map /debug /machine:I386 /nodefaultlib:"libcmt.lib" /out:"C:\Documents and Settings\Administrator\Application Data\HorizonWimba\JSecureDoor\appshare_0.0.1\data\AppShare.exe" /pdbtype:sept /libpath:"./lib/libjpeg" /libpath:"./lib/zlib" /libpath:"./HorizonLiveDebug"
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "AppShare - Win32 TightVNC"
@@ -108,7 +107,7 @@ LINK32=link.exe
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /Od /Ob2 /I "./lib" /I ".." /I "../.." /I "../omnithread" /I "$(PATH_TO_VNC_1_2)/winvnc" /I "C:\Program Files\HTML Help Workshop\include" /D WINVER=0x0500 /D "__WIN32__" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_OMNITHREAD_DLL" /D "HORIZONLIVE" /FD /GZ /c
 # SUBTRACT BASE CPP /X /u /YX
-# ADD CPP /nologo /MT /W3 /GX /Od /Ob2 /I "./lib" /I ".." /I "../.." /I "../omnithread" /I "$(PATH_TO_VNC_1_2)/winvnc" /I "C:\Program Files\HTML Help Workshop\include" /D WINVER=0x0500 /D "__WIN32__" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_OMNITHREAD_DLL" /FD /GZ /c
+# ADD CPP /nologo /MT /W3 /GX /Od /Ob2 /I "./lib" /I ".." /I "../.." /I "../omnithread" /I "C:\Program Files\HTML Help Workshop\include" /D WINVER=0x0500 /D "__WIN32__" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_OMNITHREAD_DLL" /FD /GZ /c
 # SUBTRACT CPP /X /u /YX
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
@@ -120,7 +119,7 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 comctl32.lib htmlhelp.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib wsock32.lib shlwapi.lib omnithread_rt.lib libjpeg.a libz.a VNCHOOKS.lib /nologo /subsystem:windows /pdb:none /machine:I386 /out:"C:\Documents and Settings\Administrator\Application Data\HorizonLive\SecureDoor\HZSDControl\2.0.0.0\Doors\appshare_1_8_3\data\Release-AppShare.exe" /libpath:"./lib/libjpeg" /libpath:"./lib/zlib" /libpath:"./HorizonLive" /libpath:"C:\Program Files\HTML Help Workshop\lib"
 # SUBTRACT BASE LINK32 /debug
-# ADD LINK32 comctl32.lib htmlhelp.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib wsock32.lib shlwapi.lib omnithread_rt.lib libjpeg.a libz.a VNCHOOKS.lib /nologo /subsystem:windows /pdb:none /machine:I386 /out:"C:\Documents and Settings\Administrator\Application Data\HorizonLive\SecureDoor\HZSDControl\2.0.0.0\Doors\appshare_1_8_3\data\Release-AppShare.exe" /libpath:"./lib/libjpeg" /libpath:"./lib/zlib" /libpath:"./HorizonLive" /libpath:"C:\Program Files\HTML Help Workshop\lib"
+# ADD LINK32 comctl32.lib htmlhelp.lib kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib ole32.lib wsock32.lib shlwapi.lib omnithread_rt.lib libjpeg.a libz.a VNCHOOKS.lib /nologo /subsystem:windows /pdb:none /machine:I386 /out:"C:\Documents and Settings\grolloj\Application Data\HorizonLive\SecureDoor\HZSDControl\2.0.0.0\Doors\appshare_1_8_8\data\AppShare.exe" /libpath:"./lib/libjpeg" /libpath:"./lib/zlib" /libpath:"./HorizonLive" /libpath:"C:\Program Files\HTML Help Workshop\lib"
 # SUBTRACT LINK32 /debug
 
 !ENDIF 
@@ -160,6 +159,10 @@ SOURCE=..\FileTransferItemInfo.cpp
 # Begin Source File
 
 SOURCE=..\GracePeriod.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\keysym2ucs.cpp
 # End Source File
 # Begin Source File
 
@@ -307,6 +310,14 @@ SOURCE=..\VSocket.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\VSocketAlt.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\VSocketSystemAlt.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\WallpaperUtils.cpp
 # End Source File
 # End Group
@@ -340,6 +351,10 @@ SOURCE=..\FileTransferItemInfo.h
 # Begin Source File
 
 SOURCE=..\GracePeriod.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\keysym2ucs.h
 # End Source File
 # Begin Source File
 
@@ -515,6 +530,14 @@ SOURCE=..\VSocket.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\VSocketAlt.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\VSocketSystemAlt.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\VTypes.h
 # End Source File
 # Begin Source File
@@ -543,7 +566,23 @@ SOURCE=.\horizonDefaults.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\horizonDoorReader.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\horizonDoorWriter.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\horizonGlobals.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\horizonMain.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\horizonMainHZTC.cpp
 # End Source File
 # Begin Source File
 
@@ -596,6 +635,14 @@ SOURCE=.\horizonConnect.h
 # Begin Source File
 
 SOURCE=.\horizonDefaults.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\horizonDoorReader.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\horizonDoorWriter.h
 # End Source File
 # Begin Source File
 

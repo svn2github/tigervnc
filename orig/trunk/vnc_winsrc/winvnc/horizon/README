@@ -1,10 +1,6 @@
 This directory contains some HorizonWimba specific modifications to
 the TightVnc winvnc source. It also includes workspace and project
-files for our build environment. To use, the entire horizon directory
-can be copied over as a subdirectory to vnc_winsrc/winvnc. The 
-workspace file AppShare.dsw can then be opened. A few enviroment
-variables are necessary for the project to find what it needs and 
-some more tinkering is required and detailed under General Issues.
+files for our build environment. 
 
 For cursor shape updates, WINVER needs to be set to 0x0500 or greater. 
 This is already set in the AppShare.dsp file, but may require a new
@@ -22,21 +18,15 @@ General Issues
 
 The path to the "Executable for Debug Session" will need to be updated
 when trying to debug. Also should probably change the working
-directory. This should come from the environment variable
-APP_SHARE_PATH, but unfortunately, Visual C doesn't seem to understand
-environment variables when placed in this setting.
+directory. 
 
-
+Refer to the README in the subdirectory lib for building supporting
+libraries. 
 
 Environment Variables for Build
 -------------------------------
 
-APP_SHARE_PATH: Location to place the built AppShare. Also, serves as
-the working directory for debugging.
-
-PATH_TO_VNC_1_2: This should be a path to our cvs copy of tightvnc.
-This is used for zlib, jpeg, etc. includes. An example path would be:
-"relative/liveshare_src/tightvnc/"
-
- 
+APPSHARE_OUT: Location to place the built AppShare. Needs to end with
+a slash since the project file doesn't include one (in order to
+prevent MSVC from creating the literal directory $(APPSHARE_OUT)). 
 

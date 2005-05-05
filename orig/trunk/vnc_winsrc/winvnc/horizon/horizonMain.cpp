@@ -6,40 +6,15 @@
 
 // $Id$
 
+#ifdef USE_ALT_SOCKETS
+	// see horizonMainHZTC.cpp
+#else
+
 #include "horizonMain.h"
 #include "vncServerSingleton.h"
 
 //
-// globals
-//
-
-// application name
-const char* szAppName = "Horizon Wimba AppShare" ;
-const char* szProcessName = "AppShare" ;
-
-// log and pid filenames
-#ifdef _DEBUG
-static const int hzLogLevel = LL_ALL ; // LL_NONE ;
-static const int hzLogMode = Log::ToConsole | Log::ToFile ;
-// static const char hzLogFileName[] = "G:\\appshare_debug.log" ;
-static const char hzLogFileName[] = "..\\logs\\appshare_debug.log" ;
-static const char hzPIDFileName[] = "..\\logs\\appshare.pid" ;
-#else
-static const int hzLogLevel = LL_INTWARN ;
-static const int hzLogMode = Log::ToFile ;
-static const char hzLogFileName[] = "..\\logs\\appshare.log" ;
-static const char hzPIDFileName[] = "..\\logs\\appshare.pid" ;
-#endif
-
-// custom signal for requesting quit
-const int LS_QUIT = 0x800D ;
-
-// handle to app data
-HINSTANCE hAppInstance ;
-DWORD mainthreadId ;
-
-//
-// main functions
+// main
 //
 
 int WINAPI WinMain(
@@ -82,10 +57,27 @@ int WINAPI WinMain(
 	mainthreadId = GetCurrentThreadId() ;
 
 	//
-	// initialise the VSocket system
+	// parse the command-line args
 	//
 	
+	// use this instead for lpCmdLine since lpCmdLine may be truncated
+	string args = GetCommandLine() ;
+
+	// check for -connect arg
+	if ( args.find( "-connect" ) == string::npos )
+	{
+		vnclog.Print( LL_INTERR, VNCLOG( "unable to find -connect argument\n" ) ) ;
+
+		// print the usage
+		AppShareUsage( args ) ;
+		
+		return 0 ;
+	}
+
+	// initialize the socket system
 	VSocketSystem socksys ;
+
+	// see if the socket system was initialized
 	if ( ! socksys.Initialised() )
 	{
 		vnclog.Print( LL_INTERR, VNCLOG( "unable to initialize socket system\n" ) ) ;
@@ -97,34 +89,17 @@ int WINAPI WinMain(
 	}
 
 	//
-	// parse the command-line args
-	//
-	
-	// use this instead for lpCmdLine since lpCmdLine may be truncated
-	string args = GetCommandLine() ;
-
-	// convert to lower-case
-	std::transform( args.begin(), args.end(), args.begin(), tolower ) ;
-	
-	//
-	// check for -connect flag
-	//
-	
-	if ( args.find( "-connect" ) == string::npos )
-	{
-		vnclog.Print( LL_STATE, VNCLOG( "did not find '-connect' flag\n" ) ) ;
-
-		// show usage and exit
-		AppShareUsage( args ) ;
-		
-		return -1 ;
-	}
-
 	// start appshare
+	//
+	
 	int rv = AppShareMain( args ) ;
 	
 	return rv ;
 }
+
+//
+// main appshare functions
+//
 
 // This is the main routine for WinVNC when running as an application
 // (under Windows 95 or Windows NT)
@@ -270,6 +245,7 @@ ConnectToServer( const string& args )
 	if ( ( p1 = args.find( "-connect" ) ) == string::npos )
 	{
 		vnclog.Print( LL_STATE, VNCLOG( "unable to find '-connect' flag\n" ) ) ;
+		AppShareUsage( args ) ;
 		return false ;
 	}
 
@@ -360,15 +336,10 @@ AppShareUsage( const string& args )
 {
 	vnclog.Print( LL_NONE, VNCLOG( "printing usage, args => %s\n" ), args.c_str() ) ;
 
-	const char message[] = "appshare [ -basic ] [ -connect host:port ]\n" ;
-	MessageBox( NULL, message, szAppName, MB_OK | MB_ICONINFORMATION ) ;
+	MessageBox( NULL, "appshare [ -basic ] [ -connect host:port ]", 
+		szAppName, MB_OK | MB_ICONINFORMATION ) ;
 
 	return ;
 }
 
-int 
-WinVNCAppMain( void )
-{
-	MessageBox( NULL, "Invalid call to WinVNCAppMain()", szAppName, MB_OK | MB_ICONERROR ) ;
-	return 0 ;
-}
+#endif // USE_ALT_SOCKETS

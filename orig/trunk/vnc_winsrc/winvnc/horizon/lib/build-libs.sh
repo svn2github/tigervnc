@@ -29,3 +29,13 @@ then
 else
 	echo "+++ zlib directory already exists +++" ;
 fi
+
+# build hztc
+if [ -d hztc ] 
+then
+	cd ./hztc
+	TRY_MSVC=1 STATIC=1 make
+	cd ../
+else
+	echo "+++ hztc directory does not exist +++" ;
+fi

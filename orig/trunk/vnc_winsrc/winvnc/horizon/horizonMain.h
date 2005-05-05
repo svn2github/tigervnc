@@ -9,13 +9,17 @@
 #ifndef __APPSHAREMAIN_H
 #define __APPSHAREMAIN_H
 
+#pragma warning( disable : 4786 )
+
 // stl first
 #include <algorithm>
 #include <fstream>
 #include <string>
+#include <vector>
 
 using std::ofstream ;
 using std::string ;
+using std::vector ;
 
 #include "stdhdrs.h"
 #include "resource.h"
@@ -30,49 +34,17 @@ using std::string ;
 #include "horizonMenu.h"
 #include "horizonDefaults.h"
 #include "horizonProperties.h"
-
-// Application specific messages
-
-// Message used for system tray notifications
-#define WM_TRAYNOTIFY				WM_USER + 1
-
-// Messages used for the server object to notify windows of things
-#define WM_SRV_CLIENT_CONNECT		WM_USER + 2
-#define WM_SRV_CLIENT_AUTHENTICATED	WM_USER + 3
-#define WM_SRV_CLIENT_DISCONNECT	WM_USER + 4
-
-#define WINVNC_REGISTRY_KEY "Software\\HorizonWimba\\AppShareHost"
-
-//
-// external globals
-//
-
-extern const char* szAppName ;
-extern const char* szProcessName ;
-
-extern HINSTANCE hAppInstance ;
-extern DWORD mainthreadId ;
-
-// custom signal for requesting quit
-extern const int LS_QUIT ;
-
-//
-// needed by vncService
-//
-
-const char winvncRunService[]		= "-service" ;
-const char winvncRunServiceHelper[]	= "-servicehelper" ;
-
+#include "horizonGlobals.h"
 
 //
 // functions declarations
 //
 
 int AppShareMain( const string& args ) ;
-bool ConnectToServer( const string& args ) ; 
-void AppShareUsage( const string& args ) ;
 
-int WinVNCAppMain( void ) ;
+bool ConnectToServer( const string& args ) ; 
+
+void AppShareUsage( const string& args ) ;
 
 
 #endif // __APPSHAREMAIN_H

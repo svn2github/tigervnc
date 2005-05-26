@@ -53,6 +53,7 @@ class vncProperties;
 #include "QuerySettingsControls.h"
 #include "AdministrationControls.h"
 #include "ConnectionsAccess.h"
+#include "echoPropView.h"
 #include "commctrl.h"
 // The vncProperties class itself
 class vncProperties
@@ -73,6 +74,7 @@ public:
 	static BOOL CALLBACK QuerySettingsDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static BOOL CALLBACK AdministrationDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static BOOL CALLBACK ConnectionsAccessDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	static BOOL CALLBACK EchoConnectionDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	// Display the properties dialog
 	// If usersettings is TRUE then the per-user settings come up
@@ -135,6 +137,12 @@ protected:
 	void ApplyUserPrefs();
 	void SetWindowCaption(HWND hWnd);
 
+	void LoadEchoConnectionSettings(HKEY key);
+	void SaveEchoConnectionSettings(HKEY key);
+	void DeleteAllEchoServerKeys(HKEY hkEchoServers);
+	int GetAllEchoServerKeys(HKEY hkEchoServers, char *nameArray);
+
+
 	BOOL m_returncode_valid;
 	BOOL m_dlgvisible;
 
@@ -189,6 +197,7 @@ private:
 	HWND m_hQuerySettings;
 	HWND m_hAdministration;
 	HWND m_hConnectionsAccess;
+	HWND m_hEchoConnection;
 	CMatchWindow* m_pMatchWindow;
 	PollControls* m_pollcontrols;
 	InputHandlingControls* m_inputhandcontr;
@@ -197,6 +206,7 @@ private:
 	QuerySettingsControls * m_QSControls;
 	AdministrationControls * m_AdminControls;
 	ConnectionsAccess * m_ConnAccessCtrl;
+	echoPropView *m_pEchoPropView;
 };
 
 #endif // _WINVNC_VNCPROPERTIES

@@ -124,10 +124,13 @@ vncServer::vncServer()
 	m_cursor_pos.y = 0;
 
 	// initialize
+	m_enable_echo_connect = TRUE;
 	m_enable_file_transfers = FALSE;
 	m_remove_wallpaper = FALSE;
 	m_blank_screen = FALSE;
 	m_has_fake_cursor_pos = FALSE;
+
+	m_pEchoConCtrl = new echoConCtrl(this);
 
 #ifdef HORIZONLIVE
 	m_full_screen = FALSE;
@@ -161,6 +164,13 @@ vncServer::~vncServer()
 	{
 		delete m_httpConn;
 		m_httpConn = NULL;
+	}
+
+	if (m_pEchoConCtrl != NULL)
+	{
+		m_pEchoConCtrl->destroy();
+		delete m_pEchoConCtrl;
+		m_pEchoConCtrl = NULL;
 	}
 
 	// Remove any active clients!
@@ -992,6 +1002,9 @@ vncServer::SockConnect(BOOL On)
 					m_socketConn = NULL;
 					return FALSE;
 				}
+
+				if (m_enable_echo_connect) m_pEchoConCtrl->initialize(m_port);
+
 			} else
 			{
 				// No autoportselect
@@ -1024,6 +1037,8 @@ vncServer::SockConnect(BOOL On)
 	}
 	else
 	{
+		m_pEchoConCtrl->destroy();
+
 		// *** JNW - Trying to fix up a lock-up when the listening socket closes
 #ifndef HORIZONLIVE
 		KillAuthClients();
@@ -1671,4 +1686,10 @@ vncServer::GetWindowShared()
 BOOL
 vncServer::DriverActive() {
 	return (m_desktop != NULL) ? m_desktop->DriverActive() : FALSE;
+}
+
+void 
+vncServer::enableEchoConnection(int value)
+{
+	m_enable_echo_connect = value;
 }

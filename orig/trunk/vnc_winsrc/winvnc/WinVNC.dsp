@@ -172,6 +172,18 @@ SOURCE=.\d3des.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\echoConCtrl.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\echoConnection.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\echoPropView.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\FileTransferItemInfo.cpp
 # End Source File
 # Begin Source File
@@ -444,6 +456,22 @@ SOURCE=.\d3des.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\echoConCtrl.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\echoConnection.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\echoPropView.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\echoTypes.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\FileTransferItemInfo.h
 # End Source File
 # Begin Source File
@@ -457,6 +485,10 @@ SOURCE=.\IncomingConnectionsControls.h
 # Begin Source File
 
 SOURCE=.\InputHandlingControls.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\InterfaceDllProxyInfo.h
 # End Source File
 # Begin Source File
 

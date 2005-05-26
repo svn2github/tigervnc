@@ -41,6 +41,9 @@
 #include "vncPasswd.h"
 #include "commctrl.h"
 
+#include "echoConCtrl.h"
+#include "echoTypes.h"
+
 const char NO_PASSWORD_WARN [] = "WARNING : Running WinVNC without setting a password is "
 								"a dangerous security risk!\n"
 								"Until you set a password, WinVNC will not accept incoming connections.";
@@ -292,6 +295,8 @@ vncProperties::ParentDlgProc(HWND hwnd,
 			TabCtrl_InsertItem(_this->m_hTab, 4, &item);
 			item.pszText = "Access Control";
 			TabCtrl_InsertItem(_this->m_hTab, 5, &item);
+			item.pszText = "Echo Servers";
+			TabCtrl_InsertItem(_this->m_hTab, 6, &item);
 
 			_this->m_hShared = CreateDialogParam(hAppInstance, 
 				MAKEINTRESOURCE(IDD_SHARED_DESKTOP_AREA),
@@ -327,6 +332,11 @@ vncProperties::ParentDlgProc(HWND hwnd,
 				hwnd,
 				(DLGPROC)_this->ConnectionsAccessDlgProc,
 				(LONG)_this);
+			_this->m_hEchoConnection = CreateDialogParam(hAppInstance, 
+				MAKEINTRESOURCE(IDD_ECHO_CONNECTION),
+				hwnd,
+				(DLGPROC)_this->EchoConnectionDlgProc,
+				(LONG)_this);
 
 			// Position child dialogs, to fit the Tab control's display area
 			RECT rc;
@@ -349,6 +359,9 @@ vncProperties::ParentDlgProc(HWND hwnd,
 						 rc.right - rc.left, rc.bottom - rc.top,
 						 SWP_HIDEWINDOW);
 			SetWindowPos(_this->m_hConnectionsAccess, HWND_TOP, rc.left, rc.top,
+						 rc.right - rc.left, rc.bottom - rc.top,
+						 SWP_HIDEWINDOW);
+			SetWindowPos(_this->m_hEchoConnection, HWND_TOP, rc.left, rc.top,
 						 rc.right - rc.left, rc.bottom - rc.top,
 						 SWP_HIDEWINDOW);
 
@@ -398,6 +411,9 @@ vncProperties::ParentDlgProc(HWND hwnd,
 				case 5:
 					ShowWindow(_this->m_hConnectionsAccess, style);						
 					return 0;
+				case 6:
+					ShowWindow(_this->m_hEchoConnection, style);						
+					return 0;
 				}
 				return 0;
 				}
@@ -416,6 +432,7 @@ vncProperties::ParentDlgProc(HWND hwnd,
 			SendMessage(_this->m_hQuerySettings, WM_COMMAND, IDC_APPLY,0);
 			SendMessage(_this->m_hAdministration, WM_COMMAND, IDC_APPLY,0);
 			SendMessage(_this->m_hConnectionsAccess, WM_COMMAND, IDC_APPLY,0);
+			SendMessage(_this->m_hEchoConnection, WM_COMMAND, IDC_APPLY,0);
 
 			_this->Save();
         
@@ -577,6 +594,70 @@ BOOL CALLBACK vncProperties::ConnectionsAccessDlgProc(HWND hwnd, UINT uMsg,
 		delete _this->m_ConnAccessCtrl;      
 		_this->m_ConnAccessCtrl = NULL;  
 		_this->m_hConnectionsAccess = NULL;  
+		return 0;
+	}
+	return 0;
+}
+
+BOOL CALLBACK vncProperties::EchoConnectionDlgProc(HWND hwnd, UINT uMsg,
+                                                   WPARAM wParam, LPARAM lParam)
+{
+	vncProperties *_this = (vncProperties *) GetWindowLong(hwnd, GWL_USERDATA);
+	
+	switch (uMsg)
+	{
+	case WM_INITDIALOG:
+		{
+			SetWindowLong(hwnd, GWL_USERDATA, lParam);
+			vncProperties *_this = (vncProperties *) lParam;
+			_this->m_pEchoPropView = new echoPropView(_this->m_server->m_pEchoConCtrl, hwnd);
+			_this->m_pEchoPropView->Init();
+			return 0;
+		}
+	case WM_HELP:	
+		VNCHelp::Popup(lParam);
+		return 0;
+
+	case WM_NOTIFY:
+		switch (LOWORD(wParam))
+		{
+		case IDC_ECHOSERVERS_LIST:
+			switch (((LPNMHDR) lParam)->code)
+			{
+				case LVN_ITEMACTIVATE:
+					_this->m_pEchoPropView->Edit();
+					return FALSE;
+				case LVN_GETDISPINFO:
+					_this->m_pEchoPropView->onGetDispInfo((NMLVDISPINFO *) lParam);
+					return FALSE;
+
+			}
+			return FALSE;
+		}
+
+    case WM_COMMAND:		
+		switch (LOWORD(wParam))
+		{
+		case IDC_ECHO_CON_DISABLE:
+			_this->m_pEchoPropView->DisableCheck();
+			return TRUE;
+		case IDC_APPLY:
+			_this->m_pEchoPropView->Apply();
+			return TRUE;
+		case IDC_ECHO_ADD:
+			_this->m_pEchoPropView->Add();
+			return TRUE;
+		case IDC_ECHO_EDIT:
+			_this->m_pEchoPropView->Edit();
+			return TRUE;
+		case IDC_ECHO_REMOVE:
+			_this->m_pEchoPropView->Remove();
+			return TRUE;
+		}
+		return 0;
+	case WM_DESTROY:
+		delete _this->m_pEchoPropView;      
+		_this->m_pEchoPropView = NULL;  
 		return 0;
 	}
 	return 0;
@@ -953,6 +1034,8 @@ vncProperties::Load(BOOL usersettings)
 		} else {
 			m_server->SetAuthHosts(0);
 		}
+
+		LoadEchoConnectionSettings(hkLocal);
 	} else {
 		m_server->SetAuthHosts(0);
 	}
@@ -1264,10 +1347,11 @@ vncProperties::Save()
 	SaveInt(hkLocal, "AuthRequired", m_server->AuthRequired());
 	SaveString(hkLocal, "AuthHosts", m_server->AuthHosts());
 
+	SaveEchoConnectionSettings(hkLocal);
+
 	SaveInt(hkLocal, "DebugMode", vnclog.GetMode());
 	SaveInt(hkLocal, "DebugLevel", vnclog.GetLevel());
 	RegCloseKey(hkLocal);
-
 
 	// Close the user registry hive, to allow it to unload if reqd
 	RegCloseKey(HKEY_CURRENT_USER);
@@ -1330,4 +1414,133 @@ vncProperties::SaveUserPrefs(HKEY appkey)
 	SaveInt(appkey, "LocalInputsPriority", m_server->LocalInputPriority());
 }
 
+void 
+vncProperties::LoadEchoConnectionSettings(HKEY key)
+{
+	HKEY hkEchoServers, hkServerInfo;
+	DWORD dw;
 
+	m_server->enableEchoConnection(LoadInt(key, "AllowEchoConnection", 0));
+
+	if (key == NULL || 
+		RegCreateKeyEx(key, "EchoServers", 0, REG_NONE, REG_OPTION_NON_VOLATILE,
+					   KEY_ALL_ACCESS, NULL, &hkEchoServers, &dw) != ERROR_SUCCESS) {
+		hkEchoServers = NULL;
+		return;
+	}
+
+	char nameArray [MAX_ECHO_SERVERS * 256];
+	ZeroMemory(nameArray, (MAX_ECHO_SERVERS * 256));
+	int num = GetAllEchoServerKeys(hkEchoServers, (char*)&nameArray);
+	int index = 0;
+
+	ECHOPROP echoProp;
+	char *server, *port, *username, *pwd;
+	int connectionType = 0;
+
+	for (int i = 0; i < num; i++) {
+		RegCreateKeyEx(hkEchoServers, (char *)&nameArray[index], 0, REG_NONE, REG_OPTION_NON_VOLATILE,
+					   KEY_ALL_ACCESS, NULL, &hkServerInfo, &dw);
+		server = LoadString(hkServerInfo, "server");
+		strcpy(echoProp.server, server);
+		port = LoadString(hkServerInfo, "port");
+		strcpy(echoProp.port, port);
+		username = LoadString(hkServerInfo, "username");
+		strcpy(echoProp.username, username);
+		pwd = LoadString(hkServerInfo, "password");
+		strcpy(echoProp.pwd, pwd);
+		echoProp.connectionType = LoadInt(hkServerInfo, "ConnectionType", 0);
+
+		m_server->m_pEchoConCtrl->add(&echoProp);
+
+		delete [] server;
+		delete [] port;
+		delete [] username;
+		delete [] pwd;
+
+		index += strlen((char *)&nameArray[index]) + 1;
+	}
+	RegCloseKey(hkServerInfo);
+	RegCloseKey(hkEchoServers);
+}
+
+void 
+vncProperties::SaveEchoConnectionSettings(HKEY key)
+{
+	HKEY hkEchoServers;
+	DWORD dw;
+
+	SaveInt(key, "AllowEchoConnection", m_server->getEnableEchoConnection());
+
+	if (key == NULL || 
+		RegCreateKeyEx(key, "EchoServers", 0, REG_NONE, REG_OPTION_NON_VOLATILE,
+					   KEY_ALL_ACCESS, NULL, &hkEchoServers, &dw) != ERROR_SUCCESS) {
+		hkEchoServers = NULL;
+		return;
+	}
+
+	int num = m_server->m_pEchoConCtrl->getNumEntries();
+
+	HKEY hkServerInfo;
+	char keyName[256];
+	ECHOPROP echoProp;
+
+	DeleteAllEchoServerKeys(hkEchoServers);
+
+	for (int i = 0; i < num; i++) {
+		m_server->m_pEchoConCtrl->getEntriesAt(i, &echoProp);
+		sprintf(keyName, "%s@%s:%s", echoProp.username, echoProp.server, echoProp.port);
+		if (RegCreateKeyEx(hkEchoServers, keyName, 0, REG_NONE, REG_OPTION_NON_VOLATILE,
+			KEY_ALL_ACCESS, NULL, &hkServerInfo, &dw) == ERROR_SUCCESS) {
+			SaveString(hkServerInfo, "server", echoProp.server);
+			SaveString(hkServerInfo, "username", echoProp.username);
+			SaveString(hkServerInfo, "port", echoProp.port);
+			SaveString(hkServerInfo, "password", echoProp.pwd);
+			SaveInt(hkServerInfo, "ConnectionType", echoProp.connectionType);
+			RegCloseKey(hkServerInfo);
+		}
+
+	}
+	RegCloseKey(hkEchoServers);
+}
+
+void
+vncProperties::DeleteAllEchoServerKeys(HKEY hkEchoServers)
+{
+	char nameArray [MAX_ECHO_SERVERS * 256];
+	ZeroMemory(nameArray, (MAX_ECHO_SERVERS * 256));
+	int num = GetAllEchoServerKeys(hkEchoServers, (char*)&nameArray);
+	int index = 0;
+
+	for (int i = 0; i < num; i++) {
+		RegDeleteKey(hkEchoServers, (char *)&nameArray[index]);
+		index += strlen((char *)&nameArray[index]) + 1;
+	}
+}
+
+int
+vncProperties::GetAllEchoServerKeys(HKEY hkEchoServers, char *nameArray)
+{
+	char name[256];
+	DWORD nameLen = 255;
+	DWORD retCode = ERROR_SUCCESS;
+	FILETIME lastModTime;
+	int num = 0;
+	int index = 0;
+
+	for (int i = 0; i < MAX_ECHO_SERVERS; i++) {
+		retCode = RegEnumKeyEx(hkEchoServers, i, name, &nameLen, NULL, NULL, NULL, &lastModTime);
+		if (retCode == ERROR_SUCCESS) {
+			strcpy((char *)&nameArray[index], name);
+			index += strlen(name);
+			nameArray[index] = '\0';
+			index += 1;
+			name[0] = '\0';
+			nameLen = 255;
+			num++;
+		} else {
+			if (retCode == ERROR_NO_MORE_ITEMS) break;
+		}
+	}
+	return num;
+}

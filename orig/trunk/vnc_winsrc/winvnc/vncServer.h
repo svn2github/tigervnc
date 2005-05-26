@@ -49,6 +49,7 @@ class vncServer;
 #include "vncClient.h"
 #include "vncRegion.h"
 #include "vncPasswd.h"
+#include "echoConCtrl.h"
 
 // Includes
 #include "stdhdrs.h"
@@ -60,6 +61,8 @@ typedef std::list<HWND> vncNotifyList;
 
 // Some important constants;
 const int MAX_CLIENTS = 128;
+
+class echoConCtrl;
 
 // The vncServer class itself
 
@@ -272,6 +275,9 @@ public:
 	virtual void EnableFileTransfers(const BOOL enable) {m_enable_file_transfers = enable;}
 	virtual BOOL FileTransfersEnabled() {return m_enable_file_transfers;}
 
+	virtual void EnableEchoConnections(const BOOL enable) {m_enable_echo_connect = enable;}
+	virtual BOOL EchoConnectionsEnabled() {return m_enable_echo_connect;}
+
     // Patrial desktop sharing
     virtual void WindowShared(BOOL enable) { m_WindowShared = enable; }
 	virtual void SetApplication(BOOL enable) { m_Application = enable; }
@@ -308,7 +314,11 @@ public:
 	virtual BOOL PollingCycleChanged() { return m_polling_cycle_changed; }
 	virtual void PollingCycleChanged(BOOL change) { m_polling_cycle_changed = change; }
 
-  BOOL checkPointer(vncClient *pClient);
+	BOOL checkPointer(vncClient *pClient);
+	void enableEchoConnection(int value);
+	int getEnableEchoConnection() { return m_enable_echo_connect; }
+
+	echoConCtrl *m_pEchoConCtrl;
 
 	// Internal stuffs
 protected:
@@ -354,6 +364,7 @@ protected:
 	BOOL				m_remove_wallpaper;
 	BOOL				m_blank_screen;
 	BOOL				m_enable_file_transfers;
+	BOOL				m_enable_echo_connect;
 
 	// Fake a cursor position. 
 	BOOL m_has_fake_cursor_pos;

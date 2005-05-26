@@ -46,6 +46,8 @@
 #define IDD_CONNECTIONS_ACCESS          154
 #define IDR_CAPSCONTAINER_CLASS         155
 #define IDD_CONN_HOST                   155
+#define IDD_ECHO_CONNECTION             156
+#define IDD_ECHO_PARAMS                 157
 #define IDC_STATIC_DRVINFO              1003
 #define IDC_CONNECT_SOCK                1004
 #define IDC_BLANK_SCREEN                1005
@@ -176,6 +178,17 @@
 #define IDC_STATIC_SELECTED_KLIENTS     1149
 #define IDC_APPLICATION                 1150
 #define IDC_STATIC_WNDLOCATOR           1151
+#define IDC_ECHOSERVERS_LIST            1152
+#define IDC_ECHO_EDIT                   1153
+#define IDC_ECHO_REMOVE                 1154
+#define IDC_ECHO_ADD                    1156
+#define IDC_ECHO_SERVER                 1157
+#define IDC_ECHO_USER                   1158
+#define IDC_ECHO_PWD                    1159
+#define IDC_ECHO_CON_STRING             1160
+#define IDC_ECHO_PORT                   1161
+#define IDC_ECHO_AUTO_CONNECT           1162
+#define IDC_ECHO_CON_DISABLE            1163
 #define ID_PROPERTIES                   40001
 #define ID_CLOSE                        40002
 #define ID_KILLCLIENTS                  40003
@@ -189,9 +202,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        156
+#define _APS_NEXT_RESOURCE_VALUE        158
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1152
+#define _APS_NEXT_CONTROL_VALUE         1164
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

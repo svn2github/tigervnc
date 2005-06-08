@@ -55,7 +55,6 @@ void CentreWindow(HWND hwnd);
 bool ParseDisplay(LPTSTR display, LPTSTR phost, int hostlen, int *port);
 void FormatDisplay(int port, LPTSTR display, LPTSTR host);
 
-
 // Macro DIALOG_MAKEINTRESOURCE is used to allow both normal windows dialogs
 // and the selectable aspect ratio dialogs under WinCE (PalmPC vs HPC).
 #ifndef UNDER_CE

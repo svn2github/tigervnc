@@ -164,27 +164,38 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 			pApp->ListenMode();
 			EndDialog(hwnd, FALSE);
 			return TRUE; 				
-		case IDC_OK:             
-			TCHAR display[256];			
-			GetDlgItemText(hwnd, IDC_HOSTNAME_EDIT, display, 256);			 
-			if (_tcslen(display) == 0) {				
-				EndDialog(hwnd, TRUE);
-				return TRUE;
-			}
-			if (!ParseDisplay(display, tmphost, 255, &_this->m_cc->m_port)) {
-				MessageBox(NULL, 
-						_T("Invalid VNC server specified.\n\r")
-						_T("Server should be of the form host:display."), 
-						_T("Connection setup"), MB_OK | MB_ICONEXCLAMATION );
-				return TRUE;
-			} else {
-				_tcscpy(_this->m_cc->m_host, tmphost);
+		case IDC_OK:  
+			{
+				TCHAR display[256];			
+				GetDlgItemText(hwnd, IDC_HOSTNAME_EDIT, display, 256);			 
+				if (_tcslen(display) == 0) {				
+					EndDialog(hwnd, TRUE);
+					return TRUE;
+				}
+				TCHAR *atPos = _tcschr(display, L'@');
+				bool bResult = true;
+				if (atPos != NULL) {
+					if (!_this->m_cc->CreateEchoConnection(display)) bResult = false;
+				} else {
+					if (!ParseDisplay(display, tmphost, 255, &_this->m_cc->m_port)) {
+						bResult = false;
+					} else {
+						_tcscpy(_this->m_cc->m_host, tmphost);
+					}
+				}
+				if (!bResult) {
+					MessageBox(NULL, 
+							_T("Invalid VNC server specified.\n\r")
+							_T("Server should be of the form host:display or username@echoserver:port for echo connections."), 
+							_T("Connection setup"), MB_OK | MB_ICONEXCLAMATION );
+					return TRUE;
+				} 
 				_tcscpy(_this->m_pOpt->m_display, display);
-			}
-			
-			EndDialog(_this->m_pOpt->m_hParent, FALSE);
-			EndDialog(hwnd, TRUE);
+				
+				EndDialog(_this->m_pOpt->m_hParent, FALSE);
+				EndDialog(hwnd, TRUE);
 
+			}
 			return TRUE;						
 		case IDCANCEL:
 			EndDialog(_this->m_pOpt->m_hParent, FALSE);

@@ -31,6 +31,7 @@ echoConnection::echoConnection()
 {
 	m_bInitialized = FALSE;
 	m_hEchoInst = NULL;
+	m_pEchoProxyInfo = NULL;
 	resetEchoProcPtrs();
 }
 
@@ -40,10 +41,8 @@ echoConnection::~echoConnection()
 }
 
 BOOL 
-echoConnection::initialize(unsigned int port)
+echoConnection::initialize(ECHOPROP *echoProp)
 {
-	m_callbackPort = port;
-
 	if (!loadLibrary()) return FALSE;
 	if (!getEchoProcAddr()) {
 		freeLibrary();
@@ -51,7 +50,19 @@ echoConnection::initialize(unsigned int port)
 	}
 	if (!m_lpfnInitializeProxyDLL()) return FALSE;
 	m_lpfnSetLoggingOptions(FALSE, NULL);
-	m_lpfnSetPortForOffLoadingData(m_callbackPort);
+
+	m_pEchoProxyInfo = (echoProxyInfo *)m_lpfnCreateProxyInfoClassObject();
+
+	if (m_pEchoProxyInfo == NULL) {
+		destroy();
+		return FALSE;
+	}
+
+	m_pEchoProxyInfo->SetIP(echoProp->server);
+	m_pEchoProxyInfo->SetPort(echoProp->port);
+	m_pEchoProxyInfo->SetMyID(echoProp->username);
+	m_pEchoProxyInfo->SetPassword(echoProp->pwd);
+
 	m_bInitialized = TRUE;
 
 	return TRUE;
@@ -60,9 +71,8 @@ echoConnection::initialize(unsigned int port)
 void
 echoConnection::destroy()
 {
-	deleteAllProxyObjects();
+	if (m_bInitialized) m_lpfnDeleteProxyInfoClassObject(m_pEchoProxyInfo);
 	freeLibrary();
-	resetEchoProcPtrs();
 	m_bInitialized = FALSE;
 }
 
@@ -88,156 +98,35 @@ echoConnection::freeLibrary()
 	}
 }
 
-void
-echoConnection::deleteAllProxyObjects()
-{
-	if (!m_bInitialized) return;
-
-	m_lpfnDisconnectAllProxies();
-	for (int i = 0; i < MAX_ECHO_SERVERS; i++) {
-		if (m_pEchoProxyInfo[i] != NULL) {
-			m_lpfnDeleteProxyInfoClassObject(m_pEchoProxyInfo[i]);
-			m_pEchoProxyInfo[i] = NULL;
-		}
-	}
-}
-
-BOOL
-echoConnection::addEchoConnection(ECHOPROP *echoProps)
-{
-	if (!m_bInitialized) return FALSE;
-
-	echoProxyInfo *proxyInfo = NULL;
-	proxyInfo = (echoProxyInfo *)m_lpfnCreateProxyInfoClassObject();
-
-	proxyInfo->SetIP(echoProps->server);
-	proxyInfo->SetPort(echoProps->port);
-	proxyInfo->SetMyID(echoProps->username);
-	proxyInfo->SetPassword(echoProps->pwd);
-
-	for (int i = 0; i < MAX_ECHO_SERVERS; i++)
-		if (m_pEchoProxyInfo[i] == NULL) {
-			m_pEchoProxyInfo[i] = proxyInfo;
-			break;
-		}
-
-	m_lpfnSetPortForOffLoadingData(m_callbackPort);
-
-	if (echoProps->connectionType > 0) {
-		if (connectTo(proxyInfo) == 0) return TRUE; else return FALSE;
-	}
-	return TRUE;
-}
-
-BOOL
-echoConnection::delEchoConnection(ECHOPROP *echoProps)
-{
-	if (!m_bInitialized) return FALSE;
-
-	for (int i = 0; i < MAX_ECHO_SERVERS; i++) {
-		if (m_pEchoProxyInfo[i] != NULL) {
-			if ((strcmp(m_pEchoProxyInfo[i]->GetIP(), echoProps->server) == 0) &&
-				(strcmp(m_pEchoProxyInfo[i]->GetPort(), echoProps->port) == 0) &&
-				(strcmp(m_pEchoProxyInfo[i]->GetMyID(), echoProps->username) == 0)) {
-				if (m_pEchoProxyInfo[i]->GetStatus() != 0) {
-					m_lpfnDisconnectProxy(m_pEchoProxyInfo[i]);
-				}
-				m_lpfnDeleteProxyInfoClassObject(m_pEchoProxyInfo[i]);
-				m_pEchoProxyInfo[i] = NULL;
-				return TRUE;
-			}
-		}
-	}
-	return FALSE;
-}
-
-BOOL
-echoConnection::changeEchoConnection(ECHOPROP *oldEchoProps, ECHOPROP *newEchoProps)
-{
-	if (!m_bInitialized) return FALSE;
-
-	echoProxyInfo *echoObj = getEchoObject(oldEchoProps);
-	if (echoObj != NULL) {
-		if (echoObj->GetStatus() != 0) {
-			m_lpfnDisconnectProxy(echoObj);
-		}
-		echoObj->SetIP(newEchoProps->server);
-		echoObj->SetPort(newEchoProps->port);
-		echoObj->SetMyID(newEchoProps->username);
-		echoObj->SetPassword(newEchoProps->pwd);
-
-		if (newEchoProps->connectionType > 0) 
-			if (connectTo(echoObj) == 0) return TRUE; else return FALSE;
-	}
-	return FALSE;
-}
-
-int
-echoConnection::connectTo(echoProxyInfo *pProxyInfo)
-{
-	return m_lpfnConnectProxy(pProxyInfo);
-}
-
 int 
-echoConnection::connectTo(ECHOPROP *echoProp)
+echoConnection::connect()
 {
 	if (!m_bInitialized) return -1;
 
-	echoProxyInfo *echoObj = getEchoObject(echoProp);
-	if (echoObj != NULL) {
-		return connectTo(echoObj);
-	}
-	return -1;
+	return m_lpfnConnectProxy(m_pEchoProxyInfo);
 }
 
 BOOL
-echoConnection::disconnect(ECHOPROP *echoProp)
+echoConnection::disconnect()
 {
 	if (!m_bInitialized) return FALSE;
 
-	echoProxyInfo *echoObj = getEchoObject(echoProp);
-	if (echoObj != NULL) {
-		if (echoObj->GetStatus() != 0) {
-			return m_lpfnDisconnectProxy(echoObj);
+	if (m_pEchoProxyInfo != NULL) {
+		if (m_pEchoProxyInfo->GetStatus() != 0) {
+			return m_lpfnDisconnectProxy(m_pEchoProxyInfo);
 		}
 	}
 	return FALSE;
 }
 
-BOOL
-echoConnection::disconnectAll()
-{
-	if (!m_bInitialized) return FALSE;
-
-	return m_lpfnDisconnectAllProxies();
-}
-
 int
-echoConnection::getStatus(ECHOPROP *echoProp)
+echoConnection::establishNewDataChannel(char *IDOfPartner)
 {
-	if (!m_bInitialized) return -1;
+	if (strlen(IDOfPartner) >= ID_STRING_SIZE) return -1;
 
-	echoProxyInfo *echoObj = getEchoObject(echoProp);
-	if (echoObj != NULL) {
-		return echoObj->GetStatus();
-	} else {
-	}
-	return -1;
-}
+	strcpy((char *)m_pszPartnerID, IDOfPartner);
 
-echoConnection::echoProxyInfo * 
-echoConnection::getEchoObject(ECHOPROP *echoProp)
-{
-	for (int i = 0; i < MAX_ECHO_SERVERS; i++) {
-		if (m_pEchoProxyInfo[i] != NULL) {
-			if ((strcmp(m_pEchoProxyInfo[i]->GetIP(), echoProp->server) == 0) &&
-				(strcmp(m_pEchoProxyInfo[i]->GetPort(), echoProp->port) == 0) &&
-				(strcmp(m_pEchoProxyInfo[i]->GetMyID(), echoProp->username) == 0)) {
-				return m_pEchoProxyInfo[i];
-			}
-		}
-	}
-	return NULL;
+	return m_lpfnEstablishNewDataChannel(m_pEchoProxyInfo, IDOfPartner);	
 }
 
 BOOL
@@ -322,13 +211,4 @@ echoConnection::resetEchoProcPtrs()
 	m_lpfnDisconnectProxy            = NULL;
 	m_lpfnDisconnectAllProxies       = NULL;
 	m_lpfnEstablishNewDataChannel    = NULL;
-
-	resetEchoObjInfo();
-}
-
-void
-echoConnection::resetEchoObjInfo()
-{
-	for (int i = 0; i < MAX_ECHO_SERVERS; i++)
-		m_pEchoProxyInfo[i] = NULL;
 }

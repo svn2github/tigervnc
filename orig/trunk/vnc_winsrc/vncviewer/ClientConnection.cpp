@@ -156,6 +156,8 @@ void ClientConnection::Init(VNCviewerApp *pApp)
 	m_fileTransferDialogShown = false;
 	m_pFileTransfer = new FileTransfer(this, m_pApp);
 
+	m_pEchoConnection = NULL;
+
 	// We take the initial conn options from the application defaults
 	m_opts = m_pApp->m_options;
 	
@@ -1924,6 +1926,8 @@ ClientConnection::~ClientConnection()
 	delete m_QuitFSW;
 	
 	m_pApp->DeregisterConnection(this);
+
+	DestroyEchoConnection();
 }
 
 // You can specify a dx & dy outside the limits; the return value will
@@ -3394,3 +3398,124 @@ void ClientConnection::ReadNewFBSize(rfbFramebufferUpdateRectHeader *pfburh)
 	RealiseFullScreenMode(true);
 }
 
+bool ClientConnection::CreateEchoConnection(LPTSTR display)
+{
+	if (m_pEchoConnection != NULL) return false;
+
+	TCHAR server[256];
+	TCHAR username[256];
+	TCHAR port[256];
+	TCHAR *atPos = _tcschr(display, L'@');
+	if (atPos != NULL) {
+		_tcsncpy(username, display, atPos - display);
+		username[atPos - display] = L'\0';
+	
+		TCHAR *colonPos = _tcschr(atPos, L':');
+
+		if (colonPos != NULL) {
+			_tcsncpy(server, atPos + 1, colonPos - atPos - 1);
+			server[colonPos - atPos - 1] = L'\0';
+			_tcscpy(port, colonPos + 1);
+		} else {
+			_tcscpy(server, atPos + 1);
+			_tcscpy(port, "1328");
+		}
+	}
+
+	if (DialogBoxParam(pApp->m_instance, DIALOG_MAKEINTRESOURCE(IDD_ECHOPWD), 
+					   NULL, (DLGPROC) echoParamsDlgProc, (LONG) this) != IDOK) return false;
+
+	ECHOPROP echoProp;
+	strcpy(echoProp.server, server);
+	strcpy(echoProp.port, port);
+	strcpy(echoProp.username, username);
+	strcpy(echoProp.pwd, m_szEchoPwd);
+	echoProp.connectionType = 1;
+
+	m_pEchoConnection = new echoConnection();
+
+	if (m_pEchoConnection == NULL) return false;
+
+	ConnectingDialog *conDlg = new ConnectingDialog(pApp->m_instance, display);
+	conDlg->SetStatus("Initialize echoWare.dll...");
+
+	if (!m_pEchoConnection->initialize(&echoProp)) { 
+		conDlg->SetStatus("Can't initialize echoWare.dll");
+		delete m_pEchoConnection; 
+		delete conDlg;
+		return false;
+	}
+
+	conDlg->SetStatus("Connecting to echoserver...");
+	int res = m_pEchoConnection->connect();
+	if (res != 0) { 
+		m_pEchoConnection->destroy();
+		conDlg->SetStatus("Can't connect to echoserver");
+		delete m_pEchoConnection; 
+		delete conDlg;
+		return false;
+	}
+
+	conDlg->SetStatus("Establishing new data channel for echo connection...");
+
+	int echoPort = m_pEchoConnection->establishNewDataChannel((char *)m_szEchoPartner);
+
+	if (port == 0) { 
+		m_pEchoConnection->disconnect();
+		m_pEchoConnection->destroy();
+		delete m_pEchoConnection; 
+		conDlg->SetStatus("Can't establishing new data channel for echo connection.");
+		delete conDlg;
+		return false;
+	}
+
+	m_port = echoPort;
+	strcpy(m_host, "127.0.0.1");
+
+	delete conDlg;
+	return true;
+}
+
+bool ClientConnection::DestroyEchoConnection()
+{
+	if (m_pEchoConnection != NULL) {
+		m_pEchoConnection->disconnect();
+		m_pEchoConnection->destroy();
+		return true;
+	}
+	return false;
+}
+
+BOOL CALLBACK 
+ClientConnection::echoParamsDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	ClientConnection *_this = (ClientConnection *) GetWindowLong(hwnd, GWL_USERDATA);
+	switch (uMsg)
+	{
+	case WM_INITDIALOG:
+		SetWindowLong(hwnd, GWL_USERDATA, (LONG) lParam);
+		CentreWindow(hwnd);
+		SetFocus(GetDlgItem(hwnd, IDC_ECHO_PWD));
+		return FALSE;
+	case WM_COMMAND:
+		{
+			switch (LOWORD(wParam))
+			{
+			case IDOK:
+				GetDlgItemText(hwnd, IDC_ECHO_PWD, _this->m_szEchoPwd, ID_STRING_SIZE);
+				GetDlgItemText(hwnd, IDC_ECHO_PARTNER, _this->m_szEchoPartner, ID_STRING_SIZE);
+				EndDialog(hwnd, IDOK);
+				return TRUE;
+			case IDCANCEL:
+				EndDialog(hwnd, IDCANCEL);
+				return TRUE;
+			}
+		}
+		break;
+	case WM_CLOSE:
+	case WM_DESTROY:
+		EndDialog(hwnd, IDCANCEL);
+		return TRUE;
+	}
+	return FALSE;
+}

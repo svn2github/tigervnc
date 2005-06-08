@@ -127,7 +127,7 @@ bool ParseDisplay(LPTSTR display, LPTSTR phost, int hostlen, int *pport)
     if (hostlen < (int)_tcslen(display))
         return false;
 
-    int tmp_port;
+	int tmp_port;
     TCHAR *colonpos = _tcschr(display, L':');
     if (colonpos == NULL) {
 		// No colon -- use default port number
@@ -166,3 +166,4 @@ void FormatDisplay(int port, LPTSTR display, LPTSTR host)
 		_stprintf(display, TEXT("%s::%d"), host, port);
 	}
 }
+

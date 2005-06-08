@@ -313,6 +313,18 @@ SOURCE=.\DirManager.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\echoConnection.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\echoConnection.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\echoTypes.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\Exception.cpp
 # End Source File
 # Begin Source File
@@ -426,6 +438,10 @@ SOURCE=.\HotKeys.cpp
 # Begin Source File
 
 SOURCE=.\HotKeys.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\InterfaceDllProxyInfo.h
 # End Source File
 # Begin Source File
 

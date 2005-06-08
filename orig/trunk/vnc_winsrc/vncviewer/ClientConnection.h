@@ -42,6 +42,7 @@
 #include "KeyMap.h"
 #include "ConnectingDialog.h"
 #include "FileTransfer.h"
+#include "echoConnection.h"
 #include "zlib/zlib.h"
 extern "C" {
 #include "libjpeg/jpeglib.h"
@@ -78,6 +79,11 @@ public:
     TCHAR m_host[MAX_HOST_NAME_LEN];
 	HWND m_hSess;
 
+	bool CreateEchoConnection(LPTSTR display);
+	bool DestroyEchoConnection();
+	static BOOL CALLBACK echoParamsDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+
 private:
 	static LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
 	static LRESULT CALLBACK WndProc1(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
@@ -92,6 +98,10 @@ private:
 	bool m_fileTransferDialogShown;
 	friend class FileTransfer;
 	FileTransfer *m_pFileTransfer;
+
+	echoConnection *m_pEchoConnection;
+	char m_szEchoPwd[ID_STRING_SIZE];
+	char m_szEchoPartner[ID_STRING_SIZE];
 
 	SOCKET m_sock;
 	bool m_serverInitiated;

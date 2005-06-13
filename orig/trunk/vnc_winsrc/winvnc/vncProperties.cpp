@@ -1435,7 +1435,8 @@ vncProperties::LoadEchoConnectionSettings(HKEY key)
 	int index = 0;
 
 	ECHOPROP echoProp;
-	char *server, *port, *username, *pwd;
+	char *server, *port, *username;
+	char pwd[MAXPWLEN];
 	int connectionType = 0;
 
 	for (int i = 0; i < num; i++) {
@@ -1447,8 +1448,9 @@ vncProperties::LoadEchoConnectionSettings(HKEY key)
 		strcpy(echoProp.port, port);
 		username = LoadString(hkServerInfo, "username");
 		strcpy(echoProp.username, username);
-		pwd = LoadString(hkServerInfo, "password");
-		strcpy(echoProp.pwd, pwd);
+		LoadPassword(hkServerInfo, (char *)pwd, "password");
+		vncPasswd::ToText plain(pwd);
+		strcpy(echoProp.pwd, plain);
 		echoProp.connectionType = LoadInt(hkServerInfo, "ConnectionType", 0);
 
 		m_server->m_pEchoConCtrl->add(&echoProp);
@@ -1456,7 +1458,6 @@ vncProperties::LoadEchoConnectionSettings(HKEY key)
 		delete [] server;
 		delete [] port;
 		delete [] username;
-		delete [] pwd;
 
 		index += strlen((char *)&nameArray[index]) + 1;
 	}
@@ -1495,7 +1496,8 @@ vncProperties::SaveEchoConnectionSettings(HKEY key)
 			SaveString(hkServerInfo, "server", echoProp.server);
 			SaveString(hkServerInfo, "username", echoProp.username);
 			SaveString(hkServerInfo, "port", echoProp.port);
-			SaveString(hkServerInfo, "password", echoProp.pwd);
+			vncPasswd::FromText plain(echoProp.pwd);
+			SavePassword(hkServerInfo, plain, "password");
 			SaveInt(hkServerInfo, "ConnectionType", echoProp.connectionType);
 			RegCloseKey(hkServerInfo);
 		}

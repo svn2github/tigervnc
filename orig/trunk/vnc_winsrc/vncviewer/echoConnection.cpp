@@ -37,7 +37,6 @@ echoConnection::echoConnection()
 
 echoConnection::~echoConnection()
 {
-	destroy();
 }
 
 BOOL 
@@ -71,7 +70,9 @@ echoConnection::initialize(ECHOPROP *echoProp)
 void
 echoConnection::destroy()
 {
-	if (m_bInitialized) m_lpfnDeleteProxyInfoClassObject(m_pEchoProxyInfo);
+	if (m_pEchoProxyInfo != NULL) {
+		m_lpfnDeleteProxyInfoClassObject(m_pEchoProxyInfo);
+	}
 	freeLibrary();
 	m_bInitialized = FALSE;
 }

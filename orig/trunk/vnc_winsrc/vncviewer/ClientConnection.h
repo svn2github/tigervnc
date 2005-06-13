@@ -80,7 +80,6 @@ public:
 	HWND m_hSess;
 
 	bool CreateEchoConnection(LPTSTR display);
-	bool DestroyEchoConnection();
 	static BOOL CALLBACK echoParamsDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 

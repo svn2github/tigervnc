@@ -1918,6 +1918,10 @@ ClientConnection::~ClientConnection()
 	if (m_desktopName != NULL) delete [] m_desktopName;
 	delete [] m_netbuf;
 	delete m_pFileTransfer;
+	if (m_pEchoConnection != NULL) {
+		delete m_pEchoConnection;
+		m_pEchoConnection = NULL;
+	}
 	DeleteDC(m_hBitmapDC);
 	if (m_hBitmap != NULL)
 		DeleteObject(m_hBitmap);
@@ -1926,8 +1930,6 @@ ClientConnection::~ClientConnection()
 	delete m_QuitFSW;
 	
 	m_pApp->DeregisterConnection(this);
-
-	DestroyEchoConnection();
 }
 
 // You can specify a dx & dy outside the limits; the return value will
@@ -3012,6 +3014,7 @@ void* ClientConnection::run_undetached(void* arg) {
 		e.Report();
 		PostMessage(m_hwnd1, WM_CLOSE, 0, 0);
 	} 
+
 	return this;
 }
 
@@ -3441,7 +3444,8 @@ bool ClientConnection::CreateEchoConnection(LPTSTR display)
 
 	if (!m_pEchoConnection->initialize(&echoProp)) { 
 		conDlg->SetStatus("Can't initialize echoWare.dll");
-		delete m_pEchoConnection; 
+		delete m_pEchoConnection;
+		m_pEchoConnection = NULL;
 		delete conDlg;
 		return false;
 	}
@@ -3452,6 +3456,7 @@ bool ClientConnection::CreateEchoConnection(LPTSTR display)
 		m_pEchoConnection->destroy();
 		conDlg->SetStatus("Can't connect to echoserver");
 		delete m_pEchoConnection; 
+		m_pEchoConnection = NULL;
 		delete conDlg;
 		return false;
 	}
@@ -3464,6 +3469,7 @@ bool ClientConnection::CreateEchoConnection(LPTSTR display)
 		m_pEchoConnection->disconnect();
 		m_pEchoConnection->destroy();
 		delete m_pEchoConnection; 
+		m_pEchoConnection = NULL;
 		conDlg->SetStatus("Can't establishing new data channel for echo connection.");
 		delete conDlg;
 		return false;
@@ -3474,16 +3480,6 @@ bool ClientConnection::CreateEchoConnection(LPTSTR display)
 
 	delete conDlg;
 	return true;
-}
-
-bool ClientConnection::DestroyEchoConnection()
-{
-	if (m_pEchoConnection != NULL) {
-		m_pEchoConnection->disconnect();
-		m_pEchoConnection->destroy();
-		return true;
-	}
-	return false;
 }
 
 BOOL CALLBACK 

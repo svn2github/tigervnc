@@ -43,6 +43,8 @@ public:
 
 	int establishNewDataChannel(char *IDOfPartner);
 
+	BOOL freeLibrary();
+
 private:
 
 	class echoProxyInfo : public IDllProxyInfo
@@ -89,7 +91,6 @@ private:
 	LPFN_ECHOWARE_ESTABLISH_NEW_DATA_CHANNEL     m_lpfnEstablishNewDataChannel;
 
 	BOOL loadLibrary();
-	BOOL freeLibrary();
 
 	BOOL getEchoProcAddr();
 

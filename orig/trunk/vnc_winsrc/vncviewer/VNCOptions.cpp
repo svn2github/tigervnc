@@ -33,6 +33,11 @@
 #include "Htmlhelp.h"
 #include "commctrl.h"
 #include "AboutBox.h"
+extern "C" {
+#include "vncauth.h"
+#include "d3des.h"
+}
+
 VNCOptions::VNCOptions()
 {
 	for (int i = rfbEncodingRaw; i<= LASTENCODING; i++)
@@ -641,6 +646,8 @@ BOOL CALLBACK VNCOptions::DlgProc(HWND hwndDlg, UINT uMsg,
 			TabCtrl_InsertItem(_this->m_hTab, 0, &item);
 			item.pszText = "Globals";
 			TabCtrl_InsertItem(_this->m_hTab, 1, &item);
+			item.pszText = "Echo Servers";
+			TabCtrl_InsertItem(_this->m_hTab, 2, &item);
 
 			_this->m_hPageConnection = CreateDialogParam(pApp->m_instance,
 				MAKEINTRESOURCE(IDD_OPTIONDIALOG),
@@ -654,6 +661,12 @@ BOOL CALLBACK VNCOptions::DlgProc(HWND hwndDlg, UINT uMsg,
 				(DLGPROC)_this->DlgProcGlobalOptions,
 				(LONG)_this);
 
+			_this->m_hEchoConnection = CreateDialogParam(pApp->m_instance, 
+				MAKEINTRESOURCE(IDD_ECHO_CONNECTION),
+				hwndDlg,
+				(DLGPROC)_this->DlgProcEchoConnection,
+				(LONG)_this);
+
 			// Position child dialogs, to fit the Tab control's display area
 			RECT rc;
 			GetWindowRect(_this->m_hTab, &rc);
@@ -663,6 +676,9 @@ BOOL CALLBACK VNCOptions::DlgProc(HWND hwndDlg, UINT uMsg,
 						 rc.right - rc.left, rc.bottom - rc.top,
 						 SWP_SHOWWINDOW);
 			SetWindowPos(_this->m_hPageGeneral, HWND_TOP, rc.left, rc.top,
+						 rc.right - rc.left, rc.bottom - rc.top,
+						 SWP_HIDEWINDOW);
+			SetWindowPos(_this->m_hEchoConnection, HWND_TOP, rc.left, rc.top,
 						 rc.right - rc.left, rc.bottom - rc.top,
 						 SWP_HIDEWINDOW);
 
@@ -704,6 +720,10 @@ BOOL CALLBACK VNCOptions::DlgProc(HWND hwndDlg, UINT uMsg,
 						ShowWindow(_this->m_hPageGeneral, SW_SHOW);
 						SetFocus(_this->m_hPageGeneral);
 						return 0;						
+					case 2:
+						ShowWindow(_this->m_hEchoConnection, SW_SHOW);
+						SetFocus(_this->m_hEchoConnection);
+						return 0;						
 					}
 					return 0;
 				}
@@ -718,6 +738,9 @@ BOOL CALLBACK VNCOptions::DlgProc(HWND hwndDlg, UINT uMsg,
 						break;
 					case 1:
 						ShowWindow(_this->m_hPageGeneral, SW_HIDE);
+						break;
+					case 2:
+						ShowWindow(_this->m_hEchoConnection, SW_HIDE);
 						break;
 					}
 					return 0;
@@ -1637,6 +1660,7 @@ void VNCOptions::SaveGenOpt()
 					4);
 				
 	RegCloseKey(hRegKey);
+	SaveEchoConnectionSettings();
 }
 
 void VNCOptions::BrowseLogFile()
@@ -1672,4 +1696,277 @@ void VNCOptions::BrowseLogFile()
 		}
 		return;
 	}
+}
+
+BOOL CALLBACK VNCOptions::DlgProcEchoConnection(HWND hwnd, UINT uMsg,
+											    WPARAM wParam, LPARAM lParam)
+{
+	VNCOptions *_this = (VNCOptions *) GetWindowLong(hwnd, GWL_USERDATA);
+
+	switch (uMsg) {
+		
+	case WM_INITDIALOG: 
+		{					
+			SetWindowLong(hwnd, GWL_USERDATA, lParam);
+			VNCOptions *_this = (VNCOptions *) lParam;
+			_this->m_pEchoPropView = new echoPropView((echoConCtrl*)&pApp->m_echoConCtrl, hwnd);
+			_this->m_pEchoPropView->Init();
+			return TRUE;
+		}
+	case WM_NOTIFY:
+		switch (LOWORD(wParam))
+		{
+		case IDC_ECHOSERVERS_LIST:
+			switch (((LPNMHDR) lParam)->code)
+			{
+				case LVN_ITEMACTIVATE:
+					_this->m_pEchoPropView->Edit();
+					return FALSE;
+				case LVN_ITEMCHANGED:
+					_this->m_pEchoPropView->ShowStatus();
+					return FALSE;
+				case LVN_GETDISPINFO:
+					_this->m_pEchoPropView->onGetDispInfo((NMLVDISPINFO *) lParam);
+					return FALSE;
+
+			}
+			return FALSE;
+		}
+
+    case WM_COMMAND:		
+		switch (LOWORD(wParam))
+		{
+		case IDC_ECHO_CON_DISABLE:
+			_this->m_pEchoPropView->DisableCheck();
+			return TRUE;
+		case IDC_ECHO_ENCRYPTION:
+			_this->m_pEchoPropView->EncryptionCheck();
+			return TRUE;
+		case IDOK:
+			_this->m_pEchoPropView->Apply();
+			return TRUE;
+		case IDC_ECHO_ADD:
+			_this->m_pEchoPropView->Add();
+			return TRUE;
+		case IDC_ECHO_EDIT:
+			_this->m_pEchoPropView->Edit();
+			return TRUE;
+		case IDC_ECHO_REMOVE:
+			_this->m_pEchoPropView->Remove();
+			return TRUE;
+		}
+		return 0;
+	case WM_DESTROY:
+		delete _this->m_pEchoPropView;
+		_this->m_pEchoPropView = NULL;
+		return 0;
+	}
+	return 0;
+}
+
+char *
+VNCOptions::LoadString(HKEY key, LPCSTR keyname)
+{
+	DWORD type = REG_SZ;
+	DWORD buflen = 0;
+	BYTE *buffer = 0;
+
+	if (key == NULL)
+		return 0;
+
+	if (RegQueryValueEx(key, keyname, NULL, &type, NULL, &buflen) != ERROR_SUCCESS)
+		return 0;
+
+	if (type != REG_SZ) return 0;
+	
+	buffer = new BYTE[buflen];
+	if (buffer == 0) return 0;
+
+	if (RegQueryValueEx(key, keyname, NULL, &type, buffer, &buflen) != ERROR_SUCCESS) {
+		delete [] buffer;
+		return 0;
+	}
+
+	if (type != REG_SZ) {
+		delete [] buffer;
+		return 0;
+	}
+	return (char *)buffer;
+}
+
+void
+VNCOptions::SaveString(HKEY key, LPCSTR keyname, const char *buffer)
+{
+	RegSetValueEx(key, keyname, 0, REG_SZ, (const unsigned char *)buffer, strlen(buffer) + 1);
+}
+
+void
+VNCOptions::LoadPassword(HKEY key, char *buffer, const char *entry_name)
+{
+	DWORD type = REG_BINARY;
+	int slen=MAXPWLEN;
+	char inouttext[MAXPWLEN];
+
+	if (key == NULL) return;
+
+	// Retrieve the encrypted password
+	if (RegQueryValueEx(key, (LPCSTR) entry_name, NULL, &type, 
+						(LPBYTE) &inouttext,(LPDWORD) &slen) != ERROR_SUCCESS)
+		return;
+
+	if (slen > MAXPWLEN)
+		return;
+
+	memcpy(buffer, inouttext, MAXPWLEN);
+}
+
+void
+VNCOptions::SavePassword(HKEY key, const char *buffer, const char *entry_name)
+{
+	RegSetValueEx(key, entry_name, 0, REG_BINARY, (LPBYTE) buffer, MAXPWLEN);
+}
+
+void 
+VNCOptions::LoadEchoConnectionSettings()
+{
+	HKEY hKey, hkEchoServers, hkServerInfo;
+	DWORD dw;
+		
+	if (RegOpenKey(HKEY_CURRENT_USER, SETTINGS_KEY_NAME, &hKey) != ERROR_SUCCESS ) {
+		hKey = NULL;
+		return;
+	}
+
+	pApp->m_echoConCtrl.allowEchoConnection(read(hKey, "AllowEchoConnection", 0));
+	pApp->m_echoConCtrl.setEncryption(read(hKey, "AllowEncryption", 0));
+
+	if (hKey == NULL || 
+		RegCreateKeyEx(hKey, "EchoServers", 0, REG_NONE, REG_OPTION_NON_VOLATILE,
+					   KEY_ALL_ACCESS, NULL, &hkEchoServers, &dw) != ERROR_SUCCESS) {
+		hkEchoServers = NULL;
+		return;
+	}
+
+	char nameArray [MAX_ECHO_SERVERS * 256];
+	ZeroMemory(nameArray, (MAX_ECHO_SERVERS * 256));
+	int num = GetAllEchoServerKeys(hkEchoServers, (char*)&nameArray);
+	int index = 0;
+
+	ECHOPROP echoProp;
+	char pwd[MAXPWLEN];
+	int connectionType = 0;
+
+	for (int i = 0; i < num; i++) {
+		RegCreateKeyEx(hkEchoServers, (char *)&nameArray[index], 0, REG_NONE, REG_OPTION_NON_VOLATILE,
+					   KEY_ALL_ACCESS, NULL, &hkServerInfo, &dw);
+		char *server = LoadString(hkServerInfo, "server");
+		strcpy(echoProp.server, server);
+		char *port = LoadString(hkServerInfo, "port");
+		strcpy(echoProp.port, port);
+		char *username = LoadString(hkServerInfo, "username");
+		strcpy(echoProp.username, username);
+		LoadPassword(hkServerInfo, (char *)pwd, "password");
+		char bufPwd[MAXPWLEN]; bufPwd[0] = '\0';
+		strcpy(echoProp.pwd, vncDecryptPasswd((const unsigned char *)pwd));
+		echoProp.connectionType = read(hkServerInfo, "ConnectionType", 0);
+
+		pApp->m_echoConCtrl.add(&echoProp);
+
+		delete [] server;
+		delete [] port;
+		delete [] username;
+
+		index += strlen((char *)&nameArray[index]) + 1;
+	}
+	RegCloseKey(hkServerInfo);
+	RegCloseKey(hkEchoServers);
+}
+
+void 
+VNCOptions::SaveEchoConnectionSettings()
+{
+	HKEY hKey, hkEchoServers;
+	DWORD dw;
+
+	if (RegOpenKey(HKEY_CURRENT_USER, SETTINGS_KEY_NAME, &hKey) != ERROR_SUCCESS ) {
+		hKey = NULL;
+		return;
+	}
+
+	save(hKey, "AllowEchoConnection", pApp->m_echoConCtrl.getEnableEchoConnection());
+	save(hKey, "AllowEncryption", pApp->m_echoConCtrl.isEncrypted());
+
+	if (hKey == NULL || 
+		RegCreateKeyEx(hKey, "EchoServers", 0, REG_NONE, REG_OPTION_NON_VOLATILE,
+					   KEY_ALL_ACCESS, NULL, &hkEchoServers, &dw) != ERROR_SUCCESS) {
+		hkEchoServers = NULL;
+		return;
+	}
+
+	int num = pApp->m_echoConCtrl.getNumEntries();
+
+	HKEY hkServerInfo;
+	char keyName[256];
+	ECHOPROP echoProp;
+
+	DeleteAllEchoServerKeys(hkEchoServers);
+
+	for (int i = 0; i < num; i++) {
+		pApp->m_echoConCtrl.getEntriesAt(i, &echoProp);
+		sprintf(keyName, "%s@%s:%s", echoProp.username, echoProp.server, echoProp.port);
+		if (RegCreateKeyEx(hkEchoServers, keyName, 0, REG_NONE, REG_OPTION_NON_VOLATILE,
+			KEY_ALL_ACCESS, NULL, &hkServerInfo, &dw) == ERROR_SUCCESS) {
+			SaveString(hkServerInfo, "server", echoProp.server);
+			SaveString(hkServerInfo, "username", echoProp.username);
+			SaveString(hkServerInfo, "port", echoProp.port);
+			char bufPwd[MAXPWLEN]; bufPwd[0] = '\0';
+			vncEncryptPasswd((unsigned char *)bufPwd, echoProp.pwd);
+			SavePassword(hkServerInfo, bufPwd, "password");
+			save(hkServerInfo, "ConnectionType", echoProp.connectionType);
+			RegCloseKey(hkServerInfo);
+		}
+
+	}
+	RegCloseKey(hkEchoServers);
+}
+
+void
+VNCOptions::DeleteAllEchoServerKeys(HKEY hkEchoServers)
+{
+	char nameArray [MAX_ECHO_SERVERS * 256];
+	ZeroMemory(nameArray, (MAX_ECHO_SERVERS * 256));
+	int num = GetAllEchoServerKeys(hkEchoServers, (char*)&nameArray);
+	int index = 0;
+
+	for (int i = 0; i < num; i++) {
+		RegDeleteKey(hkEchoServers, (char *)&nameArray[index]);
+		index += strlen((char *)&nameArray[index]) + 1;
+	}
+}
+
+int
+VNCOptions::GetAllEchoServerKeys(HKEY hkEchoServers, char *nameArray)
+{
+	char name[256];
+	DWORD nameLen = 255;
+	DWORD retCode = ERROR_SUCCESS;
+	FILETIME lastModTime;
+	int num = 0;
+	int index = 0;
+
+	for (int i = 0; i < MAX_ECHO_SERVERS; i++) {
+		retCode = RegEnumKeyEx(hkEchoServers, i, name, &nameLen, NULL, NULL, NULL, &lastModTime);
+		if (retCode == ERROR_SUCCESS) {
+			strcpy((char *)&nameArray[index], name);
+			index += strlen(name);
+			nameArray[index] = '\0';
+			index += 1;
+			name[0] = '\0';
+			nameLen = 255;
+			num++;
+		} else {
+			if (retCode == ERROR_NO_MORE_ITEMS) break;
+		}
+	}
+	return num;
 }

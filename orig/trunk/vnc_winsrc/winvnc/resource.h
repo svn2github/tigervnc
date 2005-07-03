@@ -189,6 +189,9 @@
 #define IDC_ECHO_PORT                   1161
 #define IDC_ECHO_AUTO_CONNECT           1162
 #define IDC_ECHO_CON_DISABLE            1163
+#define IDC_ECHOSERVER_STATUS           1164
+#define IDC_ECHOWARE_STATUS             1165
+#define IDC_ECHO_ENCRYPTION             1166
 #define ID_PROPERTIES                   40001
 #define ID_CLOSE                        40002
 #define ID_KILLCLIENTS                  40003
@@ -204,7 +207,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        158
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1164
+#define _APS_NEXT_CONTROL_VALUE         1167
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

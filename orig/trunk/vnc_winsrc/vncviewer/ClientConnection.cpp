@@ -2237,7 +2237,6 @@ LRESULT CALLBACK ClientConnection::WndProc1(HWND hwnd, UINT iMsg,
 				_this->m_pFileTransfer->m_pFileTransferDlg->createCancelingDlg();
 				return 0;
 			}
-
 		}
 		_this->KillThread();
 		DestroyWindow(hwnd);
@@ -3403,15 +3402,18 @@ void ClientConnection::ReadNewFBSize(rfbFramebufferUpdateRectHeader *pfburh)
 
 bool ClientConnection::CreateEchoConnection(LPTSTR display)
 {
-	if (m_pEchoConnection != NULL) return false;
+	if (pApp->m_echoConCtrl.getEnableEchoConnection() == 0) return false;
 
 	TCHAR server[256];
-	TCHAR username[256];
+	TCHAR partnerID[256];
 	TCHAR port[256];
+
+	int backPort;
+
 	TCHAR *atPos = _tcschr(display, L'@');
 	if (atPos != NULL) {
-		_tcsncpy(username, display, atPos - display);
-		username[atPos - display] = L'\0';
+		_tcsncpy(partnerID, display, atPos - display);
+		partnerID[atPos - display] = L'\0';
 	
 		TCHAR *colonPos = _tcschr(atPos, L':');
 
@@ -3419,99 +3421,49 @@ bool ClientConnection::CreateEchoConnection(LPTSTR display)
 			_tcsncpy(server, atPos + 1, colonPos - atPos - 1);
 			server[colonPos - atPos - 1] = L'\0';
 			_tcscpy(port, colonPos + 1);
+
 		} else {
 			_tcscpy(server, atPos + 1);
 			_tcscpy(port, "1328");
 		}
 	}
 
-	if (DialogBoxParam(pApp->m_instance, DIALOG_MAKEINTRESOURCE(IDD_ECHOPWD), 
-					   NULL, (DLGPROC) echoParamsDlgProc, (LONG) this) != IDOK) return false;
+	bool bContinue = false;
 
-	ECHOPROP echoProp;
-	strcpy(echoProp.server, server);
-	strcpy(echoProp.port, port);
-	strcpy(echoProp.username, username);
-	strcpy(echoProp.pwd, m_szEchoPwd);
-	echoProp.connectionType = 1;
-
-	m_pEchoConnection = new echoConnection();
-
-	if (m_pEchoConnection == NULL) return false;
-
-	ConnectingDialog *conDlg = new ConnectingDialog(pApp->m_instance, display);
-	conDlg->SetStatus("Initialize echoWare.dll...");
-
-	if (!m_pEchoConnection->initialize(&echoProp)) { 
-		conDlg->SetStatus("Can't initialize echoWare.dll");
-		delete m_pEchoConnection;
-		m_pEchoConnection = NULL;
-		delete conDlg;
-		return false;
-	}
-
-	conDlg->SetStatus("Connecting to echoserver...");
-	int res = m_pEchoConnection->connect();
-	if (res != 0) { 
-		m_pEchoConnection->destroy();
-		conDlg->SetStatus("Can't connect to echoserver");
-		delete m_pEchoConnection; 
-		m_pEchoConnection = NULL;
-		delete conDlg;
-		return false;
-	}
-
-	conDlg->SetStatus("Establishing new data channel for echo connection...");
-
-	int echoPort = m_pEchoConnection->establishNewDataChannel((char *)m_szEchoPartner);
-
-	if (port == 0) { 
-		m_pEchoConnection->disconnect();
-		m_pEchoConnection->destroy();
-		delete m_pEchoConnection; 
-		m_pEchoConnection = NULL;
-		conDlg->SetStatus("Can't establishing new data channel for echo connection.");
-		delete conDlg;
-		return false;
-	}
-
-	m_port = echoPort;
-	strcpy(m_host, "127.0.0.1");
-
-	delete conDlg;
-	return true;
-}
-
-BOOL CALLBACK 
-ClientConnection::echoParamsDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-	ClientConnection *_this = (ClientConnection *) GetWindowLong(hwnd, GWL_USERDATA);
-	switch (uMsg)
+	do
 	{
-	case WM_INITDIALOG:
-		SetWindowLong(hwnd, GWL_USERDATA, (LONG) lParam);
-		CentreWindow(hwnd);
-		SetFocus(GetDlgItem(hwnd, IDC_ECHO_PWD));
-		return FALSE;
-	case WM_COMMAND:
-		{
-			switch (LOWORD(wParam))
+		if (pApp->m_echoConCtrl.establishDataChannel(server, port, partnerID, &backPort)) {
+			m_port = backPort;
+			strcpy(m_host, "127.0.0.1");
+			return true;
+		} else {
+			switch (pApp->m_echoConCtrl.getLastError())
 			{
-			case IDOK:
-				GetDlgItemText(hwnd, IDC_ECHO_PWD, _this->m_szEchoPwd, ID_STRING_SIZE);
-				GetDlgItemText(hwnd, IDC_ECHO_PARTNER, _this->m_szEchoPartner, ID_STRING_SIZE);
-				EndDialog(hwnd, IDOK);
-				return TRUE;
-			case IDCANCEL:
-				EndDialog(hwnd, IDCANCEL);
-				return TRUE;
+			case ID_ECHO_ERROR_NOT_EXIST:
+				if (MessageBox(m_hSess, "Echo connection with this parameters not exist.\nDo you want add echo connection with this parameters?",
+					"Echo connection parameters", MB_YESNO) == IDYES) {
+					echoPropView propView((echoConCtrl *)&pApp->m_echoConCtrl, NULL);
+					ECHOPROP prop;
+					strcpy(prop.server, server);
+					strcpy(prop.username, "");
+					strcpy(prop.port, port);
+					strcpy(prop.pwd, "");
+					prop.connectionType = 1;
+					if (propView.Add(&prop)) {
+						pApp->m_options.SaveEchoConnectionSettings();
+						bContinue = true;
+					} else {
+						return false;
+					}
+				} else {
+					return false;
+				}
+				break;
+			default:
+				return false;
 			}
 		}
-		break;
-	case WM_CLOSE:
-	case WM_DESTROY:
-		EndDialog(hwnd, IDCANCEL);
-		return TRUE;
-	}
-	return FALSE;
+	} while (bContinue);
+
+	return false;
 }

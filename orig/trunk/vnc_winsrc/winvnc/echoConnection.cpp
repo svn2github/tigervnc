@@ -27,73 +27,275 @@
 
 #include "echoConnection.h"
 
+const char echoConnection::szDefaultPort[]				= "1328";
+
+const char echoConnection::noProxyConnection[]			= "No Proxy Connection";
+const char echoConnection::authChannelConnecting[]		= "Auth Channel Connecting";
+const char echoConnection::authChannelEstablished[]		= "Auth Channel Established";
+const char echoConnection::partnerSearchInitiated[]		= "Partner Search Initiated";
+const char echoConnection::newRelayChannelConnecting[]	= "New Relay Channel Connecting";
+const char echoConnection::relayChannelEstablished1[]	= "1st Relay Channel Established";
+const char echoConnection::relayChannelEstablished2[]	= "2st Relay Channel Established";
+
 echoConnection::echoConnection()
 {
-	m_bInitialized = FALSE;
+	m_bInitialized = false;
+	m_bEchoWareEncryptionEnabled = false;
 	m_hEchoInst = NULL;
 	resetEchoProcPtrs();
+	resetEchoObjInfo();
+	m_szDllVersion[0] = '\0';
+	m_szString[0] = '\0';
 }
 
 echoConnection::~echoConnection()
 {
-	destroy();
 }
 
-BOOL 
-echoConnection::initialize(unsigned int port)
+bool 
+echoConnection::initialize()
 {
-	m_callbackPort = port;
-
-	if (!loadLibrary()) return FALSE;
-	if (!getEchoProcAddr()) {
-		freeLibrary();
-		return FALSE;
+	if (!loadLibrary()) {
+		m_dwLastError = ID_ECHO_ERROR_LIB_MISSING;
+		return false;
 	}
-	if (!m_lpfnInitializeProxyDLL()) return FALSE;
-	m_lpfnSetLoggingOptions(FALSE, NULL);
-	m_lpfnSetPortForOffLoadingData(m_callbackPort);
-	m_bInitialized = TRUE;
 
-	return TRUE;
+	if (!initEchoProcAddr()) {
+		m_dwLastError = ID_ECHO_ERROR_LIB_NOT_INITIALIZED;
+		freeLibrary();
+		return false;
+	}
+	if (!m_lpfnInitializeProxyDLL()) {
+		m_dwLastError = ID_ECHO_ERROR_LIB_NOT_INITIALIZED;
+		return false;
+	}
+
+	setLogging(false);
+	strcpy(m_szDllVersion, m_lpfnGetDllVersion());
+	m_bInitialized = true;
+
+	m_dwLastError = ID_ECHO_ERROR_SUCCESS;
+
+	return true;
 }
 
 void
 echoConnection::destroy()
 {
-	deleteAllProxyObjects();
+	deleteAll();
 	freeLibrary();
 	resetEchoProcPtrs();
-	m_bInitialized = FALSE;
+	resetEchoObjInfo();
+	m_bInitialized = false;
 }
 
-BOOL
+bool
 echoConnection::loadLibrary()
 {
 	if (m_hEchoInst == NULL) {
 		m_hEchoInst = LoadLibrary("echoware.dll");
-		if (m_hEchoInst) return TRUE;
+		if (m_hEchoInst) return true;
 	}
-	return FALSE;
+	return false;
 }
 
-BOOL
+bool
 echoConnection::freeLibrary()
 {
 	if (FreeLibrary(m_hEchoInst)) {
 		m_hEchoInst = NULL;
 		resetEchoProcPtrs();
-		return TRUE;
+		resetEchoObjInfo();
+		return true;
 	} else {
-		return FALSE;
+		return false;
 	}
 }
 
-void
-echoConnection::deleteAllProxyObjects()
+char *
+echoConnection::getDllVersion()
 {
-	if (!m_bInitialized) return;
+	return m_szDllVersion;
+}
+
+void
+echoConnection::setLogging(bool bLogging)
+{
+	m_lpfnSetLoggingOptions(bLogging, NULL);
+}
+
+bool
+echoConnection::setCallbackPort(unsigned int port)
+{
+	return m_lpfnSetPortForOffLoadingData(port);
+}
+
+bool
+echoConnection::connectTo(echoProxyInfo *proxyInfo)
+{
+	switch (m_lpfnConnectProxy(proxyInfo)) 
+		{
+		case 0:
+			m_dwLastError = ID_ECHO_ERROR_SUCCESS;
+			return true;
+		case 1:
+			m_dwLastError = ID_ECHO_ERROR_WRONG_ADDRESS;
+			return false;
+		case 2:
+			m_dwLastError = ID_ECHO_ERROR_WRONG_LOGIN;
+			return false;
+		case 3:
+			m_dwLastError = ID_ECHO_ERROR_CHANNEL_EXIST;
+			return false;
+		default:
+			m_dwLastError = ID_ECHO_ERROR_UNKNOWN;
+			return false;
+		}
+}
+
+bool
+echoConnection::addConnection(ECHOPROP *echoProps)
+{
+	if (!m_bInitialized) {
+		m_dwLastError = ID_ECHO_ERROR_LIB_NOT_INITIALIZED;
+		return false;
+	}
+
+	if (getEchoObject(echoProps, NULL) != NULL) {
+		m_dwLastError = ID_ECHO_ERROR_ALREADY_EXIST;
+		return false;
+	}
+
+	echoProxyInfo *proxyInfo = NULL;
+	proxyInfo = (echoProxyInfo *)m_lpfnCreateProxyInfoClassObject();
+
+	if (proxyInfo == NULL) {
+		m_dwLastError = ID_ECHO_ERROR_CREATE_OBJECT_FAILED;
+		return false;
+	}
+
+	proxyInfo->SetIP(echoProps->server);
+	proxyInfo->SetPort(echoProps->port);
+	proxyInfo->SetMyID(echoProps->username);
+	proxyInfo->SetPassword(echoProps->pwd);
+
+	for (int i = 0; i < MAX_ECHO_SERVERS; i++) {
+		if (m_pEchoProxyInfo[i] == NULL) {
+			m_pEchoProxyInfo[i] = proxyInfo;
+			break;
+		}
+	}
+
+	if (echoProps->connectionType != 0) 
+		return connectTo(proxyInfo);
+
+	m_dwLastError = ID_ECHO_ERROR_SUCCESS;
+	return true;
+}
+
+bool
+echoConnection::delConnection(ECHOPROP *echoProps)
+{
+	if (!m_bInitialized) {
+		m_dwLastError = ID_ECHO_ERROR_LIB_NOT_INITIALIZED;
+		return false;
+	}
+
+	int num = 0;
+	echoProxyInfo *echoObj = getEchoObject(echoProps, &num);
+
+	if (echoObj != NULL) {
+		if (echoObj->GetStatus() != 0) {
+			m_lpfnDisconnectProxy(echoObj);
+		}
+		m_lpfnDeleteProxyInfoClassObject(echoObj);
+		m_pEchoProxyInfo[num] = NULL;
+		m_dwLastError = ID_ECHO_ERROR_SUCCESS;
+		return true;
+	}
+
+	m_dwLastError = ID_ECHO_ERROR_NOT_EXIST;
+	return false;
+}
+
+bool 
+echoConnection::connect(ECHOPROP *echoProp)
+{
+	if (!m_bInitialized) {
+		m_dwLastError = ID_ECHO_ERROR_LIB_NOT_INITIALIZED;
+		return false;
+	}
+
+	echoProxyInfo *echoObj = getEchoObject(echoProp, NULL);
+
+	if (echoObj != NULL) {
+		return connectTo(echoObj);
+	}
+
+	m_dwLastError = ID_ECHO_ERROR_NOT_EXIST;
+	return false;
+}
+
+bool
+echoConnection::disconnect(ECHOPROP *echoProp)
+{
+	if (!m_bInitialized) {
+		m_dwLastError = ID_ECHO_ERROR_LIB_NOT_INITIALIZED;
+		return false;
+	}
+
+	echoProxyInfo *echoObj = getEchoObject(echoProp, NULL);
+
+	if (echoObj != NULL) {
+		if (echoObj->GetStatus() != 0) {
+			return m_lpfnDisconnectProxy(echoObj);
+		}
+	}
+
+	m_dwLastError = ID_ECHO_ERROR_NOT_EXIST;
+	return false;
+}
+
+bool
+echoConnection::connectAll()
+{
+	if (!m_bInitialized) {
+		m_dwLastError = ID_ECHO_ERROR_LIB_NOT_INITIALIZED;
+		return false;
+	}
+
+	bool bResult = true;
+
+	for (int i = 0; i < MAX_ECHO_SERVERS; i++) {
+		if (m_pEchoProxyInfo[i] != NULL) {
+			if (!connectTo(m_pEchoProxyInfo[i])) bResult = false;
+		}
+	}
+
+	return bResult;
+}
+
+bool
+echoConnection::disconnectAll()
+{
+	if (!m_bInitialized) {
+		m_dwLastError = ID_ECHO_ERROR_LIB_NOT_INITIALIZED;
+		return false;
+	}
+
+	return m_lpfnDisconnectAllProxies();
+}
+
+void
+echoConnection::deleteAll()
+{
+	if (!m_bInitialized) {
+		m_dwLastError = ID_ECHO_ERROR_LIB_NOT_INITIALIZED;
+		return;
+	}
 
 	m_lpfnDisconnectAllProxies();
+
 	for (int i = 0; i < MAX_ECHO_SERVERS; i++) {
 		if (m_pEchoProxyInfo[i] != NULL) {
 			m_lpfnDeleteProxyInfoClassObject(m_pEchoProxyInfo[i]);
@@ -102,210 +304,195 @@ echoConnection::deleteAllProxyObjects()
 	}
 }
 
-BOOL
-echoConnection::addEchoConnection(ECHOPROP *echoProps)
+bool
+echoConnection::getStatus(ECHOPROP *echoProp, int *status)
 {
-	if (!m_bInitialized) return FALSE;
-
-	echoProxyInfo *proxyInfo = NULL;
-	proxyInfo = (echoProxyInfo *)m_lpfnCreateProxyInfoClassObject();
-
-	proxyInfo->SetIP(echoProps->server);
-	proxyInfo->SetPort(echoProps->port);
-	proxyInfo->SetMyID(echoProps->username);
-	proxyInfo->SetPassword(echoProps->pwd);
-
-	for (int i = 0; i < MAX_ECHO_SERVERS; i++)
-		if (m_pEchoProxyInfo[i] == NULL) {
-			m_pEchoProxyInfo[i] = proxyInfo;
-			break;
-		}
-
-	m_lpfnSetPortForOffLoadingData(m_callbackPort);
-
-	if (echoProps->connectionType > 0) {
-		if (connectTo(proxyInfo) == 0) return TRUE; else return FALSE;
+	if (!m_bInitialized) {
+		m_dwLastError = ID_ECHO_ERROR_LIB_NOT_INITIALIZED;
+		*status = 0;
+		return false;
 	}
-	return TRUE;
+
+	echoProxyInfo *echoObj = getEchoObject(echoProp, NULL);
+
+	if (echoObj != NULL) {
+		*status = echoObj->GetStatus();
+		m_dwLastError = ID_ECHO_ERROR_SUCCESS;
+		return true;
+	} else {
+		m_dwLastError = ID_ECHO_ERROR_NOT_EXIST;
+		return false;
+	}
 }
 
-BOOL
-echoConnection::delEchoConnection(ECHOPROP *echoProps)
+char *
+echoConnection::getStatusString(ECHOPROP *echoProp)
 {
-	if (!m_bInitialized) return FALSE;
+	int status;
+	bool bResult = getStatus(echoProp, &status);
+	m_szString[0] = '\0';
 
-	for (int i = 0; i < MAX_ECHO_SERVERS; i++) {
-		if (m_pEchoProxyInfo[i] != NULL) {
-			if ((strcmp(m_pEchoProxyInfo[i]->GetIP(), echoProps->server) == 0) &&
-				(strcmp(m_pEchoProxyInfo[i]->GetPort(), echoProps->port) == 0) &&
-				(strcmp(m_pEchoProxyInfo[i]->GetMyID(), echoProps->username) == 0)) {
-				if (m_pEchoProxyInfo[i]->GetStatus() != 0) {
-					m_lpfnDisconnectProxy(m_pEchoProxyInfo[i]);
-				}
-				m_lpfnDeleteProxyInfoClassObject(m_pEchoProxyInfo[i]);
-				m_pEchoProxyInfo[i] = NULL;
-				return TRUE;
+	if (bResult) {
+		if (status & MASK_ECHO_STATUS_NO_CONNECTION) {
+			sprintf(m_szString, "%s %s;",m_szString, noProxyConnection);
+		}
+		if (status & MASK_ECHO_STATUS_AUTH_CHANNEL_CONNECTING) {
+			sprintf(m_szString, "%s %s;",m_szString, authChannelConnecting);
+		}
+		if (status & MASK_ECHO_STATUS_AUTH_CHANNEL_ESTABLISHED) {
+			sprintf(m_szString, "%s %s;",m_szString, authChannelEstablished);
+		}
+		if (status & MASK_ECHO_STATUS_PARTNER_SEARCH) {
+			sprintf(m_szString, "%s %s;",m_szString, partnerSearchInitiated);
+		}
+		if (status & MASK_ECHO_STATUS_RELAY_CHANNEL_CONNECTING) {
+			sprintf(m_szString, "%s %s;",m_szString, newRelayChannelConnecting);
+		}
+		if (status & MASK_ECHO_STATUS_RELAY_CHANNEL_ESTABLISHED_1) {
+			sprintf(m_szString, "%s %s;",m_szString, relayChannelEstablished1);
+		}
+		if (status & MASK_ECHO_STATUS_RELAY_CHANNEL_ESTABLISHED_2) {
+			sprintf(m_szString, "%s %s;",m_szString, relayChannelEstablished2);
+		}
+		if (strlen(m_szString) == 0) {
+			strcpy(m_szString, "Unknown Echo Connection Status");
+		}
+		return m_szString;
+	} else {
+		strcpy(m_szString, "Can't get Echo Connection Status");
+		return m_szString;
+	}
+}
+
+void
+echoConnection::setEncryptionAll(int status)
+{
+	if (m_bEchoWareEncryptionEnabled) {
+		for (int i = 0; i < MAX_ECHO_SERVERS; i++) {
+			if (m_pEchoProxyInfo[i] != NULL) {
+				m_lpfnSetEncryptionLevel(status, m_pEchoProxyInfo[i]);
 			}
 		}
 	}
-	return FALSE;
 }
 
-BOOL
-echoConnection::changeEchoConnection(ECHOPROP *oldEchoProps, ECHOPROP *newEchoProps)
+bool
+echoConnection::establishConnectTo(ECHOPROP *echoProp, char *pPartnerID, int *backPort)
 {
-	if (!m_bInitialized) return FALSE;
+	if (!m_bInitialized) {
+		m_dwLastError = ID_ECHO_ERROR_LIB_NOT_INITIALIZED;
+		return false;
+	}
 
-	echoProxyInfo *echoObj = getEchoObject(oldEchoProps);
-	if (echoObj != NULL) {
-		if (echoObj->GetStatus() != 0) {
-			m_lpfnDisconnectProxy(echoObj);
+	echoProxyInfo *obj = getEchoObject(echoProp, NULL);
+
+	if (obj != NULL) {
+		int port = m_lpfnEstablishNewDataChannel(obj, pPartnerID);
+		if (port != 0) {
+			*backPort = port;
+			m_dwLastError = ID_ECHO_ERROR_SUCCESS;
+			return true;		
+		} else {
+			m_dwLastError = ID_ECHO_ERROR_UNKNOWN;
+			return false;		
 		}
-		echoObj->SetIP(newEchoProps->server);
-		echoObj->SetPort(newEchoProps->port);
-		echoObj->SetMyID(newEchoProps->username);
-		echoObj->SetPassword(newEchoProps->pwd);
-
-		if (newEchoProps->connectionType > 0) 
-			if (connectTo(echoObj) == 0) return TRUE; else return FALSE;
-	}
-	return FALSE;
-}
-
-int
-echoConnection::connectTo(echoProxyInfo *pProxyInfo)
-{
-	return m_lpfnConnectProxy(pProxyInfo);
-}
-
-int 
-echoConnection::connectTo(ECHOPROP *echoProp)
-{
-	if (!m_bInitialized) return -1;
-
-	echoProxyInfo *echoObj = getEchoObject(echoProp);
-	if (echoObj != NULL) {
-		return connectTo(echoObj);
-	}
-	return -1;
-}
-
-BOOL
-echoConnection::disconnect(ECHOPROP *echoProp)
-{
-	if (!m_bInitialized) return FALSE;
-
-	echoProxyInfo *echoObj = getEchoObject(echoProp);
-	if (echoObj != NULL) {
-		if (echoObj->GetStatus() != 0) {
-			return m_lpfnDisconnectProxy(echoObj);
-		}
-	}
-	return FALSE;
-}
-
-BOOL
-echoConnection::disconnectAll()
-{
-	if (!m_bInitialized) return FALSE;
-
-	return m_lpfnDisconnectAllProxies();
-}
-
-int
-echoConnection::getStatus(ECHOPROP *echoProp)
-{
-	if (!m_bInitialized) return -1;
-
-	echoProxyInfo *echoObj = getEchoObject(echoProp);
-	if (echoObj != NULL) {
-		return echoObj->GetStatus();
 	} else {
+		m_dwLastError = ID_ECHO_ERROR_NOT_EXIST;
+		return false;
 	}
-	return -1;
 }
 
 echoConnection::echoProxyInfo * 
-echoConnection::getEchoObject(ECHOPROP *echoProp)
+echoConnection::getEchoObject(ECHOPROP *echoProp, int *number)
 {
 	for (int i = 0; i < MAX_ECHO_SERVERS; i++) {
 		if (m_pEchoProxyInfo[i] != NULL) {
 			if ((strcmp(m_pEchoProxyInfo[i]->GetIP(), echoProp->server) == 0) &&
 				(strcmp(m_pEchoProxyInfo[i]->GetPort(), echoProp->port) == 0) &&
 				(strcmp(m_pEchoProxyInfo[i]->GetMyID(), echoProp->username) == 0)) {
+				if (number != NULL) *number = i;
+				m_dwLastError = ID_ECHO_ERROR_SUCCESS;
 				return m_pEchoProxyInfo[i];
 			}
 		}
 	}
+	m_dwLastError = ID_ECHO_ERROR_NOT_EXIST;
 	return NULL;
 }
 
-BOOL
-echoConnection::getEchoProcAddr()
+bool
+echoConnection::initEchoProcAddr()
 {
-	BOOL bResult = TRUE;
+	bool bResult = true;
 
 	m_lpfnGetDllVersion = (LPFN_ECHOWARE_GET_DLLVERSION) 
 						   GetProcAddress(m_hEchoInst, "GetDllVersion");
 
-	if (!m_lpfnGetDllVersion) bResult = FALSE;
+	if (!m_lpfnGetDllVersion) bResult = false;
 
 	m_lpfnInitializeProxyDLL = (LPFN_ECHOWARE_INITIALIZE_PROXYDLL) 
 								GetProcAddress(m_hEchoInst, "InitializeProxyDll");
 
-	if (!m_lpfnInitializeProxyDLL) bResult = FALSE;
+	if (!m_lpfnInitializeProxyDLL) bResult = false;
 
 	m_lpfnSetLoggingOptions = (LPFN_ECHOWARE_SET_LOGGING_OPTIONS) 
 							   GetProcAddress(m_hEchoInst, "SetLoggingOptions");
 
-	if (!m_lpfnSetLoggingOptions) bResult = FALSE;
+	if (!m_lpfnSetLoggingOptions) bResult = false;
 
 	m_lpfnSetPortForOffLoadingData = (LPFN_ECHOWARE_SET_PORT_FOR_OFFLOADING_DATA) 
 									  GetProcAddress(m_hEchoInst, "SetPortForOffLoadingData");
 
-	if (!m_lpfnSetPortForOffLoadingData) bResult = FALSE;
+	if (!m_lpfnSetPortForOffLoadingData) bResult = false;
 
 	m_lpfnCreateProxyInfoClassObject = (LPFN_ECHOWARE_CREATE_PROXY_INFO_CLASS_OBJECT) 
 										GetProcAddress(m_hEchoInst, "CreateProxyInfoClassObject");
 
-	if (!m_lpfnCreateProxyInfoClassObject) bResult = FALSE;
+	if (!m_lpfnCreateProxyInfoClassObject) bResult = false;
 
 	m_lpfnDeleteProxyInfoClassObject = (LPFN_ECHOWARE_DELETE_PROXY_INFO_CLASS_OBJECT) 
 										GetProcAddress(m_hEchoInst, "DeleteProxyInfoClassObject");
 
-	if (!m_lpfnDeleteProxyInfoClassObject) bResult = FALSE;
+	if (!m_lpfnDeleteProxyInfoClassObject) bResult = false;
 
 	m_lpfnAutoConnect = (LPFN_ECHOWARE_AUTO_CONNECT) 
 						 GetProcAddress(m_hEchoInst, "AutoConnect");
 
-	if (!m_lpfnAutoConnect) bResult = FALSE;
+	if (!m_lpfnAutoConnect) bResult = false;
 
 	m_lpfnConnectProxy = (LPFN_ECHOWARE_CONNECT_PROXY) 
 						  GetProcAddress(m_hEchoInst, "ConnectProxy");
 
-	if (!m_lpfnConnectProxy) bResult = FALSE;
+	if (!m_lpfnConnectProxy) bResult = false;
 
 	m_lpfnDisconnectProxy = (LPFN_ECHOWARE_DISCONNECT_PROXY) 
 							 GetProcAddress(m_hEchoInst, "DisconnectProxy");
 
-	if (!m_lpfnDisconnectProxy) bResult = FALSE;
+	if (!m_lpfnDisconnectProxy) bResult = false;
 
 	m_lpfnDisconnectAllProxies = (LPFN_ECHOWARE_DISCONNECT_ALL_PROXIES) 
 								  GetProcAddress(m_hEchoInst, "DisconnectAllProxies");
 
-	if (!m_lpfnDisconnectAllProxies) bResult = FALSE;
+	if (!m_lpfnDisconnectAllProxies) bResult = false;
 
 	m_lpfnEstablishNewDataChannel = (LPFN_ECHOWARE_ESTABLISH_NEW_DATA_CHANNEL) 
 									 GetProcAddress(m_hEchoInst, "EstablishNewDataChannel");
 	
-	if (!m_lpfnEstablishNewDataChannel) bResult = FALSE;
+	if (!m_lpfnEstablishNewDataChannel) bResult = false;
+
+	m_lpfnSetEncryptionLevel = (LPFN_ECHOWARE_SET_ENCRYPTION_LEVEL)
+								GetProcAddress(m_hEchoInst, "SetEncryptionLevel");
+
+	if (m_lpfnSetEncryptionLevel) m_bEchoWareEncryptionEnabled = true;
 
 	if (!bResult) {
 		freeLibrary();
-		return FALSE;
+		m_dwLastError = ID_ECHO_ERROR_UNKNOWN;
+		return false;
 	}
 
-	return TRUE;
+	m_dwLastError = ID_ECHO_ERROR_SUCCESS;
+	return true;
 }
 
 void
@@ -322,8 +509,7 @@ echoConnection::resetEchoProcPtrs()
 	m_lpfnDisconnectProxy            = NULL;
 	m_lpfnDisconnectAllProxies       = NULL;
 	m_lpfnEstablishNewDataChannel    = NULL;
-
-	resetEchoObjInfo();
+	m_lpfnSetEncryptionLevel		 = NULL;
 }
 
 void

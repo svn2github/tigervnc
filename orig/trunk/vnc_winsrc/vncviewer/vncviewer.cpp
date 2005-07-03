@@ -52,6 +52,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 		VNCviewerApp32 app(hInstance, szCmdLine);
 	#endif
 
+	app.m_options.LoadEchoConnectionSettings();
+	if (app.m_echoConCtrl.getEnableEchoConnection() != 0) {
+		app.m_echoConCtrl.initialize();
+	}
+
 	// Start a new connection if specified on command line, 
 	// or if not in listening mode
 	

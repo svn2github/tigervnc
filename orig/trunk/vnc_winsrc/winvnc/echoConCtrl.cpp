@@ -23,52 +23,75 @@
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
+#include "stdio.h"
+
 #include "echoConCtrl.h"
 
-echoConCtrl::echoConCtrl(vncServer *server)
+echoConCtrl::echoConCtrl()
 {
 	m_NumEntries = 0;
 	m_pEntries = NULL;
 
-	m_pServer = server;
+	DWORD m_dwLastError = ID_ECHO_ERROR_SUCCESS;
 
-	m_pEchoConnection = new echoConnection();
+	m_encrypted = 0;
+	m_enableEchoConnection = 0;
+	m_bEncryptionPossible = false;
+
+	m_szVersionStatus[0] = '\0';
 }
 
 echoConCtrl::~echoConCtrl()
 {
-	destroy();	
 }
 
-void 
-echoConCtrl::initialize(unsigned int port)
+bool 
+echoConCtrl::initialize(int callbackPort)
 {
-	if (m_pEchoConnection->initialize(port)) {
-		ECHOPROP echoProp;
-		for (int i = 0; i < getNumEntries(); i++) {
-			getEntriesAt(i, &echoProp);
-			m_pEchoConnection->addEchoConnection(&echoProp);
-		}
+	if (!m_echoConnection.initialize()) {
+		m_dwLastError = m_echoConnection.getLastError();
+		return false;
 	}
+
+	if (!setCallbackPort(callbackPort)) {
+		m_dwLastError = ID_ECHO_ERROR_UNKNOWN;
+		return false;
+	}
+
+	ECHOPROP echoProp;
+	for (int i = 0; i < getNumEntries(); i++) {
+		getEntriesAt(i, &echoProp);
+		m_echoConnection.addConnection(&echoProp);
+	}
+
+	m_dwLastError = ID_ECHO_ERROR_SUCCESS;
+	return true;
 }
 
 void 
 echoConCtrl::destroy()
 {
-	m_pEchoConnection->destroy();
-	delete m_pEchoConnection;
+	m_echoConnection.destroy();
 	free();
 }
 
-unsigned int 
+bool 
 echoConCtrl::add(ECHOPROP *echoProp)
 {
-	if (isExists(echoProp) != -1) return 1;
+	if (isExists(echoProp) != -1) {
+		m_dwLastError = ID_ECHO_ERROR_ALREADY_EXIST;
+		return false;
+	}
 
+	if (m_NumEntries == MAX_ECHO_SERVERS) {
+		m_dwLastError = ID_ECHO_ERROR_MAX_SERVERS;
+		return false;
+	}
+	
 	ECHOPROP *pTemporary = new ECHOPROP[m_NumEntries + 1];
 	if (m_NumEntries != 0) 
 		memcpy(pTemporary, m_pEntries, m_NumEntries * sizeof(ECHOPROP));
-
+	
 	strcpy(pTemporary[m_NumEntries].server, echoProp->server);
 	strcpy(pTemporary[m_NumEntries].port, echoProp->port);
 	strcpy(pTemporary[m_NumEntries].username, echoProp->username);
@@ -79,35 +102,39 @@ echoConCtrl::add(ECHOPROP *echoProp)
 		delete [] m_pEntries;
 		m_pEntries = NULL;
 	}
-
+	
 	m_pEntries = pTemporary;
 	pTemporary = NULL;
 	m_NumEntries++;
 
-	m_pEchoConnection->addEchoConnection(echoProp); 
 
-	return 0;
+	if (!m_echoConnection.addConnection(echoProp)) {
+		m_dwLastError = m_echoConnection.getLastError();
+		return false; 
+	} else {
+		m_dwLastError = ID_ECHO_ERROR_SUCCESS;
+		return true;
+	}
 }
 
-bool
-echoConCtrl::change(ECHOPROP *oldEchoProp, ECHOPROP *newEchoProp)
+bool 
+echoConCtrl::del(ECHOPROP *echoProp)
 {
-	int posNew = isExists(newEchoProp);
-	int posOld = isExists(oldEchoProp);
+	int num = isExists(echoProp);
+	if (num >= 0) {
+		if (!m_echoConnection.delConnection(echoProp)) {
+			m_dwLastError = m_echoConnection.getLastError();
+			if (m_dwLastError != ID_ECHO_ERROR_LIB_NOT_INITIALIZED)	return false;
+		}
 
-	if ((posNew >= 0) && (posOld != posNew)) return false;
+		deleteAt(num);
 
-	if (posOld == -1) return false;
-
-	if (posOld >= 0) {
-		strcpy(m_pEntries[posOld].server, newEchoProp->server);
-		strcpy(m_pEntries[posOld].port, newEchoProp->port);
-		strcpy(m_pEntries[posOld].username, newEchoProp->username);
-		strcpy(m_pEntries[posOld].pwd, newEchoProp->pwd);
-		m_pEntries[posOld].connectionType = newEchoProp->connectionType;
+		m_dwLastError = ID_ECHO_ERROR_SUCCESS;
+		return true;
+	} else {
+		m_dwLastError = ID_ECHO_ERROR_NOT_EXIST;
+		return false;
 	}
-
-	return true;
 }
 
 void 
@@ -164,39 +191,150 @@ echoConCtrl::isExists(ECHOPROP *echoProp)
 	for (int i = 0; i < m_NumEntries; i++) {
 		if (getEntriesAt(i, &prop)) {
 			if ((strcmp(echoProp->server, prop.server) == 0) &&
-				(strcmp(echoProp->port, prop.port) == 0) &&
-				(strcmp(echoProp->username, prop.username) == 0)) {
-				if (strcmp(echoProp->pwd, prop.pwd) != 0) {
-					return -2;
-				}
-				if (echoProp->connectionType != prop.connectionType) {
-					return -3;
-				}
+				(strcmp(echoProp->port, prop.port) == 0)) {
 				return i;
 			}
 		}
 	}
-
 	return -1;
 }
 
-int 
+int
+echoConCtrl::isConnected(ECHOPROP *echoProp)
+{
+	int status;
+	m_echoConnection.getStatus(echoProp, &status);
+	return status;
+}
+
+char * 
 echoConCtrl::getConnectionStatus(ECHOPROP *echoProp)
 {
-	return m_pEchoConnection->getStatus(echoProp);
+	return m_echoConnection.getStatusString(echoProp);
 }
 
 void 
-echoConCtrl::allowEchoConnection(bool status)
+echoConCtrl::allowEchoConnection(int status)
 {
-	m_pServer->enableEchoConnection(status);
-	if (!status) {
-		m_pEchoConnection->disconnectAll();
+	m_enableEchoConnection = status;
+	if (status == 0) {
+		m_echoConnection.disconnectAll();
 	} else {
 		ECHOPROP echoProp;
 		for (int i = 0; i < getNumEntries(); i++) {
 			getEntriesAt(i, &echoProp);
-			if (echoProp.connectionType > 0) m_pEchoConnection->connectTo(&echoProp);
+			if (echoProp.connectionType > 0) m_echoConnection.connect(&echoProp);
 		}
 	}
+}
+
+/*
+void
+echoConCtrl::setCursor(LPCTSTR cursor)
+{
+	HCURSOR hC = LoadCursor(NULL, cursor);
+	SetCursor(hC);
+}
+*/
+
+void 
+echoConCtrl::copyConnectionParams(ECHOPROP *dest, ECHOPROP *source)
+{
+	strcpy(dest->server, source->server);
+	strcpy(dest->port, source->port);
+	strcpy(dest->username, source->username);
+	strcpy(dest->pwd, source->pwd);
+	dest->connectionType = source->connectionType;
+}
+
+void 
+echoConCtrl::makeEchoWareVersion()
+{
+	char *szVersion = m_echoConnection.getDllVersion();
+
+	if (strlen(szVersion) == 0) {
+		sprintf(m_szVersionStatus, "EchoWare (Version unknown)\nStatus : ");
+	} else {
+		sprintf(m_szVersionStatus, "EchoWare (Version %s)\nStatus : ", szVersion);
+	}
+
+	if (m_echoConnection.isInitialized()) {
+		strcat(m_szVersionStatus, "Active");
+	} else {
+		DWORD dwLastError = m_echoConnection.getLastError();
+		if ((dwLastError == ID_ECHO_ERROR_LIB_MISSING) || (dwLastError == ID_ECHO_ERROR_LIB_NOT_INITIALIZED)) {
+			strcat(m_szVersionStatus, "Missing");
+		} else {
+			strcat(m_szVersionStatus, "not Active");
+		}
+	}
+}
+
+char *
+echoConCtrl::getEchoWareVersion() 
+{ 
+	makeEchoWareVersion();
+	return m_szVersionStatus; 
+}
+
+bool 
+echoConCtrl::isEncryptionPossible() 
+{
+	HMODULE hMod = LoadLibrary("libeay32.dll");
+
+	if (hMod) {
+		m_bEncryptionPossible = true;
+		FreeLibrary(hMod);
+	} else {
+		m_bEncryptionPossible = false;
+	}
+
+	return m_bEncryptionPossible; 
+}
+
+bool
+echoConCtrl::setEncryption(int status)
+{
+	if (isEncryptionPossible()) {
+		m_echoConnection.setEncryptionAll(status);
+		m_encrypted = status;
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool 
+echoConCtrl::establishDataChannel(char *server, char *port, char *partnerID, int *backPort)
+{
+	ECHOPROP prop;
+	strcpy(prop.server, server);
+	if (port == NULL) {
+		strcpy(prop.port, m_echoConnection.getDefaultPort());
+	} else {
+		strcpy(prop.port, port);
+	}
+
+	int pos = isExists(&prop);
+
+	if (pos >= 0) {
+		getEntriesAt(pos, &prop);
+
+		if (!m_echoConnection.establishConnectTo(&prop, partnerID, backPort)) {
+			m_dwLastError = m_echoConnection.getLastError();
+			return false;
+		} else {
+			m_dwLastError = ID_ECHO_ERROR_SUCCESS;
+			return true;
+		}
+	} else {
+		m_dwLastError = ID_ECHO_ERROR_NOT_EXIST;
+		return false;
+	}
+}
+
+bool 
+echoConCtrl::setCallbackPort(int port)
+{
+	return m_echoConnection.setCallbackPort(port);
 }

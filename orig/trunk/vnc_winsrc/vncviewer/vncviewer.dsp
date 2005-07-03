@@ -313,11 +313,27 @@ SOURCE=.\DirManager.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\echoConCtrl.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\echoConCtrl.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\echoConnection.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=.\echoConnection.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\echoPropView.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\echoPropView.h
 # End Source File
 # Begin Source File
 

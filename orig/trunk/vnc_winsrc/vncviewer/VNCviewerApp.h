@@ -38,6 +38,7 @@ class VNCviewerApp;
 #define MAX_AUTH_RETRIES   (3)
 
 #include "ClientConnection.h"
+#include "EchoConCtrl.h"
 
 class VNCviewerApp {
 public:
@@ -55,6 +56,7 @@ public:
 	void RegisterConnection(ClientConnection *pConn);
 	void DeregisterConnection(ClientConnection *pConn);
 	
+	echoConCtrl m_echoConCtrl;
 	VNCOptions m_options;
 	HINSTANCE  m_instance;
 

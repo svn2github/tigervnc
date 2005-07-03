@@ -610,7 +610,7 @@ BOOL CALLBACK vncProperties::EchoConnectionDlgProc(HWND hwnd, UINT uMsg,
 		{
 			SetWindowLong(hwnd, GWL_USERDATA, lParam);
 			vncProperties *_this = (vncProperties *) lParam;
-			_this->m_pEchoPropView = new echoPropView(_this->m_server->m_pEchoConCtrl, hwnd);
+			_this->m_pEchoPropView = new echoPropView((echoConCtrl *)&_this->m_server->m_echoConCtrl, hwnd);
 			_this->m_pEchoPropView->Init();
 			return 0;
 		}
@@ -1420,7 +1420,8 @@ vncProperties::LoadEchoConnectionSettings(HKEY key)
 	HKEY hkEchoServers, hkServerInfo;
 	DWORD dw;
 
-	m_server->enableEchoConnection(LoadInt(key, "AllowEchoConnection", 0));
+	m_server->m_echoConCtrl.allowEchoConnection(LoadInt(key, "AllowEchoConnection", 0));
+	m_server->m_echoConCtrl.setEncryption(LoadInt(key, "AllowEncryption", 0));
 
 	if (key == NULL || 
 		RegCreateKeyEx(key, "EchoServers", 0, REG_NONE, REG_OPTION_NON_VOLATILE,
@@ -1453,7 +1454,7 @@ vncProperties::LoadEchoConnectionSettings(HKEY key)
 		strcpy(echoProp.pwd, plain);
 		echoProp.connectionType = LoadInt(hkServerInfo, "ConnectionType", 0);
 
-		m_server->m_pEchoConCtrl->add(&echoProp);
+		m_server->m_echoConCtrl.add(&echoProp);
 
 		delete [] server;
 		delete [] port;
@@ -1471,7 +1472,8 @@ vncProperties::SaveEchoConnectionSettings(HKEY key)
 	HKEY hkEchoServers;
 	DWORD dw;
 
-	SaveInt(key, "AllowEchoConnection", m_server->getEnableEchoConnection());
+	SaveInt(key, "AllowEchoConnection", m_server->m_echoConCtrl.getEnableEchoConnection());
+	SaveInt(key, "AllowEncryption", m_server->m_echoConCtrl.isEncrypted());
 
 	if (key == NULL || 
 		RegCreateKeyEx(key, "EchoServers", 0, REG_NONE, REG_OPTION_NON_VOLATILE,
@@ -1480,7 +1482,7 @@ vncProperties::SaveEchoConnectionSettings(HKEY key)
 		return;
 	}
 
-	int num = m_server->m_pEchoConCtrl->getNumEntries();
+	int num = m_server->m_echoConCtrl.getNumEntries();
 
 	HKEY hkServerInfo;
 	char keyName[256];
@@ -1489,7 +1491,7 @@ vncProperties::SaveEchoConnectionSettings(HKEY key)
 	DeleteAllEchoServerKeys(hkEchoServers);
 
 	for (int i = 0; i < num; i++) {
-		m_server->m_pEchoConCtrl->getEntriesAt(i, &echoProp);
+		m_server->m_echoConCtrl.getEntriesAt(i, &echoProp);
 		sprintf(keyName, "%s@%s:%s", echoProp.username, echoProp.server, echoProp.port);
 		if (RegCreateKeyEx(hkEchoServers, keyName, 0, REG_NONE, REG_OPTION_NON_VOLATILE,
 			KEY_ALL_ACCESS, NULL, &hkServerInfo, &dw) == ERROR_SUCCESS) {

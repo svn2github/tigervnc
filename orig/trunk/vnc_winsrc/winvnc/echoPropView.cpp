@@ -102,6 +102,27 @@ echoPropView::Init()
 	setExtendedLVStyle(LVS_EX_FULLROWSELECT);
 
 	addLVItem(m_pEchoConCtrl->getNumEntries());
+
+	memset(&m_echoProps, 0, sizeof(ECHOPROP));
+
+	ShowStatus();
+	SetDlgItemText(m_hwnd, IDC_ECHOWARE_STATUS, m_pEchoConCtrl->getEchoWareVersion());
+
+	if (!m_pEchoConCtrl->getEnableEchoConnection()) {
+		enableWindows(FALSE);
+		CheckDlgButton(m_hwnd, IDC_ECHO_CON_DISABLE, BST_CHECKED);
+	}
+
+	if (!m_pEchoConCtrl->isEncryptionPossible()) {
+		EnableWindow(GetDlgItem(m_hwnd, IDC_ECHO_ENCRYPTION), FALSE);
+	} else {
+		EnableWindow(GetDlgItem(m_hwnd, IDC_ECHO_ENCRYPTION), TRUE);
+		if (m_pEchoConCtrl->isEncrypted() != 0) {
+			CheckDlgButton(m_hwnd, IDC_ECHO_ENCRYPTION, BST_CHECKED);
+		} else {
+			CheckDlgButton(m_hwnd, IDC_ECHO_ENCRYPTION, BST_UNCHECKED);
+		}
+	}
 }
 
 void 
@@ -116,42 +137,119 @@ echoPropView::Remove()
 	selItem = -1;
 	selItem = ListView_GetNextItem(hListView, selItem, LVNI_SELECTED);
 	do {
-		ListView_DeleteItem(hListView, selItem);
-		m_pEchoConCtrl->deleteAt(selItem);
+		deleteItem(selItem);
 		selItem = ListView_GetNextItem(hListView, selItem, LVNI_SELECTED);
 	} while (selItem >= 0);
 }
 
-void 
+bool
+echoPropView::Add(ECHOPROP *echoProp)
+{
+	m_pEchoConCtrl->copyConnectionParams(&m_echoProps, echoProp);
+
+	return Add();
+}
+
+bool 
 echoPropView::Add()
 {
-	memset(&m_echoProps, 0, sizeof(ECHOPROP));
-
-	bool bResult = true;
+	bool bContinue = true;
+	bool bResult = false;
 	do
 	{
 		INT_PTR result = DialogBoxParam(NULL, MAKEINTRESOURCE(IDD_ECHO_PARAMS), 
 										m_hwnd, (DLGPROC) editParamsDlgProc, (LONG) this);
-		if ((result == IDOK) && (checkEchoParams(&m_echoProps))) {
-			int result = m_pEchoConCtrl->add(&m_echoProps);
-			if (result == 0) {
-				addLVItem(1);
-				bResult = false;
+		if (result == IDOK) {
+			if (!checkEchoParams(&m_echoProps)) {
+				if (MessageBox(m_hwnd, 
+					"This echo connection parameters is incorrect.\nDo you want edit parameters?", 
+					"Echo connection parameters", 
+					MB_YESNO) == IDYES) { bContinue = true; } else { bContinue = false; }
 			} else {
-				if (result == 1) 
-					if (MessageBox(NULL, 
-								   "This echo connection parameters already exists.\nDo you want edit parameters?", 
-								   "Echo connection parameters exists", 
-								   MB_YESNO) == IDYES) {
-						bResult = true;
-					} else {
-						bResult = false;
+				bool bRes = m_pEchoConCtrl->add(&m_echoProps);
+				if (bRes) {
+					addLVItem(1);
+					bContinue = false;
+					bResult = true;
+				} else {
+					bResult = false;
+					switch (m_pEchoConCtrl->getLastError())
+					{
+					case ID_ECHO_ERROR_ALREADY_EXIST:
+						if (MessageBox(m_hwnd, 
+							"This echo connection parameters already exists.\nDo you want edit parameters?", 
+							"Echo connection parameters exists", 
+							MB_YESNO) == IDYES) { bContinue = true; } else { bContinue = false; }
+						break;
+					case ID_ECHO_ERROR_WRONG_ADDRESS:
+						m_pEchoConCtrl->del(&m_echoProps);
+						if (MessageBox(m_hwnd, 
+							"No proxy server could be connected to at the provided ip-address/ip-port.\nDo you want to save this parameters in the known echoservers list?",
+							"Echo connection parameters",
+							MB_YESNO) == IDYES) {
+							m_echoProps.connectionType = 0;
+							m_pEchoConCtrl->add(&m_echoProps);
+							addLVItem(1);
+							bResult = true;
+						}
+						bContinue = false;
+						break;
+					case ID_ECHO_ERROR_WRONG_LOGIN:
+						m_pEchoConCtrl->del(&m_echoProps);
+						if (MessageBox(m_hwnd, 
+							"Authentication failed with the proxy server.\nDo you want to save this parameters in the known echoservers list?",
+							"Echo connection parameters",
+							MB_YESNO) == IDYES) {
+							m_echoProps.connectionType = 0;
+							m_pEchoConCtrl->add(&m_echoProps);
+							addLVItem(1);
+							bResult = true;
+						}
+						bContinue = false;
+						break;
+					case ID_ECHO_ERROR_CHANNEL_EXIST:
+						if (MessageBox(m_hwnd, 
+							"The authentication channel with this parameters exists and already active.\nDo you want edit parameters?",
+							"Echo connection parameters",
+							MB_YESNO) == IDYES) { bContinue = true; } else { bContinue = false; }
+						m_pEchoConCtrl->del(&m_echoProps);
+						break;
+					case ID_ECHO_ERROR_LIB_MISSING:
+					case ID_ECHO_ERROR_LIB_NOT_INITIALIZED:
+						m_pEchoConCtrl->del(&m_echoProps);
+						if (MessageBox(m_hwnd, 
+							"Now the echo connection is impossible.\nDo you want to save this parameters in the known echoservers list?", 
+							"Echo connection parameters", 
+							MB_YESNO) == IDYES) { 
+							m_echoProps.connectionType = 0;
+							m_pEchoConCtrl->add(&m_echoProps);
+							addLVItem(1);
+							bResult = true;
+						}
+						bContinue = false;
+						break;
+					default:
+						if (MessageBox(m_hwnd, 
+							"Echo connection with this parameters can be not created\nDo you want edit parameters?", 
+							"Echo connection parameters", 
+							MB_YESNO) == IDYES) { bContinue = true; } else { bContinue = false; }
+						m_pEchoConCtrl->del(&m_echoProps);
 					}
+				}
 			}
 		} else {
-			bResult = false;
+			bContinue = false;
 		}
-	} while (bResult);
+	} while (bContinue);
+
+	if (m_hwnd != NULL) {
+		HWND hListView = GetDlgItem(m_hwnd, IDC_ECHOSERVERS_LIST);
+		int selItem = ListView_GetSelectionMark(hListView);
+		ListView_RedrawItems(hListView, 0, ListView_GetItemCount(hListView));
+		UpdateWindow(hListView);
+	}
+
+	return bResult;
 }
 
 void 
@@ -161,24 +259,16 @@ echoPropView::Edit()
 
 	int selItem = ListView_GetSelectionMark(hListView);
 
-	ECHOPROP echoProp;
+	if (selItem < 0) return;
 
-	if (m_pEchoConCtrl->getEntriesAt(selItem, &echoProp)) {
-		strcpy(m_echoProps.server, echoProp.server);
-		strcpy(m_echoProps.port, echoProp.port);
-		strcpy(m_echoProps.username, echoProp.username);
-		strcpy(m_echoProps.pwd, echoProp.pwd);
-		m_echoProps.connectionType = echoProp.connectionType;
-	} else {
-		return;
+	m_pEchoConCtrl->getEntriesAt(selItem, &m_echoProps);
+
+	if (Add()) {
+		deleteItem(selItem);
 	}
+	
+	memset(&m_echoProps, 0, sizeof(ECHOPROP));
 
-	INT_PTR result = DialogBoxParam(NULL, MAKEINTRESOURCE(IDD_ECHO_PARAMS), 
-									m_hwnd, (DLGPROC) editParamsDlgProc, (LONG) this);
-
-	if ((result == IDOK) && (checkEchoParams(&m_echoProps))) {
-		m_pEchoConCtrl->change(&echoProp, &m_echoProps);
-	}
 	ListView_RedrawItems(hListView, 0, ListView_GetItemCount(hListView));
 	UpdateWindow(hListView);
 }
@@ -218,6 +308,16 @@ echoPropView::setExtendedLVStyle(DWORD styles)
 	ListView_SetExtendedListViewStyleEx(GetDlgItem(m_hwnd, IDC_ECHOSERVERS_LIST), styles, styles);
 }
 
+void
+echoPropView::deleteItem(int num)
+{
+	HWND hListView = GetDlgItem(m_hwnd, IDC_ECHOSERVERS_LIST);
+
+	ListView_DeleteItem(hListView, num);
+	ECHOPROP prop;
+	if (m_pEchoConCtrl->getEntriesAt(num, &prop)) m_pEchoConCtrl->del(&prop);
+}
+
 void 
 echoPropView::onGetDispInfo(NMLVDISPINFO *pDI)
 {
@@ -242,7 +342,7 @@ echoPropView::onGetDispInfo(NMLVDISPINFO *pDI)
 		break;
 	case 2:
 		{
-			int status = m_pEchoConCtrl->getConnectionStatus(&echoProps);
+			int status = m_pEchoConCtrl->isConnected(&echoProps);
 			if (status > 0) {
 				pDI->item.pszText = "Yes";
 			} else {
@@ -252,6 +352,27 @@ echoPropView::onGetDispInfo(NMLVDISPINFO *pDI)
 		break;
 	default:
 		break;
+	}
+}
+
+void
+echoPropView::ShowStatus()
+{
+	if (m_pEchoConCtrl->getEnableEchoConnection() != 0) {
+		HWND hListView = GetDlgItem(m_hwnd, IDC_ECHOSERVERS_LIST);
+
+		int selItem = ListView_GetSelectionMark(hListView);
+
+		if (selItem < 0) {
+			SetDlgItemText(m_hwnd, IDC_ECHOSERVER_STATUS, "Please select echo server connection string...");
+		} else {
+			ECHOPROP echoProp;
+			m_pEchoConCtrl->getEntriesAt(selItem, &echoProp);
+
+			SetDlgItemText(m_hwnd, IDC_ECHOSERVER_STATUS, m_pEchoConCtrl->getConnectionStatus(&echoProp));
+		}
+	} else {
+		SetDlgItemText(m_hwnd, IDC_ECHOSERVER_STATUS, "");
 	}
 }
 
@@ -277,30 +398,77 @@ echoPropView::DisableCheck()
 			CheckDlgButton(m_hwnd, IDC_ECHO_CON_DISABLE, BST_UNCHECKED);
 		} else {
 			enableWindows(FALSE);
-			setCursor(IDC_WAIT);
-			m_pEchoConCtrl->allowEchoConnection(false);
-			setCursor(IDC_ARROW);
+			m_pEchoConCtrl->allowEchoConnection(0);
+			ShowStatus();
 		}
 	} else {
 		enableWindows(TRUE);
-		setCursor(IDC_WAIT);
-		m_pEchoConCtrl->allowEchoConnection(true);
-		setCursor(IDC_ARROW);
+		m_pEchoConCtrl->allowEchoConnection(1);
+		ShowStatus();
 	}			
+}
+
+void
+echoPropView::EncryptionCheck()
+{
+	if (IsDlgButtonChecked(m_hwnd, IDC_ECHO_ENCRYPTION) == BST_CHECKED) {
+		m_pEchoConCtrl->setEncryption(1);
+	} else {
+		m_pEchoConCtrl->setEncryption(0);
+	}			
+	ShowStatus();
 }
 
 void
 echoPropView::enableWindows(BOOL enable)
 {
+
 	EnableWindow(GetDlgItem(m_hwnd, IDC_ECHOSERVERS_LIST), enable); 
 	EnableWindow(GetDlgItem(m_hwnd, IDC_ECHO_ADD), enable); 
 	EnableWindow(GetDlgItem(m_hwnd, IDC_ECHO_REMOVE), enable); 
-	EnableWindow(GetDlgItem(m_hwnd, IDC_ECHO_EDIT), enable); 
+	EnableWindow(GetDlgItem(m_hwnd, IDC_ECHO_EDIT), enable);
+	EnableWindow(GetDlgItem(m_hwnd, IDC_ECHO_ENCRYPTION), enable);
 }
 
-void
-echoPropView::setCursor(LPCTSTR cursor)
+int
+echoPropView::checkEchoError(DWORD lastError)
 {
-	HCURSOR hC = LoadCursor(NULL, cursor);
-	SetCursor(hC);
+	switch (lastError) 
+	{
+		case ID_ECHO_ERROR_ALREADY_EXIST:
+			if (MessageBox(NULL, 
+				"This echo connection parameters already exists.\nDo you want edit parameters?", 
+				"Echo connection parameters exists", 
+				MB_YESNO) == IDYES) { return 1; } else { return 2; }
+		case ID_ECHO_ERROR_LIB_NOT_INITIALIZED:
+			if (MessageBox(NULL, 
+				"EchoWare library not initialized.\nDo you want to save this parameters in the known echoservers list?",
+				"Echo connection parameters",
+				MB_YESNO) == IDYES) { return 3; } else { return 4; }
+			break;
+		case ID_ECHO_ERROR_WRONG_ADDRESS:
+			if (MessageBox(NULL, 
+				"No proxy server could be connected to at the provided ip-address/ip-port.\nDo you want to save this parameters in the known echoservers list?",
+				"Echo connection parameters",
+				MB_YESNO) == IDYES) { return 3; } else { return 4; }
+			break;
+		case ID_ECHO_ERROR_WRONG_LOGIN:
+			if (MessageBox(NULL, 
+				"Authentication failed with the proxy server.\nDo you want to save this parameters in the known echoservers list?",
+				"Echo connection parameters",
+				MB_YESNO) == IDYES) { return 3; } else { return 4; }
+			break;
+		case ID_ECHO_ERROR_CHANNEL_EXIST:
+			if (MessageBox(NULL, 
+				"The authentication channel with this parameters exists and already active.\nDo you want edit parameters?",
+				"Echo connection parameters",
+				MB_YESNO) == IDYES) { return 1; } else { return 2; }
+			break;
+		default:
+			if (MessageBox(NULL, 
+				"Echo connection with this parameters can be not created\nDo you want edit parameters?", 
+				"Echo connection parameters", 
+				MB_YESNO) == IDYES) { return 1; } else { return 2; }
+	}
+	return 0;
 }

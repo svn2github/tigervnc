@@ -275,9 +275,6 @@ public:
 	virtual void EnableFileTransfers(const BOOL enable) {m_enable_file_transfers = enable;}
 	virtual BOOL FileTransfersEnabled() {return m_enable_file_transfers;}
 
-	virtual void EnableEchoConnections(const BOOL enable) {m_enable_echo_connect = enable;}
-	virtual BOOL EchoConnectionsEnabled() {return m_enable_echo_connect;}
-
     // Patrial desktop sharing
     virtual void WindowShared(BOOL enable) { m_WindowShared = enable; }
 	virtual void SetApplication(BOOL enable) { m_Application = enable; }
@@ -315,10 +312,8 @@ public:
 	virtual void PollingCycleChanged(BOOL change) { m_polling_cycle_changed = change; }
 
 	BOOL checkPointer(vncClient *pClient);
-	void enableEchoConnection(int value);
-	int getEnableEchoConnection() { return m_enable_echo_connect; }
 
-	echoConCtrl *m_pEchoConCtrl;
+	echoConCtrl m_echoConCtrl;
 
 	// Internal stuffs
 protected:

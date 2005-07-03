@@ -44,12 +44,18 @@
 #define SMALLCURSOR 3
 #define MAX_LEN_COMBO 7
 
+#define MAXPWLEN 8
+
 #define KEY_VNCVIEWER_HISTORI _T("Software\\ORL\\VNCviewer\\History")
 
 struct COMBOSTRING {
 		TCHAR NameString[20];
 		int rfbEncoding;
 };
+
+#include "echoConCtrl.h"
+#include "echoPropView.h"
+#include "echoTypes.h"
 
 class VNCOptions  
 {
@@ -68,6 +74,18 @@ public:
 	void VNCOptions::SaveGenOpt();
 	void VNCOptions::delkey(char subkey[256],char keyname[256]);
 	void VNCOptions::SaveOpt(char subkey[256],char keyname[256]);
+
+	void SaveString(HKEY key, LPCSTR keyname, const char *buffer);
+	char * LoadString(HKEY key, LPCSTR keyname);
+
+	void LoadPassword(HKEY key, char *buffer, const char *entry_name);
+	void SavePassword(HKEY key, const char *buffer, const char *entry_name);
+
+	void LoadEchoConnectionSettings();
+	void SaveEchoConnectionSettings();
+	void DeleteAllEchoServerKeys(HKEY hkEchoServers);
+	int GetAllEchoServerKeys(HKEY hkEchoServers, char *nameArray);
+
 	// process options
 	bool	m_listening;
 	int		m_listenPort;
@@ -140,10 +158,13 @@ public:
 		WPARAM wParam, LPARAM lParam);
 	static BOOL CALLBACK DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 		WPARAM wParam, LPARAM lParam);
+	static BOOL CALLBACK DlgProcEchoConnection(HWND hwnd, UINT uMsg,
+		WPARAM wParam, LPARAM lParam);
 	static void Lim(HWND hwnd,int control,DWORD min, DWORD max);
 	// Register() makes this viewer the app invoked for .vnc files
 	static void Register();
-	HWND m_hPageConnection, m_hPageGeneral, m_hTab, m_hParent, m_hWindow;
+	HWND m_hPageConnection, m_hPageGeneral, m_hEchoConnection, 
+		 m_hTab, m_hParent, m_hWindow;
 	void FixScaling();
 
 private:
@@ -154,8 +175,8 @@ private:
 	
 	// Just for temporary use
 	bool m_running;
-	
-	
+
+	echoPropView *m_pEchoPropView;
 };
 
 #endif // VNCOPTIONS_H__

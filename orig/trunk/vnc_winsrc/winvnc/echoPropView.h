@@ -36,10 +36,13 @@ public:
 	void Apply();
 	void Init();
 	void Remove();
-	void Add();
+	bool Add();
+	bool Add(ECHOPROP *echoProp);
 	void Edit();
 	void onGetDispInfo(NMLVDISPINFO *pDI);
 	void DisableCheck();
+	void EncryptionCheck();
+	void ShowStatus();
 
 private:
 	HWND m_hwnd;
@@ -51,8 +54,11 @@ private:
 	void addColumn(char *iText, int iOrder, int xWidth, int alignFmt);
 	void setExtendedLVStyle(DWORD styles);
 	void enableWindows(BOOL enable);
+	void deleteItem(int num);
 
 	bool checkEchoParams(ECHOPROP *echoProps);
+	int  checkEchoError(DWORD lastError);
+
 	void setCursor(LPCTSTR cursor);
 
 

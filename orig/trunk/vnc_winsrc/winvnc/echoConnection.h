@@ -23,8 +23,8 @@
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
-#ifndef ECHO_CONNECT_H
-#define ECHO_CONNECT_H
+#ifndef ECHO_CONNECTION_H
+#define ECHO_CONNECTION_H
 
 #include "echoTypes.h"
 #include "interfacedllproxyinfo.h"
@@ -35,20 +35,33 @@ public:
 	echoConnection();
 	~echoConnection();
 
-	BOOL initialize(unsigned int port);
+	bool initialize();
 	void destroy();
-	void deleteAllProxyObjects();
 
-
-	BOOL addEchoConnection(ECHOPROP *echoProps);
-	BOOL delEchoConnection(ECHOPROP *echoProps);
-	BOOL changeEchoConnection(ECHOPROP *oldEchoProps, ECHOPROP *newEchoProps);
-
-	int connectTo(ECHOPROP *echoProp);
-	BOOL disconnect(ECHOPROP *echoProp);
-	BOOL disconnectAll();
+	char *getDllVersion();
 	
-	int getStatus(ECHOPROP *echoProp);
+	void setLogging(bool bLogging);
+	bool setCallbackPort(unsigned int port);
+
+	bool addConnection(ECHOPROP *echoProps);
+	bool delConnection(ECHOPROP *echoProps);
+	bool establishConnectTo(ECHOPROP *echoProp, char *pPartnerID, int *backPort);
+
+	bool connect(ECHOPROP *echoProp);
+	bool disconnect(ECHOPROP *echoProp);
+
+	bool connectAll();
+	bool disconnectAll();
+	void deleteAll();
+	void setEncryptionAll(int status);
+	
+	bool getStatus(ECHOPROP *echoProp, int *status);
+	char *getStatusString(ECHOPROP *echoProp);
+	bool isInitialized() { return m_bInitialized; }
+
+	char *getDefaultPort() { return (char *)szDefaultPort; }
+
+	DWORD getLastError() { return m_dwLastError; }
 
 private:
 
@@ -57,32 +70,37 @@ private:
 	public:
 		echoProxyInfo();
 
-		void SetName(char* name);
-		void SetIpPort(char* ipport);
-		void SetIP(char* ipport);
-		void SetPort(char* port);
-		void SetPassword(char* pass);
-		void SetStatus(int Status, BOOL IsStoring);
-		void SetSocket(void* p);
-		BOOL SetMyID(char* MyID);
-		void SetReconnectProxy(BOOL bReconnectProxy);
+		void SetName(const char* name);
+		void SetIpPort(const char* ipport);
+		void SetIP(const char* ipport);
+		void SetPort(const char* port);
+		void SetPassword(const char* pass);
+		void SetStatus(int Status, bool IsStoring);
+		bool SetMyID(const char* MyID);
+		void SetReconnectProxy(bool bReconnectProxy);
 
-		char* GetName();
-		char* GetIpPort();
-		char* GetIP();
-		char* GetPort();
-		char* GetPassword();
-		int GetStatus();
-		char* GetMyID();
-		BOOL GetReconnectProxy();
-    
-		BOOL SetSocketTimeout(int connectTimeout, int ReceiveTimeout, int SendTimeout);
+		const char* GetName()const;
+		const char* GetIpPort()const;
+		const char* GetIP()const;
+		const char* GetPort()const;
+		const char* GetPassword()const;
+		int GetStatus()const;
+		const char* GetMyID()const;
+
+		bool GetReconnectProxy();
+		bool SetSocketTimeout(int connectTimeout, int ReceiveTimeout, int SendTimeout);
 	};
 
 	HMODULE m_hEchoInst;
 
+	bool initEchoProcAddr();
 	void resetEchoObjInfo();
 	void resetEchoProcPtrs();
+
+	bool connectTo(echoProxyInfo *proxyInfo);
+
+	bool loadLibrary();
+	bool freeLibrary();
 
 	LPFN_ECHOWARE_GET_DLLVERSION                 m_lpfnGetDllVersion;
 	LPFN_ECHOWARE_INITIALIZE_PROXYDLL            m_lpfnInitializeProxyDLL;
@@ -95,23 +113,29 @@ private:
 	LPFN_ECHOWARE_DISCONNECT_PROXY               m_lpfnDisconnectProxy;
 	LPFN_ECHOWARE_DISCONNECT_ALL_PROXIES         m_lpfnDisconnectAllProxies;
 	LPFN_ECHOWARE_ESTABLISH_NEW_DATA_CHANNEL     m_lpfnEstablishNewDataChannel;
+	LPFN_ECHOWARE_SET_ENCRYPTION_LEVEL			 m_lpfnSetEncryptionLevel;
 
-	BOOL loadLibrary();
-	BOOL freeLibrary();
-
-	BOOL getEchoProcAddr();
-
-	BOOL initEchoConnection(int port);
-	echoProxyInfo *getEchoObject(ECHOPROP *echoProp);
-	int connectTo(echoProxyInfo *pProxyInfo);
-
-	unsigned int m_callbackPort;
-//	unsigned int m_echoConParamNumber;
+	echoProxyInfo *getEchoObject(ECHOPROP *echoProp, int *number);
 
 	echoProxyInfo *m_pEchoProxyInfo[MAX_ECHO_SERVERS];
 
-	BOOL m_bInitialized;
-	
+	bool m_bInitialized;
+	bool m_bEchoWareEncryptionEnabled;
+
+	char m_szDllVersion[ID_STRING_SIZE];
+	char m_szString[ID_STRING_SIZE];
+
+	DWORD m_dwLastError;
+
+	static const char szDefaultPort[];
+
+	static const char noProxyConnection[];
+	static const char authChannelConnecting[];
+	static const char authChannelEstablished[];
+	static const char partnerSearchInitiated[];
+	static const char newRelayChannelConnecting[];
+	static const char relayChannelEstablished1[];
+	static const char relayChannelEstablished2[];
 };
 
-#endif // ECHO_CONNECT_H
+#endif // ECHO_CONNECTION_H

@@ -80,8 +80,6 @@ public:
 	HWND m_hSess;
 
 	bool CreateEchoConnection(LPTSTR display);
-	static BOOL CALLBACK echoParamsDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
 
 private:
 	static LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);

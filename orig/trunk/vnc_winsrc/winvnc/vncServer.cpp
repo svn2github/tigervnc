@@ -130,8 +130,6 @@ vncServer::vncServer()
 	m_blank_screen = FALSE;
 	m_has_fake_cursor_pos = FALSE;
 
-	m_pEchoConCtrl = new echoConCtrl(this);
-
 #ifdef HORIZONLIVE
 	m_full_screen = FALSE;
 	m_WindowShared= TRUE;
@@ -164,13 +162,6 @@ vncServer::~vncServer()
 	{
 		delete m_httpConn;
 		m_httpConn = NULL;
-	}
-
-	if (m_pEchoConCtrl != NULL)
-	{
-		m_pEchoConCtrl->destroy();
-		delete m_pEchoConCtrl;
-		m_pEchoConCtrl = NULL;
 	}
 
 	// Remove any active clients!
@@ -1003,7 +994,9 @@ vncServer::SockConnect(BOOL On)
 					return FALSE;
 				}
 
-				if (m_enable_echo_connect) m_pEchoConCtrl->initialize(m_port);
+				if (m_echoConCtrl.getEnableEchoConnection() != 0) {
+					m_echoConCtrl.initialize(m_port);
+				}
 
 			} else
 			{
@@ -1037,7 +1030,7 @@ vncServer::SockConnect(BOOL On)
 	}
 	else
 	{
-		m_pEchoConCtrl->destroy();
+		m_echoConCtrl.destroy();
 
 		// *** JNW - Trying to fix up a lock-up when the listening socket closes
 #ifndef HORIZONLIVE
@@ -1686,10 +1679,4 @@ vncServer::GetWindowShared()
 BOOL
 vncServer::DriverActive() {
 	return (m_desktop != NULL) ? m_desktop->DriverActive() : FALSE;
-}
-
-void 
-vncServer::enableEchoConnection(int value)
-{
-	m_enable_echo_connect = value;
 }

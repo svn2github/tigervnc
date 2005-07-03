@@ -35,6 +35,29 @@
 #define ID_ECHO_CONNECTION_TYPE_NONE 0
 #define ID_ECHO_CONNECTION_TYPE_AUTO 1
 
+#define ID_ECHO_ERROR_SUCCESS		100
+#define ID_ECHO_ERROR_UNKNOWN		101
+#define ID_ECHO_ERROR_MAX_SERVERS	102
+
+#define ID_ECHO_ERROR_ALREADY_EXIST	103
+#define ID_ECHO_ERROR_NOT_EXIST		104
+
+#define ID_ECHO_ERROR_LIB_MISSING			105
+#define ID_ECHO_ERROR_LIB_NOT_INITIALIZED	106
+#define ID_ECHO_ERROR_CREATE_OBJECT_FAILED	107
+
+#define ID_ECHO_ERROR_WRONG_ADDRESS 111
+#define ID_ECHO_ERROR_WRONG_LOGIN   112
+#define ID_ECHO_ERROR_CHANNEL_EXIST 113
+
+#define MASK_ECHO_STATUS_NO_CONNECTION					0
+#define MASK_ECHO_STATUS_AUTH_CHANNEL_CONNECTING		1
+#define MASK_ECHO_STATUS_AUTH_CHANNEL_ESTABLISHED		2
+#define MASK_ECHO_STATUS_PARTNER_SEARCH					4
+#define MASK_ECHO_STATUS_RELAY_CHANNEL_CONNECTING		8
+#define MASK_ECHO_STATUS_RELAY_CHANNEL_ESTABLISHED_1	16
+#define MASK_ECHO_STATUS_RELAY_CHANNEL_ESTABLISHED_2	32
+
 typedef struct tagECHOPROP
 {
     char server[ID_STRING_SIZE];
@@ -46,11 +69,11 @@ typedef struct tagECHOPROP
 
 typedef char* (*LPFN_ECHOWARE_GET_DLLVERSION)                   
               (void);
-typedef BOOL  (*LPFN_ECHOWARE_INITIALIZE_PROXYDLL)              
+typedef bool  (*LPFN_ECHOWARE_INITIALIZE_PROXYDLL)              
               ();
 typedef void  (*LPFN_ECHOWARE_SET_LOGGING_OPTIONS)              
               (BOOL, char*);
-typedef BOOL  (*LPFN_ECHOWARE_SET_PORT_FOR_OFFLOADING_DATA)     
+typedef bool  (*LPFN_ECHOWARE_SET_PORT_FOR_OFFLOADING_DATA)     
               (int);
 typedef void* (*LPFN_ECHOWARE_CREATE_PROXY_INFO_CLASS_OBJECT)   
               ();
@@ -58,13 +81,15 @@ typedef void  (*LPFN_ECHOWARE_DELETE_PROXY_INFO_CLASS_OBJECT)
               (void*);
 typedef void  (*LPFN_ECHOWARE_AUTO_CONNECT)                     
               ();
-typedef BOOL  (*LPFN_ECHOWARE_CONNECT_PROXY)                    
+typedef int   (*LPFN_ECHOWARE_CONNECT_PROXY)                    
               (void*);
-typedef BOOL  (*LPFN_ECHOWARE_DISCONNECT_PROXY)                 
+typedef bool  (*LPFN_ECHOWARE_DISCONNECT_PROXY)                 
               (void*);
-typedef BOOL  (*LPFN_ECHOWARE_DISCONNECT_ALL_PROXIES)           
+typedef bool  (*LPFN_ECHOWARE_DISCONNECT_ALL_PROXIES)           
               ();
 typedef int   (*LPFN_ECHOWARE_ESTABLISH_NEW_DATA_CHANNEL)       
-              (void*, char* );
+              (void*, char*);
+typedef void  (*LPFN_ECHOWARE_SET_ENCRYPTION_LEVEL)
+			  (int, void*);
 
 #endif // _VNC_ECHO_TYPES_H__

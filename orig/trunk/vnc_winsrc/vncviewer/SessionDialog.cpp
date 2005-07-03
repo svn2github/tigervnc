@@ -186,7 +186,7 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 				if (!bResult) {
 					MessageBox(NULL, 
 							_T("Invalid VNC server specified.\n\r")
-							_T("Server should be of the form host:display or username@echoserver:port for echo connections."), 
+							_T("Server should be of the form host:display or partnerID@echoserver:port for echo connections."), 
 							_T("Connection setup"), MB_OK | MB_ICONEXCLAMATION );
 					return TRUE;
 				} 

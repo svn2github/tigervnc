@@ -26,31 +26,35 @@ enum
 	ID_FOUND_EMPTY
 };
 
-class IDllProxyInfo
-{
-public:
-	//Set function for proxy details
-	virtual void SetName(char* name) = 0;
-	virtual void SetIpPort(char*ipport) = 0;
-	virtual void SetIP(char*ipport) = 0;
-	virtual void SetPort(char*port) = 0;
-	virtual void SetPassword(char*pass) = 0;
-	virtual void SetStatus(int Status, BOOL IsStoring) = 0;
-	virtual BOOL SetMyID(char* MyID) = 0;
-	virtual BOOL SetSocketTimeout(int connectTimeout, 
-									int ReceiveTimeout, 
-										int SendTimeout) =0;
-	virtual void SetReconnectProxy(BOOL bReconnectProxy) = 0;
+#ifndef interface
+#define interface struct
+#endif
 
-	//Get function for proxy details
-	virtual char* GetName() = 0;
-	virtual char* GetIpPort() = 0;
-	virtual char* GetIP() = 0;
-	virtual char* GetPort() = 0;
-	virtual char* GetPassword() = 0;
-	virtual int	  GetStatus() = 0;
-	virtual	char* GetMyID() = 0;
-	virtual BOOL GetReconnectProxy() = 0;
+interface IDllProxyInfo
+{
+
+	//*** Set function for proxy details
+	virtual void SetName( const char* szName )				= 0;
+	virtual void SetIpPort( const char* szIpPort )			= 0;
+	virtual void SetIP( const char* szIP )					= 0;
+	virtual void SetPort( const char* szPort )				= 0;
+	virtual void SetPassword( const char* szPassword )		= 0;
+	virtual void SetStatus( int Status, bool bIsStoring )	= 0;
+	virtual bool SetMyID( const char* szMyID )				= 0;
+	virtual bool SetSocketTimeout(int iConnectTimeout, 
+				int iReceiveTimeout, int iSendTimeout)		= 0;
+
+	virtual void SetReconnectProxy(bool bReconnectProxy)	= 0;
+
+	//*** Get function for proxy details
+	virtual const char* GetName()const				= 0;
+	virtual const char* GetIpPort()const			= 0;
+	virtual const char* GetIP()const				= 0;
+	virtual const char* GetPort()const				= 0;
+	virtual const char* GetPassword()const			= 0;
+	virtual int	        GetStatus()const			= 0;
+	virtual	const char* GetMyID()const				= 0;
+	virtual bool        GetReconnectProxy()const	= 0;
 };
 
 #endif INTERFACE_DLL_PROXY_INFO_H

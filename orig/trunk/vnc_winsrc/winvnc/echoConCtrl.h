@@ -26,24 +26,20 @@
 #if !defined(ECHOCONCTRL_H)
 #define ECHOCONCTRL_H
 
-#include "vncServer.h"
 #include "echoConnection.h"
 #include "echoTypes.h"
 
 class echoConCtrl  
 {
 public:
-	echoConCtrl(vncServer *server);
+	echoConCtrl();
 	virtual ~echoConCtrl();
 
-	void initialize(unsigned int port);
+	bool initialize(int callbackPort);
 	void destroy();
 
-	unsigned int add(ECHOPROP *echoProp);
-	bool change(ECHOPROP *oldEchoProp, ECHOPROP *newEchoProp);
-
-
-	void deleteAt(int number);
+	bool add(ECHOPROP *echoProp);
+	bool del(ECHOPROP *echoProp);
 
 	bool getEntriesAt(int number, ECHOPROP *echoProp);
 
@@ -51,17 +47,41 @@ public:
 
 	int getNumEntries() { return m_NumEntries; };
 
-	int getConnectionStatus(ECHOPROP *echoProp);
-	void allowEchoConnection(bool status);
+	bool isEncryptionPossible();
+	int  isEncrypted() { return m_encrypted; }
+	bool setEncryption(int status);
+
+	int isConnected(ECHOPROP *echoProp);
+	char *getConnectionStatus(ECHOPROP *echoProp);
+	char *getEchoWareVersion();
+
+	void allowEchoConnection(int status);
+	int getEnableEchoConnection() {return m_enableEchoConnection; }
+
+	DWORD getLastError() { return m_dwLastError; }
+
+//	void setCursor(LPCTSTR cursor);
+	void copyConnectionParams(ECHOPROP *dest, ECHOPROP *source);
+
+	bool establishDataChannel(char *server, char *port, char *partnerID, int *backPort);
+	bool setCallbackPort(int port);
 
 private:
-	vncServer *m_pServer;
-	echoConnection *m_pEchoConnection;
+	echoConnection m_echoConnection;
 
 	ECHOPROP * m_pEntries;
 	int m_NumEntries;
+	DWORD m_dwLastError;
+
+	int  m_encrypted;
+	int  m_enableEchoConnection;
+	bool m_bEncryptionPossible;
+
+	char m_szVersionStatus[ID_STRING_SIZE];
 
 	void free();
+	void deleteAt(int number);
+	void makeEchoWareVersion();
 };
 
 #endif // !defined(ECHOCONCTRL_H)

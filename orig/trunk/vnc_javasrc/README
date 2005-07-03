@@ -67,6 +67,10 @@ There are three basic ways to use TightVNC Java viewer:
      should be created which will act as a the base document for the viewer
      applet (see an example named index.html in this distribution).
 
+     NOTE: Provided index.html page is an example only. Before using that
+     file, edit it with a text editor. See more information inside
+     index.html.
+
   3. Running the viewer as a standalone application.
 
      Finally, the Java viewer can be executed locally on the client machine,

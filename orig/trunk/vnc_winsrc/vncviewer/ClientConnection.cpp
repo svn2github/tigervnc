@@ -3421,7 +3421,6 @@ bool ClientConnection::CreateEchoConnection(LPTSTR display)
 			_tcsncpy(server, atPos + 1, colonPos - atPos - 1);
 			server[colonPos - atPos - 1] = L'\0';
 			_tcscpy(port, colonPos + 1);
-
 		} else {
 			_tcscpy(server, atPos + 1);
 			_tcscpy(port, "1328");
@@ -3450,7 +3449,6 @@ bool ClientConnection::CreateEchoConnection(LPTSTR display)
 					strcpy(prop.pwd, "");
 					prop.connectionType = 1;
 					if (propView.Add(&prop)) {
-						pApp->m_options.SaveEchoConnectionSettings();
 						bContinue = true;
 					} else {
 						return false;

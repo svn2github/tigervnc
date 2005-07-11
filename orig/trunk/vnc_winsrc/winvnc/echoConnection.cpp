@@ -174,7 +174,7 @@ echoConnection::addConnection(ECHOPROP *echoProps)
 		return false;
 	}
 
-	proxyInfo->SetIP(echoProps->server);
+	proxyInfo->SetIP(echoProps->ipaddr);
 	proxyInfo->SetPort(echoProps->port);
 	proxyInfo->SetMyID(echoProps->username);
 	proxyInfo->SetPassword(echoProps->pwd);
@@ -186,11 +186,7 @@ echoConnection::addConnection(ECHOPROP *echoProps)
 		}
 	}
 
-	if (echoProps->connectionType != 0) 
-		return connectTo(proxyInfo);
-
-	m_dwLastError = ID_ECHO_ERROR_SUCCESS;
-	return true;
+	return connectTo(proxyInfo);
 }
 
 bool
@@ -334,25 +330,25 @@ echoConnection::getStatusString(ECHOPROP *echoProp)
 
 	if (bResult) {
 		if (status & MASK_ECHO_STATUS_NO_CONNECTION) {
-			sprintf(m_szString, "%s %s;",m_szString, noProxyConnection);
+			sprintf(m_szString, "%s %s",m_szString, noProxyConnection);
 		}
 		if (status & MASK_ECHO_STATUS_AUTH_CHANNEL_CONNECTING) {
-			sprintf(m_szString, "%s %s;",m_szString, authChannelConnecting);
+			sprintf(m_szString, "%s %s",m_szString, authChannelConnecting);
 		}
 		if (status & MASK_ECHO_STATUS_AUTH_CHANNEL_ESTABLISHED) {
-			sprintf(m_szString, "%s %s;",m_szString, authChannelEstablished);
+			sprintf(m_szString, "%s %s",m_szString, authChannelEstablished);
 		}
 		if (status & MASK_ECHO_STATUS_PARTNER_SEARCH) {
-			sprintf(m_szString, "%s %s;",m_szString, partnerSearchInitiated);
+			sprintf(m_szString, "%s %s",m_szString, partnerSearchInitiated);
 		}
 		if (status & MASK_ECHO_STATUS_RELAY_CHANNEL_CONNECTING) {
-			sprintf(m_szString, "%s %s;",m_szString, newRelayChannelConnecting);
+			sprintf(m_szString, "%s %s",m_szString, newRelayChannelConnecting);
 		}
 		if (status & MASK_ECHO_STATUS_RELAY_CHANNEL_ESTABLISHED_1) {
-			sprintf(m_szString, "%s %s;",m_szString, relayChannelEstablished1);
+			sprintf(m_szString, "%s %s",m_szString, relayChannelEstablished1);
 		}
 		if (status & MASK_ECHO_STATUS_RELAY_CHANNEL_ESTABLISHED_2) {
-			sprintf(m_szString, "%s %s;",m_szString, relayChannelEstablished2);
+			sprintf(m_szString, "%s %s",m_szString, relayChannelEstablished2);
 		}
 		if (strlen(m_szString) == 0) {
 			strcpy(m_szString, "Unknown Echo Connection Status");
@@ -407,7 +403,7 @@ echoConnection::getEchoObject(ECHOPROP *echoProp, int *number)
 {
 	for (int i = 0; i < MAX_ECHO_SERVERS; i++) {
 		if (m_pEchoProxyInfo[i] != NULL) {
-			if ((strcmp(m_pEchoProxyInfo[i]->GetIP(), echoProp->server) == 0) &&
+			if ((strcmp(m_pEchoProxyInfo[i]->GetIP(), echoProp->ipaddr) == 0) &&
 				(strcmp(m_pEchoProxyInfo[i]->GetPort(), echoProp->port) == 0) &&
 				(strcmp(m_pEchoProxyInfo[i]->GetMyID(), echoProp->username) == 0)) {
 				if (number != NULL) *number = i;

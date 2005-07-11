@@ -176,7 +176,6 @@
 #define IDC_ECHO_REMOVE                 1131
 #define IDC_LISTEN_PORT                 1132
 #define IDC_BUTTON3                     1133
-#define IDC_ECHO_EDIT                   1133
 #define IDC_SERVERUP                    1134
 #define IDC_BUTTON4                     1135
 #define IDC_CLIENTRELOAD                1136
@@ -200,17 +199,13 @@
 #define IDC_STATIC_CURRENT_FILE         1161
 #define IDC_STATIC_FILE_TRANSFER        1162
 #define IDC_ECHO_PWD                    1165
-#define IDC_ECHO_CON_STRING             1167
 #define IDC_ECHO_SERVER                 1168
 #define IDC_ECHO_USER                   1169
-#define IDC_ECHO_PORT                   1170
-#define IDC_ECHO_AUTO_CONNECT           1173
 #define IDC_ECHOSERVERS_LIST            1174
 #define IDC_ECHO_ADD                    1175
 #define IDC_ECHO_CON_DISABLE            1176
 #define IDC_ECHO_ENCRYPTION             1177
-#define IDC_ECHOWARE_STATUS             1178
-#define IDC_ECHOSERVER_STATUS           1179
+#define IDC_ECHOWARE_STATUS             1181
 #define ID_SESSION_SET_CRECT            32777
 #define IDC_ALLOW_COMPRESSLEVEL         32778
 #define IDC_ALLOW_JPEG                  32779
@@ -227,7 +222,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        273
 #define _APS_NEXT_COMMAND_VALUE         40011
-#define _APS_NEXT_CONTROL_VALUE         1181
+#define _APS_NEXT_CONTROL_VALUE         1182
 #define _APS_NEXT_SYMED_VALUE           244
 #endif
 #endif

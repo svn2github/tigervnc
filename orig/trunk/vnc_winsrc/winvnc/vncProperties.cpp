@@ -624,9 +624,6 @@ BOOL CALLBACK vncProperties::EchoConnectionDlgProc(HWND hwnd, UINT uMsg,
 		case IDC_ECHOSERVERS_LIST:
 			switch (((LPNMHDR) lParam)->code)
 			{
-				case LVN_ITEMACTIVATE:
-					_this->m_pEchoPropView->Edit();
-					return FALSE;
 				case LVN_GETDISPINFO:
 					_this->m_pEchoPropView->onGetDispInfo((NMLVDISPINFO *) lParam);
 					return FALSE;
@@ -647,15 +644,13 @@ BOOL CALLBACK vncProperties::EchoConnectionDlgProc(HWND hwnd, UINT uMsg,
 		case IDC_ECHO_ADD:
 			_this->m_pEchoPropView->Add();
 			return TRUE;
-		case IDC_ECHO_EDIT:
-			_this->m_pEchoPropView->Edit();
-			return TRUE;
 		case IDC_ECHO_REMOVE:
 			_this->m_pEchoPropView->Remove();
 			return TRUE;
 		}
 		return 0;
 	case WM_DESTROY:
+		ListView_DeleteAllItems(GetDlgItem(hwnd, IDC_ECHOSERVERS_LIST));
 		delete _this->m_pEchoPropView;      
 		_this->m_pEchoPropView = NULL;  
 		return 0;

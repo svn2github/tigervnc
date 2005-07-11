@@ -19,6 +19,7 @@
 
 #include "stdio.h"
 
+#include "vncviewer.h"
 #include "echoPropView.h"
 
 echoPropView::echoPropView(echoConCtrl *echoConCtrl, HWND hwnd)
@@ -52,6 +53,7 @@ echoPropView::editParamsDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		}
 		SetDlgItemText(hwnd, IDC_ECHO_USER, _this->m_echoProps.username);
 		SetDlgItemText(hwnd, IDC_ECHO_PWD, _this->m_echoProps.pwd);
+		CentreWindow(hwnd);
 		return FALSE;
 	case WM_COMMAND:
 		{

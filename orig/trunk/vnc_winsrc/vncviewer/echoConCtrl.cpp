@@ -39,8 +39,6 @@ echoConCtrl::echoConCtrl()
 	m_bEncryptionPossible = false;
 
 	m_szVersionStatus[0] = '\0';
-
-	m_callbackPort = 0;
 }
 
 echoConCtrl::~echoConCtrl()
@@ -48,15 +46,10 @@ echoConCtrl::~echoConCtrl()
 }
 
 bool 
-echoConCtrl::initialize(int callbackPort)
+echoConCtrl::initialize()
 {
 	if (!m_echoConnection.initialize()) {
 		m_dwLastError = m_echoConnection.getLastError();
-		return false;
-	}
-
-	if (!setCallbackPort(callbackPort)) {
-		m_dwLastError = ID_ECHO_ERROR_UNKNOWN;
 		return false;
 	}
 
@@ -80,6 +73,11 @@ echoConCtrl::destroy()
 bool 
 echoConCtrl::add(ECHOPROP *echoProp)
 {
+	if (isExists(echoProp) != -1) {
+		m_dwLastError = ID_ECHO_ERROR_ALREADY_EXIST;
+		return false;
+	}
+
 	if (m_NumEntries == MAX_ECHO_SERVERS) {
 		m_dwLastError = ID_ECHO_ERROR_MAX_SERVERS;
 		return false;
@@ -89,12 +87,6 @@ echoConCtrl::add(ECHOPROP *echoProp)
 	if (ipAddr != NULL) {
 		strcpy(echoProp->ipaddr, ipAddr);
 	} else {
-		m_dwLastError = ID_ECHO_ERROR_CANT_RESOLVE_ADDR;
-		return false;
-	}
-
-	if (isExists(echoProp) != -1) {
-		m_dwLastError = ID_ECHO_ERROR_ALREADY_EXIST;
 		return false;
 	}
 
@@ -231,8 +223,8 @@ echoConCtrl::allowEchoConnection(int status)
 	if (status == 0) {
 		m_echoConnection.disconnectAll();
 	} else {
-		if ((!m_echoConnection.isInitialized()) && (m_callbackPort != 0)) {
-			initialize(m_callbackPort);
+		if (!m_echoConnection.isInitialized()) {
+			initialize();
 		}
 
 		ECHOPROP echoProp;
@@ -241,6 +233,13 @@ echoConCtrl::allowEchoConnection(int status)
 			if (echoProp.connectionType > 0) m_echoConnection.connect(&echoProp);
 		}
 	}
+}
+
+void
+echoConCtrl::setCursor(LPCTSTR cursor)
+{
+	HCURSOR hC = LoadCursor(NULL, cursor);
+	SetCursor(hC);
 }
 
 void 
@@ -264,7 +263,6 @@ echoConCtrl::parseConnectionString(char *pConnectionString, char *pServer, char 
 		strncpy(pServer, pConnectionString, pColonPos - pConnectionString);
 	} else {
 		strcpy(pServer, pConnectionString);
-		strcpy(pPort, getDefaultPort());
 	}
 	return true;
 }
@@ -327,15 +325,38 @@ echoConCtrl::setEncryption(int status)
 }
 
 bool 
-echoConCtrl::setCallbackPort(int port)
+echoConCtrl::establishDataChannel(char *server, char *port, char *partnerID, int *backPort)
 {
-	m_callbackPort = port;
+	ECHOPROP prop;
+	char *ipAddr = getIPbyName(server);
 
-	if (m_echoConnection.isInitialized()) 
-		return m_echoConnection.setCallbackPort(port);
+	if (ipAddr == NULL) return false;
 
-	m_dwLastError = ID_ECHO_ERROR_LIB_NOT_INITIALIZED;
-	return false;
+	strcpy(prop.server, server);
+	strcpy(prop.ipaddr, ipAddr);
+
+	if (port == NULL) {
+		strcpy(prop.port, m_echoConnection.getDefaultPort());
+	} else {
+		strcpy(prop.port, port);
+	}
+
+	int pos = isExists(&prop);
+
+	if (pos >= 0) {
+		getEntriesAt(pos, &prop);
+
+		if (!m_echoConnection.establishConnectTo(&prop, partnerID, backPort)) {
+			m_dwLastError = m_echoConnection.getLastError();
+			return false;
+		} else {
+			m_dwLastError = ID_ECHO_ERROR_SUCCESS;
+			return true;
+		}
+	} else {
+		m_dwLastError = ID_ECHO_ERROR_NOT_EXIST;
+		return false;
+	}
 }
 
 char *

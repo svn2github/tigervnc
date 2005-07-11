@@ -35,7 +35,7 @@ public:
 	echoConCtrl();
 	virtual ~echoConCtrl();
 
-	bool initialize(int callbackPort);
+	bool initialize();
 	void destroy();
 
 	bool add(ECHOPROP *echoProp);
@@ -51,21 +51,22 @@ public:
 	int  isEncrypted() { return m_encrypted; }
 	bool setEncryption(int status);
 
-	int isConnected(ECHOPROP *echoProp);
+	int  isConnected(ECHOPROP *echoProp);
 	char *getConnectionStatus(ECHOPROP *echoProp);
 	char *getEchoWareVersion();
 	char *getIPbyName(char *server);
 
 	void allowEchoConnection(int status);
-	int getEnableEchoConnection() { return m_enableEchoConnection; }
+	int  getEnableEchoConnection() {return m_enableEchoConnection; }
 	char *getDefaultPort() { return m_echoConnection.getDefaultPort(); }
 
 	DWORD getLastError() { return m_dwLastError; }
 
+	void setCursor(LPCTSTR cursor);
 	void copyConnectionParams(ECHOPROP *dest, ECHOPROP *source);
 	bool parseConnectionString(char *pConnectionString, char *pServer, char *pPort);
 
-	bool setCallbackPort(int port);
+	bool establishDataChannel(char *server, char *port, char *partnerID, int *backPort);
 
 private:
 	echoConnection m_echoConnection;
@@ -77,8 +78,6 @@ private:
 	int  m_encrypted;
 	int  m_enableEchoConnection;
 	bool m_bEncryptionPossible;
-
-	int m_callbackPort;
 
 	char m_szVersionStatus[ID_STRING_SIZE];
 

@@ -50,6 +50,8 @@
 #define ID_ECHO_ERROR_WRONG_LOGIN   112
 #define ID_ECHO_ERROR_CHANNEL_EXIST 113
 
+#define ID_ECHO_ERROR_CANT_RESOLVE_ADDR 115
+
 #define MASK_ECHO_STATUS_NO_CONNECTION					0
 #define MASK_ECHO_STATUS_AUTH_CHANNEL_CONNECTING		1
 #define MASK_ECHO_STATUS_AUTH_CHANNEL_ESTABLISHED		2
@@ -64,7 +66,8 @@ typedef struct tagECHOPROP
 	char port[ID_STRING_SIZE];
 	char username[ID_STRING_SIZE];
 	char pwd[ID_STRING_SIZE];
-	unsigned int connectionType;
+	char ipaddr[ID_STRING_SIZE];
+	int connectionType;
 } ECHOPROP;
 
 typedef char* (*LPFN_ECHOWARE_GET_DLLVERSION)                   

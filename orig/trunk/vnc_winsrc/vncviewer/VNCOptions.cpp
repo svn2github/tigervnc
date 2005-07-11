@@ -1719,9 +1719,6 @@ BOOL CALLBACK VNCOptions::DlgProcEchoConnection(HWND hwnd, UINT uMsg,
 		case IDC_ECHOSERVERS_LIST:
 			switch (((LPNMHDR) lParam)->code)
 			{
-				case LVN_ITEMACTIVATE:
-					_this->m_pEchoPropView->Edit();
-					return FALSE;
 				case LVN_ITEMCHANGED:
 					_this->m_pEchoPropView->ShowStatus();
 					return FALSE;
@@ -1747,9 +1744,6 @@ BOOL CALLBACK VNCOptions::DlgProcEchoConnection(HWND hwnd, UINT uMsg,
 			return TRUE;
 		case IDC_ECHO_ADD:
 			_this->m_pEchoPropView->Add();
-			return TRUE;
-		case IDC_ECHO_EDIT:
-			_this->m_pEchoPropView->Edit();
 			return TRUE;
 		case IDC_ECHO_REMOVE:
 			_this->m_pEchoPropView->Remove();

@@ -59,6 +59,8 @@ public:
 	char *getStatusString(ECHOPROP *echoProp);
 	bool isInitialized() { return m_bInitialized; }
 
+	bool setLocalProxyInfo(ECHOPROP *echoProp);
+
 	char *getDefaultPort() { return (char *)szDefaultPort; }
 
 	DWORD getLastError() { return m_dwLastError; }
@@ -114,6 +116,7 @@ private:
 	LPFN_ECHOWARE_DISCONNECT_ALL_PROXIES         m_lpfnDisconnectAllProxies;
 	LPFN_ECHOWARE_ESTABLISH_NEW_DATA_CHANNEL     m_lpfnEstablishNewDataChannel;
 	LPFN_ECHOWARE_SET_ENCRYPTION_LEVEL			 m_lpfnSetEncryptionLevel;
+	LPFN_ECHOWARE_SET_LOCAL_PROXY_INFO			 m_lpfnSetLocalProxyInfo;
 
 	echoProxyInfo *getEchoObject(ECHOPROP *echoProp, int *number);
 

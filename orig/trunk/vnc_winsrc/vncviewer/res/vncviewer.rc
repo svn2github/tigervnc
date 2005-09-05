@@ -377,14 +377,37 @@ BEGIN
     CONTROL         "List1",IDC_ECHOSERVERS_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | 
                     WS_BORDER | WS_TABSTOP,7,7,286,116
-    DEFPUSHBUTTON   "Add",IDC_ECHO_ADD,7,130,60,14
-    PUSHBUTTON      "Remove",IDC_ECHO_REMOVE,74,130,60,14
+    DEFPUSHBUTTON   "Add",IDC_ECHO_ADD,7,130,42,14
+    PUSHBUTTON      "Remove",IDC_ECHO_REMOVE,56,130,42,14
     CONTROL         "Don't use echo connection even if available",
                     IDC_ECHO_CON_DISABLE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,7,154,155,10
     CONTROL         "Use 128-bit AES encryption",IDC_ECHO_ENCRYPTION,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,176,154,103,10
-    LTEXT           "Static",IDC_ECHOWARE_STATUS,198,127,95,22
+    LTEXT           "Static",IDC_ECHOWARE_STATUS,104,129,95,16
+    PUSHBUTTON      "Advanced Settings...",IDC_ECHO_ADV,217,130,76,14
+END
+
+IDD_ECHO_CONN_ADV DIALOG DISCARDABLE  0, 0, 256, 90
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Connection Settings"
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_ECHO_HTTP_ADDR,46,17,117,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_ECHO_HTTP_PORT,189,17,60,14,ES_AUTOHSCROLL
+    CONTROL         "proxy requires authentication",IDC_ECHO_AUTH_CHECK,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,36,106,10
+    EDITTEXT        IDC_ECHO_HTTP_USERNAME,61,47,84,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_ECHO_HTTP_PWD,189,47,60,14,ES_PASSWORD | 
+                    ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,139,69,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,199,69,50,14
+    LTEXT           "Optional HTTP/SOCKS Proxy Information:",IDC_STATIC,7,7,
+                    195,8
+    LTEXT           "Address:",IDC_STATIC,16,20,29,8
+    LTEXT           "Port:",IDC_STATIC,169,20,16,8
+    LTEXT           "Username:",IDC_STATIC,24,50,35,8
+    LTEXT           "Password:",IDC_STATIC,151,50,34,8
 END
 
 
@@ -581,6 +604,19 @@ BEGIN
         BOTTOMMARGIN, 172
         HORZGUIDE, 137
         HORZGUIDE, 159
+    END
+
+    IDD_ECHO_CONN_ADV, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 249
+        VERTGUIDE, 16
+        VERTGUIDE, 24
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 83
+        HORZGUIDE, 24
+        HORZGUIDE, 41
+        HORZGUIDE, 54
     END
 END
 #endif    // APSTUDIO_INVOKED

@@ -92,7 +92,10 @@ typedef bool  (*LPFN_ECHOWARE_DISCONNECT_ALL_PROXIES)
               ();
 typedef int   (*LPFN_ECHOWARE_ESTABLISH_NEW_DATA_CHANNEL)       
               (void*, char*);
+
 typedef void  (*LPFN_ECHOWARE_SET_ENCRYPTION_LEVEL)
 			  (int, void*);
+typedef void  (*LPFN_ECHOWARE_SET_LOCAL_PROXY_INFO)
+			  (char*, char*, char*, char*);
 
 #endif // _VNC_ECHO_TYPES_H__

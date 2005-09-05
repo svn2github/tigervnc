@@ -37,6 +37,7 @@ echoConCtrl::echoConCtrl()
 	m_encrypted = 0;
 	m_enableEchoConnection = 0;
 	m_bEncryptionPossible = false;
+	m_bLocalProxyEnabled = false;
 
 	m_szVersionStatus[0] = '\0';
 
@@ -59,6 +60,8 @@ echoConCtrl::initialize(int callbackPort)
 		m_dwLastError = ID_ECHO_ERROR_UNKNOWN;
 		return false;
 	}
+
+	ZeroMemory(&m_localProxyInfo, sizeof(m_localProxyInfo));
 
 	ECHOPROP echoProp;
 	for (int i = 0; i < getNumEntries(); i++) {
@@ -356,5 +359,60 @@ echoConCtrl::getIPbyName(char *server)
 		}
 	} else {
 		return server;
+	}
+}
+
+bool 
+echoConCtrl::setLocalProxyInfo(ECHOPROP *echoProp)
+{
+	if (!m_echoConnection.isInitialized()) {
+		m_dwLastError = ID_ECHO_ERROR_LIB_NOT_INITIALIZED;
+		return FALSE;
+	}
+
+	if ((strlen(echoProp->ipaddr)   >= ID_STRING_SIZE) ||
+		(strlen(echoProp->server)   >= ID_STRING_SIZE) ||
+		(strlen(echoProp->port)     >= ID_STRING_SIZE) ||
+		(strlen(echoProp->username) >= ID_STRING_SIZE) ||
+		(strlen(echoProp->pwd)      >= ID_STRING_SIZE)) {
+		m_dwLastError = ID_ECHO_ERROR_UNKNOWN;
+		return false;
+	}
+
+	strcpy(m_localProxyInfo.server, echoProp->server);
+	strcpy(m_localProxyInfo.port, echoProp->port);
+	strcpy(m_localProxyInfo.username, echoProp->username);
+	strcpy(m_localProxyInfo.pwd, echoProp->pwd);
+
+	char *ipAddr = getIPbyName(m_localProxyInfo.server);
+
+	if (ipAddr == NULL) return false;
+
+	strcpy(m_localProxyInfo.ipaddr, ipAddr);
+
+	if (!m_echoConnection.setLocalProxyInfo(&m_localProxyInfo)) {
+		m_dwLastError = m_echoConnection.getLastError();
+		m_bLocalProxyEnabled = false;
+		return false;
+	} else {
+		m_dwLastError = ID_ECHO_ERROR_SUCCESS;
+		m_bLocalProxyEnabled = true;
+		return true;
+	}
+}
+
+bool
+echoConCtrl::getLocalProxyInfo(ECHOPROP *echoProp)
+{
+	if (m_bLocalProxyEnabled) {
+		strcpy(echoProp->server, m_localProxyInfo.server);
+		strcpy(echoProp->ipaddr, m_localProxyInfo.ipaddr);
+		strcpy(echoProp->port, m_localProxyInfo.port);
+		strcpy(echoProp->username, m_localProxyInfo.username);
+		strcpy(echoProp->pwd, m_localProxyInfo.pwd);
+		echoProp->connectionType = m_localProxyInfo.connectionType;
+		return true;
+	} else {
+		return false;
 	}
 }

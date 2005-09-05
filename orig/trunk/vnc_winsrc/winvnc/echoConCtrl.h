@@ -45,11 +45,16 @@ public:
 
 	int isExists(ECHOPROP *echoProp);
 
-	int getNumEntries() { return m_NumEntries; };
+	int getNumEntries() { return m_NumEntries; }
+
+	bool isLocalProxyEnable() { return m_bLocalProxyEnabled; }
 
 	bool isEncryptionPossible();
 	int  isEncrypted() { return m_encrypted; }
 	bool setEncryption(int status);
+
+	bool setLocalProxyInfo(ECHOPROP *echoProp);
+	bool getLocalProxyInfo(ECHOPROP *echoProp);
 
 	int isConnected(ECHOPROP *echoProp);
 	char *getConnectionStatus(ECHOPROP *echoProp);
@@ -74,9 +79,12 @@ private:
 	int m_NumEntries;
 	DWORD m_dwLastError;
 
+	ECHOPROP m_localProxyInfo;
+
 	int  m_encrypted;
 	int  m_enableEchoConnection;
 	bool m_bEncryptionPossible;
+	bool m_bLocalProxyEnabled;
 
 	int m_callbackPort;
 

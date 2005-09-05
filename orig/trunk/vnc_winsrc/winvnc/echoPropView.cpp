@@ -86,6 +86,74 @@ echoPropView::editParamsDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 	return FALSE;
 }
 
+BOOL CALLBACK 
+echoPropView::advEchoParamsDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	echoPropView *_this = (echoPropView *) GetWindowLong(hwnd, GWL_USERDATA);
+	switch (uMsg)
+	{
+	case WM_INITDIALOG:
+		{
+			SetWindowLong(hwnd, GWL_USERDATA, (LONG) lParam);
+			_this = (echoPropView *)lParam;
+			ZeroMemory(&_this->m_echoProps, sizeof(_this->m_echoProps));
+			_this->m_pEchoConCtrl->getLocalProxyInfo(&_this->m_echoProps);
+			SetDlgItemText(hwnd, IDC_ECHO_HTTP_ADDR, _this->m_echoProps.server);
+			SetDlgItemText(hwnd, IDC_ECHO_HTTP_PORT, _this->m_echoProps.port);
+			SetDlgItemText(hwnd, IDC_ECHO_HTTP_USERNAME, _this->m_echoProps.username);
+			SetDlgItemText(hwnd, IDC_ECHO_HTTP_PWD, _this->m_echoProps.pwd);
+			BOOL bProxyAuth = FALSE;
+			if ((strlen(_this->m_echoProps.username) == 0) && 
+				(strlen(_this->m_echoProps.pwd) == 0)) {
+				CheckDlgButton(hwnd, IDC_ECHO_AUTH_CHECK, BST_UNCHECKED);
+			} else {
+				bProxyAuth = TRUE;
+				CheckDlgButton(hwnd, IDC_ECHO_AUTH_CHECK, BST_CHECKED);
+			}
+			EnableWindow(GetDlgItem(hwnd, IDC_ECHO_HTTP_USERNAME), bProxyAuth);
+			EnableWindow(GetDlgItem(hwnd, IDC_ECHO_HTTP_PWD), bProxyAuth);
+		}
+		return FALSE;
+	case WM_COMMAND:
+		{
+			switch (LOWORD(wParam))
+			{
+			case IDOK:
+				{
+					GetDlgItemText(hwnd, IDC_ECHO_HTTP_ADDR, _this->m_echoProps.server, ID_STRING_SIZE);
+					GetDlgItemText(hwnd, IDC_ECHO_HTTP_PORT, _this->m_echoProps.port, ID_STRING_SIZE);
+					GetDlgItemText(hwnd, IDC_ECHO_HTTP_USERNAME, _this->m_echoProps.username, ID_STRING_SIZE);
+					GetDlgItemText(hwnd, IDC_ECHO_HTTP_PWD, _this->m_echoProps.pwd, ID_STRING_SIZE);
+					EndDialog(hwnd, IDOK);
+				}
+				return TRUE;
+			case IDCANCEL:
+				EndDialog(hwnd, IDCANCEL);
+				return TRUE;
+			case IDC_ECHO_AUTH_CHECK:
+				{
+					BOOL bProxyAuth = FALSE;
+					if (IsDlgButtonChecked(hwnd, IDC_ECHO_AUTH_CHECK) == BST_CHECKED) {
+						bProxyAuth = TRUE;
+					} else {
+						SetDlgItemText(hwnd, IDC_ECHO_HTTP_USERNAME, "");
+						SetDlgItemText(hwnd, IDC_ECHO_HTTP_PWD, "");
+					}
+					EnableWindow(GetDlgItem(hwnd, IDC_ECHO_HTTP_USERNAME), bProxyAuth);
+					EnableWindow(GetDlgItem(hwnd, IDC_ECHO_HTTP_PWD), bProxyAuth);
+				}
+				return TRUE;
+			}
+		}
+		break;
+	case WM_CLOSE:
+	case WM_DESTROY:
+		EndDialog(hwnd, IDCANCEL);
+		return TRUE;
+	}
+	return FALSE;
+}
+
 void 
 echoPropView::Apply()
 {
@@ -129,6 +197,12 @@ echoPropView::Init()
 		} else {
 			CheckDlgButton(m_hwnd, IDC_ECHO_ENCRYPTION, BST_UNCHECKED);
 		}
+	}
+
+	if (m_pEchoConCtrl->isLocalProxyEnable()) {
+		EnableWindow(GetDlgItem(m_hwnd, IDC_ECHO_ADV), TRUE);
+	} else {
+		EnableWindow(GetDlgItem(m_hwnd, IDC_ECHO_ADV), FALSE);
 	}
 }
 
@@ -254,6 +328,17 @@ echoPropView::Edit()
 
 	ListView_RedrawItems(hListView, 0, ListView_GetItemCount(hListView));
 	UpdateWindow(hListView);
+}
+
+void
+echoPropView::AdvancedProps()
+{
+	INT_PTR result = DialogBoxParam(NULL, MAKEINTRESOURCE(IDD_ECHO_CONN_ADV), 
+									m_hwnd, (DLGPROC) advEchoParamsDlgProc, (LONG) this);
+	if (result == IDOK) {
+		m_pEchoConCtrl->setLocalProxyInfo(&m_echoProps);
+	}
+
 }
 
 void 

@@ -647,6 +647,9 @@ BOOL CALLBACK vncProperties::EchoConnectionDlgProc(HWND hwnd, UINT uMsg,
 		case IDC_ECHO_REMOVE:
 			_this->m_pEchoPropView->Remove();
 			return TRUE;
+		case IDC_ECHO_ADV:
+			_this->m_pEchoPropView->AdvancedProps();
+			return TRUE;
 		}
 		return 0;
 	case WM_DESTROY:
@@ -1412,11 +1415,48 @@ vncProperties::SaveUserPrefs(HKEY appkey)
 void 
 vncProperties::LoadEchoConnectionSettings(HKEY key)
 {
-	HKEY hkEchoServers, hkServerInfo;
+	HKEY hkEchoServers, hkServerInfo, hkEchoProxy;
+	ECHOPROP echoProp;
+	char pwd[MAXPWLEN];
+	char *server, *port, *username;
 	DWORD dw;
+
+	ZeroMemory(&echoProp, sizeof(echoProp));
+	pwd[0] = '\0';
 
 	m_server->m_echoConCtrl.allowEchoConnection(LoadInt(key, "AllowEchoConnection", 0));
 	m_server->m_echoConCtrl.setEncryption(LoadInt(key, "AllowEncryption", 0));
+
+	if (key == NULL ||
+		RegCreateKeyEx(key, "EchoProxy", 0, REG_NONE, REG_OPTION_NON_VOLATILE,
+					   KEY_READ, NULL, &hkEchoProxy, &dw) != ERROR_SUCCESS) {
+		hkEchoProxy = NULL;
+	} 
+
+	if (hkEchoProxy != NULL) {
+		server = LoadString(hkEchoProxy, "server");
+		if (server != 0) {
+			strcpy(echoProp.server, server);
+			delete [] server;
+		}
+		port = LoadString(hkEchoProxy, "port");
+		if (port != 0) {
+			strcpy(echoProp.port, port);
+			delete [] port;
+		}
+		username = LoadString(hkEchoProxy, "username");
+		if (username != 0) {
+			strcpy(echoProp.username, username);
+			delete [] username;
+		}
+		LoadPassword(hkEchoProxy, (char *)pwd, "password");
+		if (strlen(pwd) != 0) {
+			vncPasswd::ToText plain(pwd);
+			strcpy(echoProp.pwd, plain);
+		}
+		m_server->m_echoConCtrl.setLocalProxyInfo(&echoProp);
+		RegCloseKey(hkEchoProxy);
+	}
 
 	if (key == NULL || 
 		RegCreateKeyEx(key, "EchoServers", 0, REG_NONE, REG_OPTION_NON_VOLATILE,
@@ -1430,30 +1470,37 @@ vncProperties::LoadEchoConnectionSettings(HKEY key)
 	int num = GetAllEchoServerKeys(hkEchoServers, (char*)&nameArray);
 	int index = 0;
 
-	ECHOPROP echoProp;
-	char *server, *port, *username;
-	char pwd[MAXPWLEN];
 	int connectionType = 0;
+
+	ZeroMemory(&echoProp, sizeof(echoProp));
+	pwd[0] = '\0';
 
 	for (int i = 0; i < num; i++) {
 		RegCreateKeyEx(hkEchoServers, (char *)&nameArray[index], 0, REG_NONE, REG_OPTION_NON_VOLATILE,
 					   KEY_ALL_ACCESS, NULL, &hkServerInfo, &dw);
 		server = LoadString(hkServerInfo, "server");
-		strcpy(echoProp.server, server);
+		if (server != 0) {
+			strcpy(echoProp.server, server);
+			delete [] server;
+		}
 		port = LoadString(hkServerInfo, "port");
-		strcpy(echoProp.port, port);
+		if (port != 0) {
+			strcpy(echoProp.port, port);
+			delete [] port;
+		}
 		username = LoadString(hkServerInfo, "username");
-		strcpy(echoProp.username, username);
+		if (username != 0) {
+			strcpy(echoProp.username, username);
+			delete [] username;
+		}
 		LoadPassword(hkServerInfo, (char *)pwd, "password");
-		vncPasswd::ToText plain(pwd);
-		strcpy(echoProp.pwd, plain);
+		if (strlen(pwd) != 0) {
+			vncPasswd::ToText plain(pwd);
+			strcpy(echoProp.pwd, plain);
+		}
 		echoProp.connectionType = LoadInt(hkServerInfo, "ConnectionType", 0);
 
 		m_server->m_echoConCtrl.add(&echoProp);
-
-		delete [] server;
-		delete [] port;
-		delete [] username;
 
 		index += strlen((char *)&nameArray[index]) + 1;
 	}
@@ -1464,11 +1511,34 @@ vncProperties::LoadEchoConnectionSettings(HKEY key)
 void 
 vncProperties::SaveEchoConnectionSettings(HKEY key)
 {
-	HKEY hkEchoServers;
+	HKEY hkEchoServers, hkEchoProxy;
+	ECHOPROP echoProp;
 	DWORD dw;
 
 	SaveInt(key, "AllowEchoConnection", m_server->m_echoConCtrl.getEnableEchoConnection());
 	SaveInt(key, "AllowEncryption", m_server->m_echoConCtrl.isEncrypted());
+
+	if (key == NULL ||
+		RegCreateKeyEx(key, "EchoProxy", 0, REG_NONE, REG_OPTION_NON_VOLATILE,
+					   KEY_ALL_ACCESS, NULL, &hkEchoProxy, &dw) != ERROR_SUCCESS) {
+		hkEchoProxy = NULL;
+	} 
+
+	if (hkEchoProxy != NULL) {
+		if (m_server->m_echoConCtrl.getLocalProxyInfo(&echoProp)) {
+			SaveString(hkEchoProxy, "server", echoProp.server);
+			SaveString(hkEchoProxy, "username", echoProp.username);
+			SaveString(hkEchoProxy, "port", echoProp.port);
+			vncPasswd::FromText plain(echoProp.pwd);
+			SavePassword(hkEchoProxy, plain, "password");
+		} else {
+			SaveString(hkEchoProxy, "server", "");
+			SaveString(hkEchoProxy, "username", "");
+			SaveString(hkEchoProxy, "port", "");
+			SavePassword(hkEchoProxy, "", "password");
+		}
+		RegCloseKey(hkEchoProxy);
+	}
 
 	if (key == NULL || 
 		RegCreateKeyEx(key, "EchoServers", 0, REG_NONE, REG_OPTION_NON_VOLATILE,
@@ -1481,7 +1551,6 @@ vncProperties::SaveEchoConnectionSettings(HKEY key)
 
 	HKEY hkServerInfo;
 	char keyName[256];
-	ECHOPROP echoProp;
 
 	DeleteAllEchoServerKeys(hkEchoServers);
 

@@ -67,6 +67,7 @@
 #define IDI_CLOSEDIALOG                 269
 #define IDD_ECHO_PARAMS                 271
 #define IDD_ECHO_CONNECTION             272
+#define IDD_ECHO_CONN_ADV               273
 #define IDC_HOSTNAME_EDIT               1000
 #define IDC_DPYNUM_EDIT                 1001
 #define IDC_BELLDEICONIFY               1002
@@ -206,6 +207,12 @@
 #define IDC_ECHO_CON_DISABLE            1176
 #define IDC_ECHO_ENCRYPTION             1177
 #define IDC_ECHOWARE_STATUS             1181
+#define IDC_ECHO_AUTH_CHECK             1182
+#define IDC_ECHO_HTTP_ADDR              1183
+#define IDC_ECHO_HTTP_PORT              1184
+#define IDC_ECHO_HTTP_PWD               1185
+#define IDC_ECHO_HTTP_USERNAME          1186
+#define IDC_ECHO_ADV                    1187
 #define ID_SESSION_SET_CRECT            32777
 #define IDC_ALLOW_COMPRESSLEVEL         32778
 #define IDC_ALLOW_JPEG                  32779
@@ -220,9 +227,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        273
+#define _APS_NEXT_RESOURCE_VALUE        274
 #define _APS_NEXT_COMMAND_VALUE         40011
-#define _APS_NEXT_CONTROL_VALUE         1182
+#define _APS_NEXT_CONTROL_VALUE         1188
 #define _APS_NEXT_SYMED_VALUE           244
 #endif
 #endif

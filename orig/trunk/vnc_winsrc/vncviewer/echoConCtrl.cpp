@@ -31,13 +31,14 @@ echoConCtrl::echoConCtrl()
 {
 	m_NumEntries = 0;
 	m_pEntries = NULL;
-
+    
 	DWORD m_dwLastError = ID_ECHO_ERROR_SUCCESS;
-
+    
 	m_encrypted = 0;
 	m_enableEchoConnection = 0;
 	m_bEncryptionPossible = false;
-
+	m_bLocalProxyEnabled = false;
+    
 	m_szVersionStatus[0] = '\0';
 }
 
@@ -52,13 +53,15 @@ echoConCtrl::initialize()
 		m_dwLastError = m_echoConnection.getLastError();
 		return false;
 	}
-
-	ECHOPROP echoProp;
+    
+	ZeroMemory(&m_localProxyInfo, sizeof(m_localProxyInfo));
+	
+   	ECHOPROP echoProp;
 	for (int i = 0; i < getNumEntries(); i++) {
 		getEntriesAt(i, &echoProp);
 		m_echoConnection.addConnection(&echoProp);
 	}
-
+    
 	m_dwLastError = ID_ECHO_ERROR_SUCCESS;
 	return true;
 }
@@ -77,19 +80,20 @@ echoConCtrl::add(ECHOPROP *echoProp)
 		m_dwLastError = ID_ECHO_ERROR_ALREADY_EXIST;
 		return false;
 	}
-
+	
 	if (m_NumEntries == MAX_ECHO_SERVERS) {
 		m_dwLastError = ID_ECHO_ERROR_MAX_SERVERS;
 		return false;
 	}
-
+    
 	char *ipAddr = getIPbyName(echoProp->server);
 	if (ipAddr != NULL) {
 		strcpy(echoProp->ipaddr, ipAddr);
 	} else {
+		m_dwLastError = ID_ECHO_ERROR_CANT_RESOLVE_ADDR;
 		return false;
 	}
-
+	
 	ECHOPROP *pTemporary = new ECHOPROP[m_NumEntries + 1];
 	if (m_NumEntries != 0) 
 		memcpy(pTemporary, m_pEntries, m_NumEntries * sizeof(ECHOPROP));
@@ -109,7 +113,7 @@ echoConCtrl::add(ECHOPROP *echoProp)
 	m_pEntries = pTemporary;
 	pTemporary = NULL;
 	m_NumEntries++;
-
+    
 	if (!m_echoConnection.addConnection(echoProp)) {
 		m_dwLastError = m_echoConnection.getLastError();
 		return false; 
@@ -128,9 +132,9 @@ echoConCtrl::del(ECHOPROP *echoProp)
 			m_dwLastError = m_echoConnection.getLastError();
 			if (m_dwLastError != ID_ECHO_ERROR_LIB_NOT_INITIALIZED)	return false;
 		}
-
+		
 		deleteAt(num);
-
+		
 		m_dwLastError = ID_ECHO_ERROR_SUCCESS;
 		return true;
 	} else {
@@ -183,7 +187,7 @@ echoConCtrl::getEntriesAt(int number, ECHOPROP *echoProp)
 	strcpy(echoProp->pwd, m_pEntries[number].pwd);
 	strcpy(echoProp->ipaddr, m_pEntries[number].ipaddr);
 	echoProp->connectionType = m_pEntries[number].connectionType;
-
+    
 	return true;
 }
 
@@ -226,20 +230,13 @@ echoConCtrl::allowEchoConnection(int status)
 		if (!m_echoConnection.isInitialized()) {
 			initialize();
 		}
-
+		
 		ECHOPROP echoProp;
 		for (int i = 0; i < getNumEntries(); i++) {
 			getEntriesAt(i, &echoProp);
 			if (echoProp.connectionType > 0) m_echoConnection.connect(&echoProp);
 		}
 	}
-}
-
-void
-echoConCtrl::setCursor(LPCTSTR cursor)
-{
-	HCURSOR hC = LoadCursor(NULL, cursor);
-	SetCursor(hC);
 }
 
 void 
@@ -263,6 +260,7 @@ echoConCtrl::parseConnectionString(char *pConnectionString, char *pServer, char 
 		strncpy(pServer, pConnectionString, pColonPos - pConnectionString);
 	} else {
 		strcpy(pServer, pConnectionString);
+		strcpy(pPort, getDefaultPort());
 	}
 	return true;
 }
@@ -271,13 +269,13 @@ void
 echoConCtrl::makeEchoWareVersion()
 {
 	char *szVersion = m_echoConnection.getDllVersion();
-
+    
 	if (strlen(szVersion) == 0) {
 		sprintf(m_szVersionStatus, "EchoWare (Version unknown)\nStatus : ");
 	} else {
 		sprintf(m_szVersionStatus, "EchoWare (Version %s)\nStatus : ", szVersion);
 	}
-
+    
 	if (m_echoConnection.isInitialized()) {
 		strcat(m_szVersionStatus, "Active");
 	} else {
@@ -301,14 +299,14 @@ bool
 echoConCtrl::isEncryptionPossible() 
 {
 	HMODULE hMod = LoadLibrary("libeay32.dll");
-
+    
 	if (hMod) {
 		m_bEncryptionPossible = true;
 		FreeLibrary(hMod);
 	} else {
 		m_bEncryptionPossible = false;
 	}
-
+    
 	return m_bEncryptionPossible; 
 }
 
@@ -377,5 +375,60 @@ echoConCtrl::getIPbyName(char *server)
 		}
 	} else {
 		return server;
+	}
+}
+
+bool 
+echoConCtrl::setLocalProxyInfo(ECHOPROP *echoProp)
+{
+	if (!m_echoConnection.isInitialized()) {
+		m_dwLastError = ID_ECHO_ERROR_LIB_NOT_INITIALIZED;
+		return false;
+	}
+
+	m_bLocalProxyEnabled = m_echoConnection.isLocalProxyEnable();
+
+	if ((strlen(echoProp->ipaddr)   >= ID_STRING_SIZE) ||
+		(strlen(echoProp->server)   >= ID_STRING_SIZE) ||
+		(strlen(echoProp->port)     >= ID_STRING_SIZE) ||
+		(strlen(echoProp->username) >= ID_STRING_SIZE) ||
+		(strlen(echoProp->pwd)      >= ID_STRING_SIZE)) {
+		m_dwLastError = ID_ECHO_ERROR_UNKNOWN;
+		return false;
+	}
+
+	strcpy(m_localProxyInfo.server, echoProp->server);
+	strcpy(m_localProxyInfo.port, echoProp->port);
+	strcpy(m_localProxyInfo.username, echoProp->username);
+	strcpy(m_localProxyInfo.pwd, echoProp->pwd);
+
+	char *ipAddr = getIPbyName(m_localProxyInfo.server);
+
+	if (ipAddr == NULL) return false;
+
+	strcpy(m_localProxyInfo.ipaddr, ipAddr);
+
+	if (!m_echoConnection.setLocalProxyInfo(&m_localProxyInfo)) {
+		m_dwLastError = m_echoConnection.getLastError();
+		return false;
+	} else {
+		m_dwLastError = ID_ECHO_ERROR_SUCCESS;
+		return true;
+	}
+}
+
+bool
+echoConCtrl::getLocalProxyInfo(ECHOPROP *echoProp)
+{
+	if (m_bLocalProxyEnabled) {
+		strcpy(echoProp->server, m_localProxyInfo.server);
+		strcpy(echoProp->ipaddr, m_localProxyInfo.ipaddr);
+		strcpy(echoProp->port, m_localProxyInfo.port);
+		strcpy(echoProp->username, m_localProxyInfo.username);
+		strcpy(echoProp->pwd, m_localProxyInfo.pwd);
+		echoProp->connectionType = m_localProxyInfo.connectionType;
+		return true;
+	} else {
+		return false;
 	}
 }

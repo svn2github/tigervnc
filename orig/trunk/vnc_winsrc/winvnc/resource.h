@@ -48,6 +48,7 @@
 #define IDD_CONN_HOST                   155
 #define IDD_ECHO_CONNECTION             156
 #define IDD_ECHO_PARAMS                 157
+#define IDD_ECHO_CONN_ADV               158
 #define IDC_STATIC_DRVINFO              1003
 #define IDC_CONNECT_SOCK                1004
 #define IDC_BLANK_SCREEN                1005
@@ -192,6 +193,12 @@
 #define IDC_ECHOSERVER_STATUS           1164
 #define IDC_ECHOWARE_STATUS             1165
 #define IDC_ECHO_ENCRYPTION             1166
+#define IDC_ECHO_HTTP_ADDR              1167
+#define IDC_ECHO_HTTP_PORT              1168
+#define IDC_ECHO_AUTH_CHECK             1169
+#define IDC_ECHO_HTTP_PWD               1170
+#define IDC_ECHO_HTTP_USERNAME          1171
+#define IDC_ECHO_ADV                    1172
 #define ID_PROPERTIES                   40001
 #define ID_CLOSE                        40002
 #define ID_KILLCLIENTS                  40003
@@ -205,9 +212,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        158
+#define _APS_NEXT_RESOURCE_VALUE        159
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1167
+#define _APS_NEXT_CONTROL_VALUE         1173
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -47,6 +47,11 @@ public:
 
 	int getNumEntries() { return m_NumEntries; };
 
+	bool isLocalProxyEnable() { return m_bLocalProxyEnabled; }
+
+	bool setLocalProxyInfo(ECHOPROP *echoProp);
+	bool getLocalProxyInfo(ECHOPROP *echoProp);
+
 	bool isEncryptionPossible();
 	int  isEncrypted() { return m_encrypted; }
 	bool setEncryption(int status);
@@ -75,9 +80,12 @@ private:
 	int m_NumEntries;
 	DWORD m_dwLastError;
 
+	ECHOPROP m_localProxyInfo;
+
 	int  m_encrypted;
 	int  m_enableEchoConnection;
 	bool m_bEncryptionPossible;
+	bool m_bLocalProxyEnabled;
 
 	char m_szVersionStatus[ID_STRING_SIZE];
 

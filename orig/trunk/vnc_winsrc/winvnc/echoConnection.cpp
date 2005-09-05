@@ -481,6 +481,9 @@ echoConnection::initEchoProcAddr()
 
 	if (m_lpfnSetEncryptionLevel) m_bEchoWareEncryptionEnabled = true;
 
+	m_lpfnSetLocalProxyInfo = (LPFN_ECHOWARE_SET_LOCAL_PROXY_INFO)
+								GetProcAddress(m_hEchoInst, "SetLocalProxyInfo");
+
 	if (!bResult) {
 		freeLibrary();
 		m_dwLastError = ID_ECHO_ERROR_UNKNOWN;
@@ -506,6 +509,7 @@ echoConnection::resetEchoProcPtrs()
 	m_lpfnDisconnectAllProxies       = NULL;
 	m_lpfnEstablishNewDataChannel    = NULL;
 	m_lpfnSetEncryptionLevel		 = NULL;
+	m_lpfnSetLocalProxyInfo			 = NULL;
 }
 
 void
@@ -513,4 +517,21 @@ echoConnection::resetEchoObjInfo()
 {
 	for (int i = 0; i < MAX_ECHO_SERVERS; i++)
 		m_pEchoProxyInfo[i] = NULL;
+}
+
+bool
+echoConnection::setLocalProxyInfo(ECHOPROP *echoProp)
+{
+	if (!m_bInitialized) {
+		m_dwLastError = ID_ECHO_ERROR_LIB_NOT_INITIALIZED;
+		return false;
+	}
+
+	if (m_lpfnSetLocalProxyInfo == NULL) {
+		m_dwLastError = ID_ECHO_ERROR_UNKNOWN;
+		return false;
+	}
+
+	m_lpfnSetLocalProxyInfo(echoProp->ipaddr, echoProp->port, echoProp->username, echoProp->pwd);
+	return true;
 }

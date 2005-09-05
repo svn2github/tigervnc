@@ -1748,6 +1748,9 @@ BOOL CALLBACK VNCOptions::DlgProcEchoConnection(HWND hwnd, UINT uMsg,
 		case IDC_ECHO_REMOVE:
 			_this->m_pEchoPropView->Remove();
 			return TRUE;
+		case IDC_ECHO_ADV:
+			_this->m_pEchoPropView->AdvancedProps();
+			return TRUE;
 		}
 		return 0;
 	case WM_DESTROY:
@@ -1823,7 +1826,7 @@ VNCOptions::SavePassword(HKEY key, const char *buffer, const char *entry_name)
 void 
 VNCOptions::LoadEchoConnectionSettings()
 {
-	HKEY hKey, hkEchoServers, hkServerInfo;
+	HKEY hKey, hkEchoServers, hkServerInfo, hkEchoProxy;
 	DWORD dw;
 		
 	if (RegOpenKey(HKEY_CURRENT_USER, SETTINGS_KEY_NAME, &hKey) != ERROR_SUCCESS ) {
@@ -1833,6 +1836,43 @@ VNCOptions::LoadEchoConnectionSettings()
 
 	pApp->m_echoConCtrl.allowEchoConnection(read(hKey, "AllowEchoConnection", 0));
 	pApp->m_echoConCtrl.setEncryption(read(hKey, "AllowEncryption", 0));
+
+	if (hKey == NULL ||
+		RegCreateKeyEx(hKey, "EchoProxy", 0, REG_NONE, REG_OPTION_NON_VOLATILE,
+					   KEY_READ, NULL, &hkEchoProxy, &dw) != ERROR_SUCCESS) {
+		hkEchoProxy = NULL;
+	} 
+
+	ECHOPROP echoProp;
+	ZeroMemory(&echoProp, sizeof(echoProp));
+	char pwd[MAXPWLEN];
+	char *server, *port, *username;
+	pwd[0] = '\0';
+
+	if (hkEchoProxy != NULL) {
+		server = LoadString(hkEchoProxy, "server");
+		if (server != 0) {
+			strcpy(echoProp.server, server);
+			delete [] server;
+		}
+		port = LoadString(hkEchoProxy, "port");
+		if (port != 0) {
+			strcpy(echoProp.port, port);
+			delete [] port;
+		}
+		username = LoadString(hkEchoProxy, "username");
+		if (username != 0) {
+			strcpy(echoProp.username, username);
+			delete [] username;
+		}
+		LoadPassword(hkEchoProxy, (char *)pwd, "password");
+		if (strlen(pwd) != 0) {
+			strcpy(echoProp.pwd, vncDecryptPasswd((const unsigned char *)pwd));
+		}
+		RegCloseKey(hkEchoProxy);
+	}
+
+	pApp->m_echoConCtrl.setLocalProxyInfo(&echoProp);
 
 	if (hKey == NULL || 
 		RegCreateKeyEx(hKey, "EchoServers", 0, REG_NONE, REG_OPTION_NON_VOLATILE,
@@ -1846,40 +1886,43 @@ VNCOptions::LoadEchoConnectionSettings()
 	int num = GetAllEchoServerKeys(hkEchoServers, (char*)&nameArray);
 	int index = 0;
 
-	ECHOPROP echoProp;
-	char pwd[MAXPWLEN];
 	int connectionType = 0;
 
 	for (int i = 0; i < num; i++) {
 		RegCreateKeyEx(hkEchoServers, (char *)&nameArray[index], 0, REG_NONE, REG_OPTION_NON_VOLATILE,
-					   KEY_ALL_ACCESS, NULL, &hkServerInfo, &dw);
-		char *server = LoadString(hkServerInfo, "server");
-		strcpy(echoProp.server, server);
-		char *port = LoadString(hkServerInfo, "port");
-		strcpy(echoProp.port, port);
-		char *username = LoadString(hkServerInfo, "username");
-		strcpy(echoProp.username, username);
+					   KEY_READ, NULL, &hkServerInfo, &dw);
+		server = LoadString(hkServerInfo, "server");
+		if (server != 0) {
+			strcpy(echoProp.server, server);
+			delete [] server;
+		}
+		port = LoadString(hkServerInfo, "port");
+		if (port != 0) {
+			strcpy(echoProp.port, port);
+			delete [] port;
+		}
+		username = LoadString(hkServerInfo, "username");
+		if (username != 0) {
+			strcpy(echoProp.username, username);
+			delete [] username;
+		}
 		LoadPassword(hkServerInfo, (char *)pwd, "password");
-		char bufPwd[MAXPWLEN]; bufPwd[0] = '\0';
 		strcpy(echoProp.pwd, vncDecryptPasswd((const unsigned char *)pwd));
 		echoProp.connectionType = read(hkServerInfo, "ConnectionType", 0);
 
 		pApp->m_echoConCtrl.add(&echoProp);
 
-		delete [] server;
-		delete [] port;
-		delete [] username;
-
 		index += strlen((char *)&nameArray[index]) + 1;
+	
+		RegCloseKey(hkServerInfo);
 	}
-	RegCloseKey(hkServerInfo);
 	RegCloseKey(hkEchoServers);
 }
 
 void 
 VNCOptions::SaveEchoConnectionSettings()
 {
-	HKEY hKey, hkEchoServers;
+	HKEY hKey, hkEchoServers, hkEchoProxy;
 	DWORD dw;
 
 	if (RegOpenKey(HKEY_CURRENT_USER, SETTINGS_KEY_NAME, &hKey) != ERROR_SUCCESS ) {
@@ -1889,6 +1932,31 @@ VNCOptions::SaveEchoConnectionSettings()
 
 	save(hKey, "AllowEchoConnection", pApp->m_echoConCtrl.getEnableEchoConnection());
 	save(hKey, "AllowEncryption", pApp->m_echoConCtrl.isEncrypted());
+
+	if (hKey == NULL ||
+		RegCreateKeyEx(hKey, "EchoProxy", 0, REG_NONE, REG_OPTION_NON_VOLATILE,
+					   KEY_ALL_ACCESS, NULL, &hkEchoProxy, &dw) != ERROR_SUCCESS) {
+		hkEchoProxy = NULL;
+	} 
+
+	ECHOPROP echoProp;
+
+	if (hkEchoProxy != NULL) {
+		if (pApp->m_echoConCtrl.getLocalProxyInfo(&echoProp)) {
+			SaveString(hkEchoProxy, "server", echoProp.server);
+			SaveString(hkEchoProxy, "username", echoProp.username);
+			SaveString(hkEchoProxy, "port", echoProp.port);
+			char bufPwd[MAXPWLEN]; bufPwd[0] = '\0';
+			vncEncryptPasswd((unsigned char *)bufPwd, echoProp.pwd);
+			SavePassword(hkEchoProxy, bufPwd, "password");
+		} else {
+			SaveString(hkEchoProxy, "server", "");
+			SaveString(hkEchoProxy, "username", "");
+			SaveString(hkEchoProxy, "port", "");
+			SavePassword(hkEchoProxy, "", "password");
+		}
+		RegCloseKey(hkEchoProxy);
+	}
 
 	if (hKey == NULL || 
 		RegCreateKeyEx(hKey, "EchoServers", 0, REG_NONE, REG_OPTION_NON_VOLATILE,
@@ -1901,7 +1969,6 @@ VNCOptions::SaveEchoConnectionSettings()
 
 	HKEY hkServerInfo;
 	char keyName[256];
-	ECHOPROP echoProp;
 
 	DeleteAllEchoServerKeys(hkEchoServers);
 

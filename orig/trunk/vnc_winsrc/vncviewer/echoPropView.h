@@ -20,7 +20,6 @@
 #ifndef _ECHOPROPVIEW_H
 #define _ECHOPROPVIEW_H
 
-#include "res/resource.h"
 #include "echoConCtrl.h"
 #include "commctrl.h"
 #include "echoTypes.h"
@@ -32,13 +31,15 @@ public:
 	~echoPropView();
 
 	static BOOL CALLBACK editParamsDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
+	static BOOL CALLBACK advEchoParamsDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	
 	void Apply();
 	void Init();
 	void Remove();
 	bool Add();
 	bool Add(ECHOPROP *echoProp);
 	void Edit();
+	void AdvancedProps();
 	void onGetDispInfo(NMLVDISPINFO *pDI);
 	void DisableCheck();
 	void EncryptionCheck();

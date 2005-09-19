@@ -43,6 +43,8 @@ class vncMenu;
 #include "vncProperties.h"
 #include "vncAbout.h"
 #include "ControlPanel.h"
+#include "WallpaperUtils.h"
+
 
 // Constants
 extern const UINT MENU_SERVER_SHAREWINDOW;
@@ -89,6 +91,9 @@ protected:
 
 	// About dialog for this server
 	vncAbout		m_about;
+
+	// The object to hide/show wallpaper and ActiveDesktop
+	WallpaperUtils  m_wputils;
 
 	HWND			m_hwnd;
 	HMENU			m_hmenu;

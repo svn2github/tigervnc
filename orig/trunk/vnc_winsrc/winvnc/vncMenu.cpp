@@ -302,6 +302,13 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 		// Adjust the icon accordingly
 		_this->FlashTrayIcon(_this->m_server->AuthClientCount() != 0);
 
+		if (_this->m_server->AuthClientCount() != 0) {
+		if (_this->m_server->RemoveWallpaperEnabled())
+			_this->m_wputils.KillWallpaper();
+		} else {
+			_this->m_wputils.RestoreWallpaper();
+		}
+
 		_this->CPanel->UpdateListView();
 
 		return 0;

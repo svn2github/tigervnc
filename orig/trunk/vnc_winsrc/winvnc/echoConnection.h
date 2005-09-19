@@ -132,13 +132,9 @@ private:
 
 	static const char szDefaultPort[];
 
-	static const char noProxyConnection[];
-	static const char authChannelConnecting[];
-	static const char authChannelEstablished[];
-	static const char partnerSearchInitiated[];
-	static const char newRelayChannelConnecting[];
-	static const char relayChannelEstablished1[];
-	static const char relayChannelEstablished2[];
+	static const char disconnected[];
+	static const char connecting[];
+	static const char connected[];
 };
 
 #endif // ECHO_CONNECTION_H

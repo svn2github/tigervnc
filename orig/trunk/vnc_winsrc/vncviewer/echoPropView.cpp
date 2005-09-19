@@ -340,7 +340,7 @@ echoPropView::AdvancedProps()
 	if (result == IDOK) {
 		m_pEchoConCtrl->setLocalProxyInfo(&m_echoProps);
 	}
-
+	memset(&m_echoProps, 0, sizeof(ECHOPROP));
 }
 
 void 

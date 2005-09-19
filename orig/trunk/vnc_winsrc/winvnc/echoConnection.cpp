@@ -29,13 +29,9 @@
 
 const char echoConnection::szDefaultPort[]				= "1328";
 
-const char echoConnection::noProxyConnection[]			= "No Proxy Connection";
-const char echoConnection::authChannelConnecting[]		= "Auth Channel Connecting";
-const char echoConnection::authChannelEstablished[]		= "Auth Channel Established";
-const char echoConnection::partnerSearchInitiated[]		= "Partner Search Initiated";
-const char echoConnection::newRelayChannelConnecting[]	= "New Relay Channel Connecting";
-const char echoConnection::relayChannelEstablished1[]	= "1st Relay Channel Established";
-const char echoConnection::relayChannelEstablished2[]	= "2st Relay Channel Established";
+const char echoConnection::disconnected[]	= "Disconnected";
+const char echoConnection::connecting[]		= "Connecting...";
+const char echoConnection::connected[]		= "Connected";
 
 echoConnection::echoConnection()
 {
@@ -303,9 +299,9 @@ echoConnection::deleteAll()
 bool
 echoConnection::getStatus(ECHOPROP *echoProp, int *status)
 {
+	*status = 0;
 	if (!m_bInitialized) {
 		m_dwLastError = ID_ECHO_ERROR_LIB_NOT_INITIALIZED;
-		*status = 0;
 		return false;
 	}
 
@@ -329,26 +325,20 @@ echoConnection::getStatusString(ECHOPROP *echoProp)
 	m_szString[0] = '\0';
 
 	if (bResult) {
-		if (status & MASK_ECHO_STATUS_NO_CONNECTION) {
-			sprintf(m_szString, "%s %s",m_szString, noProxyConnection);
-		}
-		if (status & MASK_ECHO_STATUS_AUTH_CHANNEL_CONNECTING) {
-			sprintf(m_szString, "%s %s",m_szString, authChannelConnecting);
-		}
-		if (status & MASK_ECHO_STATUS_AUTH_CHANNEL_ESTABLISHED) {
-			sprintf(m_szString, "%s %s",m_szString, authChannelEstablished);
-		}
-		if (status & MASK_ECHO_STATUS_PARTNER_SEARCH) {
-			sprintf(m_szString, "%s %s",m_szString, partnerSearchInitiated);
-		}
-		if (status & MASK_ECHO_STATUS_RELAY_CHANNEL_CONNECTING) {
-			sprintf(m_szString, "%s %s",m_szString, newRelayChannelConnecting);
-		}
-		if (status & MASK_ECHO_STATUS_RELAY_CHANNEL_ESTABLISHED_1) {
-			sprintf(m_szString, "%s %s",m_szString, relayChannelEstablished1);
-		}
-		if (status & MASK_ECHO_STATUS_RELAY_CHANNEL_ESTABLISHED_2) {
-			sprintf(m_szString, "%s %s",m_szString, relayChannelEstablished2);
+		if (status == 0) {
+			strcpy(m_szString, disconnected);
+		} else {
+			if (status & MASK_ECHO_STATUS_AUTH_CHANNEL_CONNECTING) {
+				strcpy(m_szString, connecting);
+			} else {
+				if ((status & MASK_ECHO_STATUS_AUTH_CHANNEL_ESTABLISHED) || 
+					(status & MASK_ECHO_STATUS_PARTNER_SEARCH) || 
+					(status & MASK_ECHO_STATUS_RELAY_CHANNEL_CONNECTING) ||
+					(status & MASK_ECHO_STATUS_RELAY_CHANNEL_ESTABLISHED_1) ||
+					(status & MASK_ECHO_STATUS_RELAY_CHANNEL_ESTABLISHED_2)) {
+						strcpy(m_szString, connected);
+				}
+			}
 		}
 		if (strlen(m_szString) == 0) {
 			strcpy(m_szString, "Unknown Echo Connection Status");

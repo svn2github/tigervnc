@@ -61,6 +61,8 @@ echoConCtrl::initialize(int callbackPort)
 		return false;
 	}
 
+	m_echoConnection.setLogging(true);
+
 	ZeroMemory(&m_localProxyInfo, sizeof(m_localProxyInfo));
 
 	ECHOPROP echoProp;

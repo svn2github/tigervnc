@@ -8,7 +8,7 @@ JAR = jar
 ARCHIVE = VncViewer.jar
 MANIFEST = MANIFEST.MF
 PAGES = index.vnc
-INSTALL_DIR = ./classes
+INSTALL_DIR = /usr/local/vnc/classes
 
 CLASSES = VncViewer.class RfbProto.class AuthPanel.class VncCanvas.class \
 	  OptionsFrame.class ClipboardFrame.class ButtonPanel.class \

@@ -47,7 +47,7 @@ class OptionsFrame extends Frame
   };
 
   static String[][] values = {
-    { "Raw", "RRE", "CoRRE", "Hextile", "Zlib", "Tight" },
+    { "Auto", "Raw", "RRE", "CoRRE", "Hextile", "Zlib", "Tight" },
     { "Default", "1", "2", "3", "4", "5", "6", "7", "8", "9" },
     { "JPEG off", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" },
     { "Enable", "Ignore", "Disable" },
@@ -142,7 +142,7 @@ class OptionsFrame extends Frame
 
     // Set up defaults
 
-    choices[encodingIndex].select("Tight");
+    choices[encodingIndex].select("Auto");
     choices[compressLevelIndex].select("Default");
     choices[jpegQualityIndex].select("6");
     choices[cursorUpdatesIndex].select("Enable");
@@ -213,6 +213,8 @@ class OptionsFrame extends Frame
     } else if (choices[encodingIndex].getSelectedItem().equals("Tight")) {
       preferredEncoding = RfbProto.EncodingTight;
       enableCompressLevel = true;
+    } else if (choices[encodingIndex].getSelectedItem().equals("Auto")) {
+      preferredEncoding = RfbProto.EncodingTight;
     }
 
     encodings[nEncodings++] = preferredEncoding;
@@ -310,7 +312,8 @@ class OptionsFrame extends Frame
       choices[eightBitColorsIndex].getSelectedItem().equals("Yes");
 
     boolean enableJPEG = !eightBitColors &&
-      choices[encodingIndex].getSelectedItem().equals("Tight");
+      (choices[encodingIndex].getSelectedItem().equals("Tight") ||
+       choices[encodingIndex].getSelectedItem().equals("Auto"));
 
     labels[jpegQualityIndex].setEnabled(enableJPEG);
     choices[jpegQualityIndex].setEnabled(enableJPEG);

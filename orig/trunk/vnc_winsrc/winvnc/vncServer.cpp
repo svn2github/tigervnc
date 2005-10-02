@@ -993,13 +993,6 @@ vncServer::SockConnect(BOOL On)
 					m_socketConn = NULL;
 					return FALSE;
 				}
-
-				if (m_echoConCtrl.getEnableEchoConnection() != 0) {
-					m_echoConCtrl.initialize(m_port);
-				} else {
-					m_echoConCtrl.setCallbackPort(m_port);
-				}
-
 			} else
 			{
 				// No autoportselect
@@ -1009,6 +1002,12 @@ vncServer::SockConnect(BOOL On)
 					m_socketConn = NULL;
 					return FALSE;
 				}
+			}
+
+			if (m_echoConCtrl.getEnableEchoConnection() != 0) {
+				m_echoConCtrl.initialize(m_port);
+			} else {
+				m_echoConCtrl.setCallbackPort(m_port);
 			}
 
 			// Now let's start the HTTP connection stuff

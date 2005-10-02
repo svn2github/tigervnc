@@ -1032,11 +1032,11 @@ vncProperties::Load(BOOL usersettings)
 		} else {
 			m_server->SetAuthHosts(0);
 		}
-
-		LoadEchoConnectionSettings(hkLocal);
 	} else {
 		m_server->SetAuthHosts(0);
 	}
+
+	LoadEchoConnectionSettings(hkLocal);
 
 	// LOAD THE USER PREFERENCES
 

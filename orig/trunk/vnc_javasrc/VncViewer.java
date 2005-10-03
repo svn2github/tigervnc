@@ -461,16 +461,79 @@ public class VncViewer extends java.applet.Applet
   // Send current encoding list to the RFB server.
   //
 
+  int[] encodingsSaved;
+  int nEncodingsSaved;
+
   void setEncodings() {
-    try {
-      if (rfb != null && rfb.inNormalProtocol) {
-	rfb.writeSetEncodings(options.encodings, options.nEncodings);
-	if (vc != null) {
-	  vc.softCursorFree();
-	}
+    if (options == null || rfb == null || !rfb.inNormalProtocol)
+      return;
+
+    int[] encodings = new int[20];
+    int nEncodings = 0;
+
+    encodings[nEncodings++] = options.preferredEncoding;
+    if (options.useCopyRect) {
+      encodings[nEncodings++] = RfbProto.EncodingCopyRect;
+    }
+
+    if (options.preferredEncoding != RfbProto.EncodingHextile) {
+      encodings[nEncodings++] = RfbProto.EncodingHextile;
+    }
+    if (options.preferredEncoding != RfbProto.EncodingTight) {
+      encodings[nEncodings++] = RfbProto.EncodingTight;
+    }
+    if (options.preferredEncoding != RfbProto.EncodingZlib) {
+      encodings[nEncodings++] = RfbProto.EncodingZlib;
+    }
+    if (options.preferredEncoding != RfbProto.EncodingCoRRE) {
+      encodings[nEncodings++] = RfbProto.EncodingCoRRE;
+    }
+    if (options.preferredEncoding != RfbProto.EncodingRRE) {
+      encodings[nEncodings++] = RfbProto.EncodingRRE;
+    }
+
+    if (options.compressLevel >= 0 && options.compressLevel <= 9) {
+      encodings[nEncodings++] =
+        RfbProto.EncodingCompressLevel0 + options.compressLevel;
+    }
+    if (options.jpegQuality >= 0 && options.jpegQuality <= 9) {
+      encodings[nEncodings++] =
+        RfbProto.EncodingQualityLevel0 + options.jpegQuality;
+    }
+
+    if (options.requestCursorUpdates) {
+      encodings[nEncodings++] = RfbProto.EncodingXCursor;
+      encodings[nEncodings++] = RfbProto.EncodingRichCursor;
+      if (!options.ignoreCursorUpdates)
+	encodings[nEncodings++] = RfbProto.EncodingPointerPos;
+    }
+
+    encodings[nEncodings++] = RfbProto.EncodingLastRect;
+    encodings[nEncodings++] = RfbProto.EncodingNewFBSize;
+
+    boolean encodingsWereChanged = false;
+    if (nEncodings != nEncodingsSaved) {
+      encodingsWereChanged = true;
+    } else {
+      for (int i = 0; i < nEncodings; i++) {
+        if (encodings[i] != encodingsSaved[i]) {
+          encodingsWereChanged = true;
+          break;
+        }
       }
-    } catch (Exception e) {
-      e.printStackTrace();
+    }
+
+    if (encodingsWereChanged) {
+      try {
+        rfb.writeSetEncodings(encodings, nEncodings);
+        if (vc != null) {
+          vc.softCursorFree();
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      encodingsSaved = encodings;
+      nEncodingsSaved = nEncodings;
     }
   }
 

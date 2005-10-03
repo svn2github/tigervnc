@@ -404,8 +404,7 @@ class VncCanvas extends Canvas
 	  fullUpdateNeeded = true;
 	}
 
-        // DEBUG:
-        // System.out.println("Throughput " + rfb.kbitsPerSecond()+ " kbit/s");
+        viewer.setEncodings();
 
 	rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
 					  rfb.framebufferHeight,

@@ -468,12 +468,35 @@ public class VncViewer extends java.applet.Applet
     if (options == null || rfb == null || !rfb.inNormalProtocol)
       return;
 
+    int preferredEncoding = options.preferredEncoding;
+    if (preferredEncoding == -1) {
+      if (nEncodingsSaved < 1) {
+        // Choose Tight encoding for the very first update.
+        System.out.println("Using Tight encoding");
+        preferredEncoding = RfbProto.EncodingTight;
+      } else {
+        long kbitsPerSecond = rfb.kbitsPerSecond();
+        if (kbitsPerSecond > 2000 &&
+            encodingsSaved[0] != RfbProto.EncodingHextile) {
+          // Switch to Hextile if the connection speed is above 2Mbps.
+          System.out.println("Throughput " + kbitsPerSecond +
+                             " kbit/s - changing to Hextile encoding");
+          preferredEncoding = RfbProto.EncodingHextile;
+        } else if (kbitsPerSecond < 1000 &&
+                   encodingsSaved[0] != RfbProto.EncodingTight) {
+          // Switch to Tight if the connection speed is below 1Mbps.
+          System.out.println("Throughput " + kbitsPerSecond +
+                             " kbit/s - changing to Tight encoding");
+          preferredEncoding = RfbProto.EncodingTight;
+        } else {
+          // Don't change the encoder.
+          preferredEncoding = encodingsSaved[0];
+        }
+      }
+    }
+
     int[] encodings = new int[20];
     int nEncodings = 0;
-
-    int preferredEncoding = options.preferredEncoding;
-    if (preferredEncoding == -1)
-      preferredEncoding = RfbProto.EncodingTight;
 
     encodings[nEncodings++] = preferredEncoding;
     if (options.useCopyRect) {

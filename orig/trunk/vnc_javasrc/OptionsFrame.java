@@ -195,6 +195,7 @@ class OptionsFrame extends Frame
 
     preferredEncoding = RfbProto.EncodingRaw;
     boolean enableCompressLevel = false;
+    boolean enableQualityLevel = false;
 
     if (choices[encodingIndex].getSelectedItem().equals("RRE")) {
       preferredEncoding = RfbProto.EncodingRRE;
@@ -208,51 +209,41 @@ class OptionsFrame extends Frame
     } else if (choices[encodingIndex].getSelectedItem().equals("Tight")) {
       preferredEncoding = RfbProto.EncodingTight;
       enableCompressLevel = true;
+      enableQualityLevel = !eightBitColors;
     } else if (choices[encodingIndex].getSelectedItem().equals("Auto")) {
-      preferredEncoding = RfbProto.EncodingTight;
+      preferredEncoding = -1;
+      enableQualityLevel = !eightBitColors;
     }
 
     // Handle compression level setting.
 
-    if (enableCompressLevel) {
-      labels[compressLevelIndex].setEnabled(true);
-      choices[compressLevelIndex].setEnabled(true);
-      try {
-	compressLevel =
-	  Integer.parseInt(choices[compressLevelIndex].getSelectedItem());
-      }
-      catch (NumberFormatException e) {
-	compressLevel = -1;
-      }
-      if (compressLevel < 1 || compressLevel > 9) {
-	compressLevel = -1;
-      }
-    } else {
-      labels[compressLevelIndex].setEnabled(false);
-      choices[compressLevelIndex].setEnabled(false);
+    try {
+      compressLevel =
+        Integer.parseInt(choices[compressLevelIndex].getSelectedItem());
+    }
+    catch (NumberFormatException e) {
       compressLevel = -1;
     }
+    if (compressLevel < 1 || compressLevel > 9) {
+      compressLevel = -1;
+    }
+    labels[compressLevelIndex].setEnabled(enableCompressLevel);
+    choices[compressLevelIndex].setEnabled(enableCompressLevel);
 
     // Handle JPEG quality setting.
 
-    if (preferredEncoding == RfbProto.EncodingTight && !eightBitColors) {
-      labels[jpegQualityIndex].setEnabled(true);
-      choices[jpegQualityIndex].setEnabled(true);
-      try {
-	jpegQuality =
-	  Integer.parseInt(choices[jpegQualityIndex].getSelectedItem());
-      }
-      catch (NumberFormatException e) {
-	jpegQuality = -1;
-      }
-      if (jpegQuality < 0 || jpegQuality > 9) {
-	jpegQuality = -1;
-      }
-    } else {
-      labels[jpegQualityIndex].setEnabled(false);
-      choices[jpegQualityIndex].setEnabled(false);
+    try {
+      jpegQuality =
+        Integer.parseInt(choices[jpegQualityIndex].getSelectedItem());
+    }
+    catch (NumberFormatException e) {
       jpegQuality = -1;
     }
+    if (jpegQuality < 0 || jpegQuality > 9) {
+      jpegQuality = -1;
+    }
+    labels[jpegQualityIndex].setEnabled(enableQualityLevel);
+    choices[jpegQualityIndex].setEnabled(enableQualityLevel);
 
     // Request cursor shape updates if necessary.
 

@@ -471,24 +471,28 @@ public class VncViewer extends java.applet.Applet
     int[] encodings = new int[20];
     int nEncodings = 0;
 
-    encodings[nEncodings++] = options.preferredEncoding;
+    int preferredEncoding = options.preferredEncoding;
+    if (preferredEncoding == -1)
+      preferredEncoding = RfbProto.EncodingTight;
+
+    encodings[nEncodings++] = preferredEncoding;
     if (options.useCopyRect) {
       encodings[nEncodings++] = RfbProto.EncodingCopyRect;
     }
 
-    if (options.preferredEncoding != RfbProto.EncodingHextile) {
+    if (preferredEncoding != RfbProto.EncodingHextile) {
       encodings[nEncodings++] = RfbProto.EncodingHextile;
     }
-    if (options.preferredEncoding != RfbProto.EncodingTight) {
+    if (preferredEncoding != RfbProto.EncodingTight) {
       encodings[nEncodings++] = RfbProto.EncodingTight;
     }
-    if (options.preferredEncoding != RfbProto.EncodingZlib) {
+    if (preferredEncoding != RfbProto.EncodingZlib) {
       encodings[nEncodings++] = RfbProto.EncodingZlib;
     }
-    if (options.preferredEncoding != RfbProto.EncodingCoRRE) {
+    if (preferredEncoding != RfbProto.EncodingCoRRE) {
       encodings[nEncodings++] = RfbProto.EncodingCoRRE;
     }
-    if (options.preferredEncoding != RfbProto.EncodingRRE) {
+    if (preferredEncoding != RfbProto.EncodingRRE) {
       encodings[nEncodings++] = RfbProto.EncodingRRE;
     }
 

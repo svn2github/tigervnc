@@ -404,7 +404,7 @@ class VncCanvas extends Canvas
 	  fullUpdateNeeded = true;
 	}
 
-        viewer.setEncodings();
+        viewer.autoSelectEncodings();
 
 	rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
 					  rfb.framebufferHeight,

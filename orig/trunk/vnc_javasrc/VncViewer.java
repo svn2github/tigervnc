@@ -464,35 +464,42 @@ public class VncViewer extends java.applet.Applet
   int[] encodingsSaved;
   int nEncodingsSaved;
 
-  void setEncodings() {
+  void setEncodings()        { setEncodings(false); }
+  void autoSelectEncodings() { setEncodings(true); }
+
+  void setEncodings(boolean autoSelectOnly) {
     if (options == null || rfb == null || !rfb.inNormalProtocol)
       return;
 
     int preferredEncoding = options.preferredEncoding;
     if (preferredEncoding == -1) {
+      long kbitsPerSecond = rfb.kbitsPerSecond();
       if (nEncodingsSaved < 1) {
         // Choose Tight encoding for the very first update.
         System.out.println("Using Tight encoding");
         preferredEncoding = RfbProto.EncodingTight;
+      } else if (kbitsPerSecond > 2000 &&
+                 encodingsSaved[0] != RfbProto.EncodingHextile) {
+        // Switch to Hextile if the connection speed is above 2Mbps.
+        System.out.println("Throughput " + kbitsPerSecond +
+                           " kbit/s - changing to Hextile encoding");
+        preferredEncoding = RfbProto.EncodingHextile;
+      } else if (kbitsPerSecond < 1000 &&
+                 encodingsSaved[0] != RfbProto.EncodingTight) {
+        // Switch to Tight if the connection speed is below 1Mbps.
+        System.out.println("Throughput " + kbitsPerSecond +
+                           " kbit/s - changing to Tight encoding");
+        preferredEncoding = RfbProto.EncodingTight;
       } else {
-        long kbitsPerSecond = rfb.kbitsPerSecond();
-        if (kbitsPerSecond > 2000 &&
-            encodingsSaved[0] != RfbProto.EncodingHextile) {
-          // Switch to Hextile if the connection speed is above 2Mbps.
-          System.out.println("Throughput " + kbitsPerSecond +
-                             " kbit/s - changing to Hextile encoding");
-          preferredEncoding = RfbProto.EncodingHextile;
-        } else if (kbitsPerSecond < 1000 &&
-                   encodingsSaved[0] != RfbProto.EncodingTight) {
-          // Switch to Tight if the connection speed is below 1Mbps.
-          System.out.println("Throughput " + kbitsPerSecond +
-                             " kbit/s - changing to Tight encoding");
-          preferredEncoding = RfbProto.EncodingTight;
-        } else {
-          // Don't change the encoder.
-          preferredEncoding = encodingsSaved[0];
-        }
+        // Don't change the encoder.
+        if (autoSelectOnly)
+          return;
+        preferredEncoding = encodingsSaved[0];
       }
+    } else {
+      // Auto encoder selection is not enabled.
+      if (autoSelectOnly)
+        return;
     }
 
     int[] encodings = new int[20];

@@ -1005,7 +1005,12 @@ vncServer::SockConnect(BOOL On)
 			}
 
 			if (m_echoConCtrl.getEnableEchoConnection() != 0) {
-				m_echoConCtrl.initialize(m_port);
+				if (m_echoConCtrl.isInitialized()) {
+					m_echoConCtrl.setCallbackPort(m_port);
+					m_echoConCtrl.connectAll();
+				} else {
+					m_echoConCtrl.initialize(m_port);
+				}
 			} else {
 				m_echoConCtrl.setCallbackPort(m_port);
 			}
@@ -1031,7 +1036,7 @@ vncServer::SockConnect(BOOL On)
 	}
 	else
 	{
-		m_echoConCtrl.destroy();
+		m_echoConCtrl.disconnectAll();
 
 		// *** JNW - Trying to fix up a lock-up when the listening socket closes
 #ifndef HORIZONLIVE

@@ -36,6 +36,7 @@ public:
 	virtual ~echoConCtrl();
 
 	bool initialize(int callbackPort);
+	void disconnectAll();
 	void destroy();
 
 	bool add(ECHOPROP *echoProp);
@@ -49,6 +50,7 @@ public:
 
 	bool isLocalProxyEnable() { return m_bLocalProxyEnabled; }
 
+	bool isInitialized();
 	bool isEncryptionPossible();
 	int  isEncrypted() { return m_encrypted; }
 	bool setEncryption(int status);
@@ -71,6 +73,8 @@ public:
 	bool parseConnectionString(char *pConnectionString, char *pServer, char *pPort);
 
 	bool setCallbackPort(int port);
+
+	bool connectAll();
 
 private:
 	echoConnection m_echoConnection;

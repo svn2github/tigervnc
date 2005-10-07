@@ -46,6 +46,7 @@ echoConCtrl::echoConCtrl()
 
 echoConCtrl::~echoConCtrl()
 {
+	destroy();
 }
 
 bool 
@@ -75,11 +76,23 @@ echoConCtrl::initialize(int callbackPort)
 	return true;
 }
 
+void
+echoConCtrl::disconnectAll()
+{
+	m_echoConnection.disconnectAll();
+}
+
 void 
 echoConCtrl::destroy()
 {
 	m_echoConnection.destroy();
 	free();
+}
+
+bool
+echoConCtrl::connectAll()
+{
+	return m_echoConnection.connectAll();
 }
 
 bool 
@@ -227,6 +240,12 @@ char *
 echoConCtrl::getConnectionStatus(ECHOPROP *echoProp)
 {
 	return m_echoConnection.getStatusString(echoProp);
+}
+
+bool
+echoConCtrl::isInitialized()
+{
+	return m_echoConnection.isInitialized();
 }
 
 void 

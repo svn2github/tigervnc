@@ -133,6 +133,7 @@ vncServer::vncServer()
 	m_remote_keyboard = 1;
 #endif
 
+	m_wallpaper_wait = FALSE;
 }
 
 vncServer::~vncServer()
@@ -296,6 +297,10 @@ vncServer::Authenticated(vncClientId clientid)
 			// Create the screen handler if necessary
 			if (m_desktop == NULL)
 			{
+				if (RemoveWallpaperEnabled()) {
+					m_wallpaper_wait = TRUE;
+					DoNotify(WM_SRV_CLIENT_HIDEWALLPAPER, 0, 0);
+				}
 				m_desktop = new vncDesktop();
 				if (m_desktop == NULL)
 				{

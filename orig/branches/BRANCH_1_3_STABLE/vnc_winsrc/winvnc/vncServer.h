@@ -299,6 +299,9 @@ public:
 
   BOOL checkPointer(vncClient *pClient);
 
+	virtual void ClearWallpaperWait() { m_wallpaper_wait = FALSE; }
+	virtual BOOL WallpaperWait() { return m_wallpaper_wait; }
+
 	// Internal stuffs
 protected:
 	// Connection servers
@@ -369,6 +372,9 @@ protected:
 
 	UINT				m_polling_cycle;
 	BOOL				m_polling_cycle_changed;
+
+	// Make sure to remove wallpaper _before_ the first update
+	BOOL				m_wallpaper_wait;
 
 	// Name of this desktop
 	char				*m_name;

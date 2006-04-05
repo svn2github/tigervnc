@@ -297,23 +297,27 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 		break;
 
 		// DEAL WITH NOTIFICATIONS FROM THE SERVER:
+
 	case WM_SRV_CLIENT_AUTHENTICATED:
-	case WM_SRV_CLIENT_DISCONNECT:
-		// Adjust the icon accordingly
-		_this->FlashTrayIcon(_this->m_server->AuthClientCount() != 0);
-
-		if (_this->m_server->AuthClientCount() != 0) {
-		if (_this->m_server->RemoveWallpaperEnabled())
-			_this->m_wputils.KillWallpaper();
-		} else {
-			_this->m_wputils.RestoreWallpaper();
-		}
-
+		_this->FlashTrayIcon(TRUE);
 		_this->CPanel->UpdateListView();
-
 		return 0;
 
+	case WM_SRV_CLIENT_DISCONNECT:
+		if (_this->m_server->AuthClientCount() == 0) {
+			_this->FlashTrayIcon(FALSE);
+			_this->m_wputils.RestoreWallpaper();
+		}
+		_this->CPanel->UpdateListView();
+		return 0;
+
+	case WM_SRV_CLIENT_HIDEWALLPAPER:
+		_this->m_wputils.KillWallpaper();
+		_this->m_server->ClearWallpaperWait();
+		return 0;
+ 
 		// STANDARD MESSAGE HANDLING
+
 	case WM_CREATE:
 		return 0;
 

@@ -174,9 +174,12 @@ vncDesktopThread::run_undetached(void *arg)
 		if (!PeekMessage(&msg, m_desktop->Window(), NULL, NULL, PM_REMOVE))
 		{
 			// Whenever the message queue becomes empty, we check to see whether
-			// there are updates to be passed to clients
-			if (!m_desktop->CheckUpdates())
-				break;
+			// there are updates to be passed to clients (first we make sure
+			// that scheduled wallpaper removal is complete).
+			if (!m_server->WallpaperWait()) {
+				if (!m_desktop->CheckUpdates())
+					break;
+			}
 
 			// Now wait for more messages to be queued
 			if (!WaitMessage()) {

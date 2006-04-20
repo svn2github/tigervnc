@@ -4,7 +4,7 @@ BUILDING vncviewer and WinVNC (TightVNC 1.3dev5 development release)
 IMPORTANT NOTE: This is a development version and may be unstable.
 It's not recommended for production use.
 
-This distibution requires third-party libraries for successfull
+This distribution requires third-party libraries for successful
 compilation. They are NOT included in this archive. The required
 libraries include zlib and JPEG libraries freely available in the
 source form from the following locations:

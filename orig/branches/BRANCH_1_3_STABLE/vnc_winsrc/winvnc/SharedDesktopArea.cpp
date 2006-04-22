@@ -79,10 +79,12 @@ void SharedDesktopArea::Init()
 	BOOL propFullScreen = m_vncprop->GetPrefFullScreen();
 	BOOL propWindowShared = m_vncprop->GetPrefWindowShared();
 	BOOL propAreaShared = m_vncprop->GetPrefScreenAreaShared();
+	BOOL propPrimaryDisplayOnlyShared = m_vncprop->GetPrefPrimaryDisplayOnlyShared();
 
 	SendDlgItemMessage(m_hwnd, IDC_FULLSCREEN, BM_SETCHECK, propFullScreen, 0);
 	SendDlgItemMessage(m_hwnd, IDC_WINDOW, BM_SETCHECK, propWindowShared, 0);
 	SendDlgItemMessage(m_hwnd, IDC_SCREEN, BM_SETCHECK, propAreaShared, 0);
+	SendDlgItemMessage(m_hwnd, IDC_PRIMARY_DISPLAY_ONLY, BM_SETCHECK, propPrimaryDisplayOnlyShared, 0);
 
 	m_hWindowName = GetDlgItem(m_hwnd, IDC_NAME_APPLI);
 	EnableWindow(m_hWindowName, propWindowShared);
@@ -91,12 +93,21 @@ void SharedDesktopArea::Init()
 	// toggle selected option
 	//
 
-	if (propFullScreen) {
+	if (propFullScreen)
+	{
 		FullScreen();
-	} else if (propAreaShared) {
+	}
+	else if (propAreaShared)
+	{
 		SharedScreen();
-	} else { // if (propWindowShared)
+	}
+	else if (propWindowShared)
+	{
 		SharedWindow();
+	}
+	else
+	{
+		SharedPrimaryDisplayOnly();
 	}
 
 	// bring dialog to the front
@@ -107,6 +118,7 @@ void SharedDesktopArea::SetupMatchWindow()
 {
 	// get the desktop's bounds
 	RECT desktopRect;
+// deliberately left primary only rect
 	GetWindowRect(GetDesktopWindow(), &desktopRect);
 
 	//
@@ -163,94 +175,105 @@ bool SharedDesktopArea::ApplySharedControls()
 	HWND hScreenArea = GetDlgItem(m_hwnd, IDC_SCREEN);
 	m_server->ScreenAreaShared(SendMessage(hScreenArea,
 										   BM_GETCHECK, 0, 0) == BST_CHECKED);
+
+	HWND hPriDeskOnly = GetDlgItem(m_hwnd, IDC_PRIMARY_DISPLAY_ONLY);
+	m_server->PrimaryDisplayOnlyShared(
+		SendMessage(
+			hPriDeskOnly,
+			BM_GETCHECK,
+			0,
+			0) == BST_CHECKED);
 				
-	if (m_vncprop->GetPrefScreenAreaShared()) {
+	if (m_vncprop->GetPrefScreenAreaShared())
+	{
 		int left,right,top,bottom;
 		m_pMatchWindow->GetPosition(left,top,right,bottom);
 		m_server->SetMatchSizeFields(left,top,right,bottom);
 	}
 
-	if (m_vncprop->GetPrefFullScreen()) {
-		RECT temp;
-		GetWindowRect(GetDesktopWindow(), &temp);
+	if (m_vncprop->GetPrefFullScreen())
+	{
+		RECT temp = GetScreenRect();
 		m_server->SetMatchSizeFields(temp.left, temp.top, temp.right, temp.bottom);
+	}
+
+	if (m_vncprop->GetPrefPrimaryDisplayOnlyShared())
+	{
+		m_server->SetMatchSizeFields(
+			0,
+			0,
+			GetSystemMetrics(SM_CXSCREEN),
+			GetSystemMetrics(SM_CYSCREEN));
 	}
 
 	return true;
 }
 
-void SharedDesktopArea::FullScreen()
+void SharedDesktopArea::EnableWinSelectionControls(BOOL bEnable, LPCTSTR szWinText)
 {
 	// disable window cursor
 	HWND bmp_hWnd = GetDlgItem(m_hwnd, IDC_BMPCURSOR);
-	EnableWindow(bmp_hWnd, FALSE);
+	EnableWindow(bmp_hWnd, bEnable);
 
 	// change cursor image
-	HBITMAP hNewImage = LoadBitmap(hAppInstance, MAKEINTRESOURCE(IDB_BITMAP3));
+	HBITMAP hNewImage = LoadBitmap(hAppInstance, bEnable ? MAKEINTRESOURCE(IDB_BITMAP1) : MAKEINTRESOURCE(IDB_BITMAP3));
 	HBITMAP hOldImage = (HBITMAP)::SendMessage(bmp_hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
 	DeleteObject(hOldImage);
 
 	// set window text name
-	EnableWindow(m_hWindowName, FALSE);
-	::SetWindowText(m_hWindowName, "* full desktop selected *");
+//	EnableWindow(m_hWindowName, FALSE);
+	if (bEnable)
+	{
+		SetWindowCaption(m_server->GetWindowShared());
+	}
+	else if (szWinText)
+	{
+		::SetWindowText(m_hWindowName, szWinText);
+	}
+	EnableWindow(m_hWindowName, bEnable);
+}
 
+void SharedDesktopArea::SetPrefArea(int nSelection)
+{
+	// update properties
+	m_vncprop->SetPrefFullScreen(nSelection == 0);
+	m_vncprop->SetPrefWindowShared(nSelection == 1);
+	m_vncprop->SetPrefScreenAreaShared(nSelection == 2);
+	m_vncprop->SetPrefPrimaryDisplayOnlyShared(nSelection == 3);
+}
+
+void SharedDesktopArea::FullScreen()
+{
+	EnableWinSelectionControls(FALSE, "* full desktop selected *");
 	// hide match window
 	m_pMatchWindow->Hide();
-
-	// update properties
-	m_vncprop->SetPrefFullScreen(TRUE);
-	m_vncprop->SetPrefWindowShared(FALSE);
-	m_vncprop->SetPrefScreenAreaShared(FALSE);
+	SetPrefArea(0);
 }
 
 void SharedDesktopArea::SharedWindow()
 {
-	// enable window cursor
-	HWND bmp_hWnd = GetDlgItem(m_hwnd, IDC_BMPCURSOR);
-	EnableWindow(bmp_hWnd, TRUE);
-
-	// change cursor image
-	HBITMAP hNewImage = LoadBitmap(hAppInstance, MAKEINTRESOURCE(IDB_BITMAP1));
-	HBITMAP hOldImage = (HBITMAP)::SendMessage(bmp_hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
-	DeleteObject(hOldImage);
-
-	// set window text name
-	EnableWindow(m_hWindowName, FALSE);
-	SetWindowCaption(m_server->GetWindowShared());
-	EnableWindow(m_hWindowName, TRUE);
-
+	EnableWinSelectionControls(TRUE, NULL);
 	// hide match window
 	m_pMatchWindow->Hide();
-
-	// update properties
-	m_vncprop->SetPrefFullScreen(FALSE);
-	m_vncprop->SetPrefWindowShared(TRUE);
-	m_vncprop->SetPrefScreenAreaShared(FALSE);
+	SetPrefArea(1);
 }
 
 void SharedDesktopArea::SharedScreen()
 {
-	// disable window cursor
-	HWND bmp_hWnd = GetDlgItem(m_hwnd, IDC_BMPCURSOR);
-	EnableWindow(bmp_hWnd, FALSE);
-
-	// change cursor image
-	HBITMAP hNewImage = LoadBitmap(hAppInstance, MAKEINTRESOURCE(IDB_BITMAP3));
-	HBITMAP hOldImage = (HBITMAP)::SendMessage(bmp_hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
-	DeleteObject(hOldImage);
-
-	// set window text name
-	EnableWindow(m_hWindowName, FALSE);
-	::SetWindowText(m_hWindowName, "* screen area selected *");
-
+	EnableWinSelectionControls(FALSE, "* screen area selected *");
 	// show match window
 	m_pMatchWindow->Show();
-
-	// update properties
-	m_vncprop->SetPrefFullScreen(FALSE);
-	m_vncprop->SetPrefWindowShared(FALSE);
-	m_vncprop->SetPrefScreenAreaShared(TRUE);
+	SetPrefArea(2);
 }
+
+void SharedDesktopArea::SharedPrimaryDisplayOnly()
+{
+	EnableWinSelectionControls(FALSE, "* primary display selected *");
+	// show match window
+	m_pMatchWindow->Hide();
+	SetPrefArea(3);
+}
+
 
 LRESULT CALLBACK SharedDesktopArea::BmpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -376,4 +399,3 @@ void SharedDesktopArea::SetWindowCaption(HWND hWnd)
 	if (m_hWindowName)
 		::SetWindowText(m_hWindowName, strWindowText);
 }
-

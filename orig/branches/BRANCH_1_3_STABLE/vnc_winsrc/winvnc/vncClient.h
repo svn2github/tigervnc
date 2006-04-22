@@ -109,7 +109,20 @@ public:
 	// Functions for setting & getting the client settings
 	virtual void EnableKeyboard(BOOL enable) { m_keyboardenabled = enable; }
 	virtual void EnablePointer(BOOL enable)  { m_pointerenabled = enable;  }
-	virtual void BlockInput(BOOL block)      { m_inputblocked = block; }
+	virtual void BlockInput(BOOL block)
+	{
+		if (block)
+		{
+			m_inputblocked ++;
+		}
+		else
+		{
+			_ASSERTE(m_inputblocked > 0);
+// there is a place yet to fix where incremental semantics is broken,
+// that's why we're compelled to consume extra unlocks
+			if (m_inputblocked) m_inputblocked --;
+		}
+	}
 	virtual BOOL IsKeyboardEnabled() { return m_keyboardenabled; }
 	virtual BOOL IsPointerEnabled()  { return m_pointerenabled;  }
 	virtual BOOL IsInputEnabled()    { return m_keyboardenabled || m_pointerenabled; }
@@ -147,7 +160,7 @@ protected:
 	BOOL			m_protocol_tightvnc;
 	BOOL			m_keyboardenabled;
 	BOOL			m_pointerenabled;
-	BOOL			m_inputblocked;
+	int				m_inputblocked;
 	BOOL			m_copyrect_use;
 	vncClientId		m_id;
 

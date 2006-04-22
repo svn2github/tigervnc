@@ -40,6 +40,7 @@ public:
 	void FullScreen();
 	void SharedWindow();
 	void SharedScreen();
+	void SharedPrimaryDisplayOnly();
 	virtual ~SharedDesktopArea();
 
 protected:
@@ -51,6 +52,9 @@ private:
 	void SetupMatchWindow();
 	static void DrawFrameAroundWindow(HWND hWnd);
 	static LRESULT CALLBACK BmpWndProc(HWND, UINT, WPARAM, LPARAM);
+
+	void EnableWinSelectionControls(BOOL bEnable, LPCTSTR szWinText);
+	void SetPrefArea(int nSelection);
 
 	HWND m_hwnd;
 	LONG m_OldBmpWndProc;

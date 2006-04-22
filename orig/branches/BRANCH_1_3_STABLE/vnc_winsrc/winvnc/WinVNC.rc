@@ -196,6 +196,8 @@ BEGIN
                     WS_TABSTOP,7,23,44,13
     CONTROL         "Rectangular area",IDC_SCREEN,"Button",
                     BS_AUTORADIOBUTTON | WS_TABSTOP,7,39,100,13
+    CONTROL         "Primary display only",IDC_PRIMARY_DISPLAY_ONLY,"Button",
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,7,55,100,13
     CONTROL         139,IDC_BMPCURSOR,"Static",SS_BITMAP,63,21,21,17
     EDITTEXT        IDC_NAME_APPLI,91,23,137,12,ES_AUTOHSCROLL | ES_READONLY
 END
@@ -261,7 +263,7 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,160,149,110,12
 END
 
-IDD_UPDATE_HANDLING DIALOG DISCARDABLE  0, 0, 288, 132
+IDD_UPDATE_HANDLING DIALOG DISCARDABLE  0, 0, 288, 154
 STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -288,13 +290,16 @@ BEGIN
                     27
     LTEXT           "No information - no clients connected",
                     IDC_STATIC_DRVINFO,155,62,125,12,SS_CENTERIMAGE
-    GROUPBOX        "Troubleshooting",IDC_STATIC_TRSH,5,83,278,44
+    GROUPBOX        "Troubleshooting",IDC_STATIC_TRSH,5,83,278,65
     CONTROL         "Don't use VNCHooks.DLL while polling full screen",
                     IDC_DONT_SET_HOOKS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
                     13,94,209,12
     CONTROL         "Don't use mirror display driver even if available",
                     IDC_DONT_USE_DRIVER,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,13,109,209,12
+    CONTROL         "Enable direct access to display driver's mirror screen",
+                    IDC_DRIVER_DIRECT_ACCESS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,13,127,209,12
 END
 
 IDD_QUERY_SETTINGS DIALOG DISCARDABLE  0, 0, 237, 90
@@ -506,7 +511,7 @@ BEGIN
         VERTGUIDE, 155
         VERTGUIDE, 280
         TOPMARGIN, 5
-        BOTTOMMARGIN, 127
+        BOTTOMMARGIN, 149
         HORZGUIDE, 22
         HORZGUIDE, 37
         HORZGUIDE, 79

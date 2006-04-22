@@ -101,6 +101,7 @@
 #define IDC_FULLSCREEN                  1063
 #define IDC_STATIC_TEXT2                1063
 #define IDC_DISABLE_TIME                1064
+#define IDC_PRIMARY_DISPLAY_ONLY        1064
 #define IDC_TIMEOUT_LABEL               1065
 #define IDC_SECONDS_LABEL               1066
 #define IDC_STATIC_INCOMING             1067
@@ -135,6 +136,7 @@
 #define IDC_POLCYCLMS_LABEL             1096
 #define IDC_LIVESHARE_LABEL             1097
 #define IDC_DONT_USE_DRIVER             1098
+#define IDC_DRIVER_DIRECT_ACCESS        1099
 #define ID_PROPERTIES                   40001
 #define ID_CLOSE                        40002
 #define ID_KILLCLIENTS                  40003
@@ -149,7 +151,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        156
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1099
+#define _APS_NEXT_CONTROL_VALUE         1100
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

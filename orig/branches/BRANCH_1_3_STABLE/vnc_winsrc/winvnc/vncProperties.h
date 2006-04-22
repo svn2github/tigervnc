@@ -89,10 +89,12 @@ public:
 	BOOL GetPrefWindowShared() {return m_pref_WindowShared;};
 	BOOL GetPrefFullScreen() {return m_pref_FullScreen;};
 	BOOL GetPrefScreenAreaShared() {return m_pref_ScreenAreaShared;};
+	BOOL GetPrefPrimaryDisplayOnlyShared() {return m_pref_PrimaryDisplayOnlyShared;};
 
 	void SetPrefWindowShared(BOOL set) {m_pref_WindowShared = set;};
 	void SetPrefFullScreen(BOOL set) {m_pref_FullScreen = set;};
 	void SetPrefScreenAreaShared(BOOL set) {m_pref_ScreenAreaShared = set;};
+	void SetPrefPrimaryDisplayOnlyShared(BOOL set) {m_pref_PrimaryDisplayOnlyShared = set;};
 
 	// Implementation
 protected:
@@ -164,9 +166,11 @@ protected:
 	BOOL m_pref_PollingCycle;
 	BOOL m_pref_DontSetHooks;
 	BOOL m_pref_DontUseDriver;
+	BOOL m_pref_DriverDirectAccess;
 	BOOL m_pref_WindowShared;
 	BOOL m_pref_FullScreen;
 	BOOL m_pref_ScreenAreaShared;
+	BOOL m_pref_PrimaryDisplayOnlyShared;
 	UINT m_pref_PriorityTime;
 	BOOL m_pref_LocalInputPriority;
 	BOOL m_pref_AllowLoopback;

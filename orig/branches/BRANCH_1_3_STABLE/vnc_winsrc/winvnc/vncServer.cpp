@@ -83,6 +83,7 @@ vncServer::vncServer()
 
 	m_dont_set_hooks = FALSE;
 	m_dont_use_driver = FALSE;
+	m_driver_direct_access_en = TRUE;
 
 	// General options
 	m_loopbackOnly = FALSE;
@@ -111,10 +112,9 @@ vncServer::vncServer()
 	m_WindowShared= FALSE;
 	m_hwndShared = NULL;
 	m_screen_area = FALSE;
+	m_primary_display_only_shared = FALSE;
 	m_disable_time = 3;
-	RECT temp;
-	GetWindowRect(GetDesktopWindow(), &temp);
-	SetSharedRect(temp);
+	SetSharedRect(GetScreenRect());
 	SetPollingCycle(300);
 	PollingCycleChanged(false);
 	m_cursor_pos.x = 0;
@@ -825,6 +825,12 @@ vncServer::DontUseDriver(BOOL enable)
 	m_dont_use_driver = enable;
 }
 
+void
+vncServer::DriverDirectAccess(BOOL enable)
+{
+	m_driver_direct_access_en = enable;
+}
+
 // Name and port number handling
 void
 vncServer::SetName(const char * name)
@@ -1471,11 +1477,9 @@ vncServer::SetWindowShared(HWND hWnd)
 	m_hwndShared=hWnd;
 }
 
-void 
-vncServer::SetMatchSizeFields(int left,int top,int right,int bottom)
+void  vncServer::SetMatchSizeFields(int left,int top,int right,int bottom)
 {
-	RECT trect;
-	GetWindowRect(GetDesktopWindow(), &trect);
+	RECT trect = GetScreenRect();
 
 /*	if ( right - left < 32 )
 		right = left + 32;
@@ -1492,7 +1496,6 @@ vncServer::SetMatchSizeFields(int left,int top,int right,int bottom)
 	if( top < trect.top)
 		top = trect.top;
 
- 
 	m_screenarea_rect.left=left;
 	m_screenarea_rect.top=top;
 	m_screenarea_rect.bottom=bottom;
@@ -1619,4 +1622,48 @@ vncServer::checkPointer(vncClient *pClient)
 BOOL
 vncServer::DriverActive() {
 	return (m_desktop != NULL) ? m_desktop->DriverActive() : FALSE;
+}
+
+typedef HMONITOR (WINAPI* pMonitorFromPoint)(POINT,DWORD);
+typedef BOOL (WINAPI* pGetMonitorInfo)(HMONITOR,LPMONITORINFO);
+
+BOOL vncServer::SetShareMonitorFromPoint(POINT pt)
+{
+	HINSTANCE  hInstUser32 = LoadLibrary("User32.DLL");
+	if (!hInstUser32) return FALSE;  
+	pMonitorFromPoint pMFP = (pMonitorFromPoint)GetProcAddress(hInstUser32, "MonitorFromPoint");
+	pGetMonitorInfo pGMI = (pGetMonitorInfo)GetProcAddress(hInstUser32, "GetMonitorInfoA");
+	if (!pMFP || !pGMI)
+	{
+		vnclog.Print(
+			LL_INTERR,
+			VNCLOG("Can not import '%s' and '%s' from '%s'.\n"),
+			"MonitorFromPoint",
+			"GetMonitorInfoA",
+			"User32.DLL");
+		FreeLibrary(hInstUser32);
+		return FALSE;
+	}
+
+	HMONITOR hm = pMFP(pt, MONITOR_DEFAULTTONEAREST);
+	if (!hm)
+		return FALSE;
+	MONITORINFO	moninfo;
+	moninfo.cbSize = sizeof(moninfo);
+	if (!pGMI(hm, &moninfo))
+		return FALSE;
+
+	FullScreen(FALSE);
+	WindowShared(FALSE);
+	ScreenAreaShared(TRUE);
+	PrimaryDisplayOnlyShared(FALSE);
+
+	SetMatchSizeFields(
+		moninfo.rcMonitor.left,
+		moninfo.rcMonitor.top,
+		moninfo.rcMonitor.right,
+		moninfo.rcMonitor.bottom);
+
+	FreeLibrary(hInstUser32);
+	return TRUE;
 }

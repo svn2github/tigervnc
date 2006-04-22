@@ -110,6 +110,8 @@ public:
 	virtual BOOL DesktopActive() { return m_desktop != NULL; }
 	virtual BOOL DriverActive();
 
+	virtual BOOL SetShareMonitorFromPoint(POINT pt);
+
 protected:
 	// Send a notification message
 	virtual void DoNotify(UINT message, WPARAM wparam, LPARAM lparam);
@@ -138,6 +140,8 @@ public:
 	virtual BOOL DontSetHooks() {return m_dont_set_hooks;};
 	virtual void DontUseDriver(BOOL enable);
 	virtual BOOL DontUseDriver() {return m_dont_use_driver;};
+	virtual void DriverDirectAccess(BOOL enable);
+	virtual BOOL DriverDirectAccess() {return m_driver_direct_access_en;};
 
 	virtual void PollConsoleOnly(BOOL enable) {m_poll_consoleonly = enable;};
 	virtual BOOL PollConsoleOnly() {return m_poll_consoleonly;};
@@ -278,6 +282,9 @@ public:
 	virtual void FullScreen(BOOL enable) { m_full_screen = enable; }
 	virtual BOOL ScreenAreaShared() { return m_screen_area; }
 	virtual void ScreenAreaShared(BOOL enable) { m_screen_area = enable; }
+	virtual BOOL PrimaryDisplayOnlyShared() { return m_primary_display_only_shared; }
+	virtual void PrimaryDisplayOnlyShared(BOOL enable) { m_primary_display_only_shared = enable; }
+
 	virtual void SetNewFBSize(BOOL sendnewfb);
 	virtual BOOL FullRgnRequested();
 	virtual BOOL IncrRgnRequested();
@@ -356,6 +363,10 @@ protected:
 
 	BOOL				m_dont_set_hooks;
 	BOOL				m_dont_use_driver;
+	BOOL				m_driver_direct_access_en;
+// NOTE that it only has a status of preference;
+// the effective status of direct access option is
+// vncVideoDriver::m_fDirectAccessInEffect
 
 	// screen area sharing preferences                                                   
 	BOOL				m_shared_oneapplionly;               
@@ -363,6 +374,7 @@ protected:
 	BOOL				m_WindowShared;                      
 	BOOL				m_full_screen;                       
 	BOOL				m_screen_area;                       
+	BOOL				m_primary_display_only_shared;
 
 	// local event priority stuff                                        
 	BOOL				m_local_input_priority;                    
@@ -407,5 +419,9 @@ protected:
 	// Set of windows to send notifications to
 	vncNotifyList		m_notifyList;
 };
+
+BOOL IsWinVerOrHigher(ULONG mj, ULONG mn);
+
+RECT GetScreenRect();
 
 #endif

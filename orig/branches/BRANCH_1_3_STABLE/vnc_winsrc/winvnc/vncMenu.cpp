@@ -517,11 +517,13 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 		if (iMsg == MENU_SERVER_SHAREWINDOW)
 		{
 			HWND hWindowShared = (HWND)wParam;
-			if (hWindowShared != NULL) {
-			_this->m_server->SetWindowShared(hWindowShared);
-			_this->m_server->FullScreen(false);
-			_this->m_server->ScreenAreaShared(false);
-			_this->m_server->WindowShared(true);
+			if (hWindowShared != NULL)
+			{
+				_this->m_server->SetWindowShared(hWindowShared);
+				_this->m_server->FullScreen(false);
+				_this->m_server->ScreenAreaShared(false);
+				_this->m_server->PrimaryDisplayOnlyShared(false);
+				_this->m_server->WindowShared(true);
 			}
 			return 0;
 		}

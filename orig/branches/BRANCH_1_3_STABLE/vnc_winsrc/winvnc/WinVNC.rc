@@ -186,20 +186,22 @@ BEGIN
     PUSHBUTTON      "&Apply",IDC_APPLY,249,193,50,14
 END
 
-IDD_SHARED_DESKTOP_AREA DIALOG DISCARDABLE  0, 0, 235, 90
+IDD_SHARED_DESKTOP_AREA DIALOG DISCARDABLE  0, 0, 288, 104
 STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE
 FONT 8, "MS Sans Serif"
 BEGIN
+    GROUPBOX        "Sharing area",IDC_SHARINGAREA_BORDER,5,5,278,94
     CONTROL         "Full desktop",IDC_FULLSCREEN,"Button",
-                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,7,7,100,13
-    CONTROL         "Window:",IDC_WINDOW,"Button",BS_AUTORADIOBUTTON | 
-                    WS_TABSTOP,7,23,44,13
+                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,13,16,100,12
+    CONTROL         "Primary display",IDC_PRIMARY_DISPLAY_ONLY,"Button",
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,13,30,100,12
     CONTROL         "Rectangular area",IDC_SCREEN,"Button",
-                    BS_AUTORADIOBUTTON | WS_TABSTOP,7,39,100,13
-    CONTROL         "Primary display only",IDC_PRIMARY_DISPLAY_ONLY,"Button",
-                    BS_AUTORADIOBUTTON | WS_TABSTOP,7,55,100,13
-    CONTROL         139,IDC_BMPCURSOR,"Static",SS_BITMAP,63,21,21,17
-    EDITTEXT        IDC_NAME_APPLI,91,23,137,12,ES_AUTOHSCROLL | ES_READONLY
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,13,44,100,12
+    CONTROL         "Window:",IDC_WINDOW,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,13,58,54,12
+    CONTROL         139,IDC_BMPCURSOR,"Static",SS_BITMAP | WS_GROUP,26,73,21,
+                    17
+    EDITTEXT        IDC_NAME_APPLI,54,76,221,12,ES_AUTOHSCROLL | ES_READONLY
 END
 
 IDD_INCOMING DIALOG DISCARDABLE  0, 0, 288, 166
@@ -470,10 +472,13 @@ BEGIN
 
     IDD_SHARED_DESKTOP_AREA, DIALOG
     BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 228
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 83
+        LEFTMARGIN, 5
+        RIGHTMARGIN, 283
+        VERTGUIDE, 13
+        VERTGUIDE, 26
+        VERTGUIDE, 275
+        TOPMARGIN, 5
+        BOTTOMMARGIN, 99
     END
 
     IDD_INCOMING, DIALOG
@@ -811,6 +816,8 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    IDC_PRIMARY_DISPLAY_ONLY 
+                            "In multi-monitor configurations, show only the primary display to VNC clients."
     IDC_STATIC_DRVINFO      "Here you can see information about using the mirror display driver."
     IDC_CONNECT_SOCK        "This option controls whether it is possible to connect to this computer with a VNC Viewer. Clearing the checkbox will ensure that remote connections won't be accepted."
     IDC_BLANK_SCREEN        "Blank local screen when sharing the computer."
@@ -862,7 +869,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDC_SHARINGAREA_BORDER  "Select Sharing Area"
+    IDC_SHARINGAREA_BORDER  "Select an area of the screen which you would like to share to VNC clients."
     IDC_LIVESHARE_BORDER    "Connect with AppShare Key"
     IDC_NAME_APPLI          "Window name. You cannot enter the text here. To choose a window to share, drag the ""target"" icon to the selected window."
     IDC_LIVESHARE           "AppShare Key:"

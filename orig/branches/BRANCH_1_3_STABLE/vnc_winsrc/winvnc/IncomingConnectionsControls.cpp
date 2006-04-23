@@ -146,23 +146,21 @@ void IncomingConnectionsControls::Apply()
 void IncomingConnectionsControls::Init()
 {
 	BOOL bConnectSock = m_server->SockConnected();
-	
+
+	SetChecked(IDC_CONNECT_SOCK, bConnectSock);
+	SetChecked(IDC_ENABLE_FILE_TRANSFERS, m_server->FileTransfersEnabled());
+	SetChecked(IDC_REMOVE_WALLPAPER, m_server->RemoveWallpaperEnabled());
+	SetChecked(IDC_BLANK_SCREEN, m_server->GetBlankScreen());
+
+	SetDlgItemText(m_hwnd, IDC_PASSWORD, "~~~~~~~~");			
+	SetDlgItemText(m_hwnd, IDC_PASSWORD_VIEWONLY, "~~~~~~~~");
+
 	if (bConnectSock) {
 		SetFocus(GetDlgItem(m_hwnd, IDC_PASSWORD));
 		SendDlgItemMessage(m_hwnd, IDC_PASSWORD, EM_SETSEL, 0, (LPARAM)-1);
 	} else {
 		SetFocus(GetDlgItem(m_hwnd, IDC_CONNECT_SOCK));
 	}
-	
-	SetChecked(IDC_CONNECT_SOCK, bConnectSock);
-	SetChecked(IDC_ENABLE_FILE_TRANSFERS, m_server->FileTransfersEnabled());
-	SetChecked(IDC_REMOVE_WALLPAPER, m_server->RemoveWallpaperEnabled());
-	SetChecked(IDC_BLANK_SCREEN, m_server->GetBlankScreen());
-	
-	SetDlgItemText(m_hwnd, IDC_PASSWORD, "~~~~~~~~");			
-	SetDlgItemText(m_hwnd, IDC_PASSWORD_VIEWONLY, "~~~~~~~~");
-
-	SetFocus(GetDlgItem(m_hwnd, IDC_CONNECT_SOCK));
 
 	Validate(TRUE);
 }

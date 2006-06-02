@@ -110,6 +110,11 @@ int Timer::checkTimeouts() {
       return 0;
     }
   }
+  return getNextTimeout();
+}
+
+int Timer::getNextTimeout() {
+  timeval now;
   gettimeofday(&now, 0);
   int toWait = __rfbmax(1, diffTimeMillis(pending.front()->dueTime, now));
   if (toWait > pending.front()->timeoutMs) {

@@ -162,7 +162,7 @@ public:
     setItemChecked(IDC_SEND_KEYS, dlg->options.sendKeyEvents);
     setItemChecked(IDC_CLIENT_CUTTEXT, dlg->options.clientCutText);
     setItemChecked(IDC_SERVER_CUTTEXT, dlg->options.serverCutText);
-    setItemChecked(IDC_DISABLE_WINKEYS, dlg->options.disableWinKeys);
+    setItemChecked(IDC_DISABLE_WINKEYS, dlg->options.disableWinKeys && !osVersion.isPlatformWindows);
     enableItem(IDC_DISABLE_WINKEYS, !osVersion.isPlatformWindows);
     setItemChecked(IDC_EMULATE3, dlg->options.emulate3);
     setItemChecked(IDC_POINTER_INTERVAL, dlg->options.pointerEventInterval != 0);

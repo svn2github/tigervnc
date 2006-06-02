@@ -18,6 +18,7 @@
 
 #include <rfb_win32/DynamicFn.h>
 #include <rfb_win32/MonitorInfo.h>
+#include <rfb_win32/Win32Util.h>
 #include <rdr/Exception.h>
 #include <rfb/LogWriter.h>
 
@@ -138,23 +139,22 @@ MonitorInfo::MonitorInfo(const char* devName) {
 #ifdef RFB_HAVE_MONITORINFO
   if (!_EnumDisplayMonitors.isValid()) {
     vlog.debug("EnumDisplayMonitors not found");
-    return;
+  } else {
+    monitorByNameData data;
+    data.info = this;
+    data.monitorName = devName;
+
+    (*_EnumDisplayMonitors)(0, 0, &monitorByNameEnumProc, (LPARAM)&data);
+    if (stricmp(data.monitorName, szDevice) == 0)
+      return;
   }
-
-  monitorByNameData data;
-  data.info = this;
-  data.monitorName = devName;
-
-  (*_EnumDisplayMonitors)(0, 0, &monitorByNameEnumProc, (LPARAM)&data);
-  if (stricmp(data.monitorName, szDevice) == 0)
-    return;
-#else
+#endif
+  // If multi-monitor is not built, or not supported by the OS,
+  //   or if the named monitor is not found, revert to the primary monitor.
+  vlog.debug("reverting to primary monitor");
   cbSize = sizeof(MonitorInfo);
   szDevice[0] = 0;
-#endif
 
-  // Legacy fallbacks - just return the desktop settings
-  vlog.debug("using legacy fall-backs");
   HWND desktop = GetDesktopWindow();
   GetWindowRect(desktop, &rcMonitor);
   SystemParametersInfo(SPI_GETWORKAREA, 0, &rcWork, 0);
@@ -165,10 +165,11 @@ void MonitorInfo::moveTo(HWND handle) {
   vlog.debug("moveTo monitor=%s", szDevice);
 
 #ifdef RFB_HAVE_MONITORINFO
-  SetWindowPos(handle, 0,
-        rcMonitor.left, rcMonitor.top,
-        rcMonitor.right, rcMonitor.bottom,
-        SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
+  MonitorInfo mi(handle);
+  if (strcmp(szDevice, mi.szDevice) != 0) {
+    centerWindow(handle, rcWork);
+    clipTo(handle);
+  }
 #endif
 }
 

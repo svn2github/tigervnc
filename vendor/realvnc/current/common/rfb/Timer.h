@@ -56,6 +56,11 @@ namespace rfb {
     //   next Timer will timeout.
     static int checkTimeouts();
 
+    // getNextTimeout()
+    //   Returns the number of milliseconds until the next timeout, without dispatching
+    //   any elapsed Timers.
+    static int getNextTimeout();
+
     // Create a Timer with the specified callback handler
     Timer(Callback* cb_) {cb = cb_;}
     ~Timer() {stop();}

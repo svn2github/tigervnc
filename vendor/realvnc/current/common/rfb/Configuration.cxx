@@ -379,7 +379,7 @@ bool StringParameter::setParam(const char* v) {
   if (!v)
     throw rfb::Exception("setParam(<null>) not allowed");
   vlog.debug("set %s(String) to %s", getName(), v);
-  strFree(value);
+  CharArray oldValue(value);
   value = strDup(v);
   return value != 0;
 }

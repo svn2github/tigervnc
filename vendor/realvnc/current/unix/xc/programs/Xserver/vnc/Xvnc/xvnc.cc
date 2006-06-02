@@ -85,7 +85,7 @@ extern "C" {
                             unsigned long, char*);
 }
 
-#define XVNCVERSION "Free Edition 4.1"
+#define XVNCVERSION "Free Edition 4.1.1"
 #define XVNCCOPYRIGHT ("Copyright (C) 2002-2005 RealVNC Ltd.\n" \
                        "See http://www.realvnc.com for information on VNC.\n")
 

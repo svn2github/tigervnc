@@ -37,7 +37,6 @@ static LogWriter vlog("WMHooks");
 typedef UINT (*WM_Hooks_WMVAL_proto)();
 typedef BOOL (*WM_Hooks_Install_proto)(DWORD owner, DWORD thread);
 typedef BOOL (*WM_Hooks_Remove_proto)(DWORD owner);
-typedef BOOL (*WM_Hooks_EnableRealInputs_proto)(BOOL pointer, BOOL keyboard);
 typedef BOOL (*WM_Hooks_EnableCursorShape_proto)(BOOL enable);
 #ifdef _DEBUG
 typedef void (*WM_Hooks_SetDiagnosticRange_proto)(UINT min, UINT max);
@@ -331,9 +330,6 @@ void rfb::win32::WMHooks::NotifyHooksRegion(const Region& r) {
 
 // -=- WMBlockInput class
 
-Mutex blockMutex;
-int blockCount = 0;
-
 rfb::win32::WMBlockInput::WMBlockInput() : active(false) {
 }
 
@@ -341,25 +337,40 @@ rfb::win32::WMBlockInput::~WMBlockInput() {
   blockInputs(false);
 }
 
-bool rfb::win32::WMBlockInput::blockInputs(bool on) {
-  if (on == active) return true;
-  vlog.debug("blockInput changed");
-  DynamicFn<WM_Hooks_EnableRealInputs_proto> WM_Hooks_EnableRealInputs(_T("wm_hooks.dll"), "WM_Hooks_EnableRealInputs");
-  if (!WM_Hooks_EnableRealInputs.isValid())
-    return false;
-  Lock l(blockMutex);
-  int newCount = blockCount;
-  if (on)
-    newCount++;
-  else
-    newCount--;
-  if ((*WM_Hooks_EnableRealInputs)(newCount==0, newCount==0)) {
-    vlog.debug("set blocking to %d", newCount);
-    blockCount = newCount;
-    active = on;
-    return true;
+typedef BOOL (*WM_Hooks_EnableRealInputs_proto)(BOOL pointer, BOOL keyboard);
+DynamicFn<WM_Hooks_EnableRealInputs_proto>* WM_Hooks_EnableRealInputs = 0;
+static bool blockRealInputs(bool block_) {
+  // NB: Requires blockMutex to be held!
+  if (block_) {
+    if (WM_Hooks_EnableRealInputs)
+      return true;
+    // Enable blocking
+    WM_Hooks_EnableRealInputs = new DynamicFn<WM_Hooks_EnableRealInputs_proto>(_T("wm_hooks.dll"), "WM_Hooks_EnableRealInputs");
+    if (WM_Hooks_EnableRealInputs->isValid() && (**WM_Hooks_EnableRealInputs)(false, false))
+      return true;
   }
-  return false;
+  if (WM_Hooks_EnableRealInputs) {
+    // Clean up the DynamicFn, either if init failed, or block_ is false
+    if (WM_Hooks_EnableRealInputs->isValid())
+      (**WM_Hooks_EnableRealInputs)(true, true);
+    delete WM_Hooks_EnableRealInputs;
+    WM_Hooks_EnableRealInputs = 0;
+  }
+  return block_ == (WM_Hooks_EnableRealInputs != 0);
+}
+
+Mutex blockMutex;
+int blockCount = 0;
+
+bool rfb::win32::WMBlockInput::blockInputs(bool on) {
+  if (active == on) return true;
+  Lock l(blockMutex);
+  int newCount = on ? blockCount+1 : blockCount-1;
+  if (!blockRealInputs(newCount > 0))
+    return false;
+  blockCount = newCount;
+  active = on;
+  return true;
 }
 
 

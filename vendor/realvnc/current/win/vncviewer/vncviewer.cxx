@@ -224,7 +224,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, char* cmdLine, int cmdSho
       config.start(HKEY_CURRENT_USER, _T("Software\\RealVNC\\VNCViewer4"));
 
       // - Tell the rest of VNC Viewer where to write config data to
-      CConn::userConfigKey.openKey(HKEY_CURRENT_USER, _T("Software\\RealVNC\\VNCViewer4"));
+      CConn::userConfigKey.createKey(HKEY_CURRENT_USER, _T("Software\\RealVNC\\VNCViewer4"));
 
       if (acceptIncoming) {
         int port = 5500;

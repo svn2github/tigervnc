@@ -74,16 +74,12 @@ namespace win32 {
       throw rdr::Exception("WinSta APIs missing");
     if (sessionId == -1)
       sessionId = mySessionId.id;
+
+    // Try to reconnect our session to the console
     ConsoleSessionId console;
     vlog.info("Console session is %d", console.id);
-
-    // Keep trying to connect the session, until a non-busy error is received
-    while (!(*_WinStationConnect)(0, sessionId, console.id, L"", 0)) {
-      DWORD err = GetLastError();
-      if (err != ERROR_CTX_WINSTATION_BUSY)
-        throw rdr::SystemException("Unable to connect session to Console", err);
-      Sleep(100);
-    }
+    if (!(*_WinStationConnect)(0, sessionId, console.id, L"", 0))
+      throw rdr::SystemException("Unable to connect session to Console", GetLastError());
 
     // Lock the newly connected session, for security
     if (_LockWorkStation.isValid())

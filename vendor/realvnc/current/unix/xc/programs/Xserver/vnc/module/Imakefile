@@ -1,6 +1,7 @@
 
    VNCUNIXDIR = VncUnixDir
  VNCCOMMONDIR = VncCommonDir
+      VNCLIBS = VncExtLibs
    VNCINCLUDE = -I$(VNCCOMMONDIR) -I$(VNCUNIXDIR)/vncconfig
 
 #define CplusplusSource

@@ -63,8 +63,8 @@ IDI_ICON                ICON    DISCARDABLE     "vncviewer.ico"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 4,1,0,0
- PRODUCTVERSION 4,1,0,0
+ FILEVERSION 4,1,1,0
+ PRODUCTVERSION 4,1,1,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -82,14 +82,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "RealVNC Ltd.\0"
             VALUE "FileDescription", "VNC Viewer Free Edition for Win32\0"
-            VALUE "FileVersion", "4.1\0"
+            VALUE "FileVersion", "4.1.1\0"
             VALUE "InternalName", "free4/vncviewer/win\0"
             VALUE "LegalCopyright", "Copyright © RealVNC Ltd. 2002-2005\0"
             VALUE "LegalTrademarks", "RealVNC\0"
             VALUE "OriginalFilename", "vncviewer.exe\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "VNC Viewer Free Edition\0"
-            VALUE "ProductVersion", "4.1\0"
+            VALUE "ProductVersion", "4.1.1\0"
             VALUE "SpecialBuild", "\0"
         END
     END

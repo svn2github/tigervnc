@@ -217,9 +217,7 @@ void DesktopWindow::setDisableWinKeys(bool dwk) {
 
 
 void DesktopWindow::setMonitor(const char* monitor) {
-  MonitorInfo mi(handle);
-  if (stricmp(mi.szDevice, monitor) == 0)
-    return;
+  MonitorInfo mi(monitor);
   mi.moveTo(handle);
 }
 

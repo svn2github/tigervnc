@@ -98,6 +98,10 @@ void SDisplay::start(VNCServer* vs)
 {
   vlog.debug("starting");
 
+  // Try to make session zero the console session
+  if (!inConsoleSession())
+    setConsoleSession();
+
   // Start the SDisplay core
   server = vs;
   startCore();
@@ -146,9 +150,10 @@ void SDisplay::stop()
 
 void SDisplay::startCore() {
 
-  // Ensure that we are running in the console session, if possible
+  // Currently, we just check whether we're in the console session, and
+  //   fail if not
   if (!inConsoleSession())
-    setConsoleSession();
+    throw rdr::Exception("Console is not session zero - oreconnect to restore Console sessin");
   
   // Switch to the current input desktop
   if (rfb::win32::desktopChangeRequired()) {
@@ -272,10 +277,10 @@ void SDisplay::restartCore() {
   stopCore();
   try {
     // Start a new Core if possible
-    start(server);
+    startCore();
     vlog.info("restarted");
   } catch (rdr::Exception& e) {
-    // If start() fails then we MUST disconnect all clients,
+    // If startCore() fails then we MUST disconnect all clients,
     // to cause the server to stop() the desktop.
     // Otherwise, the SDesktop is in an inconsistent state
     // and the server will crash.

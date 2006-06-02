@@ -53,6 +53,9 @@ struct ActiveDesktop {
     if (handle)
       handle->Release();
   }
+
+  // enableItem
+  //   enables or disables the Nth Active Desktop item
   bool enableItem(int i, bool enable_) {
     COMPONENT item;
     memset(&item, 0, sizeof(item));
@@ -69,6 +72,13 @@ struct ActiveDesktop {
     hr = handle->ModifyDesktopItem(&item, COMP_ELEM_CHECKED);
     return hr == S_OK;
   }
+  
+  // enable
+  //   Attempts to enable/disable Active Desktop, returns true if the setting changed,
+  //   false otherwise.
+  //   If Active Desktop *can* be enabled/disabled then that is done.
+  //   If Active Desktop is always on (XP/2K3) then instead the individual items are
+  //   disabled, and true is returned to indicate that they need to be restored later.
   bool enable(bool enable_) {
     bool modifyComponents = false;
 
@@ -83,6 +93,10 @@ struct ActiveDesktop {
     // Attempt to actually disable/enable AD
     hr = handle->GetDesktopItemOptions(&adOptions, 0);
     if (hr == S_OK) {
+      // If Active Desktop is already in the desired state then return false (no change)
+      // NB: If AD is enabled AND restoreItems is set then we regard it as disabled...
+      if (((adOptions.fActiveDesktop==0) && restoreItems.empty()) == (enable_==false))
+        return false;
       adOptions.fActiveDesktop = enable_;
       hr = handle->SetDesktopItemOptions(&adOptions, 0);
     }

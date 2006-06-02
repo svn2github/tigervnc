@@ -1,4 +1,4 @@
-//Microsoft Developer Studio generated resource script.
+// Microsoft Visual C++ generated resource script.
 //
 #include "resource.h"
 
@@ -27,18 +27,18 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE DISCARDABLE 
+1 TEXTINCLUDE 
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE DISCARDABLE 
+2 TEXTINCLUDE 
 BEGIN
     "#include ""afxres.h""\r\n"
     "\0"
 END
 
-3 TEXTINCLUDE DISCARDABLE 
+3 TEXTINCLUDE 
 BEGIN
     "\r\n"
     "\0"
@@ -54,15 +54,16 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICON                ICON    DISCARDABLE     "vncconfig.ico"
+IDI_ICON                ICON                    "vncconfig.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // Dialog
 //
 
-IDD_AUTHENTICATION DIALOG DISCARDABLE  0, 0, 193, 135
-STYLE DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_AUTHENTICATION DIALOG  0, 0, 193, 135
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
 CAPTION "Authentication"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -86,8 +87,9 @@ BEGIN
                     WS_TABSTOP,20,110,166,15
 END
 
-IDD_CONNECTIONS DIALOG DISCARDABLE  0, 0, 218, 198
-STYLE DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_CONNECTIONS DIALOG  0, 0, 218, 198
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
 CAPTION "Connections"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -113,8 +115,9 @@ BEGIN
     PUSHBUTTON      "&Edit",IDC_HOST_EDIT,150,170,55,15
 END
 
-IDD_HOOKING DIALOG DISCARDABLE  0, 0, 197, 101
-STYLE DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_HOOKING DIALOG  0, 0, 197, 101
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
 CAPTION "Capture Method"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -130,9 +133,9 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,7,70,183,15
 END
 
-IDD_AUTH_VNC_PASSWD DIALOG DISCARDABLE  0, 0, 212, 70
-STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | 
-    WS_SYSMENU
+IDD_AUTH_VNC_PASSWD DIALOG  0, 0, 212, 70
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | 
+    WS_CAPTION | WS_SYSMENU
 CAPTION "VNC Server Password"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -144,8 +147,9 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,155,50,50,15
 END
 
-IDD_LEGACY DIALOG DISCARDABLE  0, 0, 166, 92
-STYLE DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_LEGACY DIALOG  0, 0, 166, 92
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
 CAPTION "Legacy"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -154,8 +158,9 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,7,35,152,15
 END
 
-IDD_CONN_HOST DIALOG DISCARDABLE  0, 0, 225, 57
-STYLE DS_SYSMODAL | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION
+IDD_CONN_HOST DIALOG  0, 0, 225, 57
+STYLE DS_SYSMODAL | DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | 
+    WS_CAPTION
 CAPTION "Specify Host IP Address Pattern"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -169,8 +174,9 @@ BEGIN
     LTEXT           "e.g. 192.168.0.0/255.255.0.0",IDC_STATIC,65,20,100,15
 END
 
-IDD_SHARING DIALOG DISCARDABLE  0, 0, 186, 95
-STYLE DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_SHARING DIALOG  0, 0, 186, 95
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
 CAPTION "Sharing"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -186,8 +192,9 @@ BEGIN
                     WS_TABSTOP,7,55,172,15
 END
 
-IDD_INPUTS DIALOG DISCARDABLE  0, 0, 186, 119
-STYLE DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_INPUTS DIALOG  0, 0, 186, 119
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
 CAPTION "Inputs"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -208,9 +215,9 @@ BEGIN
                     WS_TABSTOP,7,95,172,15
 END
 
-IDD_ABOUT DIALOG DISCARDABLE  0, 0, 249, 92
-STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | 
-    WS_SYSMENU
+IDD_ABOUT DIALOG  0, 0, 249, 92
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | 
+    WS_CAPTION | WS_SYSMENU
 CAPTION "About VNC Config for Windows"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -224,9 +231,9 @@ BEGIN
                     IDC_STATIC,40,55,202,15
 END
 
-IDD_DESKTOP DIALOG DISCARDABLE  0, 0, 185, 137
-STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CONTROL | WS_POPUP | WS_CAPTION | 
-    WS_SYSMENU
+IDD_DESKTOP DIALOG  0, 0, 185, 137
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | DS_CONTROL | WS_POPUP | 
+    WS_CAPTION | WS_SYSMENU
 CAPTION "Desktop"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -253,7 +260,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO DISCARDABLE 
+GUIDELINES DESIGNINFO 
 BEGIN
     IDD_AUTHENTICATION, DIALOG
     BEGIN
@@ -427,15 +434,14 @@ END
 #endif    // APSTUDIO_INVOKED
 
 
-#ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
 //
 // Version
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 4,1,1,0
- PRODUCTVERSION 4,1,1,0
+ FILEVERSION 4,1,2,0
+ PRODUCTVERSION 4,1,2,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -450,18 +456,15 @@ BEGIN
     BEGIN
         BLOCK "080904b0"
         BEGIN
-            VALUE "Comments", "\0"
-            VALUE "CompanyName", "RealVNC Ltd.\0"
-            VALUE "FileDescription", "VNC Server Free Edition Configuration Applet for Win32\0"
-            VALUE "FileVersion", "4.1.1\0"
-            VALUE "InternalName", "free4/winvnc\0"
-            VALUE "LegalCopyright", "Copyright © RealVNC Ltd. 2002-2005\0"
-            VALUE "LegalTrademarks", "RealVNC\0"
-            VALUE "OriginalFilename", "vncconfig.exe\0"
-            VALUE "PrivateBuild", "\0"
-            VALUE "ProductName", "VNC Server Free Edition\0"
-            VALUE "ProductVersion", "4.1.1\0"
-            VALUE "SpecialBuild", "\0"
+            VALUE "CompanyName", "RealVNC Ltd."
+            VALUE "FileDescription", "VNC Server Free Edition Configuration Applet for Win32"
+            VALUE "FileVersion", "4.1.2"
+            VALUE "InternalName", "free4/winvnc"
+            VALUE "LegalCopyright", "Copyright © RealVNC Ltd. 2002-2006"
+            VALUE "LegalTrademarks", "RealVNC"
+            VALUE "OriginalFilename", "vncconfig.exe"
+            VALUE "ProductName", "VNC Server Free Edition"
+            VALUE "ProductVersion", "4.1.2"
         END
     END
     BLOCK "VarFileInfo"
@@ -470,15 +473,13 @@ BEGIN
     END
 END
 
-#endif    // !_MAC
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// 24
+// RT_MANIFEST
 //
 
-IDR_MANIFEST            24      DISCARDABLE     "vncconfig.exe.manifest"
+IDR_MANIFEST            RT_MANIFEST             "vncconfig.exe.manifest"
 #endif    // English (U.K.) resources
 /////////////////////////////////////////////////////////////////////////////
 

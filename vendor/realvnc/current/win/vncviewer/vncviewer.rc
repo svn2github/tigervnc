@@ -1,4 +1,4 @@
-//Microsoft Developer Studio generated resource script.
+// Microsoft Visual C++ generated resource script.
 //
 #include "resource.h"
 
@@ -27,18 +27,18 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE DISCARDABLE 
+1 TEXTINCLUDE 
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE DISCARDABLE 
+2 TEXTINCLUDE 
 BEGIN
     "#include ""afxres.h""\r\n"
     "\0"
 END
 
-3 TEXTINCLUDE DISCARDABLE 
+3 TEXTINCLUDE 
 BEGIN
     "\r\n"
     "\0"
@@ -54,17 +54,16 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICON                ICON    DISCARDABLE     "vncviewer.ico"
+IDI_ICON                ICON                    "vncviewer.ico"
 
-#ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
 //
 // Version
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 4,1,1,0
- PRODUCTVERSION 4,1,1,0
+ FILEVERSION 4,1,2,0
+ PRODUCTVERSION 4,1,2,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -79,18 +78,15 @@ BEGIN
     BEGIN
         BLOCK "080904b0"
         BEGIN
-            VALUE "Comments", "\0"
-            VALUE "CompanyName", "RealVNC Ltd.\0"
-            VALUE "FileDescription", "VNC Viewer Free Edition for Win32\0"
-            VALUE "FileVersion", "4.1.1\0"
-            VALUE "InternalName", "free4/vncviewer/win\0"
-            VALUE "LegalCopyright", "Copyright © RealVNC Ltd. 2002-2005\0"
-            VALUE "LegalTrademarks", "RealVNC\0"
-            VALUE "OriginalFilename", "vncviewer.exe\0"
-            VALUE "PrivateBuild", "\0"
-            VALUE "ProductName", "VNC Viewer Free Edition\0"
-            VALUE "ProductVersion", "4.1.1\0"
-            VALUE "SpecialBuild", "\0"
+            VALUE "CompanyName", "RealVNC Ltd."
+            VALUE "FileDescription", "VNC Viewer Free Edition for Win32"
+            VALUE "FileVersion", "4.1.2"
+            VALUE "InternalName", "free4/vncviewer/win"
+            VALUE "LegalCopyright", "Copyright © RealVNC Ltd. 2002-2005"
+            VALUE "LegalTrademarks", "RealVNC"
+            VALUE "OriginalFilename", "vncviewer.exe"
+            VALUE "ProductName", "VNC Viewer Free Edition"
+            VALUE "ProductVersion", "4.1.2"
         END
     END
     BLOCK "VarFileInfo"
@@ -99,16 +95,14 @@ BEGIN
     END
 END
 
-#endif    // !_MAC
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // Dialog
 //
 
-IDD_VNC_AUTH_DLG DIALOG DISCARDABLE  0, 0, 241, 46
-STYLE DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION
+IDD_VNC_AUTH_DLG DIALOG  0, 0, 241, 46
+STYLE DS_SETFONT | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION
 CAPTION "VNC Viewer : Authentication"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -122,8 +116,9 @@ BEGIN
     LTEXT           "Password:",IDC_STATIC,45,25,35,15
 END
 
-IDD_CONNECTING_DLG DIALOG DISCARDABLE  0, 0, 185, 47
-STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION
+IDD_CONNECTING_DLG DIALOG  0, 0, 185, 47
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | 
+    WS_CAPTION
 CAPTION "VNC Viewer : Connecting"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -132,9 +127,9 @@ BEGIN
                     7,171,14,SS_CENTERIMAGE
 END
 
-IDD_CONNECTION_DLG DIALOG DISCARDABLE  0, 0, 224, 66
-STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | 
-    WS_SYSMENU
+IDD_CONNECTION_DLG DIALOG  0, 0, 224, 66
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | 
+    WS_CAPTION | WS_SYSMENU
 CAPTION "VNC Viewer : Connection Details"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -152,9 +147,9 @@ BEGIN
                     CBS_SORT | WS_VSCROLL | WS_TABSTOP
 END
 
-IDD_ABOUT DIALOG DISCARDABLE  0, 0, 249, 92
-STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | 
-    WS_SYSMENU
+IDD_ABOUT DIALOG  0, 0, 249, 92
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | 
+    WS_CAPTION | WS_SYSMENU
 CAPTION "About VNC Viewer for Windows"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -169,8 +164,9 @@ BEGIN
                     IDC_STATIC,46,55,196,15
 END
 
-IDD_FORMAT DIALOG DISCARDABLE  0, 0, 201, 101
-STYLE DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_FORMAT DIALOG  0, 0, 201, 101
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
 CAPTION "Colour && Encoding"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -194,8 +190,9 @@ BEGIN
                     BS_AUTORADIOBUTTON,100,65,90,15
 END
 
-IDD_MISC DIALOG DISCARDABLE  0, 0, 213, 137
-STYLE DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_MISC DIALOG  0, 0, 213, 137
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
 CAPTION "Misc"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -216,8 +213,9 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,100,199,15
 END
 
-IDD_INPUTS DIALOG DISCARDABLE  0, 0, 186, 162
-STYLE DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_INPUTS DIALOG  0, 0, 186, 162
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
 CAPTION "Inputs"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -242,9 +240,9 @@ BEGIN
                     WS_TABSTOP,7,115,172,15
 END
 
-IDD_CONNECTION_INFO DIALOG DISCARDABLE  0, 0, 239, 199
-STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | 
-    WS_SYSMENU
+IDD_CONNECTION_INFO DIALOG  0, 0, 239, 199
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | 
+    WS_CAPTION | WS_SYSMENU
 CAPTION "VNC Connection Info"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -273,8 +271,9 @@ BEGIN
     LTEXT           "Encryption:",IDC_STATIC,7,160,73,15
 END
 
-IDD_DEFAULTS DIALOG DISCARDABLE  0, 0, 217, 87
-STYLE DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_DEFAULTS DIALOG  0, 0, 217, 87
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CONTROL | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
 CAPTION "Load / Save"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -294,7 +293,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO DISCARDABLE 
+GUIDELINES DESIGNINFO 
 BEGIN
     IDD_VNC_AUTH_DLG, DIALOG
     BEGIN
@@ -468,7 +467,7 @@ END
 // Cursor
 //
 
-IDC_DOT_CURSOR          CURSOR  DISCARDABLE     "cursor1.cur"
+IDC_DOT_CURSOR          CURSOR                  "cursor1.cur"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -488,7 +487,7 @@ END
 // Menu
 //
 
-IDR_TRAY MENU DISCARDABLE 
+IDR_TRAY MENU 
 BEGIN
     POPUP "Tray Menu"
     BEGIN
@@ -504,17 +503,17 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// 24
+// RT_MANIFEST
 //
 
-IDR_MANIFEST            24      DISCARDABLE     "vncviewer.exe.manifest"
+IDR_MANIFEST            RT_MANIFEST             "vncviewer.exe.manifest"
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // Bitmap
 //
 
-IDB_BITMAP              BITMAP  DISCARDABLE     "vncviewer.bmp"
+IDB_BITMAP              BITMAP                  "vncviewer.bmp"
 #endif    // English (U.K.) resources
 /////////////////////////////////////////////////////////////////////////////
 

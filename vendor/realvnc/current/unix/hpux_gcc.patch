@@ -232,7 +232,7 @@
 --- xc/config/cf/vnc.def        9 Sep 2003 15:54:23
 ***************
 *** 9,14 ****
---- 9,27 ----
+--- 9,28 ----
   #define XnestServer NO
   #define XprtServer NO
   
@@ -244,6 +244,7 @@
 + #define DefaultFontPath /usr/lib/X11/fonts/misc/,/usr/lib/X11/fonts/iso_8859.1/100dpi/,/usr/lib/X11/fonts/iso_8859.1/75dpi/
 +
 + #define CcCmd gcc
++ #define IncRoot /bunchOfArse
 + #define OptimizedCDebugFlags
 + #define DefaultCCOptions
 + #define SharedLibraryCCOptions -shared

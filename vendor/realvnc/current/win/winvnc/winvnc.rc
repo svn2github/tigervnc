@@ -1,4 +1,4 @@
-//Microsoft Developer Studio generated resource script.
+// Microsoft Visual C++ generated resource script.
 //
 #include "resource.h"
 
@@ -27,18 +27,18 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE DISCARDABLE 
+1 TEXTINCLUDE 
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE DISCARDABLE 
+2 TEXTINCLUDE 
 BEGIN
     "#include ""afxres.h""\r\n"
     "\0"
 END
 
-3 TEXTINCLUDE DISCARDABLE 
+3 TEXTINCLUDE 
 BEGIN
     "\r\n"
     "\0"
@@ -47,15 +47,14 @@ END
 #endif    // APSTUDIO_INVOKED
 
 
-#ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
 //
 // Version
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 4,1,1,0
- PRODUCTVERSION 4,1,1,0
+ FILEVERSION 4,1,2,0
+ PRODUCTVERSION 4,1,2,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -70,18 +69,15 @@ BEGIN
     BEGIN
         BLOCK "080904b0"
         BEGIN
-            VALUE "Comments", "\0"
-            VALUE "CompanyName", "RealVNC Ltd.\0"
-            VALUE "FileDescription", "VNC Server Free Edition for Win32\0"
-            VALUE "FileVersion", "4.1.1\0"
-            VALUE "InternalName", "free4/winvnc\0"
-            VALUE "LegalCopyright", "Copyright © RealVNC Ltd. 2002-2005\0"
-            VALUE "LegalTrademarks", "RealVNC\0"
-            VALUE "OriginalFilename", "winvnc4.exe\0"
-            VALUE "PrivateBuild", "\0"
-            VALUE "ProductName", "VNC Server Free Edition\0"
-            VALUE "ProductVersion", "4.1.1\0"
-            VALUE "SpecialBuild", "\0"
+            VALUE "CompanyName", "RealVNC Ltd."
+            VALUE "FileDescription", "VNC Server Free Edition for Win32"
+            VALUE "FileVersion", "4.1.2"
+            VALUE "InternalName", "free4/winvnc"
+            VALUE "LegalCopyright", "Copyright © RealVNC Ltd. 2002-2005"
+            VALUE "LegalTrademarks", "RealVNC"
+            VALUE "OriginalFilename", "winvnc4.exe"
+            VALUE "ProductName", "VNC Server Free Edition"
+            VALUE "ProductVersion", "4.1.2"
         END
     END
     BLOCK "VarFileInfo"
@@ -89,8 +85,6 @@ BEGIN
         VALUE "Translation", 0x809, 1200
     END
 END
-
-#endif    // !_MAC
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -100,15 +94,15 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICON                ICON    DISCARDABLE     "winvnc.ico"
-IDI_CONNECTED           ICON    DISCARDABLE     "connected.ico"
+IDI_ICON                ICON                    "winvnc.ico"
+IDI_CONNECTED           ICON                    "connected.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // Menu
 //
 
-IDR_TRAY MENU DISCARDABLE 
+IDR_TRAY MENU 
 BEGIN
     POPUP "Tray Menu"
     BEGIN
@@ -128,9 +122,9 @@ END
 // Dialog
 //
 
-IDD_ABOUT DIALOG DISCARDABLE  0, 0, 249, 92
-STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | 
-    WS_SYSMENU
+IDD_ABOUT DIALOG  0, 0, 249, 92
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | 
+    WS_CAPTION | WS_SYSMENU
 CAPTION "About VNC Server for Windows"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -144,9 +138,9 @@ BEGIN
                     IDC_STATIC,45,55,202,15
 END
 
-IDD_QUERY_CONNECT DIALOG DISCARDABLE  0, 0, 164, 93
-STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION | 
-    WS_SYSMENU
+IDD_QUERY_CONNECT DIALOG  0, 0, 164, 93
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | 
+    WS_CAPTION | WS_SYSMENU
 CAPTION "VNC Server : Accept Connection?"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -161,9 +155,9 @@ BEGIN
     LTEXT           "-",IDC_QUERY_HOST,40,30,117,15,SS_CENTERIMAGE
 END
 
-IDD_ADD_NEW_CLIENT DIALOG DISCARDABLE  0, 0, 177, 52
-STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_VISIBLE | 
-    WS_CAPTION | WS_SYSMENU
+IDD_ADD_NEW_CLIENT DIALOG  0, 0, 177, 52
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | 
+    WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "VNC Server : Add New Client"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -181,16 +175,16 @@ END
 // HTTPFILE
 //
 
-/VNCVIEWER.JAR          HTTPFILE DISCARDABLE    "..\\..\\common\\javabin\\vncviewer.jar"
-/LOGO150X150.GIF        HTTPFILE DISCARDABLE    "..\\..\\common\\javabin\\logo150x150.gif"
-/INDEX.VNC              HTTPFILE DISCARDABLE    "..\\..\\common\\javabin\\index.vnc"
+/VNCVIEWER.JAR          HTTPFILE                "..\\..\\common\\javabin\\vncviewer.jar"
+/LOGO150X150.GIF        HTTPFILE                "..\\..\\common\\javabin\\logo150x150.gif"
+/INDEX.VNC              HTTPFILE                "..\\..\\common\\javabin\\index.vnc"
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// 24
+// RT_MANIFEST
 //
 
-IDR_MANIFEST            24      DISCARDABLE     "winvnc4.exe.manifest"
+IDR_MANIFEST            RT_MANIFEST             "winvnc4.exe.manifest"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -198,7 +192,7 @@ IDR_MANIFEST            24      DISCARDABLE     "winvnc4.exe.manifest"
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO DISCARDABLE 
+GUIDELINES DESIGNINFO 
 BEGIN
     IDD_ABOUT, DIALOG
     BEGIN
@@ -261,7 +255,7 @@ END
 // Bitmap
 //
 
-IDB_BITMAP              BITMAP  DISCARDABLE     "winvnc.bmp"
+IDB_BITMAP              BITMAP                  "winvnc.bmp"
 #endif    // English (U.K.) resources
 /////////////////////////////////////////////////////////////////////////////
 

@@ -159,7 +159,7 @@ static void usage()
 
 int main(int argc, char** argv)
 {
-  sprintf(aboutText, "VNC Viewer Free Edition 4.1.1 for X - built %s\n"
+  sprintf(aboutText, "VNC Viewer Free Edition 4.1.2 for X - built %s\n"
           "Copyright (C) 2002-2005 RealVNC Ltd.\n"
           "See http://www.realvnc.com for information on VNC.",
           buildtime);

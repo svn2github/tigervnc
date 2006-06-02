@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -26,13 +26,16 @@
 
 package vncviewer;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Label;
 
 public class VNCViewer extends java.applet.Applet implements Runnable
 {
-  public static final String version = "4.0";
-  public static final String about1 = "VNC viewer for Java version "+version;
-  public static final String about2 = "Copyright (C) 2002-2004 RealVNC Ltd.";
+  public static final String version = "4.1";
+  public static final String about1 = "VNC Viewer Free Edition "+version;
+  public static final String about2 = "Copyright (C) 2002-2005 RealVNC Ltd.";
   public static final String about3 = ("See http://www.realvnc.com for "+
                                        "information on VNC.");
   public static final String aboutText = about1+"\n"+about2+"\n"+about3;
@@ -41,9 +44,11 @@ public class VNCViewer extends java.applet.Applet implements Runnable
     VNCViewer viewer = new VNCViewer(argv);
     viewer.start();
   }
-
+  
   public VNCViewer(String[] argv) {
     applet = false;
+    
+    // Override defaults with command-line options
     for (int i = 0; i < argv.length; i++) {
       if (argv[i].equalsIgnoreCase("-log")) {
         if (++i >= argv.length) usage();
@@ -104,6 +109,7 @@ public class VNCViewer extends java.applet.Applet implements Runnable
     viewer.firstApplet = false;
     viewer.start();
   }
+
 
   public void init() {
     vlog.debug("init called");

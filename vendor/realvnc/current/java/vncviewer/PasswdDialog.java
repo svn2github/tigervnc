@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -22,7 +22,7 @@ import java.awt.*;
 
 class PasswdDialog extends vncviewer.Dialog {
 
-  public PasswdDialog(String title, boolean userDisabled) {
+  public PasswdDialog(String title, boolean userDisabled, boolean passwdDisabled) {
     super(true);
     setTitle(title);
     Panel p1 = new Panel();
@@ -30,6 +30,7 @@ class PasswdDialog extends vncviewer.Dialog {
     p1.add(userLabel);
     userEntry = new TextField(30);
     userEntry.setEnabled(!userDisabled);
+    userLabel.setEnabled(!userDisabled);
     p1.add(userEntry);
     add("Center", p1);
 
@@ -38,6 +39,8 @@ class PasswdDialog extends vncviewer.Dialog {
     p2.add(passwdLabel);
     passwdEntry = new TextField(30);
     passwdEntry.setEchoChar('*');
+    passwdEntry.setEnabled(!passwdDisabled);
+    passwdLabel.setEnabled(!passwdDisabled);
     p2.add(passwdEntry);
     add("South", p2);
 
@@ -46,7 +49,12 @@ class PasswdDialog extends vncviewer.Dialog {
 
   synchronized public boolean action(Event event, Object arg) {
     if (event.target == userEntry) {
-      passwdEntry.requestFocus();
+      if (passwdEntry.isEnabled())
+        passwdEntry.requestFocus();
+      else {
+      	ok = true;
+      	endDialog();
+      }
     } else if (event.target == passwdEntry) {
       ok = true;
       endDialog();

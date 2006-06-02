@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -22,25 +22,56 @@ import java.awt.*;
 
 class MessageBox extends vncviewer.Dialog {
 
-  public MessageBox(String msg) {
+  public static final int MB_OK = 0;
+  public static final int MB_OKAYCANCEL = 1;
+  public static final int MB_YESNO = 2;
+
+  public MessageBox(String msg, int flags) {
     super(true);
-    Label l = new Label(msg);
-    add(l);
+    GridLayout g = new GridLayout(0,1);
+    setLayout(g);
+    while (true) {
+      int i = msg.indexOf('\n');
+      int j = (i==-1) ? msg.length() : i;
+      add(new Label(msg.substring(0, j)));
+      if (i==-1) break;
+      msg = msg.substring(j+1);
+    }
     Panel p2 = new Panel();
-    okButton = new Button("OK");
-    p2.add(okButton);
+    switch (flags & 3) {
+    case MB_OKAYCANCEL:
+      cancelButton = new Button("Cancel");
+      // No break
+    case MB_OK:
+      okButton = new Button("OK");
+      break;
+    case MB_YESNO:
+      okButton = new Button("Yes");
+      cancelButton = new Button("No");
+      break;
+    }
+    if (okButton != null) p2.add(okButton);
+    if (cancelButton != null) p2.add(cancelButton);
     add("South", p2);
     pack();
     showDialog();
   }
 
+  public MessageBox(String msg) {
+    this(msg, MB_OK);
+  }
+
+
   public boolean action(Event event, Object arg) {
     if (event.target == okButton) {
       ok = true;
+      endDialog();
+    } else if (event.target == cancelButton) {
+      ok = false;
       endDialog();
     }
     return true;
   }
 
-  Button okButton;
+  Button okButton, cancelButton;
 }

@@ -1,15 +1,15 @@
 
-VNC 4 Source Distribution for Windows platforms
+VNC Free Edition Source Distribution for Windows platforms
 =============================================
 
-VNC 4 is Copyright RealVNC Ltd. 2002-2004.  This software is
+VNC Free Edition is Copyright RealVNC Ltd. 2002-2004.  This software is
 distributed under the GNU General Public Licence as published by the
 Free Software Foundation.  See the accompanying licence.txt file for
 the conditions under which the software is made available.
 
-VNC 4 also contains code from other sources.  See the Acknowledgements
-section below, and the individual files for details of the conditions
-under which they are made available.
+VNC Free Edition also contains code from other sources.  See the
+Acknowledgements section below, and the individual files for details of
+the conditions under which they are made available.
 
 The source tree contains a number of directories, and is most easily
 built by loading the VNC workspace file (vnc.dsw) into Microsoft

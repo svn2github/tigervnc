@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -25,32 +25,52 @@ class ServerDialog extends vncviewer.Dialog {
   public ServerDialog(OptionsDialog options_,
                       AboutDialog about_, String defaultServerName) {
     super(true);
-    setTitle("VNC Viewer: Connection Details");
+    setTitle("VNC Viewer : Connection Details");
     options = options_;
     about = about_;
-    Panel p1 = new Panel();
-    label = new Label("VNC server:");
-    p1.add(label);
-    server = new TextField(30);
+    GridBagLayout gbl = new GridBagLayout();
+    setLayout(gbl);
+    // Add components
+    addComponent(new Label("Server:", Label.RIGHT),
+                 0, 0, 1, 1, 0, new Insets(4, 0, 0, 0));
+    addComponent(server=new TextField(15),
+                 1, 0, 2, 1, 0, new Insets(4, 0, 0, 0));
+    addComponent(new Label("Encryption:", Label.RIGHT),
+                 0, 1, 1, 1, 0, new Insets(2, 0, 0, 0));
+    addComponent(encryption = new Choice(),
+                 1, 1, 2, 1, 0, new Insets(2, 0, 0, 0));
+    addComponent(optionsButton = new Button("Options..."),
+		       	 1, 2, 1, 1, 0, new Insets(8, 4, 4, 4));
+	  addComponent(aboutButton = new Button("About..."),
+	             0, 2, 1, 1, 35, new Insets(8, 4, 4, 4));
+    addComponent(okButton = new Button("OK"),
+            	 2, 2, 1, 1, 40, new Insets(8, 4, 4, 4));
+    addComponent(cancelButton = new Button("Cancel"),
+                 3, 2, 1, 1, 30, new Insets(8, 4, 4, 4));
+    // Set default values
     if (defaultServerName != null) server.setText(defaultServerName);
-    p1.add(server);
-    add("Center", p1);
-
-    Panel p2 = new Panel();
-    p2.setLayout(new FlowLayout(FlowLayout.RIGHT));
-    aboutButton = new Button("About...");
-    optionsButton = new Button("Options...");
-    okButton = new Button("OK");
-    cancelButton = new Button("Cancel");
-    p2.add(aboutButton);
-    p2.add(optionsButton);
-    p2.add(okButton);
-    p2.add(cancelButton);
-    add("South", p2);
-
+	  encryption.add("Not supported");
+	  encryption.select(0);
+    encryption.setEnabled(false);
     pack();
   }
 
+ 
+  protected void addComponent(Component comp, int x, int y, int w, int h, int extra, Insets padding )
+  {
+      GridBagConstraints gbc = new GridBagConstraints();
+      gbc.gridx = x;
+      gbc.gridy = y;
+      gbc.gridwidth = w;
+      gbc.gridheight = h;
+      gbc.fill = GridBagConstraints.HORIZONTAL;
+      gbc.insets = padding;
+      gbc.ipadx = extra;
+      gbc.weightx = 1;
+      gbc.weighty = 1;
+      add(comp, gbc);
+  }
+  
   synchronized public boolean action(Event event, Object arg) {
     if (event.target == okButton || event.target == server) {
       ok = true;
@@ -66,8 +86,8 @@ class ServerDialog extends vncviewer.Dialog {
     return true;
   }
 
-  Label label;
   TextField server;
+  Choice encryption;
   Button aboutButton, optionsButton, okButton, cancelButton;
   OptionsDialog options;
   AboutDialog about;

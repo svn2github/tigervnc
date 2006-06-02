@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2003 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -19,6 +19,8 @@
 package vncviewer;
 
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 
 class ClipboardDialog extends vncviewer.Dialog {
 
@@ -41,15 +43,32 @@ class ClipboardDialog extends vncviewer.Dialog {
     pack();
   }
 
+  static Clipboard systemClipboard;
+  static {
+    try {
+      systemClipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+    } catch (Exception e) { }
+  }
+
+
+
   public void initDialog() {
     textArea.setText(current);
     textArea.selectAll();
   }
-
-  public void serverCutText(String str) {
+  
+  public void setContents(String str) {
     current = str;
     textArea.setText(str);
     textArea.selectAll();
+  }
+
+  public void serverCutText(String str) {
+    setContents(str);    
+    if (systemClipboard != null) {
+      StringSelection ss = new StringSelection(str);
+      systemClipboard.setContents(ss, ss);
+    }
   }
 
   public void setSendingEnabled(boolean b) {

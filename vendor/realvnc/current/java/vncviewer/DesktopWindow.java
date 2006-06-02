@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -25,6 +25,8 @@
 
 package vncviewer;
 import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
 
 class DesktopWindow extends Canvas implements Runnable {
 
@@ -211,12 +213,37 @@ class DesktopWindow extends Canvas implements Runnable {
     g.drawImage(im.image, 0, 0, null);
   }
 
+
+  String oldContents = "";
+  
+  synchronized public void checkClipboard() {
+    if (ClipboardDialog.systemClipboard != null &&
+        cc.viewer.sendClipboard.getValue()) {
+      Transferable t = ClipboardDialog.systemClipboard.getContents(this);
+      if ((t != null) && t.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+        try {
+          String newContents = (String) t.getTransferData(DataFlavor.stringFlavor);
+          if (newContents != null && !newContents.equals(oldContents)) {
+            cc.writeClientCutText(newContents);
+            oldContents = newContents;
+            cc.clipboardDialog.setContents(newContents);
+          }
+        } catch (Exception e) {
+          System.out.println("Exception getting clipboard data: " + e.getMessage());
+        }
+      }
+    }
+  }
+
   // handleEvent().  Called by the GUI thread and calls on to CConn as
   // appropriate.  CConn is responsible for synchronizing the writing of key
   // and pointer events with other protocol messages.
 
-  public boolean handleEvent(Event event) { 
+  public boolean handleEvent(Event event) {
     switch (event.id) {
+    case Event.GOT_FOCUS:
+      checkClipboard();
+      break;
     case Event.MOUSE_MOVE:
     case Event.MOUSE_DRAG:
       if (!cc.viewer.viewOnly.getValue())

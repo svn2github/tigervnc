@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2004 RealVNC Ltd.  All Rights Reserved.
- *    
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -31,8 +31,11 @@
 
 package vncviewer;
 
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Event;
+import java.awt.Frame;
+import java.awt.ScrollPane;
 
 import rfb.SecTypes;
 
@@ -73,6 +76,7 @@ public class CConn extends rfb.CConnection
 
   public CConn(VNCViewer viewer_) {
     viewer = viewer_;
+    // Set the rest of the defaults
     currentEncoding = rfb.Encodings.ZRLE;
     lastUsedEncoding = rfb.Encodings.max;
     fullColour = viewer.fullColour.getValue();
@@ -148,11 +152,12 @@ public class CConn extends rfb.CConnection
   public boolean getUserPasswd(StringBuffer user, StringBuffer passwd) {
     String title = ("VNC Authentication ["
                     + getCurrentCSecurity().description() + "]");
-    PasswdDialog dlg = new PasswdDialog(title, user == null);
+    PasswdDialog dlg = new PasswdDialog(title, (user == null), (passwd == null));
     if (!dlg.showDialog()) return false;
     if (user != null)
       user.append(dlg.userEntry.getText());
-    passwd.append(dlg.passwdEntry.getText());
+    if (passwd != null)
+      passwd.append(dlg.passwdEntry.getText());
     return true;
   }
 
@@ -363,24 +368,13 @@ public class CConn extends rfb.CConnection
   }
 
   public void showInfo() {
-    String infoText = ("Desktop Name:\t\t"+cp.name+"\n"+
-                       "Host:\t\t\t"+serverHost+" port: "+serverPort+"\n"+
-                       "Size:\t\t\t"+cp.width+" x "+cp.height+"\n"+
-                       "Pixel Format:\t\t"+cp.pf().print()+"\n"+
-                       "Server Default:\t\t"+serverPF.print()+")\n"+
-                       "Requested Encoding:\t"+
-                       rfb.Encodings.name(currentEncoding)+"\n"+
-                       "Last Used Encoding:\t"+
-                       rfb.Encodings.name(lastUsedEncoding)+"\n"+
-                       "Line Speed Estimate:\t"+jis.kbitsPerSecond()+
-                       " kbit/s\n"+
-                       "Protocol Version:\t\t"+
-                       cp.majorVersion+"."+cp.minorVersion+"\n"+
-                       "Security Method:\t\t"+
-                       SecTypes.name(getCurrentCSecurity().getType())+"\n"+
-                       "Encryption:\t\t"+getCurrentCSecurity().description()
-                       );
-    info.infoLabel.setText(infoText);
+  	info.setDetails(cp.name, serverHost+":"+serverPort, cp.width+"x"+cp.height,
+  	                cp.pf().print(), serverPF.print(),
+		            rfb.Encodings.name(currentEncoding),
+		            rfb.Encodings.name(lastUsedEncoding),
+		            jis.kbitsPerSecond()+" kbit/s",		            cp.majorVersion+"."+cp.minorVersion,
+                    SecTypes.name(getCurrentCSecurity().getType()),
+                    getCurrentCSecurity().description());
     info.showDialog();
   }
 
@@ -615,6 +609,7 @@ public class CConn extends rfb.CConnection
   // reading and writing int and boolean is atomic in java, so no
   // synchronization of the following flags is needed:
   int currentEncoding, lastUsedEncoding;
+  
   boolean fullColour;
   boolean autoSelect;
   boolean shared;
@@ -635,6 +630,6 @@ public class CConn extends rfb.CConnection
   // the following are only ever accessed by the GUI thread:
   int buttonMask;
   int pressedModifiers;
-
+  
   static rfb.LogWriter vlog = new rfb.LogWriter("CConn");
 }

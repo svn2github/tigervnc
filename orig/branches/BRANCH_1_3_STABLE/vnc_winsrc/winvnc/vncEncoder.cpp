@@ -109,7 +109,7 @@ vncEncoder::NumCodedRects(RECT &rect)
 inline void
 vncEncoder::Translate(BYTE *source, BYTE *dest, const RECT &rect)
 {
-// ASSUME backbuffer-relative coordinates for rect
+// IMPORTANT: ASSUME backbuffer-relative coordinates for rect
 	// Calculate where in the source rectangle to read from
 	BYTE *sourcepos = (BYTE *)(source + (m_bytesPerRow * rect.top)+(rect.left * (m_localformat.bitsPerPixel / 8)));
 

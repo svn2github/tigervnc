@@ -1489,6 +1489,7 @@ void  vncServer::SetMatchSizeFields(int left,int top,int right,int bottom)
 	if( top < trect.top)
 		top = trect.top;
 
+ 
 	m_screenarea_rect.left=left;
 	m_screenarea_rect.top=top;
 	m_screenarea_rect.bottom=bottom;
@@ -1640,11 +1641,17 @@ BOOL vncServer::SetShareMonitorFromPoint(POINT pt)
 
 	HMONITOR hm = pMFP(pt, MONITOR_DEFAULTTONEAREST);
 	if (!hm)
+	{
+		FreeLibrary(hInstUser32);
 		return FALSE;
+	}
 	MONITORINFO	moninfo;
 	moninfo.cbSize = sizeof(moninfo);
 	if (!pGMI(hm, &moninfo))
+	{
+		FreeLibrary(hInstUser32);
 		return FALSE;
+	}
 
 	FullScreen(FALSE);
 	WindowShared(FALSE);

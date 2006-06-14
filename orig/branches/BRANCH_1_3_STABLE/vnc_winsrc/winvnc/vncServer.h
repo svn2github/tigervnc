@@ -420,6 +420,7 @@ protected:
 	vncNotifyList		m_notifyList;
 };
 
+BOOL IsWinNT();
 BOOL IsWinVerOrHigher(ULONG mj, ULONG mn);
 
 RECT GetScreenRect();

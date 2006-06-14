@@ -1,4 +1,4 @@
-//  Copyright (C) 2005 Lev Kazarkin. All Rights Reserved.
+//  Copyright (C) 2005-2006 Lev Kazarkin. All Rights Reserved.
 //  Copyright (C) 2004 Vladimir Vologzhanin. All Rights Reserved.
 //  Copyright (C) 2002 Ultr@VNC Team Members. All Rights Reserved.
 //
@@ -26,12 +26,17 @@
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
 #include "VideoDriver.h"
+#include "vncDesktop.h"
 
 char	vncVideoDriver::szDriverString[] = "Mirage Driver";
 char	vncVideoDriver::szDriverStringAlt[] = "DemoForge Mirage Driver";
 char	vncVideoDriver::szMiniportName[] = "dfmirage";
 
 #define MINIPORT_REGISTRY_PATH	"SYSTEM\\CurrentControlSet\\Hardware Profiles\\Current\\System\\CurrentControlSet\\Services"
+
+BOOL IsWinNT();
+BOOL IsNtVer(ULONG mj, ULONG mn);
+BOOL IsWinVerOrHigher(ULONG mj, ULONG mn);
 
 
 vncVideoDriver::vncVideoDriver()
@@ -40,7 +45,10 @@ vncVideoDriver::vncVideoDriver()
 	bufdata.Userbuffer = NULL;
 	m_fIsActive = false;
 	m_fDirectAccessInEffect = false;
+	m_fHandleScreen2ScreenBlt = false;
 	*m_devname= 0;
+	m_drv_ver_mj = 0;
+	m_drv_ver_mn = 0;
 }
 
 vncVideoDriver::~vncVideoDriver()
@@ -58,6 +66,8 @@ vncVideoDriver::~vncVideoDriver()
 
 BOOL vncVideoDriver::CheckVersion()
 {
+	_ASSERTE(IsWinNT());
+
 	HDC	l_gdc= ::CreateDC(m_devname, NULL, NULL, NULL);
 	if (!l_gdc)
 	{
@@ -116,6 +126,10 @@ BOOL vncVideoDriver::CheckVersion()
 			drvCr);
 		return FALSE;
 	}
+
+	m_drv_ver_mj = BYTE3(qvi_out.display_actual_version);
+	m_drv_ver_mn = BYTE2(qvi_out.display_actual_version);
+
 	return TRUE;
 }
 
@@ -123,6 +137,7 @@ BOOL vncVideoDriver::MapSharedbuffers(BOOL fForDirectScreenAccess)
 {
 	_ASSERTE(!m_fIsActive);
 	_ASSERTE(!m_fDirectAccessInEffect);
+	_ASSERTE(IsWinNT());
 
 	HDC	l_gdc= ::CreateDC(m_devname, NULL, NULL, NULL);
 	if (!l_gdc)
@@ -171,17 +186,32 @@ BOOL vncVideoDriver::MapSharedbuffers(BOOL fForDirectScreenAccess)
 				VNCLOG("vncVideoDriver::MapSharedbuffers: mirror screen view is mapped but direct access mode is OFF\n"));
 		}
 	}
+
+// Screen2Screen support added in Mirage ver 1.2
+	m_fHandleScreen2ScreenBlt = (m_drv_ver_mj > 1) || (m_drv_ver_mj == 1 && m_drv_ver_mn >= 2);
+
 	return TRUE;	
 }
 
 BOOL vncVideoDriver::TestMapped()
 {
-	DISPLAY_DEVICE dd;
-	INT devNum = 0;
-	if (!LookupVideoDeviceAlt(szDriverString, szDriverStringAlt, devNum, &dd))
-		return FALSE;
+	_ASSERTE(IsWinNT());
 
-	HDC	l_ddc = ::CreateDC((const char *)dd.DeviceName, NULL, NULL, NULL);
+	TCHAR *pDevName;
+	if (IsWinVerOrHigher(5, 0))
+	{
+		DISPLAY_DEVICE dd;
+		INT devNum = 0;
+		if (!LookupVideoDeviceAlt(szDriverString, szDriverStringAlt, devNum, &dd))
+			return FALSE;
+		pDevName = (TCHAR *)dd.DeviceName;
+	}
+	else
+	{
+		pDevName = "DISPLAY";
+	}
+
+	HDC	l_ddc = ::CreateDC(pDevName, NULL, NULL, NULL);
 	if (l_ddc)
 	{
 		BOOL b = ExtEscape(l_ddc, TESTMAPPED, 0, NULL, 0, NULL);	
@@ -193,8 +223,9 @@ BOOL vncVideoDriver::TestMapped()
 
 void vncVideoDriver::UnMapSharedbuffers()
 {
-	int DrvCr = 0;
+	_ASSERTE(IsWinNT());
 
+	int DrvCr = 0;
 	if (m_devname[0])
 	{
 		_ASSERTE(m_fIsActive);
@@ -250,6 +281,7 @@ void vncVideoDriver::UnMapSharedbuffers()
 	}
 	m_fIsActive = false;
 	m_fDirectAccessInEffect = false;
+	m_fHandleScreen2ScreenBlt = false;
 }
 
 template <class TpFn>
@@ -277,6 +309,8 @@ BOOL vncVideoDriver::LookupVideoDeviceAlt(
 		INT &devNum,
 		DISPLAY_DEVICE *pDd)
 {
+	_ASSERTE(IsWinVerOrHigher(5, 0));
+
 	pEnumDisplayDevices pd = NULL;
 	HINSTANCE  hInstUser32 = LoadNImport("User32.DLL", "EnumDisplayDevicesA", pd);
 	if (!hInstUser32) return FALSE;
@@ -344,6 +378,38 @@ BOOL vncVideoDriver::Activate(
 		BOOL fForDirectAccess,
 		const RECT *prcltarget)
 {
+	_ASSERTE(IsWinNT());
+
+	if (IsWinVerOrHigher(5, 0))
+	{
+		return Activate_NT50(fForDirectAccess, prcltarget);
+	}
+	else
+	{
+// NOTE: prcltarget is just a SourceDisplayRect.
+// there is only 1 possibility on NT4, so safely ignore it
+		return Activate_NT46(fForDirectAccess);
+	}
+}
+
+void vncVideoDriver::Deactivate()
+{
+	_ASSERTE(IsWinNT());
+
+	if (IsWinVerOrHigher(5, 0))
+	{
+		Deactivate_NT50();
+	}
+	else
+	{
+		Deactivate_NT46();
+	}
+}
+
+BOOL vncVideoDriver::Activate_NT50(
+		BOOL fForDirectAccess,
+		const RECT *prcltarget)
+{
 	HDESK   hdeskInput;
     HDESK   hdeskCurrent;
  
@@ -404,6 +470,19 @@ BOOL vncVideoDriver::Activate(
 
 	dwVal = 1;
 	if (RegSetValueEx(
+		hKeyDevice,
+		("Order.BltCopyBits.Enabled"),
+		0,
+		REG_DWORD,
+		(unsigned char *)&dwVal,
+		4) != ERROR_SUCCESS)
+	{
+		vnclog.Print(LL_INTERR, VNCLOG("Can't set Order.BltCopyBits.Enabled to %d\n"), dwVal);
+		return FALSE;
+	}
+
+	dwVal = 1;
+	if (RegSetValueEx(
 			hKeyDevice,
 			("Attach.ToDesktop"),
 			0,
@@ -411,7 +490,7 @@ BOOL vncVideoDriver::Activate(
 			(unsigned char *)&dwVal,
 			4) != ERROR_SUCCESS)
 	{
-		vnclog.Print(LL_INTERR, VNCLOG("Can't set Attach.ToDesktop to 0x1\n"));
+		vnclog.Print(LL_INTERR, VNCLOG("Can't set Attach.ToDesktop to %d\n"), dwVal);
 		return FALSE;
 	}
 
@@ -432,7 +511,7 @@ BOOL vncVideoDriver::Activate(
 // see vncDesktop::ThunkBitmapInfo()
 	if (devmode.dmBitsPerPel==24) devmode.dmBitsPerPel = 32;
 	LONG cr = (*pCDS)(
-		(const char *)dd.DeviceName,
+		(TCHAR *)dd.DeviceName,
 		&devmode,
 		NULL,
 		CDS_UPDATEREGISTRY,NULL);
@@ -457,7 +536,56 @@ BOOL vncVideoDriver::Activate(
 	return TRUE;
 }
 
-void vncVideoDriver::Deactivate()
+BOOL vncVideoDriver::Activate_NT46(BOOL fForDirectAccess)
+{
+	HKEY hKeyDevice = CreateDeviceKey(szMiniportName);
+	if (hKeyDevice == NULL)
+		return FALSE;
+
+	// TightVNC does not use these features
+	RegDeleteValue(hKeyDevice, ("Screen.ForcedBpp"));
+	RegDeleteValue(hKeyDevice, ("Pointer.Enabled"));
+
+	DWORD dwVal = fForDirectAccess ? 3 : 0;
+	// NOTE that old driver ignores it and mapping is always ON with it
+	if (RegSetValueEx(
+		hKeyDevice,
+		("Cap.DfbBackingMode"),
+		0,
+		REG_DWORD,
+		(unsigned char *)&dwVal,
+		4) != ERROR_SUCCESS)
+	{
+		vnclog.Print(LL_INTERR, VNCLOG("Can't set \"Cap.DfbBackingMode\" to %d\n"), dwVal);
+		return FALSE;
+	}
+
+	dwVal = 1;
+	if (RegSetValueEx(
+		hKeyDevice,
+		("Order.BltCopyBits.Enabled"),
+		0,
+		REG_DWORD,
+		(unsigned char *)&dwVal,
+		4) != ERROR_SUCCESS)
+	{
+		vnclog.Print(LL_INTERR, VNCLOG("Can't set Order.BltCopyBits.Enabled to %d\n"), dwVal);
+		return FALSE;
+	}
+
+// NOTE: we cannot truly load the driver
+// but ChangeDisplaySettings makes PDEV to reload
+// and thus new settings come into effect
+
+// TODO
+
+	strcpy(m_devname, "DISPLAY");
+
+	RegCloseKey(hKeyDevice);
+	return TRUE;
+}
+
+void vncVideoDriver::Deactivate_NT50()
 {
 	HDESK   hdeskInput;
 	HDESK   hdeskCurrent;
@@ -497,6 +625,7 @@ void vncVideoDriver::Deactivate()
 
 // reverting to default behavior
 	RegDeleteValue(hKeyDevice, ("Cap.DfbBackingMode"));
+	RegDeleteValue(hKeyDevice, ("Order.BltCopyBits.Enabled"));
 
 	pChangeDisplaySettingsEx pCDS = NULL;
 	HINSTANCE  hInstUser32 = LoadNImport("User32.DLL", "ChangeDisplaySettingsExA", pCDS);
@@ -514,8 +643,8 @@ void vncVideoDriver::Deactivate()
 	if (devmode.dmBitsPerPel==24) devmode.dmBitsPerPel = 32;
 
 	// Add 'Default.*' settings to the registry under above hKeyProfile\mirror\device
-	(*pCDS)((const char *)dd.DeviceName, &devmode, NULL, CDS_UPDATEREGISTRY, NULL);
-    
+	(*pCDS)((TCHAR *)dd.DeviceName, &devmode, NULL, CDS_UPDATEREGISTRY, NULL);
+
 	// Reset desktop
 	SetThreadDesktop(hdeskCurrent);
 	// Close the input desktop
@@ -524,27 +653,51 @@ void vncVideoDriver::Deactivate()
 	FreeLibrary(hInstUser32);
 }
 
+void vncVideoDriver::Deactivate_NT46()
+{
+// ... and forget the name
+	*m_devname = 0;
+
+	HKEY hKeyDevice = CreateDeviceKey(szMiniportName);
+	if (hKeyDevice == NULL)
+		return;
+
+// reverting to default behavior
+	RegDeleteValue(hKeyDevice, ("Cap.DfbBackingMode"));
+
+//	RegDeleteValue(hKeyDevice, ("Order.BltCopyBits.Enabled"));
+// TODO: remove "Order.BltCopyBits.Enabled"
+// now we don't touch this important option
+// because we dont apply the changed values
+
+	RegCloseKey(hKeyDevice);
+}
+
 void vncVideoDriver::HandleDriverChanges(
+		vncDesktop *pDesk,
 		vncRegion &rgn,
 		int xoffset,
 		int yoffset,
 		BOOL &bPointerShapeChange)
 {
-	if (oldCounter == bufdata.buffer->counter)
+	ULONG snapshot_counter = bufdata.buffer->counter;
+	if (oldCounter == snapshot_counter)
 		return;
 
-	if (oldCounter < bufdata.buffer->counter)
+	if (oldCounter < snapshot_counter)
 	{
 		HandleDriverChangesSeries(
+			pDesk,
 			rgn,
 			xoffset, yoffset,
 			bufdata.buffer->pointrect + oldCounter,
-			bufdata.buffer->pointrect + bufdata.buffer->counter,
+			bufdata.buffer->pointrect + snapshot_counter,
 			bPointerShapeChange);
 	}
 	else
 	{
 		HandleDriverChangesSeries(
+			pDesk,
 			rgn,
 			xoffset, yoffset,
 			bufdata.buffer->pointrect + oldCounter,
@@ -552,17 +705,19 @@ void vncVideoDriver::HandleDriverChanges(
 			bPointerShapeChange);
 
 		HandleDriverChangesSeries(
+			pDesk,
 			rgn,
 			xoffset, yoffset,
 			bufdata.buffer->pointrect,
-			bufdata.buffer->pointrect + bufdata.buffer->counter,
+			bufdata.buffer->pointrect + snapshot_counter,
 			bPointerShapeChange);
 	}
 
-	oldCounter = bufdata.buffer->counter;
+	oldCounter = snapshot_counter;
 }
 
 void vncVideoDriver::HandleDriverChangesSeries(
+		vncDesktop *pDesk,
 		vncRegion &rgn,
 		int xoffset,
 		int yoffset,
@@ -572,12 +727,48 @@ void vncVideoDriver::HandleDriverChangesSeries(
 {
 	for (; i < last; i++)
 	{
-// TODO dmf_dfo_SCREEN_SCREEN
-// TODO: bPointerShapeChange
+// TODO bPointerShapeChange
 
-		if (i->type >= dmf_dfo_BLIT && i->type <= dmf_dfo_TEXTOUT)
+		if (m_fHandleScreen2ScreenBlt && i->type == dmf_dfo_SCREEN_SCREEN)
 		{
+		//	DPF(("CopyRect: (%d, %d, %d, %d)\n",
+		//		i->rect.left,
+		//		i->rect.top,
+		//		i->rect.right,
+		//		i->rect.bottom));
+
+			RECT Rc;
+			Rc.left = i->rect.left + xoffset;
+			Rc.top = i->rect.top + yoffset;
+			Rc.right = i->rect.right + xoffset;
+			Rc.bottom = i->rect.bottom + yoffset;
+
+			POINT Pt;
+			Pt.x = i->point.x + xoffset;
+			Pt.y = i->point.y + yoffset;
+			pDesk->CopyRect(Rc, Pt);
+			continue;
+		}
+
+		if (i->type >= dmf_dfo_SCREEN_SCREEN && i->type <= dmf_dfo_TEXTOUT)
+		{
+		//	DPF(("XRect: (%d, %d, %d, %d)\n",
+		//		i->rect.left,
+		//		i->rect.top,
+		//		i->rect.right,
+		//		i->rect.bottom));
 			rgn.AddRect(i->rect, xoffset, yoffset);
 		}
 	}
+}
+
+VOID	DebugPrint(PCHAR DebugMessage,
+			...)
+{
+	va_list ap;
+	va_start(ap, DebugMessage);
+	TCHAR	pb[256];
+	vsprintf(pb, DebugMessage, ap);
+	va_end(ap);
+	OutputDebugString(pb);
 }

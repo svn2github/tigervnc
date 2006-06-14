@@ -105,6 +105,7 @@ void SharedDesktopArea::Init()
 	{
 		SharedWindow();
 	}
+//	else if (propPrimaryDisplayOnlyShared)
 	else
 	{
 		SharedPrimaryDisplayOnly();

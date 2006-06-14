@@ -101,8 +101,7 @@ public:
 	void SetCursor(HCURSOR cursor);
 	HCURSOR GetCursor() { return m_hcursor; }
 
-// created for debug purposes.
-// not used in normal builds.
+// created for debug purposes. not used in normal builds.
 	bool bDbgDumpSurfBuffers(const RECT &rcl);
 
 	// Clipboard manipulation
@@ -113,7 +112,7 @@ public:
 	// If they're disabled, it'll return NULL
 	inline BYTE *MainBuffer() {	return m_mainbuff; }
 	inline RECT MainBufferRect() {	return m_bmrect; }
-	void CopyRect(RECT &dest, POINT &source);
+	void CopyRect(RECT const& dest, POINT source);
 
 	BOOL			m_initialClipBoardSeen;
 
@@ -224,8 +223,8 @@ protected:
 	HBITMAP			m_membitmap;
 	omni_mutex		m_bitbltlock;
 
-// frame buffer relative to the entire (virtual) desktop;
-// non-zero offsets possible
+// frame buffer relative to the entire (virtual) desktop.
+// NOTE: non-zero offsets possible
 	RECT			m_bmrect;
 
 	struct _BMInfo {

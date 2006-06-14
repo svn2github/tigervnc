@@ -71,6 +71,31 @@ const int vncDesktop::m_pollingOrder[32] = {
 int vncDesktop::m_pollingStep = 0;
 
 
+BOOL IsWinNT()
+{
+	return vncService::IsWinNT();
+}
+
+BOOL IsWinVerOrHigher(ULONG mj, ULONG mn)
+{
+	return vncService::VersionMajor() > mj ||
+		vncService::VersionMajor() == mj && vncService::VersionMinor() >= mn;
+}
+
+BOOL IsNtVer(ULONG mj, ULONG mn)
+{
+	if (!vncService::IsWinNT())	
+		return FALSE;
+	return vncService::VersionMajor() == mj && vncService::VersionMinor() == mn;
+}
+
+BOOL vncDesktop::IsMultiMonDesktop()
+{
+	if (!IsWinVerOrHigher(4, 10))
+		return FALSE;
+	return GetSystemMetrics(SM_CMONITORS) > 1;
+}
+
 // The desktop handler thread
 // This handles the messages posted by RFBLib to the vncDesktop window
 
@@ -188,7 +213,6 @@ void *vncDesktopThread::run_undetached(void *arg)
 		else if (msg.message == RFB_SCREEN_UPDATE)
 		{
 // TODO: suppress this message from hook when driver is active
-//			_ASSERTE(m_desktop->m_videodriver == NULL);
 
 			// An area of the screen has changed (ignore if we have a driver)
 			if (m_desktop->m_videodriver == NULL)
@@ -686,6 +710,7 @@ void vncDesktop::ChangeResNow()
 	}
 
 	// *** WBB - Obtain the current display settings.
+	// only on unimon
 	if (! EnumDisplaySettings(0, ENUM_CURRENT_SETTINGS, m_lpAlternateDevMode))
 	{
 		vnclog.Print(LL_INTINFO,
@@ -799,19 +824,6 @@ vncDesktop::ResetDisplayToNormal()
 		delete m_lpAlternateDevMode;
 		m_lpAlternateDevMode = NULL;
 	}
-}
-
-BOOL IsWinVerOrHigher(ULONG mj, ULONG mn)
-{
-	return vncService::VersionMajor() > mj ||
-		   vncService::VersionMajor() == mj && vncService::VersionMinor() >= mn;
-}
-
-BOOL vncDesktop::IsMultiMonDesktop()
-{
-	if (!IsWinVerOrHigher(4, 10))
-		return FALSE;
-	return GetSystemMetrics(SM_CMONITORS) > 1;
 }
 
 RECT vncDesktop::GetSourceRect()
@@ -2106,14 +2118,16 @@ BOOL vncDesktop::CheckUpdates()
 			// Use either a mirror video driver, or perform polling
 			if (m_videodriver != NULL && m_videodriver->IsActive())
 			{
-// FIXME: If there were no incremental update requests
-//        for some time, we will loose updates.
+				// FIXME: If there were no incremental update requests
+				//        for some time, we will loose updates.
 // IMPORTANT: Mirage outputs the regions re (0, 0)
 // so we have to offset them re virtual display
+
 // TODOTODO
 					BOOL bCursorShape = FALSE;
 
 					m_videodriver->HandleDriverChanges(
+						this,
 						m_changed_rgn,
 						m_bmrect.left,
 						m_bmrect.top,
@@ -2131,7 +2145,8 @@ BOOL vncDesktop::CheckUpdates()
 			// Check for moved windows
 // PrimaryDisplayOnlyShared: check if any problems when
 // dragging from another display
-			if (m_server->FullScreen() || m_server->PrimaryDisplayOnlyShared())
+			if ((m_server->FullScreen() || m_server->PrimaryDisplayOnlyShared()) &&
+				!(m_videodriver && m_videodriver->IsHandlingScreen2ScreenBlt()))
 			{
 				CalcCopyRects();
 			}
@@ -2142,10 +2157,13 @@ BOOL vncDesktop::CheckUpdates()
 				m_server->CopyRect(m_copyrect_rect, m_copyrect_src);
 				m_copyrect_set = false;
 
-				// Copy new window rect to main buffer
-				CaptureScreen(m_copyrect_rect, m_mainbuff);
+// IMPORTANT: this order: CopyRectToBuffer, CaptureScreen, GetChangedRegion
 				// Copy old window rect to back buffer
 				CopyRectToBuffer(m_copyrect_rect, m_copyrect_src);
+
+				// Copy new window rect to main buffer
+				CaptureScreen(m_copyrect_rect, m_mainbuff);
+
 				// Get changed pixels to rg
 				GetChangedRegion(rgn, m_copyrect_rect);
 
@@ -2654,62 +2672,115 @@ void vncDesktop::PollArea(const RECT &rect)
 	}
 }
 
-void
-vncDesktop::CopyRect(RECT &dest, POINT &source)
+inline RECT MoveRect(RECT const& sr, POINT const& mv)
 {
+	RECT R;
+	R.left = sr.left + mv.x;
+	R.top = sr.top + mv.y;
+	R.right = sr.right + mv.x;
+	R.bottom = sr.bottom + mv.y;
+	return R;
+}
+
+void vncDesktop::CopyRect(RECT const &rcDest, POINT ptSrc)
+{
+// motion vector
+	POINT mv2;
+	mv2.x = rcDest.left - ptSrc.x;
+	mv2.y = rcDest.top - ptSrc.y;
+
 	// Clip the destination to the screen
-	RECT destrect;
-	if (!IntersectRect(&destrect, &dest, &m_server->GetSharedRect()))
+	RECT rcDr2;
+	if (!IntersectRect(&rcDr2, &rcDest, &m_server->GetSharedRect()))
 		return;
-	
+
+// NOTE: this is important.
+// each pixel in rcDr2 is either salvaged by copyrect
+// or became dirty
+	m_changed_rgn.AddRect(rcDr2);
+
 	// Adjust the source correspondingly
-	source.x = source.x + (destrect.left - dest.left);
-	source.y = source.y + (destrect.top - dest.top);
+	ptSrc.x = rcDr2.left - mv2.x;
+	ptSrc.y = rcDr2.top - mv2.y;
 
 	// Work out the source rectangle
-	RECT srcrect;
-
-	// Is this a continuation of an earlier window drag?
-	if (m_copyrect_set &&
-		((source.x == m_copyrect_rect.left) && (source.y == m_copyrect_rect.top))) {
-		// Yes, so use the old source position
-		srcrect.left = m_copyrect_src.x;
-		srcrect.top = m_copyrect_src.y;
-	} else {
-		// No, so use this source position
-		srcrect.left = source.x;
-		srcrect.top = source.y;
-	}
-	
-	// And fill out the right & bottom using the dest rect
-	srcrect.right = destrect.right-destrect.left + srcrect.left;
-	srcrect.bottom = destrect.bottom-destrect.top + srcrect.top;
+	RECT rcSource;
+	rcSource.left = ptSrc.x;
+	rcSource.top = ptSrc.y;
+	rcSource.right = rcSource.left + rcDr2.right - rcDr2.left;
+	rcSource.bottom = rcSource.top + rcDr2.bottom - rcDr2.top;
 
 	// Clip the source to the screen
-	RECT srcrect2;
-	if (!IntersectRect(&srcrect2, &srcrect, &m_server->GetSharedRect()))
+	RECT rcSr2;
+	if (!IntersectRect(&rcSr2, &rcSource, &m_server->GetSharedRect()))
 		return;
 
-	// Correct the destination rectangle
-	destrect.left += (srcrect2.left - srcrect.left);
-	destrect.top += (srcrect2.top - srcrect.top);
-	destrect.right = srcrect2.right-srcrect2.left + destrect.left;
-	destrect.bottom = srcrect2.bottom-srcrect2.top + destrect.top;
+	rcDr2 = MoveRect(rcSr2, mv2);
 
-	// Is there an existing CopyRect rectangle?
-	if (m_copyrect_set) {
-		// Yes, so compare their areas!
-		if (((destrect.right-destrect.left) * (destrect.bottom-destrect.top))
-			< ((m_copyrect_rect.right-m_copyrect_rect.left) * (m_copyrect_rect.bottom-m_copyrect_rect.top)))
+// we'd try to continue the chain
+	if (m_copyrect_set)
+	{
+// prev motion vector
+		POINT mv1;
+		mv1.x = m_copyrect_rect.left - m_copyrect_src.x;
+		mv1.y = m_copyrect_rect.top - m_copyrect_src.y;
+
+		m_changed_rgn.AddRect(m_copyrect_rect);
+
+		RECT CR1i2Dst;
+		if (!IntersectRect(&CR1i2Dst, &m_copyrect_rect, &rcSr2))
+		{
+			m_copyrect_set = FALSE;
 			return;
-	}
+		}
 
-	// Set the copyrect...
-	m_copyrect_rect = destrect;
-	m_copyrect_src.x = srcrect2.left;
-	m_copyrect_src.y = srcrect2.top;
-	m_copyrect_set = TRUE;
-	
+		RECT rcDr3 = MoveRect(CR1i2Dst, mv2);
+		if (rcDr3.right - rcDr3.left >= 16 &&
+			rcDr3.bottom - rcDr3.top >= 16)
+		{
+			m_changed_rgn.SubtractRect(rcDr3);
+
+			POINT ptCR1i2Src;
+			ptCR1i2Src.x = CR1i2Dst.left - mv1.x;
+			ptCR1i2Src.y = CR1i2Dst.top - mv1.y;
+
+			m_copyrect_rect = rcDr3;
+			m_copyrect_src = ptCR1i2Src;
+
+			//DPF(("CopyRect-cont: (%d, %d) (%d, %d, %d, %d)\n",
+			//	m_copyrect_src.x,
+			//	m_copyrect_src.y,
+			//	m_copyrect_rect.left,
+			//	m_copyrect_rect.top,
+			//	m_copyrect_rect.right,
+			//	m_copyrect_rect.bottom));
+		}
+		else
+		{
+			m_copyrect_set = FALSE;
+		}
+	}
+	else
+	{
+		if (rcDr2.right - rcDr2.left >= 16 &&
+			rcDr2.bottom - rcDr2.top >= 16)
+		{
+			m_changed_rgn.SubtractRect(rcDr2);
+
+			m_copyrect_rect = rcDr2;
+			m_copyrect_src.x = rcSr2.left;
+			m_copyrect_src.y = rcSr2.top;
+			m_copyrect_set = TRUE;
+
+			//DPF(("CopyRect: (%d, %d) (%d, %d, %d, %d)\n",
+			//	m_copyrect_src.x,
+			//	m_copyrect_src.y,
+			//	m_copyrect_rect.left,
+			//	m_copyrect_rect.top,
+			//	m_copyrect_rect.right,
+			//	m_copyrect_rect.bottom));
+		}
+	}
 }
 
 void vncDesktop::CopyRectToBuffer(RECT dest, POINT source)
@@ -2728,7 +2799,6 @@ void vncDesktop::CopyRectToBuffer(RECT dest, POINT source)
 	_ASSERTE(rcdest_re_vd_top >= 0);
 
 	BYTE *destptr = m_backbuff + (rcdest_re_vd_top * m_bytesPerRow) + (rcdest_re_vd_left * m_scrinfo.format.bitsPerPixel/8);
-
 	const UINT bytesPerLine = (dest.right - dest.left) * (m_scrinfo.format.bitsPerPixel/8);
 
 	if (dest.top < source.y)
@@ -2767,8 +2837,9 @@ BOOL	IsBadDirectAccessConfig()
 
 BOOL vncDesktop::InitVideoDriver()
 {
-// Mirror video drivers supported under Win2K, WinXP and WinLH
-	if (vncService::VersionMajor()< 5)
+// Mirror video drivers supported under Win2K, WinXP, WinVista
+// and Windows NT Sp3 (we assume Sp6)
+	if (!vncService::IsWinNT())
 		return FALSE;
 
 	if (m_server->DontUseDriver())
@@ -2793,13 +2864,17 @@ BOOL vncDesktop::InitVideoDriver()
 		return FALSE;
 	}
 
-// restart the driver if left running
-	if (m_videodriver->TestMapped())
+	if (IsWinVerOrHigher(5, 0))
 	{
-		vnclog.Print(LL_INTINFO, VNCLOG("found abandoned Mirage driver running. restarting.\n"));
-		m_videodriver->Deactivate();
+// restart the driver if left running.
+// NOTE that on NT4 it must be running beforehand
+		if (m_videodriver->TestMapped())
+		{
+			vnclog.Print(LL_INTINFO, VNCLOG("found abandoned Mirage driver running. restarting.\n"));
+			m_videodriver->Deactivate();
+		}
+		_ASSERTE(!m_videodriver->TestMapped());
 	}
-	_ASSERTE(!m_videodriver->TestMapped());
 
 	{
 		RECT	vdesk_rect;
@@ -2809,8 +2884,10 @@ BOOL vncDesktop::InitVideoDriver()
 
 	if (!m_videodriver->CheckVersion())
 	{
-// TODO:
 		vnclog.Print(LL_INTINFO, VNCLOG("******** PLEASE INSTALL NEWER VERSION OF MIRAGE DRIVER! ********\n"));
+// IMPORTANT: fail on NT46
+		if (IsNtVer(4, 0))
+			return FALSE;
 	}
 
 	if (m_videodriver->MapSharedbuffers(bSolicitDASD))

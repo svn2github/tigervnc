@@ -104,7 +104,7 @@ typedef GETCHANGESBUF *PGETCHANGESBUF;
 
 #define	DMF_VERSION_DEFINE(_ver_0,_ver_1,_ver_2,_ver_3)	((_ver_0<<24) | (_ver_1<<16) | (_ver_2<<8) | _ver_3)
 
-#define	DMF_PROTO_VER_CURRENT	DMF_VERSION_DEFINE(1,1,0,0)
+#define	DMF_PROTO_VER_CURRENT	DMF_VERSION_DEFINE(1,2,0,0)
 #define	DMF_PROTO_VER_MINCOMPAT	DMF_VERSION_DEFINE(0,9,0,1)
 
 struct	Esc_dmf_Qvi_IN
@@ -137,6 +137,7 @@ struct	Esc_dmf_Qvi_OUT
 	char	prod_name[esc_qvi_prod_name_max];
 };
 
+class vncDesktop;
 
 class vncVideoDriver
 {
@@ -152,16 +153,22 @@ public:
 	~vncVideoDriver();
 	BOOL Activate(BOOL fForDirectAccess, const RECT *prcltarget);
 	void Deactivate();
+	BOOL Activate_NT50(BOOL fForDirectAccess, const RECT *prcltarget);
+	void Deactivate_NT50();
+	BOOL Activate_NT46(BOOL fForDirectAccess);
+	void Deactivate_NT46();
 	BOOL CheckVersion();
 	BOOL MapSharedbuffers(BOOL fForDirectScreenAccess);
 	void UnMapSharedbuffers();
 	BOOL TestMapped();
 	void HandleDriverChanges(
+		vncDesktop *pDesk,
 		vncRegion &rgn,
 		int xoffset,
 		int yoffset,
 		BOOL &bPointerShapeChange);
 	void HandleDriverChangesSeries(
+		vncDesktop *pDesk,
 		vncRegion &rgn,
 		int xoffset,
 		int yoffset,
@@ -174,6 +181,7 @@ public:
 
 	BOOL IsActive(void) {	return m_fIsActive; }
 	BOOL IsDirectAccessInEffect(void) {	return m_fDirectAccessInEffect; }
+	BOOL IsHandlingScreen2ScreenBlt(void) { return m_fHandleScreen2ScreenBlt; }
 	
 protected:
 
@@ -185,6 +193,8 @@ protected:
 	static HKEY	CreateDeviceKey(LPCTSTR szMpName);
 
 	char	m_devname[32];
+	ULONG	m_drv_ver_mj;
+	ULONG	m_drv_ver_mn;
 
 	GETCHANGESBUF bufdata;
 	ULONG oldCounter;
@@ -192,10 +202,19 @@ protected:
 
 	bool	m_fIsActive;
 	bool	m_fDirectAccessInEffect;
+	bool	m_fHandleScreen2ScreenBlt;
 
 	static char	vncVideoDriver::szDriverString[];
 	static char	vncVideoDriver::szDriverStringAlt[];
 	static char	vncVideoDriver::szMiniportName[];
 };
+
+VOID	DebugPrint(PCHAR DebugMessage, ...);
+
+#ifdef _DEBUG
+#define	DPF(x) DebugPrint x
+#else
+#define	DPF(x)
+#endif
 
 #endif

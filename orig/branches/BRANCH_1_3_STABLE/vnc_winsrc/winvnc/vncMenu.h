@@ -75,9 +75,6 @@ protected:
 
 	// Fields
 protected:
-	// Check that the password has been set
-	void CheckPassword();
-
 	// The server that this tray icon handles
 	vncServer		*m_server;
 

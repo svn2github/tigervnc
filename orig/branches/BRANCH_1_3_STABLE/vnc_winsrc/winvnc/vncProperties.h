@@ -112,7 +112,7 @@ protected:
 	BOOL				m_alloweditclients;
 
 	// Password handling
-	void LoadPassword(HKEY k, char *buffer, const char *entry_name);
+	BOOL LoadPassword(HKEY k, char *buffer, const char *entry_name);
 	void SavePassword(HKEY k, const char *buffer, const char *entry_name);
 
 	// String handling
@@ -142,7 +142,9 @@ protected:
 	BOOL m_pref_BeepConnect;
 	BOOL m_pref_BeepDisconnect;
 	char m_pref_passwd[MAXPWLEN];
+	BOOL m_pref_passwd_set;
 	char m_pref_passwd_viewonly[MAXPWLEN];
+	BOOL m_pref_passwd_viewonly_set;
 	BOOL m_pref_CORBAConn;
 	UINT m_pref_QuerySetting;
 	UINT m_pref_QueryTimeout;

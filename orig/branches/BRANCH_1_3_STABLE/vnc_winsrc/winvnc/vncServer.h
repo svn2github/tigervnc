@@ -172,11 +172,14 @@ public:
 	virtual BOOL AutoPortSelect() {return m_autoportselect;};
 
 	// Password set/retrieve.  Note that these functions now handle the encrypted
-	// form, not the plaintext form.  The buffer passwed MUST be MAXPWLEN in size.
-	virtual void SetPassword(const char *passwd);
-	virtual void GetPassword(char *passwd);
-	virtual void SetPasswordViewOnly(const char *passwd);
-	virtual void GetPasswordViewOnly(char *passwd);
+	// form, not the plaintext form.  The buffer passwd MUST be MAXPWLEN in size.
+	// If the parameter `activate' is FALSE, then the password is considered
+	// undefined. If `activate' is FALSE, the password data still may be copied.
+	// The return value of `Get' functions matches the `activate' parameter.
+	virtual void SetPassword(BOOL activate, const char *passwd);
+	virtual BOOL GetPassword(char *passwd);
+	virtual void SetPasswordViewOnly(BOOL activate, const char *passwd);
+	virtual BOOL GetPasswordViewOnly(char *passwd);
 
 	// Remote input handling
 	virtual void EnableRemoteInputs(BOOL enable);
@@ -322,7 +325,9 @@ protected:
 	RECT			    m_screenarea_rect;
 	BOOL				m_autoportselect;
 	char				m_password[MAXPWLEN];
+	BOOL				m_password_set;
 	char				m_password_viewonly[MAXPWLEN];
+	BOOL				m_password_viewonly_set;
 	BOOL				m_passwd_required;
 	BOOL				m_loopback_allowed;
 	BOOL				m_httpd_enabled;

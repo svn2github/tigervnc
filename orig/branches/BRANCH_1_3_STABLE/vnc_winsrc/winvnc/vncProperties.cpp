@@ -98,12 +98,12 @@ vncProperties::Init(vncServer *server)
 
 	// If the password is empty then always show a dialog
 	char passwd[MAXPWLEN];
-	m_server->GetPassword(passwd);
+	BOOL passwd_set = m_server->GetPassword(passwd);
 	{
-	    vncPasswd::ToText plain(passwd);
-	    if (strlen(plain) == 0)
+		vncPasswd::ToText plain(passwd);
+		if (!passwd_set || strlen(plain) == 0) {
 			if (!m_allowproperties) {
-				if(m_server->AuthRequired()) {
+				if (!passwd_set || m_server->AuthRequired()) {
 					MessageBox(NULL, NO_PASSWD_NO_OVERRIDE_ERR,
 								"WinVNC Error",
 								MB_OK | MB_ICONSTOP);
@@ -115,7 +115,7 @@ vncProperties::Init(vncServer *server)
 				}
 			} else {
 				// If null passwords are not allowed, ensure that one is entered!
-				if (m_server->AuthRequired()) {
+				if (!passwd_set || m_server->AuthRequired()) {
 					char username[UNLEN+1];
 					if (!vncService::CurrentUser(username, sizeof(username)))
 						return FALSE;
@@ -129,6 +129,7 @@ vncProperties::Init(vncServer *server)
 					}
 				}
 			}
+		}
 	}
 
 	return TRUE;
@@ -214,20 +215,12 @@ vncProperties::Show(BOOL show, BOOL usersettings, BOOL passwordfocused)
 				}
 
 				// We're allowed to exit if the password is not empty
-				char passwd[MAXPWLEN];
-				char passwd_viewonly[MAXPWLEN];
-				m_server->GetPassword(passwd);
-				m_server->GetPasswordViewOnly(passwd_viewonly);
 				{
-				    vncPasswd::ToText plain(passwd);
-					vncPasswd::ToText plain_viewonly(passwd_viewonly);
-					if ((strlen(plain) != 0) || !m_server->AuthRequired()) {
-						if (strlen(passwd_viewonly) == 0) {
-							m_server->GetPassword(passwd);
-							m_server->SetPasswordViewOnly(passwd);
-						}
+					char passwd[MAXPWLEN];
+					BOOL passwd_set = m_server->GetPassword(passwd);
+					vncPasswd::ToText plain(passwd);
+					if (passwd_set && (strlen(plain) != 0 || !m_server->AuthRequired()))
 						break;
-					}
 				}
 
 				vnclog.Print(LL_INTERR, VNCLOG("warning - empty password\n"));
@@ -731,7 +724,7 @@ vncProperties::LoadInt(HKEY key, LPCSTR valname, LONG defval)
 	return pref;
 }
 
-void
+BOOL
 vncProperties::LoadPassword(HKEY key, char *buffer, const char *entry_name)
 {
 	DWORD type = REG_BINARY;
@@ -739,7 +732,7 @@ vncProperties::LoadPassword(HKEY key, char *buffer, const char *entry_name)
 	char inouttext[MAXPWLEN];
 
 	if (key == NULL)
-		return;
+		return FALSE;
 
 	// Retrieve the encrypted password
 	if (RegQueryValueEx(key,
@@ -748,12 +741,13 @@ vncProperties::LoadPassword(HKEY key, char *buffer, const char *entry_name)
 		&type,
 		(LPBYTE) &inouttext,
 		(LPDWORD) &slen) != ERROR_SUCCESS)
-		return;
+		return FALSE;
 
 	if (slen > MAXPWLEN)
-		return;
+		return FALSE;
 
 	memcpy(buffer, inouttext, MAXPWLEN);
+	return TRUE;
 }
 
 char *
@@ -894,7 +888,9 @@ vncProperties::Load(BOOL usersettings)
 	{
 		vncPasswd::FromClear crypt;
 		memcpy(m_pref_passwd, crypt, MAXPWLEN);
+		m_pref_passwd_set = FALSE;
 		memcpy(m_pref_passwd_viewonly, crypt, MAXPWLEN);
+		m_pref_passwd_viewonly_set = FALSE;
 	}
 	m_pref_QuerySetting=2;
 	m_pref_QueryTimeout=30;
@@ -1014,10 +1010,11 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	m_server->SetQueryAllowNoPass(m_pref_QueryAllowNoPass);
 
 	// Load the primary password
-	LoadPassword(appkey, m_pref_passwd, "Password");
-	// Load the view-only password, default to the primary one
-	memcpy(m_pref_passwd_viewonly, m_pref_passwd, MAXPWLEN);
-	LoadPassword(appkey, m_pref_passwd_viewonly, "PasswordViewOnly");
+	m_pref_passwd_set =
+		LoadPassword(appkey, m_pref_passwd, "Password");
+	// Load the view-only password
+	m_pref_passwd_viewonly_set =
+		LoadPassword(appkey, m_pref_passwd_viewonly, "PasswordViewOnly");
 	// CORBA Settings
 	m_pref_CORBAConn=LoadInt(appkey, "CORBAConnect", m_pref_CORBAConn);
 
@@ -1061,8 +1058,8 @@ vncProperties::ApplyUserPrefs()
 	m_server->EnableFileTransfers(m_pref_EnableFileTransfers);
 
 	// Update the password
-	m_server->SetPassword(m_pref_passwd);
-	m_server->SetPasswordViewOnly(m_pref_passwd_viewonly);
+	m_server->SetPassword(m_pref_passwd_set, m_pref_passwd);
+	m_server->SetPasswordViewOnly(m_pref_passwd_viewonly_set, m_pref_passwd_viewonly);
 
 	// Now change the listening port settings
 	m_server->SetAutoPortSelect(m_pref_AutoPortSelect);
@@ -1228,10 +1225,10 @@ vncProperties::SaveUserPrefs(HKEY appkey)
 
 	// Save the password
 	char passwd[MAXPWLEN];
-	m_server->GetPassword(passwd);
-	SavePassword(appkey, passwd, "Password");
-	m_server->GetPasswordViewOnly(passwd);
-	SavePassword(appkey, passwd, "PasswordViewOnly");
+	if (m_server->GetPassword(passwd))
+		SavePassword(appkey, passwd, "Password");
+	if (m_server->GetPasswordViewOnly(passwd))
+		SavePassword(appkey, passwd, "PasswordViewOnly");
 
 #if(defined(_CORBA))
 	// Don't save the CORBA enabled flag if CORBA is not compiled in!

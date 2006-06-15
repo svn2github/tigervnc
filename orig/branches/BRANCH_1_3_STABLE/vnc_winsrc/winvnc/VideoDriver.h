@@ -1,9 +1,6 @@
-//  Copyright (C) 2004 Vladimir Vologzhanin. All Rights Reserved.
-//  Copyright (C) 2002 Ultr@VNC Team Members. All Rights Reserved.
+//  Copyright (C) 2005-2006 Lev Kazarkin. All Rights Reserved.
 //
-//  This file is part of the VNC system.
-//
-//  The VNC system is free software; you can redistribute it and/or modify
+//  TightVNC is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
 //  the Free Software Foundation; either version 2 of the License, or
 //  (at your option) any later version.
@@ -19,10 +16,6 @@
 //  USA.
 //
 // TightVNC distribution homepage on the Web: http://www.tightvnc.com/
-//
-// If the source code for the VNC system is not available from the place 
-// whence you received this file, check http://www.uk.research.att.com/vnc or contact
-// the authors on vnc@uk.research.att.com for information on obtaining it.
 
 #ifndef _WINVNC_VIDEODRIVER
 #define _WINVNC_VIDEODRIVER

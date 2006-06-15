@@ -137,14 +137,17 @@ is the full list of parameters supported in TightVNC Java viewer:
 
 --> "Encoding"
 
-    Values: "Raw", "RRE", "CoRRE", "Hextile", "Zlib", "Tight".
-    Default: "Tight".
+    Values: "Auto", "Raw", "RRE", "CoRRE", "Hextile", "Zlib", "Tight".
+    Default: "Auto".
 
-    The preferred encoding. "Hextile" is a good choice for fast networks,
-    while "Tight" is better suited for low-bandwidth connections. From the
-    other side, the "Tight" decoder in TightVNC Java viewer seems to be more
-    efficient than "Hextile" decoder so it's possible that this default
-    setting can be ok for fast networks too.
+    The preferred encoding. If the value is "Auto", then the viewer will
+    continuously estimate average network throughput and request encodings
+    that are appropriate for current connection speed. "Hextile" is an
+    encoding that was designed for fast networks, while "Tight" is better
+    suited for low-bandwidth connections. From the other side, "Tight"
+    decoder in the TightVNC Java viewer seems to be more efficient than
+    "Hextile" decoder so it may be ok for fast networks too. Other encodings
+    are not efficient and provided for compatibility reasons.
 
 --> "Compression level"
 

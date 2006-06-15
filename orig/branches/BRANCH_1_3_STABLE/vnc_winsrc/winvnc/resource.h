@@ -138,6 +138,7 @@
 #define IDC_DONT_USE_DRIVER             1098
 #define IDC_DRIVER_DIRECT_ACCESS        1099
 #define IDC_STATIC_DRVOPT               1100
+#define IDC_STATIC_QUERY                1101
 #define ID_PROPERTIES                   40001
 #define ID_CLOSE                        40002
 #define ID_KILLCLIENTS                  40003
@@ -152,7 +153,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        156
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1101
+#define _APS_NEXT_CONTROL_VALUE         1102
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

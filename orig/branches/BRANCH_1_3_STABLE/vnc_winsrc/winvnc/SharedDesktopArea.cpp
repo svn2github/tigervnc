@@ -93,22 +93,14 @@ void SharedDesktopArea::Init()
 	// toggle selected option
 	//
 
-	if (propFullScreen)
-	{
+	if (propFullScreen) {
 		FullScreen();
-	}
-	else if (propAreaShared)
-	{
-		SharedScreen();
-	}
-	else if (propWindowShared)
-	{
-		SharedWindow();
-	}
-//	else if (propPrimaryDisplayOnlyShared)
-	else
-	{
+	} else if (propPrimaryDisplayOnlyShared) {
 		SharedPrimaryDisplayOnly();
+	} else if (propAreaShared) {
+		SharedScreen();
+	} else { // if (propWindowShared)
+		SharedWindow();
 	}
 
 	// bring dialog to the front
@@ -117,9 +109,8 @@ void SharedDesktopArea::Init()
 
 void SharedDesktopArea::SetupMatchWindow()
 {
-	// get the desktop's bounds
+	// get the desktop's bounds (primary display only)
 	RECT desktopRect;
-// deliberately left primary only rect
 	GetWindowRect(GetDesktopWindow(), &desktopRect);
 
 	//
@@ -185,21 +176,18 @@ bool SharedDesktopArea::ApplySharedControls()
 			0,
 			0) == BST_CHECKED);
 				
-	if (m_vncprop->GetPrefScreenAreaShared())
-	{
+	if (m_vncprop->GetPrefScreenAreaShared()) {
 		int left,right,top,bottom;
 		m_pMatchWindow->GetPosition(left,top,right,bottom);
 		m_server->SetMatchSizeFields(left,top,right,bottom);
 	}
 
-	if (m_vncprop->GetPrefFullScreen())
-	{
+	if (m_vncprop->GetPrefFullScreen()) {
 		RECT temp = GetScreenRect();
 		m_server->SetMatchSizeFields(temp.left, temp.top, temp.right, temp.bottom);
 	}
 
-	if (m_vncprop->GetPrefPrimaryDisplayOnlyShared())
-	{
+	if (m_vncprop->GetPrefPrimaryDisplayOnlyShared()) {
 		m_server->SetMatchSizeFields(
 			0,
 			0,
@@ -212,23 +200,19 @@ bool SharedDesktopArea::ApplySharedControls()
 
 void SharedDesktopArea::EnableWinSelectionControls(BOOL bEnable, LPCTSTR szWinText)
 {
-	// disable window cursor
+	// Enable/disable window cursor
 	HWND bmp_hWnd = GetDlgItem(m_hwnd, IDC_BMPCURSOR);
 	EnableWindow(bmp_hWnd, bEnable);
 
-	// change cursor image
+	// Set proper cursor image
 	HBITMAP hNewImage = LoadBitmap(hAppInstance, bEnable ? MAKEINTRESOURCE(IDB_BITMAP1) : MAKEINTRESOURCE(IDB_BITMAP3));
 	HBITMAP hOldImage = (HBITMAP)::SendMessage(bmp_hWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hNewImage);
 	DeleteObject(hOldImage);
 
-	// set window text name
-//	EnableWindow(m_hWindowName, FALSE);
-	if (bEnable)
-	{
+	// Set window name
+	if (bEnable) {
 		SetWindowCaption(m_server->GetWindowShared());
-	}
-	else if (szWinText)
-	{
+	} else if (szWinText) {
 		::SetWindowText(m_hWindowName, szWinText);
 	}
 	EnableWindow(m_hWindowName, bEnable);
@@ -236,7 +220,7 @@ void SharedDesktopArea::EnableWinSelectionControls(BOOL bEnable, LPCTSTR szWinTe
 
 void SharedDesktopArea::SetPrefArea(int nSelection)
 {
-	// update properties
+	// Update properties
 	m_vncprop->SetPrefFullScreen(nSelection == 0);
 	m_vncprop->SetPrefWindowShared(nSelection == 1);
 	m_vncprop->SetPrefScreenAreaShared(nSelection == 2);
@@ -246,7 +230,6 @@ void SharedDesktopArea::SetPrefArea(int nSelection)
 void SharedDesktopArea::FullScreen()
 {
 	EnableWinSelectionControls(FALSE, "* full desktop selected *");
-	// hide match window
 	m_pMatchWindow->Hide();
 	SetPrefArea(0);
 }
@@ -254,7 +237,6 @@ void SharedDesktopArea::FullScreen()
 void SharedDesktopArea::SharedWindow()
 {
 	EnableWinSelectionControls(TRUE, NULL);
-	// hide match window
 	m_pMatchWindow->Hide();
 	SetPrefArea(1);
 }
@@ -262,7 +244,6 @@ void SharedDesktopArea::SharedWindow()
 void SharedDesktopArea::SharedScreen()
 {
 	EnableWinSelectionControls(FALSE, "* screen area selected *");
-	// show match window
 	m_pMatchWindow->Show();
 	SetPrefArea(2);
 }
@@ -270,7 +251,6 @@ void SharedDesktopArea::SharedScreen()
 void SharedDesktopArea::SharedPrimaryDisplayOnly()
 {
 	EnableWinSelectionControls(FALSE, "* primary display selected *");
-	// show match window
 	m_pMatchWindow->Hide();
 	SetPrefArea(3);
 }

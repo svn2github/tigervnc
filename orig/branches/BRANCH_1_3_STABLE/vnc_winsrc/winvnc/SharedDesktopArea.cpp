@@ -45,8 +45,17 @@ SharedDesktopArea::SharedDesktopArea(HWND hwnd,
 
 SharedDesktopArea::~SharedDesktopArea()
 {
-	if (m_deleteMatchWindow && m_pMatchWindow != NULL)
-		delete m_pMatchWindow;
+	if (m_deleteMatchWindow) {
+		if (m_pMatchWindow != NULL) {
+			delete m_pMatchWindow;
+		}
+	} else {
+		if (m_server->ScreenAreaShared()) {
+			m_pMatchWindow->Show();
+		} else {
+			m_pMatchWindow->Hide();
+		}
+	}
 }
 
 void SharedDesktopArea::Init()

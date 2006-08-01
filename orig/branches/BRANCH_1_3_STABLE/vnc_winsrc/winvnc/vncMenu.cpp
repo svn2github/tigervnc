@@ -44,6 +44,9 @@
 
 // Constants
 const UINT MENU_PROPERTIES_SHOW = RegisterWindowMessage("WinVNC.Properties.User.Show");
+const UINT MENU_SERVER_SHAREALL = RegisterWindowMessage("WinVNC.Server.ShareAll");
+const UINT MENU_SERVER_SHAREPRIMARY = RegisterWindowMessage("WinVNC.Server.SharePrimary");
+const UINT MENU_SERVER_SHAREAREA = RegisterWindowMessage("WinVNC.Server.ShareArea");
 const UINT MENU_SERVER_SHAREWINDOW = RegisterWindowMessage("WinVNC.Server.ShareWindow");
 const UINT MENU_DEFAULT_PROPERTIES_SHOW = RegisterWindowMessage("WinVNC.Properties.Default.Show");
 const UINT MENU_ABOUTBOX_SHOW = RegisterWindowMessage("WinVNC.AboutBox.Show");
@@ -514,15 +517,47 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 			PostMessage(hwnd, WM_COMMAND, MAKELONG(ID_PROPERTIES, 0), 0);
 			return 0;
 		}
+		if (iMsg == MENU_SERVER_SHAREALL)
+		{
+			// FIXME: Hide MatchWindow if shown.
+			_this->m_server->FullScreen(true);
+			_this->m_server->PrimaryDisplayOnlyShared(false);
+			_this->m_server->ScreenAreaShared(false);
+			_this->m_server->WindowShared(false);
+			return 0;
+		}
+		if (iMsg == MENU_SERVER_SHAREPRIMARY)
+		{
+			// FIXME: Hide MatchWindow if shown.
+			_this->m_server->FullScreen(false);
+			_this->m_server->PrimaryDisplayOnlyShared(true);
+			_this->m_server->ScreenAreaShared(false);
+			_this->m_server->WindowShared(false);
+			return 0;
+		}
+		if (iMsg == MENU_SERVER_SHAREAREA)
+		{
+			// FIXME: Read actual values from wParam/lParam.
+			// FIXME: Resize MatchWindow accordingly.
+			// FIXME: Show MatchWindow if not shown.
+			int left = 20, right = 20, top = 400, bottom = 400;
+			_this->m_server->SetMatchSizeFields(left, top, right, bottom);
+			_this->m_server->FullScreen(false);
+			_this->m_server->PrimaryDisplayOnlyShared(false);
+			_this->m_server->ScreenAreaShared(true);
+			_this->m_server->WindowShared(false);
+			return 0;
+		}
 		if (iMsg == MENU_SERVER_SHAREWINDOW)
 		{
+			// FIXME: Hide MatchWindow if shown.
 			HWND hWindowShared = (HWND)wParam;
 			if (hWindowShared != NULL)
 			{
 				_this->m_server->SetWindowShared(hWindowShared);
 				_this->m_server->FullScreen(false);
-				_this->m_server->ScreenAreaShared(false);
 				_this->m_server->PrimaryDisplayOnlyShared(false);
+				_this->m_server->ScreenAreaShared(false);
 				_this->m_server->WindowShared(true);
 			}
 			return 0;

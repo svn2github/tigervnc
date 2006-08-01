@@ -530,11 +530,49 @@ vncService::FindWindowByTitle(char *substr)
 }
 
 BOOL
-vncService::NewSharedWindow(HWND hwndwindow)
+vncService::PostShareAll()
 {
-	
 	// Post to the WinVNC menu window
-	if (!PostToWinVNC(MENU_SERVER_SHAREWINDOW, (WPARAM)hwndwindow, 0))
+	if (!PostToWinVNC(MENU_SERVER_SHAREALL, 0, 0))
+	{
+		MessageBox(NULL, "No existing instance of WinVNC could be contacted", szAppName, MB_ICONEXCLAMATION | MB_OK);
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+BOOL
+vncService::PostSharePrimary()
+{
+	// Post to the WinVNC menu window
+	if (!PostToWinVNC(MENU_SERVER_SHAREPRIMARY, 0, 0))
+	{
+		MessageBox(NULL, "No existing instance of WinVNC could be contacted", szAppName, MB_ICONEXCLAMATION | MB_OK);
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+BOOL
+vncService::PostShareArea()
+{
+	// Post to the WinVNC menu window
+	if (!PostToWinVNC(MENU_SERVER_SHAREAREA, 0, 0))
+	{
+		MessageBox(NULL, "No existing instance of WinVNC could be contacted", szAppName, MB_ICONEXCLAMATION | MB_OK);
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+BOOL
+vncService::PostShareWindow(HWND hwnd)
+{
+	// Post to the WinVNC menu window
+	if (!PostToWinVNC(MENU_SERVER_SHAREWINDOW, (WPARAM)hwnd, 0))
 	{
 		MessageBox(NULL, "No existing instance of WinVNC could be contacted", szAppName, MB_ICONEXCLAMATION | MB_OK);
 		return FALSE;

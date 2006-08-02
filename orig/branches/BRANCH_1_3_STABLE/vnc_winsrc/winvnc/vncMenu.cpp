@@ -519,7 +519,7 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 		}
 		if (iMsg == MENU_SERVER_SHAREALL)
 		{
-			// FIXME: Hide MatchWindow if shown.
+			_this->m_properties.HideMatchWindow();
 			_this->m_server->FullScreen(true);
 			_this->m_server->PrimaryDisplayOnlyShared(false);
 			_this->m_server->ScreenAreaShared(false);
@@ -528,7 +528,7 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 		}
 		if (iMsg == MENU_SERVER_SHAREPRIMARY)
 		{
-			// FIXME: Hide MatchWindow if shown.
+			_this->m_properties.HideMatchWindow();
 			_this->m_server->FullScreen(false);
 			_this->m_server->PrimaryDisplayOnlyShared(true);
 			_this->m_server->ScreenAreaShared(false);
@@ -537,10 +537,12 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 		}
 		if (iMsg == MENU_SERVER_SHAREAREA)
 		{
-			// FIXME: Read actual values from wParam/lParam.
-			// FIXME: Resize MatchWindow accordingly.
-			// FIXME: Show MatchWindow if not shown.
-			int left = 20, right = 20, top = 400, bottom = 400;
+			int left = LOWORD(wParam);
+			int right = left + LOWORD(lParam);
+			int top = HIWORD(wParam);
+			int bottom = top + HIWORD(lParam);
+			_this->m_properties.MoveMatchWindow(left, top, right, bottom);
+			_this->m_properties.ShowMatchWindow();
 			_this->m_server->SetMatchSizeFields(left, top, right, bottom);
 			_this->m_server->FullScreen(false);
 			_this->m_server->PrimaryDisplayOnlyShared(false);
@@ -550,10 +552,10 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 		}
 		if (iMsg == MENU_SERVER_SHAREWINDOW)
 		{
-			// FIXME: Hide MatchWindow if shown.
 			HWND hWindowShared = (HWND)wParam;
 			if (hWindowShared != NULL)
 			{
+				_this->m_properties.HideMatchWindow();
 				_this->m_server->SetWindowShared(hWindowShared);
 				_this->m_server->FullScreen(false);
 				_this->m_server->PrimaryDisplayOnlyShared(false);

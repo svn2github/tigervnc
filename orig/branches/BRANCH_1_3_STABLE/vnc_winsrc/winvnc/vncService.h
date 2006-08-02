@@ -111,7 +111,8 @@ public:
 
 	static BOOL PostShareAll();
 	static BOOL PostSharePrimary();
-	static BOOL PostShareArea();
+	static BOOL PostShareArea(unsigned short x, unsigned short y,
+							  unsigned short w, unsigned short h);
 	static BOOL PostShareWindow(HWND hwnd);
 	static HWND FindWindowByTitle(char *substr);
 

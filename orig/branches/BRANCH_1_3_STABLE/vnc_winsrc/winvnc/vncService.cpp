@@ -556,11 +556,12 @@ vncService::PostSharePrimary()
 }
 
 BOOL
-vncService::PostShareArea()
+vncService::PostShareArea(unsigned short x, unsigned short y,
+						  unsigned short w, unsigned short h)
 {
 	// Post to the WinVNC menu window
-	if (!PostToWinVNC(MENU_SERVER_SHAREAREA, 0, 0))
-	{
+	if (!PostToWinVNC(MENU_SERVER_SHAREAREA,
+					  MAKEWPARAM(x,y), MAKELPARAM(w,h))) {
 		MessageBox(NULL, "No existing instance of WinVNC could be contacted", szAppName, MB_ICONEXCLAMATION | MB_OK);
 		return FALSE;
 	}

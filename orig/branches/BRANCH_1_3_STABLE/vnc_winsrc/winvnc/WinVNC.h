@@ -89,7 +89,7 @@ const char winvncUsageText[] =
 	" [-connect [host[:display]]] [-connect [host[::port]]]\n"
 	" [-install] [-remove] [-reinstall] [-reload]\n"
 	" [-settings] [-defaultsettings] [-killallclients]\n"
-	" [-shareall] [-shareprimary] [-sharearea]\n"
+	" [-shareall] [-shareprimary] [-sharearea WxH+X+Y]\n"
 	" [-sharewindow  \"title\"] [-about] [-help]\n";
 
 #endif // __WINVNC_H

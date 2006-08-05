@@ -2837,9 +2837,13 @@ BOOL	IsBadDirectAccessConfig()
 
 BOOL vncDesktop::InitVideoDriver()
 {
-// Mirror video drivers supported under Win2K, WinXP, WinVista
-// and Windows NT Sp3 (we assume Sp6)
+	// Mirror video drivers supported under Win2K, WinXP, WinVista
+	// and Windows NT 4.0 SP3 (we assume SP6).
 	if (!vncService::IsWinNT())
+		return FALSE;
+
+	// FIXME: Windows NT 4.0 support is broken and thus we disable it here.
+	if (!IsWinVerOrHigher(5, 0))
 		return FALSE;
 
 	if (m_server->DontUseDriver())

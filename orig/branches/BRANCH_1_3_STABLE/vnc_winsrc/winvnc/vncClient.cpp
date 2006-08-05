@@ -1541,7 +1541,7 @@ vncClient::vncClient()
 
 	m_keyboardenabled = FALSE;
 	m_pointerenabled = FALSE;
-	m_inputblocked = 0;
+	m_inputblocked = FALSE;
 
 	m_copyrect_use = FALSE;
 

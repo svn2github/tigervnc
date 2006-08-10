@@ -1,5 +1,5 @@
 
-  TightVNC version 1.3.7 (development version)
+  TightVNC version 1.3.8
   Binary distribution for Windows platforms
 
 ======================================================================

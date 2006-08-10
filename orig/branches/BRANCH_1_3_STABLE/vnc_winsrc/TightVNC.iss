@@ -3,12 +3,12 @@
 
 [Setup]
 AppName=TightVNC
-AppVerName=TightVNC 1.3.7
-AppVersion=1.3.7
-AppPublisher=Constantin Kaplinsky
-AppPublisherURL=http://www.tightvnc.com
-AppSupportURL=http://www.tightvnc.com
-AppUpdatesURL=http://www.tightvnc.com
+AppVerName=TightVNC 1.3.8
+AppVersion=1.3.8
+AppPublisher=TightVNC Group
+AppPublisherURL=http://www.tightvnc.com/
+AppSupportURL=http://www.tightvnc.com/support.html
+AppUpdatesURL=http://www.tightvnc.com/download.html
 DefaultDirName={pf}\TightVNC
 DefaultGroupName=TightVNC
 AllowNoIcons=yes

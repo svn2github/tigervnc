@@ -3,16 +3,14 @@
 
 [Setup]
 AppName=TightVNC
-AppVerName=TightVNC 1.3dev7
-AppVersion=1.3dev7
+AppVerName=TightVNC 1.3.7
+AppVersion=1.3.7
 AppPublisher=Constantin Kaplinsky
 AppPublisherURL=http://www.tightvnc.com
 AppSupportURL=http://www.tightvnc.com
 AppUpdatesURL=http://www.tightvnc.com
-DefaultDirName={pf}\TightVNC-unstable
-UsePreviousAppDir=no
-DefaultGroupName=TightVNC (unstable)
-UsePreviousGroup=no
+DefaultDirName={pf}\TightVNC
+DefaultGroupName=TightVNC
 AllowNoIcons=yes
 InfoBeforeFile=InstInfo.rtf
 Compression=zip/9
@@ -20,7 +18,6 @@ WindowVisible=no
 DisableStartupPrompt=yes
 BackColor=clBlack
 BackColor2=clBlue
-Uninstallable=no
 
 ChangesAssociations=yes
 

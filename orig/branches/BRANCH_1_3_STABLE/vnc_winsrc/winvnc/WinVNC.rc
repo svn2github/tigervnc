@@ -620,15 +620,15 @@ IDR_TRAYMENU MENU DISCARDABLE
 BEGIN
     POPUP "tray"
     BEGIN
-        MENUITEM "&Properties",                 ID_PROPERTIES
+        MENUITEM "&Properties...",              ID_PROPERTIES
         MENUITEM SEPARATOR
-        MENUITEM "Add &New Client",             ID_OUTGOING_CONN
+        MENUITEM "Add &New Client...",          ID_OUTGOING_CONN
         MENUITEM "&Kill All Clients",           ID_KILLCLIENTS
         MENUITEM "&Disable New Clients",        ID_DISABLE_CONN
         MENUITEM SEPARATOR
-        MENUITEM "&About WinVNC",               ID_ABOUT
+        MENUITEM "&About...",                   ID_ABOUT
         MENUITEM SEPARATOR
-        MENUITEM "&Close VNC",                  ID_CLOSE
+        MENUITEM "&Close TightVNC Server",      ID_CLOSE
     END
 END
 

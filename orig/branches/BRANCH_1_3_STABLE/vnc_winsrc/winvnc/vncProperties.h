@@ -95,6 +95,8 @@ public:
 		m_pMatchWindow->ModifyPosition(left, top, right, bottom);
 	}
 
+	void ResetTabId() { m_tab_id = 0; }
+
 	// Implementation
 protected:
 
@@ -176,6 +178,7 @@ protected:
 private:
 	// Remember previously selected tab.
 	int m_tab_id;
+	bool m_tab_id_restore;
 
 	HWND m_hTab;
 	HWND m_hIncoming;

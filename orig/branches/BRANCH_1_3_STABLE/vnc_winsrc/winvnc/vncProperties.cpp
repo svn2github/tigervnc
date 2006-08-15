@@ -72,6 +72,7 @@ vncProperties::vncProperties()
 	m_pMatchWindow = NULL;
 
 	m_tab_id = 0;
+	m_tab_id_restore = false;
 }
 
 vncProperties::~vncProperties()
@@ -193,8 +194,7 @@ vncProperties::Show(BOOL show, BOOL usersettings, BOOL passwordfocused)
 			{
 				m_returncode_valid = FALSE;
 
-				if (passwordfocused)
-					m_tab_id = 0;
+				m_tab_id_restore = !passwordfocused && usersettings;
 
 				// Do the dialog box
 				int result = DialogBoxParam(hAppInstance,
@@ -285,7 +285,8 @@ vncProperties::ParentDlgProc(HWND hwnd,
 			TabCtrl_InsertItem(_this->m_hTab, 3, &item);
 			item.pszText = "Administration";
 			TabCtrl_InsertItem(_this->m_hTab, 4, &item);
-			TabCtrl_SetCurSel(_this->m_hTab, _this->m_tab_id);
+			int tab_id = (_this->m_tab_id_restore) ? _this->m_tab_id : 0;
+			TabCtrl_SetCurSel(_this->m_hTab, tab_id);
 
 			_this->m_hShared = CreateDialogParam(hAppInstance, 
 				MAKEINTRESOURCE(IDD_SHARED_DESKTOP_AREA),
@@ -324,19 +325,19 @@ vncProperties::ParentDlgProc(HWND hwnd,
 			TabCtrl_AdjustRect(_this->m_hTab, FALSE, &rc);
 			SetWindowPos(_this->m_hIncoming, HWND_TOP, rc.left, rc.top,
 						 rc.right - rc.left, rc.bottom - rc.top,
-						 (_this->m_tab_id == 0) ? SWP_SHOWWINDOW : SWP_HIDEWINDOW);
+						 (tab_id == 0) ? SWP_SHOWWINDOW : SWP_HIDEWINDOW);
 			SetWindowPos(_this->m_hPoll, HWND_TOP, rc.left, rc.top,
 						 rc.right - rc.left, rc.bottom - rc.top,
-						 (_this->m_tab_id == 1) ? SWP_SHOWWINDOW : SWP_HIDEWINDOW);
+						 (tab_id == 1) ? SWP_SHOWWINDOW : SWP_HIDEWINDOW);
 			SetWindowPos(_this->m_hShared, HWND_TOP, rc.left, rc.top,
 						 rc.right - rc.left, rc.bottom - rc.top,
-						 (_this->m_tab_id == 2) ? SWP_SHOWWINDOW : SWP_HIDEWINDOW);
+						 (tab_id == 2) ? SWP_SHOWWINDOW : SWP_HIDEWINDOW);
 			SetWindowPos(_this->m_hQuerySettings, HWND_TOP, rc.left, rc.top,
 						 rc.right - rc.left, rc.bottom - rc.top,
-						 (_this->m_tab_id == 3) ? SWP_SHOWWINDOW : SWP_HIDEWINDOW);
+						 (tab_id == 3) ? SWP_SHOWWINDOW : SWP_HIDEWINDOW);
 			SetWindowPos(_this->m_hAdministration, HWND_TOP, rc.left, rc.top,
 						 rc.right - rc.left, rc.bottom - rc.top,
-						 (_this->m_tab_id == 4) ? SWP_SHOWWINDOW : SWP_HIDEWINDOW);
+						 (tab_id == 4) ? SWP_SHOWWINDOW : SWP_HIDEWINDOW);
 
 			// Set the dialog box's title to indicate which Properties we're editting
 			if (_this->m_usersettings) {
@@ -347,7 +348,7 @@ vncProperties::ParentDlgProc(HWND hwnd,
 				
 			// If the first tab is selected, then return FALSE because in that case
 			// we set the keyboard focus explicitly (on the password field).
-			return (_this->m_tab_id != 0);
+			return (tab_id != 0);
 		}
 	case WM_HELP:	
 		VNCHelp::Popup(lParam);
@@ -398,7 +399,9 @@ vncProperties::ParentDlgProc(HWND hwnd,
 			SendMessage(_this->m_hQuerySettings, WM_COMMAND, IDC_APPLY,0);
 			SendMessage(_this->m_hAdministration, WM_COMMAND, IDC_APPLY,0);
 
-			_this->m_tab_id = TabCtrl_GetCurFocus(_this->m_hTab);
+			// Remember selected tab, except when in default settings.
+			if (_this->m_usersettings)
+				_this->m_tab_id = TabCtrl_GetCurFocus(_this->m_hTab);
 
 			_this->Save();
         

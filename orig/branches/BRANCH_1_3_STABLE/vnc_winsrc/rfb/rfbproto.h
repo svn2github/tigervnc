@@ -438,6 +438,7 @@ typedef struct _rfbInteractionCapsMsg {
 #define rfbEncodingZlib      6
 #define rfbEncodingTight     7
 #define rfbEncodingZlibHex   8
+#define rfbEncodingZRLE     16
 
 /* signatures for basic encoding types */
 #define sig_rfbEncodingRaw       "RAW_____"
@@ -448,6 +449,7 @@ typedef struct _rfbInteractionCapsMsg {
 #define sig_rfbEncodingZlib      "ZLIB____"
 #define sig_rfbEncodingTight     "TIGHT___"
 #define sig_rfbEncodingZlibHex   "ZLIBHEX_"
+#define sig_rfbEncodingZRLE      "ZRLE____"
 
 /*
  * Special encoding numbers:

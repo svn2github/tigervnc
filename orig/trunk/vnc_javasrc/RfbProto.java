@@ -391,8 +391,6 @@ class RfbProto {
 		 "No authentication");
     authCaps.add(AuthVNC, StandardVendor, SigAuthVNC,
 		 "Standard VNC password authentication");
-    authCaps.add(AuthUnixLogin, TightVncVendor, SigAuthUnixLogin,
-		 "Login-style Unix authentication");
 
     // Supported encoding types
     encodingCaps.add(EncodingCopyRect, StandardVendor,
@@ -451,9 +449,7 @@ class RfbProto {
     readCapabilityList(authCaps, nAuthTypes);
     for (int i = 0; i < authCaps.numEnabled(); i++) {
       int authType = authCaps.getByOrder(i);
-      if (authType == AuthNone ||
-	  authType == AuthVNC  ||
-	  authType == AuthUnixLogin) {
+      if (authType == AuthNone || authType == AuthVNC) {
 	writeInt(authType);
 	return authType;
       }

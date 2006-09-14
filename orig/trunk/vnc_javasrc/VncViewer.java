@@ -63,7 +63,6 @@ public class VncViewer extends java.applet.Applet
   ButtonPanel buttonPanel;
   Label connStatusLabel;
   AuthPanel authenticator;
-  AuthUnixLoginPanel authenticatorUnixLogin;
   VncCanvas vc;
   OptionsFrame options;
   ClipboardFrame clipboard;
@@ -116,7 +115,6 @@ public class VncViewer extends java.applet.Applet
     options = new OptionsFrame(this);
     clipboard = new ClipboardFrame(this);
     authenticator = new AuthPanel(this);
-    authenticatorUnixLogin = new AuthUnixLoginPanel();
     if (RecordingFrame.checkSecurity())
       rec = new RecordingFrame(this);
 
@@ -284,7 +282,6 @@ public class VncViewer extends java.applet.Applet
 
     while (!tryAuthenticate()) {
       authenticator.retry();
-      authenticatorUnixLogin.retry();
     }
   }
 
@@ -350,13 +347,6 @@ public class VncViewer extends java.applet.Applet
 	if (!success)
 	  throw new Exception("VNC authentication failed");
       }
-      break;
-    case RfbProto.AuthUnixLogin:
-      showConnectionStatus("Performing Unix login-style authentication");
-      showAuthPanel(authenticatorUnixLogin);
-      authenticatorUnixLogin.moveFocusToDefaultField();
-      success = authenticatorUnixLogin.tryAuthenticate(rfb);
-      vncContainer.remove(authenticatorUnixLogin);
       break;
     default:
       throw new Exception("Unknown authentication scheme " + authType);
@@ -774,8 +764,6 @@ public class VncViewer extends java.applet.Applet
 	vc.requestFocus();
       } else if (vncContainer.isAncestorOf(authenticator)) {
 	authenticator.moveFocusToDefaultField();
-      } else if (vncContainer.isAncestorOf(authenticatorUnixLogin)) {
-	authenticatorUnixLogin.moveFocusToDefaultField();
       }
     }
   }
@@ -936,8 +924,6 @@ public class VncViewer extends java.applet.Applet
   public void windowActivated(WindowEvent evt) {
     if (vncFrame.isAncestorOf(authenticator)) {
       authenticator.moveFocusToDefaultField();
-    } else if (vncContainer.isAncestorOf(authenticatorUnixLogin)) {
-      authenticatorUnixLogin.moveFocusToDefaultField();
     }
   }
 

@@ -14,14 +14,14 @@ INSTALL_DIR = /usr/local/vnc/classes
 CLASSES = VncViewer.class RfbProto.class AuthPanel.class VncCanvas.class \
 	  OptionsFrame.class ClipboardFrame.class ButtonPanel.class \
 	  DesCipher.class CapabilityInfo.class CapsContainer.class \
-	  RecordingFrame.class SessionRecorder.class AuthUnixLoginPanel.class \
+	  RecordingFrame.class SessionRecorder.class \
 	  SocketFactory.class HTTPConnectSocketFactory.class \
 	  HTTPConnectSocket.class ReloginPanel.class
 
 SOURCES = VncViewer.java RfbProto.java AuthPanel.java VncCanvas.java \
 	  OptionsFrame.java ClipboardFrame.java ButtonPanel.java \
 	  DesCipher.java CapabilityInfo.java CapsContainer.java \
-	  RecordingFrame.java SessionRecorder.java AuthUnixLoginPanel.java \
+	  RecordingFrame.java SessionRecorder.java \
 	  SocketFactory.java HTTPConnectSocketFactory.java \
 	  HTTPConnectSocket.java ReloginPanel.java
 

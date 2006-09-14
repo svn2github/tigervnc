@@ -280,6 +280,10 @@ public class VncViewer extends java.applet.Applet
       validate();
     }
 
+    // FIXME: In the RFB protocol version 3.8, "no authentication" may fail.
+    //        As "no authentication" does not assume client-side user
+    //        interaction, it should not be automatically retried.
+
     while (!tryAuthenticate()) {
       authenticator.retry();
     }
@@ -331,7 +335,11 @@ public class VncViewer extends java.applet.Applet
     switch (authType) {
     case RfbProto.AuthNone:
       showConnectionStatus("No authentication needed");
-      success = true;
+      if (rfb.clientMinor >= 8) {
+	success = rfb.readSecurityResult("No authentication");
+      } else {
+	success = true;
+      }
       break;
     case RfbProto.AuthVNC:
       showConnectionStatus("Performing standard VNC authentication");

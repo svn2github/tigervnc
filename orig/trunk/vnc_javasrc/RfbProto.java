@@ -1,6 +1,6 @@
 //
 //  Copyright (C) 2001-2004 HorizonLive.com, Inc.  All Rights Reserved.
-//  Copyright (C) 2001,2002 Constantin Kaplinsky.  All Rights Reserved.
+//  Copyright (C) 2001-2006 Constantin Kaplinsky.  All Rights Reserved.
 //  Copyright (C) 2000 Tridia Corporation.  All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge.  All Rights Reserved.
 //
@@ -34,7 +34,8 @@ class RfbProto {
 
   final static String
     versionMsg_3_3 = "RFB 003.003\n",
-    versionMsg_3_7 = "RFB 003.007\n";
+    versionMsg_3_7 = "RFB 003.007\n",
+    versionMsg_3_8 = "RFB 003.008\n";
 
   // Vendor signatures: standard VNC/RealVNC, TridiaVNC, and TightVNC
   final static String
@@ -282,7 +283,10 @@ class RfbProto {
 
   void writeVersionMsg() throws IOException {
     clientMajor = 3;
-    if (serverMajor > 3 || serverMinor >= 7) {
+    if (serverMajor > 3 || serverMinor >= 8) {
+      clientMinor = 8;
+      os.write(versionMsg_3_8.getBytes());
+    } else if (serverMinor >= 7) {
       clientMinor = 7;
       os.write(versionMsg_3_7.getBytes());
     } else {
@@ -322,7 +326,7 @@ class RfbProto {
   }
 
   //
-  // Select security type from the server's list (protocol version 3.7).
+  // Select security type from the server's list (protocol versions 3.7/3.8).
   //
 
   int selectSecurityType() throws Exception {
@@ -364,6 +368,39 @@ class RfbProto {
   }
 
   //
+  // Read security result.
+  // Returns true if authentication successful, false otherwise.
+  // FIXME: Throw an exception on authentication failure?
+  //
+
+  boolean readSecurityResult(String authType) throws Exception {
+    int securityResult = is.readInt();
+
+    switch (securityResult) {
+    case VncAuthOK:
+      System.out.println(authType + ": success");
+      return true;
+    case VncAuthFailed:
+      if (clientMinor >= 8) {
+        try {
+          readConnFailedReason();
+        } catch (Exception e) {
+          System.out.println(authType + ": " + e.getMessage());
+        }
+      } else {
+        System.out.println(authType + ": failed");
+      }
+      break;
+    case VncAuthTooMany:
+      throw new Exception(authType + ": failed, too many tries");
+    default:
+      throw new Exception(authType + ": unknown result " + securityResult);
+    }
+
+    return false;
+  }
+
+  //
   // Read the string describing the reason for a connection failure,
   // and throw an exception.
   //
@@ -376,7 +413,7 @@ class RfbProto {
   }
 
   //
-  // Initialize capability lists (protocol 3.7t).
+  // Initialize capability lists (TightVNC protocol extensions).
   //
 
   void initCapabilities() {
@@ -424,7 +461,7 @@ class RfbProto {
   }
 
   //
-  // Setup tunneling (protocol version 3.7t)
+  // Setup tunneling (TightVNC protocol extensions)
   //
 
   void setupTunneling() throws IOException {
@@ -438,7 +475,7 @@ class RfbProto {
   }
 
   //
-  // Negotiate authentication scheme (protocol version 3.7t)
+  // Negotiate authentication scheme (TightVNC protocol extensions)
   //
 
   int negotiateAuthenticationTight() throws Exception {
@@ -458,7 +495,7 @@ class RfbProto {
   }
 
   //
-  // Read a capability list (protocol version 3.7t)
+  // Read a capability list (TightVNC protocol extensions)
   //
 
   void readCapabilityList(CapsContainer caps, int count) throws IOException {
@@ -530,7 +567,7 @@ class RfbProto {
     readFully(name);
     desktopName = new String(name);
 
-    // Read interaction capabilities (protocol 3.7t)
+    // Read interaction capabilities (TightVNC protocol extensions)
     if (protocolTightVNC) {
       int nServerMessageTypes = is.readUnsignedShort();
       int nClientMessageTypes = is.readUnsignedShort();

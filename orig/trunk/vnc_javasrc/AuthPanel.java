@@ -200,22 +200,7 @@ class AuthPanel extends Panel implements ActionListener {
 
     rfb.os.write(challenge);
 
-    int authResult = rfb.is.readInt();
-
-    switch (authResult) {
-    case RfbProto.VncAuthOK:
-      System.out.println("VNC authentication succeeded");
-      return true;
-    case RfbProto.VncAuthFailed:
-      System.out.println("VNC authentication failed");
-      break;
-    case RfbProto.VncAuthTooMany:
-      throw new Exception("VNC authentication failed - too many tries");
-    default:
-      throw new Exception("Unknown VNC authentication result " + authResult);
-    }
-
-    return false;
+    return rfb.readSecurityResult("VNC authentication");
   }
 
   //
@@ -224,6 +209,7 @@ class AuthPanel extends Panel implements ActionListener {
 
   public void retry()
   {
+    // FIXME: Report failure reason if available (protocol 3.8+)
     retryLabel.setText("Sorry. Try again.");
     passwordField.setEnabled(true);
     passwordField.setText("");

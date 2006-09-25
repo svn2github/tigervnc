@@ -147,10 +147,7 @@ vncClientThread::InitVersion()
 {
 	// Generate the server's protocol version
 	rfbProtocolVersionMsg protocolMsg;
-	sprintf((char *)protocolMsg,
-			rfbProtocolVersionFormat,
-			rfbProtocolMajorVersion,
-			rfbProtocolMinorVersion);
+	sprintf((char *)protocolMsg, rfbProtocolVersionFormat, 3, 7);
 
 	// Send the protocol message
 	if (!m_socket->SendExact((char *)&protocolMsg, sz_rfbProtocolVersionMsg))
@@ -165,24 +162,21 @@ vncClientThread::InitVersion()
 	// Check the protocol version
 	int major, minor;
 	sscanf((char *)&protocol_ver, rfbProtocolVersionFormat, &major, &minor);
-	if (major != rfbProtocolMajorVersion) {
+	if (major != 3) {
 		vnclog.Print(LL_CONNERR, VNCLOG("unsupported protocol version %d.%d\n"),
 					 major, minor);
 		return FALSE;
 	}
-	if (minor > rfbProtocolMinorVersion) {
+	if (minor > 7) {
 		vnclog.Print(LL_CONNERR,
-					 VNCLOG("non-standard protocol version %d.%d, using %d.%d instead\n"),
-					 major, minor,
-					 rfbProtocolMajorVersion, rfbProtocolMinorVersion);
-		minor = rfbProtocolMinorVersion;
-	} else if (minor < rfbProtocolMinorVersion &&
-			   minor > rfbProtocolFallbackMinorVersion) {
+					 VNCLOG("non-standard protocol version 3.%d, using 3.7 instead\n"),
+					 minor);
+		minor = 7;
+	} else if (minor < 7 && minor > 3) {
 		vnclog.Print(LL_CONNERR,
-					 VNCLOG("non-standard protocol version %d.%d, using %d.%d instead\n"),
-					 major, minor,
-					 rfbProtocolMajorVersion, rfbProtocolFallbackMinorVersion);
-		minor = rfbProtocolFallbackMinorVersion;
+					 VNCLOG("non-standard protocol version 3.%d, using 3.3 instead\n"),
+					 minor);
+		minor = 3;
 	}
 
 	// Save the minor number of the protocol version

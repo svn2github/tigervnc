@@ -821,8 +821,8 @@ void ClientConnection::NegotiateProtocolVersion()
 	// version number it gives us without parsing it.  
 	// Too much hassle replacing sscanf for now. Fix this!
 #ifdef UNDER_CE
-	m_majorVersion = rfbProtocolMajorVersion;
-	m_minorVersion = rfbProtocolMinorVersion;
+	m_majorVersion = 3;
+	m_minorVersion = 7;
 #else
     if (sscanf(pv,rfbProtocolVersionFormat,&m_majorVersion,&m_minorVersion) != 2) {
 		throw WarningException(_T("Invalid protocol"));
@@ -830,23 +830,22 @@ void ClientConnection::NegotiateProtocolVersion()
     vnclog.Print(0, _T("RFB server supports protocol version %d.%d\n"),
 	    m_majorVersion,m_minorVersion);
 
-    if ((m_majorVersion == 3) && (m_minorVersion < 3)) {
+    if (m_majorVersion == 3 && m_minorVersion < 3) {
 		
         /* if server is 3.2 we can't use the new authentication */
 		vnclog.Print(0, _T("Can't use IDEA authentication\n"));
         /* This will be reported later if authentication is requested*/
 
-	} else if ((m_majorVersion == 3) && (m_minorVersion >= rfbProtocolMinorVersion)) {
+	} else if (m_majorVersion == 3 && m_minorVersion >= 7) {
 
 		/* the server supports at least the standard protocol 3.7 */
-		m_majorVersion = rfbProtocolMajorVersion;
-		m_minorVersion = rfbProtocolMinorVersion;
+		m_minorVersion = 7;
 
     } else {
 
         /* any other server version, request the standard 3.3 */
-		m_majorVersion = rfbProtocolMajorVersion;
-		m_minorVersion = rfbProtocolFallbackMinorVersion;
+		m_majorVersion = 3;
+		m_minorVersion = 3;
 
     }
 
@@ -871,7 +870,7 @@ void ClientConnection::NegotiateProtocolVersion()
 void ClientConnection::PerformAuthentication()
 {
 	int secType;
-	if (m_minorVersion == rfbProtocolMinorVersion) {
+	if (m_minorVersion >= 7) {
 		secType = SelectSecurityType();
 	} else {
 		secType = ReadSecurityType();

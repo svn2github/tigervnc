@@ -95,6 +95,8 @@ class OptionsFrame extends Frame
   boolean viewOnly;
   int scaleCursor;
 
+  int scalingFactor;
+
   //
   // Constructor.  Set up the labels and choices from the names and values
   // arrays.
@@ -161,6 +163,30 @@ class OptionsFrame extends Frame
 	    choices[i].select(j);
 	  }
 	}
+      }
+    }
+
+    // FIXME: Provide a corresponding GUI option for "Scaling Factor".
+
+    scalingFactor = 100;
+    String s = viewer.readParameter("Scaling Factor", false);
+    if (s != null) {
+      // Remove the '%' char at the end of string if present.
+      if (s.charAt(s.length() - 1) == '%') {
+	s = s.substring(0, s.length() - 1);
+      }
+      // Convert to an integer.
+      try {
+	scalingFactor = Integer.parseInt(s);
+      }
+      catch (NumberFormatException e) {
+	scalingFactor = 100;
+      }
+      // Make sure scalingFactor is in the range of [1..1000].
+      if (scalingFactor < 1) {
+	scalingFactor = 1;
+      } else if (scalingFactor > 1000) {
+	scalingFactor = 1000;
       }
     }
 
@@ -283,6 +309,8 @@ class OptionsFrame extends Frame
   //
 
   void setOtherOptions() {
+
+    fastScaling = false;
 
     reverseMouseButtons2And3
       = choices[mouseButtonIndex].getSelectedItem().equals("Reversed");

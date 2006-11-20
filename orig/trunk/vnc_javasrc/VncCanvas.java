@@ -42,6 +42,8 @@ class VncCanvas extends Canvas
   Color[] colors;
   int bytesPixel;
 
+  int scaledWidth, scaledHeight;
+
   Image memImage;
   Graphics memGraphics;
 
@@ -101,15 +103,15 @@ class VncCanvas extends Canvas
   //
 
   public Dimension getPreferredSize() {
-    return new Dimension(rfb.framebufferWidth, rfb.framebufferHeight);
+    return new Dimension(scaledWidth, scaledHeight);
   }
 
   public Dimension getMinimumSize() {
-    return new Dimension(rfb.framebufferWidth, rfb.framebufferHeight);
+    return new Dimension(scaledWidth, scaledHeight);
   }
 
   public Dimension getMaximumSize() {
-    return new Dimension(rfb.framebufferWidth, rfb.framebufferHeight);
+    return new Dimension(scaledWidth, scaledHeight);
   }
 
   //
@@ -122,7 +124,11 @@ class VncCanvas extends Canvas
 
   public void paint(Graphics g) {
     synchronized(memImage) {
-      g.drawImage(memImage, 0, 0, null);
+      if (rfb.framebufferWidth == scaledWidth) {
+        g.drawImage(memImage, 0, 0, null);
+      } else {
+        g.drawImage(memImage, 0, 0, scaledWidth, scaledHeight, null);
+      }
     }
     if (showSoftCursor) {
       int x0 = cursorX - hotX, y0 = cursorY - hotY;
@@ -201,6 +207,11 @@ class VncCanvas extends Canvas
     int fbWidth = rfb.framebufferWidth;
     int fbHeight = rfb.framebufferHeight;
 
+    // Update scaled framebuffer geometry.
+    int f = viewer.options.scalingFactor;
+    scaledWidth = (fbWidth * f + 50) / 100;
+    scaledHeight = (fbHeight * f + 50) / 100;
+
     // Create new off-screen image either if it does not exist, or if
     // its geometry should be changed. It's not necessary to replace
     // existing image if only pixel format should be changed.
@@ -238,20 +249,20 @@ class VncCanvas extends Canvas
       if (viewer.desktopScrollPane != null)
 	resizeDesktopFrame();
     } else {
-      setSize(fbWidth, fbHeight);
+      setSize(scaledWidth, scaledHeight);
     }
     viewer.moveFocusToDesktop();
   }
 
   void resizeDesktopFrame() {
-    setSize(rfb.framebufferWidth, rfb.framebufferHeight);
+    setSize(scaledWidth, scaledHeight);
 
     // FIXME: Find a better way to determine correct size of a
     // ScrollPane.  -- const
     Insets insets = viewer.desktopScrollPane.getInsets();
-    viewer.desktopScrollPane.setSize(rfb.framebufferWidth +
+    viewer.desktopScrollPane.setSize(scaledWidth +
 				     2 * Math.min(insets.left, insets.right),
-				     rfb.framebufferHeight +
+				     scaledHeight +
 				     2 * Math.min(insets.top, insets.bottom));
 
     viewer.vncFrame.pack();
@@ -1167,7 +1178,16 @@ class VncCanvas extends Canvas
 
   void scheduleRepaint(int x, int y, int w, int h) {
     // Request repaint, deferred if necessary.
-    repaint(viewer.deferScreenUpdates, x, y, w, h);
+    if (rfb.framebufferWidth == scaledWidth) {
+      repaint(viewer.deferScreenUpdates, x, y, w, h);
+    } else {
+      int f = viewer.options.scalingFactor;
+      int sx = (x * f + 50) / 100;
+      int sy = (y * f + 50) / 100;
+      int sw = ((x + w) * f + 49) / 100 - sx + 1;
+      int sh = ((y + h) * f + 49) / 100 - sy + 1;
+      repaint(viewer.deferScreenUpdates, sx, sy, sw, sh);
+    }
   }
 
   //
@@ -1231,6 +1251,12 @@ class VncCanvas extends Canvas
     if (viewer.rfb != null && rfb.inNormalProtocol) {
       if (moved) {
 	softCursorMove(evt.getX(), evt.getY());
+      }
+      if (rfb.framebufferWidth != scaledWidth) {
+        int f = viewer.options.scalingFactor;
+        int sx = (evt.getX() * 100 + f/2) / f;
+        int sy = (evt.getY() * 100 + f/2) / f;
+        evt.translatePoint(sx - evt.getX(), sy - evt.getY());
       }
       synchronized(rfb) {
 	try {

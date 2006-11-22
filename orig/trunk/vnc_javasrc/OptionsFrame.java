@@ -310,8 +310,6 @@ class OptionsFrame extends Frame
 
   void setOtherOptions() {
 
-    fastScaling = false;
-
     reverseMouseButtons2And3
       = choices[mouseButtonIndex].getSelectedItem().equals("Reversed");
 

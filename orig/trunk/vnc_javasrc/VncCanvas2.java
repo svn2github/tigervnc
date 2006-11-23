@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2005 Constantin Kaplinsky.  All Rights Reserved.
+//  Copyright (C) 2006 Constantin Kaplinsky.  All Rights Reserved.
 //
 //  This is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -27,7 +27,18 @@ import java.io.*;
 class VncCanvas2 extends VncCanvas {
 
   public VncCanvas2(VncViewer v) throws IOException {
+
+    // Call the constructor of VncCanvas.
     super(v);
+
+    // Now try to disable focus traversal keys (JVMs 1.4 and higher).
+    try {
+      Class[] argClasses = { Boolean.TYPE };
+      java.lang.reflect.Method method =
+        getClass().getMethod("setFocusTraversalKeysEnabled", argClasses);
+      Object[] argObjects = { new Boolean(false) };
+      method.invoke(this, argObjects);
+    } catch (Exception e) {}
   }
 
   public void paintScaledFrameBuffer(Graphics g) {

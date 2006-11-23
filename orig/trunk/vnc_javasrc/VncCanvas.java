@@ -1186,8 +1186,8 @@ class VncCanvas extends Canvas
       repaint(viewer.deferScreenUpdates, x, y, w, h);
     } else {
       int f = viewer.options.scalingFactor;
-      int sx = (x * f + 50) / 100;
-      int sy = (y * f + 50) / 100;
+      int sx = x * f / 100;
+      int sy = y * f / 100;
       int sw = ((x + w) * f + 49) / 100 - sx + 1;
       int sh = ((y + h) * f + 49) / 100 - sy + 1;
       repaint(viewer.deferScreenUpdates, sx, sy, sw, sh);

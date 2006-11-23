@@ -328,7 +328,7 @@ is the full list of parameters supported in TightVNC Java viewer:
     This option provides the way to define an alternate I/O implementation.
     The dynamically referenced class must implement a SocketFactory
     interface, and create a Socket, as configured by this parameter. See the
-    source in the SocketFactory.class.
+    source in SocketFactory.java.
 
 
 RECORDING VNC SESSIONS

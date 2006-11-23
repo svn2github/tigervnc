@@ -74,7 +74,7 @@ class VncCanvas extends Canvas
   // The constructor.
   //
 
-  VncCanvas(VncViewer v) throws IOException {
+  public VncCanvas(VncViewer v) throws IOException {
     viewer = v;
     rfb = viewer.rfb;
 
@@ -127,7 +127,7 @@ class VncCanvas extends Canvas
       if (rfb.framebufferWidth == scaledWidth) {
         g.drawImage(memImage, 0, 0, null);
       } else {
-        g.drawImage(memImage, 0, 0, scaledWidth, scaledHeight, null);
+        paintScaledFrameBuffer(g);
       }
     }
     if (showSoftCursor) {
@@ -137,6 +137,10 @@ class VncCanvas extends Canvas
 	g.drawImage(softCursor, x0, y0, null);
       }
     }
+  }
+
+  public void paintScaledFrameBuffer(Graphics g) {
+    g.drawImage(memImage, 0, 0, scaledWidth, scaledHeight, null);
   }
 
   //

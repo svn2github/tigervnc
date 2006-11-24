@@ -368,36 +368,55 @@ class RfbProto {
   }
 
   //
-  // Read security result.
-  // Returns true if authentication successful, false otherwise.
-  // FIXME: Throw an exception on authentication failure?
+  // Perform standard VNC Authentication.
   //
 
-  boolean readSecurityResult(String authType) throws Exception {
+  void authenticateVNC(String pw) throws Exception {
+    byte[] challenge = new byte[16];
+    readFully(challenge);
+
+    if (pw.length() > 8)
+      pw = pw.substring(0, 8);	// Truncate to 8 chars
+
+    // Truncate password on the first zero byte.
+    int firstZero = pw.indexOf(0);
+    if (firstZero != -1)
+      pw = pw.substring(0, firstZero);
+
+    byte[] key = {0, 0, 0, 0, 0, 0, 0, 0};
+    System.arraycopy(pw.getBytes(), 0, key, 0, pw.length());
+
+    DesCipher des = new DesCipher(key);
+
+    des.encrypt(challenge, 0, challenge, 0);
+    des.encrypt(challenge, 8, challenge, 8);
+
+    os.write(challenge);
+
+    readSecurityResult("VNC authentication");
+  }
+
+  //
+  // Read security result.
+  // Throws an exception on authentication failure.
+  //
+
+  void readSecurityResult(String authType) throws Exception {
     int securityResult = is.readInt();
 
     switch (securityResult) {
     case VncAuthOK:
       System.out.println(authType + ": success");
-      return true;
-    case VncAuthFailed:
-      if (clientMinor >= 8) {
-        try {
-          readConnFailedReason();
-        } catch (Exception e) {
-          System.out.println(authType + ": " + e.getMessage());
-        }
-      } else {
-        System.out.println(authType + ": failed");
-      }
       break;
+    case VncAuthFailed:
+      if (clientMinor >= 8)
+        readConnFailedReason();
+      throw new Exception(authType + ": failed");
     case VncAuthTooMany:
       throw new Exception(authType + ": failed, too many tries");
     default:
       throw new Exception(authType + ": unknown result " + securityResult);
     }
-
-    return false;
   }
 
   //

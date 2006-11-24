@@ -299,22 +299,6 @@ public class VncViewer extends java.applet.Applet
       validate();
     }
 
-    // FIXME: In the RFB protocol version 3.8, "no authentication" may fail.
-    //        As "no authentication" does not assume client-side user
-    //        interaction, it should not be automatically retried.
-
-    while (!tryAuthenticate()) {
-      authenticator.retry();
-    }
-  }
-
-
-  //
-  // Try to connect and authenticate.
-  //
-
-  boolean tryAuthenticate() throws Exception
-  {
     showConnectionStatus("Connecting to " + host + ", port " + port + "...");
 
     rfb = new RfbProto(host, port, this);
@@ -329,60 +313,37 @@ public class VncViewer extends java.applet.Applet
 			 rfb.clientMajor + "." + rfb.clientMinor);
 
     int secType = rfb.negotiateSecurity();
-    int authType = 0;
-
-    // FIXME: Map security types to authentication schemes in RfbProto.
-    switch (secType) {
-    case RfbProto.SecTypeNone:
-      authType = RfbProto.AuthNone;
-      break;
-    case RfbProto.SecTypeVncAuth:
-      authType = RfbProto.AuthVNC;
-      break;
-    case RfbProto.SecTypeTight:
+    int authType;
+    if (secType == RfbProto.SecTypeTight) {
       showConnectionStatus("Enabling TightVNC protocol extensions");
       rfb.initCapabilities();
       rfb.setupTunneling();
       authType = rfb.negotiateAuthenticationTight();
-      break;
-    default:
-      throw new Exception("Unknown security type " + secType);
+    } else {
+      authType = secType;
     }
-
-    boolean success = false;
 
     switch (authType) {
     case RfbProto.AuthNone:
       showConnectionStatus("No authentication needed");
-      if (rfb.clientMinor >= 8) {
-	success = rfb.readSecurityResult("No authentication");
-      } else {
-	success = true;
-      }
+      if (rfb.clientMinor >= 8)
+	rfb.readSecurityResult("No authentication");
       break;
     case RfbProto.AuthVNC:
       showConnectionStatus("Performing standard VNC authentication");
+      // FIXME: Simplify this.
       if (authenticator.isInteractionNecessary()) {
 	showAuthPanel(authenticator);
 	authenticator.moveFocusToDefaultField();
       }
-      success = authenticator.tryAuthenticate(rfb);
+      authenticator.tryAuthenticate(rfb);
       if (authenticator.isInteractionNecessary()) {
 	vncContainer.remove(authenticator);
-      } else {
-	// Don't retry non-interactive authentication.
-	if (!success)
-	  throw new Exception("VNC authentication failed");
       }
       break;
     default:
       throw new Exception("Unknown authentication scheme " + authType);
     }
-
-    if (!success)
-      rfb.close();
-
-    return success;
   }
 
 

@@ -135,14 +135,6 @@ class AuthPanel extends Panel implements ActionListener {
   // Move keyboard focus to the default object, that is, the password
   // text field.
   //
-  // FIXME: here moveFocusToDefaultField() does not always work
-  // under Netscape 4.7x/Java 1.1.5/Linux. It seems like this call
-  // is being executed before the password field of the
-  // authenticator is fully drawn and activated, therefore
-  // requestFocus() does not work. Currently, I don't know how to
-  // solve this problem.
-  //   -- const
-  //
 
   public void moveFocusToDefaultField()
   {

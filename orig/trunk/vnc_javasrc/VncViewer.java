@@ -62,7 +62,6 @@ public class VncViewer extends java.applet.Applet
   GridBagLayout gridbag;
   ButtonPanel buttonPanel;
   Label connStatusLabel;
-  AuthPanel authenticator;
   VncCanvas vc;
   OptionsFrame options;
   ClipboardFrame clipboard;
@@ -80,6 +79,7 @@ public class VncViewer extends java.applet.Applet
   String socketFactory;
   String host;
   int port;
+  String passwordParam;
   boolean showControls;
   boolean offerRelogin;
   boolean showOfflineDesktop;
@@ -114,7 +114,6 @@ public class VncViewer extends java.applet.Applet
 
     options = new OptionsFrame(this);
     clipboard = new ClipboardFrame(this);
-    authenticator = new AuthPanel(this);
     if (RecordingFrame.checkSecurity())
       rec = new RecordingFrame(this);
 
@@ -331,14 +330,11 @@ public class VncViewer extends java.applet.Applet
       break;
     case RfbProto.AuthVNC:
       showConnectionStatus("Performing standard VNC authentication");
-      // FIXME: Simplify this.
-      if (authenticator.isInteractionNecessary()) {
-	showAuthPanel(authenticator);
-	authenticator.moveFocusToDefaultField();
-      }
-      authenticator.tryAuthenticate(rfb);
-      if (authenticator.isInteractionNecessary()) {
-	vncContainer.remove(authenticator);
+      if (passwordParam != null) {
+        rfb.authenticateVNC(passwordParam);
+      } else {
+        String pw = askPassword();
+        rfb.authenticateVNC(pw);
       }
       break;
     default:
@@ -394,9 +390,11 @@ public class VncViewer extends java.applet.Applet
   // Show an authentication panel.
   //
 
-  void showAuthPanel(Panel authPanel)
+  String askPassword() throws Exception
   {
     showConnectionStatus(null);
+
+    AuthPanel authPanel = new AuthPanel(this);
 
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.gridwidth = GridBagConstraints.REMAINDER;
@@ -413,6 +411,12 @@ public class VncViewer extends java.applet.Applet
     } else {
       validate();
     }
+
+    authPanel.moveFocusToDefaultField();
+    String pw = authPanel.getPassword();
+    vncContainer.remove(authPanel);
+
+    return pw;
   }
 
 
@@ -657,7 +661,7 @@ public class VncViewer extends java.applet.Applet
   // those expected in the html applet tag source.
   //
 
-  public void readParameters() {
+  void readParameters() {
     host = readParameter("HOST", !inAnApplet);
     if (host == null) {
       host = getCodeBase().getHost();
@@ -668,6 +672,9 @@ public class VncViewer extends java.applet.Applet
 
     String str = readParameter("PORT", true);
     port = Integer.parseInt(str);
+
+    // Read "ENCPASSWORD" or "PASSWORD" parameter if specified.
+    readPasswordParameters();
 
     if (inAnApplet) {
       str = readParameter("Open New Window", false);
@@ -701,6 +708,35 @@ public class VncViewer extends java.applet.Applet
 
     // SocketFactory.
     socketFactory = readParameter("SocketFactory", false);
+  }
+
+  //
+  // Read password parameters. If an "ENCPASSWORD" parameter is set,
+  // then decrypt the password into the passwordParam string. Otherwise,
+  // try to read the "PASSWORD" parameter directly to passwordParam.
+  //
+
+  private void readPasswordParameters() {
+    String encPasswordParam = readParameter("ENCPASSWORD", false);
+    if (encPasswordParam == null) {
+      passwordParam = readParameter("PASSWORD", false);
+    } else {
+      // ENCPASSWORD is hexascii-encoded. Decode.
+      byte[] pw = {0, 0, 0, 0, 0, 0, 0, 0};
+      int len = encPasswordParam.length() / 2;
+      if (len > 8)
+        len = 8;
+      for (int i = 0; i < len; i++) {
+        String hex = encPasswordParam.substring(i*2, i*2+2);
+        Integer x = new Integer(Integer.parseInt(hex, 16));
+        pw[i] = x.byteValue();
+      }
+      // Decrypt the password.
+      byte[] key = {23, 82, 107, 6, 35, 78, 88, 7};
+      DesCipher des = new DesCipher(key);
+      des.decrypt(pw, 0, pw, 0);
+      passwordParam = new String(pw);
+    }
   }
 
   public String readParameter(String name, boolean required) {
@@ -742,17 +778,13 @@ public class VncViewer extends java.applet.Applet
   }
 
   //
-  // moveFocusToDesktop() - move keyboard focus either to the
-  // VncCanvas or to the AuthPanel.
+  // moveFocusToDesktop() - move keyboard focus either to VncCanvas.
   //
 
   void moveFocusToDesktop() {
     if (vncContainer != null) {
-      if (vc != null && vncContainer.isAncestorOf(vc)) {
+      if (vc != null && vncContainer.isAncestorOf(vc))
 	vc.requestFocus();
-      } else if (vncContainer.isAncestorOf(authenticator)) {
-	authenticator.moveFocusToDefaultField();
-      }
     }
   }
 
@@ -906,19 +938,10 @@ public class VncViewer extends java.applet.Applet
   }
 
   //
-  // Move the keyboard focus to the password field on window activation.
-  //
-
-  public void windowActivated(WindowEvent evt) {
-    if (vncFrame.isAncestorOf(authenticator)) {
-      authenticator.moveFocusToDefaultField();
-    }
-  }
-
-  //
   // Ignore window events we're not interested in.
   //
 
+  public void windowActivated(WindowEvent evt) {}
   public void windowDeactivated (WindowEvent evt) {}
   public void windowOpened(WindowEvent evt) {}
   public void windowClosed(WindowEvent evt) {}

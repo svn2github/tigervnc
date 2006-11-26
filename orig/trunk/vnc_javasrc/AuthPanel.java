@@ -27,8 +27,6 @@ import java.awt.event.*;
 
 class AuthPanel extends Panel implements ActionListener {
 
-  String passwordParam;
-
   TextField passwordField;
   Button okButton;
 
@@ -38,10 +36,6 @@ class AuthPanel extends Panel implements ActionListener {
 
   public AuthPanel(VncViewer viewer)
   {
-    readParameters(viewer);
-    if (!isInteractionNecessary())
-      return;
-
     Label titleLabel = new Label("VNC Authentication", Label.CENTER);
     titleLabel.setFont(new Font("Helvetica", Font.BOLD, 18));
 
@@ -85,50 +79,6 @@ class AuthPanel extends Panel implements ActionListener {
   }
 
   //
-  // Read applet or command-line parameters. If an "ENCPASSWORD"
-  // parameter is set, then decrypt the password into the
-  // passwordParam string. Otherwise, try to read the "PASSWORD"
-  // parameter directly to passwordParam.
-  //
-  // FIXME: Read all parameters in the VncViewer class.
-  //
-
-  private void readParameters(VncViewer viewer)
-  {
-    String encPasswordParam = viewer.readParameter("ENCPASSWORD", false);
-    if (encPasswordParam == null) {
-      passwordParam = viewer.readParameter("PASSWORD", false);
-    } else {
-      // ENCPASSWORD is hexascii-encoded. Decode.
-      byte[] pw = {0, 0, 0, 0, 0, 0, 0, 0};
-      int len = encPasswordParam.length() / 2;
-      if (len > 8)
-	len = 8;
-      for (int i = 0; i < len; i++) {
-	String hex = encPasswordParam.substring(i*2, i*2+2);
-	Integer x = new Integer(Integer.parseInt(hex, 16));
-	pw[i] = x.byteValue();
-      }
-      // Decrypt the password.
-      byte[] key = {23, 82, 107, 6, 35, 78, 88, 7};
-      DesCipher des = new DesCipher(key);
-      des.decrypt(pw, 0, pw, 0);
-      passwordParam = new String(pw);
-    }
-  }
-
-  //
-  // Check if we should show the GUI and ask user for authentication
-  // data (password). If we already have a password, we don't need to
-  // ask user.
-  //
-
-  public boolean isInteractionNecessary()
-  {
-    return (passwordParam == null);
-  }
-
-  //
   // Move keyboard focus to the default object, that is, the password
   // text field.
   //
@@ -152,22 +102,15 @@ class AuthPanel extends Panel implements ActionListener {
   }
 
   //
-  // Try to authenticate, either with a password read from parameters,
-  // or with a password entered by the user.
+  // Wait for user entering a password, and return it as String.
   //
 
-  public synchronized void tryAuthenticate(RfbProto rfb) throws Exception
+  public synchronized String getPassword() throws Exception
   {
-    String pw = passwordParam;
-    if (pw == null) {
-      try {
-	// Wait for user entering a password.
-	wait();
-      } catch (InterruptedException e) { }
-      pw = passwordField.getText();
-    }
-
-    rfb.authenticateVNC(pw);
+    try {
+      wait();
+    } catch (InterruptedException e) { }
+    return passwordField.getText();
   }
 
 }

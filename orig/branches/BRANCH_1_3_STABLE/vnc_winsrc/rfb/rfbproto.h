@@ -284,14 +284,17 @@ typedef struct _rfbAuthenticationCapsMsg {
 
 
 /*-----------------------------------------------------------------------------
- * Standard VNC Authentication (all protocol versions)
+ * Authentication result codes (all protocol versions, but rfbAuthTooMany is
+ * not used in protocol versions above 3.3)
  *
- * Standard authentication result codes are defined below.
+ * In the protocol version 3.8 and above, rfbAuthFailed is followed by a text
+ * string describing the reason of failure. The text string is preceded with a
+ * 32-bit counter of bytes in the string.
  */
 
-#define rfbVncAuthOK 0
-#define rfbVncAuthFailed 1
-#define rfbVncAuthTooMany 2
+#define rfbAuthOK 0
+#define rfbAuthFailed 1
+#define rfbAuthTooMany 2
 
 
 /*-----------------------------------------------------------------------------

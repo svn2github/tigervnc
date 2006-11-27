@@ -1150,13 +1150,13 @@ bool ClientConnection::AuthenticateVNC(char *errBuf, int errBufSize, bool *again
 	authResult = Swap32IfLE(authResult);
 
 	switch (authResult) {
-	case rfbVncAuthOK:
+	case rfbAuthOK:
 		return true;
-	case rfbVncAuthFailed:
+	case rfbAuthFailed:
 		_snprintf(errBuf, errBufSize, "VNC authentication failed");
 		*again = true;
 		break;
-	case rfbVncAuthTooMany:
+	case rfbAuthTooMany:
 		_snprintf(errBuf, errBufSize, "VNC authentication failed - too many tries");
 		*again = false;
 		break;

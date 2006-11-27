@@ -1,4 +1,4 @@
-//  Copyright (C) 2001-2003 Constantin Kaplinsky. All Rights Reserved.
+//  Copyright (C) 2001-2006 Constantin Kaplinsky. All Rights Reserved.
 //  Copyright (C) 2002 Vladimir Vologzhanin. All Rights Reserved.
 //  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
@@ -98,8 +98,10 @@ public:
 	virtual BOOL InitAuthenticate();
 	virtual int GetAuthenticationType();
 	virtual void SendConnFailedMessage(const char *reasonString);
+	virtual BOOL SendTextStringMessage(const char *str);
 	virtual BOOL NegotiateTunneling();
 	virtual BOOL NegotiateAuthentication(int authType);
+	virtual BOOL AuthenticateNone();
 	virtual BOOL AuthenticateVNC();
 	virtual BOOL ReadClientInit();
 	virtual BOOL SendInteractionCaps();
@@ -147,7 +149,7 @@ vncClientThread::InitVersion()
 {
 	// Generate the server's protocol version
 	rfbProtocolVersionMsg protocolMsg;
-	sprintf((char *)protocolMsg, rfbProtocolVersionFormat, 3, 7);
+	sprintf((char *)protocolMsg, rfbProtocolVersionFormat, 3, 8);
 
 	// Send the protocol message
 	if (!m_socket->SendExact((char *)&protocolMsg, sz_rfbProtocolVersionMsg))
@@ -167,25 +169,28 @@ vncClientThread::InitVersion()
 					 major, minor);
 		return FALSE;
 	}
-	if (minor > 7) {
+	int effective_minor = minor;
+	if (minor > 8) {						// buggy client
+		effective_minor = 8;
+	} else if (minor > 3 && minor < 7) {	// non-standard client
+		effective_minor = 3;
+	} else if (minor < 3) {					// ancient client
+		effective_minor = 3;
+	}
+	if (effective_minor != minor) {
 		vnclog.Print(LL_CONNERR,
-					 VNCLOG("non-standard protocol version 3.%d, using 3.7 instead\n"),
-					 minor);
-		minor = 7;
-	} else if (minor < 7 && minor > 3) {
-		vnclog.Print(LL_CONNERR,
-					 VNCLOG("non-standard protocol version 3.%d, using 3.3 instead\n"),
-					 minor);
-		minor = 3;
+					 VNCLOG("non-standard protocol version 3.%d, using 3.%d instead\n"),
+					 minor, effective_minor);
 	}
 
 	// Save the minor number of the protocol version
-	m_client->m_protocol_minor_version = minor;
+	m_client->m_protocol_minor_version = effective_minor;
 
 	// TightVNC protocol extensions are not enabled yet
 	m_client->m_protocol_tightvnc = FALSE;
 
-	vnclog.Print(LL_INTINFO, VNCLOG("negotiated protocol version\n"));
+	vnclog.Print(LL_INTINFO, VNCLOG("negotiated protocol version, RFB 3.%d\n"),
+				 effective_minor);
 	return TRUE;
 }
 
@@ -206,18 +211,14 @@ vncClientThread::InitAuthenticate()
 		CARD8 type;
 		if (!m_socket->ReadExact((char *)&type, sizeof(type)))
 			return FALSE;
-		if (type == rfbSecTypeTight) {
+		if (type == (CARD8)rfbSecTypeTight) {
 			vnclog.Print(LL_INTINFO, VNCLOG("enabling TightVNC protocol extensions\n"));
 			m_client->m_protocol_tightvnc = TRUE;
 			if (!NegotiateTunneling())
 				return FALSE;
 			if (!NegotiateAuthentication(secType))
 				return FALSE;
-		} else if (type == (CARD8)secType && secType == rfbSecTypeNone) {
-			vnclog.Print(LL_CLIENTS, VNCLOG("no authentication necessary\n"));
-		} else if (type == (CARD8)secType && secType == rfbSecTypeVncAuth) {
-			vnclog.Print(LL_CLIENTS, VNCLOG("performing VNC authentication\n"));
-		} else {
+		} else if (type != (CARD8)secType) {
 			vnclog.Print(LL_CONNERR, VNCLOG("incorrect security type requested\n"));
 			return FALSE;
 		}
@@ -227,10 +228,16 @@ vncClientThread::InitAuthenticate()
 			return FALSE;
 	}
 
-	if (secType == rfbSecTypeVncAuth)
+	switch (secType) {
+	case rfbSecTypeNone:
+		vnclog.Print(LL_CLIENTS, VNCLOG("no authentication necessary\n"));
+		return AuthenticateNone();
+	case rfbSecTypeVncAuth:
+		vnclog.Print(LL_CLIENTS, VNCLOG("performing VNC authentication\n"));
 		return AuthenticateVNC();
+	}
 
-	return TRUE;
+	return FALSE;	// should not happen but just in case...
 }
 
 int
@@ -354,13 +361,27 @@ vncClientThread::SendConnFailedMessage(const char *reasonString)
 		if (!m_socket->SendExact((char *)&authValue, sizeof(authValue)))
 			return;
 	}
-	CARD32 reasonLength = Swap32IfLE(strlen(reasonString));
-	if (m_socket->SendExact((char *)&reasonLength, sizeof(reasonLength)))
-		m_socket->SendExact(reasonString, strlen(reasonString));
+	SendTextStringMessage(reasonString);
 }
 
 //
-// Negotiate tunneling type (protocol version 3.7t).
+// Send a text message preceded with a length counter.
+//
+
+BOOL
+vncClientThread::SendTextStringMessage(const char *str)
+{
+	CARD32 len = Swap32IfLE(strlen(str));
+	if (!m_socket->SendExact((char *)&len, sizeof(len)))
+		return FALSE;
+	if (!m_socket->SendExact(str, strlen(str)))
+		return FALSE;
+
+	return TRUE;
+}
+
+//
+// Negotiate tunneling type (protocol versions 3.7t, 3.8t).
 //
 
 BOOL
@@ -389,7 +410,8 @@ vncClientThread::NegotiateTunneling()
 }
 
 //
-// Negotiate authentication scheme (protocol version 3.7t).
+// Negotiate authentication scheme (protocol versions 3.7t, 3.8t).
+// NOTE: Here we always send en empty list for "no authentication".
 //
 
 BOOL
@@ -426,6 +448,25 @@ vncClientThread::NegotiateAuthentication(int authType)
 		}
 	}
 
+	return TRUE;
+}
+
+//
+// Handle security type for "no authentication".
+// NOTE: If TightVNC protocol extensions are enabled, do not send
+//       a securityResult message, because we sent en empty list in
+//       in NegotiateAuthentication().
+//
+
+BOOL
+vncClientThread::AuthenticateNone()
+{
+	if ( m_client->m_protocol_minor_version >= 8 &&
+		 !m_client->m_protocol_tightvnc ) {
+		CARD32 secResult = Swap32IfLE(rfbAuthOK);
+		if (!m_socket->SendExact((char *)&secResult, sizeof(secResult)))
+			return FALSE;
+	}
 	return TRUE;
 }
 
@@ -478,17 +519,18 @@ vncClientThread::AuthenticateVNC()
 	}
 
 	// Did the authentication work?
-	CARD32 authmsg;
+	CARD32 secResult;
 	if (!auth_ok) {
 		vnclog.Print(LL_CONNERR, VNCLOG("authentication failed\n"));
 
-		authmsg = Swap32IfLE(rfbVncAuthFailed);
-		m_socket->SendExact((char *)&authmsg, sizeof(authmsg));
+		secResult = Swap32IfLE(rfbAuthFailed);
+		m_socket->SendExact((char *)&secResult, sizeof(secResult));
+		SendTextStringMessage("Authentication failed");
 		return FALSE;
 	} else {
 		// Tell the client we're ok
-		authmsg = Swap32IfLE(rfbVncAuthOK);
-		if (!m_socket->SendExact((char *)&authmsg, sizeof(authmsg)))
+		secResult = Swap32IfLE(rfbAuthOK);
+		if (!m_socket->SendExact((char *)&secResult, sizeof(secResult)))
 			return FALSE;
 	}
 

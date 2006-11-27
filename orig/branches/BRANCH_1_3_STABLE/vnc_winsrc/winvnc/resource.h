@@ -40,7 +40,7 @@
 #define IDD_INCOMING                    148
 #define IDD_UPDATE_HANDLING             150
 #define IDD_ADMINISTRATION              152
-#define IDR_AUTHUNIXLOGIN_CLASS         153
+#define IDR_VNCCANVAS2_CLASS            153
 #define IDR_CAPINFO_CLASS               154
 #define IDR_CAPSCONTAINER_CLASS         155
 #define IDC_HOSTNAME_EDIT               1001

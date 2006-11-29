@@ -1032,6 +1032,7 @@ void ClientConnection::PerformAuthenticationTight()
 }
 
 // The definition of a function implementing some authentication scheme.
+// For an example, see ClientConnection::AuthenticateVNC, below.
 
 typedef bool (ClientConnection::*AuthFunc)(char *, int);
 
@@ -1127,7 +1128,14 @@ bool ClientConnection::AuthenticateNone(char *errBuf, int errBufSize)
 }
 
 // The standard VNC authentication.
-// FIXME: Document interface to auth function.
+//
+// An authentication function should return false on error and true if
+// the authentication process was successful. Note that returning true
+// does not mean that authentication was passed by the server, the
+// server's result will be received and analyzed later.
+// If false is returned, then a text error message should be copied
+// to errorBuf[], no more than errBufSize bytes should be copied into
+// that buffer.
 
 bool ClientConnection::AuthenticateVNC(char *errBuf, int errBufSize)
 {

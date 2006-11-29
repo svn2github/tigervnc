@@ -46,7 +46,6 @@
 
 #include "ClientConnection.h"
 #include "SessionDialog.h"
-#include "AuthDialog.h"
 #include "LoginAuthDialog.h"
 #include "AboutBox.h"
 #include "FileTransfer.h"
@@ -1149,8 +1148,8 @@ bool ClientConnection::AuthenticateVNC(char *errBuf, int errBufSize)
 		strcpy(passwd, pw);
 		free(pw);
 	} else {
-		AuthDialog ad;
-		ad.DoDialog();	
+		LoginAuthDialog ad(m_opts.m_display, "Standard VNC Authentication");
+		ad.DoDialog();
 #ifndef UNDER_CE
 		strncpy(passwd, ad.m_passwd, MAXPWLEN);
 		passwd[MAXPWLEN]= '\0';

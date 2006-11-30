@@ -151,16 +151,13 @@ vncMenu::~vncMenu()
 void
 vncMenu::AddTrayIcon()
 {
-	// If the user name is non-null then we have a user!
-//!!!!	if (strcmp(m_username, "") != 0)
-	//{
+	// If the user name is empty, then we consider no user is logged in.
+	if (strcmp(m_username, "") != 0) {
 		// Make sure the server has not been configured to
 		// suppress the tray icon.
-		if ( ! m_server->GetDisableTrayIcon())
-		{
+		if (!m_server->GetDisableTrayIcon())
 			SendTrayMsg(NIM_ADD, FALSE);
-		}
-	//}
+	}
 }
 
 void

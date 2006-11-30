@@ -122,7 +122,7 @@ vncProperties::Init(vncServer *server)
 					if (!vncService::CurrentUser(username, sizeof(username)))
 						return FALSE;
 					if (strcmp(username, "") == 0) {
-						MessageBox(NULL, NO_CURRENT_USER_ERR,
+						MessageBox(NULL, NO_PASSWD_NO_LOGON_WARN,
 									"WinVNC Error",
 									MB_OK | MB_ICONEXCLAMATION);
 						Show(TRUE, FALSE, TRUE);
@@ -155,6 +155,10 @@ vncProperties::Show(BOOL show, BOOL usersettings, BOOL passwordfocused)
 			char username[UNLEN+1];
 			if (!vncService::CurrentUser(username, sizeof(username)))
 				return;
+			if (strcmp(username, "") == 0) {
+				MessageBox(NULL, NO_CURRENT_USER_ERR, "WinVNC Error", MB_OK | MB_ICONEXCLAMATION);
+				return;
+			}
 		} else {
 			// We're trying to edit the default local settings - verify that we can
 			HKEY hkLocal, hkDefault;

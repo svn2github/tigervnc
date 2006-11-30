@@ -1,5 +1,5 @@
 //  Copyright (C) 2004 HorizonWimba, Inc. All Rights Reserved.
-//  Copyright (C) 2003 Constantin Kaplinsky. All Rights Reserved.
+//  Copyright (C) 2003-2006 Constantin Kaplinsky. All Rights Reserved.
 //  Copyright (C) 2002 RealVNC Ltd. All Rights Reserved.
 //  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
@@ -219,23 +219,26 @@ vncMenu::SendTrayMsg(DWORD msg, BOOL flash)
 	// Use resource string as tip if there is one
 	if (LoadString(hAppInstance, IDI_WINVNC, m_nid.szTip, sizeof(m_nid.szTip)))
 	    m_nid.uFlags |= NIF_TIP;
-		
-	if (m_nid.uFlags & NIF_TIP)
-	{
-	    strncat(m_nid.szTip, " - ", (sizeof(m_nid.szTip)-1)-strlen(m_nid.szTip));
-	    if (m_server->SockConnected())
-	    {
-		unsigned long tiplen = strlen(m_nid.szTip);
-		char *tipptr = ((char *)&m_nid.szTip) + tiplen;
 
-		// Try to add the server's IP addresses to the tip string, if possible
-		GetIPAddrString(tipptr, sizeof(m_nid.szTip) - tiplen);
-	 		if (m_server->ClientsDisabled())
-				strncat(m_nid.szTip, " (Not listening)", (sizeof(m_nid.szTip)-1)-strlen(m_nid.szTip));
-	    }
-	    else
-	    {
-		strncat(m_nid.szTip, "Not listening", (sizeof(m_nid.szTip)-1)-strlen(m_nid.szTip));
+	if (m_nid.uFlags & NIF_TIP) {
+	    strncat(m_nid.szTip, " - ",
+				sizeof(m_nid.szTip) - 1 - strlen(m_nid.szTip));
+	    if (m_server->SockConnected()) {
+			size_t tiplen = strlen(m_nid.szTip);
+			char *tipptr = ((char *)&m_nid.szTip) + tiplen;
+
+			// Try to add the server's IP addresses to the tip string, if possible
+			GetIPAddrString(tipptr, sizeof(m_nid.szTip) - tiplen);
+			if (m_server->ClientsDisabled()) {
+				strncat(m_nid.szTip, " (new clients disabled)",
+						sizeof(m_nid.szTip) - 1 - strlen(m_nid.szTip));
+			} else if (!m_server->ValidPasswordsSet()) {
+				strncat(m_nid.szTip, " (no valid passwords set)",
+						sizeof(m_nid.szTip) - 1 - strlen(m_nid.szTip));
+			}
+		} else {
+			strncat(m_nid.szTip, "Not listening",
+					sizeof(m_nid.szTip) - 1 - strlen(m_nid.szTip));
 	    }
 	}
 

@@ -179,52 +179,32 @@ vncProperties::Show(BOOL show, BOOL usersettings, BOOL passwordfocused)
 			// Load in the settings relevant to the user or system
 			Load(usersettings);
 
-			for (;;)
-			{
-				m_returncode_valid = FALSE;
+			m_returncode_valid = FALSE;
 
-				m_tab_id_restore = !passwordfocused && usersettings;
+			m_tab_id_restore = !passwordfocused && usersettings;
 
-				// Do the dialog box
-				int result = DialogBoxParam(hAppInstance,
-				    MAKEINTRESOURCE(IDD_PROPERTIES_PARENT), 
-				    NULL,
-						(DLGPROC) ParentDlgProc,
-				    (LONG) this);
+			// Do the dialog box
+			int result = DialogBoxParam(hAppInstance,
+										MAKEINTRESOURCE(IDD_PROPERTIES_PARENT), 
+										NULL, (DLGPROC)ParentDlgProc, (LONG)this);
+			if (!m_returncode_valid)
+			    result = IDCANCEL;
 
-				if (!m_returncode_valid)
-				    result = IDCANCEL;
+			vnclog.Print(LL_INTINFO, VNCLOG("dialog result = %d\n"), result);
 
-				vnclog.Print(LL_INTINFO, VNCLOG("dialog result = %d\n"), result);
+			if (result == -1) {
+				// Dialog box failed, so quit
+				PostQuitMessage(0);
+				return;
+			}
 
-				if (result == -1)
-				{
-					// Dialog box failed, so quit
-					PostQuitMessage(0);
-					return;
-				}
-
-				// We're allowed to exit if there are valid passwords or if incoming
-				// connections are disabled completely.
-				if (!m_server->SockConnected() || m_server->ValidPasswordsSet())
-					break;
-
-				vnclog.Print(LL_INTERR, VNCLOG("warning - empty or unset passwords\n"));
-
-				// No valid passwords, so if OK was used then redisplay the box,
-				// otherwise, if CANCEL was used, close down WinVNC
-				if (result == IDCANCEL)
-				{
-				    vnclog.Print(LL_INTERR, VNCLOG("no passwords - QUITTING\n"));
-				    PostQuitMessage(0);
-				    return;
-				}
-
-				// If we reached here then OK was used & there are no valid passwords!
-				int result2 = MessageBox(NULL, NO_PASSWORD_WARN,
-				    "WinVNC Warning", MB_OK | MB_ICONEXCLAMATION);
-
-				omni_thread::sleep(4);
+			// Show a warning if incoming connections are enabled but there
+			// are no valid passwords. Show a warning message in that case.
+			if (m_server->SockConnected() && !m_server->ValidPasswordsSet()) {
+				vnclog.Print(LL_INTERR, VNCLOG("warning - no valid passwords set\n"));
+				MessageBox(NULL, NO_PASSWORD_WARN,
+						   "WinVNC Warning",
+						   MB_OK | MB_ICONEXCLAMATION);
 			}
 
 			// Load in all the settings

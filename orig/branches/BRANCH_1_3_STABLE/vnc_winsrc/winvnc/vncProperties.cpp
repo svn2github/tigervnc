@@ -96,8 +96,9 @@ vncProperties::Init(vncServer *server)
 	// Load the settings from the registry
 	Load(TRUE);
 
-	// If there is no valid password set then always show a dialog
-	if (!m_server->ValidPasswordsSet()) {
+	// If incoming connections are enabled but there is no valid password set,
+	// then always show a dialog.
+	if (m_server->SockConnected() && !m_server->ValidPasswordsSet()) {
 		if (!m_allowproperties) {
 			MessageBox(NULL, NO_PASSWD_NO_OVERRIDE_ERR,
 						"WinVNC Error",
@@ -203,8 +204,9 @@ vncProperties::Show(BOOL show, BOOL usersettings, BOOL passwordfocused)
 					return;
 				}
 
-				// We're allowed to exit if there are valid passwords
-				if (m_server->ValidPasswordsSet())
+				// We're allowed to exit if there are valid passwords or if incoming
+				// connections are disabled completely.
+				if (!m_server->SockConnected() || m_server->ValidPasswordsSet())
 					break;
 
 				vnclog.Print(LL_INTERR, VNCLOG("warning - empty or unset passwords\n"));

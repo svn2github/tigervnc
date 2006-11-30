@@ -243,7 +243,7 @@ vncClientThread::InitAuthenticate()
 int
 vncClientThread::GetAuthenticationType()
 {
-	if (!m_server->ValidPasswordsSet())
+	if (!m_reverse && !m_server->ValidPasswordsSet())
 	{
 		vnclog.Print(LL_CONNERR,
 					 VNCLOG("no password specified for server - client rejected\n"));

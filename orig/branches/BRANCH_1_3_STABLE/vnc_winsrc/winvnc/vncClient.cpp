@@ -90,7 +90,7 @@ public:
 	virtual BOOL Init(vncClient *client,
 					  vncServer *server,
 					  VSocket *socket,
-					  BOOL auth,
+					  BOOL reverse,
 					  BOOL shared);
 
 	// Sub-Init routines
@@ -117,7 +117,7 @@ protected:
 	VSocket *m_socket;
 	vncServer *m_server;
 	vncClient *m_client;
-	BOOL m_auth;
+	BOOL m_reverse;
 	BOOL m_shared;
 };
 
@@ -129,13 +129,13 @@ vncClientThread::~vncClientThread()
 }
 
 BOOL
-vncClientThread::Init(vncClient *client, vncServer *server, VSocket *socket, BOOL auth, BOOL shared)
+vncClientThread::Init(vncClient *client, vncServer *server, VSocket *socket, BOOL reverse, BOOL shared)
 {
 	// Save the server pointer and window handle
 	m_server = server;
 	m_socket = socket;
 	m_client = client;
-	m_auth = auth;
+	m_reverse = reverse;
 	m_shared = shared;
 
 	// Start the thread
@@ -282,7 +282,7 @@ vncClientThread::GetAuthenticationType()
 
 	// Verify the peer host name against the AuthHosts string
 	vncServer::AcceptQueryReject verified;
-	if (m_auth) {
+	if (m_reverse) {
 		verified = vncServer::aqrAccept;
 	} else {
 		verified = m_server->VerifyHost(m_socket->GetPeerName());
@@ -324,7 +324,7 @@ vncClientThread::GetAuthenticationType()
 	}
 
 	// Return preferred authentication type
-	if (m_auth || skip_auth || m_server->ValidPasswordsEmpty()) {
+	if (m_reverse || skip_auth || m_server->ValidPasswordsEmpty()) {
 		return rfbSecTypeNone;
 	} else {
 		return rfbSecTypeVncAuth;
@@ -1636,7 +1636,7 @@ vncClient::~vncClient()
 BOOL
 vncClient::Init(vncServer *server,
 				VSocket *socket,
-				BOOL auth,
+				BOOL reverse,
 				BOOL shared,
 				vncClientId newid)
 {
@@ -1667,7 +1667,7 @@ vncClient::Init(vncServer *server,
 	m_thread = new vncClientThread;
 	if (m_thread == NULL)
 		return FALSE;
-	return ((vncClientThread *)m_thread)->Init(this, m_server, m_socket, auth, shared);
+	return ((vncClientThread *)m_thread)->Init(this, m_server, m_socket, reverse, shared);
 
 	return FALSE;
 }

@@ -73,8 +73,8 @@ public:
 	// Client handling functions
 	virtual void DisableClients(BOOL state);
 	virtual BOOL ClientsDisabled();
-	virtual vncClientId AddClient(VSocket *socket, BOOL auth, BOOL shared);
-	virtual vncClientId AddClient(VSocket *socket, BOOL auth, BOOL shared,
+	virtual vncClientId AddClient(VSocket *socket, BOOL reverse, BOOL shared);
+	virtual vncClientId AddClient(VSocket *socket, BOOL reverse, BOOL shared,
 								  BOOL keysenabled, BOOL ptrenabled);
 	virtual BOOL Authenticated(vncClientId client);
 	virtual void KillClient(vncClientId client);

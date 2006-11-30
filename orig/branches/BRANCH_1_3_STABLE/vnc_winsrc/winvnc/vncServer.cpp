@@ -215,13 +215,13 @@ vncServer::ClientsDisabled()
 }
 
 vncClientId
-vncServer::AddClient(VSocket *socket, BOOL auth, BOOL shared)
+vncServer::AddClient(VSocket *socket, BOOL reverse, BOOL shared)
 {
-	return AddClient(socket, auth, shared, TRUE, TRUE);
+	return AddClient(socket, reverse, shared, TRUE, TRUE);
 }
 
 vncClientId
-vncServer::AddClient(VSocket *socket, BOOL auth, BOOL shared,
+vncServer::AddClient(VSocket *socket, BOOL reverse, BOOL shared,
 					 BOOL keysenabled, BOOL ptrenabled)
 {
 	vncClient *client;
@@ -255,7 +255,7 @@ vncServer::AddClient(VSocket *socket, BOOL auth, BOOL shared,
 	client->EnablePointer(ptrenabled && m_enable_remote_inputs);
 
 	// Start the client
-	if (!client->Init(this, socket, auth, shared, clientid))
+	if (!client->Init(this, socket, reverse, shared, clientid))
 	{
 		// The client will delete the socket for us...
 		vnclog.Print(LL_CONNERR, VNCLOG("failed to initialize client object\n"));

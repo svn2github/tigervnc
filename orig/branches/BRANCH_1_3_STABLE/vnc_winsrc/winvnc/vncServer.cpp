@@ -891,6 +891,52 @@ vncServer::GetPasswordViewOnly(char *passwd)
 	return m_password_viewonly_set;
 }
 
+BOOL
+vncServer::ValidPasswordsSet()
+{
+	char passwd1[MAXPWLEN];
+	char passwd2[MAXPWLEN];
+	BOOL set1 = GetPassword(passwd1);
+	BOOL set2 = GetPasswordViewOnly(passwd2);
+	if (!set1 && !set2)
+		return FALSE;	// no passwords set, connections impossible
+
+	if (!AuthRequired())
+		return TRUE;	// passwords may be empty, but we allow that
+
+	vncPasswd::ToText plain1(passwd1);
+	vncPasswd::ToText plain2(passwd2);
+	BOOL empty1 = !set1 || (strlen(plain1) == 0);
+	BOOL empty2 = !set2 || (strlen(plain2) == 0);
+	if (empty1 && empty2)
+		return FALSE;	// both passwords empty or unset, not allowed
+
+	return TRUE;		// at least one non-empty password
+}
+
+BOOL
+vncServer::ValidPasswordsEmpty()
+{
+	if (AuthRequired())
+		return FALSE;	// empty passwords disallowed, always fail
+
+	char passwd1[MAXPWLEN];
+	char passwd2[MAXPWLEN];
+	BOOL set1 = GetPassword(passwd1);
+	BOOL set2 = GetPasswordViewOnly(passwd2);
+	if (!set1 && !set2)
+		return FALSE;	// no passwords set, connections impossible
+
+	vncPasswd::ToText plain1(passwd1);
+	vncPasswd::ToText plain2(passwd2);
+	BOOL empty1 = !set1 || (strlen(plain1) == 0);
+	BOOL empty2 = !set2 || (strlen(plain2) == 0);
+	if (empty1 && empty2)
+		return TRUE;	// there are no passwords that are non-empty
+
+	return FALSE;		// at least one non-empty password
+}
+
 // Remote input handling
 void
 vncServer::EnableRemoteInputs(BOOL enable)

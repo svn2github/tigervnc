@@ -243,26 +243,13 @@ vncClientThread::InitAuthenticate()
 int
 vncClientThread::GetAuthenticationType()
 {
-	// Determine if the password is set
-	BOOL password_set;
-	BOOL password_empty;
-	{
-		char password[MAXPWLEN];
-		password_set = m_server->GetPassword(password);
-		if (password_set) {
-			vncPasswd::ToText plain(password);
-			password_empty = (strlen(plain) == 0);
-		}
-	}
-
-	// By default we disallow passwordless workstations!
-	if (!password_set || (password_empty && m_server->AuthRequired()))
+	if (!m_server->ValidPasswordsSet())
 	{
 		vnclog.Print(LL_CONNERR,
 					 VNCLOG("no password specified for server - client rejected\n"));
 
 		// Send an error message to the client
-		SendConnFailedMessage("This server does not have a valid password enabled.  "
+		SendConnFailedMessage("This server does not have a valid password enabled. "
 							  "Until a password is set, incoming connections cannot "
 							  "be accepted.");
 		return rfbSecTypeInvalid;
@@ -337,8 +324,7 @@ vncClientThread::GetAuthenticationType()
 	}
 
 	// Return preferred authentication type
-	_ASSERTE(password_set);
-	if (m_auth || password_empty || skip_auth) {
+	if (m_auth || skip_auth || m_server->ValidPasswordsEmpty()) {
 		return rfbSecTypeNone;
 	} else {
 		return rfbSecTypeVncAuth;

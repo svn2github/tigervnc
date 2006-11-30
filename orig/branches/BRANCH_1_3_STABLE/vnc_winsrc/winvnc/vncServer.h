@@ -181,6 +181,17 @@ public:
 	virtual void SetPasswordViewOnly(BOOL activate, const char *passwd);
 	virtual BOOL GetPasswordViewOnly(char *passwd);
 
+	// Determine is at least one valid password is set so authentication is
+	// possible. This function returns TRUE if at least one of the passwords
+	// (primary or view-only) is set, AND at least one of the passwords is
+	// not empty if empty passwords are disabled.
+	virtual BOOL ValidPasswordsSet();
+
+	// Determine if there are valid passwords (primary or view-only) AND all
+	// valid passwords are empty. If this function returns TRUE, no password
+	// authentication will be requested.
+	virtual BOOL ValidPasswordsEmpty();
+
 	// Remote input handling
 	virtual void EnableRemoteInputs(BOOL enable);
 	virtual BOOL RemoteInputsEnabled();
@@ -208,7 +219,7 @@ public:
 	virtual BOOL CORBAConnected();
 	virtual void GetScreenInfo(int &width, int &height, int &depth);
 
-	// Allow connections if no password is set?
+	// Allow connections without password authentication?
 	virtual void SetAuthRequired(BOOL reqd) {m_passwd_required = reqd;};
 	virtual BOOL AuthRequired() {return m_passwd_required;};
 

@@ -999,10 +999,10 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	m_server->SetQueryAllowNoPass(m_pref_QueryAllowNoPass);
 
 	// Load the primary password
-	m_pref_passwd_set =
+	m_pref_passwd_set = m_pref_passwd_set ||
 		LoadPassword(appkey, m_pref_passwd, "Password");
 	// Load the view-only password
-	m_pref_passwd_viewonly_set =
+	m_pref_passwd_viewonly_set = m_pref_passwd_viewonly_set ||
 		LoadPassword(appkey, m_pref_passwd_viewonly, "PasswordViewOnly");
 	// CORBA Settings
 	m_pref_CORBAConn=LoadInt(appkey, "CORBAConnect", m_pref_CORBAConn);

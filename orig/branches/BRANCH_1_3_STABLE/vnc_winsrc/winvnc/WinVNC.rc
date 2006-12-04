@@ -793,11 +793,6 @@ IDC_CURSOR1             CURSOR  DISCARDABLE     "res\\cursor1.cur"
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDI_WINVNC              "TightVNC Server"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
     IDI_LIVESHARE           "AppShare"
 END
 

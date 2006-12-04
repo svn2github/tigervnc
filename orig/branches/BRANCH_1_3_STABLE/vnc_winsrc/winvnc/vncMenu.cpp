@@ -209,36 +209,33 @@ vncMenu::SendTrayMsg(DWORD msg, BOOL flash)
 	m_nid.cbSize = sizeof(m_nid);
 	m_nid.uID = IDI_WINVNC;			// never changes after construction
 	m_nid.hIcon = m_winvnc_normal_icon;
-	m_nid.uFlags = NIF_ICON | NIF_MESSAGE;
+	m_nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
 	m_nid.uCallbackMessage = WM_TRAYNOTIFY;
 
-	// Use resource string as tip if there is one
-	if (LoadString(hAppInstance, IDI_WINVNC, m_nid.szTip, sizeof(m_nid.szTip)))
-	    m_nid.uFlags |= NIF_TIP;
+	// Construct the tip string
+	const char *title = (vncService::RunningAsService()) ?
+		"TightVNC Service - " : "TightVNC Server - ";
+	m_nid.szTip[0] = '\0';
+	strncat(m_nid.szTip, title, sizeof(m_nid.szTip) - 1);
+	if (m_server->SockConnected()) {
+		size_t tiplen = strlen(m_nid.szTip);
+		char *tipptr = ((char *)&m_nid.szTip) + tiplen;
 
-	if (m_nid.uFlags & NIF_TIP) {
-	    strncat(m_nid.szTip, " - ",
-				sizeof(m_nid.szTip) - 1 - strlen(m_nid.szTip));
-	    if (m_server->SockConnected()) {
-			size_t tiplen = strlen(m_nid.szTip);
-			char *tipptr = ((char *)&m_nid.szTip) + tiplen;
-
-			// Try to add the server's IP addresses to the tip string, if possible
-			GetIPAddrString(tipptr, sizeof(m_nid.szTip) - tiplen);
-			if (m_server->ClientsDisabled()) {
-				m_nid.hIcon = m_winvnc_disabled_icon;
-				strncat(m_nid.szTip, " (new clients disabled)",
-						sizeof(m_nid.szTip) - 1 - strlen(m_nid.szTip));
-			} else if (!m_server->ValidPasswordsSet()) {
-				m_nid.hIcon = m_winvnc_disabled_icon;
-				strncat(m_nid.szTip, " (no valid passwords set)",
-						sizeof(m_nid.szTip) - 1 - strlen(m_nid.szTip));
-			}
-		} else {
+		// Try to add the server's IP addresses to the tip string, if possible
+		GetIPAddrString(tipptr, sizeof(m_nid.szTip) - tiplen);
+		if (m_server->ClientsDisabled()) {
 			m_nid.hIcon = m_winvnc_disabled_icon;
-			strncat(m_nid.szTip, "Not listening",
+			strncat(m_nid.szTip, " (new clients disabled)",
 					sizeof(m_nid.szTip) - 1 - strlen(m_nid.szTip));
-	    }
+		} else if (!m_server->ValidPasswordsSet()) {
+			m_nid.hIcon = m_winvnc_disabled_icon;
+			strncat(m_nid.szTip, " (no valid passwords set)",
+					sizeof(m_nid.szTip) - 1 - strlen(m_nid.szTip));
+		}
+	} else {
+		m_nid.hIcon = m_winvnc_disabled_icon;
+		strncat(m_nid.szTip, "Not listening",
+				sizeof(m_nid.szTip) - 1 - strlen(m_nid.szTip));
 	}
 
 	if (flash)

@@ -345,10 +345,11 @@ vncService::InputDesktopSelected()
 				DESKTOP_WRITEOBJECTS | DESKTOP_READOBJECTS |
 				DESKTOP_SWITCHDESKTOP | GENERIC_WRITE);
 
-		// Get the desktop names:
-		// *** I think this is horribly inefficient but I'm not sure.
-		if (inputdesktop == NULL)
-		    return FALSE;
+		if (inputdesktop == NULL) {
+			// Returning TRUE on ERROR_BUSY fixes the bug #1109102.
+			// FIXME: Probably this is not the most correct way to do it.
+			return (GetLastError() == ERROR_BUSY) ? TRUE : FALSE;
+		}
 
 		DWORD dummy;
 		char threadname[256];

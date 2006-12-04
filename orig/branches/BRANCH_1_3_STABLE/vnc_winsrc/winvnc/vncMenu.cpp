@@ -438,6 +438,8 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 		// Only accept WM_CLOSE if the logged on user has AllowShutdown set
 		if (!_this->m_properties.AllowShutdown())
 			return 0;
+		_this->m_server->KillAuthClients();
+		_this->m_wputils.RestoreWallpaper();
 		break;
 
 	case WM_DESTROY:

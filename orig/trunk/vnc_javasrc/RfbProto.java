@@ -368,6 +368,15 @@ class RfbProto {
   }
 
   //
+  // Perform "no authentication".
+  //
+
+  void authenticateNone() throws Exception {
+    if (clientMinor >= 8)
+      readSecurityResult("No authentication");
+  }
+
+  //
   // Perform standard VNC Authentication.
   //
 
@@ -500,7 +509,7 @@ class RfbProto {
   int negotiateAuthenticationTight() throws Exception {
     int nAuthTypes = is.readInt();
     if (nAuthTypes == 0)
-      return AuthNone;
+      return -1; // special case - no auth and no "security result" message
 
     readCapabilityList(authCaps, nAuthTypes);
     for (int i = 0; i < authCaps.numEnabled(); i++) {

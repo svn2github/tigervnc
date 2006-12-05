@@ -25,7 +25,6 @@
 
 #include "VNCviewerApp.h"
 #include "Daemon.h"
-#include "Flasher.h"
 #include <list>
 
 class VNCviewerApp32 : public VNCviewerApp {
@@ -35,7 +34,6 @@ public:
 	void NewConnection();
 	void NewConnection(TCHAR *host, int port);
 	void NewConnection(SOCKET sock);
-	Flasher *m_pflasher;
 	Daemon  *m_pdaemon;
 	~VNCviewerApp32();
 private:

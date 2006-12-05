@@ -269,14 +269,6 @@ SOURCE=.\FileTransferItemInfo.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Flasher.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\Flasher.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\History.txt
 # End Source File
 # Begin Source File

@@ -23,7 +23,7 @@
 
 //
 // Parse a VNC host name string, return port number.
-// See the details in ParseHost.c.
+// See the details in ParseHost.h.
 //
 
 int ParseHostPort(char *str, int base_port)
@@ -39,7 +39,7 @@ int ParseHostPort(char *str, int base_port)
 			port = atoi(++port_ptr);	// port number after "::"
 		} else {
 			disp = atoi(port_ptr);
-			if (disp >= 0 && disp <= 99) {
+			if (disp < 100) {
 				port += disp;			// display number after ":"
 			} else {
 				port = disp;			// port number after ":"

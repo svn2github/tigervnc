@@ -21,18 +21,18 @@
 // The ParseHostPort function parses a VNC host name which can be specified
 // in one of these formats:
 //   (1) hostname
-//   (2) hostname:display   (when display is in the range 0..99)
-//   (3) hostname:port      (when port is NOT in the range 0..99)
+//   (2) hostname:display   (display < 100)
+//   (3) hostname:port      (port >= 100)
 //   (4) hostname::port
 // The function determines and returns the port number, and modifies str[]
 // by inserting a zero byte in place of the first colon found in the string.
 // The algorithm of determining the port number is as follows:
 //   (1) if there are no colons in the string, base_port is used;
-//   (2) if there is one colon, and the following number is in the range
-//       0..99 (valid display number), then the port number is calculated by
-//       adding this number to base_port;
-//   (3) if there is one colon, and the following number is NOT in the range
-//       0..99, then this number is interpreted as a port number;
+//   (2) if there is one colon and the following number is less than 100,
+//       then the port number is calculated by adding this number (display
+//       number) to base_port;
+//   (3) if there is one colon and the following number is 100 or greater,
+//       then this number is interpreted as a port number;
 //   (4) if there are two colons, the following number is always treated as
 //       a port number.
 //

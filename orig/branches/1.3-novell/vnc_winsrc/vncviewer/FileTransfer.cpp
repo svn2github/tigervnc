@@ -423,7 +423,7 @@ FileTransfer:: SendFileDownloadRequest()
 	if (!m_FTServerItemInfo.IsFile(m_currentDownloadIndex)) {
 		SetWindowText(m_hwndFTStatus, "Cannot download: not a regular file.");
 		// Send message to start download for next selected file.
-		PostMessage(m_hwndFileTransfer, IDC_FTCOPY, NULL, NULL);
+		PostMessage(m_hwndFileTransfer, WM_COMMAND, IDC_FTCOPY, 0);
 		return TRUE;
 	}
 	ListView_GetItemText(m_hwndFTServerList, m_currentDownloadIndex, 0, m_ServerFilename, rfbMAX_PATH);
@@ -606,7 +606,7 @@ FileTransfer::CloseUndoneFileTransfers()
   }
   if (m_bDownloadStarted) {
     m_bDownloadStarted = FALSE;
-		m_bFirstFileDownloadMsg = TRUE;
+	m_bFirstFileDownloadMsg = TRUE;
     CloseHandle(m_hFiletoWrite);
     DeleteFile(m_DownloadFilename);
   }
@@ -640,6 +640,8 @@ FileTransfer::FileTransferDownload()
 			CancelDownload("Could not create file");
 			MessageBox(m_hwndFileTransfer, "Download failed: could not create local file",
 					   "Download Failed", MB_ICONEXCLAMATION | MB_OK);
+			// Send message to start download for next selected file.
+			PostMessage(m_hwndFileTransfer, WM_COMMAND, IDC_FTCOPY, 0);
 			return;
 		}
 		FILETIME Filetime;
@@ -649,10 +651,10 @@ FileTransfer::FileTransferDownload()
 		SetWindowText(m_hwndFTStatus, "");
 		CloseHandle(m_hFiletoWrite);
 		ShowClientItems(m_ClientPath);
-		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
-		BlockingFileTransferDialog(TRUE);
 		m_bFirstFileDownloadMsg = TRUE;
 		m_bDownloadStarted = FALSE;
+		// Send message to start download for next selected file.
+		PostMessage(m_hwndFileTransfer, WM_COMMAND, IDC_FTCOPY, 0);
 		return;
 	}
 	char * pBuff = new char [fdd.compressedSize];

@@ -318,20 +318,13 @@ public class VncViewer extends java.applet.Applet
       rfb.initCapabilities();
       rfb.setupTunneling();
       authType = rfb.negotiateAuthenticationTight();
-      if (authType == -1) {
-        // TightVNC-specific case when we have received an empty
-        // authentication capability list. In that case, protocol
-        // continues with the ClientInitialisation message.
-        showConnectionStatus("No authentication needed");
-        return;
-      }
     } else {
       authType = secType;
     }
 
     switch (authType) {
     case RfbProto.AuthNone:
-      showConnectionStatus("Performing no authentication");
+      showConnectionStatus("No authentication needed");
       rfb.authenticateNone();
       break;
     case RfbProto.AuthVNC:

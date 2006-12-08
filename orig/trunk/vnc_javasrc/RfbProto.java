@@ -509,7 +509,7 @@ class RfbProto {
   int negotiateAuthenticationTight() throws Exception {
     int nAuthTypes = is.readInt();
     if (nAuthTypes == 0)
-      return -1; // special case - no auth and no "security result" message
+      return AuthNone;
 
     readCapabilityList(authCaps, nAuthTypes);
     for (int i = 0; i < authCaps.numEnabled(); i++) {

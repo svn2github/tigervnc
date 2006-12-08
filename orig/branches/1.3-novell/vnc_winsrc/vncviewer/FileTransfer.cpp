@@ -607,6 +607,8 @@ FileTransfer::CloseUndoneFileTransfers()
   if (m_bDownloadStarted) {
     m_bDownloadStarted = FALSE;
 	m_bFirstFileDownloadMsg = TRUE;
+	m_currentDownloadIndex = -1;
+	m_numOfFilesToDownload = -1;
     CloseHandle(m_hFiletoWrite);
     DeleteFile(m_DownloadFilename);
   }

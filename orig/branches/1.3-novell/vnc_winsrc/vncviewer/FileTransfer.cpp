@@ -47,6 +47,8 @@ FileTransfer::FileTransfer(ClientConnection * pCC, VNCviewerApp * pApp)
 	m_ClientPathTmp[0] = '\0';
 	m_ServerPath[0] = '\0';
 	m_ServerPathTmp[0] = '\0';
+	m_numOfFilesToDownload = -1;
+	m_currentDownloadIndex = -1;
 }
 
 FileTransfer::~FileTransfer()
@@ -232,7 +234,7 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 					EnableWindow(GetDlgItem(hwnd, IDC_FTCANCEL), TRUE);
 					_this->FileTransferUpload();			
 				} else {
-					return _this->SendFileDownloadRequest();
+					return _this->SendMultipleFileDownloadRequests();
 				}
 				return TRUE;
 			case IDC_FTCANCEL:
@@ -330,24 +332,101 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 	return 0;
 }
 
+// This method will be called, each time window message 'IDC_FTCOPY' is sent for 
+// file download. In following cases IDC_FTCOPY will be sent for file download.
+// 1. From UI, when download button is clicked
+// 2. From 'FileTransferDownload' method after each file download is complete.
+// This method will keep track of number of selected files for which download 
+// request is not sent. With each call it will send download request for one file
+// and will return. After the completion of file download 'FileTransferDownload' 
+// method will do a PostMessage for 'IDC_FTCOPY', which will invoke this method 
+// again and it will send another request for file download if download request for
+// some of the selected files is still pending.
+BOOL
+FileTransfer:: SendMultipleFileDownloadRequests()
+{
+	// Download Request for all the selected files is sent.
+	if(m_numOfFilesToDownload == 0) {
+
+		m_numOfFilesToDownload = -1 ;
+		m_currentDownloadIndex = -1;
+
+		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
+		BlockingFileTransferDialog(TRUE);
+
+		return TRUE;
+	}
+
+	// This is the first call for currently select file list.
+	// Count of slected files is not calculated yet 
+	if(m_numOfFilesToDownload == -1) {
+
+		m_numOfFilesToDownload = ListView_GetSelectedCount(m_hwndFTServerList);
+		if (m_numOfFilesToDownload <= 0) {
+
+			SetWindowText(m_hwndFTStatus, "No file is selected, nothing to download.");
+
+			m_numOfFilesToDownload  = -1;
+			m_currentDownloadIndex = -1;
+
+			EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
+			BlockingFileTransferDialog(TRUE);
+
+			return TRUE;
+		}
+		else { 
+			// file transfer will start for all the selected files now. set m_bTransferEnable to true
+			// Enable cancel button and disable rest of the UI components.
+			m_bTransferEnable = TRUE;
+			BlockingFileTransferDialog(FALSE);
+			EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), TRUE);
+		}
+	}
+
+	// Calculate the next selected index for which file download request has to be sent.
+	int index = -1;
+	index = ListView_GetNextItem(m_hwndFTServerList, m_currentDownloadIndex, LVNI_SELECTED);
+	if (index < 0) {
+		SetWindowText(m_hwndFTStatus, "No file is selected, nothing to download.");
+
+		m_numOfFilesToDownload  = -1;
+		m_currentDownloadIndex = -1;
+
+		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
+		BlockingFileTransferDialog(TRUE);
+
+		return TRUE;
+	}
+
+	// If Cancel button is clicked, dont send the file download request.
+	if(m_bTransferEnable == FALSE) {
+		m_numOfFilesToDownload  = -1;
+		m_currentDownloadIndex = -1;
+
+		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
+		BlockingFileTransferDialog(TRUE);
+
+		return TRUE;
+	}
+
+	// Update member variables for next call.
+	m_currentDownloadIndex = index;
+	m_numOfFilesToDownload -= 1;
+
+	return SendFileDownloadRequest();
+}
+
 BOOL
 FileTransfer:: SendFileDownloadRequest()
 {
-	HWND hwnd = m_hwndFileTransfer;
 	char path[rfbMAX_PATH + rfbMAX_PATH];
-	m_bTransferEnable = TRUE;
-	int nListViewItem = ListView_GetSelectionMark(m_hwndFTServerList);
-	if (nListViewItem < 0) {
-		SetWindowText(m_hwndFTStatus, "No file is selected, nothing to download.");
-		return TRUE;
-	}
-	if (!m_FTServerItemInfo.IsFile(nListViewItem)) {
+	if (!m_FTServerItemInfo.IsFile(m_currentDownloadIndex)) {
 		SetWindowText(m_hwndFTStatus, "Cannot download: not a regular file.");
+		// Send message to start download for next selected file.
+		PostMessage(m_hwndFileTransfer, IDC_FTCOPY, NULL, NULL);
 		return TRUE;
 	}
-	BlockingFileTransferDialog(FALSE);
-	EnableWindow(GetDlgItem(hwnd, IDC_FTCANCEL), TRUE);
-	ListView_GetItemText(m_hwndFTServerList, nListViewItem, 0, m_ServerFilename, rfbMAX_PATH);
+	ListView_GetItemText(m_hwndFTServerList, m_currentDownloadIndex, 0, m_ServerFilename, rfbMAX_PATH);
 	strcpy(m_ClientFilename, m_ServerFilename);
 	char buffer[rfbMAX_PATH + rfbMAX_PATH + rfbMAX_PATH];
 	sprintf(buffer, "Downloading: %s\\%s -> %s\\%s ...",
@@ -365,7 +444,6 @@ FileTransfer:: SendFileDownloadRequest()
 	fdr.fNameSize = Swap16IfLE(len);
 	m_clientconn->WriteExact((char *)&fdr, sz_rfbFileDownloadRequestMsg);
 	m_clientconn->WriteExact(path, len);
-
 	return TRUE;
 }
 

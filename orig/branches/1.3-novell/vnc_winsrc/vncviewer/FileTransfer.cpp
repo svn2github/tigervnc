@@ -665,12 +665,14 @@ FileTransfer::FileTransferDownload()
 	ProcessDlgMessage(m_hwndFileTransfer);
 	if (!m_bTransferEnable) {
 		CancelDownload("Download cancelled by user");
+		delete [] pBuff;
 		return;
 	}
 	if (m_hFiletoWrite == INVALID_HANDLE_VALUE) {
 		CancelDownload("Could not create file");
 		MessageBox(m_hwndFileTransfer, "Download failed: could not create local file",
 				   "Download Failed", MB_ICONEXCLAMATION | MB_OK);
+		delete [] pBuff;
 		return;
 	}
 	WriteFile(m_hFiletoWrite, pBuff, fdd.compressedSize, &dwNumberOfBytesWritten, NULL);

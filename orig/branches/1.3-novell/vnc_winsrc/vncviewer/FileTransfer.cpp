@@ -482,21 +482,31 @@ FileTransfer::OnGetDispServerInfo(NMLVDISPINFO *plvdi)
 void 
 FileTransfer::FileTransferUpload()
 {
+	int numOfFilesToUpload = 0, currentUploadIndex = -1;
 	DWORD sz_rfbFileSize;
 	DWORD sz_rfbBlockSize= 8192;
 	DWORD dwNumberOfBytesRead = 0;
 	unsigned int mTime = 0;
 	char path[rfbMAX_PATH + rfbMAX_PATH + 2];
 	BOOL bResult;
-	int nSelItem = ListView_GetSelectionMark(m_hwndFTClientList);
-	if (nSelItem < 0) {
+	numOfFilesToUpload = ListView_GetSelectedCount(m_hwndFTClientList);
+	if (numOfFilesToUpload < 0) {
 		SetWindowText(m_hwndFTStatus, "No file selected, nothing to upload.");
 		BlockingFileTransferDialog(TRUE);
 		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
 		return;
 	}
+
+	for (int i = 0; i < numOfFilesToUpload; i++) {
 	BlockingFileTransferDialog(FALSE);
-	ListView_GetItemText(m_hwndFTClientList, nSelItem, 0, m_ClientFilename, rfbMAX_PATH);
+	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), TRUE);
+	int index = ListView_GetNextItem(m_hwndFTClientList, currentUploadIndex, LVNI_SELECTED);
+	if (index < 0) {
+		SetWindowText(m_hwndFTStatus, "No file is selected, nothing to download.");
+		return;
+	}
+	currentUploadIndex = index;
+	ListView_GetItemText(m_hwndFTClientList, currentUploadIndex, 0, m_ClientFilename, rfbMAX_PATH);
 	sprintf(path, "%s\\%s", m_ClientPath, m_ClientFilename);
 	strcpy(m_UploadFilename, path);
 	WIN32_FIND_DATA FindFileData;
@@ -504,22 +514,20 @@ FileTransfer::FileTransferUpload()
 	HANDLE hFile = FindFirstFile(path, &FindFileData);
 	SetErrorMode(0);
 	if (hFile == INVALID_HANDLE_VALUE) {
-		SetWindowText(m_hwndFTStatus, "Could not find selected file, nothing to upload");
-		BlockingFileTransferDialog(TRUE);
-		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
-		return;
+		SetWindowText(m_hwndFTStatus, "Could not find selected file, can't upload");
+		// Continue with upload of other files.
+		continue;
 	} else if ((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
 		SetWindowText(m_hwndFTStatus, "Cannot upload a directory");
-		BlockingFileTransferDialog(TRUE);
-		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
-		return;
+		// Continue with upload of other files.
+		continue;
 	} else {
 		sz_rfbFileSize = FindFileData.nFileSizeLow;
 		mTime = FiletimeToTime70(FindFileData.ftLastWriteTime);
 		strcpy(m_ServerFilename, FindFileData.cFileName);
 	}
 	FindClose(hFile);
-	if (sz_rfbFileSize <= sz_rfbBlockSize) sz_rfbBlockSize = sz_rfbFileSize;
+	if ((sz_rfbFileSize != 0) && (sz_rfbFileSize <= sz_rfbBlockSize)) sz_rfbBlockSize = sz_rfbFileSize;
 	m_hFiletoRead = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
 	if (m_hFiletoRead == INVALID_HANDLE_VALUE) {
 		SetWindowText(m_hwndFTStatus, "Upload failed: could not open selected file");
@@ -587,13 +595,17 @@ FileTransfer::FileTransferUpload()
 				SendMessage(m_hwndFTProgress, PBM_STEPIT, 0, 0);
 			}
 		}
+		if (m_bTransferEnable == FALSE)
+			break;
 		m_bUploadStarted = FALSE;
 		delete [] pBuff;
 	}
 	SendMessage(m_hwndFTProgress, PBM_SETPOS, 0, 0);
 	SetWindowText(m_hwndFTStatus, "");
 	CloseHandle(m_hFiletoRead);
+	}
 	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
+	BlockingFileTransferDialog(TRUE);
 	SendFileListRequestMessage(m_ServerPath, 0);
 }
 

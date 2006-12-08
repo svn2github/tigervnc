@@ -498,111 +498,111 @@ FileTransfer::FileTransferUpload()
 	}
 
 	for (int i = 0; i < numOfFilesToUpload; i++) {
-	BlockingFileTransferDialog(FALSE);
-	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), TRUE);
-	int index = ListView_GetNextItem(m_hwndFTClientList, currentUploadIndex, LVNI_SELECTED);
-	if (index < 0) {
-		SetWindowText(m_hwndFTStatus, "No file is selected, nothing to download.");
-		return;
-	}
-	currentUploadIndex = index;
-	ListView_GetItemText(m_hwndFTClientList, currentUploadIndex, 0, m_ClientFilename, rfbMAX_PATH);
-	sprintf(path, "%s\\%s", m_ClientPath, m_ClientFilename);
-	strcpy(m_UploadFilename, path);
-	WIN32_FIND_DATA FindFileData;
-	SetErrorMode(SEM_FAILCRITICALERRORS);
-	HANDLE hFile = FindFirstFile(path, &FindFileData);
-	SetErrorMode(0);
-	if (hFile == INVALID_HANDLE_VALUE) {
-		SetWindowText(m_hwndFTStatus, "Could not find selected file, can't upload");
-		// Continue with upload of other files.
-		continue;
-	} else if ((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
-		SetWindowText(m_hwndFTStatus, "Cannot upload a directory");
-		// Continue with upload of other files.
-		continue;
-	} else {
-		sz_rfbFileSize = FindFileData.nFileSizeLow;
-		mTime = FiletimeToTime70(FindFileData.ftLastWriteTime);
-		strcpy(m_ServerFilename, FindFileData.cFileName);
-	}
-	FindClose(hFile);
-	if ((sz_rfbFileSize != 0) && (sz_rfbFileSize <= sz_rfbBlockSize)) sz_rfbBlockSize = sz_rfbFileSize;
-	m_hFiletoRead = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
-	if (m_hFiletoRead == INVALID_HANDLE_VALUE) {
-		SetWindowText(m_hwndFTStatus, "Upload failed: could not open selected file");
-		BlockingFileTransferDialog(TRUE);
-		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
-		return;
-	}
-	char buffer[rfbMAX_PATH + rfbMAX_PATH + rfbMAX_PATH + rfbMAX_PATH + 20];
-	sprintf(buffer, "Uploading: %s\\%s -> %s\\%s ...",
-			m_ClientPath, m_ClientFilename, m_ServerPath, m_ServerFilename);
-	SetWindowText(m_hwndFTStatus, buffer);
-	sprintf(path, "%s\\%s", m_ServerPath, m_ClientFilename);
-	ConvertPath(path);
-	int pathLen = strlen(path);
-
-	char *pAllFURMessage = new char[sz_rfbFileUploadRequestMsg + pathLen];
-	rfbFileUploadRequestMsg *pFUR = (rfbFileUploadRequestMsg *) pAllFURMessage;
-	char *pFollowMsg = &pAllFURMessage[sz_rfbFileUploadRequestMsg];
-	pFUR->type = rfbFileUploadRequest;
-	pFUR->compressedLevel = 0;
-	pFUR->fNameSize = Swap16IfLE(pathLen);
-	pFUR->position = Swap32IfLE(0);
-	memcpy(pFollowMsg, path, pathLen);
-	m_clientconn->WriteExact(pAllFURMessage, sz_rfbFileUploadRequestMsg + pathLen); 
-	delete [] pAllFURMessage;
-
-	if (sz_rfbFileSize == 0) {
-		SendFileUploadDataMessage(mTime);
-	} else {
-		int amount = sz_rfbFileSize / (sz_rfbBlockSize * 10);
-
-		InitProgressBar(0, 0, amount, 1);
-
-		DWORD dwPortionRead = 0;
-		char *pBuff = new char [sz_rfbBlockSize];
-        m_bUploadStarted = TRUE;
-		while(m_bUploadStarted) {
-			ProcessDlgMessage(m_hwndFileTransfer);
-			if (m_bTransferEnable == FALSE) {
-				SetWindowText(m_hwndFTStatus, "File transfer canceled");
-				EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
-				BlockingFileTransferDialog(TRUE);
-				char reason[] = "File transfer canceled by user";
-				int reasonLen = strlen(reason);
-				char *pFUFMessage = new char[sz_rfbFileUploadFailedMsg + reasonLen];
-				rfbFileUploadFailedMsg *pFUF = (rfbFileUploadFailedMsg *) pFUFMessage;
-				char *pReason = &pFUFMessage[sz_rfbFileUploadFailedMsg];
-				pFUF->type = rfbFileUploadFailed;
-				pFUF->reasonLen = Swap16IfLE(reasonLen);
-				memcpy(pReason, reason, reasonLen);
-				m_clientconn->WriteExact(pFUFMessage, sz_rfbFileUploadFailedMsg + reasonLen);
-				delete [] pFUFMessage;
-				break;
-			}
-			bResult = ReadFile(m_hFiletoRead, pBuff, sz_rfbBlockSize, &dwNumberOfBytesRead, NULL);
-			if (bResult && dwNumberOfBytesRead == 0) {
-				/* This is the end of the file. */
-				SendFileUploadDataMessage(mTime);
-				break;
-			}
-			SendFileUploadDataMessage(dwNumberOfBytesRead, pBuff);
-			dwPortionRead += dwNumberOfBytesRead;
-			if (dwPortionRead >= (10 * sz_rfbBlockSize)) {
-				dwPortionRead = 0;
-				SendMessage(m_hwndFTProgress, PBM_STEPIT, 0, 0);
-			}
+		BlockingFileTransferDialog(FALSE);
+		EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), TRUE);
+		int index = ListView_GetNextItem(m_hwndFTClientList, currentUploadIndex, LVNI_SELECTED);
+		if (index < 0) {
+			SetWindowText(m_hwndFTStatus, "No file is selected, nothing to download.");
+			return;
 		}
-		if (m_bTransferEnable == FALSE)
-			break;
-		m_bUploadStarted = FALSE;
-		delete [] pBuff;
-	}
-	SendMessage(m_hwndFTProgress, PBM_SETPOS, 0, 0);
-	SetWindowText(m_hwndFTStatus, "");
-	CloseHandle(m_hFiletoRead);
+		currentUploadIndex = index;
+		ListView_GetItemText(m_hwndFTClientList, currentUploadIndex, 0, m_ClientFilename, rfbMAX_PATH);
+		sprintf(path, "%s\\%s", m_ClientPath, m_ClientFilename);
+		strcpy(m_UploadFilename, path);
+		WIN32_FIND_DATA FindFileData;
+		SetErrorMode(SEM_FAILCRITICALERRORS);
+		HANDLE hFile = FindFirstFile(path, &FindFileData);
+		SetErrorMode(0);
+		if (hFile == INVALID_HANDLE_VALUE) {
+			SetWindowText(m_hwndFTStatus, "Could not find selected file, can't upload");
+			// Continue with upload of other files.
+			continue;
+		} else if ((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
+			SetWindowText(m_hwndFTStatus, "Cannot upload a directory");
+			// Continue with upload of other files.
+			continue;
+		} else {
+			sz_rfbFileSize = FindFileData.nFileSizeLow;
+			mTime = FiletimeToTime70(FindFileData.ftLastWriteTime);
+			strcpy(m_ServerFilename, FindFileData.cFileName);
+		}
+		FindClose(hFile);
+		if ((sz_rfbFileSize != 0) && (sz_rfbFileSize <= sz_rfbBlockSize)) sz_rfbBlockSize = sz_rfbFileSize;
+		m_hFiletoRead = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+		if (m_hFiletoRead == INVALID_HANDLE_VALUE) {
+			SetWindowText(m_hwndFTStatus, "Upload failed: could not open selected file");
+			BlockingFileTransferDialog(TRUE);
+			EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
+			return;
+		}
+		char buffer[rfbMAX_PATH + rfbMAX_PATH + rfbMAX_PATH + rfbMAX_PATH + 20];
+		sprintf(buffer, "Uploading: %s\\%s -> %s\\%s ...",
+				m_ClientPath, m_ClientFilename, m_ServerPath, m_ServerFilename);
+		SetWindowText(m_hwndFTStatus, buffer);
+		sprintf(path, "%s\\%s", m_ServerPath, m_ClientFilename);
+		ConvertPath(path);
+		int pathLen = strlen(path);
+
+		char *pAllFURMessage = new char[sz_rfbFileUploadRequestMsg + pathLen];
+		rfbFileUploadRequestMsg *pFUR = (rfbFileUploadRequestMsg *) pAllFURMessage;
+		char *pFollowMsg = &pAllFURMessage[sz_rfbFileUploadRequestMsg];
+		pFUR->type = rfbFileUploadRequest;
+		pFUR->compressedLevel = 0;
+		pFUR->fNameSize = Swap16IfLE(pathLen);
+		pFUR->position = Swap32IfLE(0);
+		memcpy(pFollowMsg, path, pathLen);
+		m_clientconn->WriteExact(pAllFURMessage, sz_rfbFileUploadRequestMsg + pathLen); 
+		delete [] pAllFURMessage;
+
+		if (sz_rfbFileSize == 0) {
+			SendFileUploadDataMessage(mTime);
+		} else {
+			int amount = sz_rfbFileSize / (sz_rfbBlockSize * 10);
+
+			InitProgressBar(0, 0, amount, 1);
+
+			DWORD dwPortionRead = 0;
+			char *pBuff = new char [sz_rfbBlockSize];
+			m_bUploadStarted = TRUE;
+			while(m_bUploadStarted) {
+				ProcessDlgMessage(m_hwndFileTransfer);
+				if (m_bTransferEnable == FALSE) {
+					SetWindowText(m_hwndFTStatus, "File transfer canceled");
+					EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
+					BlockingFileTransferDialog(TRUE);
+					char reason[] = "File transfer canceled by user";
+					int reasonLen = strlen(reason);
+					char *pFUFMessage = new char[sz_rfbFileUploadFailedMsg + reasonLen];
+					rfbFileUploadFailedMsg *pFUF = (rfbFileUploadFailedMsg *) pFUFMessage;
+					char *pReason = &pFUFMessage[sz_rfbFileUploadFailedMsg];
+					pFUF->type = rfbFileUploadFailed;
+					pFUF->reasonLen = Swap16IfLE(reasonLen);
+					memcpy(pReason, reason, reasonLen);
+					m_clientconn->WriteExact(pFUFMessage, sz_rfbFileUploadFailedMsg + reasonLen);
+					delete [] pFUFMessage;
+					break;
+				}
+				bResult = ReadFile(m_hFiletoRead, pBuff, sz_rfbBlockSize, &dwNumberOfBytesRead, NULL);
+				if (bResult && dwNumberOfBytesRead == 0) {
+					/* This is the end of the file. */
+					SendFileUploadDataMessage(mTime);
+					break;
+				}
+				SendFileUploadDataMessage(dwNumberOfBytesRead, pBuff);
+				dwPortionRead += dwNumberOfBytesRead;
+				if (dwPortionRead >= (10 * sz_rfbBlockSize)) {
+					dwPortionRead = 0;
+					SendMessage(m_hwndFTProgress, PBM_STEPIT, 0, 0);
+				}
+			}
+			if (m_bTransferEnable == FALSE)
+				break;
+			m_bUploadStarted = FALSE;
+			delete [] pBuff;
+		}
+		SendMessage(m_hwndFTProgress, PBM_SETPOS, 0, 0);
+		SetWindowText(m_hwndFTStatus, "");
+		CloseHandle(m_hFiletoRead);
 	}
 	EnableWindow(GetDlgItem(m_hwndFileTransfer, IDC_FTCANCEL), FALSE);
 	BlockingFileTransferDialog(TRUE);

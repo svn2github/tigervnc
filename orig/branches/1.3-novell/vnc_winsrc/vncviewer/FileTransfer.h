@@ -77,6 +77,8 @@ public:
 	void ReadUploadCancel();
 	void ReadDownloadFailed();
 
+	BOOL SendFileDownloadRequest();
+
 	ClientConnection * m_clientconn;
 	VNCviewerApp * m_pApp; 
 	

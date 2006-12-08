@@ -232,37 +232,7 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 					EnableWindow(GetDlgItem(hwnd, IDC_FTCANCEL), TRUE);
 					_this->FileTransferUpload();			
 				} else {
-					char path[rfbMAX_PATH + rfbMAX_PATH];
-					_this->m_bTransferEnable = TRUE;
-                    int nListViewItem = ListView_GetSelectionMark(_this->m_hwndFTServerList);
-                    if (nListViewItem < 0) {
-						SetWindowText(_this->m_hwndFTStatus, "No file is selected, nothing to download.");
-						return TRUE;
-					}
-                    if (!_this->m_FTServerItemInfo.IsFile(nListViewItem)) {
-						SetWindowText(_this->m_hwndFTStatus, "Cannot download: not a regular file.");
-						return TRUE;
-					}
-					_this->BlockingFileTransferDialog(FALSE);
-					EnableWindow(GetDlgItem(hwnd, IDC_FTCANCEL), TRUE);
-					ListView_GetItemText(_this->m_hwndFTServerList, nListViewItem, 0, _this->m_ServerFilename, rfbMAX_PATH);
-					strcpy(_this->m_ClientFilename, _this->m_ServerFilename);
-					char buffer[rfbMAX_PATH + rfbMAX_PATH + rfbMAX_PATH];
-					sprintf(buffer, "Downloading: %s\\%s -> %s\\%s ...",
-							_this->m_ServerPath, _this->m_ServerFilename,
-							_this->m_ClientPath, _this->m_ClientFilename);
-					SetWindowText(_this->m_hwndFTStatus, buffer);
-					_this->m_sizeDownloadFile = _this->m_FTServerItemInfo.GetIntSizeAt(ListView_GetSelectionMark(_this->m_hwndFTServerList));
-					rfbFileDownloadRequestMsg fdr;
-					fdr.type = rfbFileDownloadRequest;
-					fdr.compressedLevel = 0;
-					fdr.position = Swap32IfLE(0);
-					sprintf(path, "%s\\%s", _this->m_ServerPath, _this->m_ServerFilename);
-					_this->ConvertPath(path);
-					int len = strlen(path);
-					fdr.fNameSize = Swap16IfLE(len);
-					_this->m_clientconn->WriteExact((char *)&fdr, sz_rfbFileDownloadRequestMsg);
-					_this->m_clientconn->WriteExact(path, len);
+					return _this->SendFileDownloadRequest();
 				}
 				return TRUE;
 			case IDC_FTCANCEL:
@@ -360,6 +330,44 @@ FileTransfer::FileTransferDlgProc(HWND hwnd,
 	return 0;
 }
 
+BOOL
+FileTransfer:: SendFileDownloadRequest()
+{
+	HWND hwnd = m_hwndFileTransfer;
+	char path[rfbMAX_PATH + rfbMAX_PATH];
+	m_bTransferEnable = TRUE;
+	int nListViewItem = ListView_GetSelectionMark(m_hwndFTServerList);
+	if (nListViewItem < 0) {
+		SetWindowText(m_hwndFTStatus, "No file is selected, nothing to download.");
+		return TRUE;
+	}
+	if (!m_FTServerItemInfo.IsFile(nListViewItem)) {
+		SetWindowText(m_hwndFTStatus, "Cannot download: not a regular file.");
+		return TRUE;
+	}
+	BlockingFileTransferDialog(FALSE);
+	EnableWindow(GetDlgItem(hwnd, IDC_FTCANCEL), TRUE);
+	ListView_GetItemText(m_hwndFTServerList, nListViewItem, 0, m_ServerFilename, rfbMAX_PATH);
+	strcpy(m_ClientFilename, m_ServerFilename);
+	char buffer[rfbMAX_PATH + rfbMAX_PATH + rfbMAX_PATH];
+	sprintf(buffer, "Downloading: %s\\%s -> %s\\%s ...",
+			m_ServerPath, m_ServerFilename,
+			m_ClientPath, m_ClientFilename);
+	SetWindowText(m_hwndFTStatus, buffer);
+	m_sizeDownloadFile = m_FTServerItemInfo.GetIntSizeAt(ListView_GetSelectionMark(m_hwndFTServerList));
+	rfbFileDownloadRequestMsg fdr;
+	fdr.type = rfbFileDownloadRequest;
+	fdr.compressedLevel = 0;
+	fdr.position = Swap32IfLE(0);
+	sprintf(path, "%s\\%s", m_ServerPath, m_ServerFilename);
+	ConvertPath(path);
+	int len = strlen(path);
+	fdr.fNameSize = Swap16IfLE(len);
+	m_clientconn->WriteExact((char *)&fdr, sz_rfbFileDownloadRequestMsg);
+	m_clientconn->WriteExact(path, len);
+
+	return TRUE;
+}
 
 void 
 FileTransfer::OnGetDispClientInfo(NMLVDISPINFO *plvdi) 

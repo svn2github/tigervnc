@@ -433,7 +433,7 @@ FileTransfer:: SendFileDownloadRequest()
 			m_ServerPath, m_ServerFilename,
 			m_ClientPath, m_ClientFilename);
 	SetWindowText(m_hwndFTStatus, buffer);
-	m_sizeDownloadFile = m_FTServerItemInfo.GetIntSizeAt(ListView_GetSelectionMark(m_hwndFTServerList));
+	m_sizeDownloadFile = m_FTServerItemInfo.GetIntSizeAt(m_currentDownloadIndex);
 	rfbFileDownloadRequestMsg fdr;
 	fdr.type = rfbFileDownloadRequest;
 	fdr.compressedLevel = 0;
@@ -654,6 +654,7 @@ FileTransfer::FileTransferDownload()
 			CancelDownload("Could not create file");
 			MessageBox(m_hwndFileTransfer, "Download failed: could not create local file",
 					   "Download Failed", MB_ICONEXCLAMATION | MB_OK);
+			SendMessage(m_hwndFTProgress, PBM_SETPOS, 0, 0);
 			// Send message to start download for next selected file.
 			PostMessage(m_hwndFileTransfer, WM_COMMAND, IDC_FTCOPY, 0);
 			return;

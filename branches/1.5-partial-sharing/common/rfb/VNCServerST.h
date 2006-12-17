@@ -225,7 +225,8 @@ namespace rfb {
     int authClientCount();
 
     bool needRenderedCursor();
-    void checkUpdate();
+    
+	void checkUpdate();
 
     SSecurityFactory* securityFactory;
     QueryConnectionHandler* queryConnectionHandler;

@@ -111,6 +111,10 @@ namespace rfb {
 
     bool processFTMsg(int type);
 
+	//Mrfix, return current viewport
+	const Rect& get_viewport() const {return viewport;}
+	//Mrfix end
+
   private:
     // SConnection callbacks
 
@@ -128,6 +132,10 @@ namespace rfb {
     virtual void framebufferUpdateRequest(const Rect& r, bool incremental);
     virtual void setInitialColourMap();
     virtual void supportsLocalCursor();
+	
+	//Mrfix start
+	virtual void setViewport(const Rect &r);
+	//Mrfix end
 
     // setAccessRights() allows a security package to limit the access rights
     // of a VNCSConnectioST to the server.  These access rights are applied
@@ -171,6 +179,11 @@ namespace rfb {
     time_t startTime;
 
     SFileTransfer *m_pFileTransfer;
+	//Mrfix start
+	Rect viewport;
+	Rect new_vp;
+	bool vp_changed;
+	//Mrfix end	
   };
 }
 #endif

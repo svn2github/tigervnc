@@ -80,6 +80,13 @@ namespace rfb {
     bool noJpeg;
     int qualityLevel;
 
+	//Mrfix, viewport top left
+	int vp_x;
+	int vp_y;
+	int vp_old_x;
+	int vp_old_y;
+	//Mrfix end
+
   private:
 
     PixelFormat pf_;

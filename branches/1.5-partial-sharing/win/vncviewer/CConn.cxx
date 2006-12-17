@@ -31,6 +31,10 @@
 #include <rfb/LogWriter.h>
 #include <rfb_win32/AboutDialog.h>
 
+//Mrfix debug purposes
+#include <time.h>
+//Mrfix end
+
 using namespace rfb;
 using namespace rfb::win32;
 using namespace rdr;
@@ -109,6 +113,10 @@ bool CConn::initialise(network::Socket* s, bool reverse) {
   initialiseProtocol();
 
   m_fileTransfer.initialize(&s->inStream(), &s->outStream());
+
+  //Mrfix, debug purposes init rand
+  srand( (unsigned)time( NULL ) );
+  //Mrfix end
 
   return true;
 }
@@ -256,8 +264,9 @@ CConn::sysCommand(WPARAM wParam, LPARAM lParam) {
     window->kbd.keyEvent(this, VK_CONTROL, 0, false);
     return true;
   case IDM_REQUEST_REFRESH:
-    try {
-      writer()->writeFramebufferUpdateRequest(Rect(0,0,cp.width,cp.height), false);
+    try {      
+	  writer()->writeFramebufferUpdateRequest(Rect(cp.vp_x,cp.vp_y,cp.width+cp.vp_x,
+		  cp.height+cp.vp_y), false);
       requestUpdate = false;
     } catch (rdr::Exception& e) {
       close(e.str());
@@ -277,7 +286,19 @@ CConn::sysCommand(WPARAM wParam, LPARAM lParam) {
     infoDialog.showDialog(this);
     return true;
   case IDM_ABOUT:
-    AboutDialog::instance.showDialog();
+	  //Mrfix, send viewport value
+	  {
+		  cp.vp_old_x = cp.vp_x;
+		  cp.vp_old_y = cp.vp_y;
+
+		  cp.vp_x = (BYTE)rand();
+		  cp.vp_y = (BYTE)rand();
+		  BYTE w = (BYTE)rand();
+		  BYTE h = (BYTE)rand();
+		  writer()->writeViewportMsg(Rect(cp.vp_x,cp.vp_y, cp.vp_x+150+w,cp.vp_y+150+h));
+		  // AboutDialog::instance.showDialog();
+	  }
+	  //Mrfix end
     return true;
   case IDM_FILE_TRANSFER:
     m_fileTransfer.show(window->getHandle());
@@ -611,7 +632,8 @@ CConn::requestNewUpdate() {
     writer()->writeSetEncodings(options.preferredEncoding, true);
   }
 
-  writer()->writeFramebufferUpdateRequest(Rect(0, 0, cp.width, cp.height),
+  //Mrfix
+  writer()->writeFramebufferUpdateRequest(Rect(cp.vp_x, cp.vp_y, cp.width+cp.vp_x, cp.height+cp.vp_y),
                                           !formatChange);
 
   encodingChange = formatChange = requestUpdate = false;

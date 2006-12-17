@@ -52,6 +52,10 @@ namespace rfb {
     virtual void pointerEvent(const Point& pos, int buttonMask);
     virtual void clientCutText(const char* str, int len);
 
+	//Mrfix start
+	virtual void writeViewportMsg(const Rect& r);
+	//Mrfix end
+
     ConnParams* getConnParams() { return cp; }
     rdr::OutStream* getOutStream() { return os; }
 

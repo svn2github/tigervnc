@@ -46,6 +46,9 @@ namespace rfb {
     virtual void readKeyEvent();
     virtual void readPointerEvent();
     virtual void readClientCutText();
+	//Mrfix start
+	virtual void readViewport();
+	//Mrfix start
 
     SMsgReader(SMsgHandler* handler, rdr::InStream* is);
 

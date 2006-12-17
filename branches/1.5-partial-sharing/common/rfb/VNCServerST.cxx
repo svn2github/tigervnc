@@ -449,6 +449,7 @@ inline bool VNCServerST::needRenderedCursor()
 // state of the (server-side) rendered cursor, if necessary rendering it again
 // with the correct background.
 
+//Mrfix, viewport parameter added
 void VNCServerST::checkUpdate()
 {
   bool renderCursor = needRenderedCursor();
@@ -491,7 +492,11 @@ void VNCServerST::checkUpdate()
   for (ci = clients.begin(); ci != clients.end(); ci = ci_next) {
     ci_next = ci; ci_next++;
     (*ci)->add_copied(comparer->get_copied(), comparer->get_delta());
-    (*ci)->add_changed(comparer->get_changed());
+	 // Mrfix, intersect viewport and changed area
+	Region treg((*ci)->get_viewport());    
+    treg = treg.intersect(comparer->get_changed());  
+    (*ci)->add_changed(treg);
+	// Mrfix end
   }
 
   comparer->clear();

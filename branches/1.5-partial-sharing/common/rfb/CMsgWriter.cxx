@@ -95,7 +95,6 @@ void CMsgWriter::writeFramebufferUpdateRequest(const Rect& r, bool incremental)
   endMsg();
 }
 
-
 void CMsgWriter::keyEvent(rdr::U32 key, bool down)
 {
   startMsg(msgTypeKeyEvent);
@@ -109,11 +108,14 @@ void CMsgWriter::keyEvent(rdr::U32 key, bool down)
 void CMsgWriter::pointerEvent(const Point& pos, int buttonMask)
 {
   Point p(pos);
+  //Mrfix, correct pointer position according viewport
+  p.x += cp->vp_x;
+  p.y += cp->vp_y;
   if (p.x < 0) p.x = 0;
   if (p.y < 0) p.y = 0;
-  if (p.x >= cp->width) p.x = cp->width - 1;
-  if (p.y >= cp->height) p.y = cp->height - 1;
-
+  if (p.x >= cp->width+cp->vp_x) p.x = cp->width - 1;
+  if (p.y >= cp->height+cp->vp_y) p.y = cp->height - 1;
+  //Mrfix end
   startMsg(msgTypePointerEvent);
   os->writeU8(buttonMask);
   os->writeU16(p.x);
@@ -130,3 +132,15 @@ void CMsgWriter::clientCutText(const char* str, int len)
   os->writeBytes(str, len);
   endMsg();
 }
+
+//Mrfix, send new viewport value
+void CMsgWriter::writeViewportMsg(const Rect& r)
+{
+  startMsg(msgTypeSetViewport);  
+  os->writeU16(r.tl.x);
+  os->writeU16(r.tl.y);
+  os->writeU16(r.width());
+  os->writeU16(r.height());
+  endMsg();
+}
+//Mrfix end

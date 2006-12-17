@@ -43,6 +43,10 @@ namespace rfb {
   const int msgTypePointerEvent = 5;
   const int msgTypeClientCutText = 6;
 
+  // Mrfix start
+  const int msgTypeSetViewport = 7;
+  // Mrfix end
+
   const int msgTypeFileListRequest = 130;
   const int msgTypeFileDownloadRequest = 131;
   const int msgTypeFileUploadRequest = 132;

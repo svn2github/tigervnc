@@ -115,6 +115,11 @@ namespace rfb {
     virtual void writeFramebufferUpdateStart()=0;
     virtual void writeFramebufferUpdateEnd()=0;
 
+	//MrFix, send new size of shared screen area
+	virtual void writeNewDesktopSize(const Rect& r)=0;
+	//Mrfix end
+
+
     // writeRect() tries to write the given rectangle.  If it is unable to
     // write the whole rectangle it returns false and sets actual to the actual
     // rectangle which was updated.

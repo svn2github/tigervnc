@@ -24,6 +24,7 @@
 
 using namespace rfb;
 
+
 SMsgWriterV3::SMsgWriterV3(ConnParams* cp, rdr::OutStream* os)
   : SMsgWriter(cp, os), updateOS(0), realOS(os), nRectsInUpdate(0),
     nRectsInHeader(0), wsccb(0),
@@ -195,3 +196,29 @@ void SMsgWriterV3::endRect()
     rectsSent[currentEncoding]++;
   }
 }
+
+//MrFix, send new size of shared screen area
+void SMsgWriterV3::writeNewDesktopSize(const Rect& r)
+{
+	int w = cp->width;
+	int h = cp->height;
+	cp->width = r.width();
+	cp->height = r.height();
+	needSetDesktopSize = true;	
+	writeFramebufferUpdateStart(0);
+	writeFramebufferUpdateEnd();
+	cp->width = w;
+	cp->height = h;
+/*
+	    os->writeS16(0);
+    os->writeS16(0);
+    os->writeU16(r.width());
+    os->writeU16(r.height());
+    os->writeU32(pseudoEncodingDesktopSize);
+  updatesSent++;
+  endMsg();
+
+*/
+	
+}
+	//Mrfix end

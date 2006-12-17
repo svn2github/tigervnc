@@ -30,6 +30,7 @@ using namespace rfb;
 
 static LogWriter vlog("VNCSConnST");
 
+
 VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
                                    bool reverse)
   : SConnection(server_->securityFactory, reverse), sock(s), server(server_),
@@ -54,7 +55,8 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
     }
   }
 
-  server->clients.push_front(this);
+  server->clients.push_front(this); 
+  
 }
 
 
@@ -325,6 +327,12 @@ void VNCSConnectionST::authSuccess()
   // - Mark the entire display as "dirty"
   updates.add_changed(server->pb->getRect());
   startTime = time(0);
+
+  //Mrfix, set initial viewport value
+  viewport.setXYWH(0,0, cp.width , cp.height);
+  vp_changed = false;
+  //Mrfix end
+
 }
 
 void VNCSConnectionST::queryConnection(const char* userName)
@@ -473,7 +481,7 @@ void VNCSConnectionST::framebufferUpdateRequest(const Rect& r,bool incremental)
 
   if (!incremental) {
     // Non-incremental update - treat as if area requested has changed
-    updates.add_changed(reqRgn);
+     updates.add_changed(reqRgn);
     server->comparer->add_changed(reqRgn);
   }
 
@@ -538,6 +546,22 @@ void VNCSConnectionST::writeFramebufferUpdate()
 {
   if (state() != RFBSTATE_NORMAL || requested.is_empty()) return;
 
+  //Mrfix
+  if(vp_changed) {
+	  viewport = new_vp;
+	  vp_changed = false;
+	  // Clear all updates
+	  Region tRgn(Rect(0, 0, cp.width, cp.height));
+	  updates.subtract(tRgn);	  
+	  // Add whole shared area updates
+	  Region reqRgn(new_vp);
+	  updates.add_changed(reqRgn);
+	  server->comparer->add_changed(reqRgn);
+	  //Send new size of shared area to client
+	  writer()->writeNewDesktopSize(new_vp);
+  }
+  //Mrfix end
+
   server->checkUpdate();
 
   // If the previous position of the rendered cursor overlaps the source of the
@@ -570,6 +594,11 @@ void VNCSConnectionST::writeFramebufferUpdate()
   // rectangle.  If it's empty then don't bother drawing it, but if it overlaps
   // with the update region, we need to draw the rendered cursor regardless of
   // whether it has changed.
+ 
+  //Mrfix, intersect region for sending with viewport
+  Region treg(viewport);
+  requested = requested.intersect(treg);
+  //Mrfix end
 
   if (needRenderedCursor()) {
     renderedCursorRect
@@ -593,9 +622,16 @@ void VNCSConnectionST::writeFramebufferUpdate()
   }
 
   UpdateInfo update;
-  updates.enable_copyrect(cp.useCopyRect);
+  //Mrfix, disable copyrect if we use viewport
+  if(viewport.tl.x || viewport.tl.y)
+	  updates.enable_copyrect(false);
+  else
+	  updates.enable_copyrect(cp.useCopyRect);
+  //Mrfix end
+  
   updates.getUpdateInfo(&update, requested);
-  if (!update.is_empty() || writer()->needFakeUpdate() || drawRenderedCursor) {
+  
+   if (!update.is_empty() || writer()->needFakeUpdate() || drawRenderedCursor) {
     // Compute the number of rectangles. Tight encoder makes the things more
     // complicated as compared to the original RealVNC.
     writer()->setupCurrentEncoder();
@@ -603,7 +639,7 @@ void VNCSConnectionST::writeFramebufferUpdate()
     std::vector<Rect> rects;
     std::vector<Rect>::const_iterator i;
     update.changed.get_rects(&rects);
-    for (i = rects.begin(); i != rects.end(); i++) {
+    for (i = rects.begin(); i != rects.end(); i++) {		
       if (i->width() && i->height())
 	nRects += writer()->getNumRects(*i);
     }
@@ -712,3 +748,13 @@ bool VNCSConnectionST::processFTMsg(int type)
   else 
     return false;
 }
+
+//Mrfix start
+void VNCSConnectionST::setViewport(const Rect &r)
+{	
+	new_vp = r;
+	vp_changed = true;	
+}
+//Mrfix end
+
+

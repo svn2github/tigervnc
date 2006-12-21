@@ -44,17 +44,6 @@ void SMsgReader::readSetPixelFormat()
   handler->setPixelFormat(pf);
 }
 
-//Mrfix start, read viewport message
-void SMsgReader::readViewport()
-{  
-  int x = is->readU16();
-  int y = is->readU16();
-  int w = is->readU16();
-  int h = is->readU16();
-  handler->setViewport(Rect(x, y, x+w, y+h));
-}
-//Mrfix end
-
 void SMsgReader::readSetEncodings()
 {
   is->skip(1);

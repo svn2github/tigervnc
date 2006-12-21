@@ -77,18 +77,6 @@ void CMsgReaderV3::readMsg()
     int y = is->readU16();
     int w = is->readU16();
     int h = is->readU16();
-	//Mrfix, correct rect according viewport
-	x -= handler->cp.vp_x;
-	y -= handler->cp.vp_y;
-	if (x<0 || x+w > handler->cp.width) {
-		x += handler->cp.vp_x;
-		x -= handler->cp.vp_old_x;
-	}
-	if(y<0 || y+h > handler->cp.height) {
-		y += handler->cp.vp_y;
-		y -= handler->cp.vp_old_y;
-	}
-	//Mrfix end
     unsigned int encoding = is->readU32();
 
     switch (encoding) {

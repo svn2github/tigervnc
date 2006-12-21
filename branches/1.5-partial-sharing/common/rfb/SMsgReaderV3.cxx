@@ -60,10 +60,7 @@ void SMsgReaderV3::readMsg()
   case msgTypeFileDirSizeRequest:
   case msgTypeFileRenameRequest:
   case msgTypeFileDeleteRequest:        handler->processFTMsg(msgType); break;
-  
-  //Mrfix start
-  case msgTypeSetViewport:              readViewport(); break;
-  //Mrfix end
+
   default:
     fprintf(stderr, "unknown message type %d\n", msgType);
     throw Exception("unknown message type");

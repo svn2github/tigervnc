@@ -490,4 +490,3 @@ void SConnection::framebufferUpdateRequest(const Rect& r, bool incremental)
     }
   }
 }
-

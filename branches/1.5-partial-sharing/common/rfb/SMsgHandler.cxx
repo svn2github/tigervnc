@@ -50,9 +50,3 @@ void SMsgHandler::framebufferUpdateRequest(const Rect& r, bool incremental)
 void SMsgHandler::supportsLocalCursor()
 {
 }
-
-//Mrfix start
-void SMsgHandler::setViewport(const Rect& vp)
-{
-}
-//Mrfix end

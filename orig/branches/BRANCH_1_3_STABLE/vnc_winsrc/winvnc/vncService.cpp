@@ -394,9 +394,13 @@ SimulateCtrlAltDelThreadFn(void *context)
 
 	vnclog.Print(LL_ALL, VNCLOG("generating ctrl-alt-del\n"));
 
-	// Fake a hotkey event to any windows we find there.... :(
-	// Winlogon uses hotkeys to trap Ctrl-Alt-Del...
-	PostMessage(HWND_BROADCAST, WM_HOTKEY, 0, MAKELONG(MOD_ALT | MOD_CONTROL, VK_DELETE));
+	HWND hwndCtrlAltDel = FindWindow("SAS window class", "SAS window");
+	if (hwndCtrlAltDel == NULL) {
+		vnclog.Print(LL_INTERR, VNCLOG("\"SAS window\" not found\n"));
+		hwndCtrlAltDel = HWND_BROADCAST;
+	}
+
+	PostMessage(hwndCtrlAltDel, WM_HOTKEY, 0, MAKELONG(MOD_ALT | MOD_CONTROL, VK_DELETE));
 
 	// Switch back to our original desktop
 	if (old_desktop != NULL)
@@ -417,10 +421,8 @@ vncService::SimulateCtrlAltDel()
 	{
 		vnclog.Print(LL_ALL, VNCLOG("spawn ctrl-alt-del thread...\n"));
 
-		// *** This is an unpleasant hack.  Oh dear.
-
-		// I simulate CtrAltDel by posting a WM_HOTKEY message to all
-		// the windows on the Winlogon desktop.
+		// We simulate Ctrl+Alt+Del by posting a WM_HOTKEY message to the
+		// "SAS window" on the Winlogon desktop.
 		// This requires that the current thread is part of the Winlogon desktop.
 		// But the current thread has hooks set & a window open, so it can't
 		// switch desktops, so I instead spawn a new thread & let that do the work...

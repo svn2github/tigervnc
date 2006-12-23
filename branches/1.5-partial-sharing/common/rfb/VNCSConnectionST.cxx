@@ -588,11 +588,7 @@ void VNCSConnectionST::writeFramebufferUpdate()
   // rectangle.  If it's empty then don't bother drawing it, but if it overlaps
   // with the update region, we need to draw the rendered cursor regardless of
   // whether it has changed.
-
-  //Partial sharing, intersect region for sending with viewport
-  Region treg(vp);
-  requested = requested.intersect(treg);
-
+ 
   if (needRenderedCursor()) {
     renderedCursorRect
       = (server->renderedCursor.getRect(server->renderedCursorTL)

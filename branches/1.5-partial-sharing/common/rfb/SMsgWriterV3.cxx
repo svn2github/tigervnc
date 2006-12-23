@@ -195,3 +195,21 @@ void SMsgWriterV3::endRect()
     rectsSent[currentEncoding]++;
   }
 }
+
+//Partial sharing, send new size of shared screen area
+void SMsgWriterV3::writeNewDesktopSize(const Rect& r)
+{
+  // Store old desktop parameters
+  int w = cp->width;
+  int h = cp->height;
+  //Set new viewport width and heigth
+  cp->width = r.width();
+  cp->height = r.height();
+  // Send to client
+  needSetDesktopSize = true;      
+  writeFramebufferUpdateStart(0);
+  writeFramebufferUpdateEnd();
+  //Restore desktop parameters
+  cp->width = w;
+  cp->height = h;
+}

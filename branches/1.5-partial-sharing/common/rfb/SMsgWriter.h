@@ -137,6 +137,9 @@ namespace rfb {
     int getBytesSent(int encoding) { return bytesSent[encoding]; }
     int getRawBytesEquivalent()    { return rawBytesEquivalent; }
 
+    //Partial sharing, send new size of shared screen area
+    virtual void writeNewDesktopSize(const Rect& r)=0;
+
     int imageBufIdealSize;
 
   protected:

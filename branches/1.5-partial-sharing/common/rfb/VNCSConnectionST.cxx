@@ -552,6 +552,8 @@ void VNCSConnectionST::writeFramebufferUpdate()
 	Region reqRgn(new_vp);
 	updates.add_changed(reqRgn);
 	server->comparer->add_changed(reqRgn);
+    //Send new size of shared area to client
+    writer()->writeNewDesktopSize(new_vp);
   }
 
   server->checkUpdate();

@@ -43,6 +43,8 @@ namespace rfb {
     virtual bool needFakeUpdate();
     virtual void startRect(const Rect& r, unsigned int encoding);
     virtual void endRect();
+    //Partial sharing, send new size of shared screen area
+    virtual void writeNewDesktopSize(const Rect& r);
 
   private:
     rdr::MemOutStream* updateOS;

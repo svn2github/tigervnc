@@ -58,6 +58,9 @@ namespace rfb {
 
     virtual bool processFTMsg(int type) = 0;
 
+    //Partial sharing, set viewport value to client at server side
+    virtual void setViewport(const Rect& r);
+
     ConnParams cp;
   };
 }

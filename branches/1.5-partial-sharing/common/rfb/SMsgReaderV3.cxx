@@ -49,6 +49,8 @@ void SMsgReaderV3::readMsg()
   case msgTypeKeyEvent:                 readKeyEvent(); break;
   case msgTypePointerEvent:             readPointerEvent(); break;
   case msgTypeClientCutText:            readClientCutText(); break;
+  //Partial sharing, read new viewport value from viewer
+  case msgTypeSetViewport:              readViewport(); break;
 
   case msgTypeFileListRequest:
   case msgTypeFileDownloadRequest:

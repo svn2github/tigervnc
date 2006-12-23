@@ -95,3 +95,13 @@ void SMsgReader::readClientCutText()
   is->readBytes(ca.buf, len);
   handler->clientCutText(ca.buf, len);
 }
+
+//Partial sharing, read viewport message
+void SMsgReader::readViewport()
+{  
+  int x = is->readU16();
+  int y = is->readU16();
+  int w = is->readU16();
+  int h = is->readU16();
+  handler->setViewport(Rect(x, y, x+w, y+h));
+}

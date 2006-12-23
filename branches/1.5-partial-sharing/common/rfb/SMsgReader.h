@@ -46,6 +46,8 @@ namespace rfb {
     virtual void readKeyEvent();
     virtual void readPointerEvent();
     virtual void readClientCutText();
+    //Partial sharing, read new viewport from viewer
+    virtual void readViewport();
 
     SMsgReader(SMsgHandler* handler, rdr::InStream* is);
 

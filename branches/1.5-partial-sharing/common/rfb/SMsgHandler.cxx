@@ -50,3 +50,8 @@ void SMsgHandler::framebufferUpdateRequest(const Rect& r, bool incremental)
 void SMsgHandler::supportsLocalCursor()
 {
 }
+
+//Partial sharing, set viewport value
+void SMsgHandler::setViewport(const Rect& vp)
+{
+}

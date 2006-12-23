@@ -31,6 +31,9 @@
 #include <rfb/LogWriter.h>
 #include <rfb_win32/AboutDialog.h>
 
+//Partial sharing, debug purposes only, for generate random viewport 
+#include <time.h>
+
 using namespace rfb;
 using namespace rfb::win32;
 using namespace rdr;
@@ -109,6 +112,8 @@ bool CConn::initialise(network::Socket* s, bool reverse) {
   initialiseProtocol();
 
   m_fileTransfer.initialize(&s->inStream(), &s->outStream());
+  //Partial sharing, debug purposes only, for generate random viewport 
+  srand( (unsigned)time( NULL ) );
 
   return true;
 }
@@ -279,7 +284,20 @@ CConn::sysCommand(WPARAM wParam, LPARAM lParam) {
     infoDialog.showDialog(this);
     return true;
   case IDM_ABOUT:
-    AboutDialog::instance.showDialog();
+    //Partial sharing, debug purposes only, for generate random viewport 
+    //AboutDialog::instance.showDialog();
+    {
+       //Store old viewport top-left corner
+       cp.vp_old_x = cp.vp_x;
+       cp.vp_old_y = cp.vp_y;
+	   // Generate new random viewport
+       cp.vp_x = (BYTE)rand();
+       cp.vp_y = (BYTE)rand();
+       BYTE w = (BYTE)rand();
+       BYTE h = (BYTE)rand();
+	   // Send new viewport to server
+       writer()->writeViewportMsg(Rect(cp.vp_x,cp.vp_y, cp.vp_x+150+w,cp.vp_y+150+h));
+	 }
     return true;
   case IDM_FILE_TRANSFER:
     m_fileTransfer.show(window->getHandle());

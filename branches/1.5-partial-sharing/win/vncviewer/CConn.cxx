@@ -257,7 +257,9 @@ CConn::sysCommand(WPARAM wParam, LPARAM lParam) {
     return true;
   case IDM_REQUEST_REFRESH:
     try {
-      writer()->writeFramebufferUpdateRequest(Rect(0,0,cp.width,cp.height), false);
+      //Partial sharing, correct requested rect according to viewport
+      writer()->writeFramebufferUpdateRequest(Rect(cp.vp_x, cp.vp_y, cp.width+cp.vp_x,
+                                              cp.height+cp.vp_y), false);
       requestUpdate = false;
     } catch (rdr::Exception& e) {
       close(e.str());
@@ -611,8 +613,9 @@ CConn::requestNewUpdate() {
     writer()->writeSetEncodings(options.preferredEncoding, true);
   }
 
-  writer()->writeFramebufferUpdateRequest(Rect(0, 0, cp.width, cp.height),
-                                          !formatChange);
+  //Partial sharing, correct requested rect according to viewport
+  writer()->writeFramebufferUpdateRequest(Rect(cp.vp_x, cp.vp_y, cp.width+cp.vp_x,
+                                          cp.height+cp.vp_y),!formatChange);
 
   encodingChange = formatChange = requestUpdate = false;
 }

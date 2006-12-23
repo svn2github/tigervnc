@@ -80,6 +80,13 @@ namespace rfb {
     bool noJpeg;
     int qualityLevel;
 
+    //Partial sharing, viewport coordinates of top-left corner
+    int vp_x;
+    int vp_y;
+	//Previous viewport coordinates of top-left corner
+    int vp_old_x;
+    int vp_old_y;
+
   private:
 
     PixelFormat pf_;

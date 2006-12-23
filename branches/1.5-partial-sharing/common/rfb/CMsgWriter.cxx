@@ -109,10 +109,14 @@ void CMsgWriter::keyEvent(rdr::U32 key, bool down)
 void CMsgWriter::pointerEvent(const Point& pos, int buttonMask)
 {
   Point p(pos);
+  //Partial sharing, correct pointer position according to viewport
+  p.x += cp->vp_x;
+  p.y += cp->vp_y;
+
   if (p.x < 0) p.x = 0;
   if (p.y < 0) p.y = 0;
-  if (p.x >= cp->width) p.x = cp->width - 1;
-  if (p.y >= cp->height) p.y = cp->height - 1;
+  if (p.x >= cp->width + cp->vp_x) p.x = cp->width - 1;
+  if (p.y >= cp->height + cp->vp_y) p.y = cp->height - 1;
 
   startMsg(msgTypePointerEvent);
   os->writeU8(buttonMask);

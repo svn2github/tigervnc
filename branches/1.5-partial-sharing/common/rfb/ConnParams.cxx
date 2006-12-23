@@ -32,7 +32,7 @@ ConnParams::ConnParams()
     supportsLastRect(false), customCompressLevel(false), compressLevel(6),
     noJpeg(false), qualityLevel(-1), 
     name_(0), nEncodings_(0), encodings_(0),
-    currentEncoding_(encodingRaw), verStrPos(0)
+    currentEncoding_(encodingRaw), verStrPos(0), vp_x(0), vp_y(0)
 {
   setName("");
 }

@@ -134,3 +134,14 @@ void CMsgWriter::clientCutText(const char* str, int len)
   os->writeBytes(str, len);
   endMsg();
 }
+
+//Partial sharing, send new viewport value to server
+void CMsgWriter::writeViewportMsg(const Rect& r)
+{
+  startMsg(msgTypeSetViewport);  
+  os->writeU16(r.tl.x);
+  os->writeU16(r.tl.y);
+  os->writeU16(r.width());
+  os->writeU16(r.height());
+  endMsg();
+}

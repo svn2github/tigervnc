@@ -52,6 +52,9 @@ namespace rfb {
     virtual void pointerEvent(const Point& pos, int buttonMask);
     virtual void clientCutText(const char* str, int len);
 
+    //Partial sharing, send new viewport value to server
+    virtual void writeViewportMsg(const Rect& r);
+
     ConnParams* getConnParams() { return cp; }
     rdr::OutStream* getOutStream() { return os; }
 

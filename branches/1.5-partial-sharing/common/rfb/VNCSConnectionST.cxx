@@ -325,6 +325,9 @@ void VNCSConnectionST::authSuccess()
   // - Mark the entire display as "dirty"
   updates.add_changed(server->pb->getRect());
   startTime = time(0);
+  //Partial sharing, set initial value of viewport - whole screen
+  vp.setXYWH(0,0, cp.width , cp.height);
+  vp_changed = false;
 }
 
 void VNCSConnectionST::queryConnection(const char* userName)
@@ -537,6 +540,19 @@ void VNCSConnectionST::writeSetCursorCallback()
 void VNCSConnectionST::writeFramebufferUpdate()
 {
   if (state() != RFBSTATE_NORMAL || requested.is_empty()) return;
+  
+  //Partial sharing, if we have new viewport from viewer
+  if(vp_changed) {
+	vp = new_vp;
+	vp_changed = false;
+	// Clear all updates
+	Region tRgn(Rect(0, 0, cp.width, cp.height));
+	updates.subtract(tRgn);
+	// Add whole shared area updates
+	Region reqRgn(new_vp);
+	updates.add_changed(reqRgn);
+	server->comparer->add_changed(reqRgn);
+  }
 
   server->checkUpdate();
 
@@ -571,6 +587,10 @@ void VNCSConnectionST::writeFramebufferUpdate()
   // with the update region, we need to draw the rendered cursor regardless of
   // whether it has changed.
 
+  //Partial sharing, intersect region for sending with viewport
+  Region treg(vp);
+  requested = requested.intersect(treg);
+
   if (needRenderedCursor()) {
     renderedCursorRect
       = (server->renderedCursor.getRect(server->renderedCursorTL)
@@ -593,7 +613,12 @@ void VNCSConnectionST::writeFramebufferUpdate()
   }
 
   UpdateInfo update;
-  updates.enable_copyrect(cp.useCopyRect);
+  //Partial sharing, disable copyrect if we use viewport
+  if((vp.br.x - vp.tl.x != cp.width) || (vp.br.y - vp.tl.y != cp.height))
+    updates.enable_copyrect(false);
+  else
+    updates.enable_copyrect(cp.useCopyRect);
+
   updates.getUpdateInfo(&update, requested);
   if (!update.is_empty() || writer()->needFakeUpdate() || drawRenderedCursor) {
     // Compute the number of rectangles. Tight encoder makes the things more
@@ -711,4 +736,11 @@ bool VNCSConnectionST::processFTMsg(int type)
     return m_pFileTransfer->processMessages(type);
   else 
     return false;
+}
+
+//Partial sharing, set new viewport value
+void VNCSConnectionST::setViewport(const Rect &r)
+{      
+   new_vp = r;
+   vp_changed = true;      
 }

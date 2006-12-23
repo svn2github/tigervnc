@@ -110,6 +110,8 @@ namespace rfb {
     int getStatus();
 
     bool processFTMsg(int type);
+	//Partial sharing, method for get current viewport
+	const Rect& get_viewport() const {return vp;}
 
   private:
     // SConnection callbacks
@@ -150,6 +152,9 @@ namespace rfb {
     void setCursor();
     void setSocketTimeouts();
 
+	//Partial sharing, method for set viewport
+	virtual void setViewport(const Rect &r);
+
     network::Socket* sock;
     CharArray peerEndpoint;
     VNCServerST* server;
@@ -171,6 +176,13 @@ namespace rfb {
     time_t startTime;
 
     SFileTransfer *m_pFileTransfer;
+
+	//Partial sharing, current viewport
+	Rect vp;
+	//New viewport from viewer
+	Rect new_vp;
+	//Viewport changed flag
+	bool vp_changed;
   };
 }
 #endif

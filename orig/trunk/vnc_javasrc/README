@@ -260,6 +260,15 @@ is the full list of parameters supported in TightVNC Java viewer:
     desktop size, the window will resize automatically when remote desktop
     size changes.
 
+--> "Scaling factor" (no GUI equivalent)
+
+    Value: scaling factor in percents, an integer in the range of [1..1000].
+    Default: "100".
+
+    Scale local representation of the remote desktop. The default value of
+    100% corresponds to the original framebuffer size. Values below 100
+    reduce image size, values above 100 enlarge the image proportionally.
+
 --> "Show controls" (no GUI equivalent)
 
     Values: "Yes", "No".

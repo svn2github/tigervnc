@@ -97,20 +97,45 @@ Parameters
 ==========
 
 TightVNC Java viewer supports a number of parameters allowing you to
-customize its behaviour. Most parameter names copy settings available from
-the Options frame in the Java viewer. Both parameter names and their values
-are case-insensitive, with one exception for the "PASSWORD" parameter. Here
-is the full list of parameters supported in TightVNC Java viewer:
+customize its behavior. Most parameters directly correspond to the settings
+found in the Options window. However, there are parameters that do not
+correspond to those settings. For such parameters, you can see a note "no GUI
+equivalent", in the documentation below.
+
+Parameters can be specified in one of the two ways, depending on how the Java
+viewer is used:
+
+  1. When the Java viewer is run as an applet (embedded within an HTML
+     document), parameters should be specified in the <PARAM> HTML tags,
+     within the appropriate <APPLET> section. Here is an example:
+
+    <APPLET CODE=VncViewer.class ARCHIVE=VncViewer.jar WIDTH=400 HEIGHT=300>
+      <PARAM NAME="PORT" VALUE=5901>
+      <PARAM NAME="Scaling factor" VALUE=50>
+    </APPLET>
+
+  2. When run as a standalone application, the Java viewer reads parameters
+     from the command line. Command-line arguments should be specified in
+     pairs -- first goes parameter name, then parameter value. Here is a
+     command line example:
+
+     java VncViewer HOST vnchost PORT 5901 "Scaling factor" 50
+
+Both parameter names and their values are case-insensitive. The only
+exception is the "PASSWORD" parameter, as VNC passwords are case-sensitive.
+
+Here is the complete list of parameters supported in TightVNC Java viewer:
 
 --> "HOST" (no GUI equivalent)
 
     Value: host name or IP address of the VNC server.
     Default: in applet mode, the host from which the applet was loaded.
 
-    This parameter tells the viewer which server to connect to. Normally,
-    it's not needed, because default Java security policy allow connections
-    from applets to the only one host anyway, and that is the host from which
-    the applet was loaded.
+    This parameter tells the viewer which server to connect to. It's not
+    needed in the applet mode, because default Java security policy allow
+    connections from applets to the only one host anyway, and that is the
+    host from which the applet was loaded. However, this parameter is
+    required if the viewer is used as a standalone application.
 
 --> "PORT" (no GUI equivalent)
 

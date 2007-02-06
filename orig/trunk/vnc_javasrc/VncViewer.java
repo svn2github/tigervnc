@@ -441,6 +441,9 @@ public class VncViewer extends java.applet.Applet
   //
   // Send current encoding list to the RFB server.
   //
+  // FIXME: Request ZRLE in auto encoding selection, if we are not
+  //        sure that Tight encoding is supported by the server.
+  //
 
   int[] encodingsSaved;
   int nEncodingsSaved;
@@ -496,6 +499,9 @@ public class VncViewer extends java.applet.Applet
     }
     if (preferredEncoding != RfbProto.EncodingTight) {
       encodings[nEncodings++] = RfbProto.EncodingTight;
+    }
+    if (preferredEncoding != RfbProto.EncodingZRLE) {
+      encodings[nEncodings++] = RfbProto.EncodingZRLE;
     }
     if (preferredEncoding != RfbProto.EncodingZlib) {
       encodings[nEncodings++] = RfbProto.EncodingZlib;

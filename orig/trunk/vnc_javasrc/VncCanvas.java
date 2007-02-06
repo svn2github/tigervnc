@@ -52,6 +52,13 @@ class VncCanvas extends Canvas
   byte[] pixels8;
   int[] pixels24;
 
+  // ZRLE encoder's data.
+  byte[] zrleBuf;
+  int zrleBufLen = 0;
+  byte[] zrleTilePixels8;
+  int[] zrleTilePixels24;
+  ZlibInStream zrleInStream;
+
   // Zlib encoder's data.
   byte[] zlibBuf;
   int zlibBufLen = 0;
@@ -233,17 +240,27 @@ class VncCanvas extends Canvas
     // Images with raw pixels should be re-allocated on every change
     // of geometry or pixel format.
     if (bytesPixel == 1) {
+
       pixels24 = null;
       pixels8 = new byte[fbWidth * fbHeight];
 
       pixelsSource =
 	new MemoryImageSource(fbWidth, fbHeight, cm8, pixels8, 0, fbWidth);
+
+      zrleTilePixels24 = null;
+      zrleTilePixels8 = new byte[64 * 64];
+
     } else {
+
       pixels8 = null;
       pixels24 = new int[fbWidth * fbHeight];
 
       pixelsSource =
 	new MemoryImageSource(fbWidth, fbHeight, cm24, pixels24, 0, fbWidth);
+
+      zrleTilePixels8 = null;
+      zrleTilePixels24 = new int[64 * 64];
+
     }
     pixelsSource.setAnimated(true);
     rawPixelsImage = Toolkit.getDefaultToolkit().createImage(pixelsSource);
@@ -375,6 +392,9 @@ class VncCanvas extends Canvas
 	    break;
 	  case RfbProto.EncodingHextile:
 	    handleHextileRect(rx, ry, rw, rh);
+	    break;
+	  case RfbProto.EncodingZRLE:
+	    handleZRLERect(rx, ry, rw, rh);
 	    break;
 	  case RfbProto.EncodingZlib:
             handleZlibRect(rx, ry, rw, rh);
@@ -745,6 +765,218 @@ class VncCanvas extends Canvas
       }
 
     }
+  }
+
+  //
+  // Handle a ZRLE-encoded rectangle.
+  //
+  // FIXME: Currently, session recording is broken for ZRLE.
+  //
+
+  void handleZRLERect(int x, int y, int w, int h) throws Exception {
+
+    if (zrleInStream == null)
+      zrleInStream = new ZlibInStream();
+
+    int nBytes = rfb.is.readInt();
+    if (nBytes > 64 * 1024 * 1024)
+      throw new Exception("ZRLE decoder: illegal compressed data size");
+
+    if (zrleBuf == null || zrleBufLen < nBytes) {
+      zrleBufLen = nBytes + 4096;
+      zrleBuf = new byte[zrleBufLen];
+    }
+
+    // FIXME: Do not wait for all the data before decompression.
+    rfb.readFully(zrleBuf, 0, nBytes);
+
+    if (rfb.rec != null && rfb.recordFromBeginning) {
+      rfb.rec.writeIntBE(nBytes);
+      rfb.rec.write(zrleBuf, 0, nBytes);
+    }
+
+    zrleInStream.setUnderlying(new MemInStream(zrleBuf, 0, nBytes), nBytes);
+
+    for (int ty = y; ty < y+h; ty += 64) {
+
+      int th = Math.min(y+h-ty, 64);
+
+      for (int tx = x; tx < x+w; tx += 64) {
+
+        int tw = Math.min(x+w-tx, 64);
+
+        int mode = zrleInStream.readU8();
+        boolean rle = (mode & 128) != 0;
+        int palSize = mode & 127;
+        int[] palette = new int[128];
+
+        readZrlePalette(palette, palSize);
+
+        if (palSize == 1) {
+          int pix = palette[0];
+          Color c = (bytesPixel == 1) ?
+            colors[pix] : new Color(0xFF000000 | pix);
+          memGraphics.setColor(c);
+          memGraphics.fillRect(tx, ty, tw, th);
+          continue;
+        }
+
+        if (!rle) {
+          if (palSize == 0) {
+            readZrleRawPixels(tw, th);
+          } else {
+            readZrlePackedPixels(tw, th, palette, palSize);
+          }
+        } else {
+          if (palSize == 0) {
+            readZrlePlainRLEPixels(tw, th);
+          } else {
+            readZrlePackedRLEPixels(tw, th, palette);
+          }
+        }
+        handleUpdatedZrleTile(tx, ty, tw, th);
+      }
+    }
+
+    zrleInStream.reset();
+
+    scheduleRepaint(x, y, w, h);
+  }
+
+  // FIXME: Optimize: use inline code instead of this function?
+  int readPixel(InStream is) throws Exception {
+    int pix;
+    if (bytesPixel == 1) {
+      pix = is.readU8();
+    } else {
+      int p1 = is.readU8();
+      int p2 = is.readU8();
+      int p3 = is.readU8();
+      pix = (p3 & 0xFF) << 16 | (p2 & 0xFF) << 8 | (p1 & 0xFF);
+    }
+    return pix;
+  }
+
+  // FIXME: Optimize.
+  void readZrlePalette(int[] palette, int palSize) throws Exception {
+    for (int i = 0; i < palSize; i++) {
+      palette[i] = readPixel(zrleInStream);
+    }
+  }
+
+  // FIXME: Optimize.
+  void readZrleRawPixels(int tw, int th) throws Exception {
+    if (bytesPixel == 1) {
+      zrleInStream.readBytes(zrleTilePixels8, 0, tw * th);
+    } else {
+      for (int i = 0; i < tw * th; i++) {
+        zrleTilePixels24[i] = readPixel(zrleInStream);
+      }
+    }
+  }
+
+  void readZrlePackedPixels(int tw, int th, int[] palette, int palSize)
+    throws Exception {
+
+    int bppp = ((palSize > 16) ? 8 :
+                ((palSize > 4) ? 4 : ((palSize > 2) ? 2 : 1)));
+    int ptr = 0;
+
+    for (int i = 0; i < th; i++) {
+      int eol = ptr + tw;
+      int b = 0;
+      int nbits = 0;
+
+      while (ptr < eol) {
+        if (nbits == 0) {
+          b = zrleInStream.readU8();
+          nbits = 8;
+        }
+        nbits -= bppp;
+        int index = (b >> nbits) & ((1 << bppp) - 1) & 127;
+        if (bytesPixel == 1) {
+          zrleTilePixels8[ptr++] = (byte)palette[index];
+        } else {
+          zrleTilePixels24[ptr++] = palette[index];
+        }
+      }
+    }
+  }
+
+  void readZrlePlainRLEPixels(int tw, int th) throws Exception {
+    int ptr = 0;
+    int end = ptr + tw * th;
+    while (ptr < end) {
+      int pix = readPixel(zrleInStream);
+      int len = 1;
+      int b;
+      do {
+        b = zrleInStream.readU8();
+        len += b;
+      } while (b == 255);
+
+      if (!(len <= end - ptr))
+        throw new Exception("ZRLE decoder: assertion failed" +
+                            " (len <= end-ptr)");
+
+      if (bytesPixel == 1) {
+        while (len-- > 0) zrleTilePixels8[ptr++] = (byte)pix;
+      } else {
+        while (len-- > 0) zrleTilePixels24[ptr++] = pix;
+      }
+    }
+  }
+
+  void readZrlePackedRLEPixels(int tw, int th, int[] palette)
+    throws Exception {
+
+    int ptr = 0;
+    int end = ptr + tw * th;
+    while (ptr < end) {
+      int index = zrleInStream.readU8();
+      int len = 1;
+      if ((index & 128) != 0) {
+        int b;
+        do {
+          b = zrleInStream.readU8();
+          len += b;
+        } while (b == 255);
+        
+        if (!(len <= end - ptr))
+          throw new Exception("ZRLE decoder: assertion failed" +
+                              " (len <= end - ptr)");
+      }
+
+      index &= 127;
+      int pix = palette[index];
+
+      if (bytesPixel == 1) {
+        while (len-- > 0) zrleTilePixels8[ptr++] = (byte)pix;
+      } else {
+        while (len-- > 0) zrleTilePixels24[ptr++] = pix;
+      }
+    }
+  }
+
+  //
+  // Copy pixels from zrleTilePixels8 or zrleTilePixels24, then update.
+  //
+
+  void handleUpdatedZrleTile(int x, int y, int w, int h) {
+    Object src, dst;
+    if (bytesPixel == 1) {
+      src = zrleTilePixels8; dst = pixels8;
+    } else {
+      src = zrleTilePixels24; dst = pixels24;
+    }
+    int offsetSrc = 0;
+    int offsetDst = (y * rfb.framebufferWidth + x);
+    for (int j = 0; j < h; j++) {
+      System.arraycopy(src, offsetSrc, dst, offsetDst, w);
+      offsetSrc += w;
+      offsetDst += rfb.framebufferWidth;
+    }
+    handleUpdatedPixels(x, y, w, h);
   }
 
   //

@@ -47,7 +47,7 @@ class OptionsFrame extends Frame
   };
 
   static String[][] values = {
-    { "Auto", "Raw", "RRE", "CoRRE", "Hextile", "Zlib", "Tight" },
+    { "Auto", "Raw", "RRE", "CoRRE", "Hextile", "Zlib", "Tight", "ZRLE" },
     { "Default", "1", "2", "3", "4", "5", "6", "7", "8", "9" },
     { "JPEG off", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" },
     { "Enable", "Ignore", "Disable" },
@@ -229,6 +229,8 @@ class OptionsFrame extends Frame
       preferredEncoding = RfbProto.EncodingCoRRE;
     } else if (choices[encodingIndex].getSelectedItem().equals("Hextile")) {
       preferredEncoding = RfbProto.EncodingHextile;
+    } else if (choices[encodingIndex].getSelectedItem().equals("ZRLE")) {
+      preferredEncoding = RfbProto.EncodingZRLE;
     } else if (choices[encodingIndex].getSelectedItem().equals("Zlib")) {
       preferredEncoding = RfbProto.EncodingZlib;
       enableCompressLevel = true;

@@ -171,7 +171,7 @@ Here is the complete list of parameters supported in TightVNC Java viewer:
 
 --> "Encoding"
 
-    Values: "Auto", "Raw", "RRE", "CoRRE", "Hextile", "Zlib", "Tight".
+    Values: "Auto", "Raw", "RRE", "CoRRE", "Hextile", "ZRLE", "Zlib", "Tight".
     Default: "Auto".
 
     The preferred encoding. If the value is "Auto", then the viewer will
@@ -180,8 +180,11 @@ Here is the complete list of parameters supported in TightVNC Java viewer:
     encoding that was designed for fast networks, while "Tight" is better
     suited for low-bandwidth connections. From the other side, "Tight"
     decoder in the TightVNC Java viewer seems to be more efficient than
-    "Hextile" decoder so it may be ok for fast networks too. Other encodings
-    are not efficient and provided for compatibility reasons.
+    "Hextile" decoder so it may be ok for fast networks too. "ZRLE" encoding
+    is similar to "Tight", but it does not support JPEG compression and
+    compression levels. Unlike "Tight" encoding, "ZRLE" is supported in
+    recent versions of RealVNC products. Other encodings are not efficient
+    and provided for compatibility reasons.
 
 --> "Compression level"
 

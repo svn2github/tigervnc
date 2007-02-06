@@ -98,6 +98,7 @@ class RfbProto {
     EncodingHextile        = 5,
     EncodingZlib           = 6,
     EncodingTight          = 7,
+    EncodingZRLE           = 16,
     EncodingCompressLevel0 = 0xFFFFFF00,
     EncodingQualityLevel0  = 0xFFFFFFE0,
     EncodingXCursor        = 0xFFFFFF10,
@@ -113,6 +114,7 @@ class RfbProto {
     SigEncodingHextile        = "HEXTILE_",
     SigEncodingZlib           = "ZLIB____",
     SigEncodingTight          = "TIGHT___",
+    SigEncodingZRLE           = "ZRLE____",
     SigEncodingCompressLevel0 = "COMPRLVL",
     SigEncodingQualityLevel0  = "JPEGQLVL",
     SigEncodingXCursor        = "X11CURSR",
@@ -466,6 +468,8 @@ class RfbProto {
 		     SigEncodingCoRRE, "Standard CoRRE encoding");
     encodingCaps.add(EncodingHextile, StandardVendor,
 		     SigEncodingHextile, "Standard Hextile encoding");
+    encodingCaps.add(EncodingZRLE, StandardVendor,
+		     SigEncodingZRLE, "Standard ZRLE encoding");
     encodingCaps.add(EncodingZlib, TridiaVncVendor,
 		     SigEncodingZlib, "Zlib encoding");
     encodingCaps.add(EncodingTight, TightVncVendor,

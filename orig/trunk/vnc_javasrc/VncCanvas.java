@@ -58,6 +58,7 @@ class VncCanvas extends Canvas
   byte[] zrleTilePixels8;
   int[] zrleTilePixels24;
   ZlibInStream zrleInStream;
+  boolean zrleRecWarningShown = false;
 
   // Zlib encoder's data.
   byte[] zlibBuf;
@@ -770,7 +771,7 @@ class VncCanvas extends Canvas
   //
   // Handle a ZRLE-encoded rectangle.
   //
-  // FIXME: Currently, session recording is broken for ZRLE.
+  // FIXME: Currently, session recording is not fully supported for ZRLE.
   //
 
   void handleZRLERect(int x, int y, int w, int h) throws Exception {
@@ -790,9 +791,16 @@ class VncCanvas extends Canvas
     // FIXME: Do not wait for all the data before decompression.
     rfb.readFully(zrleBuf, 0, nBytes);
 
-    if (rfb.rec != null && rfb.recordFromBeginning) {
-      rfb.rec.writeIntBE(nBytes);
-      rfb.rec.write(zrleBuf, 0, nBytes);
+    if (rfb.rec != null) {
+      if (rfb.recordFromBeginning) {
+        rfb.rec.writeIntBE(nBytes);
+        rfb.rec.write(zrleBuf, 0, nBytes);
+      } else if (!zrleRecWarningShown) {
+        System.out.println("Warning: ZRLE session can be recorded" +
+                           " only from the beginning");
+        System.out.println("Warning: Recorded file may be corrupted");
+        zrleRecWarningShown = true;
+      }
     }
 
     zrleInStream.setUnderlying(new MemInStream(zrleBuf, 0, nBytes), nBytes);

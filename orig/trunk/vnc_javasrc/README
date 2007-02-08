@@ -396,18 +396,19 @@ Other important facts about session recording:
     recording. It's not necessary to keep that window open during recording a
     session.
 
---> Avoid using Zlib encoding when recording sessions. It's ok if you started
-    recording BEFORE the connection to the VNC server has been established,
-    but if you started recording during an active session, all Zlib sessions
-    will be saved Raw-encoded (that is, without compression at all). Zlib
-    decoding depends on the pixel data received earlier, thus saving the data
-    received from the server at an arbitrary moment is not sufficient to
-    decompress it correctly. And there is no way to say Zlib decoder to reset
-    decompressor's state -- that's a limitation of the Zlib encoder. The
-    viewer could re-compress raw pixel data again before saving Zlib-encoded
-    sessions, but unfortunately Java API does not allow to flush zlib data
-    streams making it impossible to save Zlib-encoded RFB pixel data without
-    using native code.
+--> Avoid using Zlib and ZRLE encodings when recording sessions. If you have
+    started recording BEFORE opening a VNC session, then you are ok. But
+    otherwise, all Zlib-encoded updates will be saved Raw-encoded (that is,
+    without compression at all). The case with ZRLE is even worse -- ZRLE
+    updates will not be saved at all, so the resulting session file may be
+    corrupted. Zlib decoding depends on the pixel data received earlier, thus
+    saving the data received from the server at an arbitrary moment is not
+    sufficient to decompress it correctly. And there is no way to tell Zlib
+    or ZRLE decoder to reset decompressor's state -- that's a limitation of
+    these encoders. The viewer could re-compress raw pixel data again before
+    saving Zlib-encoded sessions, but unfortunately Java API does not allow
+    to flush zlib data streams making it impossible to save Zlib-encoded RFB
+    pixel data without using native code.
 
 --> Usually, Tight encoding is the most suitable one for session recording,
     but some of the issues described above for the Zlib encoding affect the

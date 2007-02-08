@@ -161,12 +161,12 @@ class RfbProto {
   boolean brokenKeyPressed = false;
 
   // This will be set to true on the first framebuffer update
-  // containing Zlib- or Tight-encoded data.
+  // containing Zlib-, ZRLE- or Tight-encoded data.
   boolean wereZlibUpdates = false;
 
   // This will be set to false if the startSession() was called after
-  // we have received at least one Zlib- or Tight-encoded framebuffer
-  // update.
+  // we have received at least one Zlib-, ZRLE- or Tight-encoded
+  // framebuffer update.
   boolean recordFromBeginning = true;
 
   // This fields are needed to show warnings about inefficiently saved
@@ -635,6 +635,11 @@ class RfbProto {
     rec.write(desktopName.getBytes());
     numUpdatesInSession = 0;
 
+    // FIXME: If there were e.g. ZRLE updates only, that should not
+    //        affect recording of Zlib and Tight updates. So, actually
+    //        we should maintain separate flags for Zlib, ZRLE and
+    //        Tight, instead of one ``wereZlibUpdates'' variable.
+    //
     if (wereZlibUpdates)
       recordFromBeginning = false;
 
@@ -716,6 +721,7 @@ class RfbProto {
     updateRectEncoding = is.readInt();
 
     if (updateRectEncoding == EncodingZlib ||
+        updateRectEncoding == EncodingZRLE ||
 	updateRectEncoding == EncodingTight)
       wereZlibUpdates = true;
 

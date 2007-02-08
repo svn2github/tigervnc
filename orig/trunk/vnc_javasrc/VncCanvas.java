@@ -851,7 +851,6 @@ class VncCanvas extends Canvas
     scheduleRepaint(x, y, w, h);
   }
 
-  // FIXME: Optimize: use inline code instead of this function?
   int readPixel(InStream is) throws Exception {
     int pix;
     if (bytesPixel == 1) {
@@ -865,21 +864,34 @@ class VncCanvas extends Canvas
     return pix;
   }
 
-  // FIXME: Optimize.
-  void readZrlePalette(int[] palette, int palSize) throws Exception {
-    for (int i = 0; i < palSize; i++) {
-      palette[i] = readPixel(zrleInStream);
+  void readPixels(InStream is, int[] dst, int count) throws Exception {
+    int pix;
+    if (bytesPixel == 1) {
+      byte[] buf = new byte[count];
+      is.readBytes(buf, 0, count);
+      for (int i = 0; i < count; i++) {
+        dst[i] = (int)buf[i] & 0xFF;
+      }
+    } else {
+      byte[] buf = new byte[count * 3];
+      is.readBytes(buf, 0, count * 3);
+      for (int i = 0; i < count; i++) {
+        dst[i] = ((buf[i*3+2] & 0xFF) << 16 |
+                  (buf[i*3+1] & 0xFF) << 8 |
+                  (buf[i*3] & 0xFF));
+      }
     }
   }
 
-  // FIXME: Optimize.
+  void readZrlePalette(int[] palette, int palSize) throws Exception {
+    readPixels(zrleInStream, palette, palSize);
+  }
+
   void readZrleRawPixels(int tw, int th) throws Exception {
     if (bytesPixel == 1) {
       zrleInStream.readBytes(zrleTilePixels8, 0, tw * th);
     } else {
-      for (int i = 0; i < tw * th; i++) {
-        zrleTilePixels24[i] = readPixel(zrleInStream);
-      }
+      readPixels(zrleInStream, zrleTilePixels24, tw * th); ///
     }
   }
 

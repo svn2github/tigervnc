@@ -123,7 +123,7 @@ class RfbProto {
     SigEncodingLastRect       = "LASTRECT",
     SigEncodingNewFBSize      = "NEWFBSIZ";
 
-  final static int MaxNormalEncoding = 7;
+  final static int MaxNormalEncoding = 255;
 
   // Contstants used in the Hextile decoder
   final static int

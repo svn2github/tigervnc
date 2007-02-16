@@ -27,18 +27,15 @@ import java.io.*;
 class VncCanvas2 extends VncCanvas {
 
   public VncCanvas2(VncViewer v) throws IOException {
-
-    // Call the constructor of VncCanvas.
     super(v);
+    disableFocusTraversalKeys();
+  }
 
-    // Now try to disable focus traversal keys (JVMs 1.4 and higher).
-    try {
-      Class[] argClasses = { Boolean.TYPE };
-      java.lang.reflect.Method method =
-        getClass().getMethod("setFocusTraversalKeysEnabled", argClasses);
-      Object[] argObjects = { new Boolean(false) };
-      method.invoke(this, argObjects);
-    } catch (Exception e) {}
+  public VncCanvas2(VncViewer v, int maxWidth_, int maxHeight_)
+    throws IOException {
+
+    super(v, maxWidth_, maxHeight_);
+    disableFocusTraversalKeys();
   }
 
   public void paintScaledFrameBuffer(Graphics g) {
@@ -48,4 +45,19 @@ class VncCanvas2 extends VncCanvas {
     g2d.drawImage(memImage, 0, 0, scaledWidth, scaledHeight, null);
   }
 
+  //
+  // Try to disable focus traversal keys (JVMs 1.4 and higher).
+  //
+
+  private void disableFocusTraversalKeys() {
+    try {
+      Class[] argClasses = { Boolean.TYPE };
+      java.lang.reflect.Method method =
+        getClass().getMethod("setFocusTraversalKeysEnabled", argClasses);
+      Object[] argObjects = { new Boolean(false) };
+      method.invoke(this, argObjects);
+    } catch (Exception e) {}
+  }
+
 }
+

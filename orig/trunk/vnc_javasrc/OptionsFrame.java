@@ -95,6 +95,7 @@ class OptionsFrame extends Frame
   boolean viewOnly;
   int scaleCursor;
 
+  boolean autoScale;
   int scalingFactor;
 
   //
@@ -166,27 +167,32 @@ class OptionsFrame extends Frame
       }
     }
 
-    // FIXME: Provide a corresponding GUI option for "Scaling Factor".
+    // FIXME: Provide some sort of GUI for "Scaling Factor".
 
+    autoScale = false;
     scalingFactor = 100;
     String s = viewer.readParameter("Scaling Factor", false);
     if (s != null) {
-      // Remove the '%' char at the end of string if present.
-      if (s.charAt(s.length() - 1) == '%') {
-	s = s.substring(0, s.length() - 1);
-      }
-      // Convert to an integer.
-      try {
-	scalingFactor = Integer.parseInt(s);
-      }
-      catch (NumberFormatException e) {
-	scalingFactor = 100;
-      }
-      // Make sure scalingFactor is in the range of [1..1000].
-      if (scalingFactor < 1) {
-	scalingFactor = 1;
-      } else if (scalingFactor > 1000) {
-	scalingFactor = 1000;
+      if (s.equalsIgnoreCase("Auto")) {
+	autoScale = true;
+      } else {
+	// Remove the '%' char at the end of string if present.
+	if (s.charAt(s.length() - 1) == '%') {
+	  s = s.substring(0, s.length() - 1);
+	}
+	// Convert to an integer.
+	try {
+	  scalingFactor = Integer.parseInt(s);
+	}
+	catch (NumberFormatException e) {
+	  scalingFactor = 100;
+	}
+	// Make sure scalingFactor is in the range of [1..1000].
+	if (scalingFactor < 1) {
+	  scalingFactor = 1;
+	} else if (scalingFactor > 1000) {
+	  scalingFactor = 1000;
+	}
       }
     }
 

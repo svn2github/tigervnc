@@ -156,7 +156,18 @@ public class VncViewer extends java.applet.Applet
       connectAndAuthenticate();
       doProtocolInitialisation();
 
-      createCanvas();
+      // FIXME: Use auto-scaling not only in a separate frame.
+      if (options.autoScale && inSeparateFrame) {
+	Dimension screenSize;
+	try {
+	  screenSize = vncContainer.getToolkit().getScreenSize();
+	} catch (Exception e) {
+	  screenSize = new Dimension(0, 0);
+	}
+	createCanvas(screenSize.width - 32, screenSize.height - 32);
+      } else {
+	createCanvas(0, 0);
+      }
 
       gbc.weightx = 1.0;
       gbc.weighty = 1.0;
@@ -249,7 +260,7 @@ public class VncViewer extends java.applet.Applet
   // Create a VncCanvas instance.
   //
 
-  void createCanvas() throws IOException {
+  void createCanvas(int maxWidth, int maxHeight) throws IOException {
     // Determine if Java 2D API is available and use a special
     // version of VncCanvas if it is present.
     vc = null;
@@ -258,9 +269,10 @@ public class VncViewer extends java.applet.Applet
       Class cl = Class.forName("java.awt.Graphics2D");
       // If we could load Graphics2D class, then we can use VncCanvas2D.
       cl = Class.forName("VncCanvas2");
-      Class[] argClasses = { this.getClass() };
+      Class[] argClasses = { this.getClass(), Integer.TYPE, Integer.TYPE };
       java.lang.reflect.Constructor cstr = cl.getConstructor(argClasses);
-      Object[] argObjects = { this };
+      Object[] argObjects =
+        { this, new Integer(maxWidth), new Integer(maxHeight) };
       vc = (VncCanvas)cstr.newInstance(argObjects);
     } catch (Exception e) {
       System.out.println("Warning: Java 2D API is not available");
@@ -268,7 +280,7 @@ public class VncViewer extends java.applet.Applet
 
     // If we failed to create VncCanvas2D, use old VncCanvas.
     if (vc == null)
-      vc = new VncCanvas(this);
+      vc = new VncCanvas(this, maxWidth, maxHeight);
   }
 
 

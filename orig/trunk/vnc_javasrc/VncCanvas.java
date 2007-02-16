@@ -42,6 +42,8 @@ class VncCanvas extends Canvas
   Color[] colors;
   int bytesPixel;
 
+  int maxWidth = 0, maxHeight = 0;
+  int scalingFactor;
   int scaledWidth, scaledHeight;
 
   Image memImage;
@@ -79,12 +81,18 @@ class VncCanvas extends Canvas
   boolean inputEnabled;
 
   //
-  // The constructor.
+  // The constructors.
   //
 
-  public VncCanvas(VncViewer v) throws IOException {
+  public VncCanvas(VncViewer v, int maxWidth_, int maxHeight_)
+    throws IOException {
+
     viewer = v;
+    maxWidth = maxWidth_;
+    maxHeight = maxHeight_;
+
     rfb = viewer.rfb;
+    scalingFactor = viewer.options.scalingFactor;
 
     tightInflaters = new Inflater[4];
 
@@ -104,6 +112,10 @@ class VncCanvas extends Canvas
     // Keyboard listener is enabled even in view-only mode, to catch
     // 'r' or 'R' key presses used to request screen update.
     addKeyListener(this);
+  }
+
+  public VncCanvas(VncViewer v) throws IOException {
+    this(v, 0, 0);
   }
 
   //
@@ -219,10 +231,19 @@ class VncCanvas extends Canvas
     int fbWidth = rfb.framebufferWidth;
     int fbHeight = rfb.framebufferHeight;
 
+    // Calculate scaling factor for auto scaling.
+    if (maxWidth > 0 && maxHeight > 0) {
+      int f1 = maxWidth * 100 / fbWidth;
+      int f2 = maxHeight * 100 / fbHeight;
+      scalingFactor = Math.min(f1, f2);
+      if (scalingFactor > 100)
+	scalingFactor = 100;
+      System.out.println("Scaling desktop at " + scalingFactor + "%");
+    }
+
     // Update scaled framebuffer geometry.
-    int f = viewer.options.scalingFactor;
-    scaledWidth = (fbWidth * f + 50) / 100;
-    scaledHeight = (fbHeight * f + 50) / 100;
+    scaledWidth = (fbWidth * scalingFactor + 50) / 100;
+    scaledHeight = (fbHeight * scalingFactor + 50) / 100;
 
     // Create new off-screen image either if it does not exist, or if
     // its geometry should be changed. It's not necessary to replace
@@ -1437,11 +1458,10 @@ class VncCanvas extends Canvas
     if (rfb.framebufferWidth == scaledWidth) {
       repaint(viewer.deferScreenUpdates, x, y, w, h);
     } else {
-      int f = viewer.options.scalingFactor;
-      int sx = x * f / 100;
-      int sy = y * f / 100;
-      int sw = ((x + w) * f + 49) / 100 - sx + 1;
-      int sh = ((y + h) * f + 49) / 100 - sy + 1;
+      int sx = x * scalingFactor / 100;
+      int sy = y * scalingFactor / 100;
+      int sw = ((x + w) * scalingFactor + 49) / 100 - sx + 1;
+      int sh = ((y + h) * scalingFactor + 49) / 100 - sy + 1;
       repaint(viewer.deferScreenUpdates, sx, sy, sw, sh);
     }
   }
@@ -1509,9 +1529,8 @@ class VncCanvas extends Canvas
 	softCursorMove(evt.getX(), evt.getY());
       }
       if (rfb.framebufferWidth != scaledWidth) {
-        int f = viewer.options.scalingFactor;
-        int sx = (evt.getX() * 100 + f/2) / f;
-        int sy = (evt.getY() * 100 + f/2) / f;
+        int sx = (evt.getX() * 100 + scalingFactor/2) / scalingFactor;
+        int sy = (evt.getY() * 100 + scalingFactor/2) / scalingFactor;
         evt.translatePoint(sx - evt.getX(), sy - evt.getY());
       }
       synchronized(rfb) {

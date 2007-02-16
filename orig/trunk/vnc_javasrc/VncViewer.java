@@ -156,25 +156,7 @@ public class VncViewer extends java.applet.Applet
       connectAndAuthenticate();
       doProtocolInitialisation();
 
-      // Determine if Java 2D API is available and use a special
-      // version of VncCanvas if it is present.
-      vc = null;
-      try {
-        // This throws ClassNotFoundException if there is no Java 2D API.
-        Class cl = Class.forName("java.awt.Graphics2D");
-        // If we could load Graphics2D class, then we can use VncCanvas2D.
-        cl = Class.forName("VncCanvas2");
-        Class[] argClasses = { this.getClass() };
-        java.lang.reflect.Constructor cstr = cl.getConstructor(argClasses);
-        Object[] argObjects = { this };
-        vc = (VncCanvas)cstr.newInstance(argObjects);
-      } catch (Exception e) {
-        System.out.println("Warning: Java 2D API is not available");
-      }
-
-      // If we failed to create VncCanvas2D, use old VncCanvas.
-      if (vc == null)
-        vc = new VncCanvas(this);
+      createCanvas();
 
       gbc.weightx = 1.0;
       gbc.weighty = 1.0;
@@ -261,6 +243,32 @@ public class VncViewer extends java.applet.Applet
       }
     }
     
+  }
+
+  //
+  // Create a VncCanvas instance.
+  //
+
+  void createCanvas() throws IOException {
+    // Determine if Java 2D API is available and use a special
+    // version of VncCanvas if it is present.
+    vc = null;
+    try {
+      // This throws ClassNotFoundException if there is no Java 2D API.
+      Class cl = Class.forName("java.awt.Graphics2D");
+      // If we could load Graphics2D class, then we can use VncCanvas2D.
+      cl = Class.forName("VncCanvas2");
+      Class[] argClasses = { this.getClass() };
+      java.lang.reflect.Constructor cstr = cl.getConstructor(argClasses);
+      Object[] argObjects = { this };
+      vc = (VncCanvas)cstr.newInstance(argObjects);
+    } catch (Exception e) {
+      System.out.println("Warning: Java 2D API is not available");
+    }
+
+    // If we failed to create VncCanvas2D, use old VncCanvas.
+    if (vc == null)
+      vc = new VncCanvas(this);
   }
 
 

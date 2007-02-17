@@ -33,7 +33,7 @@ FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         132,IDC_VNCLOGO,"Static",SS_BITMAP | SS_SUNKEN,7,7,87,80
     CTEXT           "www.TightVNC.com",IDC_STATIC,7,91,87,14
-    LTEXT           "TightVNC Server version 1.3.8.5\n\nCopyright (C) 2000-2006 Constantin Kaplinsky\nCopyright (C) 2000-2006 TightVNC Group\nCopyright (C) 2001-2004 HorizonLive.com, Inc.\nhttp://www.horizonlive.com/",
+    LTEXT           "TightVNC Server version 1.3.8.9\n\nCopyright (C) 2000-2006 Constantin Kaplinsky\nCopyright (C) 2000-2007 TightVNC Group\nCopyright (C) 2001-2004 HorizonLive.com, Inc.\nhttp://www.horizonlive.com/",
                     IDC_STATIC,104,7,181,51
     LTEXT           "Based on VNC software\nCopyright (C) 1999-2001 AT&&T Laboratories Cambridge\nCopyright (C) 2002-2003 RealVNC Ltd.\nhttp://www.realvnc.com/",
                     IDC_STATIC,104,63,181,38
@@ -558,8 +558,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,3,8,5
- PRODUCTVERSION 1,3,8,5
+ FILEVERSION 1,3,8,9
+ PRODUCTVERSION 1,3,8,9
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -577,14 +577,14 @@ BEGIN
             VALUE "Comments", "Based on VNC by AT&T Research Labs Cambridge, RealVNC Ltd.\0"
             VALUE "CompanyName", "TightVNC Group\0"
             VALUE "FileDescription", "TightVNC Win32 Server\0"
-            VALUE "FileVersion", "1, 3, 8, 5\0"
+            VALUE "FileVersion", "1, 3, 8, 9\0"
             VALUE "InternalName", "WinVNC\0"
-            VALUE "LegalCopyright", "Copyright (C) 2000-2006 TightVNC Group\0"
+            VALUE "LegalCopyright", "Copyright (C) 2000-2007 TightVNC Group\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "WinVNC.exe\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "TightVNC Win32 Server\0"
-            VALUE "ProductVersion", "1, 3, 8, 5\0"
+            VALUE "ProductVersion", "1, 3, 8, 9\0"
             VALUE "SpecialBuild", "\0"
         END
     END

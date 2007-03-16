@@ -1,117 +1,164 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.10"
+	Version="8.00"
 	Name="zlib"
-	SccProjectName=""
-	SccLocalPath="">
+	ProjectGUID="{A44055F1-6AAA-4F72-8939-C5C294CE6EEE}"
+	>
 	<Platforms>
 		<Platform
-			Name="Win32"/>
+			Name="Win32"
+		/>
 	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory=".\Debug"
-			IntermediateDirectory=".\Debug"
+			OutputDirectory=".\..\Debug"
+			IntermediateDirectory=".\..\Debug"
 			ConfigurationType="4"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			CharacterSet="2">
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
-				SmallerTypeCheck="TRUE"
+				SmallerTypeCheck="false"
 				RuntimeLibrary="1"
-				BufferSecurityCheck="TRUE"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\Debug/zlib.pch"
-				AssemblerListingLocation=".\Debug/"
-				ObjectFile=".\Debug/"
-				ProgramDataBaseFileName=".\Debug/"
+				BufferSecurityCheck="true"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="..\Debug/zlib.pch"
+				AssemblerListingLocation="..\Debug/"
+				ObjectFile="..\Debug/"
+				ProgramDataBaseFileName="..\Debug/"
 				WarningLevel="3"
-				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="4"/>
+				SuppressStartupBanner="true"
+				DebugInformationFormat="4"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
-			<Tool
-				Name="VCLibrarianTool"
-				OutputFile=".\Debug\zlib.lib"
-				SuppressStartupBanner="TRUE"/>
-			<Tool
-				Name="VCMIDLTool"/>
-			<Tool
-				Name="VCPostBuildEventTool"/>
-			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
 			<Tool
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="_DEBUG"
-				Culture="1033"/>
+				Culture="1033"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
+				Name="VCLibrarianTool"
+				OutputFile="..\Debug\zlib.lib"
+				SuppressStartupBanner="true"
+			/>
 			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory=".\Release"
-			IntermediateDirectory=".\Release"
+			OutputDirectory=".\..\Release"
+			IntermediateDirectory=".\..\Release"
 			ConfigurationType="4"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			CharacterSet="2">
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				OptimizeForProcessor="2"
-				OptimizeForWindowsApplication="TRUE"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB,_WINDOWS,__NT__,_WINSTATIC,__WIN32__"
-				StringPooling="TRUE"
+				StringPooling="true"
 				RuntimeLibrary="0"
-				BufferSecurityCheck="FALSE"
-				EnableFunctionLevelLinking="TRUE"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\Release/zlib.pch"
-				AssemblerListingLocation=".\Release/"
-				ObjectFile=".\Release/"
-				ProgramDataBaseFileName=".\Release/"
+				BufferSecurityCheck="false"
+				EnableFunctionLevelLinking="true"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="..\Release/zlib.pch"
+				AssemblerListingLocation="..\Release/"
+				ObjectFile="..\Release/"
+				ProgramDataBaseFileName="..\Release/"
 				WarningLevel="3"
-				SuppressStartupBanner="TRUE"/>
+				SuppressStartupBanner="true"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
-			<Tool
-				Name="VCLibrarianTool"
-				OutputFile=".\Release\zlib.lib"
-				SuppressStartupBanner="TRUE"/>
-			<Tool
-				Name="VCMIDLTool"/>
-			<Tool
-				Name="VCPostBuildEventTool"/>
-			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
 			<Tool
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="NDEBUG"
-				Culture="1033"/>
+				Culture="1033"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
+				Name="VCLibrarianTool"
+				OutputFile="..\Release\zlib.lib"
+				SuppressStartupBanner="true"
+			/>
 			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 	</Configurations>
 	<References>
@@ -119,85 +166,112 @@
 	<Files>
 		<Filter
 			Name="Source Files"
-			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
+			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+			>
 			<File
-				RelativePath=".\adler32.c">
+				RelativePath=".\adler32.c"
+				>
 			</File>
 			<File
-				RelativePath=".\compress.c">
+				RelativePath=".\compress.c"
+				>
 			</File>
 			<File
-				RelativePath=".\crc32.c">
+				RelativePath=".\crc32.c"
+				>
 			</File>
 			<File
-				RelativePath=".\deflate.c">
+				RelativePath=".\deflate.c"
+				>
 			</File>
 			<File
-				RelativePath=".\infblock.c">
+				RelativePath=".\infblock.c"
+				>
 			</File>
 			<File
-				RelativePath=".\infcodes.c">
+				RelativePath=".\infcodes.c"
+				>
 			</File>
 			<File
-				RelativePath=".\inffast.c">
+				RelativePath=".\inffast.c"
+				>
 			</File>
 			<File
-				RelativePath=".\inflate.c">
+				RelativePath=".\inflate.c"
+				>
 			</File>
 			<File
-				RelativePath=".\inftrees.c">
+				RelativePath=".\inftrees.c"
+				>
 			</File>
 			<File
-				RelativePath=".\infutil.c">
+				RelativePath=".\infutil.c"
+				>
 			</File>
 			<File
-				RelativePath=".\maketree.c">
+				RelativePath=".\maketree.c"
+				>
 			</File>
 			<File
-				RelativePath=".\trees.c">
+				RelativePath=".\trees.c"
+				>
 			</File>
 			<File
-				RelativePath=".\uncompr.c">
+				RelativePath=".\uncompr.c"
+				>
 			</File>
 			<File
-				RelativePath=".\zutil.c">
+				RelativePath=".\zutil.c"
+				>
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl">
+			Filter="h;hpp;hxx;hm;inl"
+			>
 			<File
-				RelativePath=".\deflate.h">
+				RelativePath=".\deflate.h"
+				>
 			</File>
 			<File
-				RelativePath=".\infblock.h">
+				RelativePath=".\infblock.h"
+				>
 			</File>
 			<File
-				RelativePath=".\infcodes.h">
+				RelativePath=".\infcodes.h"
+				>
 			</File>
 			<File
-				RelativePath=".\inffast.h">
+				RelativePath=".\inffast.h"
+				>
 			</File>
 			<File
-				RelativePath=".\inffixed.h">
+				RelativePath=".\inffixed.h"
+				>
 			</File>
 			<File
-				RelativePath=".\inftrees.h">
+				RelativePath=".\inftrees.h"
+				>
 			</File>
 			<File
-				RelativePath=".\infutil.h">
+				RelativePath=".\infutil.h"
+				>
 			</File>
 			<File
-				RelativePath=".\trees.h">
+				RelativePath=".\trees.h"
+				>
 			</File>
 			<File
-				RelativePath=".\zconf.h">
+				RelativePath=".\zconf.h"
+				>
 			</File>
 			<File
-				RelativePath=".\zlib.h">
+				RelativePath=".\zlib.h"
+				>
 			</File>
 			<File
-				RelativePath=".\zutil.h">
+				RelativePath=".\zutil.h"
+				>
 			</File>
 		</Filter>
 	</Files>

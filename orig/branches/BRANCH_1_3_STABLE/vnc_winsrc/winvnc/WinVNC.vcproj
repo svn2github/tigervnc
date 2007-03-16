@@ -1,159 +1,219 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.10"
+	Version="8.00"
 	Name="WinVNC"
+	ProjectGUID="{EA6A09AC-04BB-423D-8842-CA48DF901058}"
 	RootNamespace="WinVNC"
-	SccProjectName=""
-	SccLocalPath=".">
+	SccLocalPath="."
+	>
 	<Platforms>
 		<Platform
-			Name="Win32"/>
+			Name="Win32"
+		/>
 	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
 	<Configurations>
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory=".\Release"
 			IntermediateDirectory=".\Release"
 			ConfigurationType="1"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			WholeProgramOptimization="FALSE">
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="NDEBUG"
+				MkTypLibCompatible="true"
+				SuppressStartupBanner="true"
+				TargetEnvironment="1"
+				TypeLibraryName=".\$(ConfigurationName)/WinVNC.tlb"
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				OptimizeForProcessor="2"
-				OptimizeForWindowsApplication="TRUE"
 				AdditionalIncludeDirectories="./omnithread;./zlib;.."
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;__WIN32__;__NT__;__x86__;_WINSTATIC;NCORBA;XMD_H"
-				StringPooling="TRUE"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;__WIN32__;__NT__;__x86__;_WINSTATIC;NCORBA;XMD_H;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE"
+				StringPooling="true"
 				RuntimeLibrary="0"
-				BufferSecurityCheck="FALSE"
-				EnableFunctionLevelLinking="TRUE"
-				UsePrecompiledHeader="2"
+				BufferSecurityCheck="false"
+				EnableFunctionLevelLinking="true"
+				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile=".\$(ConfigurationName)/WinVNC.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
 				BrowseInformation="1"
 				WarningLevel="3"
-				SuppressStartupBanner="TRUE"
-				CompileAs="0"/>
+				SuppressStartupBanner="true"
+				CompileAs="0"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
 				Name="VCLinkerTool"
-				IgnoreImportLibrary="TRUE"
+				IgnoreImportLibrary="true"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="wsock32.lib comctl32.lib htmlhelp.lib"
 				OutputFile=".\$(ConfigurationName)/WinVNC.exe"
 				LinkIncremental="1"
-				SuppressStartupBanner="TRUE"
+				SuppressStartupBanner="true"
 				IgnoreDefaultLibraryNames=""
 				ProgramDatabaseFile=".\$(ConfigurationName)/WinVNC.pdb"
-				GenerateMapFile="TRUE"
+				GenerateMapFile="true"
 				MapFileName=".\$(ConfigurationName)/WinVNC.map"
-				MapExports="TRUE"
-				MapLines="TRUE"
+				MapExports="true"
 				SubSystem="2"
 				OptimizeReferences="2"
-				EnableCOMDATFolding="2"/>
+				EnableCOMDATFolding="2"
+			/>
 			<Tool
-				Name="VCMIDLTool"
-				PreprocessorDefinitions="NDEBUG"
-				MkTypLibCompatible="TRUE"
-				SuppressStartupBanner="TRUE"
-				TargetEnvironment="1"
-				TypeLibraryName=".\$(ConfigurationName)/WinVNC.tlb"/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCManifestTool"
+			/>
 			<Tool
-				Name="VCPreBuildEventTool"/>
+				Name="VCXDCMakeTool"
+			/>
 			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCBscMakeTool"
+			/>
 			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
-				Culture="1033"/>
+				Name="VCFxCopTool"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCAppVerifierTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
+				Name="VCWebDeploymentTool"
+			/>
 			<Tool
-				Name="VCWebDeploymentTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory=".\Debug"
 			IntermediateDirectory=".\Debug"
 			ConfigurationType="1"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="FALSE">
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="_DEBUG"
+				MkTypLibCompatible="true"
+				SuppressStartupBanner="true"
+				TargetEnvironment="1"
+				TypeLibraryName=".\$(ConfigurationName)/WinVNC.tlb"
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="./omnithread;./zlib;.."
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;__WIN32__;__NT__;__x86__;NCORBA;_WINSTATIC;XMD_H"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;__WIN32__;__NT__;__x86__;NCORBA;_WINSTATIC;XMD_H;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE"
 				BasicRuntimeChecks="1"
 				RuntimeLibrary="1"
-				BufferSecurityCheck="TRUE"
-				UsePrecompiledHeader="2"
+				BufferSecurityCheck="true"
+				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile=".\$(ConfigurationName)/WinVNC.pch"
 				AssemblerListingLocation=".\Debug/"
 				ObjectFile=".\Debug/"
 				ProgramDataBaseFileName=".\Debug/"
 				WarningLevel="3"
-				SuppressStartupBanner="TRUE"
+				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
-				CompileAs="0"/>
+				CompileAs="0"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="2057"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
 				Name="VCLinkerTool"
-				IgnoreImportLibrary="TRUE"
+				IgnoreImportLibrary="true"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="wsock32.lib comctl32.lib htmlhelp.lib"
 				OutputFile=".\$(ConfigurationName)/WinVNC.exe"
 				LinkIncremental="2"
-				SuppressStartupBanner="TRUE"
+				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories=""
 				IgnoreDefaultLibraryNames=""
-				GenerateDebugInformation="TRUE"
+				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\$(ConfigurationName)/WinVNC.pdb"
-				GenerateMapFile="TRUE"
+				GenerateMapFile="true"
 				MapFileName=".\$(ConfigurationName)/WinVNC.map"
-				SubSystem="2"/>
+				SubSystem="2"
+			/>
 			<Tool
-				Name="VCMIDLTool"
-				PreprocessorDefinitions="_DEBUG"
-				MkTypLibCompatible="TRUE"
-				SuppressStartupBanner="TRUE"
-				TargetEnvironment="1"
-				TypeLibraryName=".\$(ConfigurationName)/WinVNC.tlb"/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCManifestTool"
+			/>
 			<Tool
-				Name="VCPreBuildEventTool"/>
+				Name="VCXDCMakeTool"
+			/>
 			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCBscMakeTool"
+			/>
 			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG"
-				Culture="2057"/>
+				Name="VCFxCopTool"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCAppVerifierTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
+				Name="VCWebDeploymentTool"
+			/>
 			<Tool
-				Name="VCWebDeploymentTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 	</Configurations>
 	<References>
@@ -161,491 +221,658 @@
 	<Files>
 		<Filter
 			Name="Source"
-			Filter=".cpp, .c">
+			Filter=".cpp, .c"
+			>
 			<File
-				RelativePath=".\d3des.c">
+				RelativePath=".\d3des.c"
+				>
 			</File>
 			<File
-				RelativePath="FileTransferItemInfo.cpp">
+				RelativePath="FileTransferItemInfo.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Log.cpp">
+				RelativePath=".\Log.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\MinMax.cpp">
+				RelativePath=".\MinMax.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\RectList.cpp">
+				RelativePath=".\ParseHost.c"
+				>
 			</File>
 			<File
-				RelativePath="SharedDesktopArea.cpp">
+				RelativePath=".\RectList.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\stdhdrs.cpp">
+				RelativePath="SharedDesktopArea.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\tableinitcmtemplate.cpp">
+				RelativePath=".\stdhdrs.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\tableinitcmtemplate.cpp"
+				>
 				<FileConfiguration
 					Name="Release|Win32"
-					ExcludedFromBuild="TRUE">
+					ExcludedFromBuild="true"
+					>
 					<Tool
-						Name="VCCLCompilerTool"/>
+						Name="VCCLCompilerTool"
+					/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
-					ExcludedFromBuild="TRUE">
+					ExcludedFromBuild="true"
+					>
 					<Tool
-						Name="VCCLCompilerTool"/>
+						Name="VCCLCompilerTool"
+					/>
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\tableinittctemplate.cpp">
+				RelativePath=".\tableinittctemplate.cpp"
+				>
 				<FileConfiguration
 					Name="Release|Win32"
-					ExcludedFromBuild="TRUE">
+					ExcludedFromBuild="true"
+					>
 					<Tool
-						Name="VCCLCompilerTool"/>
+						Name="VCCLCompilerTool"
+					/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
-					ExcludedFromBuild="TRUE">
+					ExcludedFromBuild="true"
+					>
 					<Tool
-						Name="VCCLCompilerTool"/>
+						Name="VCCLCompilerTool"
+					/>
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\tabletranstemplate.cpp">
+				RelativePath=".\tabletranstemplate.cpp"
+				>
 				<FileConfiguration
 					Name="Release|Win32"
-					ExcludedFromBuild="TRUE">
+					ExcludedFromBuild="true"
+					>
 					<Tool
-						Name="VCCLCompilerTool"/>
+						Name="VCCLCompilerTool"
+					/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
-					ExcludedFromBuild="TRUE">
+					ExcludedFromBuild="true"
+					>
 					<Tool
-						Name="VCCLCompilerTool"/>
+						Name="VCCLCompilerTool"
+					/>
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\translate.cpp">
+				RelativePath=".\translate.cpp"
+				>
 			</File>
 			<File
-				RelativePath="VideoDriver.cpp">
+				RelativePath="VideoDriver.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\vncauth.c">
+				RelativePath=".\vncauth.c"
+				>
 			</File>
 			<File
-				RelativePath=".\vncBuffer.cpp">
+				RelativePath=".\vncBuffer.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\vncClient.cpp">
+				RelativePath=".\vncClient.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\vncDesktop.cpp">
+				RelativePath=".\vncDesktop.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\vncDesktopDX.cpp">
+				RelativePath=".\vncDesktopDX.cpp"
+				>
 				<FileConfiguration
 					Name="Release|Win32"
-					ExcludedFromBuild="TRUE">
+					ExcludedFromBuild="true"
+					>
 					<Tool
-						Name="VCCLCompilerTool"/>
+						Name="VCCLCompilerTool"
+					/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
-					ExcludedFromBuild="TRUE">
+					ExcludedFromBuild="true"
+					>
 					<Tool
-						Name="VCCLCompilerTool"/>
+						Name="VCCLCompilerTool"
+					/>
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\vncHTTPConnect.cpp">
+				RelativePath=".\vncHTTPConnect.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\vncInstHandler.cpp">
+				RelativePath=".\vncInstHandler.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\vncKeymap.cpp">
+				RelativePath=".\vncKeymap.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\vncMenu.cpp">
+				RelativePath=".\vncMenu.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\vncRegion.cpp">
+				RelativePath=".\vncRegion.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\vncServer.cpp">
+				RelativePath=".\vncServer.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\vncService.cpp">
+				RelativePath=".\vncService.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\vncSockConnect.cpp">
+				RelativePath=".\vncSockConnect.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\VSocket.cpp">
+				RelativePath=".\VSocket.cpp"
+				>
 			</File>
 			<File
-				RelativePath="WallpaperUtils.cpp">
+				RelativePath="WallpaperUtils.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\WinVNC.cpp">
+				RelativePath=".\WinVNC.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\WinVNC.rc">
+				RelativePath=".\WinVNC.rc"
+				>
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Release|Win32"
+					>
 					<Tool
 						Name="VCResourceCompilerTool"
-						AdditionalIncludeDirectories="$(OUTDIR);$(NoInherit)"/>
+						AdditionalIncludeDirectories="$(OUTDIR);$(NoInherit)"
+					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32">
+					Name="Debug|Win32"
+					>
 					<Tool
 						Name="VCResourceCompilerTool"
-						AdditionalIncludeDirectories="$(OUTDIR);$(NoInherit)"/>
+						AdditionalIncludeDirectories="$(OUTDIR);$(NoInherit)"
+					/>
 				</FileConfiguration>
 			</File>
 			<Filter
 				Name="Encoder"
-				Filter=".cpp, .c">
+				Filter=".cpp, .c"
+				>
 				<File
-					RelativePath=".\vncEncodeCoRRE.cpp">
+					RelativePath=".\vncEncodeCoRRE.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\vncEncodeHexT.cpp">
+					RelativePath=".\vncEncodeHexT.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\vncEncoder.cpp">
+					RelativePath=".\vncEncoder.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\vncEncodeRRE.cpp">
+					RelativePath=".\vncEncodeRRE.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\vncEncodeTight.cpp">
+					RelativePath=".\vncEncodeTight.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\vncEncodeZlib.cpp">
+					RelativePath=".\vncEncodeZlib.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\vncEncodeZlibHex.cpp">
+					RelativePath=".\vncEncodeZlibHex.cpp"
+					>
 				</File>
 			</Filter>
 			<Filter
 				Name="GUI"
-				Filter=".cpp, .c">
+				Filter=".cpp, .c"
+				>
 				<File
-					RelativePath="AdministrationControls.cpp">
+					RelativePath="AdministrationControls.cpp"
+					>
 				</File>
 				<File
-					RelativePath="IncomingConnectionsControls.cpp">
+					RelativePath="IncomingConnectionsControls.cpp"
+					>
 				</File>
 				<File
-					RelativePath="InputHandlingControls.cpp">
+					RelativePath="InputHandlingControls.cpp"
+					>
 				</File>
 				<File
-					RelativePath="MatchWindow.cpp">
+					RelativePath="MatchWindow.cpp"
+					>
 				</File>
 				<File
-					RelativePath="PollControls.cpp">
+					RelativePath="PollControls.cpp"
+					>
 				</File>
 				<File
-					RelativePath="QuerySettingsControls.cpp">
+					RelativePath="QuerySettingsControls.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\vncAbout.cpp">
+					RelativePath=".\vncAbout.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\vncAcceptDialog.cpp">
+					RelativePath=".\vncAcceptDialog.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\vncConnDialog.cpp">
+					RelativePath=".\vncConnDialog.cpp"
+					>
 				</File>
 				<File
-					RelativePath="VNCHelp.cpp">
+					RelativePath="VNCHelp.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\vncProperties.cpp">
+					RelativePath=".\vncProperties.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\vncTimedMsgBox.cpp">
+					RelativePath=".\vncTimedMsgBox.cpp"
+					>
 				</File>
 			</Filter>
 		</Filter>
 		<Filter
 			Name="Headers"
-			Filter=".h">
+			Filter=".h"
+			>
 			<File
-				RelativePath="AdministrationControls.h">
+				RelativePath="AdministrationControls.h"
+				>
 			</File>
 			<File
-				RelativePath=".\d3des.h">
+				RelativePath=".\d3des.h"
+				>
 			</File>
 			<File
-				RelativePath="FileTransferItemInfo.h">
+				RelativePath="FileTransferItemInfo.h"
+				>
 			</File>
 			<File
-				RelativePath="IncomingConnectionsControls.h">
+				RelativePath="IncomingConnectionsControls.h"
+				>
 			</File>
 			<File
-				RelativePath="InputHandlingControls.h">
+				RelativePath="InputHandlingControls.h"
+				>
 			</File>
 			<File
-				RelativePath=".\keysymdef.h">
+				RelativePath=".\keysymdef.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Log.h">
+				RelativePath=".\Log.h"
+				>
 			</File>
 			<File
-				RelativePath="MatchWindow.h">
+				RelativePath="MatchWindow.h"
+				>
 			</File>
 			<File
-				RelativePath=".\MinMax.h">
+				RelativePath=".\MinMax.h"
+				>
 			</File>
 			<File
-				RelativePath="PollControls.h">
+				RelativePath=".\ParseHost.h"
+				>
 			</File>
 			<File
-				RelativePath="QuerySettingsControls.h">
+				RelativePath="PollControls.h"
+				>
 			</File>
 			<File
-				RelativePath=".\RectList.h">
+				RelativePath="QuerySettingsControls.h"
+				>
 			</File>
 			<File
-				RelativePath=".\resource.h">
+				RelativePath=".\RectList.h"
+				>
 			</File>
 			<File
-				RelativePath=".\rfb.h">
+				RelativePath=".\resource.h"
+				>
 			</File>
 			<File
-				RelativePath=".\rfbproto.h">
+				RelativePath=".\rfb.h"
+				>
 			</File>
 			<File
-				RelativePath="SharedDesktopArea.h">
+				RelativePath=".\rfbproto.h"
+				>
 			</File>
 			<File
-				RelativePath=".\stdhdrs.h">
+				RelativePath="SharedDesktopArea.h"
+				>
 			</File>
 			<File
-				RelativePath=".\translate.h">
+				RelativePath=".\stdhdrs.h"
+				>
 			</File>
 			<File
-				RelativePath="VideoDriver.h">
+				RelativePath=".\translate.h"
+				>
 			</File>
 			<File
-				RelativePath=".\vnc.hh">
+				RelativePath="VideoDriver.h"
+				>
 			</File>
 			<File
-				RelativePath=".\vnc.idl">
+				RelativePath=".\vnc.hh"
+				>
+			</File>
+			<File
+				RelativePath=".\vnc.idl"
+				>
 				<FileConfiguration
 					Name="Release|Win32"
-					ExcludedFromBuild="TRUE">
+					ExcludedFromBuild="true"
+					>
 					<Tool
 						Name="VCMIDLTool"
-						TargetEnvironment="1"/>
+						TargetEnvironment="1"
+					/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
-					ExcludedFromBuild="TRUE">
+					ExcludedFromBuild="true"
+					>
 					<Tool
 						Name="VCMIDLTool"
-						TargetEnvironment="1"/>
+						TargetEnvironment="1"
+					/>
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\vncAbout.h">
+				RelativePath=".\vncAbout.h"
+				>
 			</File>
 			<File
-				RelativePath=".\vncAcceptDialog.h">
+				RelativePath=".\vncAcceptDialog.h"
+				>
 			</File>
 			<File
-				RelativePath=".\vncauth.h">
+				RelativePath=".\vncauth.h"
+				>
 			</File>
 			<File
-				RelativePath=".\vncBuffer.h">
+				RelativePath=".\vncBuffer.h"
+				>
 			</File>
 			<File
-				RelativePath=".\vncClient.h">
+				RelativePath=".\vncClient.h"
+				>
 			</File>
 			<File
-				RelativePath=".\vncConnDialog.h">
+				RelativePath=".\vncConnDialog.h"
+				>
 			</File>
 			<File
-				RelativePath=".\vncCorbaConnect.h">
+				RelativePath=".\vncCorbaConnect.h"
+				>
 			</File>
 			<File
-				RelativePath=".\vncDesktop.h">
+				RelativePath=".\vncDesktop.h"
+				>
 			</File>
 			<File
-				RelativePath=".\vncEncodeCoRRE.h">
+				RelativePath=".\vncEncodeCoRRE.h"
+				>
 			</File>
 			<File
-				RelativePath=".\vncEncodeHexT.h">
+				RelativePath=".\vncEncodeHexT.h"
+				>
 			</File>
 			<File
-				RelativePath=".\vncEncoder.h">
+				RelativePath=".\vncEncoder.h"
+				>
 			</File>
 			<File
-				RelativePath=".\vncEncodeRRE.h">
+				RelativePath=".\vncEncodeRRE.h"
+				>
 			</File>
 			<File
-				RelativePath=".\vncEncodeTight.h">
+				RelativePath=".\vncEncodeTight.h"
+				>
 			</File>
 			<File
-				RelativePath=".\vncEncodeZlib.h">
+				RelativePath=".\vncEncodeZlib.h"
+				>
 			</File>
 			<File
-				RelativePath=".\vncEncodeZlibHex.h">
+				RelativePath=".\vncEncodeZlibHex.h"
+				>
 			</File>
 			<File
-				RelativePath="VNCHelp.h">
+				RelativePath="VNCHelp.h"
+				>
 			</File>
 			<File
-				RelativePath=".\vncHTTPConnect.h">
+				RelativePath=".\vncHTTPConnect.h"
+				>
 			</File>
 			<File
-				RelativePath=".\vncInstHandler.h">
+				RelativePath=".\vncInstHandler.h"
+				>
 			</File>
 			<File
-				RelativePath=".\vncKeymap.h">
+				RelativePath=".\vncKeymap.h"
+				>
 			</File>
 			<File
-				RelativePath=".\vncMenu.h">
+				RelativePath=".\vncMenu.h"
+				>
 			</File>
 			<File
-				RelativePath=".\vncPasswd.h">
+				RelativePath=".\vncPasswd.h"
+				>
 			</File>
 			<File
-				RelativePath=".\vncProperties.h">
+				RelativePath=".\vncProperties.h"
+				>
 			</File>
 			<File
-				RelativePath=".\vncRegion.h">
+				RelativePath=".\vncRegion.h"
+				>
 			</File>
 			<File
-				RelativePath=".\vncServer.h">
+				RelativePath=".\vncServer.h"
+				>
 			</File>
 			<File
-				RelativePath=".\vncService.h">
+				RelativePath=".\vncService.h"
+				>
 			</File>
 			<File
-				RelativePath=".\vncSockConnect.h">
+				RelativePath=".\vncSockConnect.h"
+				>
 			</File>
 			<File
-				RelativePath=".\vncTimedMsgBox.h">
+				RelativePath=".\vncTimedMsgBox.h"
+				>
 			</File>
 			<File
-				RelativePath=".\VSocket.h">
+				RelativePath=".\VSocket.h"
+				>
 			</File>
 			<File
-				RelativePath=".\VTypes.h">
+				RelativePath=".\VTypes.h"
+				>
 			</File>
 			<File
-				RelativePath="WallpaperUtils.h">
+				RelativePath="WallpaperUtils.h"
+				>
 			</File>
 			<File
-				RelativePath=".\WinVNC.h">
+				RelativePath=".\WinVNC.h"
+				>
 			</File>
 		</Filter>
 		<Filter
 			Name="Resources"
-			Filter="">
+			>
 			<File
-				RelativePath=".\res\icon1.ico">
+				RelativePath=".\res\icon1.ico"
+				>
 			</File>
 			<File
-				RelativePath=".\res\vnc.bmp">
+				RelativePath=".\res\vnc.bmp"
+				>
 			</File>
 			<File
-				RelativePath=".\res\WinVNC.ico">
+				RelativePath=".\res\WinVNC.ico"
+				>
 			</File>
 		</Filter>
 		<Filter
 			Name="Java Classes"
-			Filter=".class, .jar">
+			Filter=".class, .jar"
+			>
 			<File
-				RelativePath=".\res\AuthPanel.class">
+				RelativePath=".\res\AuthPanel.class"
+				>
 			</File>
 			<File
-				RelativePath=".\res\ButtonPanel.class">
+				RelativePath=".\res\ButtonPanel.class"
+				>
 			</File>
 			<File
-				RelativePath=".\res\ClipboardFrame.class">
+				RelativePath=".\res\ClipboardFrame.class"
+				>
 			</File>
 			<File
-				RelativePath=".\res\DesCipher.class">
+				RelativePath=".\res\DesCipher.class"
+				>
 			</File>
 			<File
-				RelativePath=".\res\OptionsFrame.class">
+				RelativePath=".\res\OptionsFrame.class"
+				>
 			</File>
 			<File
-				RelativePath=".\res\RecordingFrame.class">
+				RelativePath=".\res\RecordingFrame.class"
+				>
 			</File>
 			<File
-				RelativePath=".\res\RfbProto.class">
+				RelativePath=".\res\RfbProto.class"
+				>
 			</File>
 			<File
-				RelativePath=".\res\SessionRecorder.class">
+				RelativePath=".\res\SessionRecorder.class"
+				>
 			</File>
 			<File
-				RelativePath=".\res\VncCanvas.class">
+				RelativePath=".\res\VncCanvas.class"
+				>
 			</File>
 			<File
-				RelativePath=".\res\VncViewer.class">
+				RelativePath=".\res\VncViewer.class"
+				>
 			</File>
 			<File
-				RelativePath=".\res\VncViewer.jar">
+				RelativePath=".\res\VncViewer.jar"
+				>
 			</File>
 		</Filter>
 		<File
-			RelativePath=".\res\AuthUnixLoginPanel.class">
+			RelativePath=".\res\AuthUnixLoginPanel.class"
+			>
 		</File>
 		<File
-			RelativePath=".\res\bitmap1.bmp">
+			RelativePath=".\res\bitmap1.bmp"
+			>
 		</File>
 		<File
-			RelativePath=".\res\bitmap2.bmp">
+			RelativePath=".\res\bitmap2.bmp"
+			>
 		</File>
 		<File
-			RelativePath=".\res\bitmap3.bmp">
+			RelativePath=".\res\bitmap3.bmp"
+			>
 		</File>
 		<File
-			RelativePath=".\BUILDING.txt">
+			RelativePath=".\BUILDING.txt"
+			>
 		</File>
 		<File
-			RelativePath=".\res\CapabilityInfo.class">
+			RelativePath=".\res\CapabilityInfo.class"
+			>
 		</File>
 		<File
-			RelativePath=".\res\CapsContainer.class">
+			RelativePath=".\res\CapsContainer.class"
+			>
 		</File>
 		<File
-			RelativePath=".\res\cursor1.cur">
+			RelativePath=".\res\cursor1.cur"
+			>
 		</File>
 		<File
-			RelativePath=".\History.txt">
+			RelativePath=".\History.txt"
+			>
 		</File>
 		<File
-			RelativePath=".\res\ico00001.ico">
+			RelativePath=".\res\ico00001.ico"
+			>
 		</File>
 		<File
-			RelativePath=".\res\ico00002.ico">
+			RelativePath=".\res\ico00002.ico"
+			>
 		</File>
 		<File
-			RelativePath=".\res\ico00003.ico">
+			RelativePath=".\res\ico00003.ico"
+			>
 		</File>
 		<File
-			RelativePath=".\res\ico00004.ico">
+			RelativePath=".\res\ico00004.ico"
+			>
 		</File>
 		<File
-			RelativePath=".\res\ReloginPanel.class">
+			RelativePath=".\res\ReloginPanel.class"
+			>
 		</File>
 		<File
-			RelativePath=".\res\SocketFactory.class">
+			RelativePath=".\res\SocketFactory.class"
+			>
 		</File>
 		<File
-			RelativePath=".\res\tightvnc.bmp">
+			RelativePath=".\res\tightvnc.bmp"
+			>
 		</File>
 	</Files>
 	<Globals>

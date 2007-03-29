@@ -1694,9 +1694,9 @@ class VncCanvas extends Canvas
 		result = cm8.getRGB(pixBuf[i]);
 	      } else {
 		result = 0xFF000000 |
-		  (pixBuf[i * 4 + 1] & 0xFF) << 16 |
-		  (pixBuf[i * 4 + 2] & 0xFF) << 8 |
-		  (pixBuf[i * 4 + 3] & 0xFF);
+		  (pixBuf[i * 4 + 2] & 0xFF) << 16 |
+		  (pixBuf[i * 4 + 1] & 0xFF) << 8 |
+		  (pixBuf[i * 4] & 0xFF);
 	      }
 	    } else {
 	      result = 0;	// Transparent pixel
@@ -1710,9 +1710,9 @@ class VncCanvas extends Canvas
 	      result = cm8.getRGB(pixBuf[i]);
 	    } else {
 	      result = 0xFF000000 |
-		(pixBuf[i * 4 + 1] & 0xFF) << 16 |
-		(pixBuf[i * 4 + 2] & 0xFF) << 8 |
-		(pixBuf[i * 4 + 3] & 0xFF);
+		(pixBuf[i * 4 + 2] & 0xFF) << 16 |
+		(pixBuf[i * 4 + 1] & 0xFF) << 8 |
+		(pixBuf[i * 4] & 0xFF);
 	    }
 	  } else {
 	    result = 0;		// Transparent pixel

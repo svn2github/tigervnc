@@ -815,7 +815,14 @@ public class VncViewer extends java.applet.Applet
   //
 
   synchronized public void disconnect() {
-    System.out.println("Disconnect");
+    System.out.println("Disconnecting");
+
+    if (vc != null) {
+      System.out.println("Statistics: " + vc.statNumUpdates + " updates (" +
+                         vc.statNumPixelRects + " + " +
+                         (vc.statNumTotalRects - vc.statNumPixelRects) +
+                         " rectangles)");
+    }
 
     if (rfb != null && !rfb.closed())
       rfb.close();

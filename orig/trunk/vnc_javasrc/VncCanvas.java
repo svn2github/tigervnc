@@ -54,6 +54,11 @@ class VncCanvas extends Canvas
   byte[] pixels8;
   int[] pixels24;
 
+  // Update statistics.
+  int statNumUpdates = 0;       // counter for FramebufferUpdate messages
+  int statNumTotalRects = 0;    // rectangles in FramebufferUpdate messages
+  int statNumPixelRects = 0;    // the same, but excluding pseudo-rectangles
+
   // ZRLE encoder's data.
   byte[] zrleBuf;
   int zrleBufLen = 0;
@@ -367,11 +372,15 @@ class VncCanvas extends Canvas
       // Process the message depending on its type.
       switch (msgType) {
       case RfbProto.FramebufferUpdate:
+	statNumUpdates++;
+
 	rfb.readFramebufferUpdate();
 
 	boolean cursorPosReceived = false;
 
 	for (int i = 0; i < rfb.updateNRects; i++) {
+	  statNumTotalRects++;
+
 	  rfb.readFramebufferUpdateRectHdr();
 	  int rx = rfb.updateRectX, ry = rfb.updateRectY;
 	  int rw = rfb.updateRectW, rh = rfb.updateRectH;
@@ -428,6 +437,7 @@ class VncCanvas extends Canvas
 	    throw new Exception("Unknown RFB rectangle encoding " +
 				rfb.updateRectEncoding);
 	  }
+	  statNumPixelRects++;
 
           rfb.stopTiming();
 	}

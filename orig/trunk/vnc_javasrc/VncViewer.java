@@ -818,10 +818,23 @@ public class VncViewer extends java.applet.Applet
     System.out.println("Disconnecting");
 
     if (vc != null) {
-      System.out.println("Statistics: " + vc.statNumUpdates + " updates (" +
-                         vc.statNumPixelRects + " + " +
-                         (vc.statNumTotalRects - vc.statNumPixelRects) +
-                         " rectangles)");
+      double sec = (System.currentTimeMillis() - vc.statStartTime) / 1000.0;
+      double rate = Math.round(vc.statNumUpdates / sec * 100) / 100.0;
+      int nRealRects = vc.statNumPixelRects;
+      int nPseudoRects = vc.statNumTotalRects - vc.statNumPixelRects;
+      System.out.println("Updates received: " + vc.statNumUpdates + " (" +
+                         nRealRects + " + " + nPseudoRects +
+                         " rectangles), " + rate + " updates/sec");
+      int numRectsOther = nRealRects - vc.statNumRectsTight
+        - vc.statNumRectsZRLE - vc.statNumRectsHextile
+        - vc.statNumRectsRaw - vc.statNumRectsCopy;
+      System.out.println("Rectangles:" +
+                         " Tight=" + vc.statNumRectsTight +
+                         " ZRLE=" + vc.statNumRectsZRLE +
+                         " Hextile=" + vc.statNumRectsHextile +
+                         " Raw=" + vc.statNumRectsRaw +
+                         " CopyRect=" + vc.statNumRectsCopy +
+                         " other=" + numRectsOther);
     }
 
     if (rfb != null && !rfb.closed())

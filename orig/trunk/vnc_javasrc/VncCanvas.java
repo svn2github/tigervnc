@@ -55,9 +55,15 @@ class VncCanvas extends Canvas
   int[] pixels24;
 
   // Update statistics.
+  long statStartTime;           // time on first framebufferUpdateRequest
   int statNumUpdates = 0;       // counter for FramebufferUpdate messages
   int statNumTotalRects = 0;    // rectangles in FramebufferUpdate messages
   int statNumPixelRects = 0;    // the same, but excluding pseudo-rectangles
+  int statNumRectsTight = 0;
+  int statNumRectsZRLE = 0;
+  int statNumRectsHextile = 0;
+  int statNumRectsRaw = 0;
+  int statNumRectsCopy = 0;
 
   // ZRLE encoder's data.
   byte[] zrleBuf;
@@ -360,6 +366,8 @@ class VncCanvas extends Canvas
     rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
 				      rfb.framebufferHeight, false);
 
+    statStartTime = System.currentTimeMillis();
+
     //
     // main dispatch loop
     //
@@ -410,9 +418,11 @@ class VncCanvas extends Canvas
 
 	  switch (rfb.updateRectEncoding) {
 	  case RfbProto.EncodingRaw:
+	    statNumRectsRaw++;
 	    handleRawRect(rx, ry, rw, rh);
 	    break;
 	  case RfbProto.EncodingCopyRect:
+	    statNumRectsCopy++;
 	    handleCopyRect(rx, ry, rw, rh);
 	    break;
 	  case RfbProto.EncodingRRE:
@@ -422,15 +432,18 @@ class VncCanvas extends Canvas
 	    handleCoRRERect(rx, ry, rw, rh);
 	    break;
 	  case RfbProto.EncodingHextile:
+	    statNumRectsHextile++;
 	    handleHextileRect(rx, ry, rw, rh);
 	    break;
 	  case RfbProto.EncodingZRLE:
+	    statNumRectsZRLE++;
 	    handleZRLERect(rx, ry, rw, rh);
 	    break;
 	  case RfbProto.EncodingZlib:
             handleZlibRect(rx, ry, rw, rh);
 	    break;
 	  case RfbProto.EncodingTight:
+	    statNumRectsTight++;
 	    handleTightRect(rx, ry, rw, rh);
 	    break;
 	  default:

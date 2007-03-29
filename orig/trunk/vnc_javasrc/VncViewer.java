@@ -461,9 +461,6 @@ public class VncViewer extends java.applet.Applet
   //
   // Send current encoding list to the RFB server.
   //
-  // FIXME: Request ZRLE in auto encoding selection, if we are not
-  //        sure that Tight encoding is supported by the server.
-  //
 
   int[] encodingsSaved;
   int nEncodingsSaved;
@@ -479,8 +476,8 @@ public class VncViewer extends java.applet.Applet
     if (preferredEncoding == -1) {
       long kbitsPerSecond = rfb.kbitsPerSecond();
       if (nEncodingsSaved < 1) {
-        // Choose Tight encoding for the very first update.
-        System.out.println("Using Tight encoding");
+        // Choose Tight or ZRLE encoding for the very first update.
+        System.out.println("Using Tight/ZRLE encodings");
         preferredEncoding = RfbProto.EncodingTight;
       } else if (kbitsPerSecond > 2000 &&
                  encodingsSaved[0] != RfbProto.EncodingHextile) {
@@ -490,9 +487,9 @@ public class VncViewer extends java.applet.Applet
         preferredEncoding = RfbProto.EncodingHextile;
       } else if (kbitsPerSecond < 1000 &&
                  encodingsSaved[0] != RfbProto.EncodingTight) {
-        // Switch to Tight if the connection speed is below 1Mbps.
+        // Switch to Tight/ZRLE if the connection speed is below 1Mbps.
         System.out.println("Throughput " + kbitsPerSecond +
-                           " kbit/s - changing to Tight encoding");
+                           " kbit/s - changing to Tight/ZRLE encodings");
         preferredEncoding = RfbProto.EncodingTight;
       } else {
         // Don't change the encoder.
@@ -514,14 +511,14 @@ public class VncViewer extends java.applet.Applet
       encodings[nEncodings++] = RfbProto.EncodingCopyRect;
     }
 
-    if (preferredEncoding != RfbProto.EncodingHextile) {
-      encodings[nEncodings++] = RfbProto.EncodingHextile;
-    }
     if (preferredEncoding != RfbProto.EncodingTight) {
       encodings[nEncodings++] = RfbProto.EncodingTight;
     }
     if (preferredEncoding != RfbProto.EncodingZRLE) {
       encodings[nEncodings++] = RfbProto.EncodingZRLE;
+    }
+    if (preferredEncoding != RfbProto.EncodingHextile) {
+      encodings[nEncodings++] = RfbProto.EncodingHextile;
     }
     if (preferredEncoding != RfbProto.EncodingZlib) {
       encodings[nEncodings++] = RfbProto.EncodingZlib;

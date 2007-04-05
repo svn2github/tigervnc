@@ -86,6 +86,7 @@ public class VncViewer extends java.applet.Applet
   int deferScreenUpdates;
   int deferCursorUpdates;
   int deferUpdateRequests;
+  boolean continuousUpdates;
 
   // Reference to this applet for inter-applet communication.
   public static java.applet.Applet refApplet;
@@ -727,6 +728,12 @@ public class VncViewer extends java.applet.Applet
     deferScreenUpdates = readIntParameter("Defer screen updates", 20);
     deferCursorUpdates = readIntParameter("Defer cursor updates", 10);
     deferUpdateRequests = readIntParameter("Defer update requests", 50);
+
+    // Should we request continuous updates (if supported by the server)?
+    continuousUpdates = false;
+    str = readParameter("Continuous Updates", false);
+    if (str != null && str.equalsIgnoreCase("Yes"))
+      continuousUpdates = true;
 
     // SocketFactory.
     socketFactory = readParameter("SocketFactory", false);

@@ -366,6 +366,11 @@ class VncCanvas extends Canvas
     rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
 				      rfb.framebufferHeight, false);
 
+    if (viewer.continuousUpdates) {
+      rfb.tryEnableContinuousUpdates(0, 0, rfb.framebufferWidth,
+                                     rfb.framebufferHeight);
+    }
+
     statStartTime = System.currentTimeMillis();
 
     //
@@ -486,9 +491,13 @@ class VncCanvas extends Canvas
 
         viewer.autoSelectEncodings();
 
-	rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
-					  rfb.framebufferHeight,
-					  !fullUpdateNeeded);
+        if (fullUpdateNeeded) {
+          rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
+                                            rfb.framebufferHeight, false);
+        } else if (!rfb.continuousUpdatesActive) {
+          rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
+                                            rfb.framebufferHeight, true);
+        }
 
 	break;
 
@@ -503,6 +512,13 @@ class VncCanvas extends Canvas
 	String s = rfb.readServerCutText();
 	viewer.clipboard.setCutText(s);
 	break;
+
+      case RfbProto.EndOfContinuousUpdates:
+        rfb.endOfContinuousUpdates();
+        // From this point, we ask for updates explicitly.
+        rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
+                                          rfb.framebufferHeight, true);
+        break;
 
       default:
 	throw new Exception("Unknown RFB message type " + msgType);

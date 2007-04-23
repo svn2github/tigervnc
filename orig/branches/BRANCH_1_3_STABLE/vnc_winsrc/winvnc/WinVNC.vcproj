@@ -228,6 +228,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\DynamicFn.cpp"
+				>
+			</File>
+			<File
 				RelativePath="FileTransferItemInfo.cpp"
 				>
 			</File>
@@ -317,6 +321,10 @@
 			</File>
 			<File
 				RelativePath=".\translate.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\TsSessions.cpp"
 				>
 			</File>
 			<File
@@ -523,6 +531,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\DynamicFn.h"
+				>
+			</File>
+			<File
 				RelativePath="FileTransferItemInfo.h"
 				>
 			</File>
@@ -588,6 +600,10 @@
 			</File>
 			<File
 				RelativePath=".\translate.h"
+				>
+			</File>
+			<File
+				RelativePath=".\TsSessions.h"
 				>
 			</File>
 			<File

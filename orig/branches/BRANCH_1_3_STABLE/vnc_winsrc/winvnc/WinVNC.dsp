@@ -164,6 +164,10 @@ SOURCE=.\d3des.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\DynamicFn.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\FileTransferItemInfo.cpp
 # End Source File
 # Begin Source File
@@ -285,6 +289,10 @@ SOURCE=.\tabletranstemplate.cpp
 # Begin Source File
 
 SOURCE=.\translate.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\TsSessions.cpp
 # End Source File
 # Begin Source File
 
@@ -428,6 +436,10 @@ SOURCE=.\d3des.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\DynamicFn.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\FileTransferItemInfo.h
 # End Source File
 # Begin Source File
@@ -493,6 +505,10 @@ SOURCE=.\stdhdrs.h
 # Begin Source File
 
 SOURCE=.\translate.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\TsSessions.h
 # End Source File
 # Begin Source File
 

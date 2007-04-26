@@ -1,5 +1,5 @@
 
-  TightVNC version 1.3.8.9
+  TightVNC version 1.3.9
   Source distribution for Windows platforms
 
 ======================================================================

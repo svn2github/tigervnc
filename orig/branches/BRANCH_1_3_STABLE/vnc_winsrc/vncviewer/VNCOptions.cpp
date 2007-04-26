@@ -1390,7 +1390,7 @@ void VNCOptions::EnableLog(HWND hwnd, bool enable)
 
 void VNCOptions::Lim(HWND hwnd, int control, DWORD min, DWORD max)
 {
-	int buf;
+	DWORD buf;
 	int error;
 	buf=GetDlgItemInt(hwnd, control,
 					&error, FALSE);

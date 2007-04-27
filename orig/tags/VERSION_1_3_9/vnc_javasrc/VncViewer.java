@@ -86,7 +86,6 @@ public class VncViewer extends java.applet.Applet
   int deferScreenUpdates;
   int deferCursorUpdates;
   int deferUpdateRequests;
-  boolean continuousUpdates;
 
   // Reference to this applet for inter-applet communication.
   public static java.applet.Applet refApplet;
@@ -729,12 +728,6 @@ public class VncViewer extends java.applet.Applet
     deferCursorUpdates = readIntParameter("Defer cursor updates", 10);
     deferUpdateRequests = readIntParameter("Defer update requests", 50);
 
-    // Should we request continuous updates (if supported by the server)?
-    continuousUpdates = false;
-    str = readParameter("Continuous Updates", false);
-    if (str != null && str.equalsIgnoreCase("Yes"))
-      continuousUpdates = true;
-
     // SocketFactory.
     socketFactory = readParameter("SocketFactory", false);
   }
@@ -822,27 +815,7 @@ public class VncViewer extends java.applet.Applet
   //
 
   synchronized public void disconnect() {
-    System.out.println("Disconnecting");
-
-    if (vc != null) {
-      double sec = (System.currentTimeMillis() - vc.statStartTime) / 1000.0;
-      double rate = Math.round(vc.statNumUpdates / sec * 100) / 100.0;
-      int nRealRects = vc.statNumPixelRects;
-      int nPseudoRects = vc.statNumTotalRects - vc.statNumPixelRects;
-      System.out.println("Updates received: " + vc.statNumUpdates + " (" +
-                         nRealRects + " + " + nPseudoRects +
-                         " rectangles), " + rate + " updates/sec");
-      int numRectsOther = nRealRects - vc.statNumRectsTight
-        - vc.statNumRectsZRLE - vc.statNumRectsHextile
-        - vc.statNumRectsRaw - vc.statNumRectsCopy;
-      System.out.println("Rectangles:" +
-                         " Tight=" + vc.statNumRectsTight +
-                         " ZRLE=" + vc.statNumRectsZRLE +
-                         " Hextile=" + vc.statNumRectsHextile +
-                         " Raw=" + vc.statNumRectsRaw +
-                         " CopyRect=" + vc.statNumRectsCopy +
-                         " other=" + numRectsOther);
-    }
+    System.out.println("Disconnect");
 
     if (rfb != null && !rfb.closed())
       rfb.close();

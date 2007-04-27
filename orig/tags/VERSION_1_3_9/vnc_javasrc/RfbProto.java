@@ -72,20 +72,14 @@ class RfbProto {
     VncAuthFailed  = 1,
     VncAuthTooMany = 2;
 
-  // Standard server-to-client messages
+  // Server-to-client messages
   final static int
     FramebufferUpdate   = 0,
     SetColourMapEntries = 1,
     Bell                = 2,
     ServerCutText       = 3;
 
-  // Non-standard server-to-client messages
-  final static int
-    EndOfContinuousUpdates = 150;
-  final static String
-    SigEndOfContinuousUpdates = "CUS_EOCU";
-
-  // Standard client-to-server messages
+  // Client-to-server messages
   final static int
     SetPixelFormat           = 0,
     FixColourMapEntries      = 1,
@@ -94,12 +88,6 @@ class RfbProto {
     KeyboardEvent            = 4,
     PointerEvent             = 5,
     ClientCutText            = 6;
-
-  // Non-standard client-to-server messages
-  final static int
-    EnableContinuousUpdates = 150;
-  final static String
-    SigEnableContinuousUpdates = "CUC_ENCU";
 
   // Supported encodings and pseudo-encodings
   final static int
@@ -206,14 +194,6 @@ class RfbProto {
   CapsContainer tunnelCaps, authCaps;
   CapsContainer serverMsgCaps, clientMsgCaps;
   CapsContainer encodingCaps;
-
-  // "Continuous updates" is a TightVNC-specific feature that allows
-  // receiving framebuffer updates continuously, without sending update
-  // requests. The variable below tracks the state of this feature.
-  // Initially, continuous updates are disabled. They can be enabled
-  // by calling tryEnableContinuousUpdates() method, and only if this
-  // feature is supported by the server.
-  boolean continuousUpdatesActive = false;
 
   // If true, informs that the RFB socket was closed.
   private boolean closed;
@@ -478,16 +458,6 @@ class RfbProto {
 		 "No authentication");
     authCaps.add(AuthVNC, StandardVendor, SigAuthVNC,
 		 "Standard VNC password authentication");
-
-    // Supported non-standard server-to-client messages
-    serverMsgCaps.add(EndOfContinuousUpdates, TightVncVendor,
-                      SigEndOfContinuousUpdates,
-                      "End of continuous updates notification");
-
-    // Supported non-standard client-to-server messages
-    clientMsgCaps.add(EnableContinuousUpdates, TightVncVendor,
-                      SigEnableContinuousUpdates,
-                      "Enable/disable continuous updates");
 
     // Supported encoding types
     encodingCaps.add(EncodingCopyRect, StandardVendor,
@@ -1244,72 +1214,6 @@ class RfbProto {
       writeKeyEvent(0xffe9, (newModifiers & ALT_MASK) != 0);
 
     oldModifiers = newModifiers;
-  }
-
-
-  //
-  // Enable continuous updates for the specified area of the screen (but
-  // only if EnableContinuousUpdates message is supported by the server).
-  //
-
-  void tryEnableContinuousUpdates(int x, int y, int w, int h)
-    throws IOException
-  {
-    if (!clientMsgCaps.isEnabled(EnableContinuousUpdates)) {
-      System.out.println("Continuous updates not supported by the server");
-      return;
-    }
-
-    byte[] b = new byte[10];
-
-    b[0] = (byte) EnableContinuousUpdates;
-    b[1] = (byte) 1; // enable
-    b[2] = (byte) ((x >> 8) & 0xff);
-    b[3] = (byte) (x & 0xff);
-    b[4] = (byte) ((y >> 8) & 0xff);
-    b[5] = (byte) (y & 0xff);
-    b[6] = (byte) ((w >> 8) & 0xff);
-    b[7] = (byte) (w & 0xff);
-    b[8] = (byte) ((h >> 8) & 0xff);
-    b[9] = (byte) (h & 0xff);
-
-    os.write(b);
-
-    continuousUpdatesActive = true;
-    System.out.println("Continuous updates activated");
-  }
-
-
-  //
-  // Disable continuous updates (only if EnableContinuousUpdates message
-  // is supported by the server).
-  //
-
-  void tryDisableContinuousUpdates() throws IOException
-  {
-    if (clientMsgCaps.isEnabled(EnableContinuousUpdates)) {
-      byte[] b = { (byte)EnableContinuousUpdates, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-      os.write(b);
-
-      // If the server did not advertise support for the
-      // EndOfContinuousUpdates message (should not normally happen
-      // when EnableContinuousUpdates is supported), then we clear
-      // 'continuousUpdatesActive' variable immediately. Normally,
-      // it will be reset on receiving EndOfContinuousUpdates message
-      // from the server.
-      if (!serverMsgCaps.isEnabled(EndOfContinuousUpdates))
-        continuousUpdatesActive = false;
-    }
-  }
-
-
-  //
-  // Process EndOfContinuousUpdates message received from the server.
-  //
-
-  void endOfContinuousUpdates()
-  {
-    continuousUpdatesActive = false;
   }
 
 

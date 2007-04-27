@@ -54,17 +54,6 @@ class VncCanvas extends Canvas
   byte[] pixels8;
   int[] pixels24;
 
-  // Update statistics.
-  long statStartTime;           // time on first framebufferUpdateRequest
-  int statNumUpdates = 0;       // counter for FramebufferUpdate messages
-  int statNumTotalRects = 0;    // rectangles in FramebufferUpdate messages
-  int statNumPixelRects = 0;    // the same, but excluding pseudo-rectangles
-  int statNumRectsTight = 0;
-  int statNumRectsZRLE = 0;
-  int statNumRectsHextile = 0;
-  int statNumRectsRaw = 0;
-  int statNumRectsCopy = 0;
-
   // ZRLE encoder's data.
   byte[] zrleBuf;
   int zrleBufLen = 0;
@@ -366,13 +355,6 @@ class VncCanvas extends Canvas
     rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
 				      rfb.framebufferHeight, false);
 
-    if (viewer.continuousUpdates) {
-      rfb.tryEnableContinuousUpdates(0, 0, rfb.framebufferWidth,
-                                     rfb.framebufferHeight);
-    }
-
-    statStartTime = System.currentTimeMillis();
-
     //
     // main dispatch loop
     //
@@ -385,15 +367,11 @@ class VncCanvas extends Canvas
       // Process the message depending on its type.
       switch (msgType) {
       case RfbProto.FramebufferUpdate:
-	statNumUpdates++;
-
 	rfb.readFramebufferUpdate();
 
 	boolean cursorPosReceived = false;
 
 	for (int i = 0; i < rfb.updateNRects; i++) {
-	  statNumTotalRects++;
-
 	  rfb.readFramebufferUpdateRectHdr();
 	  int rx = rfb.updateRectX, ry = rfb.updateRectY;
 	  int rw = rfb.updateRectW, rh = rfb.updateRectH;
@@ -423,11 +401,9 @@ class VncCanvas extends Canvas
 
 	  switch (rfb.updateRectEncoding) {
 	  case RfbProto.EncodingRaw:
-	    statNumRectsRaw++;
 	    handleRawRect(rx, ry, rw, rh);
 	    break;
 	  case RfbProto.EncodingCopyRect:
-	    statNumRectsCopy++;
 	    handleCopyRect(rx, ry, rw, rh);
 	    break;
 	  case RfbProto.EncodingRRE:
@@ -437,25 +413,21 @@ class VncCanvas extends Canvas
 	    handleCoRRERect(rx, ry, rw, rh);
 	    break;
 	  case RfbProto.EncodingHextile:
-	    statNumRectsHextile++;
 	    handleHextileRect(rx, ry, rw, rh);
 	    break;
 	  case RfbProto.EncodingZRLE:
-	    statNumRectsZRLE++;
 	    handleZRLERect(rx, ry, rw, rh);
 	    break;
 	  case RfbProto.EncodingZlib:
             handleZlibRect(rx, ry, rw, rh);
 	    break;
 	  case RfbProto.EncodingTight:
-	    statNumRectsTight++;
 	    handleTightRect(rx, ry, rw, rh);
 	    break;
 	  default:
 	    throw new Exception("Unknown RFB rectangle encoding " +
 				rfb.updateRectEncoding);
 	  }
-	  statNumPixelRects++;
 
           rfb.stopTiming();
 	}
@@ -491,13 +463,9 @@ class VncCanvas extends Canvas
 
         viewer.autoSelectEncodings();
 
-        if (fullUpdateNeeded) {
-          rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
-                                            rfb.framebufferHeight, false);
-        } else if (!rfb.continuousUpdatesActive) {
-          rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
-                                            rfb.framebufferHeight, true);
-        }
+	rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
+					  rfb.framebufferHeight,
+					  !fullUpdateNeeded);
 
 	break;
 
@@ -512,13 +480,6 @@ class VncCanvas extends Canvas
 	String s = rfb.readServerCutText();
 	viewer.clipboard.setCutText(s);
 	break;
-
-      case RfbProto.EndOfContinuousUpdates:
-        rfb.endOfContinuousUpdates();
-        // From this point, we ask for updates explicitly.
-        rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
-                                          rfb.framebufferHeight, true);
-        break;
 
       default:
 	throw new Exception("Unknown RFB message type " + msgType);

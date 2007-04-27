@@ -68,7 +68,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
+				PreprocessorDefinitions="NDEBUG;WITH_JAVA_VIEWER"
 				Culture="1033"
 			/>
 			<Tool
@@ -168,7 +168,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG"
+				PreprocessorDefinitions="_DEBUG;WITH_JAVA_VIEWER"
 				Culture="2057"
 			/>
 			<Tool

@@ -724,6 +724,14 @@ SOURCE=.\res\DesCipher.class
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\InStream.class
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\MemInStream.class
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\OptionsFrame.class
 # End Source File
 # Begin Source File
@@ -761,6 +769,10 @@ SOURCE=.\res\VncViewer.class
 # Begin Source File
 
 SOURCE=.\res\VncViewer.jar
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\ZlibInStream.class
 # End Source File
 # End Group
 # Begin Source File

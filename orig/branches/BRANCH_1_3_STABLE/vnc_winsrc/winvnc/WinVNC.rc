@@ -768,6 +768,27 @@ IDR_CAPSCONTAINER_CLASS$(WITH_JAVA_VIEWER) JAVACLASS DISCARDABLE   "res\\CapsCon
 IDR_CAPSCONTAINER_CLASS JAVACLASS DISCARDABLE   "res\\CapsContainer.class"
 #endif
 #endif
+#if defined(APSTUDIO_INVOKED) || defined(WITH_JAVA_VIEWER)
+#if defined(APSTUDIO_INVOKED)
+IDR_INSTREAM_CLASS$(WITH_JAVA_VIEWER) JAVACLASS DISCARDABLE   "res\\InStream.class"
+#else
+IDR_INSTREAM_CLASS      JAVACLASS DISCARDABLE   "res\\InStream.class"
+#endif
+#endif
+#if defined(APSTUDIO_INVOKED) || defined(WITH_JAVA_VIEWER)
+#if defined(APSTUDIO_INVOKED)
+IDR_MEMINSTREAM_CLASS$(WITH_JAVA_VIEWER) JAVACLASS DISCARDABLE   "res\\MemInStream.class"
+#else
+IDR_MEMINSTREAM_CLASS   JAVACLASS DISCARDABLE   "res\\MemInStream.class"
+#endif
+#endif
+#if defined(APSTUDIO_INVOKED) || defined(WITH_JAVA_VIEWER)
+#if defined(APSTUDIO_INVOKED)
+IDR_ZLIBINSTREAM_CLASS$(WITH_JAVA_VIEWER) JAVACLASS DISCARDABLE   "res\\ZlibInStream.class"
+#else
+IDR_ZLIBINSTREAM_CLASS  JAVACLASS DISCARDABLE   "res\\ZlibInStream.class"
+#endif
+#endif
 
 /////////////////////////////////////////////////////////////////////////////
 //

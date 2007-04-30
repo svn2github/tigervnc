@@ -21,17 +21,18 @@ BackColor2=clBlue
 
 ChangesAssociations=yes
 
-MinVersion=4.1,4.0sp3
-
 [Components]
 Name: "server"; Description: "TightVNC Server"; Types: full compact custom;
 Name: "viewer"; Description: "TightVNC Viewer"; Types: full compact custom;
 Name: "webdoc"; Description: "Web pages and documentation"; Types: full custom;
 
 [Files]
-Source: "WinVNC.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace; Components: server
-Source: "VNCHooks.dll"; DestDir: "{app}"; Flags: ignoreversion restartreplace; Components: server
-Source: "vncviewer.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: viewer
+Source: "WinVNC.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace; Components: server; MinVersion: 4.1,4.0
+Source: "VNCHooks.dll"; DestDir: "{app}"; Flags: ignoreversion restartreplace; Components: server; MinVersion: 4.1,4.0
+Source: "vncviewer.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: viewer; MinVersion: 4.1,4.0
+Source: "WinVNC_Win95.exe"; DestDir: "{app}"; DestName: WinVNC.exe; Flags: ignoreversion restartreplace; Components: server; OnlyBelowVersion: 4.1,4.0
+Source: "VNCHooks_Win95.dll"; DestDir: "{app}"; DestName: VNCHooks.dll; Flags: ignoreversion restartreplace; Components: server; OnlyBelowVersion: 4.1,4.0
+Source: "vncviewer_Win95.exe"; DestDir: "{app}"; DestName: vncviewer.exe; Flags: ignoreversion; Components: viewer; OnlyBelowVersion: 4.1,4.0
 Source: "README.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LICENCE.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "TightVNC.url"; DestDir: "{app}"; Flags: ignoreversion

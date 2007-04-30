@@ -143,6 +143,7 @@
 #define IDC_STATIC_DRVOPT               1100
 #define IDC_STATIC_QUERY                1101
 #define IDC_STATIC_LOGGING              1102
+#define IDC_BUILDTIME                   1103
 #define ID_PROPERTIES                   40001
 #define ID_CLOSE                        40002
 #define ID_KILLCLIENTS                  40003
@@ -157,7 +158,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        156
 #define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1103
+#define _APS_NEXT_CONTROL_VALUE         1104
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

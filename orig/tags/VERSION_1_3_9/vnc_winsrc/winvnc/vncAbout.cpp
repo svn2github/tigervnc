@@ -92,6 +92,9 @@ vncAbout::DialogProc(HWND hwnd,
 			SetWindowLong(hwnd, GWL_USERDATA, lParam);
 			_this = (vncAbout *) lParam;
 
+			// Set information about build time
+			SetDlgItemText(hwnd, IDC_BUILDTIME, g_buildTime);
+
 			// Show the dialog
 			SetForegroundWindow(hwnd);
 

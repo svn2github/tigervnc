@@ -21,6 +21,8 @@ BackColor2=clBlue
 
 ChangesAssociations=yes
 
+MinVersion=4.1,4.0sp3
+
 [Components]
 Name: "server"; Description: "TightVNC Server"; Types: full compact custom;
 Name: "viewer"; Description: "TightVNC Viewer"; Types: full compact custom;

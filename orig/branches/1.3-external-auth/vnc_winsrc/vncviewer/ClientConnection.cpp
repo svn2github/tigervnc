@@ -142,6 +142,8 @@ void ClientConnection::Init(VNCviewerApp *pApp)
 	m_hBitmap = NULL;
 	m_hPalette = NULL;
 	m_encPasswd[0] = '\0';
+	m_usernameExt[0] = '\0';
+	memset(m_encPasswdExt, 0, 2);	// set username and password lengths to zeroes
 
 	m_connDlg = NULL;
 
@@ -188,6 +190,8 @@ void ClientConnection::InitCapabilities()
 				   "No authentication");
 	m_authCaps.Add(rfbAuthVNC, rfbStandardVendor, sig_rfbAuthVNC,
 				   "Standard VNC password authentication");
+	m_authCaps.Add(rfbAuthExternal, rfbTightVncVendor, sig_rfbAuthExternal,
+				   "External authentication");
 
 	// Known server->client message types
 	m_serverMsgCaps.Add(rfbFileListData, rfbTightVncVendor,
@@ -1052,6 +1056,9 @@ void ClientConnection::Authenticate(CARD32 authScheme)
 	case rfbAuthVNC:
 		authFuncPtr = &ClientConnection::AuthenticateVNC;
 		break;
+	case rfbAuthExternal:
+		authFuncPtr = &ClientConnection::AuthenticateExternal;
+		break;
 	default:
 		vnclog.Print(0, _T("Unknown authentication scheme: %d\n"),
 					 (int)authScheme);
@@ -1178,6 +1185,88 @@ bool ClientConnection::AuthenticateVNC(char *errBuf, int errBufSize)
 	memset(passwd, 0, strlen(passwd));
 
 	WriteExact((char *) challenge, CHALLENGESIZE);
+
+	return true;
+}
+
+bool ClientConnection::AuthenticateExternal(char *errBuf, int errBufSize)
+{
+	if (m_encPasswdExt[0] == '\0' && m_encPasswdExt[1] == '\0') {
+		char username[256];
+		char passwd[256];
+
+		LoginAuthDialog ad(m_opts.m_display, "External Authentication", m_usernameExt);
+		ad.DoDialog();
+#ifndef UNDER_CE
+		strcpy(username, ad.m_username);
+		strcpy(passwd, ad.m_passwd);
+#else
+		// FIXME: Move wide-character translations to a separate class
+		int origlen = _tcslen(ad.m_username);
+		int newlen = WideCharToMultiByte(
+			CP_ACP,			// code page
+			0,				// performance and mapping flags
+			ad.m_username,	// address of wide-character string
+			origlen,		// number of characters in string
+			username,		// address of buffer for new string
+			255,			// size of buffer
+			NULL, NULL);
+		username[newlen]= '\0';
+		origlen = _tcslen(ad.m_passwd);
+		newlen = WideCharToMultiByte(
+			CP_ACP,			// code page
+			0,				// performance and mapping flags
+			ad.m_passwd,	// address of wide-character string
+			origlen,		// number of characters in string
+			passwd,			// address of buffer for new string
+			255,			// size of buffer
+			NULL, NULL);
+		passwd[newlen]= '\0';
+#endif
+		if (strlen(username) == 0) {
+			_snprintf(errBuf, errBufSize, "Empty user name");
+			return false;
+		}
+		if (strlen(passwd) == 0) {
+			_snprintf(errBuf, errBufSize, "Empty password");
+			return false;
+		}
+
+		CARD8 usernameLen = (CARD8)strlen(username);
+		CARD8 passwordLen = (CARD8)strlen(passwd);
+		WriteExact((char *)&usernameLen, sizeof(usernameLen));
+		WriteExact((char *)&passwordLen, sizeof(passwordLen));
+
+		int len = (usernameLen + passwordLen + 7) & 0xFFFFFFF8;
+		unsigned char *buf = new unsigned char[len];
+		memcpy(buf, username, usernameLen);
+		memcpy(buf + usernameLen, passwd, passwordLen);
+		memset(buf + usernameLen + passwordLen, '\0', len - (usernameLen + passwordLen));
+
+		// Encrypt and send the username/password pair
+		unsigned char key[8] = {11,110,60,254,61,210,245,92};
+		deskey(key, EN0);
+		for (int i = 0; i < len; i += 8)
+			des(buf + i, buf + i);
+		WriteExact((char *)buf, len);
+
+		// Remember encrypted username/password pair
+		m_encPasswdExt[0] = usernameLen;
+		m_encPasswdExt[1] = passwordLen;
+		strcpy(m_usernameExt, username);
+		memcpy(&m_encPasswdExt[2], buf, len);
+
+		// Lose the passwords from memory
+		memset(passwd, '\0', strlen(passwd));
+		memset(buf, '\0', len);
+		delete[] buf;
+	} else {
+		// Send encrypted username/password pair from the config file
+		CARD8 usernameLen = m_encPasswdExt[0];
+		CARD8 passwordLen = m_encPasswdExt[1];
+		int len = (usernameLen + passwordLen + 7) & 0xFFFFFFF8;
+		WriteExact((char *)m_encPasswdExt, 2 + len);
+	}
 
 	return true;
 }

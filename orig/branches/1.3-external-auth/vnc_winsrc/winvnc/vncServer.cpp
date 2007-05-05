@@ -908,6 +908,9 @@ vncServer::ValidPasswordsSet()
 BOOL
 vncServer::ValidPasswordsSet_nocache()
 {
+	if (ExternalAuthEnabled())
+		return TRUE;	// always allowing external auth if configured so
+
 	char passwd1[MAXPWLEN];
 	char passwd2[MAXPWLEN];
 	BOOL set1 = GetPassword(passwd1);
@@ -941,6 +944,9 @@ vncServer::ValidPasswordsEmpty()
 BOOL
 vncServer::ValidPasswordsEmpty_nocache()
 {
+	if (ExternalAuthEnabled())
+		return FALSE;	// a special case for external auth, just in case
+
 	if (AuthRequired())
 		return FALSE;	// empty passwords disallowed, always fail
 
@@ -959,6 +965,20 @@ vncServer::ValidPasswordsEmpty_nocache()
 		return TRUE;	// there are no passwords that are non-empty
 
 	return FALSE;		// at least one non-empty password
+}
+
+// External authentication
+void
+vncServer::EnableExternalAuth(BOOL enable)
+{
+	ResetPasswordsValidityInfo();
+	m_external_auth = enable;
+}
+
+BOOL
+vncServer::ExternalAuthEnabled()
+{
+	return m_external_auth;
 }
 
 // Remote input handling

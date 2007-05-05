@@ -103,6 +103,11 @@ public:
 	virtual BOOL NegotiateAuthentication(int authType);
 	virtual BOOL AuthenticateNone();
 	virtual BOOL AuthenticateVNC();
+	virtual BOOL AuthenticateExternal();
+	virtual BOOL VerifyExternalAuth(const char *username,
+									const char *password,
+									const char *local_ip,
+									const char *remote_ip);
 	virtual BOOL ReadClientInit();
 	virtual BOOL SendInteractionCaps();
 
@@ -228,6 +233,11 @@ vncClientThread::InitAuthenticate()
 			return FALSE;
 	}
 
+	if (m_client->m_protocol_tightvnc && secType == rfbAuthExternal) {
+		vnclog.Print(LL_CLIENTS, VNCLOG("performing external authentication\n"));
+		return AuthenticateExternal();
+	}
+
 	switch (secType) {
 	case rfbSecTypeNone:
 		vnclog.Print(LL_CLIENTS, VNCLOG("no authentication necessary\n"));
@@ -324,6 +334,8 @@ vncClientThread::GetAuthenticationType()
 	}
 
 	// Return preferred authentication type
+	if (m_server->ExternalAuthEnabled())
+		return rfbAuthExternal;
 	if (m_reverse || skip_auth || m_server->ValidPasswordsEmpty()) {
 		return rfbSecTypeNone;
 	} else {
@@ -405,7 +417,7 @@ vncClientThread::NegotiateAuthentication(int authType)
 {
 	int nTypes = 0;
 
-	if (authType == rfbAuthVNC) {
+	if (authType == rfbAuthVNC || authType == rfbAuthExternal) {
 		nTypes++;
 	} else if (authType != rfbAuthNone) {
 		vnclog.Print(LL_INTERR, VNCLOG("unknown authentication type\n"));
@@ -417,10 +429,14 @@ vncClientThread::NegotiateAuthentication(int authType)
 	if (!m_socket->SendExact((char *)&caps, sz_rfbAuthenticationCapsMsg))
 		return FALSE;
 
-	if (authType == rfbAuthVNC) {
+	if (authType == rfbAuthVNC || authType == rfbAuthExternal) {
 		// Inform the client about supported authentication types.
 		rfbCapabilityInfo cap;
-		SetCapInfo(&cap, rfbAuthVNC, rfbStandardVendor);
+		if (authType == rfbAuthVNC) {
+			SetCapInfo(&cap, rfbAuthVNC, rfbStandardVendor);
+		} else {
+			SetCapInfo(&cap, rfbAuthExternal, rfbTightVncVendor);
+		}
 		if (!m_socket->SendExact((char *)&cap, sz_rfbCapabilityInfo))
 			return FALSE;
 
@@ -517,6 +533,71 @@ vncClientThread::AuthenticateVNC()
 	}
 
 	return TRUE;
+}
+
+BOOL
+vncClientThread::AuthenticateExternal()
+{
+	CARD8 usernameLen, passwordLen;
+	if (!m_socket->ReadExact((char *)&usernameLen, sizeof(usernameLen)))
+		return FALSE;
+	if (!m_socket->ReadExact((char *)&passwordLen, sizeof(passwordLen)))
+		return FALSE;
+
+	int len = (usernameLen + passwordLen + 7) & 0xFFFFFFF8;
+	unsigned char *buf = new unsigned char[len];
+	if (!m_socket->ReadExact((char *)buf, len))
+		return FALSE;
+
+	// Decrypt the username/password pair
+	unsigned char key[8] = {11,110,60,254,61,210,245,92};
+	deskey(key, DE1);
+	for (int i = 0; i < len; i += 8)
+		des(buf + i, buf + i);
+
+	// Extract username and the password
+	char username[256];
+	memcpy(username, buf, usernameLen);
+	username[usernameLen] = '\0';
+	char password[256];
+	memcpy(password, buf + usernameLen, passwordLen);
+	password[passwordLen] = '\0';
+	memset(buf, '\0', len);
+	delete[] buf;
+
+	BOOL auth_ok = VerifyExternalAuth(username, password,
+		m_client->GetServerName(),
+		m_client->GetClientName());
+
+	memset(username, '\0', strlen(username));
+	memset(password, '\0', strlen(password));
+
+	CARD32 secResult;
+	if (!auth_ok) {
+		vnclog.Print(LL_CONNERR, VNCLOG("authentication failed\n"));
+
+		secResult = Swap32IfLE(rfbAuthFailed);
+		m_socket->SendExact((char *)&secResult, sizeof(secResult));
+		SendTextStringMessage("Authentication failed");
+		return FALSE;
+	} else {
+		// Tell the client we're ok
+		secResult = Swap32IfLE(rfbAuthOK);
+		if (!m_socket->SendExact((char *)&secResult, sizeof(secResult)))
+			return FALSE;
+	}
+
+	return TRUE;
+}
+
+BOOL
+vncClientThread::VerifyExternalAuth(const char *username, const char *password,
+                                    const char *local_ip, const char *remote_ip)
+{
+	// This should be replaced with some real authentication code.
+	// Note that this authentication scheme is disabled in the public version.
+	return (strcmp(username, "testuser") == 0 &&
+		strcmp(password, "testpassword") == 0);
 }
 
 //

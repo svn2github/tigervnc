@@ -1,13 +1,8 @@
-TightVNC is a free remote control package derived from the popular VNC
-software. With TightVNC, you can see the desktop of a remote machine
-and control it with your local mouse and keyboard, just like you would
-do it sitting in the front of that computer.
+Subject: TightVNC 1.3.9 released
 
-Version 1.3.9 is the long-awaited new stable release. Since TightVNC
-1.2.9 (which was the latest stable version until now), there were many
-changes, especially in the Windows version: file transfers, support
-for mirror display driver, major GUI improvements, and a number of
-bugfixes.
+TightVNC is a free remote control package derived from the popular VNC software. With TightVNC, you can see the desktop of a remote machine and control it with your local mouse and keyboard, just like you would do it sitting in the front of that computer.
+
+Version 1.3.9 is the long-awaited new stable release. Since TightVNC 1.2.9 (which was the latest stable version until now), there were many changes, especially in the Windows version: file transfers, support for mirror display driver, major GUI improvements, and a number of bugfixes.
 
 Download TightVNC 1.3.9 from:
 http://sourceforge.net/project/showfiles.php?group_id=14067

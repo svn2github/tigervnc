@@ -408,12 +408,17 @@ class OptionsFrame extends Frame
 
       setColorFormat();
 
+    } else if (source == choices[contUpdatesIndex]) {
+
+      setContinuousUpdates();
+
     } else if (source == choices[mouseButtonIndex] ||
 	       source == choices[shareDesktopIndex] ||
 	       source == choices[viewOnlyIndex] ||
 	       source == choices[scaleCursorIndex]) {
 
       setOtherOptions();
+
     }
   }
 

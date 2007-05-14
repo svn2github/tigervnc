@@ -39,6 +39,7 @@ class OptionsFrame extends Frame
     "JPEG image quality",
     "Cursor shape updates",
     "Use CopyRect",
+    "Continuous updates",
     "Restricted colors",
     "Mouse buttons 2 and 3",
     "View only",
@@ -53,6 +54,7 @@ class OptionsFrame extends Frame
     { "Enable", "Ignore", "Disable" },
     { "Yes", "No" },
     { "Yes", "No" },
+    { "Yes", "No" },
     { "Normal", "Reversed" },
     { "Yes", "No" },
     { "No", "50%", "75%", "125%", "150%" },
@@ -65,11 +67,12 @@ class OptionsFrame extends Frame
     jpegQualityIndex     = 2,
     cursorUpdatesIndex   = 3,
     useCopyRectIndex     = 4,
-    eightBitColorsIndex  = 5,
-    mouseButtonIndex     = 6,
-    viewOnlyIndex        = 7,
-    scaleCursorIndex     = 8,
-    shareDesktopIndex    = 9;
+    contUpdatesIndex     = 5,
+    eightBitColorsIndex  = 6,
+    mouseButtonIndex     = 7,
+    viewOnlyIndex        = 8,
+    scaleCursorIndex     = 9,
+    shareDesktopIndex    = 10;
 
   Label[] labels = new Label[names.length];
   Choice[] choices = new Choice[names.length];
@@ -85,6 +88,7 @@ class OptionsFrame extends Frame
   int compressLevel;
   int jpegQuality;
   boolean useCopyRect;
+  boolean continuousUpdates;
   boolean requestCursorUpdates;
   boolean ignoreCursorUpdates;
 
@@ -148,6 +152,7 @@ class OptionsFrame extends Frame
     choices[jpegQualityIndex].select("6");
     choices[cursorUpdatesIndex].select("Enable");
     choices[useCopyRectIndex].select("Yes");
+    choices[contUpdatesIndex].select("No");
     choices[eightBitColorsIndex].select("No");
     choices[mouseButtonIndex].select("Normal");
     choices[viewOnlyIndex].select("No");
@@ -200,6 +205,7 @@ class OptionsFrame extends Frame
 
     setEncodings();
     setColorFormat();
+    setContinuousUpdates();
     setOtherOptions();
   }
 
@@ -211,6 +217,19 @@ class OptionsFrame extends Frame
   void disableShareDesktop() {
     labels[shareDesktopIndex].setEnabled(false);
     choices[shareDesktopIndex].setEnabled(false);
+  }
+
+
+  //
+  // Disable the "Continuous updates" option. This method is called
+  // when we figure out that the server does not support corresponding
+  // protocol extensions.
+  //
+
+  void disableContUpdates() {
+    labels[contUpdatesIndex].setEnabled(false);
+    choices[contUpdatesIndex].setEnabled(false);
+    choices[contUpdatesIndex].select("No");
   }
 
 
@@ -312,8 +331,21 @@ class OptionsFrame extends Frame
   }
 
   //
-  // setOtherOptions looks at the "other" choices (ones which don't set the
-  // encoding or the color format) and sets the boolean flags appropriately.
+  // setContinuousUpdates sets continuousUpdates variable depending on
+  // the GUI setting. VncViewer monitors the state of this variable and
+  // send corresponding protocol messages to the server when necessary.
+  //
+
+  void setContinuousUpdates() {
+
+    continuousUpdates =
+      choices[contUpdatesIndex].getSelectedItem().equals("Yes");
+  }
+
+  //
+  // setOtherOptions looks at the "other" choices (ones that do not
+  // cause sending any protocol messages) and sets the boolean flags
+  // appropriately.
   //
 
   void setOtherOptions() {

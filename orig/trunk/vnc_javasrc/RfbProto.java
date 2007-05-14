@@ -209,11 +209,13 @@ class RfbProto {
 
   // "Continuous updates" is a TightVNC-specific feature that allows
   // receiving framebuffer updates continuously, without sending update
-  // requests. The variable below tracks the state of this feature.
+  // requests. The variables below track the state of this feature.
   // Initially, continuous updates are disabled. They can be enabled
   // by calling tryEnableContinuousUpdates() method, and only if this
-  // feature is supported by the server.
-  boolean continuousUpdatesActive = false;
+  // feature is supported by the server. To disable continuous updates,
+  // tryDisableContinuousUpdates() should be called.
+  private boolean continuousUpdatesActive = false;
+  private boolean continuousUpdatesEnding = false;
 
   // If true, informs that the RFB socket was closed.
   private boolean closed;
@@ -638,6 +640,10 @@ class RfbProto {
       readCapabilityList(serverMsgCaps, nServerMessageTypes);
       readCapabilityList(clientMsgCaps, nClientMessageTypes);
       readCapabilityList(encodingCaps, nEncodingTypes);
+    }
+
+    if (!clientMsgCaps.isEnabled(EnableContinuousUpdates)) {
+      viewer.options.disableContUpdates();
     }
 
     inNormalProtocol = true;
@@ -1260,6 +1266,11 @@ class RfbProto {
       return;
     }
 
+    if (continuousUpdatesActive) {
+      System.out.println("Continuous updates already active");
+      return;
+    }
+
     byte[] b = new byte[10];
 
     b[0] = (byte) EnableContinuousUpdates;
@@ -1287,18 +1298,33 @@ class RfbProto {
 
   void tryDisableContinuousUpdates() throws IOException
   {
-    if (clientMsgCaps.isEnabled(EnableContinuousUpdates)) {
-      byte[] b = { (byte)EnableContinuousUpdates, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-      os.write(b);
+    if (!clientMsgCaps.isEnabled(EnableContinuousUpdates)) {
+      System.out.println("Continuous updates not supported by the server");
+      return;
+    }
 
+    if (!continuousUpdatesActive) {
+      System.out.println("Continuous updates already disabled");
+      return;
+    }
+
+    if (continuousUpdatesEnding)
+      return;
+
+    byte[] b = { (byte)EnableContinuousUpdates, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    os.write(b);
+
+    if (!serverMsgCaps.isEnabled(EndOfContinuousUpdates)) {
       // If the server did not advertise support for the
       // EndOfContinuousUpdates message (should not normally happen
       // when EnableContinuousUpdates is supported), then we clear
       // 'continuousUpdatesActive' variable immediately. Normally,
       // it will be reset on receiving EndOfContinuousUpdates message
       // from the server.
-      if (!serverMsgCaps.isEnabled(EndOfContinuousUpdates))
-        continuousUpdatesActive = false;
+      continuousUpdatesActive = false;
+    } else {
+      // Indicate that we are waiting for EndOfContinuousUpdates.
+      continuousUpdatesEnding = true;
     }
   }
 
@@ -1310,6 +1336,17 @@ class RfbProto {
   void endOfContinuousUpdates()
   {
     continuousUpdatesActive = false;
+    continuousUpdatesEnding = false;
+  }
+
+
+  //
+  // Check if continuous updates are in effect.
+  //
+
+  boolean continuousUpdatesAreActive()
+  {
+    return continuousUpdatesActive;
   }
 
 

@@ -230,6 +230,7 @@ class OptionsFrame extends Frame
     labels[contUpdatesIndex].setEnabled(false);
     choices[contUpdatesIndex].setEnabled(false);
     choices[contUpdatesIndex].select("No");
+    continuousUpdates = false;
   }
 
 

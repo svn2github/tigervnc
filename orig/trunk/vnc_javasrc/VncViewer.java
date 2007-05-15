@@ -692,12 +692,12 @@ public class VncViewer extends java.applet.Applet
       }
     }
 
-    String str = readParameter("PORT", true);
-    port = Integer.parseInt(str);
+    port = readIntParameter("PORT", 5900);
 
     // Read "ENCPASSWORD" or "PASSWORD" parameter if specified.
     readPasswordParameters();
 
+    String str;
     if (inAnApplet) {
       str = readParameter("Open New Window", false);
       if (str != null && str.equalsIgnoreCase("Yes"))

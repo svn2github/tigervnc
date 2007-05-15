@@ -90,8 +90,10 @@ There are three basic ways to use TightVNC Java viewer:
 
          java VncViewer HOST vnchost PORT 5900
 
-     The parameters HOST and PORT are required, but there is a number of
-     optional parameters as well (see the Parameters section below).
+     The HOST parameter is required, PORT defaults to 5900 if omitted, and
+     there is a number of other optional parameters, see the Parameters
+     section below.
+
 
 Parameters
 ==========
@@ -140,13 +142,14 @@ Here is the complete list of parameters supported in TightVNC Java viewer:
 --> "PORT" (no GUI equivalent)
 
     Value: TCP port number on the VNC server.
-    Default: none.
+    Default: 5900.
 
-    This parameter is required in all cases. Note that this port is not the
-    one used for HTTP connection from the browser, it is the port used for
-    RFB connection. Usually, VNC servers use ports 58xx for HTTP connections,
-    and ports 59xx for RFB connections. Thus, most likely, this parameter
-    should be set to something like 5900, 5901 etc.
+    This parameter specifies TCP port number for outgoing VNC connection.
+    Note that this port is not the one used for HTTP connection from the
+    browser, it is the port used for VNC/RFB connection. Usually, VNC servers
+    use ports 58xx for HTTP connections, and ports 59xx for RFB connections.
+    Thus, most likely, this parameter should be set to something like 5900,
+    5901 etc.
 
 --> "PASSWORD"
 

@@ -726,7 +726,7 @@ public class VncViewer extends java.applet.Applet
     // Fine tuning options.
     deferScreenUpdates = readIntParameter("Defer screen updates", 20);
     deferCursorUpdates = readIntParameter("Defer cursor updates", 10);
-    deferUpdateRequests = readIntParameter("Defer update requests", 50);
+    deferUpdateRequests = readIntParameter("Defer update requests", 0);
 
     // SocketFactory.
     socketFactory = readParameter("SocketFactory", false);

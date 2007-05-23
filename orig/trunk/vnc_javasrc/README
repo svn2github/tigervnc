@@ -356,7 +356,7 @@ Here is the complete list of parameters supported in TightVNC Java viewer:
 --> "Defer update requests" (no GUI equivalent)
 
     Value: time in milliseconds.
-    Default: "50".
+    Default: "0".
 
     After processing an update received from server, wait for the specified
     number of milliseconds before requesting next screen update. Such delay

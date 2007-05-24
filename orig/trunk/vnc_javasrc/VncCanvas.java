@@ -56,14 +56,14 @@ class VncCanvas extends Canvas
 
   // Update statistics.
   long statStartTime;           // time on first framebufferUpdateRequest
-  int statNumUpdates = 0;       // counter for FramebufferUpdate messages
-  int statNumTotalRects = 0;    // rectangles in FramebufferUpdate messages
-  int statNumPixelRects = 0;    // the same, but excluding pseudo-rectangles
-  int statNumRectsTight = 0;
-  int statNumRectsZRLE = 0;
-  int statNumRectsHextile = 0;
-  int statNumRectsRaw = 0;
-  int statNumRectsCopy = 0;
+  int statNumUpdates;           // counter for FramebufferUpdate messages
+  int statNumTotalRects;        // rectangles in FramebufferUpdate messages
+  int statNumPixelRects;        // the same, but excluding pseudo-rectangles
+  int statNumRectsTight;
+  int statNumRectsZRLE;
+  int statNumRectsHextile;
+  int statNumRectsRaw;
+  int statNumRectsCopy;
 
   // ZRLE encoder's data.
   byte[] zrleBuf;
@@ -371,7 +371,7 @@ class VncCanvas extends Canvas
                                      rfb.framebufferHeight);
     }
 
-    statStartTime = System.currentTimeMillis();
+    resetStats();
 
     //
     // main dispatch loop
@@ -1632,6 +1632,21 @@ class VncCanvas extends Canvas
   public void mouseEntered(MouseEvent evt) {}
   public void mouseExited(MouseEvent evt) {}
 
+  //
+  // Reset update statistics.
+  //
+
+  void resetStats() {
+    statStartTime = System.currentTimeMillis();
+    statNumUpdates = 0;
+    statNumTotalRects = 0;
+    statNumPixelRects = 0;
+    statNumRectsTight = 0;
+    statNumRectsZRLE = 0;
+    statNumRectsHextile = 0;
+    statNumRectsRaw = 0;
+    statNumRectsCopy = 0;
+  }
 
   //////////////////////////////////////////////////////////////////
   //

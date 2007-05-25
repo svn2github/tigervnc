@@ -828,8 +828,8 @@ public class VncViewer extends java.applet.Applet
       int nRealRects = vc.statNumPixelRects;
       int nPseudoRects = vc.statNumTotalRects - vc.statNumPixelRects;
       System.out.println("Updates received: " + vc.statNumUpdates + " (" +
-                         nRealRects + " + " + nPseudoRects +
-                         " rectangles), " + rate + " updates/sec");
+                         nRealRects + " rectangles + " + nPseudoRects +
+                         " pseudo), " + rate + " updates/sec");
       int numRectsOther = nRealRects - vc.statNumRectsTight
         - vc.statNumRectsZRLE - vc.statNumRectsHextile
         - vc.statNumRectsRaw - vc.statNumRectsCopy;

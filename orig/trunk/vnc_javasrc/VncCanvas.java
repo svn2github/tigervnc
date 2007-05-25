@@ -59,11 +59,12 @@ class VncCanvas extends Canvas
   int statNumUpdates;           // counter for FramebufferUpdate messages
   int statNumTotalRects;        // rectangles in FramebufferUpdate messages
   int statNumPixelRects;        // the same, but excluding pseudo-rectangles
-  int statNumRectsTight;
-  int statNumRectsZRLE;
-  int statNumRectsHextile;
-  int statNumRectsRaw;
-  int statNumRectsCopy;
+  int statNumRectsTight;        // Tight-encoded rectangles (including JPEG)
+  int statNumRectsTightJPEG;    // JPEG-compressed Tight-encoded rectangles
+  int statNumRectsZRLE;         // ZRLE-encoded rectangles
+  int statNumRectsHextile;      // Hextile-encoded rectangles
+  int statNumRectsRaw;          // Raw-encoded rectangles
+  int statNumRectsCopy;         // CopyRect rectangles
   int statNumBytesEncoded;      // number of bytes in updates, as received
   int statNumBytesDecoded;      // number of bytes, as if Raw encoding was used
 
@@ -1222,6 +1223,8 @@ class VncCanvas extends Canvas
 
     if (comp_ctl == rfb.TightJpeg) {
 
+      statNumRectsTightJPEG++;
+
       // Read JPEG data.
       byte[] jpegData = new byte[rfb.readCompactLen()];
       rfb.readFully(jpegData);
@@ -1653,6 +1656,7 @@ class VncCanvas extends Canvas
     statNumTotalRects = 0;
     statNumPixelRects = 0;
     statNumRectsTight = 0;
+    statNumRectsTightJPEG = 0;
     statNumRectsZRLE = 0;
     statNumRectsHextile = 0;
     statNumRectsRaw = 0;

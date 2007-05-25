@@ -835,7 +835,8 @@ public class VncViewer extends java.applet.Applet
         - vc.statNumRectsRaw - vc.statNumRectsCopy;
       System.out.println("Rectangles:" +
                          " Tight=" + vc.statNumRectsTight +
-                         " ZRLE=" + vc.statNumRectsZRLE +
+                         "(JPEG=" + vc.statNumRectsTightJPEG +
+                         ") ZRLE=" + vc.statNumRectsZRLE +
                          " Hextile=" + vc.statNumRectsHextile +
                          " Raw=" + vc.statNumRectsRaw +
                          " CopyRect=" + vc.statNumRectsCopy +

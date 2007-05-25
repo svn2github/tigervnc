@@ -64,6 +64,8 @@ class VncCanvas extends Canvas
   int statNumRectsHextile;
   int statNumRectsRaw;
   int statNumRectsCopy;
+  int statNumBytesEncoded;      // number of bytes in updates, as received
+  int statNumBytesDecoded;      // number of bytes, as if Raw encoding was used
 
   // ZRLE encoder's data.
   byte[] zrleBuf;
@@ -396,16 +398,15 @@ class VncCanvas extends Canvas
           viewer.disconnect();
         }
 
-	statNumUpdates++;
-
 	rfb.readFramebufferUpdate();
+	statNumUpdates++;
 
 	boolean cursorPosReceived = false;
 
 	for (int i = 0; i < rfb.updateNRects; i++) {
-	  statNumTotalRects++;
 
 	  rfb.readFramebufferUpdateRectHdr();
+	  statNumTotalRects++;
 	  int rx = rfb.updateRectX, ry = rfb.updateRectY;
 	  int rw = rfb.updateRectW, rh = rfb.updateRectH;
 
@@ -430,8 +431,7 @@ class VncCanvas extends Canvas
 	    continue;
 	  }
 
-          // It seems to be a rectangle with real pixel data.
-          statNumPixelRects++;
+          long numBytesReadBefore = rfb.getNumBytesRead();
 
           rfb.startTiming();
 
@@ -466,12 +466,16 @@ class VncCanvas extends Canvas
 	    handleTightRect(rx, ry, rw, rh);
 	    break;
 	  default:
-	    statNumPixelRects--;
 	    throw new Exception("Unknown RFB rectangle encoding " +
 				rfb.updateRectEncoding);
 	  }
 
           rfb.stopTiming();
+
+          statNumPixelRects++;
+          statNumBytesDecoded += rw * rh * bytesPixel;
+          statNumBytesEncoded +=
+            (int)(rfb.getNumBytesRead() - numBytesReadBefore);
 	}
 
 	boolean fullUpdateNeeded = false;
@@ -1653,6 +1657,8 @@ class VncCanvas extends Canvas
     statNumRectsHextile = 0;
     statNumRectsRaw = 0;
     statNumRectsCopy = 0;
+    statNumBytesEncoded = 0;
+    statNumBytesDecoded = 0;
   }
 
   //////////////////////////////////////////////////////////////////

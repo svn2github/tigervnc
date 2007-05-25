@@ -337,7 +337,6 @@ public class VncViewer extends java.applet.Applet
     int authType;
     if (secType == RfbProto.SecTypeTight) {
       showConnectionStatus("Enabling TightVNC protocol extensions");
-      rfb.initCapabilities();
       rfb.setupTunneling();
       authType = rfb.negotiateAuthenticationTight();
     } else {

@@ -318,6 +318,7 @@ class RfbProto {
       os.write(versionMsg_3_3.getBytes());
     }
     protocolTightVNC = false;
+    initCapabilities();
   }
 
 

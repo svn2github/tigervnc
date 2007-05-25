@@ -169,6 +169,8 @@ class RfbProto {
   // only via RfbProto methods. We have to do this because we want to
   // count how many bytes were read.
   private DataInputStream is;
+  private long numBytesRead = 0;
+  public long getNumBytesRead() { return numBytesRead; }
 
   // Java on UNIX does not call keyPressed() on some keys, for example
   // swedish keys To prevent our workaround to produce duplicate
@@ -1451,26 +1453,38 @@ class RfbProto {
       timeWaitedIn100us += newTimeWaited;
       timedKbits += newKbits;
     }
+
+    numBytesRead += len;
   }
 
   final int available() throws IOException {
     return is.available();
   }
 
+  // FIXME: DataInputStream::skipBytes() is not guaranteed to skip
+  //        exactly n bytes. Probably we don't want to use this method.
   final int skipBytes(int n) throws IOException {
-    return is.skipBytes(n);
+    int r = is.skipBytes(n);
+    numBytesRead += r;
+    return r;
   }
 
   final int readU8() throws IOException {
-    return is.readUnsignedByte();
+    int r = is.readUnsignedByte();
+    numBytesRead++;
+    return r;
   }
 
   final int readU16() throws IOException {
-    return is.readUnsignedShort();
+    int r = is.readUnsignedShort();
+    numBytesRead += 2;
+    return r;
   }
 
   final int readU32() throws IOException {
-    return is.readInt();
+    int r = is.readInt();
+    numBytesRead += 4;
+    return r;
   }
 }
 

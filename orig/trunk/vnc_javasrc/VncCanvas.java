@@ -430,47 +430,43 @@ class VncCanvas extends Canvas
 	    continue;
 	  }
 
+          // It seems to be a rectangle with real pixel data.
+          statNumPixelRects++;
+
           rfb.startTiming();
 
 	  switch (rfb.updateRectEncoding) {
 	  case RfbProto.EncodingRaw:
-	    statNumPixelRects++;
 	    statNumRectsRaw++;
 	    handleRawRect(rx, ry, rw, rh);
 	    break;
 	  case RfbProto.EncodingCopyRect:
-	    statNumPixelRects++;
 	    statNumRectsCopy++;
 	    handleCopyRect(rx, ry, rw, rh);
 	    break;
 	  case RfbProto.EncodingRRE:
-	    statNumPixelRects++;
 	    handleRRERect(rx, ry, rw, rh);
 	    break;
 	  case RfbProto.EncodingCoRRE:
-	    statNumPixelRects++;
 	    handleCoRRERect(rx, ry, rw, rh);
 	    break;
 	  case RfbProto.EncodingHextile:
-	    statNumPixelRects++;
 	    statNumRectsHextile++;
 	    handleHextileRect(rx, ry, rw, rh);
 	    break;
 	  case RfbProto.EncodingZRLE:
-	    statNumPixelRects++;
 	    statNumRectsZRLE++;
 	    handleZRLERect(rx, ry, rw, rh);
 	    break;
 	  case RfbProto.EncodingZlib:
-	    statNumPixelRects++;
             handleZlibRect(rx, ry, rw, rh);
 	    break;
 	  case RfbProto.EncodingTight:
-	    statNumPixelRects++;
 	    statNumRectsTight++;
 	    handleTightRect(rx, ry, rw, rh);
 	    break;
 	  default:
+	    statNumPixelRects--;
 	    throw new Exception("Unknown RFB rectangle encoding " +
 				rfb.updateRectEncoding);
 	  }

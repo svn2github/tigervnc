@@ -486,7 +486,7 @@ class VncCanvas extends Canvas
 	// if there is some data to receive, or if the last update
 	// included a PointerPos message.
 	if (viewer.deferUpdateRequests > 0 &&
-	    rfb.is.available() == 0 && !cursorPosReceived) {
+	    rfb.available() == 0 && !cursorPosReceived) {
 	  synchronized(rfb) {
 	    try {
 	      rfb.wait(viewer.deferUpdateRequests);
@@ -636,7 +636,7 @@ class VncCanvas extends Canvas
 
   void handleRRERect(int x, int y, int w, int h) throws IOException {
 
-    int nSubrects = rfb.is.readInt();
+    int nSubrects = rfb.readU32();
 
     byte[] bg_buf = new byte[bytesPixel];
     rfb.readFully(bg_buf);
@@ -687,7 +687,7 @@ class VncCanvas extends Canvas
   //
 
   void handleCoRRERect(int x, int y, int w, int h) throws IOException {
-    int nSubrects = rfb.is.readInt();
+    int nSubrects = rfb.readU32();
 
     byte[] bg_buf = new byte[bytesPixel];
     rfb.readFully(bg_buf);
@@ -768,7 +768,7 @@ class VncCanvas extends Canvas
   void handleHextileSubrect(int tx, int ty, int tw, int th)
     throws IOException {
 
-    int subencoding = rfb.is.readUnsignedByte();
+    int subencoding = rfb.readU8();
     if (rfb.rec != null) {
       rfb.rec.writeByte(subencoding);
     }
@@ -812,7 +812,7 @@ class VncCanvas extends Canvas
     if ((subencoding & rfb.HextileAnySubrects) == 0)
       return;
 
-    int nSubrects = rfb.is.readUnsignedByte();
+    int nSubrects = rfb.readU8();
     int bufsize = nSubrects * 2;
     if ((subencoding & rfb.HextileSubrectsColoured) != 0) {
       bufsize += nSubrects * bytesPixel;
@@ -887,7 +887,7 @@ class VncCanvas extends Canvas
     if (zrleInStream == null)
       zrleInStream = new ZlibInStream();
 
-    int nBytes = rfb.is.readInt();
+    int nBytes = rfb.readU32();
     if (nBytes > 64 * 1024 * 1024)
       throw new Exception("ZRLE decoder: illegal compressed data size");
 
@@ -1113,7 +1113,7 @@ class VncCanvas extends Canvas
 
   void handleZlibRect(int x, int y, int w, int h) throws Exception {
 
-    int nBytes = rfb.is.readInt();
+    int nBytes = rfb.readU32();
 
     if (zlibBuf == null || zlibBufLen < nBytes) {
       zlibBufLen = nBytes * 2;
@@ -1165,7 +1165,7 @@ class VncCanvas extends Canvas
 
   void handleTightRect(int x, int y, int w, int h) throws Exception {
 
-    int comp_ctl = rfb.is.readUnsignedByte();
+    int comp_ctl = rfb.readU8();
     if (rfb.rec != null) {
       if (rfb.recordFromBeginning ||
 	  comp_ctl == (rfb.TightFill << 4) ||
@@ -1195,7 +1195,7 @@ class VncCanvas extends Canvas
     if (comp_ctl == rfb.TightFill) {
 
       if (bytesPixel == 1) {
-	int idx = rfb.is.readUnsignedByte();
+	int idx = rfb.readU8();
 	memGraphics.setColor(colors[idx]);
 	if (rfb.rec != null) {
 	  rfb.rec.writeByte(idx);
@@ -1258,12 +1258,12 @@ class VncCanvas extends Canvas
     int[] palette24 = new int[256];
     boolean useGradient = false;
     if ((comp_ctl & rfb.TightExplicitFilter) != 0) {
-      int filter_id = rfb.is.readUnsignedByte();
+      int filter_id = rfb.readU8();
       if (rfb.rec != null) {
 	rfb.rec.writeByte(filter_id);
       }
       if (filter_id == rfb.TightFilterPalette) {
-	numColors = rfb.is.readUnsignedByte() + 1;
+	numColors = rfb.readU8() + 1;
 	if (rfb.rec != null) {
 	  rfb.rec.writeByte(numColors - 1);
 	}
@@ -1691,10 +1691,10 @@ class VncCanvas extends Canvas
       int bytesMaskData = bytesPerRow * height;
 
       if (encodingType == rfb.EncodingXCursor) {
-	rfb.is.skipBytes(6 + bytesMaskData * 2);
+	rfb.skipBytes(6 + bytesMaskData * 2);
       } else {
 	// rfb.EncodingRichCursor
-	rfb.is.skipBytes(width * height + bytesMaskData);
+	rfb.skipBytes(width * height + bytesMaskData);
       }
       return;
     }

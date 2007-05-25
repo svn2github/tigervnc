@@ -160,11 +160,15 @@ class RfbProto {
   String host;
   int port;
   Socket sock;
-  DataInputStream is;
   OutputStream os;
   SessionRecorder rec;
   boolean inNormalProtocol = false;
   VncViewer viewer;
+
+  // Input stream is declared private to make sure it can be accessed
+  // only via RfbProto methods. We have to do this because we want to
+  // count how many bytes were read.
+  private DataInputStream is;
 
   // Java on UNIX does not call keyPressed() on some keys, for example
   // swedish keys To prevent our workaround to produce duplicate
@@ -336,7 +340,7 @@ class RfbProto {
   //
 
   int readSecurityType() throws Exception {
-    int secType = is.readInt();
+    int secType = readU32();
 
     switch (secType) {
     case SecTypeInvalid:
@@ -358,7 +362,7 @@ class RfbProto {
     int secType = SecTypeInvalid;
 
     // Read the list of secutiry types.
-    int nSecTypes = is.readUnsignedByte();
+    int nSecTypes = readU8();
     if (nSecTypes == 0) {
       readConnFailedReason();
       return SecTypeInvalid;	// should never be executed
@@ -436,7 +440,7 @@ class RfbProto {
   //
 
   void readSecurityResult(String authType) throws Exception {
-    int securityResult = is.readInt();
+    int securityResult = readU32();
 
     switch (securityResult) {
     case VncAuthOK:
@@ -459,7 +463,7 @@ class RfbProto {
   //
 
   void readConnFailedReason() throws Exception {
-    int reasonLen = is.readInt();
+    int reasonLen = readU32();
     byte[] reason = new byte[reasonLen];
     readFully(reason);
     throw new Exception(new String(reason));
@@ -530,7 +534,7 @@ class RfbProto {
   //
 
   void setupTunneling() throws IOException {
-    int nTunnelTypes = is.readInt();
+    int nTunnelTypes = readU32();
     if (nTunnelTypes != 0) {
       readCapabilityList(tunnelCaps, nTunnelTypes);
 
@@ -544,7 +548,7 @@ class RfbProto {
   //
 
   int negotiateAuthenticationTight() throws Exception {
-    int nAuthTypes = is.readInt();
+    int nAuthTypes = readU32();
     if (nAuthTypes == 0)
       return AuthNone;
 
@@ -568,7 +572,7 @@ class RfbProto {
     byte[] vendor = new byte[4];
     byte[] name = new byte[8];
     for (int i = 0; i < count; i++) {
-      code = is.readInt();
+      code = readU32();
       readFully(vendor);
       readFully(name);
       caps.enable(new CapabilityInfo(code, vendor, name));
@@ -613,31 +617,31 @@ class RfbProto {
   int redMax, greenMax, blueMax, redShift, greenShift, blueShift;
 
   void readServerInit() throws IOException {
-    framebufferWidth = is.readUnsignedShort();
-    framebufferHeight = is.readUnsignedShort();
-    bitsPerPixel = is.readUnsignedByte();
-    depth = is.readUnsignedByte();
-    bigEndian = (is.readUnsignedByte() != 0);
-    trueColour = (is.readUnsignedByte() != 0);
-    redMax = is.readUnsignedShort();
-    greenMax = is.readUnsignedShort();
-    blueMax = is.readUnsignedShort();
-    redShift = is.readUnsignedByte();
-    greenShift = is.readUnsignedByte();
-    blueShift = is.readUnsignedByte();
+    framebufferWidth = readU16();
+    framebufferHeight = readU16();
+    bitsPerPixel = readU8();
+    depth = readU8();
+    bigEndian = (readU8() != 0);
+    trueColour = (readU8() != 0);
+    redMax = readU16();
+    greenMax = readU16();
+    blueMax = readU16();
+    redShift = readU8();
+    greenShift = readU8();
+    blueShift = readU8();
     byte[] pad = new byte[3];
     readFully(pad);
-    int nameLength = is.readInt();
+    int nameLength = readU32();
     byte[] name = new byte[nameLength];
     readFully(name);
     desktopName = new String(name);
 
     // Read interaction capabilities (TightVNC protocol extensions)
     if (protocolTightVNC) {
-      int nServerMessageTypes = is.readUnsignedShort();
-      int nClientMessageTypes = is.readUnsignedShort();
-      int nEncodingTypes = is.readUnsignedShort();
-      is.readUnsignedShort();
+      int nServerMessageTypes = readU16();
+      int nClientMessageTypes = readU16();
+      int nEncodingTypes = readU16();
+      readU16();
       readCapabilityList(serverMsgCaps, nServerMessageTypes);
       readCapabilityList(clientMsgCaps, nClientMessageTypes);
       readCapabilityList(encodingCaps, nEncodingTypes);
@@ -711,7 +715,7 @@ class RfbProto {
   //
 
   int readServerMessageType() throws IOException {
-    int msgType = is.readUnsignedByte();
+    int msgType = readU8();
 
     // If the session is being recorded:
     if (rec != null) {
@@ -733,8 +737,8 @@ class RfbProto {
   int updateNRects;
 
   void readFramebufferUpdate() throws IOException {
-    is.readByte();
-    updateNRects = is.readUnsignedShort();
+    skipBytes(1);
+    updateNRects = readU16();
 
     // If the session is being recorded:
     if (rec != null) {
@@ -751,11 +755,11 @@ class RfbProto {
   int updateRectX, updateRectY, updateRectW, updateRectH, updateRectEncoding;
 
   void readFramebufferUpdateRectHdr() throws Exception {
-    updateRectX = is.readUnsignedShort();
-    updateRectY = is.readUnsignedShort();
-    updateRectW = is.readUnsignedShort();
-    updateRectH = is.readUnsignedShort();
-    updateRectEncoding = is.readInt();
+    updateRectX = readU16();
+    updateRectY = readU16();
+    updateRectW = readU16();
+    updateRectH = readU16();
+    updateRectEncoding = readU32();
 
     if (updateRectEncoding == EncodingZlib ||
         updateRectEncoding == EncodingZRLE ||
@@ -806,8 +810,8 @@ class RfbProto {
   int copyRectSrcX, copyRectSrcY;
 
   void readCopyRect() throws IOException {
-    copyRectSrcX = is.readUnsignedShort();
-    copyRectSrcY = is.readUnsignedShort();
+    copyRectSrcX = readU16();
+    copyRectSrcY = readU16();
 
     // If the session is being recorded:
     if (rec != null) {
@@ -822,9 +826,8 @@ class RfbProto {
   //
 
   String readServerCutText() throws IOException {
-    byte[] pad = new byte[3];
-    readFully(pad);
-    int len = is.readInt();
+    skipBytes(3);
+    int len = readU32();
     byte[] text = new byte[len];
     readFully(text);
     return new String(text);
@@ -840,15 +843,15 @@ class RfbProto {
 
   int readCompactLen() throws IOException {
     int[] portion = new int[3];
-    portion[0] = is.readUnsignedByte();
+    portion[0] = readU8();
     int byteCount = 1;
     int len = portion[0] & 0x7F;
     if ((portion[0] & 0x80) != 0) {
-      portion[1] = is.readUnsignedByte();
+      portion[1] = readU8();
       byteCount++;
       len |= (portion[1] & 0x7F) << 7;
       if ((portion[1] & 0x80) != 0) {
-	portion[2] = is.readUnsignedByte();
+	portion[2] = readU8();
 	byteCount++;
 	len |= (portion[2] & 0xFF) << 14;
       }
@@ -1417,6 +1420,13 @@ class RfbProto {
     return timeWaitedIn100us;
   }
 
+  //
+  // Methods for reading data via our DataInputStream member variable (is).
+  //
+  // In addition to reading data, the readFully() methods updates variables
+  // used to estimate data throughput.
+  //
+
   public void readFully(byte b[]) throws IOException {
     readFully(b, 0, b.length);
   }
@@ -1443,4 +1453,24 @@ class RfbProto {
     }
   }
 
+  final int available() throws IOException {
+    return is.available();
+  }
+
+  final int skipBytes(int n) throws IOException {
+    return is.skipBytes(n);
+  }
+
+  final int readU8() throws IOException {
+    return is.readUnsignedByte();
+  }
+
+  final int readU16() throws IOException {
+    return is.readUnsignedShort();
+  }
+
+  final int readU32() throws IOException {
+    return is.readInt();
+  }
 }
+

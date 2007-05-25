@@ -372,6 +372,7 @@ class VncCanvas extends Canvas
     }
 
     resetStats();
+    boolean statsRestarted = false;
 
     //
     // main dispatch loop
@@ -385,6 +386,16 @@ class VncCanvas extends Canvas
       // Process the message depending on its type.
       switch (msgType) {
       case RfbProto.FramebufferUpdate:
+
+        if (statNumUpdates == viewer.debugStatsExcludeUpdates &&
+            !statsRestarted) {
+          resetStats();
+          statsRestarted = true;
+        } else if (statNumUpdates == viewer.debugStatsMeasureUpdates &&
+                   statsRestarted) {
+          viewer.disconnect();
+        }
+
 	statNumUpdates++;
 
 	rfb.readFramebufferUpdate();

@@ -86,6 +86,8 @@ public class VncViewer extends java.applet.Applet
   int deferScreenUpdates;
   int deferCursorUpdates;
   int deferUpdateRequests;
+  int debugStatsExcludeUpdates;
+  int debugStatsMeasureUpdates;
 
   // Reference to this applet for inter-applet communication.
   public static java.applet.Applet refApplet;
@@ -727,6 +729,10 @@ public class VncViewer extends java.applet.Applet
     deferScreenUpdates = readIntParameter("Defer screen updates", 20);
     deferCursorUpdates = readIntParameter("Defer cursor updates", 10);
     deferUpdateRequests = readIntParameter("Defer update requests", 0);
+
+    // Debugging options.
+    debugStatsExcludeUpdates = readIntParameter("DEBUG_XU", 0);
+    debugStatsMeasureUpdates = readIntParameter("DEBUG_CU", 0);
 
     // SocketFactory.
     socketFactory = readParameter("SocketFactory", false);

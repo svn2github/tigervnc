@@ -377,6 +377,32 @@ Here is the complete list of parameters supported in TightVNC Java viewer:
     interface, and create a Socket, as configured by this parameter. See the
     source in SocketFactory.java.
 
+--> "DEBUG_XU" (no GUI equivalent)
+
+    Value: non-negative integer.
+    Default: 0.
+
+    Debugging option that causes update statistics reset after the specified
+    number of first framebuffer updates. This option was added to measure the
+    performance of a VNC server. First few updates (especially the very first
+    one) may be notably slower than others, and the viewer can exclude such
+    updates from statistics.
+
+--> "DEBUG_CU" (no GUI equivalent)
+
+    Value: non-negative integer.
+    Default: 0.
+
+    Debugging option that causes the viewer disconnect after the specified
+    number of framebuffer updates. When used with the "DEBUG_XU" parameter,
+    the number of updates specified in "DEBUG_XU" is not counted as part of
+    this parameter's value. E.g. if "DEBUG_XU"=2 and "DEBUG_CU"=10, then the
+    viewer will disconnect after 12 framebuffer updates: update statistics
+    will be reset after first two updates, then collected for next 10
+    updates, then the viewer will disconnect automatically. If the value is
+    0, the viewer will not disconnect automatically. This option was added to
+    measure the performance of a VNC server.
+
 
 RECORDING VNC SESSIONS
 ======================

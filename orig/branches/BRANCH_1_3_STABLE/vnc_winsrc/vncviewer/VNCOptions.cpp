@@ -63,7 +63,6 @@ VNCOptions::VNCOptions()
 	m_display[0] = '\0';
 	m_host[0] = '\0';
 	m_port = -1;
-	m_via_host[0] = '\0';
 	m_hWindow = 0;
 	m_kbdname[0] = '\0';
 	m_kbdSpecified = false;
@@ -409,16 +408,6 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 				Load(m_configFilename);
 				m_configSpecified = true;
 			}
-		} else if ( SwitchMatch(args[j], _T("via") )) {
-			if (++j == i) {
-				ArgError(_T("Host name not specified with -via option"));
-				continue;
-			}
-			if (_tcslen(args[j]) >= sizeof(m_via_host)/sizeof(TCHAR)) {
-				ArgError(_T("Host name at -via option is too long"));
-				continue;
-			}
-			_tcscpy(m_via_host, args[j]);
 		} else if ( SwitchMatch(args[j], _T("encoding") )) {
 			if (++j == i) {
 				ArgError(_T("No encoding specified"));

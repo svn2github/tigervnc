@@ -113,7 +113,6 @@ public:
 
 	TCHAR   m_host[256];
 	int     m_port;
-	TCHAR	m_via_host[256];
 
     // Logging
     int     m_logLevel;

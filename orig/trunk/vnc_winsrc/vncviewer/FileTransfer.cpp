@@ -403,7 +403,6 @@ FileTransfer::deleteLocal(char *pPathPrefix, FileInfo *pFI)
 		m_fileDelInfoEx.add(pPathPrefix, "", pFI->getNameAt(i), "", pFI->getSizeAt(i), 
 							pFI->getDataAt(i), pFI->getFlagsAt(i) | FT_ATTR_DELETE_LOCAL);
 	}
-	m_bFileTransfer = true;
 	checkDeleteQueue();
 }
 
@@ -414,7 +413,6 @@ FileTransfer::deleteRemote(char *pPathPrefix, FileInfo *pFI)
 		m_fileDelInfoEx.add("", pPathPrefix, "", pFI->getNameAt(i), pFI->getSizeAt(i), 
 							pFI->getDataAt(i), pFI->getFlagsAt(i) | FT_ATTR_DELETE_REMOTE);
 	}
-	m_bFileTransfer = true;
 	checkDeleteQueue();
 }
 
@@ -1266,7 +1264,7 @@ FileTransfer::procFileLastRqstFailedMsg()
 			}
 			m_fileTransferInfoEx.deleteAt(0);
 			PostMessage(m_pCC->m_hwnd, (UINT) WM_FT_CHECKTRANSFERQUEUE, (WPARAM) 0, (LPARAM) 0);
-			return true;
+			break;
 		}
 	case rfbFileUploadRequest:
 	case rfbFileRenameRequest:

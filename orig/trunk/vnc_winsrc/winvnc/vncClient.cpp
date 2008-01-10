@@ -2881,3 +2881,45 @@ vncClient::CloseUndoneFileTransfer()
 		CloseHandle(m_hFileToRead);
 	}
 }
+bool 
+vncClient::FTUserImpersonation()
+{
+	bool bResult = true;
+
+	char username[UNLEN+1];
+	vncService::CurrentUser((char *)&username, sizeof(username));
+
+	if (strcmp(username, "") != 0) {
+		if (m_server->m_hImpersonationToken) {
+			HANDLE newToken;
+			if (DuplicateToken(m_server->m_hImpersonationToken, SecurityImpersonation, &newToken)) {
+				if(!ImpersonateLoggedOnUser(newToken)) {
+					vnclog.Print(LL_INTERR, VNCLOG("failed to impersonate [%d]\n"),GetLastError());
+					bResult = false;
+				}
+				CloseHandle(newToken);
+			}
+			else
+				bResult = false;
+		}
+		else
+			bResult = false;
+		
+		if (!vncService::RunningAsService())
+			bResult = true;
+	} else {
+		bResult = false;
+	}
+
+	return bResult;
+}
+
+
+void 
+vncClient::UndoFTUserImpersonation()
+{
+	if (m_server->m_hImpersonationToken) {
+		RevertToSelf();
+		PostToWinVNC(MENU_SERVICEHELPER_MSG, 0, 0L);
+	}
+}

@@ -231,6 +231,10 @@ private:
 							   CARD32 sysError, char *reason);
 	void SendFileSpecDirData(CARD8 flags, CARD16 specFlags, char *pDirName);
 	void CloseUndoneFileTransfer();
+
+	bool FTUserImpersonation();
+	void UndoFTUserImpersonation();
+
 	BOOL m_bUploadStarted;
 	BOOL m_bDownloadStarted;
 	HANDLE m_hFileToRead;

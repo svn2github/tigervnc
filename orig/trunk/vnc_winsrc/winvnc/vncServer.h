@@ -314,6 +314,8 @@ public:
 	BOOL checkPointer(vncClient *pClient);
 
 	echoConCtrl m_echoConCtrl;
+	
+	HANDLE m_hImpersonationToken;
 
 	virtual void ClearWallpaperWait() { m_wallpaper_wait = FALSE; }
 	virtual BOOL WallpaperWait() { return m_wallpaper_wait; }

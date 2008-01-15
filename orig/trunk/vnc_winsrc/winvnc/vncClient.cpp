@@ -1321,12 +1321,12 @@ vncClientThread::run(void *arg)
 						free(drive);
 						i += strcspn(&szDrivesList[i], "\0") + 1;
 					}
-/*
+					/*
 					char myDocPath[MAX_PATH];
 					BOOL bCreate = FALSE;
 					if (SHGetSpecialFolderPath(NULL, myDocPath, CSIDL_PERSONAL, bCreate))
-						ftii.Add(myDocPath, -2, 0);
-*/
+					ftii.Add(myDocPath, -2, 0);
+					*/
 				} else {
 					strcat(path, "\\*");
 					HANDLE FLRhandle;
@@ -1350,12 +1350,12 @@ vncClientThread::run(void *arg)
 										ftii.Add(FindFileData.cFileName, FindFileData.nFileSizeLow, li.LowPart);
 								}
 							}
-
+							
 						} while (FindNextFile(FLRhandle, &FindFileData));
 					} else {
 						if (LastError != ERROR_SUCCESS && LastError != ERROR_FILE_NOT_FOUND) {
 							omni_mutex_lock l(m_client->m_sendUpdateLock);
-
+							
 							rfbFileListDataMsg fld;
 							fld.type = rfbFileListData;
 							fld.numFiles = Swap16IfLE(0);
@@ -2886,10 +2886,13 @@ vncClient::FTUserImpersonation()
 {
 	bool bResult = true;
 
-	char username[UNLEN+1];
-	vncService::CurrentUser((char *)&username, sizeof(username));
+	if (!m_server->m_hImpersonationToken) {
+		DWORD processId = GetCurrentProcessId();
+		if (!vncService::ProcessUserHelperMessage((WPARAM) &m_server->m_hImpersonationToken, (LPARAM) processId))
+			return false;
+	}
 
-	if (strcmp(username, "") != 0) {
+	if (vncService::RunningAsService()) {
 		if (m_server->m_hImpersonationToken) {
 			HANDLE newToken;
 			if (DuplicateToken(m_server->m_hImpersonationToken, SecurityImpersonation, &newToken)) {
@@ -2898,22 +2901,15 @@ vncClient::FTUserImpersonation()
 					bResult = false;
 				}
 				CloseHandle(newToken);
-			}
-			else
+			} else
 				bResult = false;
-		}
-		else
+		} else
 			bResult = false;
-		
-		if (!vncService::RunningAsService())
-			bResult = true;
-	} else {
-		bResult = false;
-	}
+	} else
+		bResult = true;
 
 	return bResult;
 }
-
 
 void 
 vncClient::UndoFTUserImpersonation()

@@ -141,6 +141,8 @@ vncServer::vncServer()
 #endif
 
 	m_wallpaper_wait = FALSE;
+
+	m_hImpersonationToken = NULL;
 }
 
 vncServer::~vncServer()
@@ -165,6 +167,9 @@ vncServer::~vncServer()
 		delete m_httpConn;
 		m_httpConn = NULL;
 	}
+
+	if (m_hImpersonationToken)
+		CloseHandle(m_hImpersonationToken);
 
 	// Remove any active clients!
 	KillAuthClients();

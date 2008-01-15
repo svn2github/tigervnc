@@ -1250,6 +1250,12 @@ FileTransfer::procFileLastRqstFailedMsg()
 
 	switch (flrf.typeOfRequest) 
 	{
+	case rfbFileListRequest:
+		if (m_bFTDlgStatus) {
+			m_pFileTransferDlg->reloadLocalFileList();
+			m_pFileTransferDlg->m_pStatusBox->setStatusText("Filelist Request Failed: %s", pReason);
+		}
+		break;
 	case rfbFileSpecDirRequest:
 		if (m_bFTDlgStatus) m_pFileTransferDlg->reloadLocalFileList();
 		break;

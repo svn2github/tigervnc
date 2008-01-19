@@ -201,11 +201,31 @@ PostToWinVNC(UINT message, WPARAM wParam, LPARAM lParam)
 {
 	// Locate the hidden WinVNC menu window
 	HWND hservwnd = FindWindow(MENU_CLASS_NAME, NULL);
-	if (hservwnd == NULL)
+	if (hservwnd == NULL) {
+		vnclog.Print(LL_INTERR, VNCLOG("PostToWinVNC:FindWindow failed. error=%d\n"), GetLastError());
+		vnclog.Print(LL_INTERR, VNCLOG("PostToWinVNC:FindWindow MENU_CLASS_NAME=%s\n"), MENU_CLASS_NAME);
+		Beep(1000, 500);
+		Sleep(100);
+		Beep(1000, 500);
+		Sleep(100);
+		Beep(1000, 500);
+		Sleep(100);
 		return FALSE;
+	}
 
 	// Post the message to WinVNC
-	PostMessage(hservwnd, message, wParam, lParam);
+	BOOL bResult = PostMessage(hservwnd, message, wParam, lParam);
+	if (!bResult) {
+		vnclog.Print(LL_INTERR, VNCLOG("PostToWinVNC:PostMessage failed. error=%d\n"), GetLastError());
+		Beep(1000, 500);
+		Sleep(100);
+		Beep(1000, 500);
+		Sleep(100);
+		Beep(1000, 500);
+		Sleep(100);
+		Beep(1000, 500);
+		Sleep(100);
+	}
 	return TRUE;
 }
 
@@ -714,34 +734,24 @@ vncService::ProcessUserHelperMessage(WPARAM wParam, LPARAM lParam) {
 	// - Revert to our own identity
 	RevertToSelf();
 	g_impersonating_user = FALSE;
-	if (lParam!=0) 
-	{
-		*((PHANDLE)wParam)=NULL;
-	
-		// - Open the specified process
-		HANDLE processHandle = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, (DWORD)lParam);
-		if (processHandle == NULL) {
-			vnclog.Print(LL_INTERR, VNCLOG("failed to open specified process, error=%d\n"),
-				GetLastError());
-				return FALSE;
-		}
-		
-		// - Get the token for the given process
-		if (!OpenProcessToken(processHandle, TOKEN_QUERY | TOKEN_DUPLICATE | TOKEN_IMPERSONATE, (PHANDLE)wParam)) {
-			vnclog.Print(LL_INTERR, VNCLOG("failed to get user token, error=%d\n"),
-				GetLastError());
-			CloseHandle(processHandle);
-			return FALSE;
-		}
-		CloseHandle(processHandle);
+
+	// - Open the specified process
+	HANDLE processHandle = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, (DWORD)lParam);
+	if (processHandle == NULL) {
+		vnclog.Print(LL_INTERR, VNCLOG("failed to open specified process, error=%d\n"),
+					 GetLastError());
+		return FALSE;
 	}
 
+	// - Get the token for the given process
 	HANDLE userToken = NULL;
-	if (!DuplicateToken(*((PHANDLE)wParam), SecurityImpersonation, &userToken))
-	{
-      vnclog.Print(LL_INTERR, VNCLOG("failed to duplicate user token(%d)\n"), GetLastError());
-      return FALSE;
+	if (!OpenProcessToken(processHandle, TOKEN_QUERY | TOKEN_DUPLICATE | TOKEN_IMPERSONATE, &userToken)) {
+		vnclog.Print(LL_INTERR, VNCLOG("failed to get user token, error=%d\n"),
+					 GetLastError());
+		CloseHandle(processHandle);
+		return FALSE;
 	}
+	CloseHandle(processHandle);
 
 	// - Set this thread to impersonate them
 	if (!ImpersonateLoggedOnUser(userToken)) {

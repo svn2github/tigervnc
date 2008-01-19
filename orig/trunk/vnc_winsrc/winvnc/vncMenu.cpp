@@ -55,7 +55,7 @@ const UINT MENU_KILL_ALL_CLIENTS_MSG = RegisterWindowMessage("WinVNC.KillAllClie
 
 const UINT fileTransferDownloadMessage = RegisterWindowMessage("VNCServer.1.3.FileTransferDownloadMessage");
 
-const char *MENU_CLASS_NAME = "WinVNC Tray Icon";
+const char *MENU_CLASS_NAME = "WinVNC.Tray.Icon";
 
 // Implementation
 
@@ -554,7 +554,7 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 			// This message holds a process id which we can use to
 			// impersonate a specific user.  In doing so, we can load their
 			// preferences correctly
-			vncService::ProcessUserHelperMessage((WPARAM) &_this->m_server->m_hImpersonationToken, lParam);
+			vncService::ProcessUserHelperMessage(wParam, lParam);
 
 			// - Trigger a check of the current user
 			PostMessage(hwnd, WM_USERCHANGED, 0, 0);
@@ -628,6 +628,7 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
     {
       vncClient *cl = (vncClient *) wParam;
       if (_this->m_server->checkPointer(cl)) cl->SendFileDownloadPortion();
+	  return 0;
     }
 
 	}

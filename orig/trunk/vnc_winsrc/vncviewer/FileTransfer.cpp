@@ -403,6 +403,7 @@ FileTransfer::deleteLocal(char *pPathPrefix, FileInfo *pFI)
 		m_fileDelInfoEx.add(pPathPrefix, "", pFI->getNameAt(i), "", pFI->getSizeAt(i), 
 							pFI->getDataAt(i), pFI->getFlagsAt(i) | FT_ATTR_DELETE_LOCAL);
 	}
+	m_bFileTransfer = true;
 	checkDeleteQueue();
 }
 
@@ -413,6 +414,7 @@ FileTransfer::deleteRemote(char *pPathPrefix, FileInfo *pFI)
 		m_fileDelInfoEx.add("", pPathPrefix, "", pFI->getNameAt(i), pFI->getSizeAt(i), 
 							pFI->getDataAt(i), pFI->getFlagsAt(i) | FT_ATTR_DELETE_REMOTE);
 	}
+	m_bFileTransfer = true;
 	checkDeleteQueue();
 }
 
@@ -1250,12 +1252,6 @@ FileTransfer::procFileLastRqstFailedMsg()
 
 	switch (flrf.typeOfRequest) 
 	{
-	case rfbFileListRequest:
-		if (m_bFTDlgStatus) {
-			m_pFileTransferDlg->reloadLocalFileList();
-			m_pFileTransferDlg->m_pStatusBox->setStatusText("Filelist Request Failed: %s", pReason);
-		}
-		break;
 	case rfbFileSpecDirRequest:
 		if (m_bFTDlgStatus) m_pFileTransferDlg->reloadLocalFileList();
 		break;
@@ -1270,7 +1266,7 @@ FileTransfer::procFileLastRqstFailedMsg()
 			}
 			m_fileTransferInfoEx.deleteAt(0);
 			PostMessage(m_pCC->m_hwnd, (UINT) WM_FT_CHECKTRANSFERQUEUE, (WPARAM) 0, (LPARAM) 0);
-			break;
+			return true;
 		}
 	case rfbFileUploadRequest:
 	case rfbFileRenameRequest:
@@ -1284,6 +1280,12 @@ FileTransfer::procFileLastRqstFailedMsg()
 				unsigned int flags = (m_fileTransferInfoEx.getFlagsAt(0) | FT_ATTR_FOLDER_EXISTS);
 				m_fileTransferInfoEx.setFlagsAt(0, flags);
 			}
+		}
+		break;
+	case rfbFileDirSizeRequest:
+		{
+			m_fileTransferInfoEx.deleteAt(m_dwDirSizeRqstNum);
+			resizeTotalSize64();
 		}
 		break;
 	}

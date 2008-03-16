@@ -7,7 +7,7 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "afxres.h"
+#include "winresrc.h"
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
@@ -40,14 +40,14 @@ STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "TightVNC Authentication"
 FONT 8, "MS Sans Serif"
 BEGIN
-    LTEXT           "VNC Host:",IDC_STATIC,7,8,36,10,SS_CENTERIMAGE | NOT 
-                    WS_GROUP
+    LTEXT           "VNC Host:",IDC_STATIC_HOST,7,8,36,10,SS_CENTERIMAGE | 
+                    NOT WS_GROUP
     EDITTEXT        IDC_VNCHOST,46,7,95,12,ES_AUTOHSCROLL | ES_READONLY | 
                     NOT WS_TABSTOP
-    CONTROL         108,IDC_STATIC,"Static",SS_BITMAP,7,23,32,30
-    RTEXT           "User name:",IDC_STATIC,41,25,39,10,SS_CENTERIMAGE
+    CONTROL         108,IDC_STATIC_LOGO,"Static",SS_BITMAP,7,23,32,30
+    RTEXT           "User name:",IDC_STATIC_LOGIN,41,25,39,10,SS_CENTERIMAGE
     EDITTEXT        IDC_LOGIN_EDIT,84,24,57,12,ES_AUTOHSCROLL
-    RTEXT           "Password:",IDC_STATIC,41,42,39,10,SS_CENTERIMAGE
+    RTEXT           "Password:",IDC_STATIC_PASSWD,41,42,39,10,SS_CENTERIMAGE
     EDITTEXT        IDC_PASSWD_EDIT,84,41,57,12,ES_PASSWORD | ES_AUTOHSCROLL
     DEFPUSHBUTTON   "&OK",IDOK,20,61,50,14
     PUSHBUTTON      "&Cancel",IDCANCEL,77,61,50,14
@@ -202,14 +202,15 @@ CAPTION "About TightVNC Viewer"
 FONT 8, "MS Sans Serif"
 BEGIN
     DEFPUSHBUTTON   "&OK",IDOK,120,105,50,14
-    CONTROL         106,IDC_STATIC,"Static",SS_BITMAP | SS_NOTIFY | 
+    CONTROL         106,IDC_STATIC_LOGO,"Static",SS_BITMAP | SS_NOTIFY | 
                     SS_SUNKEN,7,7,87,80
-    LTEXT           "TightVNC Viewer version 1.3.9",IDC_STATIC,104,7,181,10
+    LTEXT           "TightVNC Viewer version 1.3.9",IDC_STATIC_VERSION,104,7,
+                    181,10
     LTEXT           "Based on VNC software\nCopyright (C) 1999-2001 AT&&T Laboratories Cambridge\nCopyright (C) 2002-2003 RealVNC Ltd.\nhttp://www.realvnc.com/",
-                    IDC_STATIC,104,63,181,38
-    CTEXT           "www.TightVNC.com",IDC_STATIC,7,91,87,14
+                    IDC_STATIC_BASEDON,104,63,181,38
+    CTEXT           "www.TightVNC.com",IDC_STATIC_URL,7,91,87,14
     LTEXT           "Copyright (C) 2000-2006 Constantin Kaplinsky\nCopyright (C) 2000-2007 TightVNC Group\nhttp://www.tightvnc.com/",
-                    IDC_STATIC,104,33,181,27
+                    IDC_STATIC_COPYRIGHTS,104,33,181,27
     LTEXT           "[build time unknown]",IDC_BUILDTIME,104,19,181,10
 END
 
@@ -495,7 +496,7 @@ END
 
 2 TEXTINCLUDE DISCARDABLE 
 BEGIN
-    "#include ""afxres.h""\r\n"
+    "#include ""winresrc.h""\r\n"
     "\0"
 END
 

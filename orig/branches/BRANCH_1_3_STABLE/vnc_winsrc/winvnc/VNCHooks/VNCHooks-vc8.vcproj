@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
-	Name="omnithread"
-	ProjectGUID="{2D948CAF-9622-495C-AB44-6337A6A9D440}"
+	Version="8.00"
+	Name="VNCHooks"
+	ProjectGUID="{CC994DC2-CD0F-46B9-885E-08732A65665D}"
 	SccLocalPath="."
-	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -17,9 +16,9 @@
 	<Configurations>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory=".\../Release"
-			IntermediateDirectory=".\../Release"
-			ConfigurationType="4"
+			OutputDirectory=".\..\Release"
+			IntermediateDirectory=".\..\Release"
+			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
@@ -42,25 +41,23 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName=".\../Release/omnithread.tlb"
+				TypeLibraryName=".\..\Release/VNCHooks.tlb"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="."
-				PreprocessorDefinitions="NDEBUG;WIN32;_WINDOWS;__WIN32__;__NT__;__x86__;_WINSTATIC;_LIB"
+				PreprocessorDefinitions="NDEBUG;WIN32;_WINDOWS;_WIN32_WINNT=0x0400;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile=".\../Release/omnithread.pch"
-				AssemblerListingLocation=".\../Release/"
-				ObjectFile=".\../Release/"
-				ProgramDataBaseFileName=".\../Release/"
+				PrecompiledHeaderFile=".\..\Release/VNCHooks.pch"
+				AssemblerListingLocation=".\..\Release/"
+				ObjectFile=".\..\Release/"
+				ProgramDataBaseFileName=".\..\Release/"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
-				CompileAs="2"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -74,10 +71,21 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
+				Name="VCLinkerTool"
+				AdditionalOptions="/MACHINE:I386"
+				OutputFile=".\..\Release/VNCHooks.dll"
+				LinkIncremental="1"
+				SuppressStartupBanner="true"
+				ModuleDefinitionFile=".\VNCHooks.def"
+				ProgramDatabaseFile=".\..\Release/VNCHooks.pdb"
+				SubSystem="2"
+				ImportLibrary=".\..\Release/VNCHooks.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -89,6 +97,12 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -96,7 +110,7 @@
 			Name="Debug|Win32"
 			OutputDirectory=".\../Debug"
 			IntermediateDirectory=".\../Debug"
-			ConfigurationType="4"
+			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
@@ -119,26 +133,26 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName=".\../Debug/omnithread.tlb"
+				TypeLibraryName=".\../Debug/VNCHooks.tlb"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="."
-				PreprocessorDefinitions="_DEBUG;WIN32;_WINDOWS;__WIN32__;__NT__;__x86__;_WINSTATIC;_LIB"
+				AdditionalIncludeDirectories=""
+				PreprocessorDefinitions="_DEBUG;WIN32;_WINDOWS;_WIN32_WINNT=0x0400;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE"
 				BasicRuntimeChecks="3"
 				SmallerTypeCheck="true"
 				RuntimeLibrary="1"
 				BufferSecurityCheck="true"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile=".\../Debug/omnithread.pch"
+				PrecompiledHeaderFile=".\../Debug/VNCHooks.pch"
 				AssemblerListingLocation=".\../Debug/"
 				ObjectFile=".\../Debug/"
 				ProgramDataBaseFileName=".\../Debug/"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="4"
-				CompileAs="2"
+				CompileAs="0"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -152,10 +166,22 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
+				Name="VCLinkerTool"
+				AdditionalOptions="/MACHINE:I386"
+				OutputFile=".\../Debug/VNCHooks.dll"
+				LinkIncremental="2"
+				SuppressStartupBanner="true"
+				ModuleDefinitionFile=".\VNCHooks.def"
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile=".\../Debug/VNCHooks.pdb"
+				SubSystem="2"
+				ImportLibrary=".\../Debug/VNCHooks.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -167,6 +193,12 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -175,15 +207,23 @@
 	</References>
 	<Files>
 		<File
-			RelativePath="nt.cpp"
+			RelativePath=".\resource.h"
 			>
 		</File>
 		<File
-			RelativePath="nt.h"
+			RelativePath=".\VNCHooks.cpp"
 			>
 		</File>
 		<File
-			RelativePath="omnithread.h"
+			RelativePath=".\VNCHooks.def"
+			>
+		</File>
+		<File
+			RelativePath=".\VNCHooks.h"
+			>
+		</File>
+		<File
+			RelativePath=".\VNCHooks.rc"
 			>
 		</File>
 	</Files>

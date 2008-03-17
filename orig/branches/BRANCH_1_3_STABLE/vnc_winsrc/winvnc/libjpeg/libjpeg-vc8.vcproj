@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
-	Name="zlib"
-	ProjectGUID="{A44055F1-6AAA-4F72-8939-C5C294CE6EEE}"
-	TargetFrameworkVersion="131072"
+	Version="8.00"
+	Name="libjpeg"
+	ProjectGUID="{224A4BAC-DEDE-43A4-81B9-14545F16E20E}"
 	>
 	<Platforms>
 		<Platform
@@ -42,16 +41,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;XMD_H;_CRT_SECURE_NO_DEPRECATE"
 				BasicRuntimeChecks="3"
-				SmallerTypeCheck="false"
+				SmallerTypeCheck="true"
 				RuntimeLibrary="1"
 				BufferSecurityCheck="true"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile="..\Debug/zlib.pch"
-				AssemblerListingLocation="..\Debug/"
-				ObjectFile="..\Debug/"
-				ProgramDataBaseFileName="..\Debug/"
+				PrecompiledHeaderFile=".\..\Debug/libjpeg.pch"
+				AssemblerListingLocation=".\..\Debug/"
+				ObjectFile=".\..\Debug/"
+				ProgramDataBaseFileName=".\..\Debug/"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="4"
@@ -62,14 +61,14 @@
 			<Tool
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="_DEBUG"
-				Culture="1033"
+				Culture="1049"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\Debug\zlib.lib"
+				OutputFile=".\..\Debug\libjpeg.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -116,16 +115,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				PreprocessorDefinitions="WIN32,NDEBUG,_LIB,_WINDOWS,__NT__,_WINSTATIC,__WIN32__"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile="..\Release/zlib.pch"
-				AssemblerListingLocation="..\Release/"
-				ObjectFile="..\Release/"
-				ProgramDataBaseFileName="..\Release/"
+				PrecompiledHeaderFile=".\..\Release/libjpeg.pch"
+				AssemblerListingLocation=".\..\Release/"
+				ObjectFile=".\..\Release/"
+				ProgramDataBaseFileName=".\..\Release/"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
 			/>
@@ -135,14 +134,14 @@
 			<Tool
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="NDEBUG"
-				Culture="1033"
+				Culture="1049"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\Release\zlib.lib"
+				OutputFile=".\..\Release\libjpeg.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -170,59 +169,187 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
-				RelativePath=".\adler32.c"
+				RelativePath=".\jcapimin.c"
 				>
 			</File>
 			<File
-				RelativePath=".\compress.c"
+				RelativePath=".\jcapistd.c"
 				>
 			</File>
 			<File
-				RelativePath=".\crc32.c"
+				RelativePath=".\jccoefct.c"
 				>
 			</File>
 			<File
-				RelativePath=".\deflate.c"
+				RelativePath=".\jccolor.c"
 				>
 			</File>
 			<File
-				RelativePath=".\infblock.c"
+				RelativePath=".\jcdctmgr.c"
 				>
 			</File>
 			<File
-				RelativePath=".\infcodes.c"
+				RelativePath=".\jchuff.c"
 				>
 			</File>
 			<File
-				RelativePath=".\inffast.c"
+				RelativePath=".\jcinit.c"
 				>
 			</File>
 			<File
-				RelativePath=".\inflate.c"
+				RelativePath=".\jcmainct.c"
 				>
 			</File>
 			<File
-				RelativePath=".\inftrees.c"
+				RelativePath=".\jcmarker.c"
 				>
 			</File>
 			<File
-				RelativePath=".\infutil.c"
+				RelativePath=".\jcmaster.c"
 				>
 			</File>
 			<File
-				RelativePath=".\maketree.c"
+				RelativePath=".\jcomapi.c"
 				>
 			</File>
 			<File
-				RelativePath=".\trees.c"
+				RelativePath=".\jcparam.c"
 				>
 			</File>
 			<File
-				RelativePath=".\uncompr.c"
+				RelativePath=".\jcphuff.c"
 				>
 			</File>
 			<File
-				RelativePath=".\zutil.c"
+				RelativePath=".\jcprepct.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jcsample.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jctrans.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jdapimin.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jdapistd.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jdatadst.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jdatasrc.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jdcoefct.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jdcolor.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jddctmgr.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jdhuff.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jdinput.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jdmainct.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jdmarker.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jdmaster.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jdmerge.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jdphuff.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jdpostct.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jdsample.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jdtrans.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jerror.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jfdctflt.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jfdctfst.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jfdctint.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jidctflt.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jidctfst.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jidctint.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jidctred.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jmemmgr.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jmemnobs.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jquant1.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jquant2.c"
+				>
+			</File>
+			<File
+				RelativePath=".\jutils.c"
 				>
 			</File>
 		</Filter>
@@ -231,47 +358,47 @@
 			Filter="h;hpp;hxx;hm;inl"
 			>
 			<File
-				RelativePath=".\deflate.h"
+				RelativePath=".\jchuff.h"
 				>
 			</File>
 			<File
-				RelativePath=".\infblock.h"
+				RelativePath=".\jconfig.h"
 				>
 			</File>
 			<File
-				RelativePath=".\infcodes.h"
+				RelativePath=".\jdct.h"
 				>
 			</File>
 			<File
-				RelativePath=".\inffast.h"
+				RelativePath=".\jdhuff.h"
 				>
 			</File>
 			<File
-				RelativePath=".\inffixed.h"
+				RelativePath=".\jerror.h"
 				>
 			</File>
 			<File
-				RelativePath=".\inftrees.h"
+				RelativePath=".\jinclude.h"
 				>
 			</File>
 			<File
-				RelativePath=".\infutil.h"
+				RelativePath=".\jmemsys.h"
 				>
 			</File>
 			<File
-				RelativePath=".\trees.h"
+				RelativePath=".\jmorecfg.h"
 				>
 			</File>
 			<File
-				RelativePath=".\zconf.h"
+				RelativePath=".\jpegint.h"
 				>
 			</File>
 			<File
-				RelativePath=".\zlib.h"
+				RelativePath=".\jpeglib.h"
 				>
 			</File>
 			<File
-				RelativePath=".\zutil.h"
+				RelativePath=".\jversion.h"
 				>
 			</File>
 		</Filter>

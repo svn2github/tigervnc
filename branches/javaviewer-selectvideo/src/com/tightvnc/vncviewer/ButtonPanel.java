@@ -38,6 +38,7 @@ class ButtonPanel extends Panel implements ActionListener {
   Button clipboardButton;
   Button ctrlAltDelButton;
   Button refreshButton;
+  Button selectButton;
 
   ButtonPanel(VncViewer v) {
     viewer = v;
@@ -67,6 +68,10 @@ class ButtonPanel extends Panel implements ActionListener {
     refreshButton.setEnabled(false);
     add(refreshButton);
     refreshButton.addActionListener(this);
+    selectButton = new Button("Select");
+    selectButton.setEnabled(false);
+    add(selectButton);
+    selectButton.addActionListener(this);
   }
 
   //
@@ -77,6 +82,7 @@ class ButtonPanel extends Panel implements ActionListener {
     disconnectButton.setEnabled(true);
     clipboardButton.setEnabled(true);
     refreshButton.setEnabled(true);
+    selectButton.setEnabled(true);
   }
 
   //
@@ -94,6 +100,7 @@ class ButtonPanel extends Panel implements ActionListener {
     clipboardButton.setEnabled(false);
     ctrlAltDelButton.setEnabled(false);
     refreshButton.setEnabled(false);
+    selectButton.setEnabled(false);
 
     validate();
   }
@@ -149,6 +156,11 @@ class ButtonPanel extends Panel implements ActionListener {
 					  rfb.framebufferHeight, false);
       } catch (IOException e) {
         e.printStackTrace();
+      }
+    } else if (evt.getSource() == selectButton) {
+      if (viewer.vc != null) {
+        boolean isSelecting = viewer.vc.toggleSelection();
+        System.out.println("Selection mode " + (isSelecting ? "on" : "off"));
       }
     }
   }

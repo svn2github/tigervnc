@@ -96,6 +96,9 @@ class VncCanvas extends Canvas
   // True if we process keyboard and mouse events.
   boolean inputEnabled;
 
+  // True if the object is in the selection mode.
+  boolean inSelectionMode;
+
   //
   // The constructors.
   //
@@ -228,6 +231,11 @@ class VncCanvas extends Canvas
       }
       createSoftCursor();	// non-scaled cursor
     }
+  }
+
+  public synchronized boolean toggleSelection() {
+    inSelectionMode = !inSelectionMode;
+    return inSelectionMode;
   }
 
   public void setPixelFormat() throws IOException {

@@ -1620,7 +1620,19 @@ class VncCanvas extends Canvas
     processLocalMouseEvent(evt, true);
   }
 
-  public void processLocalKeyEvent(KeyEvent evt) {
+  //
+  // Ignored events.
+  //
+
+  public void mouseClicked(MouseEvent evt) {}
+  public void mouseEntered(MouseEvent evt) {}
+  public void mouseExited(MouseEvent evt) {}
+
+  //
+  // Actual event processing.
+  //
+
+  private void processLocalKeyEvent(KeyEvent evt) {
     if (viewer.rfb != null && rfb.inNormalProtocol) {
       if (!inputEnabled) {
 	if ((evt.getKeyChar() == 'r' || evt.getKeyChar() == 'R') &&
@@ -1650,7 +1662,7 @@ class VncCanvas extends Canvas
     evt.consume();
   }
 
-  public void processLocalMouseEvent(MouseEvent evt, boolean moved) {
+  private void processLocalMouseEvent(MouseEvent evt, boolean moved) {
     if (viewer.rfb != null && rfb.inNormalProtocol) {
       if (!inSelectionMode) {
         if (inputEnabled) {
@@ -1694,14 +1706,6 @@ class VncCanvas extends Canvas
       repaint();
     }
   }
-
-  //
-  // Ignored events.
-  //
-
-  public void mouseClicked(MouseEvent evt) {}
-  public void mouseEntered(MouseEvent evt) {}
-  public void mouseExited(MouseEvent evt) {}
 
   //
   // Reset update statistics.

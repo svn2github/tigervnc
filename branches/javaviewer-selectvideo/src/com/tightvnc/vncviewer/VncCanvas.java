@@ -96,11 +96,6 @@ class VncCanvas extends Canvas
   // True if we process keyboard and mouse events.
   boolean inputEnabled;
 
-  // Selection mode.
-  boolean inSelectionMode;
-  Point selectionStart;
-  Point selectionEnd;
-  
   //
   // The constructors.
   //
@@ -126,9 +121,7 @@ class VncCanvas extends Canvas
 
     setPixelFormat();
 
-    inSelectionMode = false;
-    selectionStart = new Point(0, 0);
-    selectionEnd = new Point(0, 0);
+    resetSelection();
 
     inputEnabled = false;
     if (!viewer.options.viewOnly)
@@ -183,22 +176,11 @@ class VncCanvas extends Canvas
 	g.drawImage(softCursor, x0, y0, null);
       }
     }
-    if (inSelectionMode) {
-      int x = selectionStart.x;
-      int y = selectionStart.y;
-      int w = selectionEnd.x - selectionStart.x;
-      int h = selectionEnd.y - selectionStart.y;
-      if (w * h != 0) {
-        if (w < 0) {
-          w = -w;
-          x = x - w;
-        }
-        if (h < 0) {
-          h = -h;
-          y = y - h;
-        }
+    if (isInSelectionMode()) {
+      Rectangle r = getSelection();
+      if (r.width != 0 && r.height != 0) {
         g.setXORMode(Color.yellow);
-        g.drawRect(x, y, w, h);
+        g.drawRect(r.x, r.y, r.width, r.height);
       }
     }
   }
@@ -252,13 +234,6 @@ class VncCanvas extends Canvas
       }
       createSoftCursor();	// non-scaled cursor
     }
-  }
-
-  public synchronized boolean toggleSelection() {
-    inSelectionMode = !inSelectionMode;
-    repaint();
-
-    return inSelectionMode;
   }
 
   public void setPixelFormat() throws IOException {
@@ -1693,20 +1668,6 @@ class VncCanvas extends Canvas
     }
   }
 
-  private void handleSelectionMouseEvent(MouseEvent evt) {
-    int id = evt.getID();
-    boolean button1 = (evt.getModifiers() & InputEvent.BUTTON1_MASK) != 0;
-
-    if (id == MouseEvent.MOUSE_PRESSED && button1) {
-      selectionStart = selectionEnd = evt.getPoint();
-      repaint();
-    }
-    if (id == MouseEvent.MOUSE_DRAGGED && button1) {
-      selectionEnd = evt.getPoint();
-      repaint();
-    }
-  }
-
   //
   // Reset update statistics.
   //
@@ -1973,4 +1934,93 @@ class VncCanvas extends Canvas
 	      cursorX - hotX, cursorY - hotY, cursorWidth, cursorHeight);
     }
   }
+
+  //////////////////////////////////////////////////////////////////
+  //
+  // Support for selecting a rectangular video area.
+  //
+
+  /**
+   * This flag is false in normal operation, and is true in the selection mode.
+   */
+  private boolean inSelectionMode;
+
+  /**
+   * The point where the selection was started.
+   */
+  private Point selectionStart;
+
+  /**
+   * The second point of the selection.
+   */
+  private Point selectionEnd;
+
+  /**
+   * Initialize selection-related varibles.
+   */
+  private synchronized void resetSelection() {
+    inSelectionMode = false;
+    selectionStart = new Point(0, 0);
+    selectionEnd = new Point(0, 0);
+  }
+
+  /**
+   * Check current state of the selection mode.
+   * @return true in the selection mode, false otherwise.
+   */
+  public boolean isInSelectionMode() {
+    return inSelectionMode;
+  }
+
+  /**
+   * Get current selection.
+   * @return The selection as a {@link Rectangle}.
+   */
+  private synchronized Rectangle getSelection() {
+    int x = selectionStart.x;
+    int y = selectionStart.y;
+    int w = selectionEnd.x - selectionStart.x;
+    int h = selectionEnd.y - selectionStart.y;
+    if (w < 0) {
+      w = -w;
+      x = x - w;
+    }
+    if (h < 0) {
+      h = -h;
+      y = y - h;
+    }
+    return new Rectangle(x, y, w, h);
+  }
+
+  /**
+   * Toggle selection mode.
+   * @return true if the selection mode is now on, false otherwise.
+   */
+  public synchronized boolean toggleSelection() {
+    inSelectionMode = !inSelectionMode;
+    repaint();
+
+    return inSelectionMode;
+  }
+
+  /**
+   * Process mouse events in the selection mode.
+   * 
+   * @param evt mouse event that was originally passed to
+   *   {@link MouseListener} or {@link MouseMotionListener}.
+   */
+  private synchronized void handleSelectionMouseEvent(MouseEvent evt) {
+    int id = evt.getID();
+    boolean button1 = (evt.getModifiers() & InputEvent.BUTTON1_MASK) != 0;
+
+    if (id == MouseEvent.MOUSE_PRESSED && button1) {
+      selectionStart = selectionEnd = evt.getPoint();
+      repaint();
+    }
+    if (id == MouseEvent.MOUSE_DRAGGED && button1) {
+      selectionEnd = evt.getPoint();
+      repaint();
+    }
+  }
+
 }

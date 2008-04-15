@@ -128,9 +128,10 @@ class VncCanvas extends Canvas
     if (!viewer.options.viewOnly)
       enableInput(true);
 
-    // Keyboard listener is enabled even in view-only mode, to catch
-    // 'r' or 'R' key presses used to request screen update.
+    // Enable mouse and keyboard event listeners.
     addKeyListener(this);
+    addMouseListener(this);
+    addMouseMotionListener(this);
   }
 
   public VncCanvas(VncViewer v) throws IOException {
@@ -216,16 +217,12 @@ class VncCanvas extends Canvas
   public synchronized void enableInput(boolean enable) {
     if (enable && !inputEnabled) {
       inputEnabled = true;
-      addMouseListener(this);
-      addMouseMotionListener(this);
       if (viewer.showControls) {
 	viewer.buttonPanel.enableRemoteAccessControls(true);
       }
       createSoftCursor();	// scaled cursor
     } else if (!enable && inputEnabled) {
       inputEnabled = false;
-      removeMouseListener(this);
-      removeMouseMotionListener(this);
       if (viewer.showControls) {
 	viewer.buttonPanel.enableRemoteAccessControls(false);
       }
@@ -1628,7 +1625,7 @@ class VncCanvas extends Canvas
   }
 
   public void processLocalMouseEvent(MouseEvent evt, boolean moved) {
-    if (viewer.rfb != null && rfb.inNormalProtocol) {
+    if (viewer.rfb != null && rfb.inNormalProtocol && inputEnabled) {
       if (moved) {
 	softCursorMove(evt.getX(), evt.getY());
       }

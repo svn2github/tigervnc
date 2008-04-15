@@ -96,9 +96,11 @@ class VncCanvas extends Canvas
   // True if we process keyboard and mouse events.
   boolean inputEnabled;
 
-  // True if the object is in the selection mode.
+  // Selection mode.
   boolean inSelectionMode;
-
+  Point selectionStart;
+  Point selectionEnd;
+  
   //
   // The constructors.
   //
@@ -123,6 +125,10 @@ class VncCanvas extends Canvas
       colors[i] = new Color(cm8.getRGB(i));
 
     setPixelFormat();
+
+    inSelectionMode = false;
+    selectionStart = new Point(0, 0);
+    selectionEnd = new Point(0, 0);
 
     inputEnabled = false;
     if (!viewer.options.viewOnly)
@@ -175,6 +181,24 @@ class VncCanvas extends Canvas
       Rectangle r = new Rectangle(x0, y0, cursorWidth, cursorHeight);
       if (r.intersects(g.getClipBounds())) {
 	g.drawImage(softCursor, x0, y0, null);
+      }
+    }
+    if (inSelectionMode) {
+      int x = selectionStart.x;
+      int y = selectionStart.y;
+      int w = selectionEnd.x - selectionStart.x;
+      int h = selectionEnd.y - selectionStart.y;
+      if (w * h != 0) {
+        if (w < 0) {
+          w = -w;
+          x = x - w;
+        }
+        if (h < 0) {
+          h = -h;
+          y = y - h;
+        }
+        g.setXORMode(Color.yellow);
+        g.drawRect(x, y, w, h);
       }
     }
   }
@@ -232,6 +256,8 @@ class VncCanvas extends Canvas
 
   public synchronized boolean toggleSelection() {
     inSelectionMode = !inSelectionMode;
+    repaint();
+
     return inSelectionMode;
   }
 
@@ -1625,23 +1651,47 @@ class VncCanvas extends Canvas
   }
 
   public void processLocalMouseEvent(MouseEvent evt, boolean moved) {
-    if (viewer.rfb != null && rfb.inNormalProtocol && inputEnabled) {
-      if (moved) {
-	softCursorMove(evt.getX(), evt.getY());
+    if (viewer.rfb != null && rfb.inNormalProtocol) {
+      if (!inSelectionMode) {
+        if (inputEnabled) {
+          sendMouseEvent(evt, moved);
+        }
+      } else {
+        handleSelectionMouseEvent(evt);
       }
-      if (rfb.framebufferWidth != scaledWidth) {
-        int sx = (evt.getX() * 100 + scalingFactor/2) / scalingFactor;
-        int sy = (evt.getY() * 100 + scalingFactor/2) / scalingFactor;
-        evt.translatePoint(sx - evt.getX(), sy - evt.getY());
+    }
+  }
+
+  private void sendMouseEvent(MouseEvent evt, boolean moved) {
+    if (moved) {
+      softCursorMove(evt.getX(), evt.getY());
+    }
+    if (rfb.framebufferWidth != scaledWidth) {
+      int sx = (evt.getX() * 100 + scalingFactor/2) / scalingFactor;
+      int sy = (evt.getY() * 100 + scalingFactor/2) / scalingFactor;
+      evt.translatePoint(sx - evt.getX(), sy - evt.getY());
+    }
+    synchronized(rfb) {
+      try {
+        rfb.writePointerEvent(evt);
+      } catch (Exception e) {
+        e.printStackTrace();
       }
-      synchronized(rfb) {
-	try {
-	  rfb.writePointerEvent(evt);
-	} catch (Exception e) {
-	  e.printStackTrace();
-	}
-	rfb.notify();
-      }
+      rfb.notify();
+    }
+  }
+
+  private void handleSelectionMouseEvent(MouseEvent evt) {
+    int id = evt.getID();
+    boolean button1 = (evt.getModifiers() & InputEvent.BUTTON1_MASK) != 0;
+
+    if (id == MouseEvent.MOUSE_PRESSED && button1) {
+      selectionStart = selectionEnd = evt.getPoint();
+      repaint();
+    }
+    if (id == MouseEvent.MOUSE_DRAGGED && button1) {
+      selectionEnd = evt.getPoint();
+      repaint();
     }
   }
 

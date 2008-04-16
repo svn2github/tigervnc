@@ -178,7 +178,11 @@ class VncCanvas extends Canvas
     }
     if (isInSelectionMode()) {
       Rectangle r = getSelection();
-      if (r.width != 0 && r.height != 0) {
+      if (r.width > 0 && r.height > 0) {
+        // Don't forget to correct the coordinates for the right and bottom
+        // borders, so that the borders are the part of the selection.
+        r.width -= 1;
+        r.height -= 1;
         g.setXORMode(Color.yellow);
         g.drawRect(r.x, r.y, r.width, r.height);
       }
@@ -1998,6 +2002,11 @@ class VncCanvas extends Canvas
     if (h < 0) {
       h = -h;
       y = y - h;
+    }
+    // Make sure the borders are included in the selection.
+    if (w > 0 && h > 0) {
+      w += 1;
+      h += 1;
     }
     // Clip the selection to screen and return the result.
     Rectangle selection = new Rectangle(x, y, w, h);

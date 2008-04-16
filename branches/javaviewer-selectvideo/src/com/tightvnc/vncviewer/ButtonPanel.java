@@ -40,6 +40,9 @@ class ButtonPanel extends Panel implements ActionListener {
   Button refreshButton;
   Button selectButton;
 
+  final String selectEnterLabel = "Select Video Area";
+  final String selectLeaveLabel = "Hide Selection";
+
   ButtonPanel(VncViewer v) {
     viewer = v;
 
@@ -68,7 +71,7 @@ class ButtonPanel extends Panel implements ActionListener {
     refreshButton.setEnabled(false);
     add(refreshButton);
     refreshButton.addActionListener(this);
-    selectButton = new Button("Select");
+    selectButton = new Button(selectEnterLabel);
     selectButton.setEnabled(false);
     add(selectButton);
     selectButton.addActionListener(this);
@@ -161,8 +164,10 @@ class ButtonPanel extends Panel implements ActionListener {
       if (viewer.vc != null) {
         boolean isSelecting = viewer.vc.isInSelectionMode();
         if (!isSelecting) {
+          selectButton.setLabel(selectLeaveLabel);
           viewer.vc.enableSelection(true);
         } else {
+          selectButton.setLabel(selectEnterLabel);
           viewer.vc.enableSelection(false);
         }
       }

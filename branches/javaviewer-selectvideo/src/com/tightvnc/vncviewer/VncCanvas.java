@@ -1956,12 +1956,21 @@ class VncCanvas extends Canvas
   private Point selectionEnd;
 
   /**
+   * We change cursor when enabling the selection mode. In this variable, we
+   * save the original cursor so we can restore it on returning to the normal
+   * mode.
+   */
+  private Cursor savedCursor;
+
+  /**
    * Initialize selection-related varibles.
    */
   private synchronized void resetSelection() {
     inSelectionMode = false;
     selectionStart = new Point(0, 0);
     selectionEnd = new Point(0, 0);
+
+    savedCursor = getCursor();
   }
 
   /**
@@ -2000,6 +2009,12 @@ class VncCanvas extends Canvas
     inSelectionMode = !inSelectionMode;
     repaint();
 
+    if (inSelectionMode) {
+      savedCursor = getCursor();
+      setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+    } else {
+      setCursor(savedCursor);
+    }
     return inSelectionMode;
   }
 

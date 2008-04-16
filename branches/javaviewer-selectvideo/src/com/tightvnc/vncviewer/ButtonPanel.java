@@ -159,8 +159,12 @@ class ButtonPanel extends Panel implements ActionListener {
       }
     } else if (evt.getSource() == selectButton) {
       if (viewer.vc != null) {
-        boolean isSelecting = viewer.vc.toggleSelection();
-        System.out.println("Selection mode " + (isSelecting ? "on" : "off"));
+        boolean isSelecting = viewer.vc.isInSelectionMode();
+        if (!isSelecting) {
+          viewer.vc.enableSelection(true);
+        } else {
+          viewer.vc.enableSelection(false);
+        }
       }
     }
   }

@@ -2002,20 +2002,22 @@ class VncCanvas extends Canvas
   }
 
   /**
-   * Toggle selection mode.
-   * @return true if the selection mode is now on, false otherwise.
+   * Enable or disable the selection mode.
+   * @param enable enables the selection mode if true, disables if fasle.
    */
-  public synchronized boolean toggleSelection() {
-    inSelectionMode = !inSelectionMode;
-    repaint();
-
-    if (inSelectionMode) {
+  public synchronized void enableSelection(boolean enable) {
+    if (enable && !inSelectionMode) {
+      // Enter the selection mode.
+      inSelectionMode = true;
       savedCursor = getCursor();
       setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-    } else {
+      repaint();
+    } else if (!enable && inSelectionMode) {
+      // Leave the selection mode.
+      inSelectionMode = false;
       setCursor(savedCursor);
+      repaint();
     }
-    return inSelectionMode;
   }
 
   /**

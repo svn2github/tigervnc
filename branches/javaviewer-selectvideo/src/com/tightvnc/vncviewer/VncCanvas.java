@@ -1990,6 +1990,7 @@ class VncCanvas extends Canvas
     int y = selectionStart.y;
     int w = selectionEnd.x - selectionStart.x;
     int h = selectionEnd.y - selectionStart.y;
+    // Make x and y point to the upper left corner.
     if (w < 0) {
       w = -w;
       x = x - w;
@@ -1998,7 +1999,10 @@ class VncCanvas extends Canvas
       h = -h;
       y = y - h;
     }
-    return new Rectangle(x, y, w, h);
+    // Clip the selection to screen and return the result.
+    Rectangle selection = new Rectangle(x, y, w, h);
+    Rectangle screen = new Rectangle(0, 0, scaledWidth, scaledHeight);
+    return selection.intersection(screen);
   }
 
   /**

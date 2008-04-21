@@ -1944,19 +1944,13 @@ class VncCanvas extends Canvas
   // Support for selecting a rectangular video area.
   //
 
-  /**
-   * This flag is false in normal operation, and is true in the selection mode.
-   */
+  /** This flag is false in normal operation, and true in the selection mode. */
   private boolean inSelectionMode;
 
-  /**
-   * The point where the selection was started.
-   */
+  /** The point where the selection was started. */
   private Point selectionStart;
 
-  /**
-   * The second point of the selection.
-   */
+  /** The second point of the selection. */
   private Point selectionEnd;
 
   /**

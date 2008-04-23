@@ -85,6 +85,12 @@ class ButtonPanel extends Panel implements ActionListener {
     disconnectButton.setEnabled(true);
     clipboardButton.setEnabled(true);
     refreshButton.setEnabled(true);
+  }
+
+  /**
+   * Enable video rectangle selection button.
+   */
+  public void enableSelectButton() {
     selectButton.setEnabled(true);
   }
 

@@ -206,8 +206,12 @@ public class VncViewer extends java.applet.Applet
 
       }
 
-      if (showControls)
-	buttonPanel.enableButtons();
+      if (showControls) {
+        buttonPanel.enableButtons();
+        if (rfb.clientMsgCaps.isEnabled(RfbProto.VideoRectangleSelection)) {
+          buttonPanel.enableSelectButton();
+        }
+      }
 
       moveFocusToDesktop();
       processNormalProtocol();

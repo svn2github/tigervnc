@@ -98,10 +98,10 @@ class RfbProto {
     ClientCutText            = 6;
 
   // Non-standard client-to-server messages
-  final static int
-    EnableContinuousUpdates = 150;
-  final static String
-    SigEnableContinuousUpdates = "CUC_ENCU";
+  final static int EnableContinuousUpdates = 150;
+  final static int VideoRectangleSelection = 151;
+  final static String SigEnableContinuousUpdates = "CUC_ENCU";
+  final static String SigVideoRectangleSelection = "VRECTSEL";
 
   // Supported encodings and pseudo-encodings
   final static int
@@ -499,6 +499,9 @@ class RfbProto {
     clientMsgCaps.add(EnableContinuousUpdates, TightVncVendor,
                       SigEnableContinuousUpdates,
                       "Enable/disable continuous updates");
+    clientMsgCaps.add(VideoRectangleSelection, TightVncVendor,
+                      SigVideoRectangleSelection,
+                      "Select a rectangle to be treated as video");
 
     // Supported encoding types
     encodingCaps.add(EncodingCopyRect, StandardVendor,

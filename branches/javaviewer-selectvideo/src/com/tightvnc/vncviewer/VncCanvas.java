@@ -1988,19 +1988,41 @@ class VncCanvas extends Canvas
     int y = selectionStart.y;
     int w = selectionEnd.x - selectionStart.x;
     int h = selectionEnd.y - selectionStart.y;
-    // Make x and y point to the upper left corner.
+    // Make x and y point to the upper left corner of the selection.
+    boolean horizSwap = false;
+    boolean vertSwap = false;
     if (w < 0) {
       w = -w;
       x = x - w;
+      horizSwap = true;
     }
     if (h < 0) {
       h = -h;
       y = y - h;
+      vertSwap = true;
     }
     // Make sure the borders are included in the selection.
     if (w > 0 && h > 0) {
       w += 1;
       h += 1;
+    }
+    // Make width a multiple of 16.
+    int widthCorrection = w % 16;
+    if (widthCorrection >= 8) {
+      widthCorrection -= 16;
+    }
+    w -= widthCorrection;
+    if (horizSwap) {
+      x += widthCorrection;
+    }
+    // Make height a multiple of 8.
+    int heightCorrection = h % 8;
+    if (heightCorrection >= 4) {
+      heightCorrection -= 8;
+    }
+    h -= heightCorrection;
+    if (vertSwap) {
+      y += heightCorrection;
     }
     // Clip the selection to screen and return the result.
     Rectangle selection = new Rectangle(x, y, w, h);

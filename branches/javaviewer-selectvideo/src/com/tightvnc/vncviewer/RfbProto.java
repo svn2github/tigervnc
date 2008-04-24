@@ -1360,6 +1360,42 @@ class RfbProto {
     return continuousUpdatesActive;
   }
 
+  /**
+   * Send a rectangle selection to be treated as video by the server (but
+   * only if VideoRectangleSelection message is supported by the server).
+   * @param rect specifies coordinates and size of the rectangule.
+   * @throws java.io.IOException
+   */
+  void trySendVideoSelection(Rectangle rect) throws IOException
+  {
+    if (!clientMsgCaps.isEnabled(VideoRectangleSelection)) {
+      System.out.println("Video area selection is not supported by the server");
+      return;
+    }
+
+    int x = rect.x;
+    int y = rect.y;
+    int w = rect.width;
+    int h = rect.height;
+ 
+    byte[] b = new byte[10];
+
+    b[0] = (byte) VideoRectangleSelection;
+    b[1] = (byte) 0; // reserved
+    b[2] = (byte) ((x >> 8) & 0xff);
+    b[3] = (byte) (x & 0xff);
+    b[4] = (byte) ((y >> 8) & 0xff);
+    b[5] = (byte) (y & 0xff);
+    b[6] = (byte) ((w >> 8) & 0xff);
+    b[7] = (byte) (w & 0xff);
+    b[8] = (byte) ((h >> 8) & 0xff);
+    b[9] = (byte) (h & 0xff);
+
+    os.write(b);
+
+    System.out.println("Video rectangle selection message sent");
+  }
+
 
   //
   // Compress and write the data into the recorded session file. This

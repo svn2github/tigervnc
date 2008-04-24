@@ -2067,6 +2067,13 @@ class VncCanvas extends Canvas
       selectionEnd = evt.getPoint();
       repaint();
     }
+    if (id == MouseEvent.MOUSE_RELEASED && button1) {
+      try {
+        rfb.trySendVideoSelection(getSelection());
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
   }
 
 }

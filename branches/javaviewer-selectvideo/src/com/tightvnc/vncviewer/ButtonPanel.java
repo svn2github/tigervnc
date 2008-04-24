@@ -71,6 +71,12 @@ class ButtonPanel extends Panel implements ActionListener {
     refreshButton.setEnabled(false);
     add(refreshButton);
     refreshButton.addActionListener(this);
+  }
+
+  /**
+   * Add video selection button to the ButtonPanel.
+   */
+  public void addSelectButton() {
     selectButton = new Button(selectEnterLabel);
     selectButton.setEnabled(false);
     add(selectButton);
@@ -85,13 +91,9 @@ class ButtonPanel extends Panel implements ActionListener {
     disconnectButton.setEnabled(true);
     clipboardButton.setEnabled(true);
     refreshButton.setEnabled(true);
-  }
-
-  /**
-   * Enable video rectangle selection button.
-   */
-  public void enableSelectButton() {
-    selectButton.setEnabled(true);
+    if (selectButton != null) {
+      selectButton.setEnabled(true);
+    }
   }
 
   //
@@ -109,9 +111,9 @@ class ButtonPanel extends Panel implements ActionListener {
     clipboardButton.setEnabled(false);
     ctrlAltDelButton.setEnabled(false);
     refreshButton.setEnabled(false);
-    selectButton.setEnabled(false);
-
-    validate();
+    if (selectButton != null) {
+      selectButton.setEnabled(false);
+    }
   }
 
   //
@@ -166,7 +168,7 @@ class ButtonPanel extends Panel implements ActionListener {
       } catch (IOException e) {
         e.printStackTrace();
       }
-    } else if (evt.getSource() == selectButton) {
+    } else if (selectButton != null && evt.getSource() == selectButton) {
       if (viewer.vc != null) {
         boolean isSelecting = viewer.vc.isInSelectionMode();
         if (!isSelecting) {

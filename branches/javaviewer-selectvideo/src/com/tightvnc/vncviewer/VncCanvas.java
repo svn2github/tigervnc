@@ -177,7 +177,7 @@ class VncCanvas extends Canvas
       }
     }
     if (isInSelectionMode()) {
-      Rectangle r = getSelection();
+      Rectangle r = getSelection(true);
       if (r.width > 0 && r.height > 0) {
         // Don't forget to correct the coordinates for the right and bottom
         // borders, so that the borders are the part of the selection.
@@ -1981,9 +1981,11 @@ class VncCanvas extends Canvas
 
   /**
    * Get current selection.
+   * @param useScreenCoords use screen coordinates if true, or framebuffer
+   * coordinates if false. This makes difference when scaling factor is not 100.
    * @return The selection as a {@link Rectangle}.
    */
-  private synchronized Rectangle getSelection() {
+  private synchronized Rectangle getSelection(boolean useScreenCoords) {
     int x = selectionStart.x;
     int y = selectionStart.y;
     int w = selectionEnd.x - selectionStart.x;
@@ -2006,6 +2008,13 @@ class VncCanvas extends Canvas
       w += 1;
       h += 1;
     }
+    // Translate from screen coordinates to framebuffer coordinates.
+    if (rfb.framebufferWidth != scaledWidth) {
+      x = (x * 100 + scalingFactor/2) / scalingFactor;
+      y = (y * 100 + scalingFactor/2) / scalingFactor;
+      w = (w * 100 + scalingFactor/2) / scalingFactor;
+      h = (h * 100 + scalingFactor/2) / scalingFactor;
+    }
     // Make width a multiple of 16.
     int widthCorrection = w % 16;
     if (widthCorrection >= 8) {
@@ -2024,10 +2033,21 @@ class VncCanvas extends Canvas
     if (vertSwap) {
       y += heightCorrection;
     }
-    // Clip the selection to screen and return the result.
+    // Translate the selection back to screen coordinates if requested.
+    int clipWidth = rfb.framebufferWidth;
+    int clipHeight = rfb.framebufferHeight;
+    if (useScreenCoords && rfb.framebufferWidth != scaledWidth) {
+      x = (x * scalingFactor + 50) / 100;
+      y = (y * scalingFactor + 50) / 100;
+      w = (w * scalingFactor + 50) / 100;
+      h = (h * scalingFactor + 50) / 100;
+      clipWidth = scaledWidth;
+      clipHeight = scaledHeight;
+    }
+    // Clip the selection to screen/framebuffer and return the result.
     Rectangle selection = new Rectangle(x, y, w, h);
-    Rectangle screen = new Rectangle(0, 0, scaledWidth, scaledHeight);
-    return selection.intersection(screen);
+    Rectangle clip = new Rectangle(0, 0, clipWidth, clipHeight);
+    return selection.intersection(clip);
   }
 
   /**
@@ -2069,7 +2089,7 @@ class VncCanvas extends Canvas
     }
     if (id == MouseEvent.MOUSE_RELEASED && button1) {
       try {
-        rfb.trySendVideoSelection(getSelection());
+        rfb.trySendVideoSelection(getSelection(false));
       } catch (IOException e) {
         e.printStackTrace();
       }

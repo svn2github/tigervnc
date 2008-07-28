@@ -34,6 +34,7 @@
 // to require MFC, which has not been used up to this point.  I 
 // wonder why not?  WinCE compatibility maybe?
 // #include <afxcmn.h>
+#include "SaveOption.h"
 
 
 #define LASTENCODING rfbEncodingZlibHex

@@ -906,6 +906,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\SaveOption.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\SaveOption.h"
+			>
+		</File>
+		<File
 			RelativePath="SessionDialog.cpp"
 			>
 			<FileConfiguration

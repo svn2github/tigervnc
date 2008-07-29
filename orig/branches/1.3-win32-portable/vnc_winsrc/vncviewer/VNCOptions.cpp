@@ -87,7 +87,8 @@ VNCOptions::VNCOptions()
 	m_requestShapeUpdates = true;
 	m_ignoreShapeUpdates = false;
 
-	LoadGenOpt();
+  svOpt = new SaveOption(sReg, NULL);
+
 
 	
 #ifdef UNDER_CE
@@ -167,12 +168,54 @@ VNCOptions& VNCOptions::operator=(VNCOptions& s)
 
 VNCOptions::~VNCOptions()
 {
-	
+	delete svOpt;
 }
 
 inline bool SwitchMatch(LPCTSTR arg, LPCTSTR swtch) {
 	return (arg[0] == '-' || arg[0] == '/') &&
 		(_tcsicmp(&arg[1], swtch) == 0);
+}
+
+inline TCHAR *_tcsdelword(TCHAR *str, TCHAR *delsubstrword) {
+
+  TCHAR *posBegin, *posEnd;
+
+  // Extract one word or words in quotes from delsubstr
+  TCHAR *findWord, *delWord;
+  delWord = new TCHAR[_tcslen(delsubstrword) + 1];
+  _tcscpy(delWord, delsubstrword);
+  // Find begin of delword
+  for (posBegin = delWord; posBegin[0] == ' '; posBegin++) {}
+  // Find end of delword
+  bool inquote = false;
+  for (posEnd = posBegin; (posEnd[0] != ' ' || inquote) && posEnd[0] != '\0'; posEnd++) {
+    if (posEnd[0] == '\"') inquote = !inquote;
+  }
+  posEnd[0] = '\0';
+
+  if ((findWord = _tcsstr(str, posBegin)) == NULL) {
+    delete[] delWord;
+    return NULL;
+  }
+  delete[] delWord;
+
+  // Find end of word
+  inquote = false;
+  for (posEnd = findWord; (posEnd[0] != ' ' || inquote) && posEnd[0] != '\0'; posEnd++) {
+    if (posEnd[0] == '\"') inquote = !inquote;
+  }
+
+  // Find next word 
+  for (; posEnd[0] == ' '; posEnd++) {}
+
+  // Move characters
+  for (posBegin = findWord; posEnd[0] != '\0'; posBegin++, posEnd++){
+    posBegin[0] = posEnd[0];
+  }
+  // Terminate string
+  posBegin[0] = '\0';
+
+  return findWord;
 }
 
 static void ArgError(LPTSTR msg) {
@@ -204,11 +247,66 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 	// Copy the command line - we don't know what might happen to the original
 	int cmdlinelen = _tcslen(szCmdLine);
 	
-	if (cmdlinelen == 0) return;
-		
-	TCHAR CommLine[256] ;
+	if (cmdlinelen == 0) {
+		// Load Gen Opt from registry
+		LoadGenOpt();
+		return;
+	}
+
+	TCHAR CommLine[1024], *pcl;
 	int f = 0;
 	_tcscpy(CommLine, szCmdLine);
+
+	// Enabled window with unique class name 
+	if ((pcl = _tcsstr( CommLine, _T("-uniquewin"))) != NULL){
+		TCHAR className[256], *pcname, *parg;
+		pcl = _tcsdelword(CommLine, pcl);
+		if (pcl == NULL) {
+			ArgError(_T("Error in _tcsdelword with -uniquewin key"));
+			return;
+		}
+		// pcl -> arrgument of -uniquewin
+		parg = pcl;
+		bool inquote = false;
+		if (parg[0] == '\"') {
+			inquote = true;
+			parg++;
+		}
+		for (pcname = className; (parg[0] != ' ' || inquote) && parg[0] != '\0' && parg[0] != '\"'; parg++, pcname++){
+			pcname[0] = parg[0];
+		}
+		pcname[0] = '\0';
+
+
+		// delete argument of -uniquewin from command line
+		pcl = _tcsdelword(CommLine, pcl);
+	}
+
+	// Use registry or file
+	if ((pcl = _tcsstr( CommLine, _T("-localset"))) != NULL){
+		TCHAR className[256], *pfname, *parg;
+		pcl = _tcsdelword(CommLine, pcl);
+		if (pcl == NULL) {
+			ArgError(_T("Error in _tcsdelword with -uniquewin key"));
+			return;
+		}
+		// pcl -> arrgument of -localset
+		parg = pcl;
+		bool inquote = false;
+		if (parg[0] == '\"') {
+			inquote = true;
+			parg++;
+		}
+		for (pfname = className; (parg[0] != ' ' || inquote) && parg[0] != '\0' && parg[0] != '\"'; parg++, pfname++){
+			pfname[0] = parg[0];
+		}
+		pfname[0] = '\0';
+
+		// delete argument of -localset from command line
+		pcl = _tcsdelword(CommLine, pcl);
+
+	}
+	LoadGenOpt();
 
 	if (_tcsstr( CommLine, "/listen") != NULL ||
         _tcsstr( CommLine, "-listen") != NULL) {

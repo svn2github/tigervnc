@@ -58,8 +58,9 @@ public:
 	VNCOptions();
 	VNCOptions& operator=(VNCOptions& s);
 	virtual ~VNCOptions();
-	
+
 	// Save and load a set of options from a config file
+	SaveOption *svOpt;
 	void Save(char *fname);
 	void Load(char *fname);
 	void VNCOptions::LoadOpt(char subkey[256],char keyname[256]);
@@ -69,6 +70,11 @@ public:
 	void VNCOptions::SaveGenOpt();
 	void VNCOptions::delkey(char subkey[256],char keyname[256]);
 	void VNCOptions::SaveOpt(char subkey[256],char keyname[256]);
+
+	// Save options. Set form command line
+	TCHAR m_FileName[_MAX_PATH]; // To save
+	TCHAR m_UnicumClassWindow[256];
+
 	// process options
 	bool	m_listening;
 	int		m_listenPort;

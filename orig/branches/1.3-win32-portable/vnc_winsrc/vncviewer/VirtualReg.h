@@ -2,18 +2,16 @@
 #define __VIRTUALREG_H__
 
 // Key of registr with one parameter
-struct RegistrKey {
-  
+struct ValueKey {
+	char *hive;
+	char *valueName;
 };
 
 class VirtualReg {
 protected:
-  SaveOptTo sOptTo;
 public:
 	VirtualReg();
 	~VirtualReg();
-
-
 };
 
 #endif // __VIRTUALREG_H__

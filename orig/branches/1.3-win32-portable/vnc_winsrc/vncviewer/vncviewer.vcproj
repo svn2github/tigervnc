@@ -972,6 +972,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\VirtualReg.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\VirtualReg.h"
+			>
+		</File>
+		<File
 			RelativePath="vncauth.c"
 			>
 			<FileConfiguration

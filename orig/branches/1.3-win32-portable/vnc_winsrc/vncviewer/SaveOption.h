@@ -2,26 +2,29 @@
 #define __SAVEOPTION_H__
 
 #include "TCHAR.h"
-//#include "windows.h"
-#include "resource.h"
+#include "stdhdrs.h"
+#include "VirtualReg.h"
 
 
 enum SaveOptTo {
-  sFile,
-  sReg
+	sFile,
+	sReg
 };
 
 
 class SaveOption {
 protected:
-  SaveOptTo sOptTo;
-  TCHAR *sFileName;
+	SaveOptTo sOptTo;
+	TCHAR *sFileName;
+	VirtualReg *vReg;
 public:
 	SaveOption(SaveOptTo sot, TCHAR *fname);
+	void ReInit(SaveOptTo sot, TCHAR *fname);
 	~SaveOption();
 
-  LSTATUS soRegSetValueEx(HKEY hKey, LPCSTR lpValueName, DWORD Reserved, DWORD dwType, const BYTE *lpData, DWORD cbData);
 
+	LSTATUS soRegSetValueEx(HKEY hKey, LPCSTR lpValueName, DWORD Reserved, DWORD dwType, const BYTE *lpData, DWORD cbData);
+  
 };
 
 #endif // __SAVEOPTION_H__

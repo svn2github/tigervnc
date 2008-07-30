@@ -189,7 +189,7 @@ inline void _tcsremquotes(TCHAR *str)
 			posWord++;
 		}
 	}
-	*(posWord + 1) = '\0';
+	*(posWord) = '\0';
 }
 
 inline void _tcsextrword(TCHAR *str, TCHAR *extrWord)
@@ -283,32 +283,36 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 	TCHAR CommLine[1024], *pcl;
 	int f = 0;
 	_tcscpy(CommLine, szCmdLine);
-
+	
 	// Enabled window with unique class name 
-	if ((pcl = _tcsstr( CommLine, _T("-uniquewin"))) != NULL){
+	if ((pcl = _tcsstr( CommLine, _T("-wndclass"))) != NULL){
 		TCHAR className[256];
 		pcl = _tcsdelword(CommLine, pcl);
 		if (pcl == NULL) {
-			ArgError(_T("Error in _tcsdelword with -uniquewin key"));
+			ArgError(_T("Error in _tcsdelword with -wndclass key"));
 			return;
 		}
-		// pcl -> arrgument of -uniquewin
+		// pcl -> arrgument of -wndclass
 		_tcsextrword(pcl, className);
 		_tcsremquotes(className);
-		
-		// delete argument of -uniquewin from command line
+
+		// Create the window with unique class name
+		UniqueForm *uForm;
+		uForm = new UniqueForm(pApp->m_instance, className);
+
+		// delete argument of -wndclass from command line
 		pcl = _tcsdelword(CommLine, pcl);
 	}
 
 	// Use registry or file
-	if ((pcl = _tcsstr( CommLine, _T("-localset"))) != NULL){
+	if ((pcl = _tcsstr( CommLine, _T("-settingsfile"))) != NULL){
 		TCHAR fileName[_MAX_PATH];
 		pcl = _tcsdelword(CommLine, pcl);
 		if (pcl == NULL) {
-			ArgError(_T("Error in _tcsdelword with -localset key"));
+			ArgError(_T("Error in _tcsdelword with -settingsfile key"));
 			return;
 		}
-		// pcl -> arrgument of -localset
+		// pcl -> arrgument of -settingsfile
 		_tcsextrword(pcl, fileName);
 		_tcsremquotes(fileName);
 
@@ -316,15 +320,20 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 		pcl = _tcsdelword(CommLine, pcl);
 	}
 	LoadGenOpt();
+	
+	cmdlinelen = _tcslen(CommLine);
+	if (cmdlinelen == 0) {
+		return;
+	} 
 
 	if (_tcsstr( CommLine, "/listen") != NULL ||
         _tcsstr( CommLine, "-listen") != NULL) {
 		LoadOpt(".listen", KEY_VNCVIEWER_HISTORI);
 		f = 1;
 	}
-	TCHAR *cmd = new TCHAR[cmdlinelen + 1];
-	_tcscpy(cmd, szCmdLine);
-	
+
+	TCHAR *cmd = CommLine;
+
 	// Count the number of spaces
 	// This may be more than the number of arguments, but that doesn't matter.
 	int nspaces = 0;
@@ -583,7 +592,7 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 	m_scaling = (m_scale_num != 1 || m_scale_den != 1 || m_FitWindow);			
 
 	// tidy up
-	delete [] cmd;
+	//delete [] cmd;
 	delete [] args;
 }
 

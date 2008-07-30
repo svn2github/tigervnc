@@ -176,46 +176,73 @@ inline bool SwitchMatch(LPCTSTR arg, LPCTSTR swtch) {
 		(_tcsicmp(&arg[1], swtch) == 0);
 }
 
+inline void _tcsremquotes(TCHAR *str)
+{
+	// Find begin of word
+	TCHAR *posStr, *posWord;
+	for (posStr = str; *posStr == ' '; posStr++) {}
+
+	// Remove quotes
+	for (posWord = str; *posStr != '\0'; posStr++) {
+		if (*posStr != '\"') {
+			*posWord = *posStr;
+			posWord++;
+		}
+	}
+	*(posWord + 1) = '\0';
+}
+
+inline void _tcsextrword(TCHAR *str, TCHAR *extrWord)
+{
+	*extrWord = '\0';
+	// Find begin of word
+	TCHAR *posStr, *posWord;
+	for (posStr = str; *posStr == ' '; posStr++) {}
+
+	// Copy word with quotes
+	bool inquote = false;
+	for (posWord = extrWord; (*posStr != ' ' || inquote) && *posStr != '\0'; posStr++, posWord++) {
+		if (*posStr == '\"') {
+			inquote = !inquote;
+		}
+		*posWord = *posStr;
+	}
+	*posWord = '\0';
+}
+
 inline TCHAR *_tcsdelword(TCHAR *str, TCHAR *delsubstrword) {
 
-  TCHAR *posBegin, *posEnd;
+	TCHAR *posBegin, *posEnd;
 
-  // Extract one word or words in quotes from delsubstr
-  TCHAR *findWord, *delWord;
-  delWord = new TCHAR[_tcslen(delsubstrword) + 1];
-  _tcscpy(delWord, delsubstrword);
-  // Find begin of delword
-  for (posBegin = delWord; posBegin[0] == ' '; posBegin++) {}
-  // Find end of delword
-  bool inquote = false;
-  for (posEnd = posBegin; (posEnd[0] != ' ' || inquote) && posEnd[0] != '\0'; posEnd++) {
-    if (posEnd[0] == '\"') inquote = !inquote;
-  }
-  posEnd[0] = '\0';
+	// Extract one word or words in quotes from delsubstr
+	TCHAR *findWord, *delWord;
+	delWord = new TCHAR[_tcslen(delsubstrword) + 1];
+	_tcsextrword(delsubstrword, delWord);
 
-  if ((findWord = _tcsstr(str, posBegin)) == NULL) {
-    delete[] delWord;
-    return NULL;
-  }
-  delete[] delWord;
+	// Find begin of word
+	if ((findWord = posBegin = _tcsstr(str, delWord)) == NULL) {
+		delete[] delWord;
+		return NULL;
+	}
+	delete[] delWord;
 
-  // Find end of word
-  inquote = false;
-  for (posEnd = findWord; (posEnd[0] != ' ' || inquote) && posEnd[0] != '\0'; posEnd++) {
-    if (posEnd[0] == '\"') inquote = !inquote;
-  }
+	// Find end of word
+	bool inquote = false;
+	for (posEnd = posBegin; (*posEnd != ' ' || inquote) && *posEnd != '\0'; posEnd++) {
+		if (*posEnd == '\"') inquote = !inquote;
+	}
 
-  // Find next word 
-  for (; posEnd[0] == ' '; posEnd++) {}
+	// Find next word 
+	for (; *posEnd == ' '; posEnd++) {}
 
-  // Move characters
-  for (posBegin = findWord; posEnd[0] != '\0'; posBegin++, posEnd++){
-    posBegin[0] = posEnd[0];
-  }
-  // Terminate string
-  posBegin[0] = '\0';
+	// Move characters
+	for (; *posEnd != '\0'; posBegin++, posEnd++){
+		*posBegin = *posEnd;
+	}
+	// Terminate string
+	*posBegin = '\0';
 
-  return findWord;
+	return findWord;
 }
 
 static void ArgError(LPTSTR msg) {
@@ -259,52 +286,34 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 
 	// Enabled window with unique class name 
 	if ((pcl = _tcsstr( CommLine, _T("-uniquewin"))) != NULL){
-		TCHAR className[256], *pcname, *parg;
+		TCHAR className[256];
 		pcl = _tcsdelword(CommLine, pcl);
 		if (pcl == NULL) {
 			ArgError(_T("Error in _tcsdelword with -uniquewin key"));
 			return;
 		}
 		// pcl -> arrgument of -uniquewin
-		parg = pcl;
-		bool inquote = false;
-		if (parg[0] == '\"') {
-			inquote = true;
-			parg++;
-		}
-		for (pcname = className; (parg[0] != ' ' || inquote) && parg[0] != '\0' && parg[0] != '\"'; parg++, pcname++){
-			pcname[0] = parg[0];
-		}
-		pcname[0] = '\0';
-
-
+		_tcsextrword(pcl, className);
+		_tcsremquotes(className);
+		
 		// delete argument of -uniquewin from command line
 		pcl = _tcsdelword(CommLine, pcl);
 	}
 
 	// Use registry or file
 	if ((pcl = _tcsstr( CommLine, _T("-localset"))) != NULL){
-		TCHAR className[256], *pfname, *parg;
+		TCHAR fileName[_MAX_PATH];
 		pcl = _tcsdelword(CommLine, pcl);
 		if (pcl == NULL) {
-			ArgError(_T("Error in _tcsdelword with -uniquewin key"));
+			ArgError(_T("Error in _tcsdelword with -localset key"));
 			return;
 		}
 		// pcl -> arrgument of -localset
-		parg = pcl;
-		bool inquote = false;
-		if (parg[0] == '\"') {
-			inquote = true;
-			parg++;
-		}
-		for (pfname = className; (parg[0] != ' ' || inquote) && parg[0] != '\0' && parg[0] != '\"'; parg++, pfname++){
-			pfname[0] = parg[0];
-		}
-		pfname[0] = '\0';
+		_tcsextrword(pcl, fileName);
+		_tcsremquotes(fileName);
 
 		// delete argument of -localset from command line
 		pcl = _tcsdelword(CommLine, pcl);
-
 	}
 	LoadGenOpt();
 

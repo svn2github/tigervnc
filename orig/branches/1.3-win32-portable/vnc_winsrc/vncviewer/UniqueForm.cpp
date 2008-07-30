@@ -3,24 +3,23 @@
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, 
 						 WPARAM wParam, LPARAM lParam)
 {
-	// выборка и обработка сообщений
 	UniqueForm *_this;
-	_this = (UniqueForm *) GetProp(hWnd, _THIS);
+	_this = (UniqueForm *) GetWindowLong(hWnd, GWL_USERDATA);
 	if (_this != NULL) {
 		_this->WndProcForm(_this, message, wParam, lParam);
 	}
 	return DefWindowProc(hWnd, message, wParam, lParam);
-} // конец функции обработчика сообщений
+} 
 
-
-UniqueForm::UniqueForm(TCHAR *WindowClassName, HINSTANCE hInst)
+UniqueForm::UniqueForm(HINSTANCE hInst, TCHAR *WindowClassName)
 {
 	f_hinst = hInst;
-	RegClass(f_hinst, WindowClassName);
-	hwnd = CreateWindow(WindowClassName, "", 
+	if (RegClass(f_hinst, WindowClassName) == 0) {
+		return;
+	}
+	f_hwnd = CreateWindow(WindowClassName, "", 
 		WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, 0, 300, 150, NULL, NULL, f_hinst, NULL);
-
-	SetProp(hwnd, _THIS, this);
+	SetWindowLong(f_hwnd, GWL_USERDATA, (LONG) this);
 }
 
 
@@ -37,21 +36,15 @@ ATOM UniqueForm::RegClass(HINSTANCE hInst, LPSTR lpzClassName)
 	wcWindowClass.lpszClassName = lpzClassName; 
 	wcWindowClass.hCursor = LoadCursor(NULL, IDC_ARROW); 
 	wcWindowClass.hbrBackground = (HBRUSH)COLOR_APPWORKSPACE;  
-
-	//регистрация класса
+	//
 	return RegisterClass(&wcWindowClass);
 }
 
 void UniqueForm::WndProcForm(UniqueForm *_this, UINT message, 
 							 WPARAM wParam, LPARAM lParam)
 {
-	// выборка и обработка сообщений
 	switch (message)
 	{
-	case WM_LBUTTONUP:
-		TCHAR mess[16];
-		MessageBox(hwnd, ltoa((long) this, mess, 16) ,"Log",0); 
-		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;

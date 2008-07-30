@@ -972,6 +972,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\UniqueForm.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\UniqueForm.h"
+			>
+		</File>
+		<File
 			RelativePath=".\VirtualReg.cpp"
 			>
 		</File>

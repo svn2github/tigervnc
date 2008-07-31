@@ -316,7 +316,7 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 		_tcsextrword(pcl, fileName);
 		_tcsremquotes(fileName);
 
-		// delete argument of -localset from command line
+		// delete argument of -settingsfile from command line
 		pcl = _tcsdelword(CommLine, pcl);
 	}
 	LoadGenOpt();

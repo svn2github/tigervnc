@@ -40,7 +40,7 @@ SessionDialog::SessionDialog(VNCOptions *pOpt,ClientConnection *cc)
 	m_cc = cc;
 	DWORD dispos;
 
-	RegCreateKeyEx(HKEY_CURRENT_USER,
+	svOpt->soRegCreateKeyEx(HKEY_CURRENT_USER,
 		KEY_VNCVIEWER_HISTORI, 0, NULL, 
 		REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS,
 		NULL, &m_hRegKey, &dispos);
@@ -49,7 +49,7 @@ SessionDialog::SessionDialog(VNCOptions *pOpt,ClientConnection *cc)
 
 SessionDialog::~SessionDialog()
 {
-  RegCloseKey(m_hRegKey); 
+  svOpt->soRegCloseKey(m_hRegKey); 
 }
 
 // It's exceedingly unlikely, but possible, that if two modal dialogs were
@@ -93,7 +93,7 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 			for ( i = 0; i < maxEntries; i++) { 
 				itoa(i, valname, 10);
 				dwbuflen=255;
-				if (RegQueryValueEx( _this->m_hRegKey, (LPTSTR)valname, 
+				if (svOpt->soRegQueryValueEx( _this->m_hRegKey, (LPTSTR)valname, 
 					NULL, NULL, 
 					(LPBYTE)buf, (LPDWORD)&dwbuflen) != ERROR_SUCCESS) {
 					break;
@@ -230,7 +230,7 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 				for ( i = 0; i < maxEntries; i++) { 				
 					itoa(i, valname, 10);
 					dwbuflen = 255;
-					if(RegQueryValueEx( _this->m_hRegKey, (LPTSTR)valname , NULL, NULL, 
+					if(svOpt->soRegQueryValueEx( _this->m_hRegKey, (LPTSTR)valname , NULL, NULL, 
 						(LPBYTE) buf, (LPDWORD) &dwbuflen) != ERROR_SUCCESS) {
 						break;
 					}

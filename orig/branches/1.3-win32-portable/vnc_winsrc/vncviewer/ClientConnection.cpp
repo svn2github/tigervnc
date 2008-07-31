@@ -625,7 +625,7 @@ void ClientConnection::SaveListConnection()
 		TCHAR  buf1[256];
 				
 		itoa(maxEntries, list, 10);
-		RegCreateKeyEx(HKEY_CURRENT_USER,
+		svOpt->soRegCreateKeyEx(HKEY_CURRENT_USER,
 					KEY_VNCVIEWER_HISTORI, 0, NULL, 
 					REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, 
 					NULL, &m_hRegKey, &dispos);
@@ -635,16 +635,16 @@ void ClientConnection::SaveListConnection()
 			j = i;
 			itoa(i, valname, 10);
 			dwbuflen = 255;
-			if ((RegQueryValueEx( m_hRegKey, (LPTSTR)valname, 
+			if ((svOpt->soRegQueryValueEx( m_hRegKey, (LPTSTR)valname, 
 						NULL, NULL, 
 						(LPBYTE) buf, (LPDWORD) &dwbuflen) != ERROR_SUCCESS) ||
 						(_tcscmp(buf, m_opts.m_display) == NULL)) {
-				RegSetValueEx( m_hRegKey, valname, 
+				svOpt->soRegSetValueEx( m_hRegKey, valname, 
 							NULL, REG_SZ, 
 							(CONST BYTE *)buf1, (_tcslen(buf1)+1));
 				break;
 			}
-			RegSetValueEx(m_hRegKey, valname, 
+			svOpt->soRegSetValueEx(m_hRegKey, valname, 
 						NULL, REG_SZ, 
 						(CONST BYTE *)buf1, (_tcslen(buf1)+1)); 
 				_tcscpy(buf1, buf);
@@ -653,12 +653,12 @@ void ClientConnection::SaveListConnection()
 			dwbuflen = 255;
 			_tcscpy(valname, list);
 			_tcscpy(buf, "");
-			RegQueryValueEx( m_hRegKey, (LPTSTR)valname, 
+			svOpt->soRegQueryValueEx( m_hRegKey, (LPTSTR)valname, 
 						NULL, NULL, 
 						(LPBYTE)buf, (LPDWORD)&dwbuflen);
 			m_opts.delkey(buf, KEY_VNCVIEWER_HISTORI);
 		}
-		RegCloseKey(m_hRegKey);
+		svOpt->soRegCloseKey(m_hRegKey);
 		m_opts.SaveOpt(m_opts.m_display,
 						KEY_VNCVIEWER_HISTORI);
 	}		

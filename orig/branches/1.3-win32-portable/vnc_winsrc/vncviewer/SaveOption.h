@@ -24,7 +24,6 @@ public:
 
 
 	LSTATUS soRegSetValueEx(HKEY hKey, LPCSTR lpValueName, DWORD Reserved, DWORD dwType, const BYTE *lpData, DWORD cbData);
-  
-};
+ };
 
 #endif // __SAVEOPTION_H__

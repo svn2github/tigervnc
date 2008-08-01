@@ -61,7 +61,6 @@ public:
 	virtual ~VNCOptions();
 
 	// Save and load a set of options from a config file
-	SaveOption *svOpt;
 	void Save(char *fname);
 	void Load(char *fname);
 	void VNCOptions::LoadOpt(char subkey[256],char keyname[256]);

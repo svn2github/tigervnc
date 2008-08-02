@@ -45,7 +45,7 @@
  
 #include "rfb.h"
 
-#include "SaveOption.h"
+
 
 extern const char* g_buildTime;
 

@@ -24,6 +24,7 @@ public:
 
 	LSTATUS soRegCreateKey(HKEY hKey, LPCTSTR lpSubKey, PHKEY phkResult);
 	LSTATUS soRegOpenKey(HKEY hKey,	LPCTSTR lpSubKey, PHKEY phkResult);
+	LSTATUS soRegOpenKeyEx(HKEY hKey, LPCTSTR lpSubKey, DWORD ulOptions, REGSAM samDesired, PHKEY phkResult);
 	LSTATUS soRegSetValueEx(HKEY hKey, LPCSTR lpValueName, DWORD Reserved, DWORD dwType, const BYTE *lpData, DWORD cbData);
 	LSTATUS soRegSetValue(HKEY hKey, LPCTSTR lpSubKey, DWORD dwType, LPCTSTR lpData, DWORD cbData);
 	LSTATUS soRegCreateKeyEx(HKEY hKey, LPCTSTR lpSubKey, DWORD Reserved, LPTSTR lpClass, DWORD dwOptions, 
@@ -32,11 +33,12 @@ public:
 		LPBYTE lpData, LPDWORD lpcbData);
 	LSTATUS soRegEnumValue(HKEY hKey, DWORD dwIndex, LPTSTR lpValueName, LPDWORD lpcchValueName, LPDWORD lpReserved,
 		LPDWORD lpType, LPBYTE lpData, LPDWORD lpcbData);
+	LSTATUS soRegDeleteValue(HKEY hKey, LPCTSTR lpValueName);
+	LSTATUS soRegDeleteKey(HKEY hKey, LPCTSTR lpSubKey);
 	LSTATUS soRegCloseKey(HKEY hKey);
 };
 
 // Global link
-
-SaveOption *svOpt;
+extern SaveOption *svOpt;
 
 #endif // __SAVEOPTION_H__

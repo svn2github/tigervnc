@@ -166,7 +166,7 @@ VNCOptions& VNCOptions::operator=(VNCOptions& s)
 
 VNCOptions::~VNCOptions()
 {
-	delete svOpt;
+	
 }
 
 inline bool SwitchMatch(LPCTSTR arg, LPCTSTR swtch) {

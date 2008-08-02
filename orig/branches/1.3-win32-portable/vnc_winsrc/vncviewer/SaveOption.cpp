@@ -4,7 +4,11 @@ SaveOption *svOpt;
 
 SaveOption::SaveOption(SaveOptTo sot, TCHAR *fname){
 	sOptTo = sot;
-	sFileName = fname;
+	if (fname == NULL) {
+		sFileName = _T("Settings.ini");
+	} else {
+		sFileName = fname;
+	}
 	vReg = new VirtualReg;
 }
 
@@ -24,7 +28,6 @@ LSTATUS SaveOption::soRegCreateKey(HKEY hKey, LPCTSTR lpSubKey, PHKEY phkResult)
 		// Save to file
 		return 0;
 	}
-
 }
 
 LSTATUS SaveOption::soRegOpenKey(HKEY hKey,	LPCTSTR lpSubKey, PHKEY phkResult) {

@@ -33,6 +33,7 @@
 #include "omnithread.h"
 #include "VNCviewerApp32.h"
 #endif
+#include "SaveOption.h"
 
 // All logging is done via the log object
 Log vnclog;
@@ -54,7 +55,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 
 	// Start a new connection if specified on command line, 
 	// or if not in listening mode
-	
+	svOpt = new SaveOption(sReg, NULL);
+
 	if (app.m_options.m_connectionSpecified) {
 		app.NewConnection(app.m_options.m_host, app.m_options.m_port);
 	} else if (!app.m_options.m_listening) {
@@ -85,6 +87,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 
 	vnclog.Print(3, _T("Exiting\n"));
 
+	delete svOpt;
 	return msg.wParam;
 }
 

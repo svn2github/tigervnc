@@ -7,8 +7,8 @@
 
 
 enum SaveOptTo {
-	sFile,
-	sReg
+	S_FILE,
+	S_REG
 };
 
 

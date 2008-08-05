@@ -312,8 +312,7 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 		_tcsextrword(pcl, fileName);
 		_tcsremquotes(fileName);
 
-		svOpt->ReInit(sFile, fileName);
-
+		svOpt->ReInit(S_FILE, fileName);
 		// delete argument of -settingsfile from command line
 		pcl = _tcsdelword(CommLine, pcl);
 	}

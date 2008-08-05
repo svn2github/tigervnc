@@ -46,7 +46,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdLin
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine, int iCmdShow)
 #endif
 {
-	svOpt = new SaveOption(sReg, NULL);
+	svOpt = new SaveOption(S_REG, NULL);
 
 	// The state of the application as a whole is contained in the one app object
 	#ifdef _WIN32_WCE

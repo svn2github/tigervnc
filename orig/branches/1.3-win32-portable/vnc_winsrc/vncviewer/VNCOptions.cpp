@@ -87,8 +87,6 @@ VNCOptions::VNCOptions()
 	m_requestShapeUpdates = true;
 	m_ignoreShapeUpdates = false;
 
-	svOpt = new SaveOption(sReg, NULL);
-	
 #ifdef UNDER_CE
 	m_palmpc = false;
 	

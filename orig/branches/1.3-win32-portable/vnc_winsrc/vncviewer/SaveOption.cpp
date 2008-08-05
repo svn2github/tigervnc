@@ -5,20 +5,27 @@ SaveOption *svOpt;
 SaveOption::SaveOption(SaveOptTo sot, TCHAR *fname){
 	sOptTo = sot;
 	if (fname == NULL) {
-		sFileName = _T("Settings.ini");
+		sFileName = _tcsdup("Settings.ini");
 	} else {
-		sFileName = fname;
+		sFileName = _tcsdup(fname);	
 	}
 	vReg = new VirtualReg;
+	vReg->setfname(fname);
 }
 
 void SaveOption::ReInit(SaveOptTo sot, TCHAR *fname) {
 	sOptTo = sot;
-	sFileName = fname;
+	if (fname != NULL) {
+		sFileName = _tcsdup(fname);
+	}
+	vReg->setfname(fname);
 }
 
 SaveOption::~SaveOption() {
 	delete vReg;
+	if (sFileName != NULL) {
+		free(sFileName);
+	}
 }
 
 LSTATUS SaveOption::soRegCreateKey(HKEY hKey, LPCTSTR lpSubKey, PHKEY phkResult) {
@@ -26,7 +33,7 @@ LSTATUS SaveOption::soRegCreateKey(HKEY hKey, LPCTSTR lpSubKey, PHKEY phkResult)
 		return RegCreateKey(hKey, lpSubKey, phkResult);
 	} else {
 		// Save to file
-		return 0;
+		return vReg->RegCreateKey(hKey, lpSubKey, phkResult);
 	}
 }
 
@@ -35,7 +42,7 @@ LSTATUS SaveOption::soRegOpenKey(HKEY hKey,	LPCTSTR lpSubKey, PHKEY phkResult) {
 		return RegOpenKey(hKey, lpSubKey, phkResult);
 	} else {
 		// Save to file
-		return 0;
+		return vReg->RegOpenKey(hKey, lpSubKey, phkResult);
 	}
 }
 
@@ -44,7 +51,7 @@ LSTATUS SaveOption::soRegOpenKeyEx(HKEY hKey, LPCTSTR lpSubKey, DWORD ulOptions,
 		return RegOpenKeyEx(hKey, lpSubKey, ulOptions, samDesired, phkResult);
 	} else {
 		// Save to file
-		return 0;
+		return vReg->RegOpenKeyEx(hKey, lpSubKey, ulOptions, samDesired, phkResult);
 	}
 }
 
@@ -53,7 +60,7 @@ LSTATUS SaveOption::soRegSetValueEx(HKEY hKey, LPCSTR lpValueName, DWORD Reserve
 		return RegSetValueEx(hKey, lpValueName, Reserved, dwType, lpData, cbData);
 	} else {
 		// Save to file
-		return 0;
+		return vReg->RegSetValueEx(hKey, lpValueName, Reserved, dwType, lpData, cbData);
 	}
 }
 
@@ -62,7 +69,7 @@ LSTATUS SaveOption::soRegSetValue(HKEY hKey, LPCTSTR lpSubKey, DWORD dwType, LPC
 		return RegSetValue(hKey, lpSubKey, dwType, lpData, cbData);
 	} else {
 		// Save to file
-		return 0;
+		return vReg->RegSetValue(hKey, lpSubKey, dwType, lpData, cbData);
 	}
 }
 
@@ -72,7 +79,7 @@ LSTATUS SaveOption::soRegCreateKeyEx(HKEY hKey, LPCTSTR lpSubKey, DWORD Reserved
 		return RegCreateKeyEx(hKey, lpSubKey, Reserved, lpClass, dwOptions, samDesired, lpSecurityAttributes, phkResult, lpdwDisposition);
 	} else {
 		// Save to file
-		return 0;
+		return vReg->RegCreateKeyEx(hKey, lpSubKey, Reserved, lpClass, dwOptions, samDesired, lpSecurityAttributes, phkResult, lpdwDisposition);
 	}
 }
 
@@ -82,7 +89,7 @@ LSTATUS SaveOption::soRegQueryValueEx(HKEY hKey, LPCTSTR lpValueName, LPDWORD lp
 		return RegQueryValueEx(hKey, lpValueName, lpReserved, lpType, lpData, lpcbData);
 	} else {
 		// Save to file
-		return 0;
+		return vReg->RegQueryValueEx(hKey, lpValueName, lpReserved, lpType, lpData, lpcbData);
 	}
 }
 
@@ -92,7 +99,7 @@ LSTATUS SaveOption::soRegEnumValue(HKEY hKey, DWORD dwIndex, LPTSTR lpValueName,
 		return RegEnumValue(hKey, dwIndex, lpValueName, lpcchValueName, lpReserved, lpType, lpData, lpcbData);
 	} else {
 		// Save to file
-		return 0;
+		return vReg->RegEnumValue(hKey, dwIndex, lpValueName, lpcchValueName, lpReserved, lpType, lpData, lpcbData);
 	}
 }
 
@@ -101,7 +108,7 @@ LSTATUS SaveOption::soRegDeleteValue(HKEY hKey, LPCTSTR lpValueName) {
 		return RegDeleteValue(hKey, lpValueName);
 	} else {
 		// Save to file
-		return 0;
+		return vReg->RegDeleteValue(hKey, lpValueName);
 	}
 }
 
@@ -110,7 +117,7 @@ LSTATUS SaveOption::soRegDeleteKey(HKEY hKey, LPCTSTR lpSubKey) {
 		return RegDeleteKey(hKey, lpSubKey);
 	} else {
 		// Save to file
-		return 0;
+		return vReg->RegDeleteKey(hKey, lpSubKey);
 	}
 }
 
@@ -119,6 +126,6 @@ LSTATUS SaveOption::soRegCloseKey(HKEY hKey) {
 		return RegCloseKey(hKey);
 	} else {
 		// Save to file
-		return 0;
+		return vReg->RegCloseKey(hKey);
 	}
 }

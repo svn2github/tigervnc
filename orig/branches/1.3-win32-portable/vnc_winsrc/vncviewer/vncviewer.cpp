@@ -46,6 +46,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdLin
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine, int iCmdShow)
 #endif
 {
+	svOpt = new SaveOption(sReg, NULL);
+
 	// The state of the application as a whole is contained in the one app object
 	#ifdef _WIN32_WCE
 		VNCviewerApp app(hInstance, szCmdLine);
@@ -55,7 +57,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 
 	// Start a new connection if specified on command line, 
 	// or if not in listening mode
-	svOpt = new SaveOption(sReg, NULL);
 
 	if (app.m_options.m_connectionSpecified) {
 		app.NewConnection(app.m_options.m_host, app.m_options.m_port);

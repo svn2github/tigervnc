@@ -147,7 +147,7 @@ protected:
 
 	void CopyToBuffer(RECT rect, BYTE *scrBuff);
 	void CopyToBuffer(RECT rect, BYTE *scrBuff, const BYTE *SourceBuff);
-	void CopyRectToBuffer(RECT dest, POINT source);
+	void CopyRectToBuffer(const RECT &dest, const POINT &source);
 	void CalcCopyRects();
 	
 	// Routine to attempt enabling optimised DIBsection blits

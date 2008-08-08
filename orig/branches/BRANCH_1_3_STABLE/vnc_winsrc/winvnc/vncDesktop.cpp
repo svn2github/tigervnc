@@ -2119,8 +2119,6 @@ BOOL vncDesktop::CheckUpdates()
 			}
 		}
 
-// DEBUG: Continue auditing the code from this point.
-
 		// If we have incremental update requests
 		if (m_server->IncrRgnRequested())
 		{
@@ -2168,6 +2166,8 @@ BOOL vncDesktop::CheckUpdates()
 				m_server->CopyRect(m_copyrect_rect, m_copyrect_src);
 				m_copyrect_set = false;
 
+// DEBUG: Continue auditing the code from this point.
+
 // IMPORTANT: this order: CopyRectToBuffer, CaptureScreen, GetChangedRegion
 				// Copy old window rect to back buffer
 				CopyRectToBuffer(m_copyrect_rect, m_copyrect_src);
@@ -2175,7 +2175,7 @@ BOOL vncDesktop::CheckUpdates()
 				// Copy new window rect to main buffer
 				CaptureScreen(m_copyrect_rect, m_mainbuff);
 
-				// Get changed pixels to rg
+				// Get changed pixels to rgn
 				GetChangedRegion(rgn, m_copyrect_rect);
 
 				RECT rect;
@@ -2683,14 +2683,14 @@ void vncDesktop::PollArea(const RECT &rect)
 	}
 }
 
-inline RECT MoveRect(RECT const& sr, POINT const& mv)
+static inline RECT MoveRect(RECT const& sr, POINT const& mv)
 {
-	RECT R;
-	R.left = sr.left + mv.x;
-	R.top = sr.top + mv.y;
-	R.right = sr.right + mv.x;
-	R.bottom = sr.bottom + mv.y;
-	return R;
+	RECT r;
+	r.left = sr.left + mv.x;
+	r.top = sr.top + mv.y;
+	r.right = sr.right + mv.x;
+	r.bottom = sr.bottom + mv.y;
+	return r;
 }
 
 void vncDesktop::CopyRect(RECT const &rcDest, POINT ptSrc)

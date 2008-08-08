@@ -2683,114 +2683,53 @@ void vncDesktop::PollArea(const RECT &rect)
 	}
 }
 
-static inline RECT MoveRect(RECT const& sr, POINT const& mv)
+void vncDesktop::CopyRect(const RECT &rcDest, const POINT &ptSrc)
 {
-	RECT r;
-	r.left = sr.left + mv.x;
-	r.top = sr.top + mv.y;
-	r.right = sr.right + mv.x;
-	r.bottom = sr.bottom + mv.y;
-	return r;
-}
-
-void vncDesktop::CopyRect(RECT const &rcDest, POINT ptSrc)
-{
-// motion vector
-	POINT mv2;
-	mv2.x = rcDest.left - ptSrc.x;
-	mv2.y = rcDest.top - ptSrc.y;
+	const int offset_x = rcDest.left - ptSrc.x;
+	const int offset_y = rcDest.top - ptSrc.y;
 
 	// Clip the destination to the screen
-	RECT rcDr2;
-	if (!IntersectRect(&rcDr2, &rcDest, &m_server->GetSharedRect()))
+	RECT destrect;
+	if (!IntersectRect(&destrect, &rcDest, &m_server->GetSharedRect()))
 		return;
 
-// NOTE: this is important.
-// each pixel in rcDr2 is either salvaged by copyrect
-// or became dirty
-	m_changed_rgn.AddRect(rcDr2);
-
-	// Adjust the source correspondingly
-	ptSrc.x = rcDr2.left - mv2.x;
-	ptSrc.y = rcDr2.top - mv2.y;
+	// NOTE: This is important. Each pixel in destrect is either salvaged
+	//       by copyrect or became dirty.
+	m_changed_rgn.AddRect(destrect);
 
 	// Work out the source rectangle
-	RECT rcSource;
-	rcSource.left = ptSrc.x;
-	rcSource.top = ptSrc.y;
-	rcSource.right = rcSource.left + rcDr2.right - rcDr2.left;
-	rcSource.bottom = rcSource.top + rcDr2.bottom - rcDr2.top;
+	RECT srcrect;
+	srcrect.left = destrect.left - offset_x;
+	srcrect.top = destrect.top - offset_y;
+	srcrect.right = srcrect.left + destrect.right - destrect.left;
+	srcrect.bottom = srcrect.top + destrect.bottom - destrect.top;
 
 	// Clip the source to the screen
-	RECT rcSr2;
-	if (!IntersectRect(&rcSr2, &rcSource, &m_server->GetSharedRect()))
+	RECT srcrect2;
+	if (!IntersectRect(&srcrect2, &srcrect, &m_server->GetSharedRect()))
 		return;
 
-	rcDr2 = MoveRect(rcSr2, mv2);
+	destrect.left += (srcrect2.left - srcrect.left);
+	destrect.top += (srcrect2.top - srcrect.top);
+	destrect.right = srcrect2.right - srcrect2.left + destrect.left;
+	destrect.bottom = srcrect2.bottom - srcrect2.top + destrect.top;
 
-// we'd try to continue the chain
-	if (m_copyrect_set)
-	{
-// prev motion vector
-		POINT mv1;
-		mv1.x = m_copyrect_rect.left - m_copyrect_src.x;
-		mv1.y = m_copyrect_rect.top - m_copyrect_src.y;
+	if ( destrect.right - destrect.left >= 16 &&
+		 destrect.bottom - destrect.top >= 16 ) {
+		m_changed_rgn.SubtractRect(destrect);
 
-		m_changed_rgn.AddRect(m_copyrect_rect);
+		m_copyrect_rect = destrect;
+		m_copyrect_src.x = srcrect2.left;
+		m_copyrect_src.y = srcrect2.top;
+		m_copyrect_set = TRUE;
 
-		RECT CR1i2Dst;
-		if (!IntersectRect(&CR1i2Dst, &m_copyrect_rect, &rcSr2))
-		{
-			m_copyrect_set = FALSE;
-			return;
-		}
-
-		RECT rcDr3 = MoveRect(CR1i2Dst, mv2);
-		if (rcDr3.right - rcDr3.left >= 16 &&
-			rcDr3.bottom - rcDr3.top >= 16)
-		{
-			m_changed_rgn.SubtractRect(rcDr3);
-
-			POINT ptCR1i2Src;
-			ptCR1i2Src.x = CR1i2Dst.left - mv1.x;
-			ptCR1i2Src.y = CR1i2Dst.top - mv1.y;
-
-			m_copyrect_rect = rcDr3;
-			m_copyrect_src = ptCR1i2Src;
-
-			//DPF(("CopyRect-cont: (%d, %d) (%d, %d, %d, %d)\n",
-			//	m_copyrect_src.x,
-			//	m_copyrect_src.y,
-			//	m_copyrect_rect.left,
-			//	m_copyrect_rect.top,
-			//	m_copyrect_rect.right,
-			//	m_copyrect_rect.bottom));
-		}
-		else
-		{
-			m_copyrect_set = FALSE;
-		}
-	}
-	else
-	{
-		if (rcDr2.right - rcDr2.left >= 16 &&
-			rcDr2.bottom - rcDr2.top >= 16)
-		{
-			m_changed_rgn.SubtractRect(rcDr2);
-
-			m_copyrect_rect = rcDr2;
-			m_copyrect_src.x = rcSr2.left;
-			m_copyrect_src.y = rcSr2.top;
-			m_copyrect_set = TRUE;
-
-			//DPF(("CopyRect: (%d, %d) (%d, %d, %d, %d)\n",
-			//	m_copyrect_src.x,
-			//	m_copyrect_src.y,
-			//	m_copyrect_rect.left,
-			//	m_copyrect_rect.top,
-			//	m_copyrect_rect.right,
-			//	m_copyrect_rect.bottom));
-		}
+		//DPF(("CopyRect: (%d, %d) (%d, %d, %d, %d)\n",
+		//	m_copyrect_src.x,
+		//	m_copyrect_src.y,
+		//	m_copyrect_rect.left,
+		//	m_copyrect_rect.top,
+		//	m_copyrect_rect.right,
+		//	m_copyrect_rect.bottom));
 	}
 }
 

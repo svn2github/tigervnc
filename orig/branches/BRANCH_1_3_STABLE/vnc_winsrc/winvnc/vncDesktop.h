@@ -112,7 +112,7 @@ public:
 	// If they're disabled, it'll return NULL
 	inline BYTE *MainBuffer() {	return m_mainbuff; }
 	inline RECT MainBufferRect() {	return m_bmrect; }
-	void CopyRect(RECT const& dest, POINT source);
+	void CopyRect(const RECT &dest, const POINT &source);
 
 	BOOL			m_initialClipBoardSeen;
 

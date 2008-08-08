@@ -9,7 +9,7 @@ inline void _tcsaddquotes(TCHAR *str)
 		*pos= *(pos - 1);
 	}
 	*str = '\"';
-	_tcscat(str, "\"");
+	_tcscat(str, _T("\""));
 }
 
 inline void _straddquotes(char *str)

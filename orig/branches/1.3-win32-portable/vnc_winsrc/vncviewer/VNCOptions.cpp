@@ -33,6 +33,7 @@
 #include "Htmlhelp.h"
 #include "commctrl.h"
 #include "AboutBox.h"
+#include "exstring.h"
 VNCOptions::VNCOptions()
 {
 	for (int i = rfbEncodingRaw; i<= LASTENCODING; i++)
@@ -170,75 +171,6 @@ VNCOptions::~VNCOptions()
 inline bool SwitchMatch(LPCTSTR arg, LPCTSTR swtch) {
 	return (arg[0] == '-' || arg[0] == '/') &&
 		(_tcsicmp(&arg[1], swtch) == 0);
-}
-
-inline void _tcsremquotes(TCHAR *str)
-{
-	// Find begin of word
-	TCHAR *posStr, *posWord;
-	for (posStr = str; *posStr == ' '; posStr++) {}
-
-	// Remove quotes
-	for (posWord = str; *posStr != '\0'; posStr++) {
-		if (*posStr != '\"') {
-			*posWord = *posStr;
-			posWord++;
-		}
-	}
-	*(posWord) = '\0';
-}
-
-inline void _tcsextrword(TCHAR *str, TCHAR *extrWord)
-{
-	*extrWord = '\0';
-	// Find begin of word
-	TCHAR *posStr, *posWord;
-	for (posStr = str; *posStr == ' '; posStr++) {}
-
-	// Copy word with quotes
-	bool inquote = false;
-	for (posWord = extrWord; (*posStr != ' ' || inquote) && *posStr != '\0'; posStr++, posWord++) {
-		if (*posStr == '\"') {
-			inquote = !inquote;
-		}
-		*posWord = *posStr;
-	}
-	*posWord = '\0';
-}
-
-inline TCHAR *_tcsdelword(TCHAR *str, TCHAR *delsubstrword) {
-
-	TCHAR *posBegin, *posEnd;
-
-	// Extract one word or words in quotes from delsubstr
-	TCHAR *findWord, *delWord;
-	delWord = new TCHAR[_tcslen(delsubstrword) + 1];
-	_tcsextrword(delsubstrword, delWord);
-
-	// Find begin of word
-	if ((findWord = posBegin = _tcsstr(str, delWord)) == NULL) {
-		delete[] delWord;
-		return NULL;
-	}
-	delete[] delWord;
-
-	// Find end of word
-	bool inquote = false;
-	for (posEnd = posBegin; (*posEnd != ' ' || inquote) && *posEnd != '\0'; posEnd++) {
-		if (*posEnd == '\"') inquote = !inquote;
-	}
-
-	// Find next word 
-	for (; *posEnd == ' '; posEnd++) {}
-
-	// Move characters
-	for (; *posEnd != '\0'; posBegin++, posEnd++){
-		*posBegin = *posEnd;
-	}
-	// Terminate string
-	*posBegin = '\0';
-
-	return findWord;
 }
 
 static void ArgError(LPTSTR msg) {

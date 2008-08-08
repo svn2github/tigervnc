@@ -172,6 +172,10 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
+				RelativePath="..\exstring.cpp"
+				>
+			</File>
+			<File
 				RelativePath="jcapimin.c"
 				>
 				<FileConfiguration
@@ -1096,6 +1100,10 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
 			>
+			<File
+				RelativePath="..\exstring.h"
+				>
+			</File>
 			<File
 				RelativePath="jchuff.h"
 				>

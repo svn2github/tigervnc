@@ -25,10 +25,10 @@ LSTATUS VirtualReg::RegCreateKey(HKEY hKey, LPCTSTR lpSubKey, PHKEY phkResult) {
 	// Create new hive
 	TCHAR *newHive;
 	if (iter == hHive.end()) {
-		newHive = new TCHAR[_tcslen(lpSubKey) + 1];
-		*newHive = '\0';
+		newHive = new TCHAR[_tcslen(lpSubKey) + 11];
+		_sntprintf(newHive, 10, _T("%x\\"), hKey);
 	} else {
-		newHive = new TCHAR[_tcslen((*iter).second) + _tcslen(lpSubKey) + 2]; // + 2 for '\' and '\0'
+		newHive = new TCHAR[_tcslen((*iter).second) + _tcslen(lpSubKey) + 2]; //
 		_tcscpy(newHive, (*iter).second);
 		if (lpSubKey != NULL) {
 			_tcscat(newHive, _T("\\"));
@@ -87,6 +87,7 @@ LSTATUS VirtualReg::RegSetValueEx(HKEY hKey, LPCSTR lpValueName, DWORD Reserved,
 	return ERROR_SUCCESS;
 }
 
+// FIXME: The function is not implemented.
 LSTATUS VirtualReg::RegSetValue(HKEY hKey, LPCTSTR lpSubKey, DWORD dwType, LPCTSTR lpData, DWORD cbData) {
 	return RegSetValueEx(hKey, "lpValueName", NULL, dwType, (BYTE *)lpData, cbData);
 }
@@ -98,26 +99,38 @@ LSTATUS VirtualReg::RegQueryValueEx(HKEY hKey, LPCTSTR lpValueName, LPDWORD lpRe
 		return ERROR_PATH_NOT_FOUND;
 	}
 
-	TCHAR value[1024]; 
-	int bufLength = 1024;
+	int bufLength = *lpcbData + 16;
+	TCHAR *value = new TCHAR[bufLength];
+
 	bufLength = GetPrivateProfileString((*iter).second, lpValueName, _T(""), value, bufLength, fname);
 	if (bufLength == 0) {
-		return ERROR_INVALID_DATA;
+		delete[] value;
+		return ERROR_FILE_NOT_FOUND;
 	}
 	switch (value[0]) {
 		case PREF_STRING:
+			if (bufLength - sizeof(PREF_STRING) + 1 >  *lpcbData) { // '... + 1' for null character. 
+				delete[] value;
+				return ERROR_MORE_DATA;
+			}
 			if (lpType != NULL) {*lpType = REG_SZ;}
 			_tcscpy((TCHAR *)lpData, value + 1);
 			*lpcbData = bufLength - 1;
 			break;
 		case PREF_DWORD:
+			if (*lpcbData < 4) {
+				delete[] value;
+				return ERROR_MORE_DATA;
+			}
 			if (lpType != NULL) {*lpType = REG_DWORD;}
 			*(long *)lpData = atol(value + 1);
 			*lpcbData = 4;
 			break;
 		default:
+			delete[] value;
 			return ERROR_INVALID_DATA;
 	}
+	delete[] value;
 	return ERROR_SUCCESS;
 }
 
@@ -138,6 +151,7 @@ LSTATUS VirtualReg::RegEnumValue(HKEY hKey, DWORD dwIndex,LPTSTR lpValueName, LP
 	}
 
 	// Pointer to a necessary line 
+	// // Not tested
 	line = values;
 	for (DWORD iLine = 0; (iLine < dwIndex) && (*line != '\0'); iLine++) {
 		for (; *line != '\0'; line++) {} // Ponter to the next line
@@ -147,7 +161,8 @@ LSTATUS VirtualReg::RegEnumValue(HKEY hKey, DWORD dwIndex,LPTSTR lpValueName, LP
 		// dwIndex out of range
 		return ERROR_NO_MORE_ITEMS;
 	}
-	
+	// End // Not tested
+
 	// Copy value name to lpValueName
 	int i = 0;
 	for (valueName = line, *lpcchValueName = 0; (*valueName != '\0') && (*valueName != '='); valueName++, i++) {
@@ -161,12 +176,11 @@ LSTATUS VirtualReg::RegEnumValue(HKEY hKey, DWORD dwIndex,LPTSTR lpValueName, LP
 		// Pointer to the value data
 		if ((valueData = strchr(line, '=')) != NULL) {
 			valueData++;
-		}
-		switch (valueData[0]) {
+			switch (valueData[0]) {
 			case PREF_STRING:
 				if (lpType != NULL) {*lpType = REG_SZ;}
 				strcpy((char *)lpData, valueData + 1);
-				*lpcbData = strlen(valueData + 1);
+				*lpcbData = strlen(valueData + 1) + 1;
 				break;
 			case PREF_DWORD:
 				if (lpType != NULL) {*lpType = REG_DWORD;}
@@ -175,6 +189,7 @@ LSTATUS VirtualReg::RegEnumValue(HKEY hKey, DWORD dwIndex,LPTSTR lpValueName, LP
 				break;
 			default:
 				return ERROR_INVALID_DATA;
+			}
 		}
 	}
 	return ERROR_SUCCESS;
@@ -202,7 +217,7 @@ LSTATUS VirtualReg::RegDeleteKey(HKEY hKey, LPCTSTR lpSubKey) {
 	TCHAR *newHive;
 	if (iter == hHive.end()) {
 		newHive = new TCHAR[_tcslen(lpSubKey) + 1];
-		*newHive = '\0';
+		_sntprintf(newHive, 10, _T("%x\\"), hKey);
 	} else {
 		newHive = new TCHAR[_tcslen((*iter).second) + _tcslen(lpSubKey) + 2]; // + 2 for '\' and '\0'
 		_tcscpy(newHive, (*iter).second);
@@ -213,8 +228,6 @@ LSTATUS VirtualReg::RegDeleteKey(HKEY hKey, LPCTSTR lpSubKey) {
 	if (lpSubKey != NULL) {
 		_tcscat(newHive, lpSubKey);
 	}
-	
-	// WritePrivateProfileString( PKOLChar( fSection ), nil, nil, PKOLChar( fFileName ) );
 
 	if (WritePrivateProfileString(newHive, NULL, NULL, fname) == 0) {
 		return ERROR_INVALID_DATA;

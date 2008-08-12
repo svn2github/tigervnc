@@ -8,12 +8,14 @@
 #define PREF_DWORD	'D'
 
 // Key of registr with one parameter
-struct ValueKey {
+struct ValueKey
+{
 	char *hive;
 	char *valueName;
 };
 
-class VirtualReg {
+class VirtualReg
+{
 protected:
 	HKEY ihkey;
 	TCHAR *fname;

@@ -1,6 +1,6 @@
 #include "UniqueForm.h"
 
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, 
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
 						 WPARAM wParam, LPARAM lParam)
 {
 	UniqueForm *_this;
@@ -8,10 +8,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
 	if (_this != NULL) {
 		if (_this->WndProcForm(_this, message, wParam, lParam)) {
 			return 0;
-		} 
+		}
 	}
 	return DefWindowProc(hWnd, message, wParam, lParam);
-} 
+}
 
 UniqueForm::UniqueForm(HINSTANCE hInst, TCHAR *WindowClassName)
 {
@@ -30,6 +30,7 @@ UniqueForm::UniqueForm(HINSTANCE hInst, TCHAR *WindowClassName)
 
 UniqueForm::~UniqueForm(void)
 {
+
 }
 
 ATOM UniqueForm::RegClass(HINSTANCE hInst, LPSTR lpzClassName)
@@ -45,7 +46,7 @@ ATOM UniqueForm::RegClass(HINSTANCE hInst, LPSTR lpzClassName)
 	return RegisterClass(&wcWindowClass);
 }
 
-bool UniqueForm::WndProcForm(UniqueForm *_this, UINT message, 
+bool UniqueForm::WndProcForm(UniqueForm *_this, UINT message,
 							 WPARAM wParam, LPARAM lParam)
 {
 	if (message == wm_ExitCode) {
@@ -53,5 +54,4 @@ bool UniqueForm::WndProcForm(UniqueForm *_this, UINT message,
 		return true;
 	}
 	return false;
-} 
-
+}

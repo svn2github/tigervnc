@@ -1,17 +1,20 @@
 #include "VirtualReg.h"
 
-VirtualReg::VirtualReg() {
+VirtualReg::VirtualReg()
+{
 	ihkey = (HKEY)1;
 	fname = _tcsdup("Settings.ini");
 }
 
-VirtualReg::~VirtualReg() {
+VirtualReg::~VirtualReg()
+{
 	if (fname != NULL) {
 		free(fname);
 	}
 }
 
-void VirtualReg::setfname(TCHAR *fileName) {
+void VirtualReg::setfname(TCHAR *fileName)
+{
 	if (fileName != NULL) {
 		fname = _tcsdup(fileName);
 	} else {
@@ -19,7 +22,8 @@ void VirtualReg::setfname(TCHAR *fileName) {
 	}
 }
 
-LSTATUS VirtualReg::RegCreateKey(HKEY hKey, LPCTSTR lpSubKey, PHKEY phkResult) {
+LSTATUS VirtualReg::RegCreateKey(HKEY hKey, LPCTSTR lpSubKey, PHKEY phkResult)
+{
 	std::map<HKEY, TCHAR *>::iterator iter = hHive.find(hKey);
 
 	// Create new hive
@@ -50,20 +54,31 @@ LSTATUS VirtualReg::RegCreateKey(HKEY hKey, LPCTSTR lpSubKey, PHKEY phkResult) {
 	return ERROR_SUCCESS;
 }
 
-LSTATUS VirtualReg::RegCreateKeyEx(HKEY hKey, LPCTSTR lpSubKey, DWORD Reserved, LPTSTR lpClass, DWORD dwOptions, 
-									 REGSAM samDesired, LPSECURITY_ATTRIBUTES lpSecurityAttributes, PHKEY phkResult,LPDWORD lpdwDisposition) {
+LSTATUS VirtualReg::RegCreateKeyEx(HKEY hKey, LPCTSTR lpSubKey,
+								   DWORD Reserved,
+								   LPTSTR lpClass,
+								   DWORD dwOptions,
+								   REGSAM samDesired,
+								   LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+								   PHKEY phkResult,LPDWORD lpdwDisposition)
+{
 	return RegCreateKey(hKey, lpSubKey, phkResult);
 }
 
-LSTATUS VirtualReg::RegOpenKey(HKEY hKey, LPCTSTR lpSubKey, PHKEY phkResult) {
+LSTATUS VirtualReg::RegOpenKey(HKEY hKey, LPCTSTR lpSubKey, PHKEY phkResult)
+{
 	return RegCreateKey(hKey, lpSubKey, phkResult);
 }
 
-LSTATUS VirtualReg::RegOpenKeyEx(HKEY hKey, LPCTSTR lpSubKey, DWORD ulOptions, REGSAM samDesired, PHKEY phkResult) {
+LSTATUS VirtualReg::RegOpenKeyEx(HKEY hKey, LPCTSTR lpSubKey, DWORD ulOptions,
+								 REGSAM samDesired, PHKEY phkResult)
+{
 	return RegCreateKey(hKey, lpSubKey, phkResult);
 }
 
-LSTATUS VirtualReg::RegSetValueEx(HKEY hKey, LPCSTR lpValueName, DWORD Reserved, DWORD dwType, const BYTE *lpData, DWORD cbData) {
+LSTATUS VirtualReg::RegSetValueEx(HKEY hKey, LPCSTR lpValueName, DWORD Reserved,
+								  DWORD dwType, const BYTE *lpData, DWORD cbData)
+{
 	std::map<HKEY, TCHAR *>::iterator iter = hHive.find(hKey);
 	if (iter == hHive.end()) {
 		return ERROR_PATH_NOT_FOUND;
@@ -88,12 +103,15 @@ LSTATUS VirtualReg::RegSetValueEx(HKEY hKey, LPCSTR lpValueName, DWORD Reserved,
 }
 
 // FIXME: The function is not implemented.
-LSTATUS VirtualReg::RegSetValue(HKEY hKey, LPCTSTR lpSubKey, DWORD dwType, LPCTSTR lpData, DWORD cbData) {
+LSTATUS VirtualReg::RegSetValue(HKEY hKey, LPCTSTR lpSubKey, DWORD dwType,
+								LPCTSTR lpData, DWORD cbData)
+{
 	return RegSetValueEx(hKey, "lpValueName", NULL, dwType, (BYTE *)lpData, cbData);
 }
 
-LSTATUS VirtualReg::RegQueryValueEx(HKEY hKey, LPCTSTR lpValueName, LPDWORD lpReserved, LPDWORD lpType, 
-									  LPBYTE lpData, LPDWORD lpcbData) {
+LSTATUS VirtualReg::RegQueryValueEx(HKEY hKey, LPCTSTR lpValueName, LPDWORD lpReserved,
+									LPDWORD lpType, LPBYTE lpData, LPDWORD lpcbData)
+{
 	std::map<HKEY, TCHAR *>::iterator iter = hHive.find(hKey);
 	if (iter == hHive.end()) {
 		return ERROR_PATH_NOT_FOUND;
@@ -134,8 +152,13 @@ LSTATUS VirtualReg::RegQueryValueEx(HKEY hKey, LPCTSTR lpValueName, LPDWORD lpRe
 	return ERROR_SUCCESS;
 }
 
-LSTATUS VirtualReg::RegEnumValue(HKEY hKey, DWORD dwIndex,LPTSTR lpValueName, LPDWORD lpcchValueName, LPDWORD lpReserved,
-								   LPDWORD lpType, LPBYTE lpData, LPDWORD lpcbData) {
+LSTATUS VirtualReg::RegEnumValue(HKEY hKey,
+								 DWORD dwIndex,
+								 LPTSTR lpValueName,
+								 LPDWORD lpcchValueName,
+								 LPDWORD lpReserved,
+								 LPDWORD lpType, LPBYTE lpData, LPDWORD lpcbData)
+{
 	std::map<HKEY, TCHAR *>::iterator iter = hHive.find(hKey);
 
 	if (iter == hHive.end()) {
@@ -145,7 +168,7 @@ LSTATUS VirtualReg::RegEnumValue(HKEY hKey, DWORD dwIndex,LPTSTR lpValueName, LP
 	char *line, *valueName, *valueData; 
 	char values[32767]; // Max size of string
 	int sizeValues = 32767;
-	
+
 	if ((sizeValues = GetPrivateProfileSection((*iter).second, values, sizeValues, fname)) == 0) {
 		return ERROR_NO_MORE_ITEMS;
 	}
@@ -195,9 +218,10 @@ LSTATUS VirtualReg::RegEnumValue(HKEY hKey, DWORD dwIndex,LPTSTR lpValueName, LP
 	return ERROR_SUCCESS;
 }
 
-LSTATUS VirtualReg::RegDeleteValue(HKEY hKey, LPCTSTR lpValueName) {
+LSTATUS VirtualReg::RegDeleteValue(HKEY hKey, LPCTSTR lpValueName)
+{
 	std::map<HKEY, TCHAR *>::iterator iter = hHive.find(hKey);
-	
+
 	if (iter == hHive.end()) {
 		return ERROR_INVALID_DATA;
 	}
@@ -209,9 +233,10 @@ LSTATUS VirtualReg::RegDeleteValue(HKEY hKey, LPCTSTR lpValueName) {
 	return ERROR_SUCCESS;
 }
 
-LSTATUS VirtualReg::RegDeleteKey(HKEY hKey, LPCTSTR lpSubKey) {
+LSTATUS VirtualReg::RegDeleteKey(HKEY hKey, LPCTSTR lpSubKey)
+{
 	std::map<HKEY, TCHAR *>::iterator iter = hHive.find(hKey);
-	
+
 	// Delete of the section
 	// Create new hive
 	TCHAR *newHive;
@@ -236,6 +261,7 @@ LSTATUS VirtualReg::RegDeleteKey(HKEY hKey, LPCTSTR lpSubKey) {
 	return ERROR_SUCCESS;
 }
 
-LSTATUS VirtualReg::RegCloseKey(HKEY hKey) {
+LSTATUS VirtualReg::RegCloseKey(HKEY hKey)
+{
 	return 0;
 }

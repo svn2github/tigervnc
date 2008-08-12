@@ -6,13 +6,15 @@
 #include "VirtualReg.h"
 
 
-enum SaveOptTo {
+enum SaveOptTo
+{
 	S_FILE,
 	S_REG
 };
 
 
-class SaveOption {
+class SaveOption
+{
 protected:
 	SaveOptTo sOptTo;
 	TCHAR *sFileName;

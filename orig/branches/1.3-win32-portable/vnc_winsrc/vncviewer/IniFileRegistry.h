@@ -14,14 +14,14 @@ struct ValueKey
 	char *valueName;
 };
 
-class VirtualReg
+class IniFileRegistry
 {
 protected:
 	HKEY ihkey;
 	TCHAR *fname;
 public:
-	VirtualReg();
-	~VirtualReg();
+	IniFileRegistry();
+	~IniFileRegistry();
 
 	void setfname(TCHAR *fileName);
 

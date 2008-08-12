@@ -33,7 +33,7 @@
 #include "omnithread.h"
 #include "VNCviewerApp32.h"
 #endif
-#include "SaveOption.h"
+#include "RegistryWrapper.h"
 
 // All logging is done via the log object
 Log vnclog;
@@ -46,7 +46,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdLin
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine, int iCmdShow)
 #endif
 {
-	svOpt = new SaveOption(S_REG, NULL);
+	registry = new RegistryWrapper(BACKEND_REGISTRY, NULL);
 
 	// The state of the application as a whole is contained in the one app object
 	#ifdef _WIN32_WCE
@@ -88,7 +88,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 
 	vnclog.Print(3, _T("Exiting\n"));
 
-	delete svOpt;
+	delete registry;
 	return msg.wParam;
 }
 

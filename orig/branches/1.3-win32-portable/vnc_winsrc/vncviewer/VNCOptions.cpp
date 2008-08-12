@@ -244,7 +244,7 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 		_tcsextrword(pcl, fileName);
 		_tcsremquotes(fileName);
 
-		svOpt->ReInit(S_FILE, fileName);
+		registry->ReInit(BACKEND_FILE, fileName);
 		// delete argument of -settingsfile from command line
 		pcl = _tcsdelword(CommLine, pcl);
 	}
@@ -613,9 +613,9 @@ void VNCOptions::Register()
 {
 	char keybuf[_MAX_PATH * 2 + 20];
 	HKEY hKey, hKey2;
-	if ( svOpt->soRegCreateKey(HKEY_CLASSES_ROOT, ".vnc", &hKey)  == ERROR_SUCCESS ) {
-		svOpt->soRegSetValue(hKey, NULL, REG_SZ, "VncViewer.Config", 0);
-		svOpt->soRegCloseKey(hKey);
+	if ( registry->CreateKey(HKEY_CLASSES_ROOT, ".vnc", &hKey)  == ERROR_SUCCESS ) {
+		registry->SetValue(hKey, NULL, REG_SZ, "VncViewer.Config", 0);
+		registry->CloseKey(hKey);
 	} else {
 		vnclog.Print(0, "Failed to register .vnc extension\n");
 	}
@@ -627,28 +627,28 @@ void VNCOptions::Register()
 	}
 	vnclog.Print(2, "Viewer is %s\n", filename);
 
-	if ( svOpt->soRegCreateKey(HKEY_CLASSES_ROOT, "VncViewer.Config", &hKey)  == ERROR_SUCCESS ) {
-		svOpt->soRegSetValue(hKey, NULL, REG_SZ, "VNCviewer Config File", 0);
+	if ( registry->CreateKey(HKEY_CLASSES_ROOT, "VncViewer.Config", &hKey)  == ERROR_SUCCESS ) {
+		registry->SetValue(hKey, NULL, REG_SZ, "VNCviewer Config File", 0);
 		
-		if ( svOpt->soRegCreateKey(hKey, "DefaultIcon", &hKey2)  == ERROR_SUCCESS ) {
+		if ( registry->CreateKey(hKey, "DefaultIcon", &hKey2)  == ERROR_SUCCESS ) {
 			sprintf(keybuf, "%s,0", filename);
-			svOpt->soRegSetValue(hKey2, NULL, REG_SZ, keybuf, 0);
-			svOpt->soRegCloseKey(hKey2);
+			registry->SetValue(hKey2, NULL, REG_SZ, keybuf, 0);
+			registry->CloseKey(hKey2);
 		}
-		if ( svOpt->soRegCreateKey(hKey, "Shell\\open\\command", &hKey2)  == ERROR_SUCCESS ) {
+		if ( registry->CreateKey(hKey, "Shell\\open\\command", &hKey2)  == ERROR_SUCCESS ) {
 			sprintf(keybuf, "\"%s\" -config \"%%1\"", filename);
-			svOpt->soRegSetValue(hKey2, NULL, REG_SZ, keybuf, 0);
-			svOpt->soRegCloseKey(hKey2);
+			registry->SetValue(hKey2, NULL, REG_SZ, keybuf, 0);
+			registry->CloseKey(hKey2);
 		}
 
-		svOpt->soRegCloseKey(hKey);
+		registry->CloseKey(hKey);
 	}
 
-	if ( svOpt->soRegCreateKey(HKEY_LOCAL_MACHINE, 
+	if ( registry->CreateKey(HKEY_LOCAL_MACHINE, 
 			"Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\vncviewer.exe", 
 			&hKey)  == ERROR_SUCCESS ) {
-		svOpt->soRegSetValue(hKey, NULL, REG_SZ, filename, 0);
-		svOpt->soRegCloseKey(hKey);
+		registry->SetValue(hKey, NULL, REG_SZ, filename, 0);
+		registry->CloseKey(hKey);
 	}
 }
 
@@ -1269,18 +1269,18 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 				DWORD datasize=80;
 				DWORD index=0;
 				
-				svOpt->soRegOpenKey(HKEY_CURRENT_USER,
+				registry->OpenKey(HKEY_CURRENT_USER,
 					KEY_VNCVIEWER_HISTORI, &hRegKey);
 				
-				while (svOpt->soRegEnumValue(hRegKey, index, value, &valuesize,
+				while (registry->EnumValue(hRegKey, index, value, &valuesize,
 					NULL, NULL, (LPBYTE)data, &datasize) == ERROR_SUCCESS) {
 					pApp->m_options.delkey(data, KEY_VNCVIEWER_HISTORI);
-					svOpt->soRegDeleteValue(hRegKey, value);
+					registry->DeleteValue(hRegKey, value);
 					valuesize = 80;
 					datasize = 80;
 				}
 				
-				svOpt->soRegCloseKey(hRegKey);
+				registry->CloseKey(hRegKey);
 				return 0;
 			}
 		case IDC_OK:
@@ -1447,7 +1447,7 @@ void VNCOptions::LoadOpt(char subkey[256], char keyname[256])
 	_tcscpy(key, keyname);
 	_tcscat(key, "\\");
 	_tcscat(key, subkey);
-	svOpt->soRegOpenKeyEx(HKEY_CURRENT_USER, key, 0,  
+	registry->OpenKeyEx(HKEY_CURRENT_USER, key, 0,  
 		 KEY_ALL_ACCESS,  &RegKey);
 	for (int i = rfbEncodingRaw; i <= LASTENCODING; i++) {
 		char buf[128];
@@ -1486,14 +1486,14 @@ void VNCOptions::LoadOpt(char subkey[256], char keyname[256])
 	} else {
 		m_jpegQualityLevel = level;
 	}
-	svOpt->soRegCloseKey(RegKey);
+	registry->CloseKey(RegKey);
 }
 
 int VNCOptions::read(HKEY hkey, char *name, int retrn)
 {
 	DWORD buflen = 4;
 	DWORD buf = 0;
-	if(svOpt->soRegQueryValueEx(hkey ,(LPTSTR)name , 
+	if(registry->QueryValueEx(hkey ,(LPTSTR)name , 
             NULL, NULL, 
             (LPBYTE) &buf, (LPDWORD) &buflen) != ERROR_SUCCESS) {
 		return retrn;
@@ -1510,7 +1510,7 @@ void VNCOptions::SaveOpt(char subkey[256], char keyname[256])
 	_tcscpy(key, keyname);
 	_tcscat(key, "\\");
 	_tcscat(key, subkey);
-	svOpt->soRegCreateKeyEx(HKEY_CURRENT_USER, key, 0, NULL, 
+	registry->CreateKeyEx(HKEY_CURRENT_USER, key, 0, NULL, 
 		REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &RegKey, &dispos);
 	for (int i = rfbEncodingRaw; i <= LASTENCODING; i++) {
 		char buf[128];
@@ -1539,7 +1539,7 @@ void VNCOptions::SaveOpt(char subkey[256], char keyname[256])
 	save(RegKey, "quality",	m_enableJpegCompression ? m_jpegQualityLevel : -1);
 	
 	
-	svOpt->soRegCloseKey(RegKey);
+	registry->CloseKey(RegKey);
 }
 
 void VNCOptions::delkey(char subkey[256], char keyname[256])
@@ -1549,12 +1549,12 @@ void VNCOptions::delkey(char subkey[256], char keyname[256])
 	_tcscpy(key, keyname);
 	_tcscat(key, "\\");
 	_tcscat(key, subkey);
-	svOpt->soRegDeleteKey (HKEY_CURRENT_USER, key);
+	registry->DeleteKey (HKEY_CURRENT_USER, key);
 }
 
 void VNCOptions::save(HKEY hkey, char *name, int value) 
 {
-	svOpt->soRegSetValueEx( hkey, name, 
+	registry->SetValueEx( hkey, name, 
             NULL, REG_DWORD, 
             (CONST BYTE *)&value, 4);
 }
@@ -1563,48 +1563,48 @@ void VNCOptions::LoadGenOpt()
 {
 	HKEY hRegKey;
 		
-	if ( svOpt->soRegOpenKey(HKEY_CURRENT_USER,
+	if ( registry->OpenKey(HKEY_CURRENT_USER,
 					SETTINGS_KEY_NAME, &hRegKey) != ERROR_SUCCESS ) {
 		hRegKey = NULL;
 	} else {
 		DWORD buffer;
 		DWORD buffersize = sizeof(buffer);
 		DWORD valtype;
-		if ( svOpt->soRegQueryValueEx( hRegKey, "SkipFullScreenPrompt", NULL, &valtype, 
+		if ( registry->QueryValueEx( hRegKey, "SkipFullScreenPrompt", NULL, &valtype, 
 				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {			
 			m_skipprompt = buffer == 1;				
 		}		
-		if ( svOpt->soRegQueryValueEx( hRegKey, "NoToolbar", NULL, &valtype, 
+		if ( registry->QueryValueEx( hRegKey, "NoToolbar", NULL, &valtype, 
 				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
 			m_toolbar = buffer == 1;
 		}
-		if ( svOpt->soRegQueryValueEx( hRegKey, "LogToFile", NULL, &valtype, 
+		if ( registry->QueryValueEx( hRegKey, "LogToFile", NULL, &valtype, 
 				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
 				m_logToFile = buffer == 1;
 		}
-		if ( svOpt->soRegQueryValueEx( hRegKey, "HistoryLimit", NULL, &valtype, 
+		if ( registry->QueryValueEx( hRegKey, "HistoryLimit", NULL, &valtype, 
 				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
 			m_historyLimit = buffer;
 		}
-		if ( svOpt->soRegQueryValueEx( hRegKey, "LocalCursor", NULL, &valtype, 
+		if ( registry->QueryValueEx( hRegKey, "LocalCursor", NULL, &valtype, 
 				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
 			m_localCursor = buffer;
 		}
-		if ( svOpt->soRegQueryValueEx( hRegKey, "LogLevel", NULL, &valtype, 
+		if ( registry->QueryValueEx( hRegKey, "LogLevel", NULL, &valtype, 
 				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
 			m_logLevel = buffer;
 		}
-		if ( svOpt->soRegQueryValueEx( hRegKey, "ListenPort", NULL, &valtype, 
+		if ( registry->QueryValueEx( hRegKey, "ListenPort", NULL, &valtype, 
 				(LPBYTE)&buffer, &buffersize) == ERROR_SUCCESS) {
 			m_listenPort = buffer;
 		}
 		TCHAR buf[_MAX_PATH];
 		buffersize=_MAX_PATH;
-		if (svOpt->soRegQueryValueEx( hRegKey, "LogFileName", NULL, &valtype, 
+		if (registry->QueryValueEx( hRegKey, "LogFileName", NULL, &valtype, 
 				(LPBYTE) &buf, &buffersize) == ERROR_SUCCESS) {
 			strcpy(m_logFilename, buf);
 		}
-		svOpt->soRegCloseKey(hRegKey);
+		registry->CloseKey(hRegKey);
 	}	
 }
 
@@ -1614,29 +1614,29 @@ void VNCOptions::SaveGenOpt()
 	DWORD buffer;
 	TCHAR buf[80];
 
-	svOpt->soRegCreateKey(HKEY_CURRENT_USER,
+	registry->CreateKey(HKEY_CURRENT_USER,
 					SETTINGS_KEY_NAME, &hRegKey);
-	svOpt->soRegSetValueEx( hRegKey, "LocalCursor", 
+	registry->SetValueEx( hRegKey, "LocalCursor", 
 					NULL, REG_DWORD, 
 					(CONST BYTE *)&m_localCursor,
 					4);
 				
-	svOpt->soRegSetValueEx( hRegKey, "HistoryLimit", 
+	registry->SetValueEx( hRegKey, "HistoryLimit", 
 					NULL, REG_DWORD, 
 					(CONST BYTE *)&m_historyLimit,
 					4);
 				
-	svOpt->soRegSetValueEx( hRegKey, "LogLevel", 
+	registry->SetValueEx( hRegKey, "LogLevel", 
 					NULL, REG_DWORD, 
 					(CONST BYTE *)&m_logLevel,
 					4);
 				
 	strcpy(buf, m_logFilename);
-	svOpt->soRegSetValueEx( hRegKey, "LogFileName", 
+	registry->SetValueEx( hRegKey, "LogFileName", 
 					NULL, REG_SZ , 
 					(CONST BYTE *)buf, (_tcslen(buf)+1));				
 				
-	svOpt->soRegSetValueEx( hRegKey, "ListenPort", 
+	registry->SetValueEx( hRegKey, "ListenPort", 
 					NULL, REG_DWORD, 
 					(CONST BYTE *)&m_listenPort,
 					4);
@@ -1645,7 +1645,7 @@ void VNCOptions::SaveGenOpt()
 	} else {
 		buffer = 0;
 	}
-	svOpt->soRegSetValueEx( hRegKey, "LogToFile" , 
+	registry->SetValueEx( hRegKey, "LogToFile" , 
 					NULL, REG_DWORD, 
 					(CONST BYTE *)&buffer,
 					4);
@@ -1654,7 +1654,7 @@ void VNCOptions::SaveGenOpt()
 	} else {
 		buffer = 0;
 	}
-	svOpt->soRegSetValueEx( hRegKey, "SkipFullScreenPrompt", 
+	registry->SetValueEx( hRegKey, "SkipFullScreenPrompt", 
 					NULL,REG_DWORD, 
 					(CONST BYTE *)&buffer,
 					4);
@@ -1663,12 +1663,12 @@ void VNCOptions::SaveGenOpt()
 	} else {
 		buffer = 0;
 	}
-	svOpt->soRegSetValueEx( hRegKey, "NoToolbar", 
+	registry->SetValueEx( hRegKey, "NoToolbar", 
 					NULL, REG_DWORD, 
 					(CONST BYTE *)&buffer,
 					4);
 				
-	svOpt->soRegCloseKey(hRegKey);
+	registry->CloseKey(hRegKey);
 }
 
 void VNCOptions::BrowseLogFile()

@@ -808,6 +808,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\IniFileRegistry.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\IniFileRegistry.h"
+			>
+		</File>
+		<File
 			RelativePath="KeyMap.cpp"
 			>
 			<FileConfiguration
@@ -894,6 +902,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\RegistryWrapper.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\RegistryWrapper.h"
+			>
+		</File>
+		<File
 			RelativePath="res\resource.h"
 			>
 		</File>
@@ -903,14 +919,6 @@
 		</File>
 		<File
 			RelativePath="..\rfb\rfbproto.h"
-			>
-		</File>
-		<File
-			RelativePath=".\SaveOption.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\SaveOption.h"
 			>
 		</File>
 		<File
@@ -977,14 +985,6 @@
 		</File>
 		<File
 			RelativePath=".\UniqueForm.h"
-			>
-		</File>
-		<File
-			RelativePath=".\VirtualReg.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\VirtualReg.h"
 			>
 		</File>
 		<File

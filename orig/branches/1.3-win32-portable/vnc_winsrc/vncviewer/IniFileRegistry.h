@@ -25,7 +25,6 @@
 #include <map>
 #include "stdhdrs.h"
 
-// Key of registr with one parameter
 struct ValueKey
 {
 	char *hive;
@@ -34,19 +33,14 @@ struct ValueKey
 
 class IniFileRegistry
 {
-protected:
-	HKEY ihkey;
-	TCHAR *fname;
 public:
-	IniFileRegistry();
+	IniFileRegistry(const TCHAR *fileName = NULL);
 	~IniFileRegistry();
 
-	void setfname(TCHAR *fileName);
-
-	std::map<HKEY, TCHAR *> hHive;
+	void SetFileName(const TCHAR *fileName);
 
 	LSTATUS RegCreateKey(HKEY hKey, LPCTSTR lpSubKey, PHKEY phkResult);
-	LSTATUS RegOpenKey(HKEY hKey,	LPCTSTR lpSubKey, PHKEY phkResult);
+	LSTATUS RegOpenKey(HKEY hKey, LPCTSTR lpSubKey, PHKEY phkResult);
 	LSTATUS RegOpenKeyEx(HKEY hKey, LPCTSTR lpSubKey, DWORD ulOptions, REGSAM samDesired, PHKEY phkResult);
 	LSTATUS RegSetValueEx(HKEY hKey, LPCSTR lpValueName, DWORD Reserved, DWORD dwType, const BYTE *lpData, DWORD cbData);
 	LSTATUS RegSetValue(HKEY hKey, LPCTSTR lpSubKey, DWORD dwType, LPCTSTR lpData, DWORD cbData);
@@ -59,6 +53,13 @@ public:
 	LSTATUS RegDeleteValue(HKEY hKey, LPCTSTR lpValueName);
 	LSTATUS RegDeleteKey(HKEY hKey, LPCTSTR lpSubKey);
 	LSTATUS RegCloseKey(HKEY hKey);
+
+protected:
+	HKEY m_ihkey;
+	TCHAR *fname;
+
+	std::map<HKEY, TCHAR *> hHive;
+
 };
 
 #endif // __INIFILEREGISTRY_H__

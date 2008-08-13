@@ -24,10 +24,10 @@
 #define PREF_STRING 'S'
 #define PREF_DWORD	'D'
 
-IniFileRegistry::IniFileRegistry()
+IniFileRegistry::IniFileRegistry(const TCHAR *fileName)
 {
-	ihkey = (HKEY)1;
-	fname = _tcsdup("Settings.ini");
+	m_ihkey = (HKEY)1;
+	SetFileName(fileName);
 }
 
 IniFileRegistry::~IniFileRegistry()
@@ -37,7 +37,7 @@ IniFileRegistry::~IniFileRegistry()
 	}
 }
 
-void IniFileRegistry::setfname(TCHAR *fileName)
+void IniFileRegistry::SetFileName(const TCHAR *fileName)
 {
 	if (fileName != NULL) {
 		fname = _tcsdup(fileName);
@@ -66,14 +66,14 @@ LSTATUS IniFileRegistry::RegCreateKey(HKEY hKey, LPCTSTR lpSubKey, PHKEY phkResu
 		_tcscat(newHive, lpSubKey);
 	}
 	// Insert new value to map
-	hHive[ihkey] = newHive;
+	hHive[m_ihkey] = newHive;
 	// return phkResult
-	iter = hHive.find(ihkey);
+	iter = hHive.find(m_ihkey);
 	if (iter == hHive.end()) {
 		return ERROR_INVALID_ACCESS;
 	} else {
 		*phkResult = (*iter).first;
-		ihkey++;
+		m_ihkey++;
 	}
 	return ERROR_SUCCESS;
 }

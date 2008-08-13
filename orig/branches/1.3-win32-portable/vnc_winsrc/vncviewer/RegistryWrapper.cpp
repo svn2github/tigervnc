@@ -26,30 +26,18 @@ RegistryWrapper *registry;
 RegistryWrapper::RegistryWrapper(RegistryBackend backend, TCHAR *fname)
 {
 	m_backend = backend;
-	if (fname == NULL) {
-		m_sFileName = _tcsdup("Settings.ini");
-	} else {
-		m_sFileName = _tcsdup(fname);	
-	}
-	m_iniReg = new IniFileRegistry;
-	m_iniReg->setfname(fname);
+	m_iniReg = new IniFileRegistry(fname);
 }
 
 void RegistryWrapper::ReInit(RegistryBackend backend, TCHAR *fname)
 {
 	m_backend = backend;
-	if (fname != NULL) {
-		m_sFileName = _tcsdup(fname);
-	}
-	m_iniReg->setfname(fname);
+	m_iniReg->SetFileName(fname);
 }
 
 RegistryWrapper::~RegistryWrapper()
 {
 	delete m_iniReg;
-	if (m_sFileName != NULL) {
-		free(m_sFileName);
-	}
 }
 
 LSTATUS RegistryWrapper::CreateKey(HKEY hKey, LPCTSTR lpSubKey, PHKEY phkResult)

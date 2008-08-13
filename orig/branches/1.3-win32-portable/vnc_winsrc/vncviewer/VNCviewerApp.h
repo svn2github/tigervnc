@@ -57,6 +57,7 @@ public:
 	
 	VNCOptions m_options;
 	HINSTANCE  m_instance;
+	AppCloserWindow *m_closeWnd;
 
 private:
 	ClientConnection *m_clilist[MAX_CONNECTIONS];

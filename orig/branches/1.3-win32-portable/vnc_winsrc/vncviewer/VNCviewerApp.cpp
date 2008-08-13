@@ -28,19 +28,29 @@
 #include "VNCviewerApp.h"
 #include "Exception.h"
 
+#define GLOBAL_CLOSEMSG_NAME "tightvnc.closemsg"
+
 // For WinCE Palm, you might want to use this for debugging, since it
 // seems impossible to give the command some arguments.
 // #define PALM_LOG 1
 
 VNCviewerApp *pApp;
 
-VNCviewerApp::VNCviewerApp(HINSTANCE hInstance, LPTSTR szCmdLine) {
+VNCviewerApp::VNCviewerApp(HINSTANCE hInstance, LPTSTR szCmdLine)
+: m_closeWnd(NULL), m_instance(hInstance)
+{
 	pApp = this;
-	m_instance = hInstance;
 
 	// Read the command line
 	m_options.SetFromCommandLine(szCmdLine);
 	
+	// Create the window with unique class name
+	const TCHAR *className = m_options.m_closeWindowClassName;
+	if (className != NULL) {
+		// регистрировать message
+		m_closeWnd = new AppCloserWindow(m_instance, className, _T(GLOBAL_CLOSEMSG_NAME));	
+	}
+
 	// Logging info
 	vnclog.SetLevel(m_options.m_logLevel);
 	if (m_options.m_logToConsole) {
@@ -128,4 +138,7 @@ VNCviewerApp::~VNCviewerApp() {
 	
 	vnclog.Print(2, _T("VNC viewer closing down\n"));
 
+	if (m_closeWnd != NULL) {
+		delete m_closeWnd;
+	}
 }

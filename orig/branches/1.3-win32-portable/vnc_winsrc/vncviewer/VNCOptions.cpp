@@ -34,6 +34,7 @@
 #include "commctrl.h"
 #include "AboutBox.h"
 #include "exstring.h"
+
 VNCOptions::VNCOptions()
 {
 	for (int i = rfbEncodingRaw; i<= LASTENCODING; i++)
@@ -87,6 +88,8 @@ VNCOptions::VNCOptions()
 	m_jpegQualityLevel = 6;
 	m_requestShapeUpdates = true;
 	m_ignoreShapeUpdates = false;
+
+	m_closeWindowClassName = NULL;
 
 #ifdef UNDER_CE
 	m_palmpc = false;
@@ -165,7 +168,9 @@ VNCOptions& VNCOptions::operator=(VNCOptions& s)
 
 VNCOptions::~VNCOptions()
 {
-	
+	if (m_closeWindowClassName != NULL) {
+		free(m_closeWindowClassName);
+	}
 }
 
 inline bool SwitchMatch(LPCTSTR arg, LPCTSTR swtch) {
@@ -224,16 +229,14 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 		_tcsextrword(pcl, className);
 		_tcsremquotes(className);
 
-		// Create the window with unique class name
-		AppCloserWindow *uForm;
-		uForm = new AppCloserWindow(pApp->m_instance, className);
+		m_closeWindowClassName = _tcsdup(className);
 
 		// delete argument of -wndclass from command line
 		pcl = _tcsdelword(CommLine, pcl);
 	}
 
 	// Use registry or file
-	if ((pcl = _tcsstr( CommLine, _T("-settingsfile"))) != NULL){
+	if ((pcl = _tcsstr(CommLine, _T("-settingsfile"))) != NULL){
 		TCHAR fileName[_MAX_PATH];
 		pcl = _tcsdelword(CommLine, pcl);
 		if (pcl == NULL) {

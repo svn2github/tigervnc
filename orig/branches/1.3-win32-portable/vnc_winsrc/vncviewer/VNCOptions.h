@@ -129,6 +129,8 @@ public:
 	// for debugging purposes
 	int m_delay;
 
+	TCHAR *m_closeWindowClassName;
+
 #ifdef UNDER_CE
 	// WinCE screen format for dialogs (Palm vs HPC)
 	int	m_palmpc;
@@ -160,8 +162,7 @@ private:
 	
 	// Just for temporary use
 	bool m_running;
-	
-	
+
 };
 
 #endif // VNCOPTIONS_H__

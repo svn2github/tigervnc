@@ -22,17 +22,7 @@
 #include "AppCloserWindow.h"
 
 static LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
-								WPARAM wParam, LPARAM lParam)
-{
-	AppCloserWindow *_this;
-	_this = (AppCloserWindow *) GetWindowLong(hWnd, GWL_USERDATA);
-	if (_this != NULL) {
-		if (_this->WndProc(message, wParam, lParam)) {
-			return 0;
-		}
-	}
-	return DefWindowProc(hWnd, message, wParam, lParam);
-}
+								WPARAM wParam, LPARAM lParam);
 
 AppCloserWindow::AppCloserWindow(HINSTANCE hInst, const TCHAR *windowClassName, const TCHAR *msgName)
 : m_closeMsg(0), m_hwnd(0)
@@ -74,4 +64,17 @@ bool AppCloserWindow::WndProc(UINT message, WPARAM wParam, LPARAM lParam) const
 		return true;
 	}
 	return false;
+}
+
+static LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
+								WPARAM wParam, LPARAM lParam)
+{
+	AppCloserWindow *_this;
+	_this = (AppCloserWindow *) GetWindowLong(hWnd, GWL_USERDATA);
+	if (_this != NULL) {
+		if (_this->WndProc(message, wParam, lParam)) {
+			return 0;
+		}
+	}
+	return DefWindowProc(hWnd, message, wParam, lParam);
 }

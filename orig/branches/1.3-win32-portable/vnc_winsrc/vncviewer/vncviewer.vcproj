@@ -980,11 +980,11 @@
 			>
 		</File>
 		<File
-			RelativePath=".\UniqueForm.cpp"
+			RelativePath=".\AppCloserWindow.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\UniqueForm.h"
+			RelativePath=".\AppCloserWindow.h"
 			>
 		</File>
 		<File

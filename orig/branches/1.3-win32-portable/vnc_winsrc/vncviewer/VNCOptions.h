@@ -35,7 +35,7 @@
 // wonder why not?  WinCE compatibility maybe?
 // #include <afxcmn.h>
 #include "RegistryWrapper.h"
-#include "UniqueForm.h"
+#include "AppCloserWindow.h"
 
 
 #define LASTENCODING rfbEncodingZlibHex

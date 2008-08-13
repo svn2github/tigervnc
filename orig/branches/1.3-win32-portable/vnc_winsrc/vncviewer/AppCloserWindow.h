@@ -19,25 +19,25 @@
 //
 // TightVNC homepage on the Web: http://www.tightvnc.com/
 
-#ifndef __UNIQUEFORM_H__
-#define __UNIQUEFORM_H__
+#ifndef __APPCLOSERWINDOW_H__
+#define __APPCLOSERWINDOW_H__
 
 #include "stdhdrs.h"
 
 #define GLOBAL_REG_MESSAGE	"exit.code.tightvnc"
 
-class UniqueForm
+class AppCloserWindow
 {
 protected:
 	ATOM RegClass(HINSTANCE hInst, LPSTR lpzClassName);
 	UINT wm_ExitCode;
 public:
-	UniqueForm(HINSTANCE hInst, TCHAR *WindowClassName);
-	~UniqueForm(void);
+	AppCloserWindow(HINSTANCE hInst, TCHAR *WindowClassName);
+	~AppCloserWindow(void);
 
-	bool WndProcForm(UniqueForm *_this, UINT message, WPARAM wParam, LPARAM lParam);
+	bool WndProcForm(AppCloserWindow *_this, UINT message, WPARAM wParam, LPARAM lParam);
 
 	HWND f_hwnd;
 	HINSTANCE f_hinst;
 };
-#endif // __UNIQUEFORM_H__
+#endif // __APPCLOSERWINDOW_H__

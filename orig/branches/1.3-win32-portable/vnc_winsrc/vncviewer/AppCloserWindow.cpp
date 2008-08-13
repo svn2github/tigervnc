@@ -19,13 +19,13 @@
 //
 // TightVNC homepage on the Web: http://www.tightvnc.com/
 
-#include "UniqueForm.h"
+#include "AppCloserWindow.h"
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
 						 WPARAM wParam, LPARAM lParam)
 {
-	UniqueForm *_this;
-	_this = (UniqueForm *) GetWindowLong(hWnd, GWL_USERDATA);
+	AppCloserWindow *_this;
+	_this = (AppCloserWindow *) GetWindowLong(hWnd, GWL_USERDATA);
 	if (_this != NULL) {
 		if (_this->WndProcForm(_this, message, wParam, lParam)) {
 			return 0;
@@ -34,7 +34,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
 	return DefWindowProc(hWnd, message, wParam, lParam);
 }
 
-UniqueForm::UniqueForm(HINSTANCE hInst, TCHAR *WindowClassName)
+AppCloserWindow::AppCloserWindow(HINSTANCE hInst, TCHAR *WindowClassName)
 {
 	// Create global window message for TightVNC control
 	wm_ExitCode = RegisterWindowMessage(_T(GLOBAL_REG_MESSAGE));
@@ -49,12 +49,12 @@ UniqueForm::UniqueForm(HINSTANCE hInst, TCHAR *WindowClassName)
 }
 
 
-UniqueForm::~UniqueForm(void)
+AppCloserWindow::~AppCloserWindow(void)
 {
 
 }
 
-ATOM UniqueForm::RegClass(HINSTANCE hInst, LPSTR lpzClassName)
+ATOM AppCloserWindow::RegClass(HINSTANCE hInst, LPSTR lpzClassName)
 {
 	WNDCLASS wcWindowClass = {0};
 	wcWindowClass.lpfnWndProc = WndProc;
@@ -67,7 +67,7 @@ ATOM UniqueForm::RegClass(HINSTANCE hInst, LPSTR lpzClassName)
 	return RegisterClass(&wcWindowClass);
 }
 
-bool UniqueForm::WndProcForm(UniqueForm *_this, UINT message,
+bool AppCloserWindow::WndProcForm(AppCloserWindow *_this, UINT message,
 							 WPARAM wParam, LPARAM lParam)
 {
 	if (message == wm_ExitCode) {

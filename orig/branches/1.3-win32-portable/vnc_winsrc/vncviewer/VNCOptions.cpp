@@ -225,8 +225,8 @@ void VNCOptions::SetFromCommandLine(LPTSTR szCmdLine) {
 		_tcsremquotes(className);
 
 		// Create the window with unique class name
-		UniqueForm *uForm;
-		uForm = new UniqueForm(pApp->m_instance, className);
+		AppCloserWindow *uForm;
+		uForm = new AppCloserWindow(pApp->m_instance, className);
 
 		// delete argument of -wndclass from command line
 		pcl = _tcsdelword(CommLine, pcl);

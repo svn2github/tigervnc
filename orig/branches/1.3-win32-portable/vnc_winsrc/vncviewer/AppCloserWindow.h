@@ -24,20 +24,21 @@
 
 #include "stdhdrs.h"
 
-#define GLOBAL_REG_MESSAGE	"exit.code.tightvnc"
-
 class AppCloserWindow
 {
-protected:
-	ATOM RegClass(HINSTANCE hInst, LPSTR lpzClassName);
-	UINT wm_ExitCode;
 public:
-	AppCloserWindow(HINSTANCE hInst, TCHAR *WindowClassName);
-	~AppCloserWindow(void);
+	AppCloserWindow(HINSTANCE hInst, const TCHAR *windowClassName, const TCHAR *msgName);
+	~AppCloserWindow();
 
-	bool WndProcForm(AppCloserWindow *_this, UINT message, WPARAM wParam, LPARAM lParam);
+	HWND getWindow() const { return m_hwnd; }
 
-	HWND f_hwnd;
-	HINSTANCE f_hinst;
+	bool WndProc(UINT message, WPARAM wParam, LPARAM lParam) const;
+
+protected:
+	static ATOM RegClass(HINSTANCE hInst, LPCSTR lpzClassName);
+
+	UINT m_closeMsg;
+	HWND m_hwnd;
 };
+
 #endif // __APPCLOSERWINDOW_H__

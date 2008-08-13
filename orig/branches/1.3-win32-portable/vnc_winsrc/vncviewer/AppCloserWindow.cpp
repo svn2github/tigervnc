@@ -21,56 +21,55 @@
 
 #include "AppCloserWindow.h"
 
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
-						 WPARAM wParam, LPARAM lParam)
+static LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
+								WPARAM wParam, LPARAM lParam)
 {
 	AppCloserWindow *_this;
 	_this = (AppCloserWindow *) GetWindowLong(hWnd, GWL_USERDATA);
 	if (_this != NULL) {
-		if (_this->WndProcForm(_this, message, wParam, lParam)) {
+		if (_this->WndProc(message, wParam, lParam)) {
 			return 0;
 		}
 	}
 	return DefWindowProc(hWnd, message, wParam, lParam);
 }
 
-AppCloserWindow::AppCloserWindow(HINSTANCE hInst, TCHAR *WindowClassName)
+AppCloserWindow::AppCloserWindow(HINSTANCE hInst, const TCHAR *windowClassName, const TCHAR *msgName)
+: m_closeMsg(0), m_hwnd(0)
 {
-	// Create global window message for TightVNC control
-	wm_ExitCode = RegisterWindowMessage(_T(GLOBAL_REG_MESSAGE));
-
-	f_hinst = hInst;
-	if (RegClass(f_hinst, WindowClassName) == 0) {
+	if (msgName == NULL || windowClassName == NULL) {
 		return;
 	}
-	f_hwnd = CreateWindow(WindowClassName, "", 
-		0, 0, 0, 1, 1, NULL, NULL, f_hinst, NULL);
-	SetWindowLong(f_hwnd, GWL_USERDATA, (LONG) this);
-}
 
+	// Create global window message for TightVNC control
+	m_closeMsg = RegisterWindowMessage(msgName);
+
+	if (RegClass(hInst, windowClassName) == 0) {
+		return;
+	}
+	m_hwnd = CreateWindow(windowClassName, "", 0, 0, 0, 1, 1, NULL, NULL, hInst, NULL);
+	SetWindowLong(m_hwnd, GWL_USERDATA, (LONG) this);
+}
 
 AppCloserWindow::~AppCloserWindow(void)
 {
-
 }
 
-ATOM AppCloserWindow::RegClass(HINSTANCE hInst, LPSTR lpzClassName)
+ATOM AppCloserWindow::RegClass(HINSTANCE hInst, LPCSTR lpzClassName)
 {
-	WNDCLASS wcWindowClass = {0};
-	wcWindowClass.lpfnWndProc = WndProc;
-	wcWindowClass.style = NULL; 
-	wcWindowClass.hInstance = hInst; 
-	wcWindowClass.lpszClassName = lpzClassName; 
-	wcWindowClass.hCursor = NULL; 
-	wcWindowClass.hbrBackground = (HBRUSH)COLOR_WINDOW;  
-	//
+	WNDCLASS wcWindowClass;
+	memset(&wcWindowClass, 0, sizeof(wcWindowClass));
+
+	wcWindowClass.lpfnWndProc = ::WndProc;
+	wcWindowClass.hInstance = hInst;
+	wcWindowClass.lpszClassName = lpzClassName;
+
 	return RegisterClass(&wcWindowClass);
 }
 
-bool AppCloserWindow::WndProcForm(AppCloserWindow *_this, UINT message,
-							 WPARAM wParam, LPARAM lParam)
+bool AppCloserWindow::WndProc(UINT message, WPARAM wParam, LPARAM lParam) const
 {
-	if (message == wm_ExitCode) {
+	if (message == m_closeMsg) {
 		PostQuitMessage(0);
 		return true;
 	}

@@ -112,7 +112,7 @@ public:
 	// If they're disabled, it'll return NULL
 	inline BYTE *MainBuffer() {	return m_mainbuff; }
 	inline RECT MainBufferRect() {	return m_bmrect; }
-	void CopyRect(RECT const& dest, POINT source);
+	void CopyRect(const RECT &dest, const POINT &source);
 
 	BOOL			m_initialClipBoardSeen;
 
@@ -147,7 +147,7 @@ protected:
 
 	void CopyToBuffer(RECT rect, BYTE *scrBuff);
 	void CopyToBuffer(RECT rect, BYTE *scrBuff, const BYTE *SourceBuff);
-	void CopyRectToBuffer(RECT dest, POINT source);
+	void CopyRectToBuffer(const RECT &dest, const POINT &source);
 	void CalcCopyRects();
 	
 	// Routine to attempt enabling optimised DIBsection blits

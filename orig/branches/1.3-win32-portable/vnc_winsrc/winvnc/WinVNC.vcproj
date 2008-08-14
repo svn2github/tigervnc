@@ -187,7 +187,7 @@
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories=""
-				IgnoreDefaultLibraryNames=""
+				IgnoreDefaultLibraryNames="LIBCMT.lib"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\$(ConfigurationName)/WinVNC.pdb"
 				GenerateMapFile="true"
@@ -355,26 +355,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\vncDesktopDX.cpp"
-				>
-				<FileConfiguration
-					Name="Release|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath=".\vncHTTPConnect.cpp"
 				>
 			</File>
@@ -417,26 +397,6 @@
 			<File
 				RelativePath=".\WinVNC.cpp"
 				>
-			</File>
-			<File
-				RelativePath=".\WinVNC.rc"
-				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCResourceCompilerTool"
-						AdditionalIncludeDirectories="$(OUTDIR);$(NoInherit)"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCResourceCompilerTool"
-						AdditionalIncludeDirectories="$(OUTDIR);$(NoInherit)"
-					/>
-				</FileConfiguration>
 			</File>
 			<Filter
 				Name="Encoder"
@@ -772,16 +732,68 @@
 			Name="Resources"
 			>
 			<File
+				RelativePath=".\res\bitmap1.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\res\bitmap2.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\res\bitmap3.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\res\cursor1.cur"
+				>
+			</File>
+			<File
+				RelativePath=".\res\ico00001.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\res\ico00002.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\res\ico00003.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\res\ico00004.ico"
+				>
+			</File>
+			<File
 				RelativePath=".\res\icon1.ico"
 				>
 			</File>
 			<File
-				RelativePath=".\res\vnc.bmp"
+				RelativePath=".\res\tightvnc.bmp"
 				>
 			</File>
 			<File
 				RelativePath=".\res\WinVNC.ico"
 				>
+			</File>
+			<File
+				RelativePath=".\WinVNC.rc"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCResourceCompilerTool"
+						AdditionalIncludeDirectories="$(OUTDIR);$(NoInherit)"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCResourceCompilerTool"
+						AdditionalIncludeDirectories="$(OUTDIR);$(NoInherit)"
+					/>
+				</FileConfiguration>
 			</File>
 		</Filter>
 		<Filter
@@ -793,7 +805,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\res\AuthUnixLoginPanel.class"
+				>
+			</File>
+			<File
 				RelativePath=".\res\ButtonPanel.class"
+				>
+			</File>
+			<File
+				RelativePath=".\res\CapabilityInfo.class"
+				>
+			</File>
+			<File
+				RelativePath=".\res\CapsContainer.class"
 				>
 			</File>
 			<File
@@ -813,11 +837,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\res\ReloginPanel.class"
+				>
+			</File>
+			<File
 				RelativePath=".\res\RfbProto.class"
 				>
 			</File>
 			<File
 				RelativePath=".\res\SessionRecorder.class"
+				>
+			</File>
+			<File
+				RelativePath=".\res\SocketFactory.class"
 				>
 			</File>
 			<File
@@ -833,70 +865,6 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath=".\res\AuthUnixLoginPanel.class"
-			>
-		</File>
-		<File
-			RelativePath=".\res\bitmap1.bmp"
-			>
-		</File>
-		<File
-			RelativePath=".\res\bitmap2.bmp"
-			>
-		</File>
-		<File
-			RelativePath=".\res\bitmap3.bmp"
-			>
-		</File>
-		<File
-			RelativePath=".\BUILDING.txt"
-			>
-		</File>
-		<File
-			RelativePath=".\res\CapabilityInfo.class"
-			>
-		</File>
-		<File
-			RelativePath=".\res\CapsContainer.class"
-			>
-		</File>
-		<File
-			RelativePath=".\res\cursor1.cur"
-			>
-		</File>
-		<File
-			RelativePath=".\History.txt"
-			>
-		</File>
-		<File
-			RelativePath=".\res\ico00001.ico"
-			>
-		</File>
-		<File
-			RelativePath=".\res\ico00002.ico"
-			>
-		</File>
-		<File
-			RelativePath=".\res\ico00003.ico"
-			>
-		</File>
-		<File
-			RelativePath=".\res\ico00004.ico"
-			>
-		</File>
-		<File
-			RelativePath=".\res\ReloginPanel.class"
-			>
-		</File>
-		<File
-			RelativePath=".\res\SocketFactory.class"
-			>
-		</File>
-		<File
-			RelativePath=".\res\tightvnc.bmp"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>

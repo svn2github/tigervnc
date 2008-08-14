@@ -2282,10 +2282,11 @@ inline void vncDesktop::CheckRects(vncRegion &rgn, rectlist &rects)
 
 static const int BLOCK_SIZE = 32;
 
-// created for troubleshoot purposes;
-// when GetChangedRegion_Normal et al are suspected for bugs/need changes.
-// the code below is as simple and clear as possible
-void vncDesktop::GetChangedRegion_Dummy(vncRegion &rgn, const RECT &rect)
+/*
+// A dummy version of GetChangedRegion() created for troubleshoot purposes
+// when GetChangedRegion() et al are suspected for bugs/need changes.
+// The code below is as simple and clear as possible.
+void vncDesktop::GetChangedRegion(vncRegion &rgn, const RECT &rect)
 {
 	rgn.AddRect(rect);
 
@@ -2308,8 +2309,9 @@ void vncDesktop::GetChangedRegion_Dummy(vncRegion &rgn, const RECT &rect)
 		o_ptr += m_bytesPerRow;
 	}
 }
+*/
 
-void vncDesktop::GetChangedRegion_Normal(vncRegion &rgn, const RECT &rect)
+void vncDesktop::GetChangedRegion(vncRegion &rgn, const RECT &rect)
 {
 	const UINT bytesPerPixel = m_scrinfo.format.bitsPerPixel / 8;
 	const int bytes_per_scanline = (rect.right - rect.left) * bytesPerPixel;

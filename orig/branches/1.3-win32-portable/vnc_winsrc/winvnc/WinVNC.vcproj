@@ -865,6 +865,22 @@
 				>
 			</File>
 		</Filter>
+		<File
+			RelativePath=".\IniFileRegistry.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\IniFileRegistry.h"
+			>
+		</File>
+		<File
+			RelativePath=".\RegistryWrapper.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\RegistryWrapper.h"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

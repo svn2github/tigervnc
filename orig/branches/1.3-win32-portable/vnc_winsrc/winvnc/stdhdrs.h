@@ -32,6 +32,7 @@
 #include <stdio.h>
 #include <process.h>
 #include <crtdbg.h>
+#include <tchar.h>
 
 extern const char* g_buildTime;
 

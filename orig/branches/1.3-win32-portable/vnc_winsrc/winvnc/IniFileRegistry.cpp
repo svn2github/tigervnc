@@ -20,9 +20,11 @@
 // TightVNC homepage on the Web: http://www.tightvnc.com/
 
 #include "IniFileRegistry.h"
+#include "exstring.h"
 
 #define PREF_STRING 'S'
 #define PREF_DWORD	'D'
+#define PREF_BINARY	'B'
 
 IniFileRegistry::IniFileRegistry(const TCHAR *fileName)
 {
@@ -84,7 +86,7 @@ LSTATUS IniFileRegistry::RegCreateKeyEx(HKEY hKey, LPCTSTR lpSubKey,
 								   DWORD dwOptions,
 								   REGSAM samDesired,
 								   LPSECURITY_ATTRIBUTES lpSecurityAttributes,
-								   PHKEY phkResult,LPDWORD lpdwDisposition)
+								   PHKEY phkResult, LPDWORD lpdwDisposition)
 {
 	return RegCreateKey(hKey, lpSubKey, phkResult);
 }
@@ -107,7 +109,7 @@ LSTATUS IniFileRegistry::RegSetValueEx(HKEY hKey, LPCSTR lpValueName, DWORD Rese
 	if (iter == hHive.end()) {
 		return ERROR_PATH_NOT_FOUND;
 	}
-	char *value, v[16];
+	char *value;
 	switch (dwType) {
 		case REG_SZ:
 			value = new char[strlen((char *)lpData) + 2];
@@ -115,14 +117,23 @@ LSTATUS IniFileRegistry::RegSetValueEx(HKEY hKey, LPCSTR lpValueName, DWORD Rese
 			_tcscpy(value + 1, (char *) lpData);
 			break;
 		case REG_DWORD:
-			value = v;
+			value = new char[16];
 			*value = PREF_DWORD;
 			ltoa(*((int *) lpData), value + 1, 10);
 			break;
+		case REG_BINARY:
+			{
+				char *hexStr = _strCharToHexStr((const char *)lpData, cbData);
+				int valueLen = strlen(hexStr) + 2;
+				value = new char[valueLen];
+				_snprintf(value, valueLen, "%c%s", PREF_BINARY, hexStr);
+				break;
+			}
 		default:
 			return ERROR_INVALID_DATA;
 	}
 	WritePrivateProfileString((*iter).second, lpValueName, value, fname);
+	delete[] value;
 	return ERROR_SUCCESS;
 }
 
@@ -141,8 +152,8 @@ LSTATUS IniFileRegistry::RegQueryValueEx(HKEY hKey, LPCTSTR lpValueName, LPDWORD
 		return ERROR_PATH_NOT_FOUND;
 	}
 
-	int bufLength = *lpcbData + 16;
-	TCHAR *value = new TCHAR[bufLength];
+	int bufLength = *lpcbData * 2 + 16;
+	char *value = new char[bufLength];
 
 	bufLength = GetPrivateProfileString((*iter).second, lpValueName, _T(""), value, bufLength, fname);
 	if (bufLength == 0) {
@@ -151,23 +162,35 @@ LSTATUS IniFileRegistry::RegQueryValueEx(HKEY hKey, LPCTSTR lpValueName, LPDWORD
 	}
 	switch (value[0]) {
 		case PREF_STRING:
+			if (lpType != NULL) {*lpType = REG_SZ;}
 			if (bufLength - sizeof(PREF_STRING) + 1 >  *lpcbData) { // '... + 1' for null character. 
 				delete[] value;
 				return ERROR_MORE_DATA;
 			}
-			if (lpType != NULL) {*lpType = REG_SZ;}
 			_tcscpy((TCHAR *)lpData, value + 1);
 			*lpcbData = bufLength - 1;
 			break;
 		case PREF_DWORD:
+			if (lpType != NULL) {*lpType = REG_DWORD;}
 			if (*lpcbData < 4) {
 				delete[] value;
 				return ERROR_MORE_DATA;
 			}
-			if (lpType != NULL) {*lpType = REG_DWORD;}
 			*(long *)lpData = atol(value + 1);
 			*lpcbData = 4;
 			break;
+		case PREF_BINARY:
+			{
+				if (lpType != NULL) {*lpType = REG_BINARY;}
+				if (bufLength - sizeof(PREF_BINARY) > *lpcbData * 2) {
+					delete[] value;
+					return ERROR_MORE_DATA;
+				}
+				char *data = _strHexStrToChar(value + 1, (int *) lpcbData);
+				memcpy((char *) lpData, data, *lpcbData);
+				delete[] data;
+				break;
+			}
 		default:
 			delete[] value;
 			return ERROR_INVALID_DATA;
@@ -234,6 +257,14 @@ LSTATUS IniFileRegistry::RegEnumValue(HKEY hKey,
 				*(long *)lpData = atol(valueData + 1);
 				*lpcbData = 4;
 				break;
+			case PREF_BINARY:
+				{
+					if (lpType != NULL) {*lpType = REG_BINARY;}
+					char *data = _strHexStrToChar(valueData + 1, (int *) lpcbData);
+					memcpy((char *)lpData, data, *lpcbData);
+					delete[] data;
+					break;
+				}
 			default:
 				return ERROR_INVALID_DATA;
 			}

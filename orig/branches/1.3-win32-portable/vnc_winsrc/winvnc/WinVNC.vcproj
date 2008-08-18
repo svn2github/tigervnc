@@ -866,6 +866,14 @@
 			</File>
 		</Filter>
 		<File
+			RelativePath=".\exstring.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\exstring.h"
+			>
+		</File>
+		<File
 			RelativePath=".\IniFileRegistry.cpp"
 			>
 		</File>

@@ -40,6 +40,7 @@
 #include "WinVNC.h"
 #include "vncMenu.h"
 #include "vncTimedMsgBox.h"
+#include "RegistryWrapper.h"
 
 // Error message logging
 void LogErrorMsg(char *message);
@@ -768,7 +769,7 @@ vncService::ProcessUserHelperMessage(WPARAM wParam, LPARAM lParam) {
 
 	// - Close the HKEY_CURRENT_USER key, to force NT to reload it for the new user
 	// NB: Note that this is _really_ dodgy if ANY other thread is accessing the key!
-	if (RegCloseKey(HKEY_CURRENT_USER) != ERROR_SUCCESS) {
+	if (registry->CloseKey(HKEY_CURRENT_USER) != ERROR_SUCCESS) {
 		vnclog.Print(LL_INTERR, VNCLOG("failed to close current registry hive\n"));
 		return FALSE;
 	}
@@ -985,7 +986,7 @@ vncService::InstallService(BOOL silent)
 		{
 			// Locate the RunService registry entry
 			HKEY runservices;
-			if (RegCreateKey(HKEY_LOCAL_MACHINE, 
+			if (registry->CreateKey(HKEY_LOCAL_MACHINE, 
 				"Software\\Microsoft\\Windows\\CurrentVersion\\RunServices",
 				&runservices) != ERROR_SUCCESS)
 			{
@@ -996,16 +997,16 @@ vncService::InstallService(BOOL silent)
 			}
 
 			// Attempt to add a WinVNC key
-			if (RegSetValueEx(runservices, szAppName, 0, REG_SZ, (unsigned char *)servicecmd, strlen(servicecmd)+1) != ERROR_SUCCESS)
+			if (registry->SetValueEx(runservices, szAppName, 0, REG_SZ, (unsigned char *)servicecmd, strlen(servicecmd)+1) != ERROR_SUCCESS)
 			{
-				RegCloseKey(runservices);
+				registry->CloseKey(runservices);
 				if (!silent) {
 					MessageBox(NULL, "The WinVNC service could not be registered", szAppName, MB_ICONEXCLAMATION | MB_OK);
 				}
 				break;
 			}
 
-			RegCloseKey(runservices);
+			registry->CloseKey(runservices);
 
 			// We have successfully installed the service!
 			if (!silent) {
@@ -1106,7 +1107,7 @@ vncService::InstallService(BOOL silent)
 			// Now install the servicehelper registry setting...
 			// Locate the RunService registry entry
 			HKEY runapps;
-			if (RegCreateKey(HKEY_LOCAL_MACHINE, 
+			if (registry->CreateKey(HKEY_LOCAL_MACHINE, 
 				"Software\\Microsoft\\Windows\\CurrentVersion\\Run",
 				&runapps) != ERROR_SUCCESS)
 			{
@@ -1123,14 +1124,14 @@ vncService::InstallService(BOOL silent)
 					return 0;
 
 				// Add the VNCserviceHelper entry
-				if (RegSetValueEx(runapps, szAppName, 0, REG_SZ,
+				if (registry->SetValueEx(runapps, szAppName, 0, REG_SZ,
 					(unsigned char *)servicehelpercmd, strlen(servicehelpercmd)+1) != ERROR_SUCCESS)
 				{
 					if (!silent) {
 						MessageBox(NULL, "WARNING:Unable to install the ServiceHelper hook\nGlobal user-specific registry settings will not be loaded", szAppName, MB_ICONEXCLAMATION | MB_OK);
 					}
 				}
-				RegCloseKey(runapps);
+				registry->CloseKey(runapps);
 			}
 
 			// Everything went fine
@@ -1162,7 +1163,7 @@ vncService::RemoveService(BOOL silent)
 		{
 			// Locate the RunService registry entry
 			HKEY runservices;
-			if (RegOpenKey(HKEY_LOCAL_MACHINE, 
+			if (registry->OpenKey(HKEY_LOCAL_MACHINE, 
 				"Software\\Microsoft\\Windows\\CurrentVersion\\RunServices",
 				&runservices) != ERROR_SUCCESS)
 			{
@@ -1173,15 +1174,15 @@ vncService::RemoveService(BOOL silent)
 			else
 			{
 				// Attempt to delete the WinVNC key
-				if (RegDeleteValue(runservices, szAppName) != ERROR_SUCCESS)
+				if (registry->DeleteValue(runservices, szAppName) != ERROR_SUCCESS)
 				{
-					RegCloseKey(runservices);
+					registry->CloseKey(runservices);
 					if (!silent) {
 						MessageBox(NULL, "The WinVNC service could not be unregistered", szAppName, MB_ICONEXCLAMATION | MB_OK);
 					}
 				}
 
-				RegCloseKey(runservices);
+				registry->CloseKey(runservices);
 				break;
 			}
 
@@ -1212,18 +1213,18 @@ vncService::RemoveService(BOOL silent)
 
 			// Attempt to remove the service-helper hook
 			HKEY runapps;
-			if (RegOpenKey(HKEY_LOCAL_MACHINE, 
+			if (registry->OpenKey(HKEY_LOCAL_MACHINE, 
 				"Software\\Microsoft\\Windows\\CurrentVersion\\Run",
 				&runapps) == ERROR_SUCCESS)
 			{
 				// Attempt to delete the WinVNC key
-				if (RegDeleteValue(runapps, szAppName) != ERROR_SUCCESS)
+				if (registry->DeleteValue(runapps, szAppName) != ERROR_SUCCESS)
 				{
 					if (!silent) {
 						MessageBox(NULL, "WARNING:The ServiceHelper hook entry could not be removed from the registry", szAppName, MB_ICONEXCLAMATION | MB_OK);
 					}
 				}
-				RegCloseKey(runapps);
+				registry->CloseKey(runapps);
 			}
 
 			// Open the SCM

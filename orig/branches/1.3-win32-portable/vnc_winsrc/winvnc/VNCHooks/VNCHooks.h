@@ -58,7 +58,8 @@ extern "C"
 		HWND hWnd,
 		UINT UpdateMsg,
 		UINT CopyMsg,
-		UINT MouseMsg
+		UINT MouseMsg,
+		bool useReg
 		);											// Set the hook
 	DllExport BOOL UnSetHook(HWND hWnd);			// Remove it
 	

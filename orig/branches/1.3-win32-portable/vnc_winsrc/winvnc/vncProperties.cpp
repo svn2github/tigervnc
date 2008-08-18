@@ -40,6 +40,7 @@
 #include "vncServer.h"
 #include "vncPasswd.h"
 #include "commctrl.h"
+#include "RegistryWrapper.h"
 
 const char NO_PASSWORD_WARN [] = "WARNING : Running WinVNC without setting a password is "
 								"a dangerous security risk!\n"
@@ -149,18 +150,18 @@ vncProperties::Show(BOOL show, BOOL usersettings, BOOL passwordfocused)
 			HKEY hkLocal, hkDefault;
 			BOOL canEditDefaultPrefs = 1;
 			DWORD dw;
-			if (RegCreateKeyEx(HKEY_LOCAL_MACHINE,
+			if (registry->CreateKeyEx(HKEY_LOCAL_MACHINE,
 				WINVNC_REGISTRY_KEY,
 				0, REG_NONE, REG_OPTION_NON_VOLATILE,
 				KEY_READ, NULL, &hkLocal, &dw) != ERROR_SUCCESS)
 				canEditDefaultPrefs = 0;
-			else if (RegCreateKeyEx(hkLocal,
+			else if (registry->CreateKeyEx(hkLocal,
 				"Default",
 				0, REG_NONE, REG_OPTION_NON_VOLATILE,
 				KEY_WRITE | KEY_READ, NULL, &hkDefault, &dw) != ERROR_SUCCESS)
 				canEditDefaultPrefs = 0;
-			if (hkLocal) RegCloseKey(hkLocal);
-			if (hkDefault) RegCloseKey(hkDefault);
+			if (hkLocal) registry->CloseKey(hkLocal);
+			if (hkDefault) registry->CloseKey(hkDefault);
 
 			if (!canEditDefaultPrefs) {
 				MessageBox(NULL, CANNOT_EDIT_DEFAULT_PREFS, "WinVNC Error", MB_OK | MB_ICONEXCLAMATION);
@@ -673,7 +674,7 @@ vncProperties::LoadInt(HKEY key, LPCSTR valname, LONG defval)
 	if (key == NULL)
 		return defval;
 
-	if (RegQueryValueEx(key,
+	if (registry->QueryValueEx(key,
 		valname,
 		NULL,
 		&type,
@@ -701,7 +702,7 @@ vncProperties::LoadPassword(HKEY key, char *buffer, const char *entry_name)
 		return FALSE;
 
 	// Retrieve the encrypted password
-	if (RegQueryValueEx(key,
+	if (registry->QueryValueEx(key,
 		(LPCSTR) entry_name,
 		NULL,
 		&type,
@@ -727,7 +728,7 @@ vncProperties::LoadString(HKEY key, LPCSTR keyname)
 		return 0;
 
 	// Get the length of the AuthHosts string
-	if (RegQueryValueEx(key,
+	if (registry->QueryValueEx(key,
 		keyname,
 		NULL,
 		&type,
@@ -742,7 +743,7 @@ vncProperties::LoadString(HKEY key, LPCSTR keyname)
 		return 0;
 
 	// Get the AuthHosts string data
-	if (RegQueryValueEx(key,
+	if (registry->QueryValueEx(key,
 		keyname,
 		NULL,
 		&type,
@@ -791,7 +792,7 @@ vncProperties::Load(BOOL usersettings)
 		strcpy((char *)&username, "SYSTEM");
 
 	// Try to get the machine registry key for WinVNC
-	if (RegCreateKeyEx(HKEY_LOCAL_MACHINE,
+	if (registry->CreateKeyEx(HKEY_LOCAL_MACHINE,
 		WINVNC_REGISTRY_KEY,
 		0, REG_NONE, REG_OPTION_NON_VOLATILE,
 		KEY_READ, NULL, &hkLocal, &dw) != ERROR_SUCCESS)
@@ -799,13 +800,13 @@ vncProperties::Load(BOOL usersettings)
 
 	// Now try to get the per-user local key
 	if ( hkLocal == NULL ||
-		 RegOpenKeyEx(hkLocal, username, 0,
+		 registry->OpenKeyEx(hkLocal, username, 0,
 					  KEY_READ, &hkLocalUser) != ERROR_SUCCESS )
 		hkLocalUser = NULL;
 
 	// Get the default key
 	if ( hkLocal == NULL ||
-		 RegCreateKeyEx(hkLocal, "Default", 0, REG_NONE, REG_OPTION_NON_VOLATILE,
+		 registry->CreateKeyEx(hkLocal, "Default", 0, REG_NONE, REG_OPTION_NON_VOLATILE,
 						KEY_READ, NULL, &hkDefault, &dw) != ERROR_SUCCESS )
 		hkDefault = NULL;
 
@@ -912,26 +913,26 @@ vncProperties::Load(BOOL usersettings)
 		if (m_allowproperties && (strcmp(username, "SYSTEM") != 0))
 		{
 			HKEY hkGlobalUser;
-			if (RegCreateKeyEx(HKEY_CURRENT_USER,
+			if (registry->CreateKeyEx(HKEY_CURRENT_USER,
 				WINVNC_REGISTRY_KEY,
 				0, REG_NONE, REG_OPTION_NON_VOLATILE,
 				KEY_READ, NULL, &hkGlobalUser, &dw) == ERROR_SUCCESS)
 			{
 				vnclog.Print(LL_INTINFO, VNCLOG("loading \"%s\" global settings\n"), username);
 				LoadUserPrefs(hkGlobalUser);
-				RegCloseKey(hkGlobalUser);
+				registry->CloseKey(hkGlobalUser);
 
 				// Close the user registry hive so it can unload if required
-				RegCloseKey(HKEY_CURRENT_USER);
+				registry->CloseKey(HKEY_CURRENT_USER);
 			}
 		}
 	} else {
 		vnclog.Print(LL_INTINFO, VNCLOG("bypassing user-specific settings (both local and global)\n"));
 	}
 
-	if (hkLocalUser != NULL) RegCloseKey(hkLocalUser);
-	if (hkDefault != NULL) RegCloseKey(hkDefault);
-	if (hkLocal != NULL) RegCloseKey(hkLocal);
+	if (hkLocalUser != NULL) registry->CloseKey(hkLocalUser);
+	if (hkDefault != NULL) registry->CloseKey(hkDefault);
+	if (hkLocal != NULL) registry->CloseKey(hkLocal);
 
 	// Make the loaded settings active..
 	ApplyUserPrefs();
@@ -1054,13 +1055,13 @@ vncProperties::ApplyUserPrefs()
 void
 vncProperties::SaveInt(HKEY key, LPCSTR valname, LONG val)
 {
-	RegSetValueEx(key, valname, 0, REG_DWORD, (LPBYTE) &val, sizeof(val));
+	registry->SetValueEx(key, valname, 0, REG_DWORD, (LPBYTE) &val, sizeof(val));
 }
 
 void
 vncProperties::SavePassword(HKEY key, const char *buffer, const char *entry_name)
 {
-	RegSetValueEx(key, entry_name, 0, REG_BINARY, (LPBYTE) buffer, MAXPWLEN);
+	registry->SetValueEx(key, entry_name, 0, REG_BINARY, (LPBYTE) buffer, MAXPWLEN);
 }
 
 void
@@ -1089,7 +1090,7 @@ vncProperties::Save()
 			return;
 
 		// Try to get the per-user, global registry key for WinVNC
-		if (RegCreateKeyEx(HKEY_CURRENT_USER,
+		if (registry->CreateKeyEx(HKEY_CURRENT_USER,
 			WINVNC_REGISTRY_KEY,
 			0, REG_NONE, REG_OPTION_NON_VOLATILE,
 			KEY_WRITE | KEY_READ, NULL, &appkey, &dw) != ERROR_SUCCESS)
@@ -1097,32 +1098,32 @@ vncProperties::Save()
 	} else {
 		// Try to get the default local registry key for WinVNC
 		HKEY hkLocal;
-		if (RegCreateKeyEx(HKEY_LOCAL_MACHINE,
+		if (registry->CreateKeyEx(HKEY_LOCAL_MACHINE,
 			WINVNC_REGISTRY_KEY,
 			0, REG_NONE, REG_OPTION_NON_VOLATILE,
 			KEY_READ, NULL, &hkLocal, &dw) != ERROR_SUCCESS) {
 			MessageBox(NULL, "MB1", "WVNC", MB_OK);
 			return;
 		}
-		if (RegCreateKeyEx(hkLocal,
+		if (registry->CreateKeyEx(hkLocal,
 			"Default",
 			0, REG_NONE, REG_OPTION_NON_VOLATILE,
 			KEY_WRITE | KEY_READ, NULL, &appkey, &dw) != ERROR_SUCCESS) {
-			RegCloseKey(hkLocal);
+			registry->CloseKey(hkLocal);
 			return;
 		}
-		RegCloseKey(hkLocal);
+		registry->CloseKey(hkLocal);
 	}
 
 	// SAVE PER-USER PREFS IF ALLOWED
 	SaveUserPrefs(appkey);
 
-	RegCloseKey(appkey);
+	registry->CloseKey(appkey);
 
 	// Machine Preferences
 	// Try to get the machine registry key for WinVNC
 	HKEY hkLocal;
-	if (RegCreateKeyEx(HKEY_LOCAL_MACHINE,
+	if (registry->CreateKeyEx(HKEY_LOCAL_MACHINE,
 		WINVNC_REGISTRY_KEY,
 		0, REG_NONE, REG_OPTION_NON_VOLATILE,
 		KEY_WRITE | KEY_READ, NULL, &hkLocal, &dw) != ERROR_SUCCESS)
@@ -1137,11 +1138,11 @@ vncProperties::Save()
 
 	SaveInt(hkLocal, "DebugMode", vnclog.GetMode());
 	SaveInt(hkLocal, "DebugLevel", vnclog.GetLevel());
-	RegCloseKey(hkLocal);
+	registry->CloseKey(hkLocal);
 
 
 	// Close the user registry hive, to allow it to unload if reqd
-	RegCloseKey(HKEY_CURRENT_USER);
+	registry->CloseKey(HKEY_CURRENT_USER);
 }
 
 void

@@ -41,6 +41,7 @@
 #include "vncService.h"
 #include "WallpaperUtils.h"
 #include "TsSessions.h"
+#include "RegistryWrapper.h"
 
 #if (_MSC_VER>= 1300)
 #include <fstream>
@@ -593,10 +594,11 @@ vncDesktop::ActivateHooks()
 {
 	BOOL enable = !(m_server->DontSetHooks() && m_server->PollFullScreen());
 	if (enable && !m_hooks_active) {
+		bool useRegistry = (registry->GetRegistryBackend() == BACKEND_REGISTRY);
 		m_hooks_active = SetHook(m_hwnd,
 								 RFB_SCREEN_UPDATE,
 								 RFB_COPYRECT_UPDATE,
-								 RFB_MOUSE_UPDATE);
+								 RFB_MOUSE_UPDATE, useRegistry);
 		if (!m_hooks_active) {
 			vnclog.Print(LL_INTERR, VNCLOG("failed to set system hooks\n"));
 			// Switch on full screen polling, so they can see something, at least...
@@ -744,7 +746,7 @@ void vncDesktop::ChangeResNow()
 
 	// *** Open the registry key for resolution settings
 	HKEY checkdetails = 0;
-	RegOpenKeyEx(HKEY_LOCAL_MACHINE, 
+	registry->OpenKeyEx(HKEY_LOCAL_MACHINE, 
 				WINVNC_REGISTRY_KEY,
 				0,
 				KEY_READ,
@@ -758,7 +760,7 @@ void vncDesktop::ChangeResNow()
 		memset(inouttext, 0, MAX_REG_ENTRY_LEN);
 		
 		// *** Get the registry values for resolution change - Jeremy Peaks
-		RegQueryValueEx(checkdetails,
+		registry->QueryValueEx(checkdetails,
 			"ResWidth",
 			NULL,
 			(LPDWORD) &valType,
@@ -772,7 +774,7 @@ void vncDesktop::ChangeResNow()
 
 			memset(inouttext, 0, MAX_REG_ENTRY_LEN);
 
-			RegQueryValueEx(checkdetails,
+			registry->QueryValueEx(checkdetails,
 				"ResHeight",
 				NULL,
 				(LPDWORD) &valType,
@@ -800,7 +802,7 @@ void vncDesktop::ChangeResNow()
 			} 
 		}
 
-		RegCloseKey(checkdetails);
+		registry->CloseKey(checkdetails);
 	}
 
 	if (! settingsUpdated)

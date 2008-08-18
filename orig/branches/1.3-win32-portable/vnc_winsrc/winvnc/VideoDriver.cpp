@@ -19,6 +19,7 @@
 
 #include "VideoDriver.h"
 #include "vncDesktop.h"
+#include "RegistryWrapper.h"
 
 char	vncVideoDriver::szDriverString[] = "Mirage Driver";
 char	vncVideoDriver::szDriverStringAlt[] = "DemoForge Mirage Driver";
@@ -332,7 +333,7 @@ BOOL vncVideoDriver::LookupVideoDeviceAlt(
 HKEY vncVideoDriver::CreateDeviceKey(LPCTSTR szMpName)
 {
 	HKEY hKeyProfileMirror = (HKEY)0;
-	if (RegCreateKey(
+	if (registry->CreateKey(
 			HKEY_LOCAL_MACHINE,
 			(MINIPORT_REGISTRY_PATH),
 			&hKeyProfileMirror) != ERROR_SUCCESS)
@@ -341,11 +342,11 @@ HKEY vncVideoDriver::CreateDeviceKey(LPCTSTR szMpName)
 		return FALSE;
 	}
 	HKEY hKeyProfileMp = (HKEY)0;
-	LONG cr = RegCreateKey(
+	LONG cr = registry->CreateKey(
 			hKeyProfileMirror,
 			szMpName,
 			&hKeyProfileMp);
-	RegCloseKey(hKeyProfileMirror);
+	registry->CloseKey(hKeyProfileMirror);
 	if (cr != ERROR_SUCCESS)
 	{
 		vnclog.Print(
@@ -355,14 +356,14 @@ HKEY vncVideoDriver::CreateDeviceKey(LPCTSTR szMpName)
 		return FALSE;
 	}
 	HKEY hKeyDevice = (HKEY)0;
-	if (RegCreateKey(
+	if (registry->CreateKey(
 			hKeyProfileMp,
 			("DEVICE0"),
 			&hKeyDevice) != ERROR_SUCCESS)
 	{
 		vnclog.Print(LL_INTERR, VNCLOG("Can't access DEVICE0 hardware profiles key.\n"));
 	}
-	RegCloseKey(hKeyProfileMp);
+	registry->CloseKey(hKeyProfileMp);
 	return hKeyDevice;
 }
 
@@ -443,12 +444,12 @@ BOOL vncVideoDriver::Activate_NT50(
 		return FALSE;
 
 // TightVNC does not use these features
-	RegDeleteValue(hKeyDevice, ("Screen.ForcedBpp"));
-	RegDeleteValue(hKeyDevice, ("Pointer.Enabled"));
+	registry->DeleteValue(hKeyDevice, ("Screen.ForcedBpp"));
+	registry->DeleteValue(hKeyDevice, ("Pointer.Enabled"));
 
 	DWORD dwVal = fForDirectAccess ? 3 : 0;
 // NOTE that old driver ignores it and mapping is always ON with it
-	if (RegSetValueEx(
+	if (registry->SetValueEx(
 			hKeyDevice,
 			("Cap.DfbBackingMode"),
 			0,
@@ -461,7 +462,7 @@ BOOL vncVideoDriver::Activate_NT50(
 	}
 
 	dwVal = 1;
-	if (RegSetValueEx(
+	if (registry->SetValueEx(
 		hKeyDevice,
 		("Order.BltCopyBits.Enabled"),
 		0,
@@ -474,7 +475,7 @@ BOOL vncVideoDriver::Activate_NT50(
 	}
 
 	dwVal = 1;
-	if (RegSetValueEx(
+	if (registry->SetValueEx(
 			hKeyDevice,
 			("Attach.ToDesktop"),
 			0,
@@ -522,7 +523,7 @@ BOOL vncVideoDriver::Activate_NT50(
 	SetThreadDesktop(hdeskCurrent);
 	// Close the input desktop
 	CloseDesktop(hdeskInput);
-	RegCloseKey(hKeyDevice);
+	registry->CloseKey(hKeyDevice);
 	FreeLibrary(hInstUser32);
 
 	return TRUE;
@@ -535,12 +536,12 @@ BOOL vncVideoDriver::Activate_NT46(BOOL fForDirectAccess)
 		return FALSE;
 
 	// TightVNC does not use these features
-	RegDeleteValue(hKeyDevice, ("Screen.ForcedBpp"));
-	RegDeleteValue(hKeyDevice, ("Pointer.Enabled"));
+	registry->DeleteValue(hKeyDevice, ("Screen.ForcedBpp"));
+	registry->DeleteValue(hKeyDevice, ("Pointer.Enabled"));
 
 	DWORD dwVal = fForDirectAccess ? 3 : 0;
 	// NOTE that old driver ignores it and mapping is always ON with it
-	if (RegSetValueEx(
+	if (registry->SetValueEx(
 		hKeyDevice,
 		("Cap.DfbBackingMode"),
 		0,
@@ -553,7 +554,7 @@ BOOL vncVideoDriver::Activate_NT46(BOOL fForDirectAccess)
 	}
 
 	dwVal = 1;
-	if (RegSetValueEx(
+	if (registry->SetValueEx(
 		hKeyDevice,
 		("Order.BltCopyBits.Enabled"),
 		0,
@@ -573,7 +574,7 @@ BOOL vncVideoDriver::Activate_NT46(BOOL fForDirectAccess)
 
 	strcpy(m_devname, "DISPLAY");
 
-	RegCloseKey(hKeyDevice);
+	registry->CloseKey(hKeyDevice);
 	return TRUE;
 }
 
@@ -610,14 +611,14 @@ void vncVideoDriver::Deactivate_NT50()
 		return;
 
     DWORD one = 0;
-	if (RegSetValueEx(hKeyDevice,("Attach.ToDesktop"), 0, REG_DWORD, (unsigned char *)&one,4) != ERROR_SUCCESS)
+	if (registry->SetValueEx(hKeyDevice,("Attach.ToDesktop"), 0, REG_DWORD, (unsigned char *)&one,4) != ERROR_SUCCESS)
 	{
 		vnclog.Print(LL_INTERR, VNCLOG("Can't set Attach.ToDesktop to 0x1\n"));
 	}
 
 // reverting to default behavior
-	RegDeleteValue(hKeyDevice, ("Cap.DfbBackingMode"));
-	RegDeleteValue(hKeyDevice, ("Order.BltCopyBits.Enabled"));
+	registry->DeleteValue(hKeyDevice, ("Cap.DfbBackingMode"));
+	registry->DeleteValue(hKeyDevice, ("Order.BltCopyBits.Enabled"));
 
 	pChangeDisplaySettingsEx pCDS = NULL;
 	HINSTANCE  hInstUser32 = LoadNImport("User32.DLL", "ChangeDisplaySettingsExA", pCDS);
@@ -641,7 +642,7 @@ void vncVideoDriver::Deactivate_NT50()
 	SetThreadDesktop(hdeskCurrent);
 	// Close the input desktop
 	CloseDesktop(hdeskInput);
-	RegCloseKey(hKeyDevice);
+	registry->CloseKey(hKeyDevice);
 	FreeLibrary(hInstUser32);
 }
 
@@ -655,14 +656,14 @@ void vncVideoDriver::Deactivate_NT46()
 		return;
 
 // reverting to default behavior
-	RegDeleteValue(hKeyDevice, ("Cap.DfbBackingMode"));
+	registry->DeleteValue(hKeyDevice, ("Cap.DfbBackingMode"));
 
-//	RegDeleteValue(hKeyDevice, ("Order.BltCopyBits.Enabled"));
+//	registry->DeleteValue(hKeyDevice, ("Order.BltCopyBits.Enabled"));
 // TODO: remove "Order.BltCopyBits.Enabled"
 // now we don't touch this important option
 // because we dont apply the changed values
 
-	RegCloseKey(hKeyDevice);
+	registry->CloseKey(hKeyDevice);
 }
 
 void vncVideoDriver::HandleDriverChanges(

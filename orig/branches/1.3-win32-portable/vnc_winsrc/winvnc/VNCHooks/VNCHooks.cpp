@@ -60,6 +60,7 @@ HHOOK hLLKeyboardPrHook = NULL;						// Handle to LowLevel kbd hook for local ev
 HHOOK hLLMousePrHook = NULL;						// Handle to LowLevel mouse hook for local event priority
 HHOOK hKeyboardHook = NULL;							// Handle to kbd hook
 HHOOK hMouseHook = NULL;							// Handle to mouse hook
+bool useRegistry = true;
 
 #pragma data_seg( )
 
@@ -159,8 +160,9 @@ BOOL WINAPI DllMain (HANDLE hInst, ULONG ul_reason_for_call, LPVOID lpReserved)
 
 // Add the new hook
 
-DllExport BOOL SetHook(HWND hWnd, UINT UpdateMsg, UINT CopyMsg, UINT MouseMsg)
+DllExport BOOL SetHook(HWND hWnd, UINT UpdateMsg, UINT CopyMsg, UINT MouseMsg, bool useReg)
 {
+	useRegistry = useReg;
 
 	// Don't add the hook if the window ID is NULL
 	if (hWnd == NULL)
@@ -1120,6 +1122,7 @@ static const TCHAR szProfile[] = "VNCHooks";
 
 HKEY GetRegistryKey()
 {
+	if (!useRegistry) return NULL;
 	HKEY hAppKey = NULL;
 	HKEY hSoftKey = NULL;
 	HKEY hCompanyKey = NULL;
@@ -1146,6 +1149,7 @@ HKEY GetRegistryKey()
 
 HKEY GetModuleKey(const char *proc_name)
 {
+	if (!useRegistry) return NULL;
 	HKEY hModule = NULL;
 
 	// Work out the registry key to save this under
@@ -1233,6 +1237,7 @@ int GetProfileInt(LPTSTR key, int def)
 
 void WriteProfileInt(LPTSTR key, int value)
 {
+	if (!useRegistry) return;
 	RegSetValueEx(
 		hModuleKey,
 		key,

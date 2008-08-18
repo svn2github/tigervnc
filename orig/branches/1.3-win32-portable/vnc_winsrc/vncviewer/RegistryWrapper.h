@@ -39,6 +39,8 @@ public:
 	void ReInit(RegistryBackend backend, TCHAR *fname);
 	~RegistryWrapper();
 
+	RegistryBackend GetRegistryBackend() { return m_backend; }
+
 	LSTATUS CreateKey(HKEY hKey, LPCTSTR lpSubKey, PHKEY phkResult);
 	LSTATUS OpenKey(HKEY hKey,	LPCTSTR lpSubKey, PHKEY phkResult);
 	LSTATUS OpenKeyEx(HKEY hKey, LPCTSTR lpSubKey, DWORD ulOptions, REGSAM samDesired, PHKEY phkResult);

@@ -81,6 +81,8 @@ const char winvncShareWindow[]		= "-sharewindow";
 const char winvncAddNewClient[]		= "-connect";
 const char winvncKillAllClients[]	= "-killallclients";
 
+const char winvncRunWithIniFile[]	= "-runwithinifile";
+
 const char winvncShowHelp[]			= "-help";
 
 // Usage string

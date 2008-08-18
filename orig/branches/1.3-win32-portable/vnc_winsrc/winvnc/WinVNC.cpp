@@ -43,6 +43,8 @@
 #include "vncMenu.h"
 #include "vncInstHandler.h"
 #include "vncService.h"
+#include "exstring.h"
+#include "RegistryWrapper.h"
 
 extern "C" {
 #include "ParseHost.h"
@@ -83,6 +85,27 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 		return 0;
 	}
 	vnclog.Print(LL_STATE, VNCLOG("sockets initialised\n"));
+
+	TCHAR *pcl = _tcsstr(szCmdLine, winvncRunWithIniFile);
+	if (pcl != NULL) {
+		// Use ini file for settings
+
+		TCHAR fileName[_MAX_PATH];
+		pcl = _tcsdelword(szCmdLine, pcl);
+		_tcsextrword(pcl, fileName);
+		_tcsremquotes(fileName);
+
+		if (_tcslen(fileName) != 0) {
+			// Run RegistryWrapper
+			registry = new RegistryWrapper(BACKEND_FILE, fileName);
+			return WinVNCAppMain();
+		} else {
+			MessageBox(NULL, winvncUsageText, "WinVNC Usage", MB_OK | MB_ICONINFORMATION);
+			return 0;
+		}
+	} else {
+		registry = new RegistryWrapper(BACKEND_REGISTRY, NULL);
+	}
 
 	// Make the command-line lowercase and parse it
 	size_t i;

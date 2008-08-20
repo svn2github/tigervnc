@@ -1,5 +1,9 @@
-#pragma once
+#ifndef __WINDOWSFRAMEBUFFER_H__
+#define __WINDOWSFRAMEBUFFER_H__
+
+#include <windows.h>
 #include "framebuffer.h"
+#include "rect.h"
 
 class WindowsFrameBuffer :
   public FrameBuffer
@@ -7,6 +11,14 @@ class WindowsFrameBuffer :
 public:
   WindowsFrameBuffer(void);
   virtual ~WindowsFrameBuffer(void);
-  void CaptureScreenRect(RECT *aRect, HDC dstDC);
+
+  virtual void Update();
+
+protected:
+  virtual void SetPropertiesChanged();
+
+  void CaptureScreenRect(Rect *aRect, HDC dstDC);
   HPALETTE GetSystemPalette();
 };
+
+#endif // __WINDOWSFRAMEBUFFER_H__

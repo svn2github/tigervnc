@@ -38,12 +38,26 @@ HPALETTE WindowsFrameBuffer::GetSystemPalette()
   return result;
 }
   
-void WindowsFrameBuffer::CaptureScreenRect(RECT *aRect, HDC dstDC)
+void WindowsFrameBuffer::CaptureScreenRect(Rect *aRect, HDC dstDC)
 {
   HDC screenDC;
   screenDC = GetDC(0);
 
-  BitBlt(dstDC, aRect->left, aRect->right, aRect->right, aRect->bottom, screenDC, 0, 0, SRCCOPY);
+  //BitBlt(dstDC, aRect->left, aRect->right, aRect->right, aRect->bottom, screenDC, 0, 0, SRCCOPY);
 
   ReleaseDC(0, screenDC);
+}
+
+void WindowsFrameBuffer::SetPropertiesChanged()
+{
+  // Check for changing
+
+  return;
+}
+
+void WindowsFrameBuffer::Update()
+{
+  SetPropertiesChanged();
+
+  return;
 }

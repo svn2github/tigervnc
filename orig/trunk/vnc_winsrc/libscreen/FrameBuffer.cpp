@@ -1,24 +1,10 @@
 #include "FrameBuffer.h"
 
 FrameBuffer::FrameBuffer(void)
-: m_changed(true)
+: m_pixelFormatChanged(true), m_sizeChanged(true)
 {
 }
 
 FrameBuffer::~FrameBuffer(void)
 {
-}
-
-bool FrameBuffer::SetChanged()
-{
-  // Check for changing
-
-  return m_changed;
-}
-
-void FrameBuffer::Update()
-{
-  if (SetChanged()) {
-  }
-  return;
 }

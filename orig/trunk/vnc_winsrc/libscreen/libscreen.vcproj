@@ -162,6 +162,14 @@
 				RelativePath=".\FrameBuffer.h"
 				>
 			</File>
+			<File
+				RelativePath=".\PixelFormat.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Rect.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"

@@ -152,6 +152,10 @@
 				RelativePath=".\FrameBuffer.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\WindowsFrameBuffer.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -168,6 +172,10 @@
 			</File>
 			<File
 				RelativePath=".\Rect.h"
+				>
+			</File>
+			<File
+				RelativePath=".\WindowsFrameBuffer.h"
 				>
 			</File>
 		</Filter>

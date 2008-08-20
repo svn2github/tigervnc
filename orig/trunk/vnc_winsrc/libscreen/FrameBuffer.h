@@ -22,7 +22,8 @@
 #ifndef __FRAMEBUFFER_H__
 #define __FRAMEBUFFER_H__
 
-#include "Rect.h"
+#include "rect.h"
+#include "pixelformat.h"
 
 class FrameBuffer
 {
@@ -32,11 +33,19 @@ public:
 
   virtual void Update() = 0;
 
-  virtual bool GetPixelFormatChanged() const { return m_pixelFormatChanged; }
-  virtual bool GetSizeChanged() const { return m_sizeChanged; }
+  virtual PixelFormat GetPixelFormat()  { return m_pixelFormat; }
+  virtual Rect GetRect()                { return m_rect; }
+  virtual void *GetBuffer()             { return m_buffer; }
+
+  inline virtual bool GetPixelFormatChanged()  const { return m_pixelFormatChanged; }
+  inline virtual bool GetSizeChanged()         const { return m_sizeChanged; }
 
 protected:
   virtual void SetPropertiesChanged() = 0;
+
+  PixelFormat m_pixelFormat;
+  Rect m_rect;
+  void *m_buffer;
 
   bool m_pixelFormatChanged;
   bool m_sizeChanged;

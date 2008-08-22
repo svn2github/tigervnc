@@ -25,8 +25,8 @@
 class Rect
 {
 public:
-  Rect(void) { left = 0; top = 0; right = 0; bottom = 0; }
-  ~Rect(void) {};
+  Rect(void) : left(0), top(0), right(0), bottom(0) {}
+  ~Rect(void) {}
   
   int left;
   int top;
@@ -34,7 +34,7 @@ public:
   int bottom;
 
   inline void SetRect(int lt, int tp, int rt, int bm)
-  { 
+  {
     left = lt;
     top = tp;
     right = rt;

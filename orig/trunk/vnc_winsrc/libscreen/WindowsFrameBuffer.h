@@ -38,7 +38,7 @@ public:
   virtual bool UpdatePixelFormat();
   virtual bool UpdateFullScreenRect();
 
-  virtual bool Get();
+  virtual bool Grab();
 
 protected:
   virtual bool CheckPropertiesChanged();

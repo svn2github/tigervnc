@@ -51,7 +51,7 @@ bool WindowsFrameBuffer::UpdatePixelFormat()
     m_lastError = GetLastError();
     return false;
   }
-
+  return true;
 }
 
 bool WindowsFrameBuffer::UpdateFullScreenRect()
@@ -88,7 +88,7 @@ bool WindowsFrameBuffer::CheckPropertiesChanged()
   return true;
 }
 
-bool WindowsFrameBuffer::Get()
+bool WindowsFrameBuffer::Grab()
 {
   HDC screenDC = GetDC(0);
   if (screenDC == NULL) {

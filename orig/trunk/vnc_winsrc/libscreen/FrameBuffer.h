@@ -31,12 +31,9 @@ public:
   FrameBuffer(void);
   virtual ~FrameBuffer(void);
 
-  virtual bool Get() = 0;
+  virtual bool Grab() = 0;
 
-  virtual bool UpdatePixelFormat() = 0;
   virtual void GetPixelFormat(PixelFormat *pixelFormat) const { *pixelFormat = m_pixelFormat; }
-
-  virtual bool UpdateFullScreenRect() = 0;
   virtual void GetFullScreenRect(Rect *rect)              { *rect = m_fullScreenRect; }
 
   virtual bool SetWorkRect(const Rect *rect);
@@ -55,11 +52,6 @@ protected:
   Rect m_workRect;
 
   void *m_buffer;
-
-  bool m_pixelFormatChanged;
-  bool m_sizeChanged;
-
-  unsigned long m_lastError;
 };
 
 #endif // __FRAMEBUFFER_H__

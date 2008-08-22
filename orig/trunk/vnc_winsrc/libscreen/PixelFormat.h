@@ -24,7 +24,7 @@
 
 struct PixelFormat
 {
-
+  int bitsPerPixel;
 };
 
 #endif // __PIXELFORMAT_H__

@@ -31,24 +31,29 @@ public:
   FrameBuffer(void);
   virtual ~FrameBuffer(void);
 
-  virtual void Update() = 0;
+  virtual bool Update() = 0;
 
-  virtual PixelFormat GetPixelFormat()  { return m_pixelFormat; }
-  virtual Rect GetRect()                { return m_rect; }
-  virtual void *GetBuffer()             { return m_buffer; }
+  virtual PixelFormat GetPixelFormat()              const { return m_pixelFormat; }
+  virtual void GetFullScreenRect(Rect *rect)        const { *rect = m_fullScreenRect; }
+  virtual void *GetBuffer()                         const { return m_buffer; }
 
   inline virtual bool GetPixelFormatChanged()  const { return m_pixelFormatChanged; }
   inline virtual bool GetSizeChanged()         const { return m_sizeChanged; }
 
+  unsigned long GetLastError() { return m_lastError; }
+
 protected:
-  virtual void SetPropertiesChanged() = 0;
+  virtual bool SetPropertiesChanged() = 0;
 
   PixelFormat m_pixelFormat;
-  Rect m_rect;
+  Rect m_fullScreenRect;
+
   void *m_buffer;
 
   bool m_pixelFormatChanged;
   bool m_sizeChanged;
+
+  unsigned long m_lastError;
 };
 
 #endif // __FRAMEBUFFER_H__

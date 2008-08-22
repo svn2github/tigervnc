@@ -23,7 +23,7 @@
 #include <stddef.h>
 
 FrameBuffer::FrameBuffer(void)
-: m_pixelFormatChanged(true), m_sizeChanged(true), m_buffer(NULL)
+: m_pixelFormatChanged(true), m_sizeChanged(true), m_buffer(NULL), m_lastError(NULL)
 {
 }
 

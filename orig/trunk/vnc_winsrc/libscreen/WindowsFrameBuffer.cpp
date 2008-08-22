@@ -30,7 +30,31 @@ WindowsFrameBuffer::~WindowsFrameBuffer(void)
 {
 }
 
-bool WindowsFrameBuffer::SetFullScreenRect()
+bool WindowsFrameBuffer::UpdatePixelFormat()
+{
+  HDC screenDC = GetDC(0);
+  if (screenDC == NULL) {
+    m_lastError = E_GET_DC;
+    return false;
+  }
+
+  HBITMAP hbm;
+  struct {
+    BITMAPINFOHEADER bmiHeader;
+    RGBQUAD          bmiColors[16];
+  } bmi;
+
+  bmi.bmiHeader.biBitCount = 0;
+  bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+  hbm = (HBITMAP) GetCurrentObject(screenDC, OBJ_BITMAP);
+  if (GetDIBits(screenDC, hbm, 0, m_fullScreenRect.GetHeight(), NULL, (LPBITMAPINFO) &bmi, DIB_RGB_COLORS) == 0) {
+    m_lastError = GetLastError();
+    return false;
+  }
+
+}
+
+bool WindowsFrameBuffer::UpdateFullScreenRect()
 {
   HDC screenDC = GetDC(0);
   if (screenDC == NULL) {
@@ -55,7 +79,7 @@ bool WindowsFrameBuffer::SetFullScreenRect()
 bool WindowsFrameBuffer::CheckPropertiesChanged()
 {
   // Check for resolution changing
-  if (!SetFullScreenRect()) {
+  if (!UpdateFullScreenRect()) {
     return false;
   }
 
@@ -64,7 +88,7 @@ bool WindowsFrameBuffer::CheckPropertiesChanged()
   return true;
 }
 
-bool WindowsFrameBuffer::Update()
+bool WindowsFrameBuffer::Get()
 {
   HDC screenDC = GetDC(0);
   if (screenDC == NULL) {

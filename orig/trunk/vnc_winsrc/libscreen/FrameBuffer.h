@@ -31,20 +31,21 @@ public:
   FrameBuffer(void);
   virtual ~FrameBuffer(void);
 
-  virtual bool Update() = 0;
+  virtual bool Get() = 0;
 
-  virtual PixelFormat GetPixelFormat()              const { return m_pixelFormat; }
-  virtual bool SetFullScreenRect() = 0;
-  virtual void GetFullScreenRect(Rect *rect)              { SetFullScreenRect();
-                                                            *rect = m_fullScreenRect; }
+  virtual bool UpdatePixelFormat() = 0;
+  virtual void GetPixelFormat(PixelFormat *pixelFormat) const { *pixelFormat = m_pixelFormat; }
+
+  virtual bool UpdateFullScreenRect() = 0;
+  virtual void GetFullScreenRect(Rect *rect)              { *rect = m_fullScreenRect; }
+
   virtual bool SetWorkRect(const Rect *rect);
   virtual void GetWorkRect(Rect *rect)              const { *rect = m_workRect; }
+
   virtual void *GetBuffer()                         const { return m_buffer; }
 
-  inline virtual bool GetPixelFormatChanged()  const { return m_pixelFormatChanged; }
-  inline virtual bool GetSizeChanged()         const { return m_sizeChanged; }
-
-  unsigned long GetLastError() { return m_lastError; }
+  inline virtual bool GetPixelFormatChanged()       const { return m_pixelFormatChanged; }
+  inline virtual bool GetSizeChanged()              const { return m_sizeChanged; }
 
 protected:
   virtual bool CheckPropertiesChanged() = 0;

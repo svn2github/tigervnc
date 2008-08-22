@@ -26,6 +26,8 @@
 #include "framebuffer.h"
 #include "rect.h"
 
+/**/
+
 class WindowsFrameBuffer :
   public FrameBuffer
 {
@@ -33,13 +35,10 @@ public:
   WindowsFrameBuffer(void);
   virtual ~WindowsFrameBuffer(void);
 
-  virtual void Update();
+  virtual bool Update();
 
 protected:
-  virtual void SetPropertiesChanged();
-
-  void CaptureScreenRect(Rect *aRect, HDC dstDC);
-  HPALETTE GetSystemPalette();
+  virtual bool SetPropertiesChanged();
 };
 
 #endif // __WINDOWSFRAMEBUFFER_H__

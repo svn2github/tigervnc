@@ -20,6 +20,7 @@
 // TightVNC homepage on the Web: http://www.tightvnc.com/
 
 #include "WindowsFrameBuffer.h"
+#include "ErrorDef.h"
 
 WindowsFrameBuffer::WindowsFrameBuffer(void)
 {
@@ -29,56 +30,61 @@ WindowsFrameBuffer::~WindowsFrameBuffer(void)
 {
 }
 
-HPALETTE WindowsFrameBuffer::GetSystemPalette()
+bool WindowsFrameBuffer::SetPropertiesChanged()
 {
-  int paletteSize, logSize;
-  PLOGPALETTE logPalette;
-  HDC dc;
-  HWND focus;
-  HPALETTE result;
-
-  focus = GetFocus();
-  dc = GetDC(focus);
-
-  paletteSize = GetDeviceCaps(dc, SIZEPALETTE);
-  logSize = sizeof(LOGPALETTE) + (paletteSize - 1) * sizeof(PALETTEENTRY);
-  logPalette = (PLOGPALETTE) malloc(logSize);
-  if (logPalette == NULL) {
-    ReleaseDC(focus, dc);
-    return NULL;
+  HDC screenDC = GetDC(0);
+  if (screenDC == NULL) {
+    m_lastError = E_GET_DC;
+    return false;
   }
 
-  logPalette->palVersion = 0x0300;
-  logPalette->palNumEntries = paletteSize;
-  GetSystemPaletteEntries(dc, 0, paletteSize, logPalette->palPalEntry);
-  result = CreatePalette(logPalette);
+  // Check for resolution changing
+  int horzres, vertrez;
+  horzres = GetDeviceCaps(screenDC, HORZRES);
+  vertrez = GetDeviceCaps(screenDC, VERTRES);
+  if (horzres != m_fullScreenRect.right || vertrez != m_fullScreenRect.bottom) {
+    m_fullScreenRect.SetRect(0, 0, horzres, vertrez);
+    m_sizeChanged = true;
+  } else {
+    m_sizeChanged = false;
+  }
 
-  free(logPalette);
-  ReleaseDC(focus, dc);
+  // Check for pixel format changing
 
-  return result;
+  return true;
 }
+
+bool WindowsFrameBuffer::Update()
+{
+  HDC screenDC = GetDC(0);
+  if (screenDC == NULL) {
+    m_lastError = E_GET_DC;
+    return false;
+  }
+  if (!SetPropertiesChanged()) return false;
+  if (m_sizeChanged) {
+    if (m_buffer != NULL) delete[] m_buffer;
+    if ((m_buffer = new unsigned long[m_fullScreenRect.GetWidth() * m_fullScreenRect.GetHeight()]) == NULL) {
+      m_lastError = E_NO_MEMORY_FOUND;
+      return false;
+    }
+  }
+
+  HBITMAP hbm;
+  struct {
+    BITMAPINFOHEADER bmiHeader;
+    RGBQUAD          bmiColors[16];
+  } bmi;
+
+  bmi.bmiHeader.biBitCount = 0;
+  bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+  hbm = (HBITMAP) GetCurrentObject(screenDC, OBJ_BITMAP);
+  if (GetDIBits(screenDC, hbm, 0, m_fullScreenRect.GetHeight(), NULL, (LPBITMAPINFO) &bmi, DIB_RGB_COLORS) == 0) {
+    m_lastError = GetLastError();
+    return false;
+  }
+  GetDIBits(screenDC, hbm, 0, m_fullScreenRect.GetHeight(), m_buffer, (LPBITMAPINFO) &bmi, DIB_RGB_COLORS);
   
-void WindowsFrameBuffer::CaptureScreenRect(Rect *aRect, HDC dstDC)
-{
-  HDC screenDC;
-  screenDC = GetDC(0);
-
-  //BitBlt(dstDC, aRect->left, aRect->right, aRect->right, aRect->bottom, screenDC, 0, 0, SRCCOPY);
-
-  ReleaseDC(0, screenDC);
-}
-
-void WindowsFrameBuffer::SetPropertiesChanged()
-{
-  // Check for changing
-
-  return;
-}
-
-void WindowsFrameBuffer::Update()
-{
-  SetPropertiesChanged();
-
-  return;
+  ReleaseDC(NULL, screenDC);
+  return true;
 }

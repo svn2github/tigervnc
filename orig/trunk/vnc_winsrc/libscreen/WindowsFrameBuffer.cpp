@@ -30,7 +30,7 @@ WindowsFrameBuffer::~WindowsFrameBuffer(void)
 {
 }
 
-bool WindowsFrameBuffer::SetPropertiesChanged()
+bool WindowsFrameBuffer::SetFullScreenRect()
 {
   HDC screenDC = GetDC(0);
   if (screenDC == NULL) {
@@ -48,6 +48,16 @@ bool WindowsFrameBuffer::SetPropertiesChanged()
   } else {
     m_sizeChanged = false;
   }
+  return true;
+}
+
+
+bool WindowsFrameBuffer::CheckPropertiesChanged()
+{
+  // Check for resolution changing
+  if (!SetFullScreenRect()) {
+    return false;
+  }
 
   // Check for pixel format changing
 
@@ -58,10 +68,9 @@ bool WindowsFrameBuffer::Update()
 {
   HDC screenDC = GetDC(0);
   if (screenDC == NULL) {
-    m_lastError = E_GET_DC;
     return false;
   }
-  if (!SetPropertiesChanged()) return false;
+  if (!CheckPropertiesChanged()) return false;
   if (m_sizeChanged) {
     if (m_buffer != NULL) delete[] m_buffer;
     if ((m_buffer = new unsigned long[m_fullScreenRect.GetWidth() * m_fullScreenRect.GetHeight()]) == NULL) {

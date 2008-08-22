@@ -35,10 +35,12 @@ public:
   WindowsFrameBuffer(void);
   virtual ~WindowsFrameBuffer(void);
 
+  virtual bool SetFullScreenRect();
+
   virtual bool Update();
 
 protected:
-  virtual bool SetPropertiesChanged();
+  virtual bool CheckPropertiesChanged();
 };
 
 #endif // __WINDOWSFRAMEBUFFER_H__

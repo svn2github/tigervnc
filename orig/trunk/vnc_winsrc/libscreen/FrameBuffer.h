@@ -34,7 +34,11 @@ public:
   virtual bool Update() = 0;
 
   virtual PixelFormat GetPixelFormat()              const { return m_pixelFormat; }
-  virtual void GetFullScreenRect(Rect *rect)        const { *rect = m_fullScreenRect; }
+  virtual bool SetFullScreenRect() = 0;
+  virtual void GetFullScreenRect(Rect *rect)              { SetFullScreenRect();
+                                                            *rect = m_fullScreenRect; }
+  virtual bool SetWorkRect(const Rect *rect);
+  virtual void GetWorkRect(Rect *rect)              const { *rect = m_workRect; }
   virtual void *GetBuffer()                         const { return m_buffer; }
 
   inline virtual bool GetPixelFormatChanged()  const { return m_pixelFormatChanged; }
@@ -43,10 +47,11 @@ public:
   unsigned long GetLastError() { return m_lastError; }
 
 protected:
-  virtual bool SetPropertiesChanged() = 0;
+  virtual bool CheckPropertiesChanged() = 0;
 
   PixelFormat m_pixelFormat;
   Rect m_fullScreenRect;
+  Rect m_workRect;
 
   void *m_buffer;
 

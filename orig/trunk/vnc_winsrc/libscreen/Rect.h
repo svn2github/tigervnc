@@ -41,6 +41,11 @@ public:
     bottom = bm;
   }
 
+  inline bool CmpRect(const Rect *rect) { return  rect->left == left &&
+                                                  rect->top == top &&
+                                                  rect->right == right &&
+                                                  rect->bottom == bottom; }
+
   inline void SetWidth(int value)   { right = left + value; }
   inline void SetHeight(int value)  { bottom = top + value; }
 

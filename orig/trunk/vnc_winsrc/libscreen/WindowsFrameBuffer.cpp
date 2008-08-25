@@ -34,7 +34,6 @@ bool WindowsFrameBuffer::UpdatePixelFormat()
 {
   HDC screenDC = GetDC(0);
   if (screenDC == NULL) {
-    m_lastError = E_GET_DC;
     return false;
   }
 
@@ -48,7 +47,6 @@ bool WindowsFrameBuffer::UpdatePixelFormat()
   bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
   hbm = (HBITMAP) GetCurrentObject(screenDC, OBJ_BITMAP);
   if (GetDIBits(screenDC, hbm, 0, m_fullScreenRect.GetHeight(), NULL, (LPBITMAPINFO) &bmi, DIB_RGB_COLORS) == 0) {
-    m_lastError = GetLastError();
     return false;
   }
   return true;
@@ -58,7 +56,6 @@ bool WindowsFrameBuffer::UpdateFullScreenRect()
 {
   HDC screenDC = GetDC(0);
   if (screenDC == NULL) {
-    m_lastError = E_GET_DC;
     return false;
   }
 
@@ -68,9 +65,7 @@ bool WindowsFrameBuffer::UpdateFullScreenRect()
   vertrez = GetDeviceCaps(screenDC, VERTRES);
   if (horzres != m_fullScreenRect.right || vertrez != m_fullScreenRect.bottom) {
     m_fullScreenRect.SetRect(0, 0, horzres, vertrez);
-    m_sizeChanged = true;
   } else {
-    m_sizeChanged = false;
   }
   return true;
 }
@@ -95,13 +90,6 @@ bool WindowsFrameBuffer::Grab()
     return false;
   }
   if (!CheckPropertiesChanged()) return false;
-  if (m_sizeChanged) {
-    if (m_buffer != NULL) delete[] m_buffer;
-    if ((m_buffer = new unsigned long[m_fullScreenRect.GetWidth() * m_fullScreenRect.GetHeight()]) == NULL) {
-      m_lastError = E_NO_MEMORY_FOUND;
-      return false;
-    }
-  }
 
   HBITMAP hbm;
   struct {
@@ -113,7 +101,6 @@ bool WindowsFrameBuffer::Grab()
   bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
   hbm = (HBITMAP) GetCurrentObject(screenDC, OBJ_BITMAP);
   if (GetDIBits(screenDC, hbm, 0, m_fullScreenRect.GetHeight(), NULL, (LPBITMAPINFO) &bmi, DIB_RGB_COLORS) == 0) {
-    m_lastError = GetLastError();
     return false;
   }
   GetDIBits(screenDC, hbm, 0, m_fullScreenRect.GetHeight(), m_buffer, (LPBITMAPINFO) &bmi, DIB_RGB_COLORS);

@@ -34,19 +34,17 @@ public:
   virtual bool Grab() = 0;
 
   virtual bool SetWorkRect(const Rect *rect);
+
   virtual void GetWorkRect(Rect *rect)                  const { *rect = m_workRect; }
-
-  virtual bool GetPixelFormat(PixelFormat *pixelFormat) = 0;
-  virtual bool GetFullScreenRect(Rect *rect) = 0;
-
+  virtual void GetPixelFormat(PixelFormat *pixelFormat) const { *pixelFormat = m_pixelFormat; }
+  virtual void GetFullScreenRect(Rect *rect)            const { *rect = m_fullScreenRect; }
   virtual void *GetBuffer()                             const { return m_buffer; }
 
+  inline virtual bool GetPropertiesChanged() = 0;
   inline virtual bool GetPixelFormatChanged() = 0;
   inline virtual bool GetSizeChanged() = 0;
 
 protected:
-  virtual bool CheckPropertiesChanged() = 0;
-
   void *m_buffer;
   PixelFormat m_pixelFormat;
   Rect m_fullScreenRect;

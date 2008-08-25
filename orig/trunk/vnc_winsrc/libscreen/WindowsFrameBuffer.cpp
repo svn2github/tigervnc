@@ -30,7 +30,7 @@ WindowsFrameBuffer::~WindowsFrameBuffer(void)
 {
 }
 
-bool WindowsFrameBuffer::UpdatePixelFormat()
+bool WindowsFrameBuffer::GetPixelFormat(PixelFormat *pixelFormat)
 {
   HDC screenDC = GetDC(0);
   if (screenDC == NULL) {
@@ -49,24 +49,21 @@ bool WindowsFrameBuffer::UpdatePixelFormat()
   if (GetDIBits(screenDC, hbm, 0, m_fullScreenRect.GetHeight(), NULL, (LPBITMAPINFO) &bmi, DIB_RGB_COLORS) == 0) {
     return false;
   }
+
+  pixelFormat->bitsPerPixel = bmi.bmiHeader.biBitCount;
+
   return true;
 }
 
-bool WindowsFrameBuffer::UpdateFullScreenRect()
+bool WindowsFrameBuffer::GetFullScreenRect(Rect *rect)
 {
   HDC screenDC = GetDC(0);
   if (screenDC == NULL) {
     return false;
   }
 
-  // Check for resolution changing
-  int horzres, vertrez;
-  horzres = GetDeviceCaps(screenDC, HORZRES);
-  vertrez = GetDeviceCaps(screenDC, VERTRES);
-  if (horzres != m_fullScreenRect.right || vertrez != m_fullScreenRect.bottom) {
-    m_fullScreenRect.SetRect(0, 0, horzres, vertrez);
-  } else {
-  }
+  rect->SetRect(0, 0, GetDeviceCaps(screenDC, HORZRES), GetDeviceCaps(screenDC, VERTRES));
+
   return true;
 }
 
@@ -74,9 +71,6 @@ bool WindowsFrameBuffer::UpdateFullScreenRect()
 bool WindowsFrameBuffer::CheckPropertiesChanged()
 {
   // Check for resolution changing
-  if (!UpdateFullScreenRect()) {
-    return false;
-  }
 
   // Check for pixel format changing
 

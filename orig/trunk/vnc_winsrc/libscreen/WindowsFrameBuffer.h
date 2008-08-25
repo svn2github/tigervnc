@@ -35,10 +35,10 @@ public:
   WindowsFrameBuffer(void);
   virtual ~WindowsFrameBuffer(void);
 
-  virtual bool UpdatePixelFormat();
-  virtual bool UpdateFullScreenRect();
-
   virtual bool Grab();
+
+  virtual bool GetPixelFormat(PixelFormat *pixelFormat);
+  virtual bool GetFullScreenRect(Rect *rect);
 
 protected:
   virtual bool CheckPropertiesChanged();

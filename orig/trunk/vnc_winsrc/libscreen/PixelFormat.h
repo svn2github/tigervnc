@@ -25,6 +25,14 @@
 struct PixelFormat
 {
   int bitsPerPixel;
+
+  unsigned long redMax;
+  unsigned long greenMax;
+  unsigned long blueMax;
+
+  unsigned char redShift;
+  unsigned char greenShift;
+  unsigned char blueShift;
 };
 
 #endif // __PIXELFORMAT_H__

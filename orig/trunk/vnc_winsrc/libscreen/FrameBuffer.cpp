@@ -36,9 +36,8 @@ FrameBuffer::~FrameBuffer(void)
 bool FrameBuffer::SetWorkRect(const Rect *rect)
 {
   if (m_workRect.CmpRect(rect)) { return true; }
-  if (m_buffer != NULL) delete[] m_buffer;
-  m_buffer = new char[m_workRect.GetWidth() * m_workRect.GetHeight() * m_pixelFormat.bitsPerPixel];
-  return true;
+
+  return ApplyNewBuffer();
 }
 
 bool FrameBuffer::ApplyNewProperties()
@@ -46,4 +45,12 @@ bool FrameBuffer::ApplyNewProperties()
   if (!ApplyNewPixelFormat() || !ApplyNewFullScreenRect()) return false;
   if (!ApplyNewBuffer()) return false;
   return true;
+}
+
+bool FrameBuffer::ApplyNewBuffer()
+{
+  if (m_buffer != NULL) delete[] m_buffer;
+
+  m_buffer = new char[m_workRect.GetWidth() * m_workRect.GetHeight() * m_pixelFormat.bitsPerPixel];
+  return (m_buffer != NULL);
 }

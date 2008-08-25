@@ -49,7 +49,7 @@ public:
 protected:
   virtual bool ApplyNewFullScreenRect() = 0;
   virtual bool ApplyNewPixelFormat() = 0;
-  virtual bool ApplyNewBuffer() = 0;
+  virtual bool ApplyNewBuffer();
 
   void *m_buffer;
   PixelFormat m_pixelFormat;

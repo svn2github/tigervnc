@@ -32,11 +32,9 @@ WindowsFrameBuffer::~WindowsFrameBuffer(void)
 
 bool WindowsFrameBuffer::GetPropertiesChanged()
 {
-  // Check for resolution changing
-
-  // Check for pixel format changing
-
-  return true;
+  // Check for changing
+  if (GetSizeChanged() || GetPixelFormatChanged()) return true;
+  return false;
 }
 
 bool WindowsFrameBuffer::GetPixelFormatChanged()

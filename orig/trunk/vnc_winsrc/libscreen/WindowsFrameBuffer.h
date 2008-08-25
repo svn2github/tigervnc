@@ -45,6 +45,14 @@ public:
   virtual bool ApplyNewPixelFormat();
   virtual bool ApplyNewBuffer();
 
+protected:
+  struct BMI
+  {
+    BITMAPINFOHEADER bmiHeader;
+    RGBQUAD          bmiColors[16];
+  };
+  inline bool GetBMI(BMI *bmi);
+
 };
 
 #endif // __WINDOWSFRAMEBUFFER_H__

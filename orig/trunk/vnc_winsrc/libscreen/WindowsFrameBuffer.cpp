@@ -47,7 +47,7 @@ bool WindowsFrameBuffer::GetSizeChanged()
   return true;
 }
 
-bool WindowsFrameBuffer::ApplyNewPixelFormat()
+bool WindowsFrameBuffer::GetBMI(BMI *bmi)
 {
   HDC screenDC = GetDC(0);
   if (screenDC == NULL) {
@@ -55,17 +55,20 @@ bool WindowsFrameBuffer::ApplyNewPixelFormat()
   }
 
   HBITMAP hbm;
-  struct {
-    BITMAPINFOHEADER bmiHeader;
-    RGBQUAD          bmiColors[16];
-  } bmi;
-
-  bmi.bmiHeader.biBitCount = 0;
-  bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+  bmi->bmiHeader.biBitCount = 0;
+  bmi->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
   hbm = (HBITMAP) GetCurrentObject(screenDC, OBJ_BITMAP);
-  if (GetDIBits(screenDC, hbm, 0, m_fullScreenRect.GetHeight(), NULL, (LPBITMAPINFO) &bmi, DIB_RGB_COLORS) == 0) {
+  if (GetDIBits(screenDC, hbm, 0, m_fullScreenRect.GetHeight(), NULL, (LPBITMAPINFO) bmi, DIB_RGB_COLORS) == 0) {
     return false;
   }
+  return true;
+}
+
+
+bool WindowsFrameBuffer::ApplyNewPixelFormat()
+{
+  BMI bmi;
+  if (!GetBMI(&bmi)) return false;
 
   m_pixelFormat.bitsPerPixel = bmi.bmiHeader.biBitCount;
 
@@ -98,17 +101,10 @@ bool WindowsFrameBuffer::Grab()
   if (!GetPropertiesChanged()) return false;
 
   HBITMAP hbm;
-  struct {
-    BITMAPINFOHEADER bmiHeader;
-    RGBQUAD          bmiColors[16];
-  } bmi;
+  BMI bmi;
 
-  bmi.bmiHeader.biBitCount = 0;
-  bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+  if (!GetBMI(&bmi)) return false;
   hbm = (HBITMAP) GetCurrentObject(screenDC, OBJ_BITMAP);
-  if (GetDIBits(screenDC, hbm, 0, m_fullScreenRect.GetHeight(), NULL, (LPBITMAPINFO) &bmi, DIB_RGB_COLORS) == 0) {
-    return false;
-  }
   GetDIBits(screenDC, hbm, 0, m_fullScreenRect.GetHeight(), m_buffer, (LPBITMAPINFO) &bmi, DIB_RGB_COLORS);
   
   ReleaseDC(NULL, screenDC);

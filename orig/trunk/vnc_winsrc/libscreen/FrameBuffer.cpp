@@ -27,6 +27,11 @@ FrameBuffer::FrameBuffer(void)
 : m_buffer(NULL)
 {
   memset(&m_pixelFormat, 0, sizeof(m_pixelFormat));
+
+  // Set m_workRect to full screen by default
+  Rect rect;
+  GetFullScreenRect(&rect);
+  SetWorkRect(&rect);
 }
 
 FrameBuffer::~FrameBuffer(void)

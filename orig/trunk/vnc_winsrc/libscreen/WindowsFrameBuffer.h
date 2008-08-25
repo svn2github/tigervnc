@@ -43,7 +43,6 @@ public:
 
   virtual bool ApplyNewFullScreenRect();
   virtual bool ApplyNewPixelFormat();
-  virtual bool ApplyNewBuffer();
 
 protected:
   struct BMI

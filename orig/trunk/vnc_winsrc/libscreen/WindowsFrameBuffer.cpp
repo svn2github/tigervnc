@@ -87,11 +87,6 @@ bool WindowsFrameBuffer::ApplyNewFullScreenRect()
   return true;
 }
 
-bool WindowsFrameBuffer::ApplyNewBuffer()
-{
-  return true;
-}
-
 bool WindowsFrameBuffer::Grab()
 {
   HDC screenDC = GetDC(0);

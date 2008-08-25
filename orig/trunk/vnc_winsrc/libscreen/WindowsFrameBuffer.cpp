@@ -24,6 +24,7 @@
 
 WindowsFrameBuffer::WindowsFrameBuffer(void)
 {
+  SetWorkRectDefault();
 }
 
 WindowsFrameBuffer::~WindowsFrameBuffer(void)

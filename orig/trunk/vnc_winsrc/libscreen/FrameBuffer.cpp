@@ -27,11 +27,6 @@ FrameBuffer::FrameBuffer(void)
 : m_buffer(NULL)
 {
   memset(&m_pixelFormat, 0, sizeof(m_pixelFormat));
-
-  // Set m_workRect to full screen by default
-  Rect rect;
-  GetFullScreenRect(&rect);
-  SetWorkRect(&rect);
 }
 
 FrameBuffer::~FrameBuffer(void)
@@ -42,6 +37,8 @@ bool FrameBuffer::SetWorkRect(const Rect *rect)
 {
   if (m_workRect.CmpRect(rect)) { return true; }
 
+  m_workRect = *rect;
+  
   return ApplyNewBuffer();
 }
 
@@ -56,6 +53,16 @@ bool FrameBuffer::ApplyNewBuffer()
 {
   if (m_buffer != NULL) delete[] m_buffer;
 
-  m_buffer = new char[m_workRect.GetWidth() * m_workRect.GetHeight() * m_pixelFormat.bitsPerPixel];
+  m_buffer = new char[m_workRect.GetWidth() * m_workRect.GetHeight() * m_pixelFormat.bitsPerPixel / 8];
   return (m_buffer != NULL);
+}
+
+bool FrameBuffer::SetWorkRectDefault()
+{
+  // Set m_workRect to full screen by default
+  Rect rect;
+  if (!ApplyNewFullScreenRect()) return false;
+  GetFullScreenRect(&rect);
+  SetWorkRect(&rect);
+  return true;
 }

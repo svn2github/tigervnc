@@ -51,6 +51,8 @@ protected:
   virtual bool ApplyNewPixelFormat() = 0;
   virtual bool ApplyNewBuffer();
 
+  virtual bool SetWorkRectDefault();
+
   void *m_buffer;
   PixelFormat m_pixelFormat;
   Rect m_fullScreenRect;

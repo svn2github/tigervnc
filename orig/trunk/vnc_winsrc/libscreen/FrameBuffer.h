@@ -45,11 +45,12 @@ public:
   inline virtual bool GetSizeChanged() = 0;
 
   virtual bool ApplyNewProperties();
+
+protected:
   virtual bool ApplyNewFullScreenRect() = 0;
   virtual bool ApplyNewPixelFormat() = 0;
   virtual bool ApplyNewBuffer() = 0;
 
-protected:
   void *m_buffer;
   PixelFormat m_pixelFormat;
   Rect m_fullScreenRect;

@@ -41,3 +41,9 @@ bool FrameBuffer::SetWorkRect(const Rect *rect)
   return true;
 }
 
+bool FrameBuffer::ApplyNewProperties()
+{
+  if (!ApplyNewPixelFormat() || !ApplyNewFullScreenRect()) return false;
+  if (!ApplyNewBuffer()) return false;
+  return true;
+}

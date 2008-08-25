@@ -44,6 +44,11 @@ public:
   inline virtual bool GetPixelFormatChanged() = 0;
   inline virtual bool GetSizeChanged() = 0;
 
+  virtual bool ApplyNewProperties();
+  virtual bool ApplyNewFullScreenRect() = 0;
+  virtual bool ApplyNewPixelFormat() = 0;
+  virtual bool ApplyNewBuffer() = 0;
+
 protected:
   void *m_buffer;
   PixelFormat m_pixelFormat;

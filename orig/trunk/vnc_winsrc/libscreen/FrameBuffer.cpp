@@ -24,7 +24,7 @@
 #include <memory.h>
 
 FrameBuffer::FrameBuffer(void)
-: m_pixelFormatChanged(true), m_sizeChanged(true), m_buffer(NULL), m_lastError(NULL)
+: m_pixelFormatChanged(true), m_sizeChanged(true), m_buffer(NULL)
 {
   memset(&m_pixelFormat, 0, sizeof(m_pixelFormat));
 }

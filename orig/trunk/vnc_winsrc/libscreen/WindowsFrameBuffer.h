@@ -37,11 +37,14 @@ public:
 
   virtual bool Grab();
 
-  virtual bool GetPixelFormat(PixelFormat *pixelFormat);
-  virtual bool GetFullScreenRect(Rect *rect);
+  inline virtual bool GetPropertiesChanged();
+  inline virtual bool GetPixelFormatChanged();
+  inline virtual bool GetSizeChanged();
 
-protected:
-  virtual bool CheckPropertiesChanged();
+  virtual bool ApplyNewFullScreenRect();
+  virtual bool ApplyNewPixelFormat();
+  virtual bool ApplyNewBuffer();
+
 };
 
 #endif // __WINDOWSFRAMEBUFFER_H__

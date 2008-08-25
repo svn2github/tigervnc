@@ -30,7 +30,26 @@ WindowsFrameBuffer::~WindowsFrameBuffer(void)
 {
 }
 
-bool WindowsFrameBuffer::GetPixelFormat(PixelFormat *pixelFormat)
+bool WindowsFrameBuffer::GetPropertiesChanged()
+{
+  // Check for resolution changing
+
+  // Check for pixel format changing
+
+  return true;
+}
+
+bool WindowsFrameBuffer::GetPixelFormatChanged()
+{
+  return true;
+}
+
+bool WindowsFrameBuffer::GetSizeChanged()
+{
+  return true;
+}
+
+bool WindowsFrameBuffer::ApplyNewPixelFormat()
 {
   HDC screenDC = GetDC(0);
   if (screenDC == NULL) {
@@ -50,30 +69,25 @@ bool WindowsFrameBuffer::GetPixelFormat(PixelFormat *pixelFormat)
     return false;
   }
 
-  pixelFormat->bitsPerPixel = bmi.bmiHeader.biBitCount;
+  m_pixelFormat.bitsPerPixel = bmi.bmiHeader.biBitCount;
 
   return true;
 }
 
-bool WindowsFrameBuffer::GetFullScreenRect(Rect *rect)
+bool WindowsFrameBuffer::ApplyNewFullScreenRect()
 {
   HDC screenDC = GetDC(0);
   if (screenDC == NULL) {
     return false;
   }
 
-  rect->SetRect(0, 0, GetDeviceCaps(screenDC, HORZRES), GetDeviceCaps(screenDC, VERTRES));
+  m_fullScreenRect.SetRect(0, 0, GetDeviceCaps(screenDC, HORZRES), GetDeviceCaps(screenDC, VERTRES));
 
   return true;
 }
 
-
-bool WindowsFrameBuffer::CheckPropertiesChanged()
+bool WindowsFrameBuffer::ApplyNewBuffer()
 {
-  // Check for resolution changing
-
-  // Check for pixel format changing
-
   return true;
 }
 
@@ -83,7 +97,7 @@ bool WindowsFrameBuffer::Grab()
   if (screenDC == NULL) {
     return false;
   }
-  if (!CheckPropertiesChanged()) return false;
+  if (!GetPropertiesChanged()) return false;
 
   HBITMAP hbm;
   struct {

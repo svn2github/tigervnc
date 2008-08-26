@@ -102,6 +102,18 @@ bool WindowsFrameBuffer::ApplyNewFullScreenRect()
 
 bool WindowsFrameBuffer::Grab()
 {
+  bool result;
+  result = CaptureGetDIBit();
+  return result;
+}
+
+bool WindowsFrameBuffer::CaptureBitBlt()
+{
+  return true;
+}
+
+bool WindowsFrameBuffer::CaptureGetDIBit()
+{
   HDC screenDC = GetDC(0);
   if (screenDC == NULL) {
     return false;
@@ -111,10 +123,14 @@ bool WindowsFrameBuffer::Grab()
   HBITMAP hbm;
   BMI bmi;
 
-  if (!GetBMI(&bmi)) return false;
   hbm = (HBITMAP) GetCurrentObject(screenDC, OBJ_BITMAP);
+
+  if (!GetBMI(&bmi)) return false;
+  bmi.bmiHeader.biWidth = m_workRect.GetWidth();
+  bmi.bmiHeader.biHeight = -abs(m_workRect.GetHeight());
+
   int lines;
-  if ((lines = GetDIBits(screenDC, hbm, 0, m_fullScreenRect.GetHeight(), m_buffer, (LPBITMAPINFO) &bmi, DIB_RGB_COLORS)) == 0){
+  if ((lines = GetDIBits(screenDC, hbm, 0, abs(bmi.bmiHeader.biHeight), m_buffer, (LPBITMAPINFO) &bmi, DIB_RGB_COLORS)) == 0){
     ReleaseDC(NULL, screenDC);
     return false;
   }

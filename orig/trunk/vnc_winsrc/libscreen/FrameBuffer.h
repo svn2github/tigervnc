@@ -39,6 +39,10 @@ public:
   virtual void GetPixelFormat(PixelFormat *pixelFormat) const { *pixelFormat = m_pixelFormat; }
   virtual void GetFullScreenRect(Rect *rect)            const { *rect = m_fullScreenRect; }
   virtual void *GetBuffer()                             const { return m_buffer; }
+  virtual int GetBufferSize()
+  { 
+    return (m_workRect.GetWidth() * m_workRect.GetHeight() * m_pixelFormat.bitsPerPixel) / 8;
+  }
 
   inline virtual bool GetPropertiesChanged() = 0;
   inline virtual bool GetPixelFormatChanged() = 0;

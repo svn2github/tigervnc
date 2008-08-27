@@ -42,7 +42,7 @@ bool WindowsFrameBuffer::GetPixelFormatChanged()
 {
   BMI bmi;
   if (!GetBMI(&bmi)) {
-    return true;
+    return false;
   }
 
   PixelFormat pixelFormat;
@@ -74,6 +74,8 @@ bool WindowsFrameBuffer::GetBMI(BMI *bmi)
   if (GetDIBits(screenDC, hbm, 0, m_fullScreenRect.GetHeight(), NULL, (LPBITMAPINFO) bmi, DIB_RGB_COLORS) == 0) {
     return false;
   }
+  DeleteObject(hbm);
+  DeleteDC(screenDC);
   return true;
 }
 
@@ -102,39 +104,52 @@ bool WindowsFrameBuffer::ApplyNewFullScreenRect()
 
 bool WindowsFrameBuffer::Grab()
 {
-  bool result;
-  result = CaptureGetDIBit();
+  bool result = true;
+  result = GrabByGetDIBit();
   return result;
 }
 
-bool WindowsFrameBuffer::CaptureBitBlt()
+bool WindowsFrameBuffer::GrabByGetDIBit()
 {
-  return true;
-}
-
-bool WindowsFrameBuffer::CaptureGetDIBit()
-{
-  HDC screenDC = GetDC(0);
+  HDC destDC, screenDC = GetDC(0);
   if (screenDC == NULL) {
     return false;
   }
+
   if (GetPropertiesChanged()) return false;
 
-  HBITMAP hbm;
-  BMI bmi;
+  destDC = CreateCompatibleDC(screenDC);
 
-  hbm = (HBITMAP) GetCurrentObject(screenDC, OBJ_BITMAP);
+  HBITMAP hbmOld, hbm;
 
-  if (!GetBMI(&bmi)) return false;
-  bmi.bmiHeader.biWidth = m_workRect.GetWidth();
-  bmi.bmiHeader.biHeight = -abs(m_workRect.GetHeight());
+  hbm = CreateBitmap(m_workRect.GetWidth(), m_workRect.GetHeight(), 1, m_pixelFormat.bitsPerPixel, NULL);
+  hbmOld = (HBITMAP) SelectObject(destDC, hbm);
 
-  int lines;
-  if ((lines = GetDIBits(screenDC, hbm, 0, abs(bmi.bmiHeader.biHeight), m_buffer, (LPBITMAPINFO) &bmi, DIB_RGB_COLORS)) == 0){
-    ReleaseDC(NULL, screenDC);
+  if (BitBlt(destDC, 0, 0, m_workRect.GetWidth(),
+             m_workRect.GetHeight(), screenDC, m_workRect.left, m_workRect.top, SRCCOPY) == 0) {
+    DeleteDC(destDC);
+    DeleteDC(screenDC);
     return false;
   }
 
-  ReleaseDC(NULL, screenDC);
+  BMI bmi;
+  if (!GetBMI(&bmi)) {
+    return false;
+  }
+  bmi.bmiHeader.biWidth = m_workRect.GetWidth();
+  bmi.bmiHeader.biHeight = -m_workRect.GetHeight();
+
+  int lines;
+  if ((lines = GetDIBits(destDC, hbm, 0, abs(bmi.bmiHeader.biHeight), m_buffer, (LPBITMAPINFO) &bmi, DIB_RGB_COLORS)) == 0) {
+    SelectObject(destDC, hbmOld);
+    DeleteObject(hbm);  
+    DeleteDC(screenDC);
+    return false;
+  }
+
+  SelectObject(destDC, hbmOld);
+  DeleteObject(hbm);
+  DeleteDC(destDC);
+  DeleteDC(screenDC);
   return true;
 }

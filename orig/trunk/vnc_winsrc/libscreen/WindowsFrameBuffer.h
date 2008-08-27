@@ -52,9 +52,7 @@ protected:
   };
   inline bool GetBMI(BMI *bmi);
 
-  virtual bool CaptureBitBlt();
-  virtual bool CaptureGetDIBit();
-
+  virtual bool GrabByGetDIBit();
 };
 
 #endif // __WINDOWSFRAMEBUFFER_H__

@@ -55,7 +55,10 @@ protected:
 
   virtual bool GrabByGetDIBit();
   virtual bool GrabByDIBSection();
-  virtual void FillPixelFormat(PixelFormat *pixelFormat, const BMI *bmi);
+  virtual bool FillPixelFormat(PixelFormat *pixelFormat, const BMI *bmi);
+
+  // Find position of first bit = 1
+  inline int findFirstBit(const UINT32 bits);
 };
 
 #endif // __WINDOWSFRAMEBUFFER_H__

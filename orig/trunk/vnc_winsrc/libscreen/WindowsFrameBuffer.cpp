@@ -94,22 +94,44 @@ bool WindowsFrameBuffer::GetBMI(BMI *bmi)
 bool WindowsFrameBuffer::ApplyNewPixelFormat()
 {
   BMI bmi;
-  if (!GetBMI(&bmi)) return false;
+  if (!GetBMI(&bmi))
+    return false;
 
-  FillPixelFormat(&m_pixelFormat, &bmi);
-  return true;
+  return FillPixelFormat(&m_pixelFormat, &bmi);
 }
-void WindowsFrameBuffer::FillPixelFormat(PixelFormat *pixelFormat, const BMI *bmi)
+
+bool WindowsFrameBuffer::FillPixelFormat(PixelFormat *pixelFormat, const BMI *bmi)
 {
-  memset(&pixelFormat, 0, sizeof(PixelFormat));
-  m_pixelFormat.bitsPerPixel = bmi->bmiHeader.biBitCount;
+  memset(pixelFormat, 0, sizeof(PixelFormat));
 
-  int cmpr = bmi->bmiHeader.biCompression;
-  if (cmpr == BI_RGB || cmpr == BI_BITFIELDS) {
+  pixelFormat->bitsPerPixel = bmi->bmiHeader.biBitCount;
 
+  if (bmi->bmiHeader.biCompression == BI_BITFIELDS) {
+    pixelFormat->redShift   = findFirstBit(bmi->rgb[0]);
+    pixelFormat->greenShift = findFirstBit(bmi->rgb[1]);
+    pixelFormat->blueShift  = findFirstBit(bmi->rgb[2]);
+
+    pixelFormat->redMax   = bmi->rgb[0] >> pixelFormat->redShift;
+    pixelFormat->greenMax = bmi->rgb[1] >> pixelFormat->greenShift;
+    pixelFormat->blueMax  = bmi->rgb[2] >> pixelFormat->blueShift;
   } else {
-    //m_pixelFormat.redMax = 
+    pixelFormat->bitsPerPixel = 32;
+    pixelFormat->redMax = pixelFormat->greenMax = pixelFormat->blueMax = 0xff;
+    pixelFormat->redShift   = 16;
+    pixelFormat->greenShift = 8;
+    pixelFormat->blueShift  = 0;
   }
+  return (pixelFormat->redMax > 0) && (pixelFormat->greenMax > 0) && (pixelFormat->blueMax > 0);
+}
+
+int WindowsFrameBuffer::findFirstBit(const UINT32 bits)
+{
+  UINT32 b = bits;
+  int shift;
+  for (shift = 0; (shift < 32) && ((b & 1) == 0); shift++) {
+    b >>= 1;
+  }
+  return shift;
 }
 
 bool WindowsFrameBuffer::ApplyNewFullScreenRect()
@@ -127,6 +149,7 @@ bool WindowsFrameBuffer::ApplyNewFullScreenRect()
 bool WindowsFrameBuffer::Grab()
 {
   bool result = true;
+  //result = GrabByGetDIBit();
   result = GrabByDIBSection();
   return result;
 }
@@ -189,9 +212,10 @@ bool WindowsFrameBuffer::GrabByDIBSection()
   if (!GetBMI(&bmi)) {
     return false;
   }
+
   bmi.bmiHeader.biWidth = m_workRect.GetWidth();
   bmi.bmiHeader.biHeight = -m_workRect.GetHeight();
-  //bmi.bmiHeader.biCompression = BI_RGB;
+  bmi.bmiHeader.biCompression = BI_BITFIELDS;
 
   destDC = CreateCompatibleDC(NULL);
 
@@ -221,5 +245,6 @@ bool WindowsFrameBuffer::GrabByDIBSection()
   DeleteObject(hbm);
   DeleteDC(destDC);
   DeleteDC(screenDC);
+
   return true;
 }

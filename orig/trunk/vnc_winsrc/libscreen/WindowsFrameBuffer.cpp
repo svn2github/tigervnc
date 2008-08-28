@@ -216,6 +216,9 @@ bool WindowsFrameBuffer::GrabByDIBSection()
   bmi.bmiHeader.biWidth = m_workRect.GetWidth();
   bmi.bmiHeader.biHeight = -m_workRect.GetHeight();
   bmi.bmiHeader.biCompression = BI_BITFIELDS;
+  bmi.red   = m_pixelFormat.redMax   << m_pixelFormat.redShift;
+  bmi.green = m_pixelFormat.greenMax << m_pixelFormat.greenShift;
+  bmi.blue  = m_pixelFormat.blueMax  << m_pixelFormat.blueShift;
 
   destDC = CreateCompatibleDC(NULL);
 

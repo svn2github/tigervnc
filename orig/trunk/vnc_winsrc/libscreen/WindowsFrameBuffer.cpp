@@ -46,10 +46,10 @@ bool WindowsFrameBuffer::GetPixelFormatChanged()
   }
 
   PixelFormat pixelFormat;
-  memset(&pixelFormat, 0, sizeof(PixelFormat));
-  pixelFormat.bitsPerPixel = bmi.bmiHeader.biBitCount;
+  FillPixelFormat(&pixelFormat, &bmi);
 
-  if (memcmp(&m_pixelFormat, &pixelFormat, sizeof(PixelFormat))) return true;
+  if (memcmp(&m_pixelFormat, &pixelFormat, sizeof(PixelFormat))) 
+    return true;
 
   return false;
 }
@@ -69,25 +69,47 @@ bool WindowsFrameBuffer::GetBMI(BMI *bmi)
   memset(bmi, 0, sizeof(BMI));
   bmi->bmiHeader.biBitCount = 0;
   bmi->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+
   HBITMAP hbm;
   hbm = (HBITMAP) GetCurrentObject(screenDC, OBJ_BITMAP);
   if (GetDIBits(screenDC, hbm, 0, m_fullScreenRect.GetHeight(), NULL, (LPBITMAPINFO) bmi, DIB_RGB_COLORS) == 0) {
+    DeleteObject(hbm);
+    DeleteDC(screenDC);
     return false;
+  }
+
+  // The color table is filled only if it is used BI_BITFIELDS
+  if (bmi->bmiHeader.biCompression == BI_BITFIELDS) {
+    if (GetDIBits(screenDC, hbm, 0, m_fullScreenRect.GetHeight(), NULL, (LPBITMAPINFO) bmi, DIB_RGB_COLORS) == 0) {
+      DeleteObject(hbm);
+      DeleteDC(screenDC);
+      return false;
+    }
   }
   DeleteObject(hbm);
   DeleteDC(screenDC);
   return true;
 }
 
-
 bool WindowsFrameBuffer::ApplyNewPixelFormat()
 {
   BMI bmi;
   if (!GetBMI(&bmi)) return false;
 
-  m_pixelFormat.bitsPerPixel = bmi.bmiHeader.biBitCount;
-
+  FillPixelFormat(&m_pixelFormat, &bmi);
   return true;
+}
+void WindowsFrameBuffer::FillPixelFormat(PixelFormat *pixelFormat, const BMI *bmi)
+{
+  memset(&pixelFormat, 0, sizeof(PixelFormat));
+  m_pixelFormat.bitsPerPixel = bmi->bmiHeader.biBitCount;
+
+  int cmpr = bmi->bmiHeader.biCompression;
+  if (cmpr == BI_RGB || cmpr == BI_BITFIELDS) {
+
+  } else {
+    //m_pixelFormat.redMax = 
+  }
 }
 
 bool WindowsFrameBuffer::ApplyNewFullScreenRect()
@@ -105,7 +127,7 @@ bool WindowsFrameBuffer::ApplyNewFullScreenRect()
 bool WindowsFrameBuffer::Grab()
 {
   bool result = true;
-  result = GrabByGetDIBit();
+  result = GrabByDIBSection();
   return result;
 }
 
@@ -146,6 +168,54 @@ bool WindowsFrameBuffer::GrabByGetDIBit()
     DeleteDC(screenDC);
     return false;
   }
+
+  SelectObject(destDC, hbmOld);
+  DeleteObject(hbm);
+  DeleteDC(destDC);
+  DeleteDC(screenDC);
+  return true;
+}
+
+bool WindowsFrameBuffer::GrabByDIBSection()
+{
+  HDC destDC, screenDC = GetDC(0);
+  if (screenDC == NULL) {
+    return false;
+  }
+
+  if (GetPropertiesChanged()) return false;
+
+  BMI bmi;
+  if (!GetBMI(&bmi)) {
+    return false;
+  }
+  bmi.bmiHeader.biWidth = m_workRect.GetWidth();
+  bmi.bmiHeader.biHeight = -m_workRect.GetHeight();
+  //bmi.bmiHeader.biCompression = BI_RGB;
+
+  destDC = CreateCompatibleDC(NULL);
+
+  HBITMAP hbmOld, hbm;
+  void *sysBuffer = NULL;
+
+  hbm = CreateDIBSection(destDC, (BITMAPINFO *) &bmi, DIB_RGB_COLORS, &sysBuffer, NULL, NULL);
+  if (hbm == 0) {
+    DeleteDC(destDC);
+    DeleteDC(screenDC);
+    return false;
+  }
+  hbmOld = (HBITMAP) SelectObject(destDC, hbm);
+
+  if (BitBlt(destDC, 0, 0, m_workRect.GetWidth(),
+             m_workRect.GetHeight(), screenDC, m_workRect.left, m_workRect.top, SRCCOPY) == 0) {
+    SelectObject(destDC, hbmOld);
+    DeleteObject(hbm);
+    DeleteDC(destDC);
+    DeleteDC(screenDC);
+    return false;
+  }
+
+  memcpy(m_buffer, sysBuffer, GetBufferSize());
 
   SelectObject(destDC, hbmOld);
   DeleteObject(hbm);

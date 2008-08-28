@@ -25,6 +25,7 @@
 #include <windows.h>
 #include "framebuffer.h"
 #include "rect.h"
+#include "inttypes.h"
 
 /**/
 
@@ -48,11 +49,13 @@ protected:
   struct BMI
   {
     BITMAPINFOHEADER bmiHeader;
-    RGBQUAD          bmiColors[16];
+    UINT32 rgb[3];
   };
   inline bool GetBMI(BMI *bmi);
 
   virtual bool GrabByGetDIBit();
+  virtual bool GrabByDIBSection();
+  virtual void FillPixelFormat(PixelFormat *pixelFormat, const BMI *bmi);
 };
 
 #endif // __WINDOWSFRAMEBUFFER_H__

@@ -107,13 +107,13 @@ bool WindowsFrameBuffer::FillPixelFormat(PixelFormat *pixelFormat, const BMI *bm
   pixelFormat->bitsPerPixel = bmi->bmiHeader.biBitCount;
 
   if (bmi->bmiHeader.biCompression == BI_BITFIELDS) {
-    pixelFormat->redShift   = findFirstBit(bmi->rgb[0]);
-    pixelFormat->greenShift = findFirstBit(bmi->rgb[1]);
-    pixelFormat->blueShift  = findFirstBit(bmi->rgb[2]);
+    pixelFormat->redShift   = findFirstBit(bmi->red);
+    pixelFormat->greenShift = findFirstBit(bmi->green);
+    pixelFormat->blueShift  = findFirstBit(bmi->blue);
 
-    pixelFormat->redMax   = bmi->rgb[0] >> pixelFormat->redShift;
-    pixelFormat->greenMax = bmi->rgb[1] >> pixelFormat->greenShift;
-    pixelFormat->blueMax  = bmi->rgb[2] >> pixelFormat->blueShift;
+    pixelFormat->redMax   = bmi->red    >> pixelFormat->redShift;
+    pixelFormat->greenMax = bmi->green  >> pixelFormat->greenShift;
+    pixelFormat->blueMax  = bmi->blue   >> pixelFormat->blueShift;
   } else {
     pixelFormat->bitsPerPixel = 32;
     pixelFormat->redMax = pixelFormat->greenMax = pixelFormat->blueMax = 0xff;

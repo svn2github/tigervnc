@@ -49,7 +49,9 @@ protected:
   struct BMI
   {
     BITMAPINFOHEADER bmiHeader;
-    UINT32 rgb[3];
+    UINT32 red;
+    UINT32 green;
+    UINT32 blue;
   };
   inline bool GetBMI(BMI *bmi);
 

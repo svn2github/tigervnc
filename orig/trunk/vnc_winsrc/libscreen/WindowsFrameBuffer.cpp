@@ -221,6 +221,10 @@ bool WindowsFrameBuffer::GrabByDIBSection()
   bmi.blue  = m_pixelFormat.blueMax  << m_pixelFormat.blueShift;
 
   destDC = CreateCompatibleDC(NULL);
+  if (destDC == NULL) {
+    DeleteDC(screenDC);
+    return false;
+  }
 
   HBITMAP hbmOld, hbm;
   void *sysBuffer = NULL;

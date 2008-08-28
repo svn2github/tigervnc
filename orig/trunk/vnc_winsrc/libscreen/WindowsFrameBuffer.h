@@ -36,7 +36,7 @@ public:
   WindowsFrameBuffer(void);
   virtual ~WindowsFrameBuffer(void);
 
-  virtual bool Grab();
+  virtual bool Grab(const Rect *rect);
 
   inline virtual bool GetPropertiesChanged();
   inline virtual bool GetPixelFormatChanged();
@@ -55,8 +55,8 @@ protected:
   };
   inline bool GetBMI(BMI *bmi);
 
-  virtual bool GrabByGetDIBit();
-  virtual bool GrabByDIBSection();
+  virtual bool GrabByGetDIBit(const Rect *rect);
+  virtual bool GrabByDIBSection(const Rect *rect);
   virtual bool FillPixelFormat(PixelFormat *pixelFormat, const BMI *bmi);
 
   // Find position of first bit = 1

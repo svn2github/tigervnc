@@ -31,7 +31,7 @@ public:
   FrameBuffer(void);
   virtual ~FrameBuffer(void);
 
-  virtual bool Grab() = 0;
+  virtual bool Grab(const Rect *rect) = 0;
 
   virtual bool SetWorkRect(const Rect *rect);
 

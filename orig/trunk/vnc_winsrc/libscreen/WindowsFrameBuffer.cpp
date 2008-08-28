@@ -146,15 +146,15 @@ bool WindowsFrameBuffer::ApplyNewFullScreenRect()
   return true;
 }
 
-bool WindowsFrameBuffer::Grab()
+bool WindowsFrameBuffer::Grab(const Rect *rect)
 {
   bool result = true;
   //result = GrabByGetDIBit();
-  result = GrabByDIBSection();
+  result = GrabByDIBSection(rect);
   return result;
 }
 
-bool WindowsFrameBuffer::GrabByGetDIBit()
+bool WindowsFrameBuffer::GrabByGetDIBit(const Rect *rect)
 {
   HDC destDC, screenDC = GetDC(0);
   if (screenDC == NULL) {
@@ -199,7 +199,7 @@ bool WindowsFrameBuffer::GrabByGetDIBit()
   return true;
 }
 
-bool WindowsFrameBuffer::GrabByDIBSection()
+bool WindowsFrameBuffer::GrabByDIBSection(const Rect *rect)
 {
   HDC destDC, screenDC = GetDC(0);
   if (screenDC == NULL) {
@@ -237,8 +237,8 @@ bool WindowsFrameBuffer::GrabByDIBSection()
   }
   hbmOld = (HBITMAP) SelectObject(destDC, hbm);
 
-  if (BitBlt(destDC, 0, 0, m_workRect.GetWidth(),
-             m_workRect.GetHeight(), screenDC, m_workRect.left, m_workRect.top, SRCCOPY) == 0) {
+  if (BitBlt(destDC, rect->left - m_workRect.left, rect->top - m_workRect.top, rect->GetWidth(), rect->GetHeight(), 
+             screenDC, rect->left, rect->top, SRCCOPY) == 0) {
     SelectObject(destDC, hbmOld);
     DeleteObject(hbm);
     DeleteDC(destDC);

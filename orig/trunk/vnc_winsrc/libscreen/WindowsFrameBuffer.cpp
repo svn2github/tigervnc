@@ -43,7 +43,8 @@ bool WindowsFrameBuffer::ApplyNewProperties()
 
 bool WindowsFrameBuffer::OpenDIBSection()
 {
-  DeleteDC(m_screenDC);
+  CloseDIBSection();
+
   m_screenDC = GetDC(0);
   if (m_screenDC == NULL) {
     return false;
@@ -64,7 +65,6 @@ bool WindowsFrameBuffer::OpenDIBSection()
   bmi.green = m_pixelFormat.greenMax << m_pixelFormat.greenShift;
   bmi.blue  = m_pixelFormat.blueMax  << m_pixelFormat.blueShift;
 
-  DeleteDC(m_destDC);
   m_destDC = CreateCompatibleDC(NULL);
   if (m_destDC == NULL) {
     DeleteDC(m_screenDC);

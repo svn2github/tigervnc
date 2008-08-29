@@ -36,18 +36,18 @@ public:
   WindowsFrameBuffer(void);
   virtual ~WindowsFrameBuffer(void);
 
-  virtual bool Grab(const Rect *rect);
+  virtual bool grab(const Rect *rect);
 
-  inline virtual bool GetPropertiesChanged();
-  inline virtual bool GetPixelFormatChanged();
-  inline virtual bool GetSizeChanged();
+  inline virtual bool getPropertiesChanged();
+  inline virtual bool getPixelFormatChanged();
+  inline virtual bool getSizeChanged();
 
-  virtual bool ApplyNewFullScreenRect();
-  virtual bool ApplyNewPixelFormat();
+  virtual bool applyNewFullScreenRect();
+  virtual bool applyNewPixelFormat();
 
 protected:
-  virtual bool ApplyNewProperties();
-  virtual bool ApplyNewBuffer() { return OpenDIBSection(); }; // Overriding
+  virtual bool applyNewProperties();
+  virtual bool applyNewBuffer() { return openDIBSection(); } // Overriding
 
   struct BMI
   {
@@ -57,12 +57,12 @@ protected:
     UINT32 blue;
   };
 
-  inline bool GetBMI(BMI *bmi);
+  inline bool getBMI(BMI *bmi);
 
-  virtual bool OpenDIBSection();
-  virtual bool CloseDIBSection();
-  virtual bool GrabByDIBSection(const Rect *rect);
-  virtual bool FillPixelFormat(PixelFormat *pixelFormat, const BMI *bmi);
+  virtual bool openDIBSection();
+  virtual bool closeDIBSection();
+  virtual bool grabByDIBSection(const Rect *rect);
+  virtual bool fillPixelFormat(PixelFormat *pixelFormat, const BMI *bmi);
 
   // Find position of first bit = 1
   inline int findFirstBit(const UINT32 bits);

@@ -31,31 +31,31 @@ public:
   FrameBuffer(void);
   virtual ~FrameBuffer(void);
 
-  virtual bool Grab(const Rect *rect) = 0;
+  virtual bool grab(const Rect *rect) = 0;
 
-  virtual bool SetWorkRect(const Rect *rect);
+  virtual bool setWorkRect(const Rect *rect);
 
-  virtual void GetWorkRect(Rect *rect)                  const { *rect = m_workRect; }
-  virtual void GetPixelFormat(PixelFormat *pixelFormat) const { *pixelFormat = m_pixelFormat; }
-  virtual void GetFullScreenRect(Rect *rect)            const { *rect = m_fullScreenRect; }
-  virtual void *GetBuffer()                             const { return m_buffer; }
-  virtual int GetBufferSize()
+  virtual void getWorkRect(Rect *rect)                  const { *rect = m_workRect; }
+  virtual void getPixelFormat(PixelFormat *pixelFormat) const { *pixelFormat = m_pixelFormat; }
+  virtual void getFullScreenRect(Rect *rect)            const { *rect = m_fullScreenRect; }
+  virtual void *getBuffer()                             const { return m_buffer; }
+  virtual int getBufferSize()
   { 
-    return (m_workRect.GetWidth() * m_workRect.GetHeight() * m_pixelFormat.bitsPerPixel) / 8;
+    return (m_workRect.getWidth() * m_workRect.getHeight() * m_pixelFormat.bitsPerPixel) / 8;
   }
 
-  inline virtual bool GetPropertiesChanged() = 0;
-  inline virtual bool GetPixelFormatChanged() = 0;
-  inline virtual bool GetSizeChanged() = 0;
+  inline virtual bool getPropertiesChanged() = 0;
+  inline virtual bool getPixelFormatChanged() = 0;
+  inline virtual bool getSizeChanged() = 0;
 
-  virtual bool ApplyNewProperties();
+  virtual bool applyNewProperties();
 
 protected:
-  virtual bool ApplyNewFullScreenRect() = 0;
-  virtual bool ApplyNewPixelFormat() = 0;
-  virtual bool ApplyNewBuffer();
+  virtual bool applyNewFullScreenRect() = 0;
+  virtual bool applyNewPixelFormat() = 0;
+  virtual bool applyNewBuffer();
 
-  virtual bool SetWorkRectDefault();
+  virtual bool setWorkRectDefault();
 
   void *m_buffer;
   PixelFormat m_pixelFormat;

@@ -25,41 +25,42 @@
 WindowsFrameBuffer::WindowsFrameBuffer(void)
 : m_destDC(NULL), m_screenDC(NULL), m_hbmDIB(NULL), m_hbmOld(NULL)
 {
-  SetWorkRectDefault();
+  setWorkRectDefault();
 }
 
 WindowsFrameBuffer::~WindowsFrameBuffer(void)
 {
-  CloseDIBSection();
+  closeDIBSection();
 }
 
-bool WindowsFrameBuffer::ApplyNewProperties()
+bool WindowsFrameBuffer::applyNewProperties()
 {
-  if (!ApplyNewPixelFormat() || !ApplyNewFullScreenRect()) 
+  if (!applyNewPixelFormat() || !applyNewFullScreenRect()) 
     return false;
 
-  return OpenDIBSection();
+  return openDIBSection();
 }
 
-bool WindowsFrameBuffer::OpenDIBSection()
+bool WindowsFrameBuffer::openDIBSection()
 {
-  CloseDIBSection();
+  closeDIBSection();
 
   m_screenDC = GetDC(0);
   if (m_screenDC == NULL) {
     return false;
   }
 
-  if (GetPropertiesChanged())
-    return false;
-
-  BMI bmi;
-  if (!GetBMI(&bmi)) {
+  if (getPropertiesChanged()) {
     return false;
   }
 
-  bmi.bmiHeader.biWidth = m_workRect.GetWidth();
-  bmi.bmiHeader.biHeight = -m_workRect.GetHeight();
+  BMI bmi;
+  if (!getBMI(&bmi)) {
+    return false;
+  }
+
+  bmi.bmiHeader.biWidth = m_workRect.getWidth();
+  bmi.bmiHeader.biHeight = -m_workRect.getHeight();
   bmi.bmiHeader.biCompression = BI_BITFIELDS;
   bmi.red   = m_pixelFormat.redMax   << m_pixelFormat.redShift;
   bmi.green = m_pixelFormat.greenMax << m_pixelFormat.greenShift;
@@ -82,7 +83,7 @@ bool WindowsFrameBuffer::OpenDIBSection()
   return true;
 }
 
-bool WindowsFrameBuffer::CloseDIBSection()
+bool WindowsFrameBuffer::closeDIBSection()
 {
   // Free resources
   SelectObject(m_destDC, m_hbmOld);
@@ -100,35 +101,39 @@ bool WindowsFrameBuffer::CloseDIBSection()
   return true;
 }
 
-bool WindowsFrameBuffer::GetPropertiesChanged()
+bool WindowsFrameBuffer::getPropertiesChanged()
 {
   // Check for changing
-  if (GetSizeChanged() || GetPixelFormatChanged()) return true;
+  if (getSizeChanged() || getPixelFormatChanged()) {
+    return true;
+  }
+
   return false;
 }
 
-bool WindowsFrameBuffer::GetPixelFormatChanged()
+bool WindowsFrameBuffer::getPixelFormatChanged()
 {
   BMI bmi;
-  if (!GetBMI(&bmi)) {
+  if (!getBMI(&bmi)) {
     return false;
   }
 
   PixelFormat pixelFormat;
-  FillPixelFormat(&pixelFormat, &bmi);
+  fillPixelFormat(&pixelFormat, &bmi);
 
-  if (memcmp(&m_pixelFormat, &pixelFormat, sizeof(PixelFormat))) 
+  if (memcmp(&m_pixelFormat, &pixelFormat, sizeof(PixelFormat))) {
     return true;
+  }
 
   return false;
 }
 
-bool WindowsFrameBuffer::GetSizeChanged()
+bool WindowsFrameBuffer::getSizeChanged()
 {
   return false;
 }
 
-bool WindowsFrameBuffer::GetBMI(BMI *bmi)
+bool WindowsFrameBuffer::getBMI(BMI *bmi)
 {
   HDC screenDC = GetDC(0);
   if (screenDC == NULL) {
@@ -141,7 +146,7 @@ bool WindowsFrameBuffer::GetBMI(BMI *bmi)
 
   HBITMAP hbm;
   hbm = (HBITMAP) GetCurrentObject(screenDC, OBJ_BITMAP);
-  if (GetDIBits(screenDC, hbm, 0, m_fullScreenRect.GetHeight(), NULL, (LPBITMAPINFO) bmi, DIB_RGB_COLORS) == 0) {
+  if (GetDIBits(screenDC, hbm, 0, m_fullScreenRect.getHeight(), NULL, (LPBITMAPINFO) bmi, DIB_RGB_COLORS) == 0) {
     DeleteObject(hbm);
     DeleteDC(screenDC);
     return false;
@@ -149,7 +154,7 @@ bool WindowsFrameBuffer::GetBMI(BMI *bmi)
 
   // The color table is filled only if it is used BI_BITFIELDS
   if (bmi->bmiHeader.biCompression == BI_BITFIELDS) {
-    if (GetDIBits(screenDC, hbm, 0, m_fullScreenRect.GetHeight(), NULL, (LPBITMAPINFO) bmi, DIB_RGB_COLORS) == 0) {
+    if (GetDIBits(screenDC, hbm, 0, m_fullScreenRect.getHeight(), NULL, (LPBITMAPINFO) bmi, DIB_RGB_COLORS) == 0) {
       DeleteObject(hbm);
       DeleteDC(screenDC);
       return false;
@@ -160,38 +165,40 @@ bool WindowsFrameBuffer::GetBMI(BMI *bmi)
   return true;
 }
 
-bool WindowsFrameBuffer::ApplyNewPixelFormat()
+bool WindowsFrameBuffer::applyNewPixelFormat()
 {
   BMI bmi;
-  if (!GetBMI(&bmi))
+  if (!getBMI(&bmi)) {
     return false;
+  }
 
-  return FillPixelFormat(&m_pixelFormat, &bmi);
+  return fillPixelFormat(&m_pixelFormat, &bmi);
 }
 
-bool WindowsFrameBuffer::ApplyNewFullScreenRect()
+bool WindowsFrameBuffer::applyNewFullScreenRect()
 {
   HDC screenDC = GetDC(0);
   if (screenDC == NULL) {
     return false;
   }
 
-  m_fullScreenRect.SetRect(0, 0, GetDeviceCaps(screenDC, HORZRES), GetDeviceCaps(screenDC, VERTRES));
+  m_fullScreenRect.setRect(0, 0, GetDeviceCaps(screenDC, HORZRES), GetDeviceCaps(screenDC, VERTRES));
 
   return true;
 }
 
-bool WindowsFrameBuffer::Grab(const Rect *rect)
+bool WindowsFrameBuffer::grab(const Rect *rect)
 {
-  return GrabByDIBSection(rect);;
+  return grabByDIBSection(rect);;
 }
 
-bool WindowsFrameBuffer::GrabByDIBSection(const Rect *rect)
+bool WindowsFrameBuffer::grabByDIBSection(const Rect *rect)
 {
-  if (GetPropertiesChanged())
+  if (getPropertiesChanged()) {
     return false;
+  }
 
-  if (BitBlt(m_destDC, rect->left - m_workRect.left, rect->top - m_workRect.top, rect->GetWidth(), rect->GetHeight(), 
+  if (BitBlt(m_destDC, rect->left - m_workRect.left, rect->top - m_workRect.top, rect->getWidth(), rect->getHeight(), 
              m_screenDC, rect->left, rect->top, SRCCOPY) == 0) {
     return false;
   }
@@ -199,7 +206,7 @@ bool WindowsFrameBuffer::GrabByDIBSection(const Rect *rect)
   return true;
 }
 
-bool WindowsFrameBuffer::FillPixelFormat(PixelFormat *pixelFormat, const BMI *bmi)
+bool WindowsFrameBuffer::fillPixelFormat(PixelFormat *pixelFormat, const BMI *bmi)
 {
   memset(pixelFormat, 0, sizeof(PixelFormat));
 
@@ -213,6 +220,7 @@ bool WindowsFrameBuffer::FillPixelFormat(PixelFormat *pixelFormat, const BMI *bm
     pixelFormat->redMax   = bmi->red    >> pixelFormat->redShift;
     pixelFormat->greenMax = bmi->green  >> pixelFormat->greenShift;
     pixelFormat->blueMax  = bmi->blue   >> pixelFormat->blueShift;
+
   } else {
     pixelFormat->bitsPerPixel = 32;
     pixelFormat->redMax = pixelFormat->greenMax = pixelFormat->blueMax = 0xff;
@@ -220,15 +228,20 @@ bool WindowsFrameBuffer::FillPixelFormat(PixelFormat *pixelFormat, const BMI *bm
     pixelFormat->greenShift = 8;
     pixelFormat->blueShift  = 0;
   }
-  return (pixelFormat->redMax > 0) && (pixelFormat->greenMax > 0) && (pixelFormat->blueMax > 0);
+
+  return (pixelFormat->redMax > 0)
+    && (pixelFormat->greenMax > 0)
+    && (pixelFormat->blueMax > 0);
 }
 
 int WindowsFrameBuffer::findFirstBit(const UINT32 bits)
 {
   UINT32 b = bits;
   int shift;
+
   for (shift = 0; (shift < 32) && ((b & 1) == 0); shift++) {
     b >>= 1;
   }
+
   return shift;
 }

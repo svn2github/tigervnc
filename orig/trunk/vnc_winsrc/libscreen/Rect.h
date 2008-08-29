@@ -33,7 +33,7 @@ public:
   int right;
   int bottom;
 
-  inline void SetRect(int lt, int tp, int rt, int bm)
+  inline void setRect(int lt, int tp, int rt, int bm)
   {
     left = lt;
     top = tp;
@@ -41,16 +41,16 @@ public:
     bottom = bm;
   }
 
-  inline bool CmpRect(const Rect *rect) { return  rect->left == left &&
+  inline bool cmpRect(const Rect *rect) { return  rect->left == left &&
                                                   rect->top == top &&
                                                   rect->right == right &&
                                                   rect->bottom == bottom; }
 
-  inline void SetWidth(int value)   { right = left + value; }
-  inline void SetHeight(int value)  { bottom = top + value; }
+  inline void setWidth(int value)   { right = left + value; }
+  inline void setHeight(int value)  { bottom = top + value; }
 
-  inline int GetWidth()  const { return right - left; }
-  inline int GetHeight() const { return bottom - top; }
+  inline int getWidth()  const { return right - left; }
+  inline int getHeight() const { return bottom - top; }
 
 };
 

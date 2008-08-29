@@ -31,38 +31,51 @@ FrameBuffer::FrameBuffer(void)
 
 FrameBuffer::~FrameBuffer(void)
 {
+  if (m_buffer != NULL) {
+    delete[] m_buffer;
+    m_buffer = NULL;
+  }
 }
 
-bool FrameBuffer::SetWorkRect(const Rect *rect)
+bool FrameBuffer::setWorkRect(const Rect *rect)
 {
-  if (m_workRect.CmpRect(rect)) { return true; }
+  if (m_workRect.cmpRect(rect)) {
+    return true;
+  }
 
   m_workRect = *rect;
   
-  return ApplyNewBuffer();
+  return applyNewBuffer();
 }
 
-bool FrameBuffer::ApplyNewProperties()
+bool FrameBuffer::applyNewProperties()
 {
-  if (!ApplyNewPixelFormat() || !ApplyNewFullScreenRect()) return false;
-  if (!ApplyNewBuffer()) return false;
-  return true;
+  if (!applyNewPixelFormat() || !applyNewFullScreenRect()) {
+    return false;
+  }
+
+  return applyNewBuffer();
 }
 
-bool FrameBuffer::ApplyNewBuffer()
+bool FrameBuffer::applyNewBuffer()
 {
-  if (m_buffer != NULL) delete[] m_buffer;
+  if (m_buffer != NULL) {
+    delete[] m_buffer;
+  }
 
-  m_buffer = new char[m_workRect.GetWidth() * m_workRect.GetHeight() * m_pixelFormat.bitsPerPixel / 8];
+  m_buffer = new char[getBufferSize()];
   return (m_buffer != NULL);
 }
 
-bool FrameBuffer::SetWorkRectDefault()
+bool FrameBuffer::setWorkRectDefault()
 {
   // Set m_workRect to full screen by default
   Rect rect;
-  if (!ApplyNewFullScreenRect()) return false;
-  GetFullScreenRect(&rect);
-  SetWorkRect(&rect);
+  if (!applyNewFullScreenRect()) {
+    return false;
+  }
+
+  getFullScreenRect(&rect);
+  setWorkRect(&rect);
   return true;
 }

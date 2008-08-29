@@ -199,7 +199,7 @@ bool WindowsFrameBuffer::grabByDIBSection(const Rect *rect)
   }
 
   if (BitBlt(m_destDC, rect->left - m_workRect.left, rect->top - m_workRect.top, rect->getWidth(), rect->getHeight(), 
-             m_screenDC, rect->left, rect->top, SRCCOPY) == 0) {
+             m_screenDC, rect->left, rect->top, SRCCOPY | CAPTUREBLT) == 0) {
     return false;
   }
 

@@ -104,7 +104,7 @@ bool WindowsFrameBuffer::closeDIBSection()
 bool WindowsFrameBuffer::getPropertiesChanged()
 {
   // Check for changing
-  if (getSizeChanged() || getPixelFormatChanged()) {
+  if (getScreenSizeChanged() || getPixelFormatChanged()) {
     return true;
   }
 
@@ -128,7 +128,7 @@ bool WindowsFrameBuffer::getPixelFormatChanged()
   return false;
 }
 
-bool WindowsFrameBuffer::getSizeChanged()
+bool WindowsFrameBuffer::getScreenSizeChanged()
 {
   BMI bmi;
   if (!getBMI(&bmi)) {
@@ -189,12 +189,12 @@ bool WindowsFrameBuffer::applyNewPixelFormat()
 
 bool WindowsFrameBuffer::applyNewFullScreenRect()
 {
-  HDC screenDC = GetDC(0);
-  if (screenDC == NULL) {
+  BMI bmi;
+  if (!getBMI(&bmi)) {
     return false;
   }
 
-  m_fullScreenRect.setRect(0, 0, GetDeviceCaps(screenDC, HORZRES), GetDeviceCaps(screenDC, VERTRES));
+  m_fullScreenRect.setRect(0, 0, bmi.bmiHeader.biWidth, bmi.bmiHeader.biHeight);
 
   return true;
 }
@@ -210,8 +210,8 @@ bool WindowsFrameBuffer::grabByDIBSection(const Rect *rect)
     return false;
   }
 
-  if (BitBlt(m_destDC, rect->left - m_workRect.left, rect->top - m_workRect.top, rect->getWidth(), rect->getHeight(), 
-             m_screenDC, rect->left, rect->top, SRCCOPY | CAPTUREBLT) == 0) {
+  if (BitBlt(m_destDC, rect->left, rect->top, rect->getWidth(), rect->getHeight(), 
+             m_screenDC, rect->left + m_workRect.left, rect->top + m_workRect.top, SRCCOPY | CAPTUREBLT) == 0) {
     return false;
   }
 

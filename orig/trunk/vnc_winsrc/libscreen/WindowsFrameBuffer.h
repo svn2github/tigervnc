@@ -40,7 +40,7 @@ public:
 
   inline virtual bool getPropertiesChanged();
   inline virtual bool getPixelFormatChanged();
-  inline virtual bool getSizeChanged();
+  inline virtual bool getScreenSizeChanged();
 
   virtual bool applyNewFullScreenRect();
   virtual bool applyNewPixelFormat();

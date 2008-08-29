@@ -75,7 +75,7 @@ bool FrameBuffer::setWorkRectDefault()
     return false;
   }
 
-  getFullScreenRect(&rect);
+  getScreenRect(&rect);
   setWorkRect(&rect);
   return true;
 }

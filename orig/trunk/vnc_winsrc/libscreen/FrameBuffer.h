@@ -37,7 +37,7 @@ public:
 
   virtual void getWorkRect(Rect *rect)                  const { *rect = m_workRect; }
   virtual void getPixelFormat(PixelFormat *pixelFormat) const { *pixelFormat = m_pixelFormat; }
-  virtual void getFullScreenRect(Rect *rect)            const { *rect = m_fullScreenRect; }
+  virtual void getScreenRect(Rect *rect)            const { *rect = m_fullScreenRect; }
   virtual void *getBuffer()                             const { return m_buffer; }
   virtual int getBufferSize()
   { 
@@ -46,7 +46,7 @@ public:
 
   inline virtual bool getPropertiesChanged() = 0;
   inline virtual bool getPixelFormatChanged() = 0;
-  inline virtual bool getSizeChanged() = 0;
+  inline virtual bool getScreenSizeChanged() = 0;
 
   virtual bool applyNewProperties();
 

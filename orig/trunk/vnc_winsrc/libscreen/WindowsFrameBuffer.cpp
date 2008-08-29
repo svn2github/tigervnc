@@ -130,6 +130,18 @@ bool WindowsFrameBuffer::getPixelFormatChanged()
 
 bool WindowsFrameBuffer::getSizeChanged()
 {
+  BMI bmi;
+  if (!getBMI(&bmi)) {
+    return false;
+  }
+
+  int width = bmi.bmiHeader.biWidth;
+  int height = bmi.bmiHeader.biHeight;
+
+  if (width != m_fullScreenRect.getWidth() || height != m_fullScreenRect.getHeight()) {
+    return true;
+  }
+
   return false;
 }
 

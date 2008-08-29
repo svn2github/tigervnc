@@ -186,51 +186,6 @@ bool WindowsFrameBuffer::Grab(const Rect *rect)
   return GrabByDIBSection(rect);;
 }
 
-bool WindowsFrameBuffer::GrabByGetDIBit(const Rect *rect)
-{
-  HDC m_destDC, screenDC = GetDC(0);
-  if (screenDC == NULL) {
-    return false;
-  }
-
-  if (GetPropertiesChanged()) return false;
-
-  m_destDC = CreateCompatibleDC(screenDC);
-
-  HBITMAP hbmOld, hbm;
-
-  hbm = CreateBitmap(m_workRect.GetWidth(), m_workRect.GetHeight(), 1, m_pixelFormat.bitsPerPixel, NULL);
-  hbmOld = (HBITMAP) SelectObject(m_destDC, hbm);
-
-  if (BitBlt(m_destDC, 0, 0, m_workRect.GetWidth(),
-             m_workRect.GetHeight(), screenDC, m_workRect.left, m_workRect.top, SRCCOPY) == 0) {
-    DeleteDC(m_destDC);
-    DeleteDC(screenDC);
-    return false;
-  }
-
-  BMI bmi;
-  if (!GetBMI(&bmi)) {
-    return false;
-  }
-  bmi.bmiHeader.biWidth = m_workRect.GetWidth();
-  bmi.bmiHeader.biHeight = -m_workRect.GetHeight();
-
-  int lines;
-  if ((lines = GetDIBits(m_destDC, hbm, 0, abs(bmi.bmiHeader.biHeight), m_buffer, (LPBITMAPINFO) &bmi, DIB_RGB_COLORS)) == 0) {
-    SelectObject(m_destDC, hbmOld);
-    DeleteObject(hbm);  
-    DeleteDC(screenDC);
-    return false;
-  }
-
-  SelectObject(m_destDC, hbmOld);
-  DeleteObject(hbm);
-  DeleteDC(m_destDC);
-  DeleteDC(screenDC);
-  return true;
-}
-
 bool WindowsFrameBuffer::GrabByDIBSection(const Rect *rect)
 {
   if (GetPropertiesChanged())

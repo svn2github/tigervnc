@@ -61,7 +61,6 @@ protected:
 
   virtual bool OpenDIBSection();
   virtual bool CloseDIBSection();
-  virtual bool GrabByGetDIBit(const Rect *rect);
   virtual bool GrabByDIBSection(const Rect *rect);
   virtual bool FillPixelFormat(PixelFormat *pixelFormat, const BMI *bmi);
 

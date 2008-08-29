@@ -46,6 +46,9 @@ public:
   virtual bool ApplyNewPixelFormat();
 
 protected:
+  virtual bool ApplyNewProperties();
+  virtual bool ApplyNewBuffer() { return OpenDIBSection(); }; // Overriding
+
   struct BMI
   {
     BITMAPINFOHEADER bmiHeader;
@@ -53,14 +56,21 @@ protected:
     UINT32 green;
     UINT32 blue;
   };
+
   inline bool GetBMI(BMI *bmi);
 
+  virtual bool OpenDIBSection();
+  virtual bool CloseDIBSection();
   virtual bool GrabByGetDIBit(const Rect *rect);
   virtual bool GrabByDIBSection(const Rect *rect);
   virtual bool FillPixelFormat(PixelFormat *pixelFormat, const BMI *bmi);
 
   // Find position of first bit = 1
   inline int findFirstBit(const UINT32 bits);
+
+  // Windows specific variebles
+  HDC m_destDC, m_screenDC;
+  HBITMAP m_hbmOld, m_hbmDIB;
 };
 
 #endif // __WINDOWSFRAMEBUFFER_H__

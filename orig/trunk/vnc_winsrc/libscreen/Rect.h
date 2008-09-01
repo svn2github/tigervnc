@@ -40,6 +40,13 @@ public:
     right = rt;
     bottom = bm;
   }
+  inline void setRect(const Rect *rect)
+  {
+    left    = rect->left;
+    top     = rect->top;
+    right   = rect->right;
+    bottom  = rect->bottom;
+  }
 
   inline bool cmpRect(const Rect *rect) { return  rect->left == left &&
                                                   rect->top == top &&

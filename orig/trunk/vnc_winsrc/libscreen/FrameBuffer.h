@@ -36,8 +36,9 @@ public:
   virtual bool setWorkRect(const Rect *rect);
 
   virtual void getWorkRect(Rect *rect)                  const { *rect = m_workRect; }
+  virtual Rect getWorkRect()                            const { return m_workRect; }
   virtual void getPixelFormat(PixelFormat *pixelFormat) const { *pixelFormat = m_pixelFormat; }
-  virtual void getScreenRect(Rect *rect)            const { *rect = m_fullScreenRect; }
+  virtual void getScreenRect(Rect *rect)                const { *rect = m_fullScreenRect; }
   virtual void *getBuffer()                             const { return m_buffer; }
   virtual int getBufferSize()
   { 

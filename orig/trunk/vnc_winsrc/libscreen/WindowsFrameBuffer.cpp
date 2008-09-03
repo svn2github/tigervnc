@@ -235,10 +235,17 @@ bool WindowsFrameBuffer::fillPixelFormat(PixelFormat *pixelFormat, const BMI *bm
 
   } else {
     pixelFormat->bitsPerPixel = 32;
+    pixelFormat->colorDepth = 24;
     pixelFormat->redMax = pixelFormat->greenMax = pixelFormat->blueMax = 0xff;
     pixelFormat->redShift   = 16;
     pixelFormat->greenShift = 8;
     pixelFormat->blueShift  = 0;
+  }
+
+  if (pixelFormat->bitsPerPixel == 32) {
+    pixelFormat->colorDepth = 24;
+  } else {
+    pixelFormat->colorDepth = 16;
   }
 
   return (pixelFormat->redMax > 0)

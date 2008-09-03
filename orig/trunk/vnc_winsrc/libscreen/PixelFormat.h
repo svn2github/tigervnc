@@ -22,17 +22,20 @@
 #ifndef __PIXELFORMAT_H__
 #define __PIXELFORMAT_H__
 
+#include "inttypes.h"
+
 struct PixelFormat
 {
-  int bitsPerPixel;
+  UINT16 bitsPerPixel;
+  UINT8 colorDepth;
 
-  unsigned long redMax;
-  unsigned long greenMax;
-  unsigned long blueMax;
+  UINT32 redMax;
+  UINT32 greenMax;
+  UINT32 blueMax;
 
-  unsigned char redShift;
-  unsigned char greenShift;
-  unsigned char blueShift;
+  UINT8 redShift;
+  UINT8 greenShift;
+  UINT8 blueShift;
 };
 
 #endif // __PIXELFORMAT_H__

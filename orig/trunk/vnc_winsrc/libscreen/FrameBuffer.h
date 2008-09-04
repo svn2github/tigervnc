@@ -32,6 +32,7 @@ public:
   virtual ~FrameBuffer(void);
 
   virtual bool grab(const Rect *rect) = 0;
+  virtual bool grab() { return grab(&m_workRect); }
 
   virtual bool setWorkRect(const Rect *rect);
 

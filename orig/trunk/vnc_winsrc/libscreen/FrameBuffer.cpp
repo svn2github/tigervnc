@@ -83,10 +83,11 @@ bool FrameBuffer::setWorkRectDefault()
 bool FrameBuffer::grab()
 {
   Rect fullWork;
-  fullWork = m_workRect;
   // Set relative co-ordinates
   fullWork.left = 0; 
   fullWork.top = 0; 
+  fullWork.setWidth(m_workRect.getWidth());
+  fullWork.setHeight(m_workRect.getHeight());
 
   return grab(&fullWork);
 }

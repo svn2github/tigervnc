@@ -21,6 +21,7 @@
 
 #include "WindowsFrameBuffer.h"
 #include "ErrorDef.h"
+#include <stdio.h>
 
 WindowsFrameBuffer::WindowsFrameBuffer(void)
 : m_destDC(NULL), m_screenDC(NULL), m_hbmDIB(NULL), m_hbmOld(NULL)
@@ -56,9 +57,11 @@ bool WindowsFrameBuffer::openDIBSection()
 
   BMI bmi;
   if (!getBMI(&bmi)) {
+    fprintf(stderr, "getBMI: error\n");
     return false;
   }
 
+  bmi.bmiHeader.biBitCount = m_pixelFormat.bitsPerPixel;
   bmi.bmiHeader.biWidth = m_workRect.getWidth();
   bmi.bmiHeader.biHeight = -m_workRect.getHeight();
   bmi.bmiHeader.biCompression = BI_BITFIELDS;
@@ -68,12 +71,20 @@ bool WindowsFrameBuffer::openDIBSection()
 
   m_destDC = CreateCompatibleDC(NULL);
   if (m_destDC == NULL) {
+    fprintf(stderr, "CreateCompatibleDC: error\n");
     DeleteDC(m_screenDC);
     return false;
   }
 
   m_hbmDIB = CreateDIBSection(m_destDC, (BITMAPINFO *) &bmi, DIB_RGB_COLORS, &m_buffer, NULL, NULL);
   if (m_hbmDIB == 0) {
+    int error = GetLastError();
+    if (error == ERROR_INVALID_PARAMETER)
+    {
+      fprintf(stderr, "CreateDIBSection: ERROR_INVALID_PARAMETER\n");
+    } else {
+      fprintf(stderr, "Unknown error: 0x%x - %d dec\n", error, error);
+    }
     DeleteDC(m_destDC);
     DeleteDC(m_screenDC);
     return false;

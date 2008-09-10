@@ -195,7 +195,10 @@ bool WindowsFrameBuffer::applyNewFullScreenRect()
     return false;
   }
 
-  m_fullScreenRect.setRect(0, 0, bmi.bmiHeader.biWidth, bmi.bmiHeader.biHeight);
+  m_fullScreenRect.left = GetSystemMetrics(SM_XVIRTUALSCREEN);
+  m_fullScreenRect.top = GetSystemMetrics(SM_YVIRTUALSCREEN);
+  m_fullScreenRect.setWidth(GetSystemMetrics(SM_CXVIRTUALSCREEN));
+  m_fullScreenRect.setHeight(GetSystemMetrics(SM_CYVIRTUALSCREEN));
 
   return true;
 }

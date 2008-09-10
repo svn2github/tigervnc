@@ -77,9 +77,6 @@ public:
   virtual bool applyNewPixelFormat();
   virtual bool applyNewProperties();
 
-protected:
-  virtual bool applyNewBuffer() { return openDIBSection(); } // Overriding
-
   struct BMI
   {
     BITMAPINFOHEADER bmiHeader;
@@ -89,6 +86,9 @@ protected:
   };
 
   inline bool getBMI(BMI *bmi);
+
+protected:
+  virtual bool applyNewBuffer() { return openDIBSection(); } // Overriding
 
   virtual bool openDIBSection();
   virtual bool closeDIBSection();

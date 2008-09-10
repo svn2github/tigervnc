@@ -75,9 +75,9 @@ public:
 
   virtual bool applyNewFullScreenRect();
   virtual bool applyNewPixelFormat();
+  virtual bool applyNewProperties();
 
 protected:
-  virtual bool applyNewProperties();
   virtual bool applyNewBuffer() { return openDIBSection(); } // Overriding
 
   struct BMI

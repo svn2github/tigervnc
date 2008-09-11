@@ -59,6 +59,19 @@ public:
   inline int getWidth()  const { return right - left; }
   inline int getHeight() const { return bottom - top; }
 
+  inline bool isEmpty() const { return getWidth() <= 0 || getHeight() <= 0; }
+  inline int area() const { return isEmpty() ? 0 : getWidth() * getHeight(); }
+
+  inline void clear() { left = top = right = bottom = 0; }
+
+  Rect intersection(const Rect *other) const {
+    Rect result;
+    result.setRect((left > other->left) ? left : other->left,
+                   (top > other->top) ? top : other->top,
+                   (right < other->right) ? right : other->right,
+                   (bottom < other->bottom) ? bottom : other->bottom);
+    return result;
+  }
 };
 
 #endif // __RECT_H__

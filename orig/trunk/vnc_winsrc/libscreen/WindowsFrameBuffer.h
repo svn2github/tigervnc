@@ -23,6 +23,10 @@
 #define __WINDOWSFRAMEBUFFER_H__
 
 #include <windows.h>
+#ifndef CAPTUREBLT
+#define CAPTUREBLT          (DWORD)0x40000000 /* Include layered windows */
+#endif
+
 #include "framebuffer.h"
 #include "rect.h"
 #include "inttypes.h"
@@ -85,7 +89,7 @@ public:
     UINT32 blue;
   };
 
-  inline bool getBMI(BMI *bmi);
+  bool getBMI(BMI *bmi);
 
 protected:
   virtual bool applyNewBuffer() { return openDIBSection(); } // Overriding

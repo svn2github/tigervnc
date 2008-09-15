@@ -205,7 +205,18 @@ bool WindowsFrameBuffer::applyNewFullScreenRect()
 
 bool WindowsFrameBuffer::grab(const Rect *rect)
 {
-  return grabByDIBSection(rect);;
+  if (!grabByDIBSection(rect)) {
+    if (getPropertiesChanged()) {
+      if (applyNewProperties()) {
+        return grabByDIBSection(rect);
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  }
+  return true;
 }
 
 bool WindowsFrameBuffer::grabByDIBSection(const Rect *rect)

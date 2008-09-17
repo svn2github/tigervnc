@@ -45,11 +45,17 @@
   frameBuffer->setWorkRect(&workRect);
 
   // One-time grabbing
-  if (!frameBuffer->grab(&grabRect)) {
-    MessageBox(NULL, _T("Cannot grab"), _T("Error"), MB_ICONHAND);
-    return 1;
+  while (!frameBuffer->grab(&grabRect)) {
+    if (frameBuffer->getPropertiesChanged()) { // Check desktop properties
+      if (!frameBuffer->applyNewProperties()) {
+        MessageBox(NULL, _T("Cannot apply new screen properties"), _T("Error"), MB_ICONHAND);
+        return 1;
+      }
+    } else {
+      MessageBox(NULL, _T("Cannot grab screen"), _T("Error"), MB_ICONHAND);
+      return 1;
+    }
   }
-  delete frameBuffer;
 */
 
 class FrameBuffer

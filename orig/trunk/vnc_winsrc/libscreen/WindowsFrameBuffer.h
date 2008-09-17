@@ -31,6 +31,39 @@
 #include "rect.h"
 #include "inttypes.h"
 
+//
+// An abstract interface for screen grabbing.
+//
+
+/*
+  //
+  // Usage example:
+  //
+
+  FrameBuffer *frameBuffer;
+
+  // Initialisation
+  frameBuffer = new WindowsFrameBuffer;
+
+  Rect grabRect, workRect;
+  workRect.setRect(100, 100, 500, 500);
+  grabRect.setRect(20, 20, 120, 120); // Relative to the workRect
+  frameBuffer->setWorkRect(&workRect);
+
+  // One-time grabbing
+  while (!frameBuffer->grab(&grabRect)) {
+    if (frameBuffer->getPropertiesChanged()) { // Check desktop properties
+      if (!frameBuffer->applyNewProperties()) {
+        MessageBox(NULL, _T("Cannot apply new screen properties"), _T("Error"), MB_ICONHAND);
+        return 1;
+      }
+    } else {
+      MessageBox(NULL, _T("Cannot grab screen"), _T("Error"), MB_ICONHAND);
+      return 1;
+    }
+  }
+*/
+
 class WindowsFrameBuffer :
   public FrameBuffer
 {

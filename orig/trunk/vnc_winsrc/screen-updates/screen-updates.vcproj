@@ -149,6 +149,18 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\UpdateContainer.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\UpdateDetector.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\UpdateFilter.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\UpdateHandler.cpp"
 				>
 			</File>
@@ -158,6 +170,18 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\UpdateContainer.h"
+				>
+			</File>
+			<File
+				RelativePath=".\UpdateDetector.h"
+				>
+			</File>
+			<File
+				RelativePath=".\UpdateFilter.h"
+				>
+			</File>
 			<File
 				RelativePath=".\UpdateHandler.h"
 				>

@@ -20,7 +20,6 @@
 // TightVNC homepage on the Web: http://www.tightvnc.com/
 
 #include "WindowsFrameBuffer.h"
-#include "ErrorDef.h"
 
 WindowsFrameBuffer::WindowsFrameBuffer(void)
 : m_destDC(NULL), m_screenDC(NULL), m_hbmDIB(NULL), m_hbmOld(NULL)

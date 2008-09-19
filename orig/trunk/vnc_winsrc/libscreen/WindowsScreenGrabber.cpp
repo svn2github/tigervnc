@@ -19,20 +19,20 @@
 //
 // TightVNC homepage on the Web: http://www.tightvnc.com/
 
-#include "WindowsFrameBuffer.h"
+#include "WindowsScreenGrabber.h"
 
-WindowsFrameBuffer::WindowsFrameBuffer(void)
+WindowsScreenGrabber::WindowsScreenGrabber(void)
 : m_destDC(NULL), m_screenDC(NULL), m_hbmDIB(NULL), m_hbmOld(NULL)
 {
   setWorkRectDefault();
 }
 
-WindowsFrameBuffer::~WindowsFrameBuffer(void)
+WindowsScreenGrabber::~WindowsScreenGrabber(void)
 {
   closeDIBSection();
 }
 
-bool WindowsFrameBuffer::applyNewProperties()
+bool WindowsScreenGrabber::applyNewProperties()
 {
   if (!applyNewPixelFormat() || !applyNewFullScreenRect()) 
     return false;
@@ -40,7 +40,7 @@ bool WindowsFrameBuffer::applyNewProperties()
   return openDIBSection();
 }
 
-bool WindowsFrameBuffer::openDIBSection()
+bool WindowsScreenGrabber::openDIBSection()
 {
   closeDIBSection();
 
@@ -83,7 +83,7 @@ bool WindowsFrameBuffer::openDIBSection()
   return true;
 }
 
-bool WindowsFrameBuffer::closeDIBSection()
+bool WindowsScreenGrabber::closeDIBSection()
 {
   // Free resources
   SelectObject(m_destDC, m_hbmOld);
@@ -101,7 +101,7 @@ bool WindowsFrameBuffer::closeDIBSection()
   return true;
 }
 
-bool WindowsFrameBuffer::getPropertiesChanged()
+bool WindowsScreenGrabber::getPropertiesChanged()
 {
   // Check for changing
   if (getScreenSizeChanged() || getPixelFormatChanged()) {
@@ -111,7 +111,7 @@ bool WindowsFrameBuffer::getPropertiesChanged()
   return false;
 }
 
-bool WindowsFrameBuffer::getPixelFormatChanged()
+bool WindowsScreenGrabber::getPixelFormatChanged()
 {
   BMI bmi;
   if (!getBMI(&bmi)) {
@@ -128,7 +128,7 @@ bool WindowsFrameBuffer::getPixelFormatChanged()
   return false;
 }
 
-bool WindowsFrameBuffer::getScreenSizeChanged()
+bool WindowsScreenGrabber::getScreenSizeChanged()
 {
   BMI bmi;
   if (!getBMI(&bmi)) {
@@ -145,7 +145,7 @@ bool WindowsFrameBuffer::getScreenSizeChanged()
   return false;
 }
 
-bool WindowsFrameBuffer::getBMI(BMI *bmi)
+bool WindowsScreenGrabber::getBMI(BMI *bmi)
 {
   HDC screenDC = GetDC(0);
   if (screenDC == NULL) {
@@ -177,7 +177,7 @@ bool WindowsFrameBuffer::getBMI(BMI *bmi)
   return true;
 }
 
-bool WindowsFrameBuffer::applyNewPixelFormat()
+bool WindowsScreenGrabber::applyNewPixelFormat()
 {
   BMI bmi;
   if (!getBMI(&bmi)) {
@@ -187,7 +187,7 @@ bool WindowsFrameBuffer::applyNewPixelFormat()
   return fillPixelFormat(&m_pixelFormat, &bmi);
 }
 
-bool WindowsFrameBuffer::applyNewFullScreenRect()
+bool WindowsScreenGrabber::applyNewFullScreenRect()
 {
   BMI bmi;
   if (!getBMI(&bmi)) {
@@ -202,12 +202,12 @@ bool WindowsFrameBuffer::applyNewFullScreenRect()
   return true;
 }
 
-bool WindowsFrameBuffer::grab(const Rect *rect)
+bool WindowsScreenGrabber::grab(const Rect *rect)
 {
   return grabByDIBSection(rect);;
 }
 
-bool WindowsFrameBuffer::grabByDIBSection(const Rect *rect)
+bool WindowsScreenGrabber::grabByDIBSection(const Rect *rect)
 {
   if (getPropertiesChanged()) {
     return false;
@@ -221,7 +221,7 @@ bool WindowsFrameBuffer::grabByDIBSection(const Rect *rect)
   return true;
 }
 
-bool WindowsFrameBuffer::fillPixelFormat(PixelFormat *pixelFormat, const BMI *bmi)
+bool WindowsScreenGrabber::fillPixelFormat(PixelFormat *pixelFormat, const BMI *bmi)
 {
   memset(pixelFormat, 0, sizeof(PixelFormat));
 
@@ -256,7 +256,7 @@ bool WindowsFrameBuffer::fillPixelFormat(PixelFormat *pixelFormat, const BMI *bm
     && (pixelFormat->blueMax > 0);
 }
 
-int WindowsFrameBuffer::findFirstBit(const UINT32 bits)
+int WindowsScreenGrabber::findFirstBit(const UINT32 bits)
 {
   UINT32 b = bits;
   int shift;

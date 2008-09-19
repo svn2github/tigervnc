@@ -19,11 +19,11 @@
 //
 // TightVNC homepage on the Web: http://www.tightvnc.com/
 
-#ifndef __FRAMEBUFFER_H__
-#define __FRAMEBUFFER_H__
+#ifndef __SCREENGRABBER_H__
+#define __SCREENGRABBER_H__
 
-#include "rect.h"
-#include "pixelformat.h"
+#include "Rect.h"
+#include "PixelFormat.h"
 
 //
 // An abstract interface for screen grabbing.
@@ -34,10 +34,10 @@
   // Usage example:
   //
 
-  FrameBuffer *frameBuffer;
+  ScreenGrabber *frameBuffer;
 
   // Initialisation
-  frameBuffer = new WindowsFrameBuffer;
+  frameBuffer = new WindowsScreenGrabber;
 
   Rect grabRect, workRect;
   workRect.setRect(100, 100, 500, 500);
@@ -58,11 +58,11 @@
   }
 */
 
-class FrameBuffer
+class ScreenGrabber
 {
 public:
-  FrameBuffer(void);
-  virtual ~FrameBuffer(void);
+  ScreenGrabber(void);
+  virtual ~ScreenGrabber(void);
 
   /* Provides grabbing.
   Parameters:     *rect - Pointer to a Rect object with relative workRect coordinates.
@@ -115,4 +115,4 @@ protected:
   Rect m_workRect;
 };
 
-#endif // __FRAMEBUFFER_H__
+#endif // __SCREENGRABBER_H__

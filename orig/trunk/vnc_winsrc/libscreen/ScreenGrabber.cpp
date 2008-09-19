@@ -19,17 +19,17 @@
 //
 // TightVNC homepage on the Web: http://www.tightvnc.com/
 
-#include "FrameBuffer.h"
+#include "ScreenGrabber.h"
 #include <stddef.h>
 #include <memory.h>
 
-FrameBuffer::FrameBuffer(void)
+ScreenGrabber::ScreenGrabber(void)
 : m_buffer(NULL)
 {
   memset(&m_pixelFormat, 0, sizeof(m_pixelFormat));
 }
 
-FrameBuffer::~FrameBuffer(void)
+ScreenGrabber::~ScreenGrabber(void)
 {
   if (m_buffer != NULL) {
     delete[] m_buffer;
@@ -37,7 +37,7 @@ FrameBuffer::~FrameBuffer(void)
   }
 }
 
-bool FrameBuffer::setWorkRect(const Rect *rect)
+bool ScreenGrabber::setWorkRect(const Rect *rect)
 {
   if (m_workRect.cmpRect(rect)) {
     return true;
@@ -48,7 +48,7 @@ bool FrameBuffer::setWorkRect(const Rect *rect)
   return applyNewBuffer();
 }
 
-bool FrameBuffer::applyNewProperties()
+bool ScreenGrabber::applyNewProperties()
 {
   if (!applyNewPixelFormat() || !applyNewFullScreenRect()) {
     return false;
@@ -57,7 +57,7 @@ bool FrameBuffer::applyNewProperties()
   return applyNewBuffer();
 }
 
-bool FrameBuffer::applyNewBuffer()
+bool ScreenGrabber::applyNewBuffer()
 {
   if (m_buffer != NULL) {
     delete[] m_buffer;
@@ -67,7 +67,7 @@ bool FrameBuffer::applyNewBuffer()
   return (m_buffer != NULL);
 }
 
-bool FrameBuffer::setWorkRectDefault()
+bool ScreenGrabber::setWorkRectDefault()
 {
   // Set m_workRect to full screen by default
   Rect rect;
@@ -80,7 +80,7 @@ bool FrameBuffer::setWorkRectDefault()
   return true;
 }
 
-bool FrameBuffer::grab()
+bool ScreenGrabber::grab()
 {
   Rect fullWork;
   // Set relative co-ordinates

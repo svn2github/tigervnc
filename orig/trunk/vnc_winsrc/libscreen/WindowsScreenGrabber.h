@@ -19,16 +19,16 @@
 //
 // TightVNC homepage on the Web: http://www.tightvnc.com/
 
-#ifndef __WINDOWSFRAMEBUFFER_H__
-#define __WINDOWSFRAMEBUFFER_H__
+#ifndef __WINDOWSSCREENGRABBER_H__
+#define __WINDOWSSCREENGRABBER_H__
 
 #include <windows.h>
 #ifndef CAPTUREBLT
 #define CAPTUREBLT          (DWORD)0x40000000 /* Include layered windows */
 #endif
 
-#include "framebuffer.h"
-#include "rect.h"
+#include "ScreenGrabber.h"
+#include "Rect.h"
 #include "inttypes.h"
 
 //
@@ -40,10 +40,10 @@
   // Usage example:
   //
 
-  FrameBuffer *frameBuffer;
+  ScreenGrabber *frameBuffer;
 
   // Initialisation
-  frameBuffer = new WindowsFrameBuffer;
+  frameBuffer = new WindowsScreenGrabber;
 
   Rect grabRect, workRect;
   workRect.setRect(100, 100, 500, 500);
@@ -64,12 +64,12 @@
   }
 */
 
-class WindowsFrameBuffer :
-  public FrameBuffer
+class WindowsScreenGrabber :
+  public ScreenGrabber
 {
 public:
-  WindowsFrameBuffer(void);
-  virtual ~WindowsFrameBuffer(void);
+  WindowsScreenGrabber(void);
+  virtual ~WindowsScreenGrabber(void);
 
   virtual bool grab(const Rect *rect);
 
@@ -107,4 +107,4 @@ protected:
   HBITMAP m_hbmOld, m_hbmDIB;
 };
 
-#endif // __WINDOWSFRAMEBUFFER_H__
+#endif // __WINDOWSSCREENGRABBER_H__

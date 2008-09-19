@@ -26,7 +26,7 @@ class UpdateDetector
 {
 public:
   UpdateDetector(void);
-  ~UpdateDetector(void);
+  virtual ~UpdateDetector(void);
 };
 
 #endif // __UPDATEDETECTOR_H__

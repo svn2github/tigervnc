@@ -22,11 +22,23 @@
 #ifndef __UPDATEHANDLER_H__
 #define __UPDATEHANDLER_H__
 
+#include "UpdateContainer.h"
+#include "UpdateFilter.h"
+#include "libscreen/WindowsScreenGrabber.h"
+#include "UpdateDetector.h"
+
 class UpdateHandler
 {
 public:
   UpdateHandler(void);
   ~UpdateHandler(void);
+
+private:
+  UpdateContainer *m_updateContainer;
+  UpdateFilter *m_updateFilter;
+  UpdateDetector *m_updateDetector;
+  ScreenGrabber *m_screenGrabber;
+  FrameBuffer *m_frameBuffer;
 };
 
 #endif // __UPDATEHANDLER_H__

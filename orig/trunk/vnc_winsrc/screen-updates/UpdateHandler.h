@@ -26,7 +26,7 @@
 #include "UpdateFilter.h"
 #include "libscreen/WindowsScreenGrabber.h"
 #include "libscreen/FrameBuffer.h"
-#include "UpdateDetector.h"
+#include "Poller.h"
 
 class UpdateHandler
 {

@@ -23,15 +23,11 @@
 #define __UPDATEDETECTOR_H__
 
 #include "UpdateContainer.h"
-#include "libscreen/WindowsScreenGrabber.h"
-#include "libscreen/FrameBuffer.h"
 
 class UpdateDetector
 {
 public:
-  UpdateDetector(UpdateContainer *updateContainer,
-                 ScreenGrabber *screenGrabber,
-                 FrameBuffer *frameBuffer);
+  UpdateDetector(UpdateContainer *updateContainer);
   virtual ~UpdateDetector(void);
 
   void setUpdateContainer(UpdateContainer *updateContainer) { m_updateContainer = updateContainer; }
@@ -39,8 +35,6 @@ public:
 
 private:
   UpdateContainer *m_updateContainer;
-  ScreenGrabber *m_screenGrabber;
-  FrameBuffer *m_frameBuffer;
 };
 
 #endif // __UPDATEDETECTOR_H__

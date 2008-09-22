@@ -27,8 +27,8 @@ UpdateHandler::UpdateHandler(void)
   m_frameBuffer = new FrameBuffer;
   m_updateFilter = new UpdateFilter(m_screenGrabber, m_frameBuffer);
   m_updateContainer = new UpdateContainer(m_updateFilter);
-  m_updateDetector = new UpdateDetector(m_updateContainer, m_screenGrabber,
-                                        m_frameBuffer);
+  m_updateDetector = new Poller(m_updateContainer, m_screenGrabber,
+                                m_frameBuffer);
 }
 
 UpdateHandler::~UpdateHandler(void)

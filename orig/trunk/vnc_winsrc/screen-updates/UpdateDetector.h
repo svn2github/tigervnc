@@ -22,11 +22,19 @@
 #ifndef __UPDATEDETECTOR_H__
 #define __UPDATEDETECTOR_H__
 
+#include "UpdateContainer.h"
+
 class UpdateDetector
 {
 public:
   UpdateDetector(void);
   virtual ~UpdateDetector(void);
+
+  void setUpdateContainer(UpdateContainer *updateContainer) { m_updateContainer = updateContainer; }
+  UpdateContainer *getUpdateContainer() const { return m_updateContainer;}
+
+private:
+  UpdateContainer *m_updateContainer;
 };
 
 #endif // __UPDATEDETECTOR_H__

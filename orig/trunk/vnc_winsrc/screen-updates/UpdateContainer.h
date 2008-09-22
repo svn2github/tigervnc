@@ -22,11 +22,36 @@
 #ifndef __UPDATECONTAINER_H__
 #define __UPDATECONTAINER_H__
 
+#include "Region.h"
+#include "UpdateFilter.h"
+
+typedef struct _tagUpdates
+{
+  rfb::Region copiedRegion;
+  rfb::Region changedRegion;
+  bool screenSizeChanged;
+  bool cursorPosChanged;
+  int copyOffsetX;
+  int copyOffsetY;
+} Updates;
+
 class UpdateContainer
 {
 public:
   UpdateContainer(void);
   ~UpdateContainer(void);
+
+  void addChangedRegion(rfb::Region *changedRegion);
+  void addCopyRegion();
+  void setScreenSizeChanged();
+  void setCursorPosChanged();
+
+  void extract(Updates *output);
+
+private:
+  UpdateFilter *m_updateFilter;
+
+  Updates m_updates;
 };
 
 #endif // __UPDATECONTAINER_H__

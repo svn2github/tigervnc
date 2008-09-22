@@ -28,3 +28,35 @@ UpdateContainer::UpdateContainer(void)
 UpdateContainer::~UpdateContainer(void)
 {
 }
+
+void UpdateContainer::addChangedRegion(rfb::Region *changedRegion)
+{
+  m_updates.changedRegion.assign_union(*changedRegion);
+}
+
+void UpdateContainer::addCopyRegion()
+{
+}
+
+void UpdateContainer::setScreenSizeChanged()
+{
+  m_updates.screenSizeChanged = true;
+}
+
+void UpdateContainer::setCursorPosChanged()
+{
+  m_updates.cursorPosChanged = true;
+}
+
+void UpdateContainer::extract(Updates *output)
+{
+  *output = m_updates;
+
+  // Clear all changes
+  m_updates.changedRegion.clear();
+  m_updates.copiedRegion.clear();
+  m_updates.cursorPosChanged = false;
+  m_updates.screenSizeChanged = false;
+  m_updates.copyOffsetX = 0;
+  m_updates.copyOffsetY = 0;
+}

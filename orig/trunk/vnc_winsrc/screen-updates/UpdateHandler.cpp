@@ -23,8 +23,19 @@
 
 UpdateHandler::UpdateHandler(void)
 {
+  m_screenGrabber = new WindowsScreenGrabber;
+  m_frameBuffer = new FrameBuffer;
+  m_updateFilter = new UpdateFilter(m_screenGrabber, m_frameBuffer);
+  m_updateContainer = new UpdateContainer(m_updateFilter);
+  m_updateDetector = new UpdateDetector(m_updateContainer, m_screenGrabber,
+                                        m_frameBuffer);
 }
 
 UpdateHandler::~UpdateHandler(void)
 {
+  delete m_updateDetector;
+  delete m_updateContainer;
+  delete m_updateFilter;
+  delete m_screenGrabber;
+  delete m_frameBuffer;
 }

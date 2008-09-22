@@ -53,6 +53,7 @@ namespace rfb {
     void setExtentsAndOrderedRects(const ShortRect* extents, int nRects,
                                    const ShortRect* rects);
     void copyFrom(const Region& r);
+    void addRect(const Rect& r);
 
     void assign_intersect(const Region& r);
     void assign_union(const Region& r);

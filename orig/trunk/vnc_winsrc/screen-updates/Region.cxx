@@ -141,6 +141,12 @@ void rfb::Region::setExtentsAndOrderedRects(const ShortRect* extents,
   }
 }
 
+void rfb::Region::addRect(const Rect& r)
+{
+  Region region(r);
+  assign_union(region);
+}
+
 void rfb::Region::copyFrom(const rfb::Region& r) {
   XUnionRegion(r.xrgn, r.xrgn, xrgn);
 }

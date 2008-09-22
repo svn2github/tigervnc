@@ -38,7 +38,7 @@ typedef struct _tagUpdates
 class UpdateContainer
 {
 public:
-  UpdateContainer(void);
+  UpdateContainer(UpdateFilter *updateFilter);
   ~UpdateContainer(void);
 
   void addChangedRegion(rfb::Region *changedRegion);

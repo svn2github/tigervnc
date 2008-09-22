@@ -22,11 +22,19 @@
 #ifndef __UPDATEFILTER_H__
 #define __UPDATEFILTER_H__
 
+#include "libscreen/WindowsScreenGrabber.h"
+#include "libscreen/FrameBuffer.h"
+
 class UpdateFilter
 {
 public:
-  UpdateFilter(void);
+  UpdateFilter(ScreenGrabber *screenGrabber,
+               FrameBuffer *frameBuffer);
   ~UpdateFilter(void);
+
+private:
+  ScreenGrabber *m_screenGrabber;
+  FrameBuffer *m_frameBuffer;
 };
 
 #endif // __UPDATEFILTER_H__

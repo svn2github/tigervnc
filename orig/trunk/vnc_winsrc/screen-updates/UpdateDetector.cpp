@@ -21,7 +21,12 @@
 
 #include "UpdateDetector.h"
 
-UpdateDetector::UpdateDetector(void)
+UpdateDetector::UpdateDetector(UpdateContainer *updateContainer,
+                               ScreenGrabber *screenGrabber,
+                               FrameBuffer *frameBuffer)
+: m_updateContainer(updateContainer),
+m_screenGrabber(screenGrabber),
+m_frameBuffer(frameBuffer)
 {
 }
 

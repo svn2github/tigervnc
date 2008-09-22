@@ -21,7 +21,8 @@
 
 #include "UpdateContainer.h"
 
-UpdateContainer::UpdateContainer(void)
+UpdateContainer::UpdateContainer(UpdateFilter *updateFilter)
+: m_updateFilter(updateFilter)
 {
 }
 

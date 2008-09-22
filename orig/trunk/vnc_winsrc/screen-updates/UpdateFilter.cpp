@@ -21,7 +21,9 @@
 
 #include "UpdateFilter.h"
 
-UpdateFilter::UpdateFilter(void)
+UpdateFilter::UpdateFilter(ScreenGrabber *screenGrabber,
+                           FrameBuffer *frameBuffer)
+: m_screenGrabber(screenGrabber), m_frameBuffer(frameBuffer)
 {
 }
 

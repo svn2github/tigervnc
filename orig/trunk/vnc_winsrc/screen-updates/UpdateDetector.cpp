@@ -23,7 +23,8 @@
 
 UpdateDetector::UpdateDetector(UpdateContainer *updateContainer)
 : m_updateContainer(updateContainer),
-m_terminated(false)
+m_terminated(false),
+m_destroyOnTerminated(true)
 {
 }
 

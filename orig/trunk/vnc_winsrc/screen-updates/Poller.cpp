@@ -44,4 +44,7 @@ void Poller::execute()
     m_updateContainer->addChangedRegion(&region);
     Sleep(100);
   }
+  if (m_destroyOnTerminated) {
+    delete this;
+  }
 }

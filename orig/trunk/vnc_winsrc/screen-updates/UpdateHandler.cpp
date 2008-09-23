@@ -33,7 +33,7 @@ UpdateHandler::UpdateHandler(void)
 
 UpdateHandler::~UpdateHandler(void)
 {
-  delete m_updateDetector;
+  terminate();
   delete m_updateContainer;
   delete m_updateFilter;
   delete m_screenGrabber;

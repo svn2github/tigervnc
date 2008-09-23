@@ -22,7 +22,7 @@
 #ifndef __PIXELFORMAT_H__
 #define __PIXELFORMAT_H__
 
-#include "inttypes.h"
+#include "rfb/inttypes.h"
 
 struct PixelFormat
 {

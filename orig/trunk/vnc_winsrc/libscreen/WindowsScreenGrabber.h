@@ -29,7 +29,7 @@
 
 #include "ScreenGrabber.h"
 #include "Rect.h"
-#include "inttypes.h"
+#include "rfb/inttypes.h"
 
 //
 // An abstract interface for screen grabbing.

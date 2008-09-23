@@ -25,8 +25,10 @@
 #include "Region.h"
 #include "UpdateFilter.h"
 
-typedef struct _tagUpdates
+struct Updates
 {
+  Updates() { clear(); }
+
   rfb::Region copiedRegion;
   rfb::Region changedRegion;
   bool screenSizeChanged;
@@ -34,7 +36,17 @@ typedef struct _tagUpdates
   bool cursorShapeChanged;
   int copyOffsetX;
   int copyOffsetY;
-} Updates;
+
+  void clear() {
+    copiedRegion.clear();
+    changedRegion.clear();
+    screenSizeChanged = false;
+    cursorPosChanged = false;
+    cursorShapeChanged = false;
+    copyOffsetX = 0;
+    copyOffsetY = 0;
+  }
+};
 
 class UpdateContainer
 {

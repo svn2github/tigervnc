@@ -31,9 +31,9 @@ public:
   virtual ~UpdateDetector(void);
 
   void setUpdateContainer(UpdateContainer *updateContainer) { m_updateContainer = updateContainer; }
-  UpdateContainer *getUpdateContainer() const { return m_updateContainer;}
+  UpdateContainer *getUpdateContainer() const { return m_updateContainer; }
 
-private:
+protected:
   UpdateContainer *m_updateContainer;
 };
 

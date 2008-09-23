@@ -34,6 +34,9 @@ public:
   UpdateHandler(void);
   ~UpdateHandler(void);
 
+  virtual void execute();
+  virtual void terminate();
+
 private:
   UpdateContainer *m_updateContainer;
   UpdateFilter *m_updateFilter;

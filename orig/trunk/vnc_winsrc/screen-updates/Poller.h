@@ -35,6 +35,8 @@ public:
          FrameBuffer *frameBuffer);
   virtual ~Poller(void);
 
+  virtual void execute();
+
 private:
   ScreenGrabber *m_screenGrabber;
   FrameBuffer *m_frameBuffer;

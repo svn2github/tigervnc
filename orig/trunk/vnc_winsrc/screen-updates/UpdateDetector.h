@@ -33,8 +33,12 @@ public:
   void setUpdateContainer(UpdateContainer *updateContainer) { m_updateContainer = updateContainer; }
   UpdateContainer *getUpdateContainer() const { return m_updateContainer; }
 
+  virtual void execute() = 0;
+  virtual void terminate() { m_terminated = true; }
+
 protected:
   UpdateContainer *m_updateContainer;
+  bool m_terminated;
 };
 
 #endif // __UPDATEDETECTOR_H__

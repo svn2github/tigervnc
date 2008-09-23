@@ -19,7 +19,9 @@
 //
 // TightVNC homepage on the Web: http://www.tightvnc.com/
 
+#include <windows.h>
 #include "Poller.h"
+#include "Region.h"
 
 Poller::Poller(UpdateContainer *updateContainer,
                ScreenGrabber *screenGrabber,
@@ -32,4 +34,14 @@ m_frameBuffer(frameBuffer)
 
 Poller::~Poller(void)
 {
+}
+
+void Poller::execute()
+{
+  while (!m_terminated) {
+    rfb::Region region;
+    region.addRect(m_screenGrabber->getWorkRect());
+    m_updateContainer->addChangedRegion(&region);
+    Sleep(100);
+  }
 }

@@ -22,7 +22,8 @@
 #include "UpdateDetector.h"
 
 UpdateDetector::UpdateDetector(UpdateContainer *updateContainer)
-: m_updateContainer(updateContainer)
+: m_updateContainer(updateContainer),
+m_terminated(false)
 {
 }
 

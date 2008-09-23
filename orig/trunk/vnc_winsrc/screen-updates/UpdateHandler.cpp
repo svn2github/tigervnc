@@ -39,3 +39,13 @@ UpdateHandler::~UpdateHandler(void)
   delete m_screenGrabber;
   delete m_frameBuffer;
 }
+
+void UpdateHandler::execute()
+{
+  m_updateDetector->execute();
+}
+
+void UpdateHandler::terminate()
+{
+  m_updateDetector->terminate();
+}

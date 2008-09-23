@@ -25,6 +25,7 @@ WindowsScreenGrabber::WindowsScreenGrabber(void)
 : m_destDC(NULL), m_screenDC(NULL), m_hbmDIB(NULL), m_hbmOld(NULL)
 {
   setWorkRectDefault();
+  applyNewProperties();
 }
 
 WindowsScreenGrabber::~WindowsScreenGrabber(void)

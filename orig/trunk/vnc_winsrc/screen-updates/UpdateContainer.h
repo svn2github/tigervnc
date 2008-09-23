@@ -31,6 +31,7 @@ typedef struct _tagUpdates
   rfb::Region changedRegion;
   bool screenSizeChanged;
   bool cursorPosChanged;
+  bool cursorShapeChanged;
   int copyOffsetX;
   int copyOffsetY;
 } Updates;

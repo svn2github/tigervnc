@@ -81,6 +81,8 @@ public:
   virtual bool applyNewPixelFormat();
   virtual bool applyNewProperties();
 
+  virtual bool setWorkRect(const Rect *rect);
+
   struct BMI
   {
     BITMAPINFOHEADER bmiHeader;

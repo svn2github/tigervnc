@@ -35,15 +35,35 @@ WindowsScreenGrabber::~WindowsScreenGrabber(void)
 
 bool WindowsScreenGrabber::applyNewProperties()
 {
-  if (!applyNewPixelFormat() || !applyNewFullScreenRect()) 
+  if (!applyNewPixelFormat() || !applyNewFullScreenRect() || !openDIBSection()) 
+  {
     return false;
+  }
 
-  return openDIBSection();
+  return true;
+}
+
+bool WindowsScreenGrabber::setWorkRect(const Rect *rect)
+{
+  INT32 oldArea = abs(m_frameBuffer.getRect().area());
+
+  m_frameBuffer.setRect(rect, false);
+  m_workRect = m_frameBuffer.getRect();
+
+  if (abs(m_frameBuffer.getRect().area()) > oldArea)
+  {
+    bool result = openDIBSection();
+    m_frameBuffer.setBuffer(m_buffer);
+  }
+
+  return true;
 }
 
 bool WindowsScreenGrabber::openDIBSection()
 {
   closeDIBSection();
+
+  m_frameBuffer.setBuffer(0);
 
   m_screenDC = GetDC(0);
   if (m_screenDC == NULL) {
@@ -80,6 +100,8 @@ bool WindowsScreenGrabber::openDIBSection()
     return false;
   }
   m_hbmOld = (HBITMAP) SelectObject(m_destDC, m_hbmDIB);
+
+  m_frameBuffer.setBuffer(m_buffer);
 
   return true;
 }
@@ -185,7 +207,10 @@ bool WindowsScreenGrabber::applyNewPixelFormat()
     return false;
   }
 
-  return fillPixelFormat(&m_pixelFormat, &bmi);
+  bool result = fillPixelFormat(&m_pixelFormat, &bmi);
+  m_frameBuffer.setPixelFormat(&m_pixelFormat, false);
+
+  return result;
 }
 
 bool WindowsScreenGrabber::applyNewFullScreenRect()

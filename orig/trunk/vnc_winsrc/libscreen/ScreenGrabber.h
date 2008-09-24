@@ -24,6 +24,7 @@
 
 #include "Rect.h"
 #include "PixelFormat.h"
+#include "FrameBuffer.h"
 
 //
 // An abstract interface for screen grabbing.
@@ -103,7 +104,6 @@ public:
 protected:
   virtual bool applyNewFullScreenRect() = 0;
   virtual bool applyNewPixelFormat() = 0;
-  virtual bool applyNewBuffer();
 
   virtual bool setWorkRectDefault();
 
@@ -113,6 +113,8 @@ protected:
   Rect m_fullScreenRect;
   // Coordinates of rectangular work area
   Rect m_workRect;
+
+  FrameBuffer m_frameBuffer;
 };
 
 #endif // __SCREENGRABBER_H__

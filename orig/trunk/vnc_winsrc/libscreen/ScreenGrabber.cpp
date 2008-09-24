@@ -31,21 +31,16 @@ ScreenGrabber::ScreenGrabber(void)
 
 ScreenGrabber::~ScreenGrabber(void)
 {
-  if (m_buffer != NULL) {
-    delete[] m_buffer;
-    m_buffer = NULL;
-  }
 }
 
 bool ScreenGrabber::setWorkRect(const Rect *rect)
 {
-  if (m_workRect.cmpRect(rect)) {
-    return true;
-  }
-
   m_workRect = *rect;
-  
-  return applyNewBuffer();
+
+  bool result = m_frameBuffer.setRect(rect);
+  m_buffer = m_frameBuffer.getBuffer();
+
+  return result;
 }
 
 bool ScreenGrabber::applyNewProperties()
@@ -54,17 +49,7 @@ bool ScreenGrabber::applyNewProperties()
     return false;
   }
 
-  return applyNewBuffer();
-}
-
-bool ScreenGrabber::applyNewBuffer()
-{
-  if (m_buffer != NULL) {
-    delete[] m_buffer;
-  }
-
-  m_buffer = new char[getBufferSize()];
-  return (m_buffer != NULL);
+  return true;
 }
 
 bool ScreenGrabber::setWorkRectDefault()

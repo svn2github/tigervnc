@@ -30,7 +30,7 @@
 class Poller : public UpdateDetector
 {
 public:
-  Poller(UpdateContainer *updateContainer,
+  Poller(UpdateKeeper *updateKeeper,
          ScreenGrabber *screenGrabber,
          FrameBuffer *frameBuffer);
   virtual ~Poller(void);

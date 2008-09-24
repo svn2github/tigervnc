@@ -23,11 +23,12 @@
 #define __UPDATECONTAINER_H__
 
 #include "Region.h"
-#include "UpdateFilter.h"
 
-struct Updates
+class UpdateContainer
 {
-  Updates() { clear(); }
+public:
+  UpdateContainer();
+  ~UpdateContainer();
 
   rfb::Region copiedRegion;
   rfb::Region changedRegion;
@@ -37,34 +38,7 @@ struct Updates
   int copyOffsetX;
   int copyOffsetY;
 
-  void clear() {
-    copiedRegion.clear();
-    changedRegion.clear();
-    screenSizeChanged = false;
-    cursorPosChanged = false;
-    cursorShapeChanged = false;
-    copyOffsetX = 0;
-    copyOffsetY = 0;
-  }
-};
-
-class UpdateContainer
-{
-public:
-  UpdateContainer(UpdateFilter *updateFilter);
-  ~UpdateContainer(void);
-
-  void addChangedRegion(rfb::Region *changedRegion);
-  void addCopyRegion();
-  void setScreenSizeChanged();
-  void setCursorPosChanged();
-
-  void extract(Updates *output);
-
-private:
-  UpdateFilter *m_updateFilter;
-
-  Updates m_updates;
+  void clear();
 };
 
 #endif // __UPDATECONTAINER_H__

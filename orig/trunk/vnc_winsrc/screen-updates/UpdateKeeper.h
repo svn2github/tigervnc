@@ -19,33 +19,30 @@
 //
 // TightVNC homepage on the Web: http://www.tightvnc.com/
 
-#include "UpdateHandler.h"
+#ifndef __UPDATEKEEPER_H__
+#define __UPDATEKEEPER_H__
 
-UpdateHandler::UpdateHandler(void)
-{
-  m_screenGrabber = new WindowsScreenGrabber;
-  m_frameBuffer = new FrameBuffer;
-  m_updateFilter = new UpdateFilter(m_screenGrabber, m_frameBuffer);
-  m_updateKeeper = new UpdateKeeper(m_updateFilter);
-  m_updateDetector = new Poller(m_updateKeeper, m_screenGrabber,
-                                m_frameBuffer);
-}
+#include "Region.h"
+#include "UpdateFilter.h"
+#include "UpdateContainer.h"
 
-UpdateHandler::~UpdateHandler(void)
+class UpdateKeeper
 {
-  terminate();
-  delete m_updateKeeper;
-  delete m_updateFilter;
-  delete m_screenGrabber;
-  delete m_frameBuffer;
-}
+public:
+  UpdateKeeper(UpdateFilter *updateFilter);
+  ~UpdateKeeper(void);
 
-void UpdateHandler::execute()
-{
-  m_updateDetector->execute();
-}
+  void addChangedRegion(rfb::Region *changedRegion);
+  void addCopyRegion();
+  void setScreenSizeChanged();
+  void setCursorPosChanged();
 
-void UpdateHandler::terminate()
-{
-  m_updateDetector->terminate();
-}
+  void extract(UpdateContainer *updateContainer);
+
+private:
+  UpdateFilter *m_updateFilter;
+
+  UpdateContainer m_updateContainer;
+};
+
+#endif // __UPDATEKEEPER_H__

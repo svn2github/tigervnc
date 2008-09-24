@@ -23,10 +23,10 @@
 #include "Poller.h"
 #include "Region.h"
 
-Poller::Poller(UpdateContainer *updateContainer,
+Poller::Poller(UpdateKeeper *updateKeeper,
                ScreenGrabber *screenGrabber,
                FrameBuffer *frameBuffer)
-: UpdateDetector(updateContainer),
+: UpdateDetector(updateKeeper),
 m_screenGrabber(screenGrabber),
 m_frameBuffer(frameBuffer)
 {
@@ -41,7 +41,7 @@ void Poller::execute()
   while (!m_terminated) {
     rfb::Region region;
     region.addRect(m_screenGrabber->getWorkRect());
-    m_updateContainer->addChangedRegion(&region);
+    m_updateKeeper->addChangedRegion(&region);
     Sleep(100);
   }
   if (m_destroyOnTerminated) {

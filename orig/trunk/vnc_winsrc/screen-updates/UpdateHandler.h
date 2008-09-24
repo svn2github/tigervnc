@@ -23,6 +23,7 @@
 #define __UPDATEHANDLER_H__
 
 #include "UpdateContainer.h"
+#include "UpdateKeeper.h"
 #include "UpdateFilter.h"
 #include "libscreen/WindowsScreenGrabber.h"
 #include "libscreen/FrameBuffer.h"
@@ -38,11 +39,13 @@ public:
   virtual void terminate();
 
 private:
-  UpdateContainer *m_updateContainer;
+  UpdateKeeper *m_updateKeeper;
   UpdateFilter *m_updateFilter;
   UpdateDetector *m_updateDetector;
   ScreenGrabber *m_screenGrabber;
   FrameBuffer *m_frameBuffer;
+
+  UpdateContainer m_updateContainer;
 };
 
 #endif // __UPDATEHANDLER_H__

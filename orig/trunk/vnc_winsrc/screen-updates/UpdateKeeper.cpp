@@ -19,33 +19,45 @@
 //
 // TightVNC homepage on the Web: http://www.tightvnc.com/
 
-#include "UpdateHandler.h"
+#include "UpdateKeeper.h"
 
-UpdateHandler::UpdateHandler(void)
+UpdateKeeper::UpdateKeeper(UpdateFilter *updateFilter)
+: m_updateFilter(updateFilter)
 {
-  m_screenGrabber = new WindowsScreenGrabber;
-  m_frameBuffer = new FrameBuffer;
-  m_updateFilter = new UpdateFilter(m_screenGrabber, m_frameBuffer);
-  m_updateKeeper = new UpdateKeeper(m_updateFilter);
-  m_updateDetector = new Poller(m_updateKeeper, m_screenGrabber,
-                                m_frameBuffer);
 }
 
-UpdateHandler::~UpdateHandler(void)
+UpdateKeeper::~UpdateKeeper(void)
 {
-  terminate();
-  delete m_updateKeeper;
-  delete m_updateFilter;
-  delete m_screenGrabber;
-  delete m_frameBuffer;
 }
 
-void UpdateHandler::execute()
+void UpdateKeeper::addChangedRegion(rfb::Region *changedRegion)
 {
-  m_updateDetector->execute();
+  m_updateContainer.changedRegion.assign_union(*changedRegion);
 }
 
-void UpdateHandler::terminate()
+void UpdateKeeper::addCopyRegion()
 {
-  m_updateDetector->terminate();
+}
+
+void UpdateKeeper::setScreenSizeChanged()
+{
+  m_updateContainer.screenSizeChanged = true;
+}
+
+void UpdateKeeper::setCursorPosChanged()
+{
+  m_updateContainer.cursorPosChanged = true;
+}
+
+void UpdateKeeper::extract(UpdateContainer *updateContainer)
+{
+  *updateContainer = m_updateContainer;
+
+  // Clear all changes
+  m_updateContainer.changedRegion.clear();
+  m_updateContainer.copiedRegion.clear();
+  m_updateContainer.cursorPosChanged = false;
+  m_updateContainer.screenSizeChanged = false;
+  m_updateContainer.copyOffsetX = 0;
+  m_updateContainer.copyOffsetY = 0;
 }

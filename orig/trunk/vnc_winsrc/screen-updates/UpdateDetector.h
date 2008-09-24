@@ -22,16 +22,16 @@
 #ifndef __UPDATEDETECTOR_H__
 #define __UPDATEDETECTOR_H__
 
-#include "UpdateContainer.h"
+#include "UpdateKeeper.h"
 
 class UpdateDetector
 {
 public:
-  UpdateDetector(UpdateContainer *updateContainer);
+  UpdateDetector(UpdateKeeper *updateKeeper);
   virtual ~UpdateDetector(void);
 
-  void setUpdateContainer(UpdateContainer *updateContainer) { m_updateContainer = updateContainer; }
-  UpdateContainer *getUpdateContainer() const { return m_updateContainer; }
+  void setUpdateKeeper(UpdateKeeper *updateKeeper) { m_updateKeeper = updateKeeper; }
+  UpdateKeeper *getUpdateKeeper() const { return m_updateKeeper; }
 
   void setDestroyOnTerminated(bool value) { m_destroyOnTerminated = value; }
   bool getDestroyOnTerminated() { return m_destroyOnTerminated; }
@@ -40,7 +40,7 @@ public:
   virtual void terminate() { m_terminated = true; }
 
 protected:
-  UpdateContainer *m_updateContainer;
+  UpdateKeeper *m_updateKeeper;
 
   bool m_terminated;
   bool m_destroyOnTerminated;

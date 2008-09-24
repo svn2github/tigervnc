@@ -40,6 +40,15 @@ UpdateHandler::~UpdateHandler(void)
   delete m_frameBuffer;
 }
 
+void UpdateHandler::extract(UpdateContainer *updateContainer)
+{
+  m_updateKeeper->extract(&m_updateContainer);
+
+  // FIXME: There should be a filtering of region
+
+  *updateContainer = m_updateContainer;
+}
+
 void UpdateHandler::execute()
 {
   m_updateDetector->execute();

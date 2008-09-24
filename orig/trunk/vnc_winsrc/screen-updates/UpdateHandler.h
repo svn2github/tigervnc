@@ -35,6 +35,8 @@ public:
   UpdateHandler(void);
   ~UpdateHandler(void);
 
+  void extract(UpdateContainer *updateContainer);
+
   virtual void execute();
   virtual void terminate();
 

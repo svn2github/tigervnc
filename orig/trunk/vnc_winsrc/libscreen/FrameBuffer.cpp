@@ -20,10 +20,12 @@
 // TightVNC homepage on the Web: http://www.tightvnc.com/
 
 #include "FrameBuffer.h"
+#include <string.h>
 
 FrameBuffer::FrameBuffer(void)
 : m_buffer(0)
 {
+  memset(&m_pixelFormat, 0, sizeof(m_pixelFormat));
 }
 
 FrameBuffer::~FrameBuffer(void)
@@ -43,9 +45,12 @@ bool FrameBuffer::setPixelFormat(const PixelFormat *pixelFormat, bool resizeBuff
 
 bool FrameBuffer::setRect(const Rect *newRect, bool resizeBuff)
 {
+  UINT32 newArea = newRect->area();
+  UINT32 oldArea = m_rect.area();
+
   m_rect = *newRect;
 
-  if (resizeBuff)
+  if (resizeBuff && (newArea != oldArea))
   {
     return resizeBuffer();
   }

@@ -38,6 +38,8 @@ public:
   bool setPixelFormat(const PixelFormat *pixelFormat, bool resizeBuff);
   inline PixelFormat getPixelFormat() { return m_pixelFormat; }
 
+  void setBuffer(void *newBuffer) { m_buffer = newBuffer; }
+  inline virtual void *getBuffer() const { return m_buffer; }
   inline virtual int getBufferSize();
 
 protected:

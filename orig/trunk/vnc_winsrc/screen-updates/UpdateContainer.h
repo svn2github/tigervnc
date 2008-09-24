@@ -30,6 +30,9 @@ public:
   UpdateContainer();
   ~UpdateContainer();
 
+  UpdateContainer(const UpdateContainer& updateContainer) { *this = updateContainer; }
+  UpdateContainer &operator=(const UpdateContainer& src);
+
   rfb::Region copiedRegion;
   rfb::Region changedRegion;
   bool screenSizeChanged;

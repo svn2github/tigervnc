@@ -40,3 +40,18 @@ void UpdateContainer::clear()
   copyOffsetX = 0;
   copyOffsetY = 0;
 }
+
+UpdateContainer& UpdateContainer::operator=(const UpdateContainer& src)
+{
+  clear();
+
+  copiedRegion        = src.copiedRegion;
+  changedRegion       = src.changedRegion;
+  screenSizeChanged   = src.screenSizeChanged;
+  cursorPosChanged    = src.cursorPosChanged;
+  cursorShapeChanged  = src.cursorShapeChanged;
+  copyOffsetX         = src.copyOffsetX;
+  copyOffsetY         = src.copyOffsetY;
+
+  return *this;
+}

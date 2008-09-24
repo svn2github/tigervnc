@@ -22,11 +22,31 @@
 #ifndef __FRAMEBUFFER_H__
 #define __FRAMEBUFFER_H__
 
+#include "rfb/inttypes.h"
+#include "Rect.h"
+#include "PixelFormat.h"
+
 class FrameBuffer
 {
 public:
   FrameBuffer(void);
-  ~FrameBuffer(void);
+  virtual ~FrameBuffer(void);
+
+  bool setRect(const Rect *newRect, bool resizeBuff = true);
+  inline Rect getRect() { return m_rect; }
+
+  bool setPixelFormat(const PixelFormat *pixelFormat, bool resizeBuff);
+  inline PixelFormat getPixelFormat() { return m_pixelFormat; }
+
+  inline virtual int getBufferSize();
+
+protected:
+  bool resizeBuffer();
+
+  Rect m_rect;
+
+  PixelFormat m_pixelFormat;
+  void *m_buffer;
 };
 
 #endif // __FRAMEBUFFER_H__

@@ -22,9 +22,48 @@
 #include "FrameBuffer.h"
 
 FrameBuffer::FrameBuffer(void)
+: m_buffer(0)
 {
 }
 
 FrameBuffer::~FrameBuffer(void)
 {
+}
+
+bool FrameBuffer::setPixelFormat(const PixelFormat *pixelFormat, bool resizeBuff)
+{
+  m_pixelFormat = *pixelFormat;
+
+  if (resizeBuff)
+  {
+    return resizeBuffer();
+  }
+  return true;
+}
+
+bool FrameBuffer::setRect(const Rect *newRect, bool resizeBuff)
+{
+  m_rect = *newRect;
+
+  if (resizeBuff)
+  {
+    return resizeBuffer();
+  }
+  return true;
+}
+
+int FrameBuffer::getBufferSize()
+{ 
+  return (m_rect.getWidth() * m_rect.getHeight() * m_pixelFormat.bitsPerPixel) / 8;
+}
+
+bool FrameBuffer::resizeBuffer()
+{
+  if (m_buffer != 0) {
+    delete []m_buffer;
+  }
+  if ((m_buffer = new UINT8[getBufferSize()]) == 0) {
+    return false;
+  }
+  return true;
 }

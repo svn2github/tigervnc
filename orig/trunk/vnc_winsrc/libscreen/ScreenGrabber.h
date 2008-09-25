@@ -71,6 +71,7 @@ public:
   */
   virtual bool grab(const Rect *rect = 0) = 0;
 
+  virtual FrameBuffer *getScreenBuffer() { return &m_workFrameBuffer; }
   /* Provides read access to rectangular coordinates of the screen (desktop).*/
   virtual Rect getScreenRect() { return m_fullScreenRect; }
 

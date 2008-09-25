@@ -28,7 +28,7 @@ Poller::Poller(UpdateKeeper *updateKeeper,
                FrameBuffer *backupFrameBuffer)
 : UpdateDetector(updateKeeper),
 m_screenGrabber(screenGrabber),
-m_userBuffer(backupFrameBuffer)
+m_backupFrameBuffer(backupFrameBuffer)
 {
   m_pollingRect.setRect(0, 0, 16, 16);
 }
@@ -45,7 +45,7 @@ void Poller::execute()
     rfb::Region region;
 
     screenFrameBuffer = m_screenGrabber->getScreenBuffer();
-    if (!screenFrameBuffer->cmp(m_userBuffer)) {
+    if (!screenFrameBuffer->cmp(m_backupFrameBuffer)) {
       m_updateKeeper->setScreenSizeChanged();
       continue;
     }
@@ -63,7 +63,7 @@ void Poller::execute()
       for (int iCol = 0; iCol < screenWidth; iCol += pollingWidth) {
         scanRect.setRect(iCol, iRow, min(iCol + pollingWidth, screenWidth),
                          min(iRow + pollingHeight, screenHeight));
-        if (!cmpFrameBuff(&scanRect, screenFrameBuffer, m_userBuffer)) {
+        if (!cmpFrameBuff(&scanRect, screenFrameBuffer, m_backupFrameBuffer)) {
           region.addRect(scanRect);
         }
       }
@@ -80,8 +80,8 @@ void Poller::execute()
 
 bool Poller::cmpFrameBuff(Rect *rect, const FrameBuffer *fb1, const FrameBuffer *fb2)
 {
-  UINT32 pixelSize = m_userBuffer->getPixelFormat().bitsPerPixel / 8;
-  UINT32 strike = m_userBuffer->getRect().getWidth();
+  UINT32 pixelSize = m_backupFrameBuffer->getPixelFormat().bitsPerPixel / 8;
+  UINT32 strike = m_backupFrameBuffer->getRect().getWidth();
   UINT32 pLine = (rect->top * strike + rect->left) * pixelSize;
   UINT8 *buf1 = (UINT8 *)fb1->getBuffer();
   UINT8 *buf2 = (UINT8 *)fb2->getBuffer();

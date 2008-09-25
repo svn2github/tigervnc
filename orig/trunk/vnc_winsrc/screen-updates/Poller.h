@@ -41,7 +41,7 @@ private:
   bool cmpFrameBuff(Rect *rect, const FrameBuffer *fb1, const FrameBuffer *fb2);
 
   ScreenGrabber *m_screenGrabber;
-  FrameBuffer *m_userBuffer;
+  FrameBuffer *m_backupFrameBuffer;
   Rect m_pollingRect;
 };
 

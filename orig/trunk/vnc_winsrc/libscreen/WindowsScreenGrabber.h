@@ -81,8 +81,6 @@ public:
   virtual bool applyNewPixelFormat();
   virtual bool applyNewProperties();
 
-  virtual bool setWorkRect(const Rect *rect);
-
   struct BMI
   {
     BITMAPINFOHEADER bmiHeader;
@@ -94,19 +92,20 @@ public:
   bool getBMI(BMI *bmi);
 
 protected:
-  virtual bool applyNewBuffer() { return openDIBSection(); } // Overriding
-
   virtual bool openDIBSection();
   virtual bool closeDIBSection();
   virtual bool grabByDIBSection(const Rect *rect);
-  virtual bool fillPixelFormat(PixelFormat *pixelFormat, const BMI *bmi);
+  static bool fillPixelFormat(PixelFormat *pixelFormat, const BMI *bmi);
 
-  // Find position of first bit = 1
-  inline int findFirstBit(const UINT32 bits);
+  // Find position of first true bit
+  static inline int findFirstBit(const UINT32 bits);
 
   // Windows specific variebles
   HDC m_destDC, m_screenDC;
   HBITMAP m_hbmOld, m_hbmDIB;
+
+private:
+  Rect m_dibSectionRect;
 };
 
 #endif // __WINDOWSSCREENGRABBER_H__

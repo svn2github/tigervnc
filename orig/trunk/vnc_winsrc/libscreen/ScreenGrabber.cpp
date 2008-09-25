@@ -24,23 +24,11 @@
 #include <memory.h>
 
 ScreenGrabber::ScreenGrabber(void)
-: m_buffer(NULL)
 {
-  memset(&m_pixelFormat, 0, sizeof(m_pixelFormat));
 }
 
 ScreenGrabber::~ScreenGrabber(void)
 {
-}
-
-bool ScreenGrabber::setWorkRect(const Rect *rect)
-{
-  m_workRect = *rect;
-
-  bool result = m_frameBuffer.setRect(rect);
-  m_buffer = m_frameBuffer.getBuffer();
-
-  return result;
 }
 
 bool ScreenGrabber::applyNewProperties()
@@ -54,25 +42,11 @@ bool ScreenGrabber::applyNewProperties()
 
 bool ScreenGrabber::setWorkRectDefault()
 {
-  // Set m_workRect to full screen by default
-  Rect rect;
+  // Set workRect to full screen by default
   if (!applyNewFullScreenRect()) {
     return false;
   }
 
-  getScreenRect(&rect);
-  setWorkRect(&rect);
+  m_workFrameBuffer.setRect(&m_fullScreenRect, false);
   return true;
-}
-
-bool ScreenGrabber::grab()
-{
-  Rect fullWork;
-  // Set relative co-ordinates
-  fullWork.left = 0; 
-  fullWork.top = 0; 
-  fullWork.setWidth(m_workRect.getWidth());
-  fullWork.setHeight(m_workRect.getHeight());
-
-  return grab(&fullWork);
 }

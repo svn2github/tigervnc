@@ -69,35 +69,17 @@ public:
   Parameters:     *rect - Pointer to a Rect object with relative workRect coordinates.
   Return value:   true if success.
   */
-  virtual bool grab(const Rect *rect) = 0;
-  virtual bool grab();
+  virtual bool grab(const Rect *rect = 0) = 0;
 
-  /* Esteblish rectangular work area.
-  Parameters:     *rect - Pointer to a Rect object.
-  Return value:   true if success.
-  */
-  virtual bool setWorkRect(const Rect *rect);
-
-  /* Provides read access to the workRect.*/
-  virtual void getWorkRect(Rect *rect)                  const { *rect = m_workRect; }
-  virtual Rect getWorkRect()                            const { return m_workRect; }
-  /* Provides read access to the pixelFormat.*/
-  virtual void getPixelFormat(PixelFormat *pixelFormat) const { *pixelFormat = m_pixelFormat; }
   /* Provides read access to rectangular coordinates of the screen (desktop).*/
-  virtual void getScreenRect(Rect *rect)                const { *rect = m_fullScreenRect; }
-  /* Returns pointer to the m_buffer*/
-  virtual void *getBuffer()                             const { return m_buffer; }
-  virtual int getBufferSize()
-  { 
-    return (m_workRect.getWidth() * m_workRect.getHeight() * m_pixelFormat.bitsPerPixel) / 8;
-  }
+  virtual Rect getScreenRect() { return m_fullScreenRect; }
 
   // Checks screen(desktop) properties on changes
   inline virtual bool getPropertiesChanged() = 0;
   inline virtual bool getPixelFormatChanged() = 0;
   inline virtual bool getScreenSizeChanged() = 0;
 
-  /* Set new values of m_buffer, m_pixelFormat and m_fullScreenRect 
+  /* Set new values of m_workFrameBuffer and m_fullScreenRect 
   if properties of the screen is changed*/
   virtual bool applyNewProperties();
 
@@ -107,14 +89,9 @@ protected:
 
   virtual bool setWorkRectDefault();
 
-  // Pointer to the workRect bitmap data
-  void *m_buffer;
-  PixelFormat m_pixelFormat;
   Rect m_fullScreenRect;
-  // Coordinates of rectangular work area
-  Rect m_workRect;
 
-  FrameBuffer m_frameBuffer;
+  FrameBuffer m_workFrameBuffer;
 };
 
 #endif // __SCREENGRABBER_H__

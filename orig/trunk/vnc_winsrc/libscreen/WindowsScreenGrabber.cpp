@@ -43,27 +43,11 @@ bool WindowsScreenGrabber::applyNewProperties()
   return true;
 }
 
-bool WindowsScreenGrabber::setWorkRect(const Rect *rect)
-{
-  INT32 oldArea = abs(m_frameBuffer.getRect().area());
-
-  m_frameBuffer.setRect(rect, false);
-  m_workRect = m_frameBuffer.getRect();
-
-  if (abs(m_frameBuffer.getRect().area()) > oldArea)
-  {
-    bool result = openDIBSection();
-    m_frameBuffer.setBuffer(m_buffer);
-  }
-
-  return true;
-}
-
 bool WindowsScreenGrabber::openDIBSection()
 {
   closeDIBSection();
 
-  m_frameBuffer.setBuffer(0);
+  m_workFrameBuffer.setBuffer(0);
 
   m_screenDC = GetDC(0);
   if (m_screenDC == NULL) {
@@ -79,13 +63,16 @@ bool WindowsScreenGrabber::openDIBSection()
     return false;
   }
 
-  bmi.bmiHeader.biBitCount = m_pixelFormat.bitsPerPixel;
-  bmi.bmiHeader.biWidth = m_workRect.getWidth();
-  bmi.bmiHeader.biHeight = -m_workRect.getHeight();
+  PixelFormat pixelFormat = m_workFrameBuffer.getPixelFormat();
+  Rect workRect = m_workFrameBuffer.getRect();
+
+  bmi.bmiHeader.biBitCount = pixelFormat.bitsPerPixel;
+  bmi.bmiHeader.biWidth = workRect.getWidth();
+  bmi.bmiHeader.biHeight = -workRect.getHeight();
   bmi.bmiHeader.biCompression = BI_BITFIELDS;
-  bmi.red   = m_pixelFormat.redMax   << m_pixelFormat.redShift;
-  bmi.green = m_pixelFormat.greenMax << m_pixelFormat.greenShift;
-  bmi.blue  = m_pixelFormat.blueMax  << m_pixelFormat.blueShift;
+  bmi.red   = pixelFormat.redMax   << pixelFormat.redShift;
+  bmi.green = pixelFormat.greenMax << pixelFormat.greenShift;
+  bmi.blue  = pixelFormat.blueMax  << pixelFormat.blueShift;
 
   m_destDC = CreateCompatibleDC(NULL);
   if (m_destDC == NULL) {
@@ -93,15 +80,17 @@ bool WindowsScreenGrabber::openDIBSection()
     return false;
   }
 
-  m_hbmDIB = CreateDIBSection(m_destDC, (BITMAPINFO *) &bmi, DIB_RGB_COLORS, &m_buffer, NULL, NULL);
+  void *buffer;
+  m_hbmDIB = CreateDIBSection(m_destDC, (BITMAPINFO *) &bmi, DIB_RGB_COLORS, &buffer, NULL, NULL);
   if (m_hbmDIB == 0) {
     DeleteDC(m_destDC);
     DeleteDC(m_screenDC);
     return false;
   }
-  m_hbmOld = (HBITMAP) SelectObject(m_destDC, m_hbmDIB);
+  m_workFrameBuffer.setBuffer(buffer);
+  m_dibSectionRect = workRect;
 
-  m_frameBuffer.setBuffer(m_buffer);
+  m_hbmOld = (HBITMAP) SelectObject(m_destDC, m_hbmDIB);
 
   return true;
 }
@@ -120,7 +109,7 @@ bool WindowsScreenGrabber::closeDIBSection()
   DeleteDC(m_screenDC);
   m_screenDC = NULL;
 
-  m_buffer = NULL;
+  m_workFrameBuffer.setBuffer(NULL);;
   return true;
 }
 
@@ -141,10 +130,11 @@ bool WindowsScreenGrabber::getPixelFormatChanged()
     return false;
   }
 
-  PixelFormat pixelFormat;
-  fillPixelFormat(&pixelFormat, &bmi);
+  PixelFormat currentPF;
+  PixelFormat frameBufferPF = m_workFrameBuffer.getPixelFormat();
+  fillPixelFormat(&currentPF, &bmi);
 
-  if (memcmp(&m_pixelFormat, &pixelFormat, sizeof(PixelFormat))) {
+  if (memcmp(&frameBufferPF, &currentPF, sizeof(PixelFormat))) {
     return true;
   }
 
@@ -207,8 +197,9 @@ bool WindowsScreenGrabber::applyNewPixelFormat()
     return false;
   }
 
-  bool result = fillPixelFormat(&m_pixelFormat, &bmi);
-  m_frameBuffer.setPixelFormat(&m_pixelFormat, false);
+  PixelFormat pixelFormat;
+  bool result = fillPixelFormat(&pixelFormat, &bmi);
+  m_workFrameBuffer.setPixelFormat(&pixelFormat, false);
 
   return result;
 }
@@ -230,7 +221,18 @@ bool WindowsScreenGrabber::applyNewFullScreenRect()
 
 bool WindowsScreenGrabber::grab(const Rect *rect)
 {
-  return grabByDIBSection(rect);;
+  if (rect != NULL) {
+    return grabByDIBSection(rect);
+  }
+
+  Rect grabRect, workRect = m_workFrameBuffer.getRect();
+  // Set relative co-ordinates
+  grabRect.left = 0;
+  grabRect.top = 0;
+  grabRect.setWidth(workRect.getWidth());
+  grabRect.setHeight(workRect.getHeight());
+
+  return grabByDIBSection(&grabRect);
 }
 
 bool WindowsScreenGrabber::grabByDIBSection(const Rect *rect)
@@ -239,8 +241,16 @@ bool WindowsScreenGrabber::grabByDIBSection(const Rect *rect)
     return false;
   }
 
+  Rect workRect = m_workFrameBuffer.getRect();
+  if (workRect.getWidth() != m_dibSectionRect.getWidth() ||
+      workRect.getHeight() != m_dibSectionRect.getHeight()) {
+    if (!openDIBSection()) {
+      return false;
+    }
+  }
+
   if (BitBlt(m_destDC, rect->left, rect->top, rect->getWidth(), rect->getHeight(), 
-             m_screenDC, rect->left + m_workRect.left, rect->top + m_workRect.top, SRCCOPY | CAPTUREBLT) == 0) {
+             m_screenDC, rect->left + workRect.left, rect->top + workRect.top, SRCCOPY | CAPTUREBLT) == 0) {
     return false;
   }
 

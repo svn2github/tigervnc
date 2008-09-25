@@ -32,6 +32,8 @@ public:
   FrameBuffer(void);
   virtual ~FrameBuffer(void);
 
+  bool cmp(FrameBuffer *frameBuffer);
+
   bool setRect(const Rect *newRect, bool resizeBuff = true);
   inline Rect getRect() { return m_rect; }
 

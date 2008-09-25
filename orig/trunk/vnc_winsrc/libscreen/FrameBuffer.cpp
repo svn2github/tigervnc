@@ -32,6 +32,12 @@ FrameBuffer::~FrameBuffer(void)
 {
 }
 
+bool FrameBuffer::cmp(FrameBuffer *frameBuffer)
+{
+  return (m_rect.cmpRect(&(frameBuffer->getRect()))) && 
+         memcmp(&m_pixelFormat, &(frameBuffer->getPixelFormat()), sizeof(PixelFormat));
+}
+
 bool FrameBuffer::setPixelFormat(const PixelFormat *pixelFormat, bool resizeBuff)
 {
   m_pixelFormat = *pixelFormat;

@@ -25,21 +25,24 @@
 #include "UpdateDetector.h"
 #include "libscreen/WindowsScreenGrabber.h"
 #include "libscreen/FrameBuffer.h"
-
+#include "libscreen/Rect.h"
 
 class Poller : public UpdateDetector
 {
 public:
   Poller(UpdateKeeper *updateKeeper,
          ScreenGrabber *screenGrabber,
-         FrameBuffer *frameBuffer);
+         FrameBuffer *backupFrameBuffer);
   virtual ~Poller(void);
 
   virtual void execute();
 
 private:
+  bool cmpFrameBuff(Rect *rect, const FrameBuffer *fb1, const FrameBuffer *fb2);
+
   ScreenGrabber *m_screenGrabber;
-  FrameBuffer *m_frameBuffer;
+  FrameBuffer *m_userBuffer;
+  Rect m_pollingRect;
 };
 
 #endif // __POLLER_H__

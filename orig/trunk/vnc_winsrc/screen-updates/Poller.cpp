@@ -25,11 +25,12 @@
 
 Poller::Poller(UpdateKeeper *updateKeeper,
                ScreenGrabber *screenGrabber,
-               FrameBuffer *frameBuffer)
+               FrameBuffer *backupFrameBuffer)
 : UpdateDetector(updateKeeper),
 m_screenGrabber(screenGrabber),
-m_frameBuffer(frameBuffer)
+m_userBuffer(backupFrameBuffer)
 {
+  m_pollingRect.setRect(0, 0, 16, 16);
 }
 
 Poller::~Poller(void)
@@ -38,13 +39,57 @@ Poller::~Poller(void)
 
 void Poller::execute()
 {
+  FrameBuffer *screenFrameBuffer;
+
   while (!m_terminated) {
     rfb::Region region;
-    region.addRect(m_screenGrabber->getWorkRect());
+
+    screenFrameBuffer = m_screenGrabber->getScreenBuffer();
+    if (!screenFrameBuffer->cmp(m_userBuffer)) {
+      m_updateKeeper->setScreenSizeChanged();
+      continue;
+    }
+
+    m_screenGrabber->grab();
+
+    // Polling
+    int pollingWidth = m_pollingRect.getWidth();
+    int pollingHeight = m_pollingRect.getHeight();
+    int screenWidth = screenFrameBuffer->getRect().getWidth();
+    int screenHeight = screenFrameBuffer->getRect().getHeight();
+
+    Rect scanRect;
+    for (int iRow = 0; iRow < screenHeight; iRow += pollingHeight) {
+      for (int iCol = 0; iCol < screenWidth; iCol += pollingWidth) {
+        scanRect.setRect(iCol, iRow, min(iCol + pollingWidth, screenWidth),
+                         min(iRow + pollingHeight, screenHeight));
+        if (!cmpFrameBuff(&scanRect, screenFrameBuffer, m_userBuffer)) {
+          region.addRect(scanRect);
+        }
+      }
+    }
+
     m_updateKeeper->addChangedRegion(&region);
     Sleep(100);
   }
+
   if (m_destroyOnTerminated) {
     delete this;
   }
+}
+
+bool Poller::cmpFrameBuff(Rect *rect, const FrameBuffer *fb1, const FrameBuffer *fb2)
+{
+  UINT32 pixelSize = m_userBuffer->getPixelFormat().bitsPerPixel / 8;
+  UINT32 strike = m_userBuffer->getRect().getWidth();
+  UINT32 pLine = (rect->top * strike + rect->left) * pixelSize;
+  UINT8 *buf1 = (UINT8 *)fb1->getBuffer();
+  UINT8 *buf2 = (UINT8 *)fb2->getBuffer();
+
+  for (int i = 0; i < rect->getHeight(); pLine += strike, i++) {
+    if (!memcmp(buf1 + pLine, buf2 + pLine, pixelSize * rect->getWidth())) {
+      return false;
+    }
+  }
+  return true;
 }

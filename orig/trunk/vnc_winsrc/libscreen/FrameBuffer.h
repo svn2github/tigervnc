@@ -38,9 +38,9 @@ public:
   bool setDimension(const Rect *rect, bool resizeBuff = true)
   {
     Dimension dim(rect);
-    setDimension(&dim, resizeBuff);
+    return setDimension(&dim, resizeBuff);
   }
-  inline Dimension getDimension() { return m_dimension; }
+  inline Dimension getDimension() const { return m_dimension; }
 
   bool setPixelFormat(const PixelFormat *pixelFormat, bool resizeBuff);
   inline PixelFormat getPixelFormat() { return m_pixelFormat; }

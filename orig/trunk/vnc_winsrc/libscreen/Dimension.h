@@ -31,7 +31,7 @@ public:
   Dimension(const int w, const int h) : width(w), height(h) {}
   Dimension(const Rect *r) { width = r->getWidth(); height = r->getHeight(); }
 
-  virtual ~Dimension(void);
+  virtual ~Dimension(void) {}
 
   Rect getRect() { Rect r(width, height);
                    return r;

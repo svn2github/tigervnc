@@ -23,7 +23,7 @@
 #define __FRAMEBUFFER_H__
 
 #include "rfb/inttypes.h"
-#include "Rect.h"
+#include "Dimension.h"
 #include "PixelFormat.h"
 
 class FrameBuffer
@@ -34,8 +34,8 @@ public:
 
   bool cmp(FrameBuffer *frameBuffer);
 
-  bool setRect(const Rect *newRect, bool resizeBuff = true);
-  inline Rect getRect() { return m_rect; }
+  bool setDimension(const Dimension *newDim, bool resizeBuff = true);
+  inline Dimension getDimension() { return m_dimension; }
 
   bool setPixelFormat(const PixelFormat *pixelFormat, bool resizeBuff);
   inline PixelFormat getPixelFormat() { return m_pixelFormat; }
@@ -47,7 +47,7 @@ public:
 protected:
   bool resizeBuffer();
 
-  Rect m_rect;
+  Dimension m_dimension;
 
   PixelFormat m_pixelFormat;
   void *m_buffer;

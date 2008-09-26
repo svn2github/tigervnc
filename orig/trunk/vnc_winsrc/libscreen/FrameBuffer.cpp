@@ -34,8 +34,9 @@ FrameBuffer::~FrameBuffer(void)
 
 bool FrameBuffer::cmp(FrameBuffer *frameBuffer)
 {
-  return (m_rect.cmpRect(&(frameBuffer->getRect()))) && 
-          memcmp(&m_pixelFormat, &(frameBuffer->getPixelFormat()), sizeof(PixelFormat));
+  return m_dimension.cmpDim(&(frameBuffer->getDimension())) &&
+         memcmp(&m_pixelFormat, &(frameBuffer->getPixelFormat()),
+         sizeof(PixelFormat));
 }
 
 bool FrameBuffer::setPixelFormat(const PixelFormat *pixelFormat, bool resizeBuff)
@@ -49,12 +50,12 @@ bool FrameBuffer::setPixelFormat(const PixelFormat *pixelFormat, bool resizeBuff
   return true;
 }
 
-bool FrameBuffer::setRect(const Rect *newRect, bool resizeBuff)
+bool FrameBuffer::setDimension(const Dimension *newDim, bool resizeBuff)
 {
-  UINT32 newArea = newRect->area();
-  UINT32 oldArea = m_rect.area();
+  UINT32 newArea = newDim->area();
+  UINT32 oldArea = m_dimension.area();
 
-  m_rect = *newRect;
+  m_dimension = *newDim;
 
   if (resizeBuff && (newArea != oldArea))
   {
@@ -65,7 +66,7 @@ bool FrameBuffer::setRect(const Rect *newRect, bool resizeBuff)
 
 int FrameBuffer::getBufferSize()
 { 
-  return (m_rect.getWidth() * m_rect.getHeight() * m_pixelFormat.bitsPerPixel) / 8;
+  return (m_dimension.area() * m_pixelFormat.bitsPerPixel) / 8;
 }
 
 bool FrameBuffer::resizeBuffer()

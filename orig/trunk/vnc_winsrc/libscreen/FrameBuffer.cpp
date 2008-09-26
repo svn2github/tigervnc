@@ -38,6 +38,52 @@ bool FrameBuffer::cmp(FrameBuffer *frameBuffer)
          memcmp(&m_pixelFormat, &(frameBuffer->getPixelFormat()),
          sizeof(PixelFormat));
 }
+bool FrameBuffer::copyFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
+                           const int srcX, const int srcY)
+{
+  if (!memcmp(&m_pixelFormat, &srcFrameBuffer->getPixelFormat(),
+              sizeof(PixelFormat))) {
+    return false;
+  }
+
+  Dimension srcDimension = srcFrameBuffer->getDimension();
+  Rect dstBufferRect = m_dimension.getRect();
+  Rect srcBufferRect = srcDimension.getRect();
+
+  // Building srcRect
+  Rect srcRect(srcX, srcY, srcX + dstRect->getWidth(), srcY + dstRect->getHeight());
+
+  // Finding common area between the dstRect, srcRect and the FrameBuffers
+  Rect dstRectFB = dstBufferRect.intersection(dstRect);
+  Rect srcRectFB = srcBufferRect.intersection(&srcRect);
+
+  // Finding common area between the dstRectFB and the srcRectFB
+  Dimension dstDim(&dstRectFB);
+  Dimension srcDim(&srcRectFB);
+  Rect commonRect(&dstDim.getRect().intersection(&srcDim.getRect()));
+
+  // Moving commonRect to destination coordinates and source
+  Rect resultDstRect(&commonRect);
+  resultDstRect.move(dstRect->left, dstRect->top);
+  int resultSrcX = srcX + resultDstRect.left;
+  int resultSrcY = srcY + resultDstRect.top;
+
+  // Data copy
+  int dstStrike = m_dimension.width;
+  int srcStrike = srcDimension.width;
+  int pdstPixel = resultDstRect.top * dstStrike + resultDstRect.left;
+  int psrcPixel = resultSrcY * srcStrike + resultSrcX;
+  int resultHeight = resultDstRect.getHeight();
+  int resultWidth = resultDstRect.getWidth();
+  UINT8 *srcDataBuffer = (UINT8 *)srcFrameBuffer->getBuffer();
+
+  for (int i = 0; i < resultHeight; i++, pdstPixel += dstStrike, psrcPixel += srcStrike) {
+    memcpy((UINT8 *)m_buffer + pdstPixel, srcDataBuffer + psrcPixel,
+           (resultWidth * m_pixelFormat.bitsPerPixel) / 8);
+  }
+
+  return true;
+}
 
 bool FrameBuffer::setPixelFormat(const PixelFormat *pixelFormat, bool resizeBuff)
 {

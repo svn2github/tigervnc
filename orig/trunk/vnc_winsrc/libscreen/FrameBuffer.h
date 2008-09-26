@@ -34,6 +34,9 @@ public:
 
   bool cmp(FrameBuffer *frameBuffer);
 
+  bool copyFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
+                const int srcX, const int srcY);
+
   bool setDimension(const Dimension *newDim, bool resizeBuff = true);
   bool setDimension(const Rect *rect, bool resizeBuff = true)
   {
@@ -43,7 +46,7 @@ public:
   inline Dimension getDimension() const { return m_dimension; }
 
   bool setPixelFormat(const PixelFormat *pixelFormat, bool resizeBuff);
-  inline PixelFormat getPixelFormat() { return m_pixelFormat; }
+  inline PixelFormat getPixelFormat() const { return m_pixelFormat; }
 
   void setBuffer(void *newBuffer) { m_buffer = newBuffer; }
   inline virtual void *getBuffer() const { return m_buffer; }

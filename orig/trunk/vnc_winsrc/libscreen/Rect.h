@@ -26,6 +26,7 @@ class Rect
 {
 public:
   Rect(void) : left(0), top(0), right(0), bottom(0) {}
+  Rect(const Rect *rect) { setRect(rect); }
   Rect(int lt, int tp, int rt, int bm) { setRect(lt, tp, rt, bm); }
   Rect(int width, int height) { setRect(0, 0, width, height); }
 
@@ -49,6 +50,14 @@ public:
     top     = rect->top;
     right   = rect->right;
     bottom  = rect->bottom;
+  }
+
+  inline void move(int offsetX, int offsetY)
+  {
+    left    += offsetX;
+    right   += offsetX;
+    top     += offsetY;
+    bottom  += offsetY;
   }
 
   inline bool cmpRect(const Rect *rect) { return  rect->left == left &&

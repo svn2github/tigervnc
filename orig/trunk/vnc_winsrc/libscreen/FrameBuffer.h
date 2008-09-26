@@ -35,6 +35,11 @@ public:
   bool cmp(FrameBuffer *frameBuffer);
 
   bool setDimension(const Dimension *newDim, bool resizeBuff = true);
+  bool setDimension(const Rect *rect, bool resizeBuff = true)
+  {
+    Dimension dim(rect);
+    setDimension(&dim, resizeBuff);
+  }
   inline Dimension getDimension() { return m_dimension; }
 
   bool setPixelFormat(const PixelFormat *pixelFormat, bool resizeBuff);

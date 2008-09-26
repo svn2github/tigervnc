@@ -26,6 +26,9 @@ class Rect
 {
 public:
   Rect(void) : left(0), top(0), right(0), bottom(0) {}
+  Rect(int lt, int tp, int rt, int bm) { setRect(lt, tp, rt, bm); }
+  Rect(int width, int height) { setRect(0, 0, width, height); }
+
   ~Rect(void) {}
   
   int left;

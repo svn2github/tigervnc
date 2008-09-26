@@ -55,8 +55,8 @@ void Poller::execute()
     // Polling
     int pollingWidth = m_pollingRect.getWidth();
     int pollingHeight = m_pollingRect.getHeight();
-    int screenWidth = screenFrameBuffer->getRect().getWidth();
-    int screenHeight = screenFrameBuffer->getRect().getHeight();
+    int screenWidth = screenFrameBuffer->getDimension().width;
+    int screenHeight = screenFrameBuffer->getDimension().height;
 
     Rect scanRect;
     for (int iRow = 0; iRow < screenHeight; iRow += pollingHeight) {
@@ -78,10 +78,11 @@ void Poller::execute()
   }
 }
 
-bool Poller::cmpFrameBuff(Rect *rect, const FrameBuffer *fb1, const FrameBuffer *fb2)
+bool Poller::cmpFrameBuff(const Rect *rect, const FrameBuffer *fb1,
+                          const FrameBuffer *fb2)
 {
   UINT32 pixelSize = m_backupFrameBuffer->getPixelFormat().bitsPerPixel / 8;
-  UINT32 strike = m_backupFrameBuffer->getRect().getWidth();
+  UINT32 strike = m_backupFrameBuffer->getDimension().width;
   UINT32 pLine = (rect->top * strike + rect->left) * pixelSize;
   UINT8 *buf1 = (UINT8 *)fb1->getBuffer();
   UINT8 *buf2 = (UINT8 *)fb2->getBuffer();

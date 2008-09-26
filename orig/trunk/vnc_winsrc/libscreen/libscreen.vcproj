@@ -184,6 +184,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Point.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Rect.h"
 				>
 			</File>

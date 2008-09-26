@@ -27,7 +27,7 @@
 class Dimension
 {
 public:
-  Dimension(void) : width(0), height(0);
+  Dimension(void) : width(0), height(0) {}
   virtual ~Dimension(void);
 
   Rect getRect() { Rect r(width, height);

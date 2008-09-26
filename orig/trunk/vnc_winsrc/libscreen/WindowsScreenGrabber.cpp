@@ -64,11 +64,11 @@ bool WindowsScreenGrabber::openDIBSection()
   }
 
   PixelFormat pixelFormat = m_workFrameBuffer.getPixelFormat();
-  Rect workRect = m_workFrameBuffer.getRect();
+  Dimension workDim = m_workFrameBuffer.getDimension();
 
   bmi.bmiHeader.biBitCount = pixelFormat.bitsPerPixel;
-  bmi.bmiHeader.biWidth = workRect.getWidth();
-  bmi.bmiHeader.biHeight = -workRect.getHeight();
+  bmi.bmiHeader.biWidth = workDim.width;
+  bmi.bmiHeader.biHeight = -workDim.height;
   bmi.bmiHeader.biCompression = BI_BITFIELDS;
   bmi.red   = pixelFormat.redMax   << pixelFormat.redShift;
   bmi.green = pixelFormat.greenMax << pixelFormat.greenShift;
@@ -88,7 +88,7 @@ bool WindowsScreenGrabber::openDIBSection()
     return false;
   }
   m_workFrameBuffer.setBuffer(buffer);
-  m_dibSectionRect = workRect;
+  m_dibSectionDim = workDim;
 
   m_hbmOld = (HBITMAP) SelectObject(m_destDC, m_hbmDIB);
 
@@ -225,12 +225,13 @@ bool WindowsScreenGrabber::grab(const Rect *rect)
     return grabByDIBSection(rect);
   }
 
-  Rect grabRect, workRect = m_workFrameBuffer.getRect();
+  Rect grabRect;
+  Dimension workDim = m_workFrameBuffer.getDimension();
   // Set relative co-ordinates
   grabRect.left = 0;
   grabRect.top = 0;
-  grabRect.setWidth(workRect.getWidth());
-  grabRect.setHeight(workRect.getHeight());
+  grabRect.setWidth(workDim.width);
+  grabRect.setHeight(workDim.height);
 
   return grabByDIBSection(&grabRect);
 }
@@ -241,16 +242,17 @@ bool WindowsScreenGrabber::grabByDIBSection(const Rect *rect)
     return false;
   }
 
-  Rect workRect = m_workFrameBuffer.getRect();
-  if (workRect.getWidth() != m_dibSectionRect.getWidth() ||
-      workRect.getHeight() != m_dibSectionRect.getHeight()) {
+  Dimension workDim = m_workFrameBuffer.getDimension();
+  if (workDim.width != m_dibSectionDim.width ||
+      workDim.height != m_dibSectionDim.height) {
     if (!openDIBSection()) {
       return false;
     }
   }
 
   if (BitBlt(m_destDC, rect->left, rect->top, rect->getWidth(), rect->getHeight(), 
-             m_screenDC, rect->left + workRect.left, rect->top + workRect.top, SRCCOPY | CAPTUREBLT) == 0) {
+             m_screenDC, rect->left + m_offsetFrameBuffer.x,
+             rect->top + m_offsetFrameBuffer.y, SRCCOPY | CAPTUREBLT) == 0) {
     return false;
   }
 

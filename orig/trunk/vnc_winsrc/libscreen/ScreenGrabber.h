@@ -23,6 +23,8 @@
 #define __SCREENGRABBER_H__
 
 #include "Rect.h"
+#include "Dimension.h"
+#include "Point.h"
 #include "PixelFormat.h"
 #include "FrameBuffer.h"
 
@@ -91,6 +93,7 @@ protected:
   virtual bool setWorkRectDefault();
 
   Rect m_fullScreenRect;
+  Point m_offsetFrameBuffer;
 
   FrameBuffer m_workFrameBuffer;
 };

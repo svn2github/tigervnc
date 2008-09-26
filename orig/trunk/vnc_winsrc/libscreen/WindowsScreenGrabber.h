@@ -105,7 +105,7 @@ protected:
   HBITMAP m_hbmOld, m_hbmDIB;
 
 private:
-  Rect m_dibSectionRect;
+  Dimension m_dibSectionDim;
 };
 
 #endif // __WINDOWSSCREENGRABBER_H__

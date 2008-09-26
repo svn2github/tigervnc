@@ -34,6 +34,14 @@ public:
                    return r;
   }
 
+  inline bool cmpDim(const Dimension *dim) { return dim->width == width &&
+                                                    dim->height == height; }
+
+  inline bool isEmpty() const { return width <= 0 || height <= 0; }
+  inline int area() const { return isEmpty() ? 0 : width * height; }
+
+  inline void clear() { width = height = 0; }
+
   int width;
   int height;
 };

@@ -1774,9 +1774,9 @@ vncClient::UpdateRegion(vncRegion &region)
 void
 vncClient::CopyRect(RECT &dest, POINT &source)
 {
-	// If copyrect is disabled then just redraw the region!
-	if (!m_copyrect_use)
-	{
+	// If CopyRect encoding is disabled or we already have a CopyRect pending,
+	// then just redraw the region.
+	if (!m_copyrect_use || m_copyrect_set) {
 		UpdateRect(dest);
 		return;
 	}

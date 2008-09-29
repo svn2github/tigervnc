@@ -40,6 +40,13 @@ bool ScreenGrabber::applyNewProperties()
   return true;
 }
 
+void ScreenGrabber::setWorkRect(Rect *workRect)
+{
+  m_offsetFrameBuffer.x = workRect->left;
+  m_offsetFrameBuffer.y = workRect->top;
+  m_workFrameBuffer.setDimension(workRect, false);
+}
+
 bool ScreenGrabber::setWorkRectDefault()
 {
   // Set workRect to full screen by default

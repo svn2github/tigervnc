@@ -74,6 +74,7 @@ public:
   virtual bool grab(const Rect *rect = 0) = 0;
 
   virtual FrameBuffer *getScreenBuffer() { return &m_workFrameBuffer; }
+  virtual void setWorkRect(Rect *workRect);
   virtual Rect getWorkRect() const { return Rect(m_offsetFrameBuffer.x,
                                                  m_offsetFrameBuffer.y,
                                                  m_workFrameBuffer.getDimension().width,

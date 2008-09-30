@@ -46,6 +46,14 @@ void UpdateHandler::extract(UpdateContainer *updateContainer)
   m_criticalSection->enter();
   m_updateKeeper->extract(&m_updateContainer);
 
+  // Checking for ScreenGrabber properties have been changed
+  if (m_screenGrabber->getPropertiesChanged()) {
+    m_screenGrabber->applyNewProperties();
+    m_frameBuffer->setPixelFormat(&m_screenGrabber->getScreenBuffer()->getPixelFormat(),
+      false);
+    m_frameBuffer->setDimension(&m_screenGrabber->getScreenBuffer()->getDimension());
+  }
+
   // FIXME: There should be a filtering of region
 
   *updateContainer = m_updateContainer;

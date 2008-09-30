@@ -35,8 +35,8 @@ FrameBuffer::~FrameBuffer(void)
 bool FrameBuffer::cmp(FrameBuffer *frameBuffer)
 {
   return m_dimension.cmpDim(&(frameBuffer->getDimension())) &&
-         memcmp(&m_pixelFormat, &(frameBuffer->getPixelFormat()),
-         sizeof(PixelFormat));
+         (memcmp(&m_pixelFormat, &(frameBuffer->getPixelFormat()),
+         sizeof(PixelFormat)) == 0);
 }
 bool FrameBuffer::copyFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
                            const int srcX, const int srcY)

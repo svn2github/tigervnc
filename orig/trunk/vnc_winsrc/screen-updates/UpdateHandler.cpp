@@ -51,7 +51,7 @@ void UpdateHandler::extract(UpdateContainer *updateContainer)
 
 void UpdateHandler::execute()
 {
-  m_updateDetector->execute();
+  m_updateDetector->resume();
 }
 
 void UpdateHandler::terminate()

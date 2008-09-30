@@ -22,7 +22,7 @@
 #include "Thread.h"
 
 Thread::Thread(void)
-: m_terminated(false), m_active(false), m_needDestroyCriticalSection(false)
+: m_terminated(false), m_active(false)
 {
   m_hThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE) threadProc,
                            (LPVOID) this, CREATE_SUSPENDED, (LPDWORD) &m_threadID);
@@ -38,7 +38,7 @@ DWORD WINAPI Thread::threadProc(LPVOID pThread)
   return 0;
 }
 
-bool wait()
+bool Thread::wait()
 {
   return (WaitForSingleObject(m_hThread, INFINITE) != WAIT_FAILED);
 }

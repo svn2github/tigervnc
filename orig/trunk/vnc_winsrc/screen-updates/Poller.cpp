@@ -25,10 +25,12 @@
 
 Poller::Poller(UpdateKeeper *updateKeeper,
                ScreenGrabber *screenGrabber,
-               FrameBuffer *backupFrameBuffer)
+               FrameBuffer *backupFrameBuffer,
+               CriticalSection *frameBufferCriticalSection)
 : UpdateDetector(updateKeeper),
 m_screenGrabber(screenGrabber),
-m_backupFrameBuffer(backupFrameBuffer)
+m_backupFrameBuffer(backupFrameBuffer),
+m_frameBufferCriticalSection(frameBufferCriticalSection)
 {
   m_pollingRect.setRect(0, 0, 16, 16);
 }

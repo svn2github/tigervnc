@@ -32,7 +32,8 @@ class Poller : public UpdateDetector
 public:
   Poller(UpdateKeeper *updateKeeper,
          ScreenGrabber *screenGrabber,
-         FrameBuffer *backupFrameBuffer);
+         FrameBuffer *backupFrameBuffer,
+         CriticalSection *frameBufferCriticalSection);
   virtual ~Poller(void);
 
 protected:
@@ -44,6 +45,7 @@ private:
 
   ScreenGrabber *m_screenGrabber;
   FrameBuffer *m_backupFrameBuffer;
+  CriticalSection *m_frameBufferCriticalSection;
   Rect m_pollingRect;
 };
 

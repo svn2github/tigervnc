@@ -95,7 +95,7 @@ bool Poller::cmpFrameBuff(const Rect *rect, const FrameBuffer *fb1,
   UINT8 *buf2 = (UINT8 *)fb2->getBuffer();
 
   for (int i = 0; i < rect->getHeight(); pLine += strike, i++) {
-    if (!memcmp(buf1 + pLine, buf2 + pLine, pixelSize * rect->getWidth())) {
+    if (memcmp(buf1 + pLine, buf2 + pLine, pixelSize * rect->getWidth()) != 0) {
       return false;
     }
   }

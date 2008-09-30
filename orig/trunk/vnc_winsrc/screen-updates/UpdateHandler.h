@@ -46,6 +46,7 @@ private:
   UpdateDetector *m_updateDetector;
   ScreenGrabber *m_screenGrabber;
   FrameBuffer *m_frameBuffer;
+  CriticalSection *m_criticalSection;
 
   UpdateContainer m_updateContainer;
 };

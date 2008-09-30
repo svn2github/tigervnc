@@ -46,6 +46,9 @@ void Poller::execute()
   while (!m_terminated) {
     rfb::Region region;
 
+    // Enter to the critical section
+    m_frameBufferCriticalSection->enter();
+
     screenFrameBuffer = m_screenGrabber->getScreenBuffer();
     if (!screenFrameBuffer->cmp(m_backupFrameBuffer)) {
       m_updateKeeper->setScreenSizeChanged();
@@ -72,6 +75,10 @@ void Poller::execute()
     }
 
     m_updateKeeper->addChangedRegion(&region);
+
+    // Leave from the critical section
+    m_frameBufferCriticalSection->leave();
+
     Sleep(1000);
   }
 }

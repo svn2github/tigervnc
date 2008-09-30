@@ -35,6 +35,7 @@ public:
          FrameBuffer *backupFrameBuffer);
   virtual ~Poller(void);
 
+protected:
   virtual void execute();
 
 private:

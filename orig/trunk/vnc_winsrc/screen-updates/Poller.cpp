@@ -70,11 +70,7 @@ void Poller::execute()
     }
 
     m_updateKeeper->addChangedRegion(&region);
-    Sleep(100);
-  }
-
-  if (m_destroyOnTerminated) {
-    delete this;
+    Sleep(1000);
   }
 }
 

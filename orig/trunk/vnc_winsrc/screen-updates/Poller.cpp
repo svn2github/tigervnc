@@ -52,6 +52,8 @@ void Poller::execute()
     screenFrameBuffer = m_screenGrabber->getScreenBuffer();
     if (!screenFrameBuffer->cmp(m_backupFrameBuffer)) {
       m_updateKeeper->setScreenSizeChanged();
+      m_frameBufferCriticalSection->leave();
+      Sleep(SLEEP_TIME);
       continue;
     }
 
@@ -79,7 +81,7 @@ void Poller::execute()
     // Leave from the critical section
     m_frameBufferCriticalSection->leave();
 
-    Sleep(1000);
+    Sleep(SLEEP_TIME);
   }
 }
 

@@ -51,7 +51,7 @@ bool Thread::suspend()
 
 bool Thread::resume()
 {
-  m_active = SuspendThread(m_hThread) != -1;
+  m_active = ResumeThread(m_hThread) != -1;
   return m_active;
 }
 

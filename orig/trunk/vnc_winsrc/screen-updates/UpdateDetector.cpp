@@ -22,9 +22,8 @@
 #include "UpdateDetector.h"
 
 UpdateDetector::UpdateDetector(UpdateKeeper *updateKeeper)
-: m_updateKeeper(updateKeeper),
-m_terminated(false),
-m_destroyOnTerminated(true)
+: Thread(),
+m_updateKeeper(updateKeeper)
 {
 }
 

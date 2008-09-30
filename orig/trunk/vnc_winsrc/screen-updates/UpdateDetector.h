@@ -23,8 +23,9 @@
 #define __UPDATEDETECTOR_H__
 
 #include "UpdateKeeper.h"
+#include "Thread.h"
 
-class UpdateDetector
+class UpdateDetector : public Thread
 {
 public:
   UpdateDetector(UpdateKeeper *updateKeeper);
@@ -33,17 +34,8 @@ public:
   void setUpdateKeeper(UpdateKeeper *updateKeeper) { m_updateKeeper = updateKeeper; }
   UpdateKeeper *getUpdateKeeper() const { return m_updateKeeper; }
 
-  void setDestroyOnTerminated(bool value) { m_destroyOnTerminated = value; }
-  bool getDestroyOnTerminated() { return m_destroyOnTerminated; }
-
-  virtual void execute() = 0;
-  virtual void terminate() { m_terminated = true; }
-
 protected:
   UpdateKeeper *m_updateKeeper;
-
-  bool m_terminated;
-  bool m_destroyOnTerminated;
 };
 
 #endif // __UPDATEDETECTOR_H__

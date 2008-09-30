@@ -27,6 +27,8 @@
 #include "libscreen/FrameBuffer.h"
 #include "libscreen/Rect.h"
 
+#define SLEEP_TIME 1000
+
 class Poller : public UpdateDetector
 {
 public:

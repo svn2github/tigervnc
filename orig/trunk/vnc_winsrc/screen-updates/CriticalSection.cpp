@@ -31,12 +31,12 @@ CriticalSection::~CriticalSection(void)
   DeleteCriticalSection(&m_criticalSection);
 }
 
-void CriticalSection::lock()
+void CriticalSection::enter()
 {
   EnterCriticalSection(&m_criticalSection);
 }
 
-void CriticalSection::unLock()
+void CriticalSection::leave()
 {
   LeaveCriticalSection(&m_criticalSection);
 }

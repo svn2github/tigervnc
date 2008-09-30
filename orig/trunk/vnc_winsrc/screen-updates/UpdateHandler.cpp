@@ -43,11 +43,13 @@ UpdateHandler::~UpdateHandler(void)
 
 void UpdateHandler::extract(UpdateContainer *updateContainer)
 {
+  m_criticalSection->enter();
   m_updateKeeper->extract(&m_updateContainer);
 
   // FIXME: There should be a filtering of region
 
   *updateContainer = m_updateContainer;
+  m_criticalSection->leave();
 }
 
 void UpdateHandler::execute()

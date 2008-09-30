@@ -49,8 +49,12 @@ void UpdateHandler::extract(UpdateContainer *updateContainer)
   // Checking for ScreenGrabber properties have been changed
   if (m_screenGrabber->getPropertiesChanged()) {
     m_screenGrabber->applyNewProperties();
+  }
+
+  // Comparing two frame buffers
+  if (!m_frameBuffer->cmp(m_screenGrabber->getScreenBuffer())) {
     m_frameBuffer->setPixelFormat(&m_screenGrabber->getScreenBuffer()->getPixelFormat(),
-      false);
+                                  false);
     m_frameBuffer->setDimension(&m_screenGrabber->getScreenBuffer()->getDimension());
   }
 

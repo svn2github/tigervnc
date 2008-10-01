@@ -52,7 +52,7 @@ public:
 
   void setBuffer(void *newBuffer) { m_buffer = newBuffer; }
   inline virtual void *getBuffer() const { return m_buffer; }
-  inline virtual int getBufferSize();
+  inline virtual int getBufferSize() const;
 
 protected:
   bool resizeBuffer();

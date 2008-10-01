@@ -186,6 +186,10 @@
 				RelativePath=".\UpdateKeeper.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\UpdateListener.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -226,6 +230,10 @@
 			</File>
 			<File
 				RelativePath=".\UpdateKeeper.h"
+				>
+			</File>
+			<File
+				RelativePath=".\UpdateListener.h"
 				>
 			</File>
 		</Filter>

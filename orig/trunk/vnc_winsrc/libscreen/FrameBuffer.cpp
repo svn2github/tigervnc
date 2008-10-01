@@ -35,6 +35,18 @@ FrameBuffer::~FrameBuffer(void)
   }
 }
 
+bool FrameBuffer::assignProperties(const FrameBuffer *srcFrameBuffer, const bool resizeBuff)
+{
+  setPixelFormat(&srcFrameBuffer->getPixelFormat(), false);
+  setDimension(&srcFrameBuffer->getDimension(), false);
+
+  if (resizeBuff)
+  {
+    return resizeBuffer();
+  }
+  return true;
+}
+
 bool FrameBuffer::cmp(FrameBuffer *frameBuffer)
 {
   return m_dimension.cmpDim(&(frameBuffer->getDimension())) &&

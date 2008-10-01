@@ -32,6 +32,8 @@ public:
   FrameBuffer(void);
   virtual ~FrameBuffer(void);
 
+  bool assignProperties(const FrameBuffer *srcFrameBuffer, const bool resizeBuff = true);
+
   bool cmp(FrameBuffer *frameBuffer);
 
   bool copyFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,

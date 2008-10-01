@@ -28,7 +28,7 @@ class Dimension
 {
 public:
   Dimension(void) : width(0), height(0) {}
-  Dimension(const int w, const int h) : width(w), height(h) {}
+  Dimension(const int w, const int h) { setDim(w, h); }
   Dimension(const Rect *r) { width = r->getWidth(); height = r->getHeight(); }
 
   virtual ~Dimension(void) {}
@@ -38,6 +38,10 @@ public:
     Rect r(width, height);
     return r;
   }
+
+  inline void setDim(const int w, const int h) { width = w; height = h; }
+  inline void setDim(const Rect *rect) { width = rect->getWidth();
+                                         height = rect->getHeight(); }
 
   inline bool cmpDim(const Dimension *dim) const { return dim->width == width &&
                                                           dim->height == height; }

@@ -45,7 +45,7 @@ public:
   }
   inline Dimension getDimension() const { return m_dimension; }
 
-  bool setPixelFormat(const PixelFormat *pixelFormat, bool resizeBuff);
+  bool setPixelFormat(const PixelFormat *pixelFormat, bool resizeBuff = true);
   inline PixelFormat getPixelFormat() const { return m_pixelFormat; }
 
   void setBuffer(void *newBuffer) { m_buffer = newBuffer; }

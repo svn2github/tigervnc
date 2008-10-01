@@ -90,11 +90,13 @@ bool FrameBuffer::copyFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffe
   int psrcPixel = resultSrcY * srcStrike + resultSrcX;
   int resultHeight = resultDstRect.getHeight();
   int resultWidth = resultDstRect.getWidth();
+  int pixelSize = m_pixelFormat.bitsPerPixel / 8;
   UINT8 *srcDataBuffer = (UINT8 *)srcFrameBuffer->getBuffer();
 
   for (int i = 0; i < resultHeight; i++, pdstPixel += dstStrike, psrcPixel += srcStrike) {
-    memcpy((UINT8 *)m_buffer + pdstPixel, srcDataBuffer + psrcPixel,
-           (resultWidth * m_pixelFormat.bitsPerPixel) / 8);
+    memcpy((UINT8 *)m_buffer + pdstPixel * pixelSize,
+           srcDataBuffer + psrcPixel * pixelSize,
+           resultWidth * pixelSize);
   }
 
   return true;
@@ -125,7 +127,7 @@ bool FrameBuffer::setDimension(const Dimension *newDim, bool resizeBuff)
   return true;
 }
 
-int FrameBuffer::getBufferSize()
+int FrameBuffer::getBufferSize() const
 { 
   return (m_dimension.area() * m_pixelFormat.bitsPerPixel) / 8;
 }

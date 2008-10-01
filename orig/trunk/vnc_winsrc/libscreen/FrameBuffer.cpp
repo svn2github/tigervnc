@@ -30,6 +30,9 @@ FrameBuffer::FrameBuffer(void)
 
 FrameBuffer::~FrameBuffer(void)
 {
+  if (m_buffer != 0) {
+    delete []m_buffer;
+  }
 }
 
 bool FrameBuffer::cmp(FrameBuffer *frameBuffer)
@@ -41,8 +44,8 @@ bool FrameBuffer::cmp(FrameBuffer *frameBuffer)
 bool FrameBuffer::copyFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
                            const int srcX, const int srcY)
 {
-  if (!memcmp(&m_pixelFormat, &srcFrameBuffer->getPixelFormat(),
-              sizeof(PixelFormat))) {
+  if (memcmp(&m_pixelFormat, &srcFrameBuffer->getPixelFormat(),
+              sizeof(PixelFormat)) != 0) {
     return false;
   }
 

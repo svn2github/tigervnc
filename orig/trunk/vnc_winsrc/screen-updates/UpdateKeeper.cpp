@@ -54,10 +54,5 @@ void UpdateKeeper::extract(UpdateContainer *updateContainer)
   *updateContainer = m_updateContainer;
 
   // Clear all changes
-  m_updateContainer.changedRegion.clear();
-  m_updateContainer.copiedRegion.clear();
-  m_updateContainer.cursorPosChanged = false;
-  m_updateContainer.screenSizeChanged = false;
-  m_updateContainer.copyOffsetX = 0;
-  m_updateContainer.copyOffsetY = 0;
+  m_updateContainer.clear();
 }

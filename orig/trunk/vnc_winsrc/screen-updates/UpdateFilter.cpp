@@ -22,8 +22,11 @@
 #include "UpdateFilter.h"
 
 UpdateFilter::UpdateFilter(ScreenGrabber *screenGrabber,
-                           FrameBuffer *frameBuffer)
-: m_screenGrabber(screenGrabber), m_frameBuffer(frameBuffer)
+                           FrameBuffer *frameBuffer,
+                           CriticalSection *frameBufferCriticalSection)
+: m_screenGrabber(screenGrabber),
+m_frameBuffer(frameBuffer),
+m_frameBufferCriticalSection(frameBufferCriticalSection)
 {
 }
 

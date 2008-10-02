@@ -24,17 +24,20 @@
 
 #include "libscreen/WindowsScreenGrabber.h"
 #include "libscreen/FrameBuffer.h"
+#include "CriticalSection.h"
 
 class UpdateFilter
 {
 public:
   UpdateFilter(ScreenGrabber *screenGrabber,
-               FrameBuffer *frameBuffer);
+               FrameBuffer *frameBuffer,
+               CriticalSection *frameBufferCriticalSection);
   ~UpdateFilter(void);
 
 private:
   ScreenGrabber *m_screenGrabber;
   FrameBuffer *m_frameBuffer;
+  CriticalSection *m_frameBufferCriticalSection;
 };
 
 #endif // __UPDATEFILTER_H__

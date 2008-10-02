@@ -24,11 +24,12 @@
 UpdateHandler::UpdateHandler(void)
 : m_outUpdateListener(0)
 {
+  m_criticalSection = new CriticalSection;
   m_screenGrabber = new WindowsScreenGrabber;
   m_frameBuffer = new FrameBuffer;
-  m_updateFilter = new UpdateFilter(m_screenGrabber, m_frameBuffer);
+  m_updateFilter = new UpdateFilter(m_screenGrabber, m_frameBuffer,
+                                    m_criticalSection);
   m_updateKeeper = new UpdateKeeper(m_updateFilter);
-  m_criticalSection = new CriticalSection;
   m_updateDetector = new Poller(m_updateKeeper, m_screenGrabber,
                                 m_frameBuffer, m_criticalSection);
   m_updateDetector->setOutUpdateListener(this);

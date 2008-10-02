@@ -53,6 +53,7 @@ void Poller::execute()
     if (!screenFrameBuffer->cmp(m_backupFrameBuffer)) {
       m_updateKeeper->setScreenSizeChanged();
       m_frameBufferCriticalSection->leave();
+      doOutUpdate();
       Sleep(SLEEP_TIME);
       continue;
     }

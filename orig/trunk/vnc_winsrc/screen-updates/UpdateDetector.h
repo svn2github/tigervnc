@@ -44,7 +44,7 @@ protected:
   inline void doOutUpdate()
   {
     if (m_outUpdateListener != 0) {
-      m_outUpdateListener->onUpdate(this);
+      m_outUpdateListener->synchroOnUpdate(this);
     }
   }
 

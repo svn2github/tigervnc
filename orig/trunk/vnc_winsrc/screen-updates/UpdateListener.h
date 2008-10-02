@@ -22,6 +22,8 @@
 #ifndef __UPDATELISTENER_H__
 #define __UPDATELISTENER_H__
 
+#include "CriticalSection.h"
+
 class UpdateListener
 {
 public:
@@ -29,7 +31,17 @@ public:
   virtual ~UpdateListener(void);
 
   // Interface function
+  virtual void synchroOnUpdate(void *pSender)
+  {
+    m_updateListenerCriticalSection.enter();
+    onUpdate(pSender);
+    m_updateListenerCriticalSection.leave();
+  }
+
+protected:
   virtual void onUpdate(void *pSender) = 0;
+
+  CriticalSection m_updateListenerCriticalSection;
 };
 
 #endif // __UPDATELISTENER_H__

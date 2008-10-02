@@ -37,6 +37,8 @@ public:
   void setScreenSizeChanged();
   void setCursorPosChanged();
 
+  const UpdateContainer *getUpdateContainer() const { return &m_updateContainer; }
+
   void extract(UpdateContainer *updateContainer);
 
 private:

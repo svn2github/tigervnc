@@ -30,7 +30,8 @@ Poller::Poller(UpdateKeeper *updateKeeper,
 : UpdateDetector(updateKeeper),
 m_screenGrabber(screenGrabber),
 m_backupFrameBuffer(backupFrameBuffer),
-m_frameBufferCriticalSection(frameBufferCriticalSection)
+m_frameBufferCriticalSection(frameBufferCriticalSection),
+m_sleepTime(DEFAULT_SLEEP_TIME)
 {
   m_pollingRect.setRect(0, 0, 16, 16);
 }
@@ -54,7 +55,7 @@ void Poller::execute()
       m_updateKeeper->setScreenSizeChanged();
       m_frameBufferCriticalSection->leave();
       doOutUpdate();
-      Sleep(DEFAULT_SLEEP_TIME);
+      Sleep(m_sleepTime);
       continue;
     }
 
@@ -87,7 +88,7 @@ void Poller::execute()
       doOutUpdate();
     }
 
-    Sleep(DEFAULT_SLEEP_TIME);
+    Sleep(m_sleepTime);
   }
 }
 

@@ -36,7 +36,11 @@ public:
          ScreenGrabber *screenGrabber,
          FrameBuffer *backupFrameBuffer,
          CriticalSection *frameBufferCriticalSection);
+
   virtual ~Poller(void);
+
+  void setSleepTime(const int sleepTime) { m_sleepTime = sleepTime; }
+  int getsleepTime() const { return m_sleepTime; }
 
 protected:
   virtual void execute();
@@ -49,6 +53,7 @@ private:
   FrameBuffer *m_backupFrameBuffer;
   CriticalSection *m_frameBufferCriticalSection;
   Rect m_pollingRect;
+  int m_sleepTime;
 };
 
 #endif // __POLLER_H__

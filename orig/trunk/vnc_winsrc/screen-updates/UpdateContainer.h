@@ -42,6 +42,7 @@ public:
   int copyOffsetY;
 
   void clear();
+  bool isEmpty() const;
 };
 
 #endif // __UPDATECONTAINER_H__

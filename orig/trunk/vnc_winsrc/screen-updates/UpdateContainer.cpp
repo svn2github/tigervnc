@@ -55,3 +55,12 @@ UpdateContainer& UpdateContainer::operator=(const UpdateContainer& src)
 
   return *this;
 }
+
+bool UpdateContainer::isEmpty() const
+{
+  return copiedRegion.is_empty() &&
+         changedRegion.is_empty() &&
+         !screenSizeChanged &&
+         !cursorPosChanged &&
+         !cursorShapeChanged;
+}

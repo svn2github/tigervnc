@@ -54,7 +54,7 @@ void Poller::execute()
       m_updateKeeper->setScreenSizeChanged();
       m_frameBufferCriticalSection->leave();
       doOutUpdate();
-      Sleep(SLEEP_TIME);
+      Sleep(DEFAULT_SLEEP_TIME);
       continue;
     }
 
@@ -87,7 +87,7 @@ void Poller::execute()
       doOutUpdate();
     }
 
-    Sleep(SLEEP_TIME);
+    Sleep(DEFAULT_SLEEP_TIME);
   }
 }
 

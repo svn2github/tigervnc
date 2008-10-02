@@ -28,9 +28,8 @@ public:
   UpdateListener(void);
   virtual ~UpdateListener(void);
 
-protected:
   // Interface function
-  virtual void onUpdate(void *pointer);
+  virtual void onUpdate(void *pSender) = 0;
 };
 
 #endif // __UPDATELISTENER_H__

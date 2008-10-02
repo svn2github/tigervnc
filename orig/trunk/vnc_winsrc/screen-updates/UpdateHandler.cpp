@@ -22,6 +22,7 @@
 #include "UpdateHandler.h"
 
 UpdateHandler::UpdateHandler(void)
+: m_outUpdateListener(0)
 {
   m_screenGrabber = new WindowsScreenGrabber;
   m_frameBuffer = new FrameBuffer;
@@ -30,6 +31,7 @@ UpdateHandler::UpdateHandler(void)
   m_criticalSection = new CriticalSection;
   m_updateDetector = new Poller(m_updateKeeper, m_screenGrabber,
                                 m_frameBuffer, m_criticalSection);
+  m_updateDetector->setOutUpdateListener(this);
 }
 
 UpdateHandler::~UpdateHandler(void)
@@ -72,4 +74,17 @@ void UpdateHandler::execute()
 void UpdateHandler::terminate()
 {
   m_updateDetector->terminate();
+}
+
+void UpdateHandler::onUpdate(void *pSender)
+{
+  m_criticalSection->enter();
+
+  if (!m_updateKeeper->getUpdateContainer()->isEmpty()) {
+    m_criticalSection->leave();
+    doOutUpdate();
+    return;
+  }
+
+  m_criticalSection->leave();
 }

@@ -23,7 +23,8 @@
 
 UpdateDetector::UpdateDetector(UpdateKeeper *updateKeeper)
 : Thread(),
-m_updateKeeper(updateKeeper)
+m_updateKeeper(updateKeeper),
+m_outUpdateListener(0)
 {
 }
 

@@ -28,8 +28,9 @@
 #include "libscreen/WindowsScreenGrabber.h"
 #include "libscreen/FrameBuffer.h"
 #include "Poller.h"
+#include "UpdateListener.h"
 
-class UpdateHandler
+class UpdateHandler : public UpdateListener
 {
 public:
   UpdateHandler(void);
@@ -40,7 +41,22 @@ public:
   virtual void execute();
   virtual void terminate();
 
+  void setOutUpdateListener(UpdateListener *outUpdateListener)
+  { 
+    m_outUpdateListener = outUpdateListener;
+  }
+
+  virtual void onUpdate(void *pSender);
+
 private:
+  inline void doOutUpdate()
+  {
+    if (m_outUpdateListener != 0) {
+      m_outUpdateListener->onUpdate(this);
+    }
+  }
+
+  UpdateListener *m_outUpdateListener;
   UpdateKeeper *m_updateKeeper;
   UpdateFilter *m_updateFilter;
   UpdateDetector *m_updateDetector;

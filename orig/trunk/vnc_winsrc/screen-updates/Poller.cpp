@@ -81,6 +81,11 @@ void Poller::execute()
     // Leave from the critical section
     m_frameBufferCriticalSection->leave();
 
+    // Send event
+    if (!region.is_empty()) {
+      doOutUpdate();
+    }
+
     Sleep(SLEEP_TIME);
   }
 }

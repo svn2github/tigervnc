@@ -24,6 +24,7 @@
 
 #include "UpdateKeeper.h"
 #include "Thread.h"
+#include "UpdateListener.h"
 
 class UpdateDetector : public Thread
 {
@@ -34,8 +35,22 @@ public:
   void setUpdateKeeper(UpdateKeeper *updateKeeper) { m_updateKeeper = updateKeeper; }
   UpdateKeeper *getUpdateKeeper() const { return m_updateKeeper; }
 
+  void setOutUpdateListener(UpdateListener *outUpdateListener)
+  { 
+    m_outUpdateListener = outUpdateListener;
+  }
+
 protected:
+  inline void doOutUpdate()
+  {
+    if (m_outUpdateListener != 0) {
+      m_outUpdateListener->onUpdate(this);
+    }
+  }
+
   UpdateKeeper *m_updateKeeper;
+
+  UpdateListener *m_outUpdateListener;
 };
 
 #endif // __UPDATEDETECTOR_H__

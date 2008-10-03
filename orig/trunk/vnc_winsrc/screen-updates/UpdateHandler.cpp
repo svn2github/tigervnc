@@ -26,12 +26,12 @@ UpdateHandler::UpdateHandler(void)
 {
   m_criticalSection = new CriticalSection;
   m_screenGrabber = new WindowsScreenGrabber;
-  m_frameBuffer = new FrameBuffer;
-  m_updateFilter = new UpdateFilter(m_screenGrabber, m_frameBuffer,
+  m_backupFrameBuffer = new FrameBuffer;
+  m_updateFilter = new UpdateFilter(m_screenGrabber, m_backupFrameBuffer,
                                     m_criticalSection);
   m_updateKeeper = new UpdateKeeper(m_updateFilter);
   m_updateDetector = new Poller(m_updateKeeper, m_screenGrabber,
-                                m_frameBuffer, m_criticalSection);
+                                m_backupFrameBuffer, m_criticalSection);
   m_updateDetector->setOutUpdateListener(this);
 }
 
@@ -41,7 +41,7 @@ UpdateHandler::~UpdateHandler(void)
   delete m_updateKeeper;
   delete m_updateFilter;
   delete m_screenGrabber;
-  delete m_frameBuffer;
+  delete m_backupFrameBuffer;
 }
 
 void UpdateHandler::extract(UpdateContainer *updateContainer)
@@ -55,10 +55,10 @@ void UpdateHandler::extract(UpdateContainer *updateContainer)
   }
 
   // Comparing two frame buffers
-  if (!m_frameBuffer->cmp(m_screenGrabber->getScreenBuffer())) {
-    m_frameBuffer->setPixelFormat(&m_screenGrabber->getScreenBuffer()->getPixelFormat(),
-                                  false);
-    m_frameBuffer->setDimension(&m_screenGrabber->getScreenBuffer()->getDimension());
+  if (!m_backupFrameBuffer->cmp(m_screenGrabber->getScreenBuffer())) {
+    m_backupFrameBuffer->setPixelFormat(&m_screenGrabber->getScreenBuffer()->getPixelFormat(),
+                                        false);
+    m_backupFrameBuffer->setDimension(&m_screenGrabber->getScreenBuffer()->getDimension());
   }
 
   // FIXME: There should be a filtering of region

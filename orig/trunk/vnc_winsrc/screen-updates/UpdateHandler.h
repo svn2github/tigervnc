@@ -61,7 +61,7 @@ private:
   UpdateFilter *m_updateFilter;
   UpdateDetector *m_updateDetector;
   ScreenGrabber *m_screenGrabber;
-  FrameBuffer *m_frameBuffer;
+  FrameBuffer *m_backupFrameBuffer;
   CriticalSection *m_criticalSection;
 
   UpdateContainer m_updateContainer;

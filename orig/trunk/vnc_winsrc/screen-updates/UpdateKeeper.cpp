@@ -51,6 +51,8 @@ void UpdateKeeper::setCursorPosChanged()
 
 void UpdateKeeper::extract(UpdateContainer *updateContainer)
 {
+  m_updateFilter->filter(&m_updateContainer);
+
   *updateContainer = m_updateContainer;
 
   // Clear all changes

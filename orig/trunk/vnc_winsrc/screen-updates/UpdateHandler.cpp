@@ -75,6 +75,7 @@ void UpdateHandler::execute()
 void UpdateHandler::terminate()
 {
   m_updateDetector->terminate();
+  m_updateDetector->wait();
 }
 
 void UpdateHandler::onUpdate(void *pSender)

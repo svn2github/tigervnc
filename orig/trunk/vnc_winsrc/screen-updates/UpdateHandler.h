@@ -61,7 +61,7 @@ private:
   UpdateListener *m_outUpdateListener;
   UpdateKeeper *m_updateKeeper;
   UpdateFilter *m_updateFilter;
-  UpdateDetector *m_updateDetector;
+  UpdateDetector *m_poller;
   ScreenGrabber *m_screenGrabber;
   FrameBuffer *m_backupFrameBuffer;
   CriticalSection *m_criticalSection;

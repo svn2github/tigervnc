@@ -30,9 +30,9 @@ UpdateHandler::UpdateHandler(void)
   m_updateFilter = new UpdateFilter(m_screenGrabber, m_backupFrameBuffer,
                                     m_criticalSection);
   m_updateKeeper = new UpdateKeeper(m_updateFilter);
-  m_updateDetector = new Poller(m_updateKeeper, m_screenGrabber,
+  m_poller = new Poller(m_updateKeeper, m_screenGrabber,
                                 m_backupFrameBuffer, m_criticalSection);
-  m_updateDetector->setOutUpdateListener(this);
+  m_poller->setOutUpdateListener(this);
 }
 
 UpdateHandler::~UpdateHandler(void)
@@ -47,35 +47,33 @@ UpdateHandler::~UpdateHandler(void)
 void UpdateHandler::extract(UpdateContainer *updateContainer)
 {
   m_criticalSection->enter();
+
   m_updateKeeper->extract(&m_updateContainer);
 
-  // Checking for ScreenGrabber properties have been changed
-  if (m_screenGrabber->getPropertiesChanged()) {
+  // Checking for screen properties changing or frame buffers differ
+  if (m_screenGrabber->getPropertiesChanged() ||
+      !m_backupFrameBuffer->cmp(m_screenGrabber->getScreenBuffer())) {
+    if (m_screenGrabber->getScreenSizeChanged()) {
+      m_updateContainer.screenSizeChanged = true;
+    }
     m_screenGrabber->applyNewProperties();
+    m_backupFrameBuffer->assignProperties(m_screenGrabber->getScreenBuffer());
   }
-
-  // Comparing two frame buffers
-  if (!m_backupFrameBuffer->cmp(m_screenGrabber->getScreenBuffer())) {
-    m_backupFrameBuffer->setPixelFormat(&m_screenGrabber->getScreenBuffer()->getPixelFormat(),
-                                        false);
-    m_backupFrameBuffer->setDimension(&m_screenGrabber->getScreenBuffer()->getDimension());
-  }
-
-  // FIXME: There should be a filtering of region
 
   *updateContainer = m_updateContainer;
+
   m_criticalSection->leave();
 }
 
 void UpdateHandler::execute()
 {
-  m_updateDetector->resume();
+  m_poller->resume();
 }
 
 void UpdateHandler::terminate()
 {
-  m_updateDetector->terminate();
-  m_updateDetector->wait();
+  m_poller->terminate();
+  m_poller->wait();
 }
 
 void UpdateHandler::onUpdate(void *pSender)

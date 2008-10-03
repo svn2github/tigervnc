@@ -46,6 +46,8 @@ public:
     m_outUpdateListener = outUpdateListener;
   }
 
+  const FrameBuffer *getBackupFrameBuffer() const { return m_backupFrameBuffer; }
+
   virtual void onUpdate(void *pSender);
 
 private:

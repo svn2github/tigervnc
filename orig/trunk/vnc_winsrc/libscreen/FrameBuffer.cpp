@@ -80,8 +80,8 @@ bool FrameBuffer::copyFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffe
   // Moving commonRect to destination coordinates and source
   Rect resultDstRect(&commonRect);
   resultDstRect.move(dstRect->left, dstRect->top);
-  int resultSrcX = srcX + resultDstRect.left;
-  int resultSrcY = srcY + resultDstRect.top;
+  int resultSrcX = srcX + commonRect.left;
+  int resultSrcY = srcY + commonRect.top;
 
   // Data copy
   int dstStrike = m_dimension.width;

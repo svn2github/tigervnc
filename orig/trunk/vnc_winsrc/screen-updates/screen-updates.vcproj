@@ -155,6 +155,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\HooksUpdateDetector.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Poller.cpp"
 				>
 			</File>
@@ -198,6 +202,10 @@
 			>
 			<File
 				RelativePath=".\CriticalSection.h"
+				>
+			</File>
+			<File
+				RelativePath=".\HooksUpdateDetector.h"
 				>
 			</File>
 			<File

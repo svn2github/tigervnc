@@ -84,16 +84,16 @@ bool FrameBuffer::copyFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffe
   int resultSrcY = srcY + commonRect.top;
 
   // Data copy
-  int dstStrike = m_dimension.width;
-  int srcStrike = srcDimension.width;
-  int pdstPixel = resultDstRect.top * dstStrike + resultDstRect.left;
-  int psrcPixel = resultSrcY * srcStrike + resultSrcX;
+  int dstStride = m_dimension.width;
+  int srcStride = srcDimension.width;
+  int pdstPixel = resultDstRect.top * dstStride + resultDstRect.left;
+  int psrcPixel = resultSrcY * srcStride + resultSrcX;
   int resultHeight = resultDstRect.getHeight();
   int resultWidth = resultDstRect.getWidth();
   int pixelSize = m_pixelFormat.bitsPerPixel / 8;
   UINT8 *srcDataBuffer = (UINT8 *)srcFrameBuffer->getBuffer();
 
-  for (int i = 0; i < resultHeight; i++, pdstPixel += dstStrike, psrcPixel += srcStrike) {
+  for (int i = 0; i < resultHeight; i++, pdstPixel += dstStride, psrcPixel += srcStride) {
     memcpy((UINT8 *)m_buffer + pdstPixel * pixelSize,
            srcDataBuffer + psrcPixel * pixelSize,
            resultWidth * pixelSize);

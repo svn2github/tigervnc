@@ -25,6 +25,7 @@
 #include "libscreen/WindowsScreenGrabber.h"
 #include "libscreen/FrameBuffer.h"
 #include "CriticalSection.h"
+#include "UpdateContainer.h"
 
 class UpdateFilter
 {
@@ -33,6 +34,8 @@ public:
                FrameBuffer *frameBuffer,
                CriticalSection *frameBufferCriticalSection);
   ~UpdateFilter(void);
+
+  void filter(UpdateContainer *updateContainer);
 
 private:
   ScreenGrabber *m_screenGrabber;

@@ -33,3 +33,48 @@ m_frameBufferCriticalSection(frameBufferCriticalSection)
 UpdateFilter::~UpdateFilter(void)
 {
 }
+
+void UpdateFilter::filter(UpdateContainer *updateContainer)
+{
+  rfb::Region tmpChangedRegion;
+
+  m_frameBufferCriticalSection->enter();
+
+  FrameBuffer *screenFrameBuffer = m_screenGrabber->getScreenBuffer();
+
+  // Checking for buffers equal
+  if (!screenFrameBuffer->cmp(m_frameBuffer)) {
+    m_frameBufferCriticalSection->leave();
+    return;
+  }
+
+  // Getting rectangle vector
+  std::vector<Rect> rects;
+  std::vector<Rect>::iterator iRect;
+  updateContainer->changedRegion.get_rects(&rects);
+  int numRects = updateContainer->changedRegion.numRects();
+
+  // Grabbing
+  for (iRect = rects.begin(); iRect < rects.end(); iRect++) {
+    if (!m_screenGrabber->grab(&(*iRect))) {
+      m_frameBufferCriticalSection->leave();
+      return;
+    }
+  }
+
+  Rect *rect, resultRect;
+  for (iRect = rects.begin(); iRect < rects.end(); iRect++) {
+    rect = &(*iRect);
+
+    // FIXME: Here should be cutting rect edges
+    resultRect = *rect;
+
+    tmpChangedRegion.addRect(resultRect);
+    m_frameBuffer->copyFrom(&resultRect, screenFrameBuffer, resultRect.left,
+                            resultRect.top);
+  }
+
+  updateContainer->changedRegion = tmpChangedRegion;
+
+  m_frameBufferCriticalSection->leave();
+}

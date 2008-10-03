@@ -96,8 +96,8 @@ bool Poller::cmpFrameBuff(const Rect *rect, const FrameBuffer *fb1,
                           const FrameBuffer *fb2)
 {
   UINT32 pixelSize = m_backupFrameBuffer->getPixelFormat().bitsPerPixel / 8;
-  UINT32 stride = m_backupFrameBuffer->getDimension().width;
-  UINT32 pLine = (rect->top * stride + rect->left) * pixelSize;
+  UINT32 stride = fb1->getDimension().width * pixelSize; // In bytes
+  UINT32 pLine = (rect->top * stride) + rect->left * pixelSize; // Relative pointer to a comparing line
   UINT8 *buf1 = (UINT8 *)fb1->getBuffer();
   UINT8 *buf2 = (UINT8 *)fb2->getBuffer();
 

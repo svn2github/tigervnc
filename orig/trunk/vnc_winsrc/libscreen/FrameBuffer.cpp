@@ -115,12 +115,9 @@ bool FrameBuffer::setPixelFormat(const PixelFormat *pixelFormat, bool resizeBuff
 
 bool FrameBuffer::setDimension(const Dimension *newDim, bool resizeBuff)
 {
-  UINT32 newArea = newDim->area();
-  UINT32 oldArea = m_dimension.area();
-
   m_dimension = *newDim;
 
-  if (resizeBuff && (newArea != oldArea))
+  if (resizeBuff)
   {
     return resizeBuffer();
   }

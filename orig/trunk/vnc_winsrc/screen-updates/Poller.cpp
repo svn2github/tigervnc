@@ -44,6 +44,17 @@ void Poller::execute()
 {
   FrameBuffer *screenFrameBuffer;
 
+  m_frameBufferCriticalSection->enter();
+  screenFrameBuffer = m_screenGrabber->getScreenBuffer();
+
+  rfb::Region fullScreenRegion;
+  Rect fullScreenRect(screenFrameBuffer->getDimension().getRect());
+
+  fullScreenRegion.addRect(&fullScreenRect);
+
+  m_updateKeeper->addChangedRegion(&fullScreenRegion);
+  m_frameBufferCriticalSection->leave();
+
   while (!m_terminated) {
     rfb::Region region;
 

@@ -21,7 +21,8 @@
 
 #include "HooksUpdateDetector.h"
 
-HooksUpdateDetector::HooksUpdateDetector(void)
+HooksUpdateDetector::HooksUpdateDetector(UpdateKeeper *updateKeeper)
+: UpdateDetector(updateKeeper)
 {
 }
 

@@ -27,7 +27,7 @@
 class HooksUpdateDetector : public UpdateDetector
 {
 public:
-  HooksUpdateDetector(void);
+  HooksUpdateDetector(UpdateKeeper *updateKeeper);
   virtual ~HooksUpdateDetector(void);
 };
 

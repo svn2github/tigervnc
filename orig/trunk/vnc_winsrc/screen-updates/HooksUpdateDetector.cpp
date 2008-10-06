@@ -20,12 +20,29 @@
 // TightVNC homepage on the Web: http://www.tightvnc.com/
 
 #include "HooksUpdateDetector.h"
+#include "TCHAR.h"
 
-HooksUpdateDetector::HooksUpdateDetector(UpdateKeeper *updateKeeper)
-: UpdateDetector(updateKeeper)
+HooksUpdateDetector::HooksUpdateDetector(UpdateKeeper *updateKeeper,
+                                         CriticalSection *updateKeeperCriticalSection)
+: UpdateDetector(updateKeeper),
+m_updateKeeperCriticalSection(updateKeeperCriticalSection)
 {
+  // Dll initializing
+  if ((m_hHooks = ::LoadLibrary(_T(LIBRARY_NAME))) == 0) {
+    m_terminated = true;
+    return;
+  }
 }
 
 HooksUpdateDetector::~HooksUpdateDetector(void)
 {
+  if (m_hHooks != 0) {
+    ::FreeLibrary(m_hHooks);
+  }
+}
+
+void HooksUpdateDetector::execute()
+{
+  while (!m_terminated) {
+  }
 }

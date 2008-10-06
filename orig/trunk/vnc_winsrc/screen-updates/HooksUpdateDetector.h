@@ -24,11 +24,20 @@
 
 #include "UpdateDetector.h"
 
+#define LIBRARY_NAME "VNCHooks.dll"
+
 class HooksUpdateDetector : public UpdateDetector
 {
 public:
-  HooksUpdateDetector(UpdateKeeper *updateKeeper);
+  HooksUpdateDetector(UpdateKeeper *updateKeeper,
+                      CriticalSection *updateKeeperCriticalSection);
   virtual ~HooksUpdateDetector(void);
+
+protected:
+  virtual void execute();
+
+  CriticalSection *m_updateKeeperCriticalSection;
+  HMODULE m_hHooks;
 };
 
 #endif // __HOOKSUPDATEDETECTOR_H__

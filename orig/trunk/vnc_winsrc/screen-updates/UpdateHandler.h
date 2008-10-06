@@ -27,8 +27,8 @@
 #include "UpdateFilter.h"
 #include "libscreen/WindowsScreenGrabber.h"
 #include "libscreen/FrameBuffer.h"
-#include "Poller.h"
 #include "UpdateListener.h"
+#include "UpdateDetector.h"
 
 class UpdateHandler : public UpdateListener
 {
@@ -62,6 +62,7 @@ private:
   UpdateKeeper *m_updateKeeper;
   UpdateFilter *m_updateFilter;
   UpdateDetector *m_poller;
+  UpdateDetector *m_hooks;
   ScreenGrabber *m_screenGrabber;
   FrameBuffer *m_backupFrameBuffer;
   CriticalSection *m_criticalSection;

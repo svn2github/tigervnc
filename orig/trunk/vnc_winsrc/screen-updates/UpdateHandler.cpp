@@ -20,6 +20,8 @@
 // TightVNC homepage on the Web: http://www.tightvnc.com/
 
 #include "UpdateHandler.h"
+#include "Poller.h"
+#include "HooksUpdateDetector.h"
 
 UpdateHandler::UpdateHandler(void)
 : m_outUpdateListener(0)
@@ -33,11 +35,16 @@ UpdateHandler::UpdateHandler(void)
   m_poller = new Poller(m_updateKeeper, m_screenGrabber,
                                 m_backupFrameBuffer, m_criticalSection);
   m_poller->setOutUpdateListener(this);
+  m_hooks = new HooksUpdateDetector(m_updateKeeper,
+                                    m_criticalSection);
+  m_hooks->setOutUpdateListener(this);
 }
 
 UpdateHandler::~UpdateHandler(void)
 {
   terminate();
+  delete m_poller;
+  delete m_hooks;
   delete m_updateKeeper;
   delete m_updateFilter;
   delete m_screenGrabber;
@@ -68,12 +75,15 @@ void UpdateHandler::extract(UpdateContainer *updateContainer)
 void UpdateHandler::execute()
 {
   m_poller->resume();
+  m_hooks->resume();
 }
 
 void UpdateHandler::terminate()
 {
   m_poller->terminate();
+  m_hooks->terminate();
   m_poller->wait();
+  m_hooks->wait();
 }
 
 void UpdateHandler::onUpdate(void *pSender)

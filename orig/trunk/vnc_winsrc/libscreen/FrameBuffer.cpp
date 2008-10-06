@@ -73,15 +73,19 @@ bool FrameBuffer::copyFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffe
   Rect srcRectFB = srcBufferRect.intersection(&srcRect);
 
   // Finding common area between the dstRectFB and the srcRectFB
-  Dimension dstDim(&dstRectFB);
-  Dimension srcDim(&srcRectFB);
-  Rect commonRect(&dstDim.getRect().intersection(&srcDim.getRect()));
+  Rect dstCommonArea(&dstRectFB);
+  Rect srcCommonArea(&srcRectFB);
+  // Move to common place (left = 0, top = 0)
+  dstCommonArea.move(-dstRect->left, -dstRect->top);
+  srcCommonArea.move(-srcRect.left, -srcRect.top);
+
+  Rect commonRect(&dstCommonArea.intersection(&srcCommonArea));
 
   // Moving commonRect to destination coordinates and source
   Rect resultDstRect(&commonRect);
   resultDstRect.move(dstRect->left, dstRect->top);
-  int resultSrcX = srcX + commonRect.left;
-  int resultSrcY = srcY + commonRect.top;
+  int resultSrcX = srcRect.left + commonRect.left;
+  int resultSrcY = srcRect.top + commonRect.top;
 
   // Data copy
   int dstStride = m_dimension.width;

@@ -4,8 +4,6 @@
 	Version="9,00"
 	Name="VNCHooks"
 	ProjectGUID="{CE9A94DA-45A1-4BAC-AFA3-CE6D9FD28964}"
-	SccProjectName="&quot;$/WinVNC/VNCHooks&quot;, OBBAAAAA"
-	SccLocalPath="."
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>

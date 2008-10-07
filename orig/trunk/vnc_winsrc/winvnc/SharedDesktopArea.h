@@ -38,8 +38,9 @@ public:
 					  vncProperties *vncprop, vncServer *server);
 	bool ApplySharedControls();
 	void FullScreen();
-	void SharedWindow(BOOL Application);
+	void SharedWindow();
 	void SharedScreen();
+	void SharedApplication();
 	virtual ~SharedDesktopArea();
 
 protected:

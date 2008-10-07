@@ -97,10 +97,10 @@ void SharedDesktopArea::Init()
 		FullScreen();
 	} else if (propAreaShared) {
 		SharedScreen();
-	} else if (propWindowShared) { // if (propWindowShared)
-		SharedWindow(TRUE);
-	} else {
-		SharedWindow(FALSE);
+	} else if (propWindowShared) {
+		SharedWindow();
+	} else /* if (propApplication) */ {
+		SharedApplication();
 	}
 
 	// bring dialog to the front
@@ -109,7 +109,7 @@ void SharedDesktopArea::Init()
 
 void SharedDesktopArea::SetupMatchWindow()
 {
-	// get the desktop's bounds
+	// get the desktop's bounds (primary display only)
 	RECT desktopRect;
 	GetWindowRect(GetDesktopWindow(), &desktopRect);
 
@@ -194,8 +194,6 @@ void SharedDesktopArea::FullScreen()
 {
 	EnableControls(FALSE);
 	::SetWindowText(m_hWindowName, "* full desktop selected *");
-
-	// hide match window
 	m_pMatchWindow->Hide();
 
 	// update properties
@@ -205,27 +203,23 @@ void SharedDesktopArea::FullScreen()
 	m_vncprop->SetPrefApplication(FALSE);
 }
 
-void SharedDesktopArea::SharedWindow(BOOL Application)
+void SharedDesktopArea::SharedWindow()
 {
 	EnableControls(TRUE);
 	SetWindowCaption(m_server->GetWindowShared());
-
-	// hide match window
 	m_pMatchWindow->Hide();
 
 	// update properties
 	m_vncprop->SetPrefFullScreen(FALSE);
-	m_vncprop->SetPrefWindowShared(Application);
+	m_vncprop->SetPrefWindowShared(TRUE);
 	m_vncprop->SetPrefScreenAreaShared(FALSE);
-	m_vncprop->SetPrefApplication(!Application);
+	m_vncprop->SetPrefApplication(FALSE);
 }
 
 void SharedDesktopArea::SharedScreen()
 {
 	EnableControls(FALSE);
 	::SetWindowText(m_hWindowName, "* screen area selected *");
-
-	// show match window
 	m_pMatchWindow->Show();
 
 	// update properties
@@ -233,6 +227,19 @@ void SharedDesktopArea::SharedScreen()
 	m_vncprop->SetPrefWindowShared(FALSE);
 	m_vncprop->SetPrefScreenAreaShared(TRUE);
 	m_vncprop->SetPrefApplication(FALSE);
+}
+
+void SharedDesktopArea::SharedApplication()
+{
+	EnableControls(TRUE);
+	SetWindowCaption(m_server->GetWindowShared());
+	m_pMatchWindow->Hide();
+
+	// update properties
+	m_vncprop->SetPrefFullScreen(FALSE);
+	m_vncprop->SetPrefWindowShared(FALSE);
+	m_vncprop->SetPrefScreenAreaShared(FALSE);
+	m_vncprop->SetPrefApplication(TRUE);
 }
 
 LRESULT CALLBACK SharedDesktopArea::BmpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -362,11 +369,11 @@ void SharedDesktopArea::SetWindowCaption(HWND hWnd)
 
 void SharedDesktopArea::EnableControls(BOOL enable)
 {
-	// enable window cursor
+	// Enable/disable window cursor
 	HWND bmp_hWnd = GetDlgItem(m_hwnd, IDC_BMPCURSOR);
 	EnableWindow(bmp_hWnd, enable);
 
-	// change cursor image
+	// Set proper cursor image
 	DWORD idbitmap;
 	if (enable) {
 		idbitmap = IDB_BITMAP1;

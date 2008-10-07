@@ -730,11 +730,11 @@ BOOL CALLBACK vncProperties::SharedDlgProc(HWND hwnd, UINT uMsg,
 			return TRUE;
 			
 		case IDC_WINDOW:
-			_this->m_shareddtarea->SharedWindow(TRUE);
+			_this->m_shareddtarea->SharedWindow();
 			return TRUE;
 
 		case IDC_APPLICATION:
-			_this->m_shareddtarea->SharedWindow(FALSE);
+			_this->m_shareddtarea->SharedApplication();
 			return TRUE;
 			
 		case IDC_SCREEN:

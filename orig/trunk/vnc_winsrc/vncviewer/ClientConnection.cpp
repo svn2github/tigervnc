@@ -1515,6 +1515,7 @@ void ClientConnection::SizeWindow(bool centered)
 
 	int x,y;
 	WINDOWPLACEMENT winplace;
+	winplace.length = sizeof(WINDOWPLACEMENT);
 	GetWindowPlacement(m_hwnd1, &winplace);
 	if (centered) {
 		x = (workwidth - m_winwidth) / 2;		
@@ -1541,18 +1542,6 @@ void ClientConnection::SizeWindow(bool centered)
 	winplace.rcNormalPosition.right = x + m_winwidth;
 	winplace.rcNormalPosition.bottom = y + m_winheight;
 	SetWindowPlacement(m_hwnd1, &winplace);
-	switch (winplace.showCmd) {
-	case SW_SHOWNORMAL:
-		SetWindowPos(m_hwnd1, HWND_TOP, x, y, m_winwidth, m_winheight,
-					SWP_SHOWWINDOW);
-		break;	
-	case  SW_SHOWMAXIMIZED:
-		ShowWindow(m_hwnd1, SW_MAXIMIZE);
-		break;
-	case SW_SHOWMINIMIZED:
-		ShowWindow(m_hwnd1, SW_SHOWNORMAL);
-		break;
-	}
 	SetForegroundWindow(m_hwnd1);
 	PositionChildWindow();
 }

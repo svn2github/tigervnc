@@ -560,10 +560,11 @@ void VNCOptions::Load(char *fname)
 		m_useCompressLevel = true;
 		m_compressLevel = level;
 	}
-	level =					readInt("quality",			-1,				fname);
-	m_enableJpegCompression = false;
-	if (level != -1) {
-		m_enableJpegCompression = true;
+	level =					readInt("quality",			6,				fname);
+	m_enableJpegCompression = true;
+	if (level == -1) {
+		m_enableJpegCompression = false;
+	} else {
 		m_jpegQualityLevel = level;
 	}
 }
@@ -620,6 +621,7 @@ int VNCOptions::DoDialog(bool running)
 	return DialogBoxParam(pApp->m_instance, DIALOG_MAKEINTRESOURCE(IDD_PARENT), 
 							NULL, (DLGPROC) DlgProc, (LONG) this); 	
 }
+
 BOOL CALLBACK VNCOptions::DlgProc(HWND hwndDlg, UINT uMsg,
 										WPARAM wParam, LPARAM lParam)
 {
@@ -1118,6 +1120,7 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 	}
 	return 0;
 }
+
 void VNCOptions::EnableCompress(HWND hwnd, bool enable)
 {
 	HWND hfast = GetDlgItem(hwnd, IDC_STATIC_FAST);
@@ -1131,6 +1134,7 @@ void VNCOptions::EnableCompress(HWND hwnd, bool enable)
 	EnableWindow(htextlevel, enable);
 	EnableWindow(hbest, enable);
 }
+
 void VNCOptions::EnableJpeg(HWND hwnd, bool enable)
 {
 	HWND hpoor = GetDlgItem(hwnd, IDC_STATIC_POOR);
@@ -1144,6 +1148,7 @@ void VNCOptions::EnableJpeg(HWND hwnd, bool enable)
 	EnableWindow(hqualitytext, enable);
 	EnableWindow(hquality, enable);
 }
+
 BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 											   WPARAM wParam, LPARAM lParam)
 {
@@ -1392,6 +1397,7 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 	}
 	return 0;
 }
+
 void VNCOptions::EnableLog(HWND hwnd, bool enable)
 {
 	HWND hlevel = GetDlgItem(hwnd, IDC_STATIC_LOG_LEVEL);
@@ -1404,6 +1410,7 @@ void VNCOptions::EnableLog(HWND hwnd, bool enable)
 	EnableWindow(hlevel, enable);
 	EnableWindow(hLogBrowse, enable);
 }
+
 void VNCOptions::Lim(HWND hwnd, int control, DWORD min, DWORD max)
 {
 	int buf;
@@ -1421,6 +1428,7 @@ void VNCOptions::Lim(HWND hwnd, int control, DWORD min, DWORD max)
 					buf, FALSE);
 	}
 }
+
 void VNCOptions::LoadOpt(char subkey[256], char keyname[256])
 {
 	HKEY RegKey;
@@ -1458,17 +1466,18 @@ void VNCOptions::LoadOpt(char subkey[256], char keyname[256])
 		m_compressLevel = level;
 		m_useCompressLevel = true;
 	}
-	m_scaling =				read(RegKey, "scaling",						  m_scaling  ) != 0;	
+	m_scaling =				read(RegKey, "scaling",			  m_scaling  ) != 0;	
 		
-	m_enableJpegCompression = false;
-	level =					read(RegKey, "quality", -1);
-	m_enableJpegCompression = false;
-	if (level != -1) {
+	m_enableJpegCompression = true;
+	level =					read(RegKey, "quality",			  6);
+	if (level == -1) {
+		m_enableJpegCompression = false;
+	} else {
 		m_jpegQualityLevel = level;
-		m_enableJpegCompression = true;
 	}
 	RegCloseKey(RegKey);
 }
+
 int VNCOptions::read(HKEY hkey, char *name, int retrn)
 {
 	DWORD buflen = 4;
@@ -1481,7 +1490,8 @@ int VNCOptions::read(HKEY hkey, char *name, int retrn)
 		return buf;
 	}
 }
- void VNCOptions::SaveOpt(char subkey[256], char keyname[256])
+
+void VNCOptions::SaveOpt(char subkey[256], char keyname[256])
 {
 	DWORD dispos;
 	HKEY RegKey;
@@ -1530,6 +1540,7 @@ void VNCOptions::delkey(char subkey[256], char keyname[256])
 	_tcscat(key, subkey);
 	RegDeleteKey (HKEY_CURRENT_USER, key);
 }
+
 void VNCOptions::save(HKEY hkey, char *name, int value) 
 {
 	RegSetValueEx( hkey, name, 

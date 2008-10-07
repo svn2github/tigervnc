@@ -281,7 +281,7 @@ vncProperties::ParentDlgProc(HWND hwnd,
 			TabCtrl_InsertItem(_this->m_hTab, 0, &item);
 			item.pszText = "Hooks";
 			TabCtrl_InsertItem(_this->m_hTab, 1, &item);
-			item.pszText = "Sharing";
+			item.pszText = "Display";
 			TabCtrl_InsertItem(_this->m_hTab, 2, &item);
 			item.pszText = "Query";
 			TabCtrl_InsertItem(_this->m_hTab, 3, &item);

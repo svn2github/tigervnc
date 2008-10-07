@@ -332,34 +332,35 @@ BEGIN
                     WS_TABSTOP,13,62,211,12
 END
 
-IDD_ADMINISTRATION DIALOG DISCARDABLE  0, 0, 288, 111
+IDD_ADMINISTRATION DIALOG DISCARDABLE  0, 0, 288, 119
 STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE
 FONT 8, "MS Sans Serif"
 BEGIN
-    GROUPBOX        "Administration",IDC_STATIC_ADMINISTR,5,5,142,101
+    GROUPBOX        "Administration",IDC_STATIC_ADMINISTR,5,5,137,57
     CONTROL         "Disable empty passwords",IDREQUIREAUTH,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,13,17,129,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,16,127,12
     CONTROL         "Allow loopback connections",IDALLOWLOOPBACK,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,13,32,132,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,30,127,12
     CONTROL         "Allow only loopback connections",IDONLYLOOPBACK,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,20,47,117,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,44,127,12
+    GROUPBOX        "Logging",IDC_STATIC_LOGGING,5,68,137,43
     CONTROL         "Log information to WinVNC.log",IDLOG,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,13,62,125,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,79,127,12
     CONTROL         "Log detailed debugging information",IDLOGLOTS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,20,77,123,12
-    GROUPBOX        "HTTP server",IDC_STATIC_TEMPORARY,155,5,128,40
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,93,127,12
+    GROUPBOX        "HTTP server",IDC_STATIC_TEMPORARY,152,5,131,43
     CONTROL         "Enable built-in HTTP server",IDENABLEHTTPD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,163,16,115,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,160,16,120,12
     CONTROL         "Enable applet params in URLs",IDC_URL_PARAMS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,163,30,115,10
-    GROUPBOX        "Connection Priority",IDC_STATIC_CONN_PRIOR,155,49,128,
+                    BS_AUTOCHECKBOX | WS_TABSTOP,160,30,120,12
+    GROUPBOX        "Connection priority",IDC_STATIC_CONN_PRIOR,152,54,131,
                     57
     CONTROL         "Disconnect existing connections",IDPRIORITY0,"Button",
-                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,163,62,115,10
+                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,160,65,120,12
     CONTROL         "Automatic shared sessions",IDPRIORITY1,"Button",
-                    BS_AUTORADIOBUTTON,163,76,115,10
+                    BS_AUTORADIOBUTTON,160,79,120,12
     CONTROL         "Refuse concurrent connections",IDPRIORITY2,"Button",
-                    BS_AUTORADIOBUTTON,163,90,115,10
+                    BS_AUTORADIOBUTTON,160,93,120,12
 END
 
 IDD_CONTROL_PANEL DIALOGEX 0, 0, 209, 218
@@ -671,12 +672,13 @@ BEGIN
         LEFTMARGIN, 5
         RIGHTMARGIN, 283
         VERTGUIDE, 13
-        VERTGUIDE, 20
-        VERTGUIDE, 155
-        VERTGUIDE, 164
-        VERTGUIDE, 278
+        VERTGUIDE, 140
+        VERTGUIDE, 142
+        VERTGUIDE, 152
+        VERTGUIDE, 160
+        VERTGUIDE, 280
         TOPMARGIN, 5
-        BOTTOMMARGIN, 106
+        BOTTOMMARGIN, 114
     END
 
     IDD_CONTROL_PANEL, DIALOG
@@ -1085,6 +1087,7 @@ BEGIN
     IDC_DONT_USE_DRIVER     "Don't ever try to use mirror display driver. Use this option for troubleshooting purposes. Note that toggling this option does not take immediate effect if there is at least one viewer connected."
     IDC_LIST_CONNECTIONS    "Authorised clients list"
     IDC_STATIC_QUERY        "Choose if local users should be prompted to accept or reject each incoming connection."
+    IDC_STATIC_LOGGING      "Choose whether to write information into a log file, and how much information to write."
     IDC_DISABLE_CLIENTS     "Disable new clients button"
 END
 

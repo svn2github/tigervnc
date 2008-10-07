@@ -21,6 +21,12 @@
 
 #include "HooksUpdateDetector.h"
 #include "TCHAR.h"
+#include "libscreen/Rect.h"
+
+// Constants
+const UINT RFB_SCREEN_UPDATE = RegisterWindowMessage(_T("WinVNC.Update.DrawRect"));
+const UINT RFB_COPYRECT_UPDATE = RegisterWindowMessage(_T("WinVNC.Update.CopyRect"));
+const UINT RFB_MOUSE_UPDATE = RegisterWindowMessage(_T("WinVNC.Update.Mouse"));
 
 HooksUpdateDetector::HooksUpdateDetector(UpdateKeeper *updateKeeper,
                                          CriticalSection *updateKeeperCriticalSection)
@@ -32,17 +38,64 @@ m_updateKeeperCriticalSection(updateKeeperCriticalSection)
     m_terminated = true;
     return;
   }
+
+  m_pSetHook = (PSetHook)::GetProcAddress(m_hHooks, SET_HOOK_FUNCTION_NAME);
+  m_pUnSetHook = (PUnSetHook)::GetProcAddress(m_hHooks, UNSET_HOOK_FUNCTION_NAME);
+  if (!m_pSetHook || !m_pUnSetHook)
+  {
+    m_terminated = true;
+    ::FreeLibrary(m_hHooks);
+    return;
+  }
+
+  HINSTANCE hinst = GetModuleHandle(0);
+
+  m_hooksTargetWindow = new HooksTargetWindow(hinst);
+  if (m_hooksTargetWindow->getHWND() == 0) {
+    return;
+  }
+
+  // Hooks initializing
+  m_pSetHook(m_hooksTargetWindow->getHWND(),
+             RFB_SCREEN_UPDATE,
+             RFB_COPYRECT_UPDATE,
+             RFB_MOUSE_UPDATE);
 }
 
 HooksUpdateDetector::~HooksUpdateDetector(void)
 {
   if (m_hHooks != 0) {
+    if (m_hooksTargetWindow->getHWND() != 0) {
+      m_pUnSetHook(m_hooksTargetWindow->getHWND());
+    }
     ::FreeLibrary(m_hHooks);
   }
 }
 
 void HooksUpdateDetector::execute()
 {
+  MSG msg;
   while (!m_terminated) {
+    if (!PeekMessage(&msg, m_hooksTargetWindow->getHWND(), NULL, NULL, PM_REMOVE)) {
+      if (!WaitMessage()) {
+        break;
+      }
+    } else if (msg.message == RFB_SCREEN_UPDATE) {
+      Rect rect;
+      rect.left =	(SHORT)LOWORD(msg.wParam);
+      rect.top = (SHORT)HIWORD(msg.wParam);
+      rect.right = (SHORT)LOWORD(msg.lParam);
+      rect.bottom = (SHORT)HIWORD(msg.lParam);
+
+      m_updateKeeperCriticalSection->enter();
+      m_updateKeeper->addChangedRect(&rect);
+      m_updateKeeperCriticalSection->leave();
+
+      doOutUpdate();
+    } else if (msg.message == WM_QUIT) {
+      break;
+    } else {
+      DispatchMessage(&msg);
+    }
   }
 }

@@ -23,8 +23,14 @@
 #define __HOOKSUPDATEDETECTOR_H__
 
 #include "UpdateDetector.h"
+#include "HooksTargetWindow.h"
 
 #define LIBRARY_NAME "VNCHooks.dll"
+#define SET_HOOK_FUNCTION_NAME "SetHook"
+#define UNSET_HOOK_FUNCTION_NAME "UnSetHook"
+
+typedef int (*PSetHook)(HWND hWnd, UINT UpdateMsg, UINT CopyMsg, UINT MouseMsg);
+typedef int (*PUnSetHook)(HWND hWnd);
 
 class HooksUpdateDetector : public UpdateDetector
 {
@@ -38,6 +44,9 @@ protected:
 
   CriticalSection *m_updateKeeperCriticalSection;
   HMODULE m_hHooks;
+  PSetHook m_pSetHook;
+  PUnSetHook m_pUnSetHook;
+  HooksTargetWindow *m_hooksTargetWindow;
 };
 
 #endif // __HOOKSUPDATEDETECTOR_H__

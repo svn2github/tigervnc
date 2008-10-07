@@ -162,7 +162,7 @@
 #define IDC_HOST_UP                     1122
 #define IDC_HOST_DOWN                   1123
 #define IDC_HOST_EDIT                   1124
-#define IDC_HOST_PATTERN                1127
+#define IDC_HOST_PATTERN                1125
 #define IDC_PATTERN_COMP1               1127
 #define IDC_RADIO_ALLOW                 1129
 #define IDC_RADIO_DENY                  1130
@@ -207,14 +207,14 @@
 #define ID_OUTGOING_CONN                40005
 #define ID_DEFAULT_PROPERTIES           40006
 #define ID_DISABLE_CONN                 40007
-#define ID_CONTROL_PANEL                40009
+#define ID_CONTROL_PANEL                40008
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        159
-#define _APS_NEXT_COMMAND_VALUE         40008
+#define _APS_NEXT_COMMAND_VALUE         40009
 #define _APS_NEXT_CONTROL_VALUE         1173
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

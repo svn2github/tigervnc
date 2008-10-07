@@ -144,6 +144,7 @@
 #define IDC_DONT_USE_DRIVER             1098
 #define IDC_CHECK_BLACK_RGN             1099
 #define IDC_LIST_CONNECTIONS            1100
+#define IDC_STATIC_QUERY                1101
 #define IDC_DISABLE_CLIENTS             1103
 #define IDC_ADD_CLIENT                  1104
 #define IDC_KILL_ALL                    1105

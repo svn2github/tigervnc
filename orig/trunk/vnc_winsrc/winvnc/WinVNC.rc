@@ -309,25 +309,27 @@ BEGIN
                     WS_TABSTOP,13,109,209,12
 END
 
-IDD_QUERY_SETTINGS DIALOG DISCARDABLE  0, 0, 237, 90
+IDD_QUERY_SETTINGS DIALOG DISCARDABLE  0, 0, 288, 85
 STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE
 FONT 8, "MS Sans Serif"
 BEGIN
+    GROUPBOX        "Query settings",IDC_STATIC_QUERY,5,5,278,75,WS_GROUP
     CONTROL         "Query console on incoming connections",IDQUERY,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,7,7,211,12
-    LTEXT           "Query timeout:",IDC_STATIC_TIMEOUT,19,23,67,10,
-                    SS_CENTERIMAGE
-    EDITTEXT        IDQUERYTIMEOUT,89,22,22,12,ES_AUTOHSCROLL | ES_NUMBER
-    LTEXT           "Default action:",IDC_STATIC_ACTION,19,37,67,12,
-                    SS_CENTERIMAGE
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,16,211,12
+    LTEXT           "Query timeout:",IDC_STATIC_TIMEOUT,25,32,67,10,
+                    SS_CENTERIMAGE | NOT WS_GROUP
+    EDITTEXT        IDQUERYTIMEOUT,95,31,22,12,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "seconds",IDC_STATIC_SECONDS,121,32,35,11,SS_CENTERIMAGE | 
+                    NOT WS_GROUP
+    LTEXT           "Default action:",IDC_STATIC_ACTION,25,46,67,12,
+                    SS_CENTERIMAGE | NOT WS_GROUP
     CONTROL         "Refuse",IDC_ACTION_REFUSE,"Button",BS_AUTORADIOBUTTON | 
-                    WS_GROUP | WS_TABSTOP,89,37,57,12
+                    WS_GROUP | WS_TABSTOP,95,46,57,12
     CONTROL         "Accept",IDC_ACTION_ACCEPT,"Button",BS_AUTORADIOBUTTON,
-                    146,37,72,12
+                    152,46,72,12
     CONTROL         "Allow option to accept without authentication",
-                    IDQUERYALLOWNOPASS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    7,52,211,12
-    LTEXT           "seconds",IDC_STATIC_SECONDS,115,23,35,11,SS_CENTERIMAGE
+                    IDQUERYALLOWNOPASS,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
+                    WS_TABSTOP,13,62,211,12
 END
 
 IDD_ADMINISTRATION DIALOG DISCARDABLE  0, 0, 288, 111
@@ -654,13 +656,14 @@ BEGIN
 
     IDD_QUERY_SETTINGS, DIALOG
     BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 230
-        VERTGUIDE, 19
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 83
-        HORZGUIDE, 28
-        HORZGUIDE, 43
+        LEFTMARGIN, 5
+        RIGHTMARGIN, 283
+        VERTGUIDE, 13
+        VERTGUIDE, 25
+        TOPMARGIN, 5
+        BOTTOMMARGIN, 80
+        HORZGUIDE, 37
+        HORZGUIDE, 52
     END
 
     IDD_ADMINISTRATION, DIALOG
@@ -1081,6 +1084,7 @@ BEGIN
     IDC_STATIC_DISPLAY_PORT "Here you can specify which TCP ports should be used for incoming client connections."
     IDC_DONT_USE_DRIVER     "Don't ever try to use mirror display driver. Use this option for troubleshooting purposes. Note that toggling this option does not take immediate effect if there is at least one viewer connected."
     IDC_LIST_CONNECTIONS    "Authorised clients list"
+    IDC_STATIC_QUERY        "Choose if local users should be prompted to accept or reject each incoming connection."
     IDC_DISABLE_CLIENTS     "Disable new clients button"
 END
 

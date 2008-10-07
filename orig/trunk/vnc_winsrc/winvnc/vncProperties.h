@@ -79,7 +79,7 @@ public:
 	// Display the properties dialog
 	// If usersettings is TRUE then the per-user settings come up
 	// If usersettings is FALSE then the default system settings come up
-	void Show(BOOL show, BOOL usersettings);
+	void Show(BOOL show, BOOL usersettings, BOOL passwordfocused = FALSE);
 
 	// Loading & saving of preferences
 	void Load(BOOL usersettings);
@@ -114,8 +114,6 @@ protected:
 	BOOL				m_allowproperties;
 	BOOL				m_allowshutdown;
 	BOOL				m_alloweditclients;
-
-	BOOL				m_inadvanced;
 
 	// Password handling
 	void LoadPassword(HKEY k, char *buffer, const char *entry_name);
@@ -190,6 +188,9 @@ protected:
 	int m_pref_Priority;
 
 private:
+	// Remember previously selected tab.
+	int m_tab_id;
+
 	HWND m_hTab;
 	HWND m_hIncoming;
 	HWND m_hShared;

@@ -71,9 +71,10 @@ vncProperties::vncProperties()
 	m_allowshutdown = TRUE;
 	m_dlgvisible = FALSE;
 	m_usersettings = TRUE;
-	m_inadvanced = FALSE;	
 
 	m_pMatchWindow = NULL;
+
+	m_tab_id = 0;
 }
 
 vncProperties::~vncProperties()
@@ -86,9 +87,7 @@ vncProperties::Init(vncServer *server)
 {
 	// Save the server pointer
 	m_server = server;
-	
-	m_inadvanced = FALSE;
-	
+
 	// Load the settings from the registry
 	Load(TRUE);
 
@@ -127,9 +126,9 @@ vncProperties::Init(vncServer *server)
 						MessageBox(NULL, NO_CURRENT_USER_ERR,
 									"WinVNC Error",
 									MB_OK | MB_ICONEXCLAMATION);
-						Show(TRUE, FALSE);
+						Show(TRUE, FALSE, TRUE);
 					} else {
-						Show(TRUE, TRUE);
+						Show(TRUE, TRUE, TRUE);
 					}
 				}
 			}
@@ -140,11 +139,10 @@ vncProperties::Init(vncServer *server)
 
 // Dialog box handling functions
 void
-vncProperties::Show(BOOL show, BOOL usersettings)
+vncProperties::Show(BOOL show, BOOL usersettings, BOOL passwordfocused)
 {
 	if (show)
 	{
-		m_inadvanced = FALSE;
 		if (!m_allowproperties)
 		{
 			// If the user isn't allowed to override the settings then tell them
@@ -195,6 +193,9 @@ vncProperties::Show(BOOL show, BOOL usersettings)
 			for (;;)
 			{
 				m_returncode_valid = FALSE;
+
+				if (passwordfocused)
+					m_tab_id = 0;
 
 				// Do the dialog box
 				int result = DialogBoxParam(hAppInstance,
@@ -297,6 +298,7 @@ vncProperties::ParentDlgProc(HWND hwnd,
 			TabCtrl_InsertItem(_this->m_hTab, 5, &item);
 			item.pszText = "Echo Servers";
 			TabCtrl_InsertItem(_this->m_hTab, 6, &item);
+			TabCtrl_SetCurSel(_this->m_hTab, _this->m_tab_id);
 
 			_this->m_hShared = CreateDialogParam(hAppInstance, 
 				MAKEINTRESOURCE(IDD_SHARED_DESKTOP_AREA),
@@ -345,25 +347,25 @@ vncProperties::ParentDlgProc(HWND hwnd,
 			TabCtrl_AdjustRect(_this->m_hTab, FALSE, &rc);
 			SetWindowPos(_this->m_hIncoming, HWND_TOP, rc.left, rc.top,
 						 rc.right - rc.left, rc.bottom - rc.top,
-						 SWP_SHOWWINDOW);
+						 (_this->m_tab_id == 0) ? SWP_SHOWWINDOW : SWP_HIDEWINDOW);
 			SetWindowPos(_this->m_hPoll, HWND_TOP, rc.left, rc.top,
 						 rc.right - rc.left, rc.bottom - rc.top,
-						 SWP_HIDEWINDOW);
+						 (_this->m_tab_id == 1) ? SWP_SHOWWINDOW : SWP_HIDEWINDOW);
 			SetWindowPos(_this->m_hShared, HWND_TOP, rc.left, rc.top,
 						 rc.right - rc.left, rc.bottom - rc.top,
-						 SWP_HIDEWINDOW);
+						 (_this->m_tab_id == 2) ? SWP_SHOWWINDOW : SWP_HIDEWINDOW);
 			SetWindowPos(_this->m_hQuerySettings, HWND_TOP, rc.left, rc.top,
 						 rc.right - rc.left, rc.bottom - rc.top,
-						 SWP_HIDEWINDOW);
+						 (_this->m_tab_id == 3) ? SWP_SHOWWINDOW : SWP_HIDEWINDOW);
 			SetWindowPos(_this->m_hAdministration, HWND_TOP, rc.left, rc.top,
 						 rc.right - rc.left, rc.bottom - rc.top,
-						 SWP_HIDEWINDOW);
+						 (_this->m_tab_id == 4) ? SWP_SHOWWINDOW : SWP_HIDEWINDOW);
 			SetWindowPos(_this->m_hConnectionsAccess, HWND_TOP, rc.left, rc.top,
 						 rc.right - rc.left, rc.bottom - rc.top,
-						 SWP_HIDEWINDOW);
+						 (_this->m_tab_id == 5) ? SWP_SHOWWINDOW : SWP_HIDEWINDOW);
 			SetWindowPos(_this->m_hEchoConnection, HWND_TOP, rc.left, rc.top,
 						 rc.right - rc.left, rc.bottom - rc.top,
-						 SWP_HIDEWINDOW);
+						 (_this->m_tab_id == 6) ? SWP_SHOWWINDOW : SWP_HIDEWINDOW);
 
 			// Set the dialog box's title to indicate which Properties we're editting
 			if (_this->m_usersettings) {
@@ -372,8 +374,9 @@ vncProperties::ParentDlgProc(HWND hwnd,
 				SetWindowText(hwnd, "TightVNC Server: Default Local System Properties");
 			}						
 				
-			// We return FALSE because we set the keyboard focus explicitly.
-			return FALSE;
+			// If the first tab is selected, then return FALSE because in that case
+			// we set the keyboard focus explicitly (on the password field).
+			return (_this->m_tab_id != 0);
 		}
 	case WM_HELP:	
 		VNCHelp::Popup(lParam);
@@ -384,38 +387,33 @@ vncProperties::ParentDlgProc(HWND hwnd,
 			switch (pn->idFrom) {
 			case IDC_TAB:
 				{
-				int i = TabCtrl_GetCurFocus(_this->m_hTab);
-				DWORD style;
-				if (pn->code == TCN_SELCHANGE)
-					style = SW_SHOW;
-				if (pn->code == TCN_SELCHANGING)
-					style = SW_HIDE;
-				if ((style != SW_HIDE) && (style != SW_SHOW))
+					int id = TabCtrl_GetCurSel(_this->m_hTab);
+					DWORD style;
+					if (pn->code == TCN_SELCHANGE) {
+						style = SW_SHOW;
+					} else if (pn->code == TCN_SELCHANGING) {
+						style = SW_HIDE;
+					} else {
+						return 0;
+					}
+					// FIXME: Map between tab IDs and subdialogs in one place.
+					const HWND subDialogList[7] = {
+						_this->m_hIncoming,
+						_this->m_hPoll,
+						_this->m_hShared,
+						_this->m_hQuerySettings,
+						_this->m_hAdministration,
+						_this->m_hConnectionsAccess,
+						_this->m_hEchoConnection
+					};
+					if (id >= 7) {
+						// Invalid tab ID.
+						return 0;
+					}
+					HWND subDialog = subDialogList[id];
+					ShowWindow(subDialog, style);						
+					SetFocus(subDialog);
 					return 0;
-				switch (i) {
-				case 0:
-					ShowWindow(_this->m_hIncoming, style);
-					return 0;
-				case 1:
-					ShowWindow(_this->m_hPoll, style);						
-					return 0;
-				case 2:
-					ShowWindow(_this->m_hShared, style);						
-					return 0;
-				case 3:
-					ShowWindow(_this->m_hQuerySettings, style);						
-					return 0;
-				case 4:
-					ShowWindow(_this->m_hAdministration, style);						
-					return 0;
-				case 5:
-					ShowWindow(_this->m_hConnectionsAccess, style);						
-					return 0;
-				case 6:
-					ShowWindow(_this->m_hEchoConnection, style);						
-					return 0;
-				}
-				return 0;
 				}
 			}
 			return 0;
@@ -425,7 +423,6 @@ vncProperties::ParentDlgProc(HWND hwnd,
 		{
 		case IDOK:
 		case IDC_APPLY:
-			{	
 			SendMessage(_this->m_hIncoming, WM_COMMAND, IDC_APPLY,0);
 			SendMessage(_this->m_hPoll, WM_COMMAND, IDC_APPLY,0);
 			SendMessage(_this->m_hShared, WM_COMMAND, IDC_APPLY,0);
@@ -433,6 +430,8 @@ vncProperties::ParentDlgProc(HWND hwnd,
 			SendMessage(_this->m_hAdministration, WM_COMMAND, IDC_APPLY,0);
 			SendMessage(_this->m_hConnectionsAccess, WM_COMMAND, IDC_APPLY,0);
 			SendMessage(_this->m_hEchoConnection, WM_COMMAND, IDC_APPLY,0);
+
+			_this->m_tab_id = TabCtrl_GetCurFocus(_this->m_hTab);
 
 			_this->Save();
         
@@ -447,7 +446,6 @@ vncProperties::ParentDlgProc(HWND hwnd,
 				_this->m_hTab = NULL;
 			}
 			return TRUE;
-			}
 		case IDCANCEL:
 			vnclog.Print(LL_INTINFO, VNCLOG("enddialog (CANCEL)\n"));
 			_this->m_returncode_valid = TRUE;

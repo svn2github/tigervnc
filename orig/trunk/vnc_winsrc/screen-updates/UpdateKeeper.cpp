@@ -35,6 +35,11 @@ void UpdateKeeper::addChangedRegion(rfb::Region *changedRegion)
   m_updateContainer.changedRegion.assign_union(*changedRegion);
 }
 
+void UpdateKeeper::addChangedRect(const Rect *changedRect)
+{
+  m_updateContainer.changedRegion.addRect(changedRect);
+}
+
 void UpdateKeeper::addCopyRegion()
 {
 }

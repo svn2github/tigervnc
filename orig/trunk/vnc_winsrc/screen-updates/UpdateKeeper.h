@@ -33,7 +33,10 @@ public:
   ~UpdateKeeper(void);
 
   void addChangedRegion(rfb::Region *changedRegion);
+  void addChangedRect(const Rect *changedRect);
+
   void addCopyRegion();
+
   void setScreenSizeChanged();
   void setCursorPosChanged();
 

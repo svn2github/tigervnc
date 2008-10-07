@@ -1049,7 +1049,6 @@ vncProperties::Load(BOOL usersettings)
 		memcpy(m_pref_passwd, crypt, MAXPWLEN);
 		memcpy(m_pref_passwd_viewonly, crypt, MAXPWLEN);
 	}
-	m_pref_externalAuth=FALSE;
 	m_pref_QuerySetting=2;
 	m_pref_QueryTimeout=30;
 	m_pref_QueryAccept=FALSE;
@@ -1171,8 +1170,6 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	// Load the view-only password, default to the primary one
 	memcpy(m_pref_passwd_viewonly, m_pref_passwd, MAXPWLEN);
 	LoadPassword(appkey, m_pref_passwd_viewonly, "PasswordViewOnly");
-	// External authentication (disabled in the public version)
-	// m_pref_externalAuth=LoadInt(appkey, "ExternalAuth", m_pref_externalAuth);
 	// CORBA Settings
 	m_pref_CORBAConn=LoadInt(appkey, "CORBAConnect", m_pref_CORBAConn);
 
@@ -1238,8 +1235,6 @@ vncProperties::ApplyUserPrefs()
 	m_server->SetDisableTime(m_pref_PriorityTime);
 	m_server->SetPollingCycle(m_pref_PollingCycle);
 
-	// Enable/disable external authentication
-	m_server->EnableExternalAuth(m_pref_externalAuth);
 	m_server->SockConnect(m_pref_SockConnect);
 	// Polling prefs
 	m_server->PollUnderCursor(m_pref_PollUnderCursor);

@@ -153,7 +153,6 @@ protected:
 	BOOL m_pref_BeepDisconnect;
 	char m_pref_passwd[MAXPWLEN];
 	char m_pref_passwd_viewonly[MAXPWLEN];
-	BOOL m_pref_externalAuth;
 	BOOL m_pref_CORBAConn;
 	UINT m_pref_QuerySetting;
 	UINT m_pref_QueryTimeout;

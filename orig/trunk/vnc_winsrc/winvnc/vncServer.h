@@ -184,10 +184,6 @@ public:
 	virtual void SetPasswordViewOnly(const char *passwd);
 	virtual void GetPasswordViewOnly(char *passwd);
 
-	// External authentication
-	virtual BOOL ExternalAuthEnabled();
-	virtual void EnableExternalAuth(BOOL enable);
-
 	// Remote input handling
 	virtual void EnableRemoteInputs(BOOL enable);
 	virtual BOOL RemoteInputsEnabled();
@@ -338,7 +334,6 @@ protected:
 	char				m_password[MAXPWLEN];
 	char				m_password_viewonly[MAXPWLEN];
 	BOOL				m_passwd_required;
-	BOOL				m_external_auth;
 	BOOL				m_loopback_allowed;
 	BOOL				m_httpd_enabled;
 	BOOL				m_httpd_params_enabled;

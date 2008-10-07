@@ -63,7 +63,9 @@ vncServer::vncServer()
 	{
 		vncPasswd::FromClear clearPWD;
 		memcpy(m_password, clearPWD, MAXPWLEN);
+		m_password_set = FALSE;
 		memcpy(m_password_viewonly, clearPWD, MAXPWLEN);
+		m_password_viewonly_set = FALSE;
 	}
 	m_querysetting = 2;
 	m_querytimeout = 10;
@@ -870,27 +872,31 @@ vncServer::SetPorts(const UINT port_rfb, const UINT port_http)
 }
 
 void
-vncServer::SetPassword(const char *passwd)
+vncServer::SetPassword(BOOL activate, const char *passwd)
 {
+	m_password_set = activate;
 	memcpy(m_password, passwd, MAXPWLEN);
 }
 
-void
+BOOL
 vncServer::GetPassword(char *passwd)
 {
 	memcpy(passwd, m_password, MAXPWLEN);
+	return m_password_set;
 }
 
 void
-vncServer::SetPasswordViewOnly(const char *passwd)
+vncServer::SetPasswordViewOnly(BOOL activate, const char *passwd)
 {
+	m_password_viewonly_set = activate;
 	memcpy(m_password_viewonly, passwd, MAXPWLEN);
 }
 
-void
+BOOL
 vncServer::GetPasswordViewOnly(char *passwd)
 {
 	memcpy(passwd, m_password_viewonly, MAXPWLEN);
+	return m_password_viewonly_set;
 }
 
 // Remote input handling

@@ -196,15 +196,15 @@ BOOL IncomingConnectionsControls::SetPasswordSettings(DWORD idEditBox)
 		if (len == 0) {
 			vncPasswd::FromClear crypt;
 			if (idEditBox == IDC_PASSWORD)
-				m_server->SetPassword(crypt);
+				m_server->SetPassword(TRUE, crypt);
 			if (idEditBox == IDC_PASSWORD_VIEWONLY)
-				m_server->SetPasswordViewOnly(crypt);
+				m_server->SetPasswordViewOnly(TRUE, crypt);
 		} else {
 			vncPasswd::FromText crypt(passwd);
 			if (idEditBox == IDC_PASSWORD)
-				m_server->SetPassword(crypt);
+				m_server->SetPassword(TRUE, crypt);
 			if (idEditBox == IDC_PASSWORD_VIEWONLY)
-				m_server->SetPasswordViewOnly(crypt);
+				m_server->SetPasswordViewOnly(TRUE, crypt);
 		}		
 	}
 	return (len <= MAXPWLEN);

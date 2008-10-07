@@ -242,16 +242,19 @@ int
 vncClientThread::GetAuthenticationType()
 {
 	// Determine if the password is set
-	BOOL no_password_set;
+	BOOL password_set;
+	BOOL password_empty;
 	{
 		char password[MAXPWLEN];
-		m_server->GetPassword(password);
-		vncPasswd::ToText plain(password);
-		no_password_set = (strlen(plain) == 0);
+		password_set = m_server->GetPassword(password);
+		if (password_set) {
+			vncPasswd::ToText plain(password);
+			password_empty = (strlen(plain) == 0);
+		}
 	}
 
 	// By default we disallow passwordless workstations!
-	if (no_password_set && m_server->AuthRequired())
+	if (!password_set || (password_empty && m_server->AuthRequired()))
 	{
 		vnclog.Print(LL_CONNERR,
 					 VNCLOG("no password specified for server - client rejected\n"));
@@ -331,7 +334,8 @@ vncClientThread::GetAuthenticationType()
 	}
 
 	// Return preferred authentication type
-	if (m_auth || no_password_set || skip_auth) {
+	_ASSERTE(password_set);
+	if (m_auth || password_empty || skip_auth) {
 		return rfbSecTypeNone;
 	} else {
 		return rfbSecTypeVncAuth;
@@ -440,9 +444,9 @@ vncClientThread::AuthenticateVNC()
 
 	// Retrieve local passwords
 	char password[MAXPWLEN];
-	m_server->GetPassword(password);
+	BOOL password_set = m_server->GetPassword(password);
 	vncPasswd::ToText plain(password);
-	m_server->GetPasswordViewOnly(password);
+	BOOL password_viewonly_set = m_server->GetPasswordViewOnly(password);
 	vncPasswd::ToText plain_viewonly(password);
 
 	// Now create a 16-byte challenge
@@ -465,12 +469,12 @@ vncClientThread::AuthenticateVNC()
 	vncEncryptBytes((BYTE *)&challenge, plain);
 
 	// Compare them to the response
-	if (memcmp(challenge, response, sizeof(response)) == 0) {
+	if (password_set && memcmp(challenge, response, sizeof(response)) == 0) {
 		auth_ok = TRUE;
 	} else {
 		// Check against the view-only password
 		vncEncryptBytes((BYTE *)&challenge_viewonly, plain_viewonly);
-		if (memcmp(challenge_viewonly, response, sizeof(response)) == 0) {
+		if (password_viewonly_set && memcmp(challenge_viewonly, response, sizeof(response)) == 0) {
 			m_client->EnablePointer(FALSE);
 			m_client->EnableKeyboard(FALSE);
 			auth_ok = TRUE;

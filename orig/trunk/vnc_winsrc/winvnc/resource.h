@@ -49,9 +49,12 @@
 #define IDD_ECHO_CONNECTION             156
 #define IDD_ECHO_PARAMS                 157
 #define IDD_ECHO_CONN_ADV               158
+#define IDC_HOSTNAME_EDIT               1001
+#define IDC_PRIMARY_DISPLAY_ONLY        1002
 #define IDC_STATIC_DRVINFO              1003
 #define IDC_CONNECT_SOCK                1004
 #define IDC_BLANK_SCREEN                1005
+#define IDC_VNCLOGO                     1006
 #define IDC_PASSWORD_LABEL              1007
 #define IDC_DISPLAYNO                   1008
 #define IDC_PASSWORD                    1009
@@ -61,7 +64,6 @@
 #define IDC_POLL_FOREGROUND             1013
 #define IDC_POLL_UNDER_CURSOR           1014
 #define IDC_ONEVENT_ONLY                1015
-#define IDC_VNCLOGO                     1016
 #define IDC_REMOTE_DISABLE              1016
 #define IDC_PORTHTTP                    1017
 #define IDC_PORTRFB                     1018
@@ -73,7 +75,6 @@
 #define IDC_DISABLE_INPUTS              1024
 #define IDC_APPLY                       1025
 #define IDC_PORTNO_AUTO                 1026
-#define IDC_HOSTNAME_EDIT               1027
 #define IDC_DISABLE_LOCAL_INPUTS        1027
 #define IDC_HOSTNAME_STATIC             1028
 #define IDC_STATIC_WNDPOLLING           1029
@@ -85,6 +86,7 @@
 #define IDC_ACCEPT_TIMEOUT              1035
 #define IDACCEPT_NOPASS                 1036
 #define IDADVANCED                      1037
+#define IDC_STATIC_TEXT2                1038
 #define IDQUERY                         1039
 #define IDQUERYTIMEOUT                  1042
 #define IDREQUIREAUTH                   1043
@@ -105,7 +107,6 @@
 #define IDC_WINDOW                      1061
 #define IDC_SCREEN                      1062
 #define IDC_FULLSCREEN                  1063
-#define IDC_STATIC_TEXT2                1063
 #define IDC_DISABLE_TIME                1064
 #define IDC_TIMEOUT_LABEL               1065
 #define IDC_SECONDS_LABEL               1066

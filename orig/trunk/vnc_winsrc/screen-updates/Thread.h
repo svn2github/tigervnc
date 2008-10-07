@@ -59,7 +59,7 @@ protected:
   THREAD_PRIORITY m_priority;
 
   bool m_active;
-  bool m_terminated;
+  volatile bool m_terminated;
 };
 
 #endif // __THREAD_H__

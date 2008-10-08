@@ -88,16 +88,17 @@ vncProperties::Init(vncServer *server)
 	// Save the server pointer
 	m_server = server;
 
-	// Load the settings from the registry
-	Load(TRUE);
-
-	if (m_pMatchWindow == NULL) 
-	{
+	if (m_pMatchWindow == NULL) {
 		RECT temp;
 		GetWindowRect(GetDesktopWindow(), &temp);
-		m_pMatchWindow=new CMatchWindow(m_server,temp.left+5,temp.top+5,temp.right/2,temp.bottom/2);
+		m_pMatchWindow = new CMatchWindow(m_server,
+										  temp.left + 5, temp.top + 5,
+										  temp.right/2, temp.bottom/2);
 		m_pMatchWindow->CanModify(TRUE);
 	}
+
+	// Load the settings from the registry
+	Load(TRUE);
 
 	// If the password is empty then always show a dialog
 	char passwd[MAXPWLEN];
@@ -713,9 +714,7 @@ BOOL CALLBACK vncProperties::SharedDlgProc(HWND hwnd, UINT uMsg,
 			vncProperties *_this = (vncProperties *) lParam;
 			
 			_this->m_shareddtarea = new SharedDesktopArea(hwnd,
-				_this->m_pMatchWindow,
-				_this,
-				_this->m_server);
+				_this->m_pMatchWindow, _this->m_server);
 
 			return 0;
 		}
@@ -726,23 +725,14 @@ BOOL CALLBACK vncProperties::SharedDlgProc(HWND hwnd, UINT uMsg,
 		switch (LOWORD(wParam))
 		{
 		case IDC_FULLSCREEN:
-			_this->m_shareddtarea->FullScreen();
-			return TRUE;
-			
-		case IDC_WINDOW:
-			_this->m_shareddtarea->SharedWindow();
-			return TRUE;
-
-		case IDC_APPLICATION:
-			_this->m_shareddtarea->SharedApplication();
-			return TRUE;
-			
 		case IDC_SCREEN:
-			_this->m_shareddtarea->SharedScreen();
+		case IDC_WINDOW:
+		case IDC_APPLICATION:
+			_this->m_shareddtarea->Validate();
 			return TRUE;
 
 		case IDC_APPLY:
-			_this->m_shareddtarea->ApplySharedControls();
+			_this->m_shareddtarea->Apply();
 			return TRUE;
 		}
 		return 0;
@@ -1066,10 +1056,6 @@ vncProperties::Load(BOOL usersettings)
 	m_alloweditclients = TRUE;
 	m_allowshutdown = TRUE;
 	m_allowproperties = TRUE;
-	m_pref_FullScreen = TRUE;
-	m_pref_WindowShared = FALSE;
-	m_pref_Application = FALSE;
-	m_pref_ScreenAreaShared = FALSE;
 	m_pref_PriorityTime = 3;
 	m_pref_LocalInputPriority = FALSE;
 	m_pref_PollingCycle = 300;
@@ -1185,12 +1171,6 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	m_pref_DontSetHooks=LoadInt(appkey, "DontSetHooks", m_pref_DontSetHooks);
 	m_pref_DontUseDriver=LoadInt(appkey, "DontUseDriver", m_pref_DontUseDriver);
 
-	// screen area sharing prefs
-	m_pref_FullScreen = m_server->FullScreen();
-	m_pref_WindowShared = m_server->WindowShared();
-	m_pref_Application = m_server->GetApplication();
-	m_pref_ScreenAreaShared = m_server->ScreenAreaShared();
-
 	m_pref_LocalInputPriority=LoadInt(appkey, "LocalInputsPriority", m_pref_LocalInputPriority);
 }
 
@@ -1241,11 +1221,6 @@ vncProperties::ApplyUserPrefs()
 	m_server->PollOnEventOnly(m_pref_PollOnEventOnly);
 	m_server->DontSetHooks(m_pref_DontSetHooks);
 	m_server->DontUseDriver(m_pref_DontUseDriver);
-
-	m_server->FullScreen(m_pref_FullScreen);
-	m_server->WindowShared(m_pref_WindowShared);
-	m_server->SetApplication(m_pref_Application);
-	m_server->ScreenAreaShared(m_pref_ScreenAreaShared);
 
 	m_server->LocalInputPriority(m_pref_LocalInputPriority);
 }

@@ -90,16 +90,6 @@ public:
 	BOOL AllowShutdown() {return m_allowshutdown;};
 	BOOL AllowEditClients() {return m_alloweditclients;};
 
-	BOOL GetPrefWindowShared() {return m_pref_WindowShared;};
-	BOOL GetPrefApplication() {return m_pref_Application;};
-	BOOL GetPrefFullScreen() {return m_pref_FullScreen;};
-	BOOL GetPrefScreenAreaShared() {return m_pref_ScreenAreaShared;};
-
-	void SetPrefWindowShared(BOOL set) {m_pref_WindowShared = set;};
-	void SetPrefApplication(BOOL set) {m_pref_Application = set;};
-	void SetPrefFullScreen(BOOL set) {m_pref_FullScreen = set;};
-	void SetPrefScreenAreaShared(BOOL set) {m_pref_ScreenAreaShared = set;};
-
 	// Implementation
 protected:
 
@@ -133,7 +123,6 @@ protected:
 
 	// Making the loaded user prefs active
 	void ApplyUserPrefs();
-	void SetWindowCaption(HWND hWnd);
 
 	void LoadEchoConnectionSettings(HKEY key);
 	void SaveEchoConnectionSettings(HKEY key);
@@ -175,10 +164,6 @@ protected:
 	BOOL m_pref_PollingCycle;
 	BOOL m_pref_DontSetHooks;
 	BOOL m_pref_DontUseDriver;
-	BOOL m_pref_WindowShared;
-	BOOL m_pref_Application;
-	BOOL m_pref_FullScreen;
-	BOOL m_pref_ScreenAreaShared;
 	UINT m_pref_PriorityTime;
 	BOOL m_pref_LocalInputPriority;
 	BOOL m_pref_AllowLoopback;

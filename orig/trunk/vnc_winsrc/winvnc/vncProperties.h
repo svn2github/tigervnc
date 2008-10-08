@@ -90,6 +90,15 @@ public:
 	BOOL AllowShutdown() {return m_allowshutdown;};
 	BOOL AllowEditClients() {return m_alloweditclients;};
 
+	// Updating the CMatchWindow instance
+	// FIXME: m_pMatchWindow and vncProperties are not related any more,
+	//        we should move m_pMatchWindow to another class, e.g. vncServer.
+	void ShowMatchWindow() { m_pMatchWindow->Show(); }
+	void HideMatchWindow() { m_pMatchWindow->Hide(); }
+	void MoveMatchWindow(int left, int top, int right, int bottom) {
+		m_pMatchWindow->ModifyPosition(left, top, right, bottom);
+	}
+
 	// Implementation
 protected:
 

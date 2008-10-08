@@ -73,6 +73,9 @@ const char winvncShowDefaultProperties[]	= "-defaultsettings";
 const char winvncShowAbout[]		= "-about";
 const char winvncKillRunningCopy[]	= "-kill";
 
+const char winvncShareAll[]			= "-shareall";
+const char winvncSharePrimary[]		= "-shareprimary";
+const char winvncShareArea[]		= "-sharearea";
 const char winvncShareWindow[]		= "-sharewindow";
 
 const char winvncAddNewClient[]		= "-connect";
@@ -86,6 +89,7 @@ const char winvncUsageText[] =
 	" [-connect [host[:display]]] [-connect [host[::port]]]\n"
 	" [-install] [-remove] [-reinstall] [-reload]\n"
 	" [-settings] [-defaultsettings] [-killallclients]\n"
+	" [-shareall] [-shareprimary] [-sharearea WxH+X+Y]\n"
 	" [-sharewindow  \"title\"] [-about] [-help]\n";
 
 #endif // __WINVNC_H

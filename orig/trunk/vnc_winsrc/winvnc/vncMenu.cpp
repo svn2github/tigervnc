@@ -45,6 +45,9 @@
 // Constants
 const UINT MENU_PROPERTIES_SHOW = RegisterWindowMessage("WinVNC.Properties.User.Show");
 const UINT MENU_CONTROL_PANEL_SHOW = RegisterWindowMessage("WinVNC.ControlPanel.Show");
+const UINT MENU_SERVER_SHAREALL = RegisterWindowMessage("WinVNC.Server.ShareAll");
+const UINT MENU_SERVER_SHAREPRIMARY = RegisterWindowMessage("WinVNC.Server.SharePrimary");
+const UINT MENU_SERVER_SHAREAREA = RegisterWindowMessage("WinVNC.Server.ShareArea");
 const UINT MENU_SERVER_SHAREWINDOW = RegisterWindowMessage("WinVNC.Server.ShareWindow");
 const UINT MENU_DEFAULT_PROPERTIES_SHOW = RegisterWindowMessage("WinVNC.Properties.Default.Show");
 const UINT MENU_ABOUTBOX_SHOW = RegisterWindowMessage("WinVNC.AboutBox.Show");
@@ -525,14 +528,40 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 			PostMessage(hwnd, WM_COMMAND, MAKELONG(ID_PROPERTIES, 0), 0);
 			return 0;
 		}
+		if (iMsg == MENU_SERVER_SHAREALL || iMsg == MENU_SERVER_SHAREPRIMARY)
+		{
+			_this->m_properties.HideMatchWindow();
+			_this->m_server->FullScreen(true);
+			_this->m_server->ScreenAreaShared(false);
+			_this->m_server->WindowShared(false);
+			_this->m_server->SetApplication(false);
+			return 0;
+		}
+		if (iMsg == MENU_SERVER_SHAREAREA)
+		{
+			int left = LOWORD(wParam);
+			int right = left + LOWORD(lParam);
+			int top = HIWORD(wParam);
+			int bottom = top + HIWORD(lParam);
+			_this->m_properties.MoveMatchWindow(left, top, right, bottom);
+			_this->m_properties.ShowMatchWindow();
+			_this->m_server->SetMatchSizeFields(left, top, right, bottom);
+			_this->m_server->FullScreen(false);
+			_this->m_server->ScreenAreaShared(true);
+			_this->m_server->WindowShared(false);
+			_this->m_server->SetApplication(false);
+			return 0;
+		}
 		if (iMsg == MENU_SERVER_SHAREWINDOW)
 		{
 			HWND hWindowShared = (HWND)wParam;
 			if (hWindowShared != NULL) {
-			_this->m_server->SetWindowShared(hWindowShared);
-			_this->m_server->FullScreen(false);
-			_this->m_server->ScreenAreaShared(false);
-			_this->m_server->WindowShared(true);
+				_this->m_properties.HideMatchWindow();
+				_this->m_server->SetWindowShared(hWindowShared);
+				_this->m_server->FullScreen(false);
+				_this->m_server->ScreenAreaShared(false);
+				_this->m_server->WindowShared(true);
+				_this->m_server->SetApplication(false);
 			}
 			return 0;
 		}

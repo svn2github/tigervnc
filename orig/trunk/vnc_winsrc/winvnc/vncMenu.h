@@ -47,6 +47,9 @@ class vncMenu;
 
 
 // Constants
+extern const UINT MENU_SERVER_SHAREALL;
+extern const UINT MENU_SERVER_SHAREPRIMARY;
+extern const UINT MENU_SERVER_SHAREAREA;
 extern const UINT MENU_SERVER_SHAREWINDOW;
 extern const UINT MENU_PROPERTIES_SHOW;
 extern const UINT MENU_CONTROL_PANEL_SHOW;

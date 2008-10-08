@@ -35,15 +35,15 @@ m_windowClassName(0)
     m_windowClassName = _tcsdup(_T(DEFAULT_WINDOW_CLASS_NAME));
   }
 
-	if (regClass(m_hinst, m_windowClassName) == 0) {
-		return;
-	}
+  if (regClass(m_hinst, m_windowClassName) == 0) {
+    return;
+  }
 
-  m_hwnd = ::CreateWindow(m_windowClassName, _T(""),
-		                      0, 0, 0, 1, 1, NULL, NULL, m_hinst, NULL);
+  m_hwnd = ::CreateWindow(m_windowClassName, _T("Window"),
+                          0, 0, 0, 1, 1, HWND_MESSAGE, NULL, m_hinst, NULL);
 
   if (m_hwnd) {
-	  SetWindowLong(m_hwnd, GWL_USERDATA, (LONG) this);
+    SetWindowLong(m_hwnd, GWL_USERDATA, (LONG) this);
   }
 }
 
@@ -52,6 +52,7 @@ Window::~Window(void)
   if (m_windowClassName != 0) {
     free(m_windowClassName);
   }
+  CloseWindow(m_hwnd);
 }
 
 LRESULT CALLBACK Window::staticWndProc(HWND hwnd, UINT message,

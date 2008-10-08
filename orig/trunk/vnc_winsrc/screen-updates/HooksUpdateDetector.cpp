@@ -33,33 +33,6 @@ HooksUpdateDetector::HooksUpdateDetector(UpdateKeeper *updateKeeper,
 : UpdateDetector(updateKeeper),
 m_updateKeeperCriticalSection(updateKeeperCriticalSection)
 {
-  // Dll initializing
-  if ((m_hHooks = ::LoadLibrary(_T(LIBRARY_NAME))) == 0) {
-    m_terminated = true;
-    return;
-  }
-
-  m_pSetHook = (PSetHook)::GetProcAddress(m_hHooks, SET_HOOK_FUNCTION_NAME);
-  m_pUnSetHook = (PUnSetHook)::GetProcAddress(m_hHooks, UNSET_HOOK_FUNCTION_NAME);
-  if (!m_pSetHook || !m_pUnSetHook)
-  {
-    m_terminated = true;
-    ::FreeLibrary(m_hHooks);
-    return;
-  }
-
-  HINSTANCE hinst = GetModuleHandle(0);
-
-  m_hooksTargetWindow = new HooksTargetWindow(hinst);
-  if (m_hooksTargetWindow->getHWND() == 0) {
-    return;
-  }
-
-  // Hooks initializing
-  m_pSetHook(m_hooksTargetWindow->getHWND(),
-             RFB_SCREEN_UPDATE,
-             RFB_COPYRECT_UPDATE,
-             RFB_MOUSE_UPDATE);
 }
 
 HooksUpdateDetector::~HooksUpdateDetector(void)
@@ -74,6 +47,33 @@ HooksUpdateDetector::~HooksUpdateDetector(void)
 
 void HooksUpdateDetector::execute()
 {
+  // Dll initializing
+  if ((m_hHooks = ::LoadLibrary(_T(LIBRARY_NAME))) == 0) {
+    return;
+  }
+
+  m_pSetHook = (PSetHook)::GetProcAddress(m_hHooks, SET_HOOK_FUNCTION_NAME);
+  m_pUnSetHook = (PUnSetHook)::GetProcAddress(m_hHooks, UNSET_HOOK_FUNCTION_NAME);
+  if (!m_pSetHook || !m_pUnSetHook)
+  {
+    return;
+  }
+
+  HINSTANCE hinst = GetModuleHandle(0);
+
+  m_hooksTargetWindow = new HooksTargetWindow(hinst);
+  if (m_hooksTargetWindow->getHWND() == 0) {
+    return;
+  }
+
+  // Hooks initializing
+  if (m_pSetHook(m_hooksTargetWindow->getHWND(),
+             RFB_SCREEN_UPDATE,
+             RFB_COPYRECT_UPDATE,
+             RFB_MOUSE_UPDATE) == FALSE) {
+    return;
+  }
+
   MSG msg;
   while (!m_terminated) {
     if (!PeekMessage(&msg, m_hooksTargetWindow->getHWND(), NULL, NULL, PM_REMOVE)) {

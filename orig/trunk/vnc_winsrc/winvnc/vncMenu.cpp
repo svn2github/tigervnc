@@ -302,11 +302,13 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 		// DEAL WITH NOTIFICATIONS FROM THE SERVER:
 
 	case WM_SRV_CLIENT_AUTHENTICATED:
+		_this->m_properties.ResetTabId();
 		_this->FlashTrayIcon(TRUE);
 		_this->CPanel->UpdateListView();
 		return 0;
 
 	case WM_SRV_CLIENT_DISCONNECT:
+		_this->m_properties.ResetTabId();
 		if (_this->m_server->AuthClientCount() == 0) {
 			_this->FlashTrayIcon(FALSE);
 			_this->m_wputils.RestoreWallpaper();

@@ -36,7 +36,12 @@ class VSocket;
 // System includes
 
 #include "stdhdrs.h"
+
+#if (_MSC_VER>= 1300)
+#include <iostream>
+#else
 #include <iostream.h>
+#endif
 
 #include <stdio.h>
 #ifdef __WIN32__

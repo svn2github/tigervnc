@@ -49,6 +49,7 @@ private:
 
   // For getDimension() only
   const FrameBuffer *m_frameBuffer;
+  Rect m_borderRect;
 
   UpdateContainer m_updateContainer;
 };

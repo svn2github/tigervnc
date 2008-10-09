@@ -25,6 +25,7 @@ UpdateKeeper::UpdateKeeper(UpdateFilter *updateFilter, const FrameBuffer *frameB
 : m_updateFilter(updateFilter),
 m_frameBuffer(frameBuffer)
 {
+  m_borderRect.setRect(&m_frameBuffer->getDimension().getRect());
 }
 
 UpdateKeeper::~UpdateKeeper(void)
@@ -48,6 +49,9 @@ void UpdateKeeper::addCopyRegion()
 
 void UpdateKeeper::setScreenSizeChanged()
 {
+  // Reinitializing m_borderRect
+  m_borderRect.setRect(&m_frameBuffer->getDimension().getRect());
+
   m_updateContainer.screenSizeChanged = true;
 }
 

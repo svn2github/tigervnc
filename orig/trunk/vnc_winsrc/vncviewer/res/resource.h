@@ -184,6 +184,7 @@
 #define IDC_FTRENAME                    1137
 #define IDC_CLIENTUP                    1138
 #define IDC_LOG_BROWSE                  1139
+#define IDC_BUILDTIME                   1140
 #define IDC_EDITDIRNAME                 1141
 #define IDC_AUTO_SCROLLING              1142
 #define IDC_FILETRANSFERPERCENT         1145

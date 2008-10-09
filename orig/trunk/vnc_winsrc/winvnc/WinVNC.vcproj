@@ -73,6 +73,8 @@
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
+				Description="Updating BuildTime"
+				CommandLine="cl /MT /Fo&quot;.\Release/&quot; /Fd&quot;.\Release/&quot; /nologo /c BuildTime.cpp"
 			/>
 			<Tool
 				Name="VCLinkerTool"
@@ -173,6 +175,8 @@
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
+				Description="Updating BuildTime"
+				CommandLine="cl /MT /Fo&quot;.\Debug/&quot; /Fd&quot;.\Debug/&quot; /nologo /c BuildTime.cpp"
 			/>
 			<Tool
 				Name="VCLinkerTool"
@@ -223,6 +227,10 @@
 			Name="Source"
 			Filter=".cpp, .c"
 			>
+			<File
+				RelativePath=".\BuildTime.cpp"
+				>
+			</File>
 			<File
 				RelativePath=".\ConnectionsAccess.cpp"
 				>

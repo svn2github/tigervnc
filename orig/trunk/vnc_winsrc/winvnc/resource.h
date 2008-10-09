@@ -154,6 +154,7 @@
 #define IDC_KILL_ALL                    1105
 #define IDC_KILL_SEL_CLIENT             1106
 #define IDC_PROPERTIES                  1107
+#define IDC_BUILDTIME                   1108
 #define IDC_APPLY_STATUS                1111
 #define IDC_VIEW_ONLY_MODE              1112
 #define IDC_FULL_CONTROL                1113

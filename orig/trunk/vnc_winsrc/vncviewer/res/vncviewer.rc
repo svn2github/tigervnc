@@ -251,19 +251,21 @@ BEGIN
                     ES_AUTOHSCROLL | ES_READONLY
 END
 
-IDD_APP_ABOUT DIALOG DISCARDABLE  0, 0, 292, 118
+IDD_APP_ABOUT DIALOG DISCARDABLE  0, 0, 292, 126
 STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About TightVNC Viewer"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "&OK",IDOK,120,97,50,14
+    DEFPUSHBUTTON   "&OK",IDOK,120,105,50,14
     CONTROL         106,IDC_STATIC,"Static",SS_BITMAP | SS_NOTIFY | 
                     SS_SUNKEN,7,7,87,80
-    LTEXT           "TightVNC Viewer version 1.4.0\n\nCopyright (C) 2000-2006 Constantin Kaplinsky\nCopyright (C) 2000-2008 TightVNC Group\nhttp://www.tightvnc.com/",
-                    IDC_STATIC,104,7,181,46
+    LTEXT           "TightVNC Viewer version 1.4.0",IDC_STATIC,104,7,181,10
     LTEXT           "Based on VNC software\nCopyright (C) 1999-2001 AT&&T Laboratories Cambridge\nCopyright (C) 2002-2003 RealVNC Ltd.\nhttp://www.realvnc.com/",
-                    IDC_STATIC,104,55,181,38
+                    IDC_STATIC,104,63,181,38
     CTEXT           "www.TightVNC.com",IDC_STATIC,7,91,87,14
+    LTEXT           "Copyright (C) 2000-2006 Constantin Kaplinsky\nCopyright (C) 2000-2008 TightVNC Group\nhttp://www.tightvnc.com/",
+                    IDC_STATIC,104,33,181,27
+    LTEXT           "[build time unknown]",IDC_BUILDTIME,104,19,181,10
 END
 
 IDD_GENERAL_OPTION DIALOG DISCARDABLE  0, 0, 300, 179
@@ -518,7 +520,7 @@ BEGIN
         RIGHTMARGIN, 285
         VERTGUIDE, 104
         TOPMARGIN, 7
-        BOTTOMMARGIN, 111
+        BOTTOMMARGIN, 119
     END
 
     IDD_GENERAL_OPTION, DIALOG

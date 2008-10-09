@@ -24,6 +24,7 @@
 
 #include "UpdateDetector.h"
 #include "HooksTargetWindow.h"
+#include "libscreen/FrameBuffer.h"
 
 #define LIBRARY_NAME "VNCHooks.dll"
 #define SET_HOOK_FUNCTION_NAME "SetHook"
@@ -36,6 +37,7 @@ class HooksUpdateDetector : public UpdateDetector
 {
 public:
   HooksUpdateDetector(UpdateKeeper *updateKeeper,
+                      ScreenGrabber *screenGrabber,
                       CriticalSection *updateKeeperCriticalSection);
   virtual ~HooksUpdateDetector(void);
 
@@ -43,6 +45,7 @@ protected:
   virtual void execute();
 
   CriticalSection *m_updateKeeperCriticalSection;
+  ScreenGrabber *m_screenGrabber;
   HMODULE m_hHooks;
   PSetHook m_pSetHook;
   PUnSetHook m_pUnSetHook;

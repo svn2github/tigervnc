@@ -29,8 +29,10 @@ const UINT RFB_COPYRECT_UPDATE = RegisterWindowMessage(_T("WinVNC.Update.CopyRec
 const UINT RFB_MOUSE_UPDATE = RegisterWindowMessage(_T("WinVNC.Update.Mouse"));
 
 HooksUpdateDetector::HooksUpdateDetector(UpdateKeeper *updateKeeper,
+                                         ScreenGrabber *screenGrabber,
                                          CriticalSection *updateKeeperCriticalSection)
 : UpdateDetector(updateKeeper),
+m_screenGrabber(screenGrabber),
 m_updateKeeperCriticalSection(updateKeeperCriticalSection)
 {
 }
@@ -75,6 +77,7 @@ void HooksUpdateDetector::execute()
   }
 
   MSG msg;
+  Rect screenRect;
   while (!m_terminated) {
     if (!PeekMessage(&msg, m_hooksTargetWindow->getHWND(), NULL, NULL, PM_REMOVE)) {
       if (!WaitMessage()) {
@@ -88,6 +91,8 @@ void HooksUpdateDetector::execute()
       rect.bottom = (SHORT)HIWORD(msg.lParam);
 
       m_updateKeeperCriticalSection->enter();
+      screenRect = m_screenGrabber->getScreenRect();
+      rect.move(-screenRect.left, -screenRect.top);
       m_updateKeeper->addChangedRect(&rect);
       m_updateKeeperCriticalSection->leave();
 

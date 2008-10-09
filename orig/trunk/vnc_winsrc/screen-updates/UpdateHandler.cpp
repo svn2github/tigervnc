@@ -31,11 +31,13 @@ UpdateHandler::UpdateHandler(void)
   m_backupFrameBuffer = new FrameBuffer;
   m_updateFilter = new UpdateFilter(m_screenGrabber, m_backupFrameBuffer,
                                     m_criticalSection);
-  m_updateKeeper = new UpdateKeeper(m_updateFilter);
+  m_updateKeeper = new UpdateKeeper(m_updateFilter,
+                                    m_screenGrabber->getScreenBuffer());
   m_poller = new Poller(m_updateKeeper, m_screenGrabber,
                                 m_backupFrameBuffer, m_criticalSection);
   m_poller->setOutUpdateListener(this);
   m_hooks = new HooksUpdateDetector(m_updateKeeper,
+                                    m_screenGrabber,
                                     m_criticalSection);
   m_hooks->setOutUpdateListener(this);
 }

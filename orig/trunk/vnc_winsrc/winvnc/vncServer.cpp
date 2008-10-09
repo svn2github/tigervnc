@@ -46,6 +46,8 @@
 // Constructor/destructor
 vncServer::vncServer()
 {
+	ResetPasswordsValidityInfo();
+
 	// Initialise some important stuffs...
 	m_socketConn = NULL;
 	m_corbaConn = NULL;
@@ -874,6 +876,7 @@ vncServer::SetPorts(const UINT port_rfb, const UINT port_http)
 void
 vncServer::SetPassword(BOOL activate, const char *passwd)
 {
+	ResetPasswordsValidityInfo();
 	m_password_set = activate;
 	memcpy(m_password, passwd, MAXPWLEN);
 }
@@ -888,6 +891,7 @@ vncServer::GetPassword(char *passwd)
 void
 vncServer::SetPasswordViewOnly(BOOL activate, const char *passwd)
 {
+	ResetPasswordsValidityInfo();
 	m_password_viewonly_set = activate;
 	memcpy(m_password_viewonly, passwd, MAXPWLEN);
 }
@@ -901,6 +905,16 @@ vncServer::GetPasswordViewOnly(char *passwd)
 
 BOOL
 vncServer::ValidPasswordsSet()
+{
+	if (!m_valid_passwords_set_cached) {
+		m_valid_passwords_set = ValidPasswordsSet_nocache();
+		m_valid_passwords_set_cached = TRUE;
+	}
+	return m_valid_passwords_set;
+}
+
+BOOL
+vncServer::ValidPasswordsSet_nocache()
 {
 	char passwd1[MAXPWLEN];
 	char passwd2[MAXPWLEN];
@@ -924,6 +938,16 @@ vncServer::ValidPasswordsSet()
 
 BOOL
 vncServer::ValidPasswordsEmpty()
+{
+	if (!m_valid_passwords_empty_cached) {
+		m_valid_passwords_empty = ValidPasswordsEmpty_nocache();
+		m_valid_passwords_empty_cached = TRUE;
+	}
+	return m_valid_passwords_empty;
+}
+
+BOOL
+vncServer::ValidPasswordsEmpty_nocache()
 {
 	if (AuthRequired())
 		return FALSE;	// empty passwords disallowed, always fail

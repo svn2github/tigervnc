@@ -56,7 +56,7 @@ Name: "{group}\Documentation\Licensing Terms";        FileName: "{app}\LICENCE.t
 Name: "{group}\Documentation\Make a Donation";        FileName: "{app}\TightVNC-donate.url"
 Name: "{group}\Documentation\TightVNC Web Site";      FileName: "{app}\TightVNC.url"
 Name: "{group}\Documentation\What's New (Detailed Log)"; FileName: "{app}\Web\changelog-win32.html";                   WorkingDir: "{app}\Web"; Components: webdoc
-Name: "{group}\Documentation\What's New (Summary)";   FileName: "{app}\Web\whatsnew-devel.html";                       WorkingDir: "{app}\Web"; Components: webdoc
+Name: "{group}\Documentation\What's New (Summary)";   FileName: "{app}\Web\whatsnew.html";                             WorkingDir: "{app}\Web"; Components: webdoc
 
 [Tasks]
 Name: associate; Description: "&Associate .vnc files with TightVNC Viewer"; GroupDescription: "File associations:"; Components: viewer

@@ -803,15 +803,7 @@ void ClientConnection::NegotiateProtocolVersion()
 {
 	rfbProtocolVersionMsg pv;
 
-   /* if the connection is immediately closed, don't report anything, so
-       that pmw's monitor can make test connections */
-
-    try {
-		ReadExact(pv, sz_rfbProtocolVersionMsg);
-	} catch (Exception &e) {
-		vnclog.Print(0, _T("Error reading protocol version: %s\n"), e.m_info);
-		throw QuietException(e.m_info);
-	}
+	ReadExact(pv, sz_rfbProtocolVersionMsg);
 
     pv[sz_rfbProtocolVersionMsg] = 0;
 

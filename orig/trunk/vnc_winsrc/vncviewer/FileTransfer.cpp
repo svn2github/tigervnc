@@ -185,7 +185,7 @@ FileTransfer::uploadFilePortion()
 				PostMessage(m_pCC->m_hwnd, (UINT) WM_FT_CHECKTRANSFERQUEUE, (WPARAM) 0, (LPARAM) 0);
 				return;
 			} else {
-				sendFileUploadDataMsg(dwNumBytesRead, pBuf);
+				sendFileUploadDataMsg((unsigned short)dwNumBytesRead, pBuf);
 				PostMessage(m_pCC->m_hwnd, (UINT) WM_FT_UPLOADFILEPORTION, (WPARAM) 0, (LPARAM) 0);
 				return;
 			}
@@ -1093,7 +1093,7 @@ FileTransfer::procFLRRename(unsigned short numFiles, FileInfo *pFI)
 int
 FileTransfer::isExistName(FileInfo *pFI, char *pName)
 {
-	for (int i = 0; i < pFI->getNumEntries(); i++) {
+	for (unsigned int i = 0; i < pFI->getNumEntries(); i++) {
 		if (strcmp(pFI->getNameAt(i), pName) == 0) {
 			return i;
 		}

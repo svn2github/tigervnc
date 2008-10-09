@@ -33,6 +33,10 @@
 
 #include "resource.h"
 
+extern "C" {
+#include "ParseHost.h"
+}
+
 // Constructor
 
 vncConnDialog::vncConnDialog(vncServer *server)
@@ -91,23 +95,13 @@ BOOL CALLBACK vncConnDialog::vncConnDlgProc(HWND hwnd,
 			// User clicked OK or pressed return
 		case IDOK:
 			char hostname[_MAX_PATH];
-			char *portp;
 			int port;
 
 			// Get the hostname of the VNCviewer
 			GetDlgItemText(hwnd, IDC_HOSTNAME_EDIT, hostname, _MAX_PATH);
 
 			// Calculate the Display and Port offset.
-			port = INCOMING_PORT_OFFSET;
-			portp = strchr(hostname, ':');
-			if (portp) {
-				*portp++ = '\0';
-				if (*portp == ':') {
-					port = atoi(++portp);	// Port number after "::"
-				} else {
-					port += atoi(portp);	// Display number after ":"
-				}
-			}
+			port = ParseHostPort(hostname, INCOMING_PORT_OFFSET);
 
 			// Attempt to create a new socket
 			VSocket *tmpsock;

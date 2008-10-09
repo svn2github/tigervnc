@@ -115,9 +115,7 @@ BOOL CALLBACK vncConnDialog::vncConnDlgProc(HWND hwnd,
 			if (!tmpsock)
 				return TRUE;
 
-			// Connect out to the specified host on the VNCviewer listen port
-			// To be really good, we should allow a display number here but
-			// for now we'll just assume we're connecting to display zero
+			// Connect out to the specified host on the VNCviewer listen port.
 			tmpsock->Create();
 			if (tmpsock->Connect(hostname, port)) {
 				// Add the new client to this server

@@ -54,13 +54,11 @@ const char NO_PASSWD_NO_OVERRIDE_ERR [] =
 								"No password has been set & this machine has been "
 								"preconfigured to prevent users from setting their own.\n"
 								"You must contact a System Administrator to configure WinVNC properly.";
-const char NO_PASSWD_NO_OVERRIDE_WARN [] =
-								"WARNING : This machine has been preconfigured to allow un-authenticated\n"
-								"connections to be accepted and to prevent users from enabling authentication.";
 const char NO_PASSWD_NO_LOGON_WARN [] =
 								"WARNING : This machine has no default password set.  WinVNC will present the "
 								"Default Properties dialog now to allow one to be entered.";
-const char NO_CURRENT_USER_ERR [] = "The WinVNC settings for the current user are unavailable at present.";
+const char NO_CURRENT_USER_ERR [] = "The WinVNC settings for the current user are unavailable at present.\n"
+								"If you have started the service manually, please run the Service Helper as well.";
 const char CANNOT_EDIT_DEFAULT_PREFS [] = "You do not have sufficient priviliges to edit the default local WinVNC settings.";
 
 // Constructor & Destructor
@@ -101,38 +99,25 @@ vncProperties::Init(vncServer *server)
 	// Load the settings from the registry
 	Load(TRUE);
 
-	// If the password is empty then always show a dialog
-	char passwd[MAXPWLEN];
-	BOOL passwd_set = m_server->GetPassword(passwd);
-	{
-		vncPasswd::ToText plain(passwd);
-		if (!passwd_set || strlen(plain) == 0) {
-			if (!m_allowproperties) {
-				if (!passwd_set || m_server->AuthRequired()) {
-					MessageBox(NULL, NO_PASSWD_NO_OVERRIDE_ERR,
-								"WinVNC Error",
-								MB_OK | MB_ICONSTOP);
-					PostQuitMessage(0);
-				} else {
-					MessageBox(NULL, NO_PASSWD_NO_OVERRIDE_WARN,
-								"WinVNC Error",
-								MB_OK | MB_ICONEXCLAMATION);
-				}
+	// If incoming connections are enabled but there is no valid password set,
+	// then always show a dialog.
+	if (m_server->SockConnected() && !m_server->ValidPasswordsSet()) {
+		if (!m_allowproperties) {
+			MessageBox(NULL, NO_PASSWD_NO_OVERRIDE_ERR,
+						"WinVNC Error",
+						MB_OK | MB_ICONSTOP);
+			PostQuitMessage(0);
+		} else {
+			char username[UNLEN+1];
+			if (!vncService::CurrentUser(username, sizeof(username)))
+				return FALSE;
+			if (strcmp(username, "") == 0) {
+				MessageBox(NULL, NO_PASSWD_NO_LOGON_WARN,
+							"WinVNC Error",
+							MB_OK | MB_ICONEXCLAMATION);
+				Show(TRUE, FALSE, TRUE);
 			} else {
-				// If null passwords are not allowed, ensure that one is entered!
-				if (!passwd_set || m_server->AuthRequired()) {
-					char username[UNLEN+1];
-					if (!vncService::CurrentUser(username, sizeof(username)))
-						return FALSE;
-					if (strcmp(username, "") == 0) {
-						MessageBox(NULL, NO_CURRENT_USER_ERR,
-									"WinVNC Error",
-									MB_OK | MB_ICONEXCLAMATION);
-						Show(TRUE, FALSE, TRUE);
-					} else {
-						Show(TRUE, TRUE, TRUE);
-					}
-				}
+				Show(TRUE, TRUE, TRUE);
 			}
 		}
 	}
@@ -158,6 +143,10 @@ vncProperties::Show(BOOL show, BOOL usersettings, BOOL passwordfocused)
 			char username[UNLEN+1];
 			if (!vncService::CurrentUser(username, sizeof(username)))
 				return;
+			if (strcmp(username, "") == 0) {
+				MessageBox(NULL, NO_CURRENT_USER_ERR, "WinVNC Error", MB_OK | MB_ICONEXCLAMATION);
+				return;
+			}
 		} else {
 			// We're trying to edit the default local settings - verify that we can
 			HKEY hkLocal, hkDefault;
@@ -193,56 +182,32 @@ vncProperties::Show(BOOL show, BOOL usersettings, BOOL passwordfocused)
 			// Load in the settings relevant to the user or system
 			Load(usersettings);
 
-			for (;;)
-			{
-				m_returncode_valid = FALSE;
+			m_returncode_valid = FALSE;
 
-				m_tab_id_restore = !passwordfocused && usersettings;
+			m_tab_id_restore = !passwordfocused && usersettings;
 
-				// Do the dialog box
-				int result = DialogBoxParam(hAppInstance,
-				    MAKEINTRESOURCE(IDD_PROPERTIES_PARENT), 
-				    NULL,
-					(DLGPROC) ParentDlgProc,
-				    (LONG) this);
+			// Do the dialog box
+			int result = DialogBoxParam(hAppInstance,
+										MAKEINTRESOURCE(IDD_PROPERTIES_PARENT), 
+										NULL, (DLGPROC)ParentDlgProc, (LONG)this);
+			if (!m_returncode_valid)
+			    result = IDCANCEL;
 
-				if (!m_returncode_valid)
-				    result = IDCANCEL;
+			vnclog.Print(LL_INTINFO, VNCLOG("dialog result = %d\n"), result);
 
-				vnclog.Print(LL_INTINFO, VNCLOG("dialog result = %d\n"), result);
+			if (result == -1) {
+				// Dialog box failed, so quit
+				PostQuitMessage(0);
+				return;
+			}
 
-				if (result == -1)
-				{
-					// Dialog box failed, so quit
-					PostQuitMessage(0);
-					return;
-				}
-
-				// We're allowed to exit if the password is not empty
-				{
-					char passwd[MAXPWLEN];
-					BOOL passwd_set = m_server->GetPassword(passwd);
-					vncPasswd::ToText plain(passwd);
-					if (passwd_set && (strlen(plain) != 0 || !m_server->AuthRequired()))
-						break;
-				}
-
-				vnclog.Print(LL_INTERR, VNCLOG("warning - empty password\n"));
-
-				// The password is empty, so if OK was used then redisplay the box,
-				// otherwise, if CANCEL was used, close down WinVNC
-				if (result == IDCANCEL)
-				{
-				    vnclog.Print(LL_INTERR, VNCLOG("no password - QUITTING\n"));
-				    PostQuitMessage(0);
-				    return;
-				}
-
-				// If we reached here then OK was used & there is no password!
-				int result2 = MessageBox(NULL, NO_PASSWORD_WARN,
-				    "WinVNC Warning", MB_OK | MB_ICONEXCLAMATION);
-
-				omni_thread::sleep(4);
+			// Show a warning if incoming connections are enabled but there
+			// are no valid passwords. Show a warning message in that case.
+			if (m_server->SockConnected() && !m_server->ValidPasswordsSet()) {
+				vnclog.Print(LL_INTERR, VNCLOG("warning - no valid passwords set\n"));
+				MessageBox(NULL, NO_PASSWORD_WARN,
+						   "WinVNC Warning",
+						   MB_OK | MB_ICONEXCLAMATION);
 			}
 
 			// Load in all the settings
@@ -1152,10 +1117,10 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	m_server->SetQueryAllowNoPass(m_pref_QueryAllowNoPass);
 
 	// Load the primary password
-	m_pref_passwd_set =
+	m_pref_passwd_set = m_pref_passwd_set ||
 		LoadPassword(appkey, m_pref_passwd, "Password");
 	// Load the view-only password
-	m_pref_passwd_viewonly_set =
+	m_pref_passwd_viewonly_set = m_pref_passwd_viewonly_set ||
 		LoadPassword(appkey, m_pref_passwd_viewonly, "PasswordViewOnly");
 	// CORBA Settings
 	m_pref_CORBAConn=LoadInt(appkey, "CORBAConnect", m_pref_CORBAConn);

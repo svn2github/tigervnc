@@ -1002,6 +1002,9 @@ void ClientConnection::PerformAuthenticationTight()
 
 	if (!caps.nAuthTypes) {
 		vnclog.Print(0, _T("No authentication needed\n"));
+		if (m_connDlg != NULL)
+			m_connDlg->SetStatus("No authentication needed");
+		Authenticate(rfbAuthNone);
 		m_authScheme = rfbAuthNone;
 	} else {
 		ReadCapabilityList(&m_authCaps, caps.nAuthTypes);

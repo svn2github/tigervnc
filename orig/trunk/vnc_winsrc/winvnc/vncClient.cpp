@@ -437,16 +437,12 @@ vncClientThread::NegotiateAuthentication(int authType)
 
 //
 // Handle security type for "no authentication".
-// NOTE: If TightVNC protocol extensions are enabled, do not send
-//       a securityResult message, because we sent en empty list in
-//       in NegotiateAuthentication().
 //
 
 BOOL
 vncClientThread::AuthenticateNone()
 {
-	if ( m_client->m_protocol_minor_version >= 8 &&
-		 !m_client->m_protocol_tightvnc ) {
+	if (m_client->m_protocol_minor_version >= 8) {
 		CARD32 secResult = Swap32IfLE(rfbAuthOK);
 		if (!m_socket->SendExact((char *)&secResult, sizeof(secResult)))
 			return FALSE;

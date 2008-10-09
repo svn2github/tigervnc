@@ -1,9 +1,8 @@
 
-TightVNC 1.3dev5 Source Distribution for Windows platforms
-==========================================================
+  TightVNC version 1.4.0
+  Source distribution for Windows platforms
 
-IMPORTANT NOTE: this is a development version and may be unstable.
-It's not recommended for production use.
+======================================================================
 
 This distribution is based on the standard VNC source and includes new
 TightVNC-specific features and fixes, such as additional low-bandwidth
@@ -11,8 +10,11 @@ optimizations, major GUI improvements, file transfers, and more.
 
 	Copyright (C) 1999 AT&T Laboratories Cambridge.
 	Copyright (C) 2000 Tridia Corp.
-	Copyright (C) 2000-2004 Constantin Kaplinsky.
+	Copyright (C) 2002-2003 RealVNC Ltd.
 	Copyright (C) 2001-2004 HorizonLive.com, Inc.
+	Copyright (C) 2000-2006 Constantin Kaplinsky.
+	Copyright (C) 2000-2006 TightVNC Group
+	Copyright (C) 2008 GlavSoft LLC.
 	All rights reserved.
 
 This software is distributed under the GNU General Public Licence as

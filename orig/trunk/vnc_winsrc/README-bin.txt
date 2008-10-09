@@ -1,9 +1,8 @@
 
-TightVNC 1.3dev5 Binary Distribution for Windows platforms
-==========================================================
+  TightVNC version 1.4.0
+  Binary distribution for Windows platforms
 
-IMPORTANT NOTE: this is a development version and may be unstable.
-It's not recommended for production use.
+======================================================================
 
 This distribution is based on the standard VNC source and includes new
 TightVNC-specific features and fixes, such as additional low-bandwidth

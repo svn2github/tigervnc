@@ -34,7 +34,9 @@ UpdateKeeper::~UpdateKeeper(void)
 
 void UpdateKeeper::addChangedRegion(rfb::Region *changedRegion)
 {
-  m_updateContainer.changedRegion.assign_union(*changedRegion);
+  rfb::Region borderRegion(m_borderRect);
+  borderRegion.assign_intersect(*changedRegion);
+  m_updateContainer.changedRegion.assign_union(borderRegion);
 }
 
 void UpdateKeeper::addChangedRect(const Rect *changedRect)

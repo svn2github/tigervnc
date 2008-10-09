@@ -29,7 +29,7 @@
 class UpdateKeeper
 {
 public:
-  UpdateKeeper(UpdateFilter *updateFilter);
+  UpdateKeeper(UpdateFilter *updateFilter, const FrameBuffer *frameBuffer);
   ~UpdateKeeper(void);
 
   void addChangedRegion(rfb::Region *changedRegion);
@@ -46,6 +46,9 @@ public:
 
 private:
   UpdateFilter *m_updateFilter;
+
+  // For getDimension() only
+  const FrameBuffer *m_frameBuffer;
 
   UpdateContainer m_updateContainer;
 };

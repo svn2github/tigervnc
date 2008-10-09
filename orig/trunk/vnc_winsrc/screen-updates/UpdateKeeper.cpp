@@ -21,8 +21,9 @@
 
 #include "UpdateKeeper.h"
 
-UpdateKeeper::UpdateKeeper(UpdateFilter *updateFilter)
-: m_updateFilter(updateFilter)
+UpdateKeeper::UpdateKeeper(UpdateFilter *updateFilter, const FrameBuffer *frameBuffer)
+: m_updateFilter(updateFilter),
+m_frameBuffer(frameBuffer)
 {
 }
 
@@ -37,7 +38,8 @@ void UpdateKeeper::addChangedRegion(rfb::Region *changedRegion)
 
 void UpdateKeeper::addChangedRect(const Rect *changedRect)
 {
-  m_updateContainer.changedRegion.addRect(changedRect);
+  rfb::Region region(changedRect);
+  addChangedRegion(&region);
 }
 
 void UpdateKeeper::addCopyRegion()

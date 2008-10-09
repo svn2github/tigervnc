@@ -34,7 +34,6 @@ public:
 	void NewConnection();
 	void NewConnection(TCHAR *host, int port);
 	void NewConnection(SOCKET sock);
-	void NewConnection(TCHAR *configFile);
 	Flasher *m_pflasher;
 	Daemon  *m_pdaemon;
 	~VNCviewerApp32();

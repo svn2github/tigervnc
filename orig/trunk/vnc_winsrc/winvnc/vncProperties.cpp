@@ -213,6 +213,11 @@ vncProperties::Show(BOOL show, BOOL usersettings, BOOL passwordfocused)
 			// Load in all the settings
 			Load(TRUE);
 		}
+		else
+		{
+			// The dialog is already displayed, just raise it to foreground.
+			SetForegroundWindow(m_hDialog);
+		}
 	}
 }
 
@@ -235,6 +240,7 @@ vncProperties::ParentDlgProc(HWND hwnd,
 			// to the calling vncProperties object
 			SetWindowLong(hwnd, GWL_USERDATA, lParam);
 			vncProperties *_this = (vncProperties *) lParam;
+			_this->m_hDialog = hwnd;
 			_this->m_dlgvisible = TRUE;
 
 			InitCommonControls();
@@ -334,7 +340,9 @@ vncProperties::ParentDlgProc(HWND hwnd,
 			} else {
 				SetWindowText(hwnd, "TightVNC Server: Default Local System Properties");
 			}						
-				
+
+			SetForegroundWindow(hwnd);
+
 			// If the first tab is selected, then return FALSE because in that case
 			// we set the keyboard focus explicitly (on the password field).
 			return (tab_id != 0);

@@ -64,6 +64,11 @@ vncAbout::Show(BOOL show)
 				(DLGPROC) DialogProc,
 				(LONG) this);
 		}
+		else
+		{
+			// The dialog is already displayed, just raise it to foreground.
+			SetForegroundWindow(m_hDialog);
+		}
 	}
 }
 
@@ -90,6 +95,7 @@ vncAbout::DialogProc(HWND hwnd,
 			// Show the dialog
 			SetForegroundWindow(hwnd);
 
+			_this->m_hDialog = hwnd;
 			_this->m_dlgvisible = TRUE;
 
 			return TRUE;

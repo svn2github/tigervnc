@@ -42,6 +42,7 @@
 #include "vncDesktop.h"
 #include "vncService.h"
 #include "WallpaperUtils.h"
+#include "TsSessions.h"
 
 #ifndef HORIZONLIVE
 #if (_MSC_VER>= 1300)
@@ -142,6 +143,10 @@ vncDesktopThread::run_undetached(void *arg)
 {
 	// Save the thread's "home" desktop, under NT (no effect under 9x)
 	HDESK home_desktop = GetThreadDesktop(GetCurrentThreadId());
+
+	// Try to make session zero the console session
+	if (!inConsoleSession())
+		setConsoleSession();
 
 	// Attempt to initialise and return success or failure
 	if (!m_desktop->Startup()) {
@@ -377,6 +382,12 @@ vncDesktop::~vncDesktop()
 BOOL
 vncDesktop::Startup()
 {
+	// Currently, we just check whether we're in the console session, and
+	//   fail if not
+	if (!inConsoleSession()) {
+		vnclog.Print(LL_INTERR, VNCLOG("Console is not session zero - reconnect to restore Console session"));
+		return FALSE;
+	}
 
 	// Configure the display for optimal VNC performance.
 	SetupDisplayForConnection();
@@ -1895,7 +1906,7 @@ vncDesktop::CheckUpdates()
 	UpdateBlankScreenTimer();
 
 	// Has the display resolution or desktop changed?
-	if (m_displaychanged || !vncService::InputDesktopSelected())
+	if (m_displaychanged || !vncService::InputDesktopSelected() || !inConsoleSession())
 	{
 		vnclog.Print(LL_STATE, VNCLOG("display resolution or desktop changed.\n"));
 

@@ -102,9 +102,12 @@ const FileMap filemapping [] = {
 	{"/ReloginPanel.class", "JavaClass", IDR_RELOGINPANEL_CLASS},
 	{"/SocketFactory.class", "JavaClass", IDR_SOCKFACTORY_CLASS},
 	{"/CapabilityInfo.class", "JavaClass", IDR_CAPINFO_CLASS},
-	{"/CapsContainer.class", "JavaClass", IDR_CAPSCONTAINER_CLASS}
+	{"/CapsContainer.class", "JavaClass", IDR_CAPSCONTAINER_CLASS},
+	{"/InStream.class", "JavaClass", IDR_INSTREAM_CLASS},
+	{"/MemInStream.class", "JavaClass", IDR_MEMINSTREAM_CLASS},
+	{"/ZlibInStream.class", "JavaClass", IDR_ZLIBINSTREAM_CLASS},
 };
-const int filemappingsize		= 16;
+const int filemappingsize		= 19;
 
 //
 // Connection thread -- one per each client connection.

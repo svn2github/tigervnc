@@ -6,6 +6,9 @@
 #define IDR_TRAYMENU                    104
 #define IDD_QUERY_SETTINGS              106
 #define IDD_PROPERTIES_PARENT           107
+#define IDR_INSTREAM_CLASS              108
+#define IDR_MEMINSTREAM_CLASS           109
+#define IDR_ZLIBINSTREAM_CLASS          110
 #define IDR_VNCVIEWER_JAR               116
 #define IDR_RECFRAME_CLASS              117
 #define IDR_SESSIONREC_CLASS            118

@@ -736,10 +736,6 @@ SOURCE=.\res\AuthPanel.class
 # End Source File
 # Begin Source File
 
-SOURCE=.\res\AuthUnixLoginPanel.class
-# End Source File
-# Begin Source File
-
 SOURCE=.\res\ButtonPanel.class
 # End Source File
 # Begin Source File
@@ -785,6 +781,10 @@ SOURCE=.\res\SocketFactory.class
 # Begin Source File
 
 SOURCE=.\res\VncCanvas.class
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\VncCanvas2.class
 # End Source File
 # Begin Source File
 

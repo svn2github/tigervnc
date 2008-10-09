@@ -205,14 +205,6 @@ SOURCE=.\AboutBox.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\AuthDialog.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\AuthDialog.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\CapsContainer.cpp
 # End Source File
 # Begin Source File

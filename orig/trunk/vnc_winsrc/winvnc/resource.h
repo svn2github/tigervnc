@@ -40,7 +40,7 @@
 #define IDD_INCOMING                    148
 #define IDD_UPDATE_HANDLING             150
 #define IDD_ADMINISTRATION              152
-#define IDR_AUTHUNIXLOGIN_CLASS         153
+#define IDR_VNCCANVAS2_CLASS            153
 #define IDD_CONTROL_PANEL               153
 #define IDR_CAPINFO_CLASS               154
 #define IDD_CONNECTIONS_ACCESS          154

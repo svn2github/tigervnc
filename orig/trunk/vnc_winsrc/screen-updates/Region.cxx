@@ -98,11 +98,10 @@ void rfb::Region::reset(const Rect& r) {
   }
 }
 
-/*
-void rfb::Region::translate(const Point& delta) {
-  XOffsetRegion(xrgn, delta.x, delta.y);
+void rfb::Region::move(const Point *delta)
+{
+  XOffsetRegion(xrgn, delta->x, delta->y);
 }
-*/
 
 void rfb::Region::setOrderedRects(const std::vector<Rect>& rects) {
   clear();

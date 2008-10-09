@@ -22,6 +22,7 @@
 #define __RFB_REGION_INCLUDED__
 
 #include <libscreen/Rect.h>
+#include <libscreen/Point.h>
 #include <vector>
 
 struct _XRegion;
@@ -48,7 +49,7 @@ namespace rfb {
 
     void clear();
     void reset(const Rect& r);
-    //void translate(const rfb::Point& delta);
+    void move(const Point *delta);
     void setOrderedRects(const std::vector<Rect>& rects);
     void setExtentsAndOrderedRects(const ShortRect* extents, int nRects,
                                    const ShortRect* rects);

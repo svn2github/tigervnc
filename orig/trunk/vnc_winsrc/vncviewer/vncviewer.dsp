@@ -397,14 +397,6 @@ SOURCE=.\FileWriter.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Flasher.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\Flasher.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\FTEditBox.cpp
 # End Source File
 # Begin Source File

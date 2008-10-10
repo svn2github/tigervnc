@@ -176,7 +176,7 @@
 			<Tool
 				Name="VCPreLinkEventTool"
 				Description="Updating BuildTime"
-				CommandLine="cl /MT /Fo&quot;.\Debug/&quot; /Fd&quot;.\Debug/&quot; /nologo /c BuildTime.cpp"
+				CommandLine="cl /MTd /Fo&quot;.\Debug/&quot; /Fd&quot;.\Debug/&quot; /nologo /c BuildTime.cpp"
 			/>
 			<Tool
 				Name="VCLinkerTool"

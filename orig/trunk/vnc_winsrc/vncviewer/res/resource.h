@@ -214,6 +214,24 @@
 #define IDC_ECHO_HTTP_PWD               1185
 #define IDC_ECHO_HTTP_USERNAME          1186
 #define IDC_ECHO_ADV                    1187
+#define IDC_STATIC_URL                  1188
+#define IDC_STATIC_VERSION              1189
+#define IDC_STATIC_COPYRIGHTS           1190
+#define IDC_STATIC_BASEDON              1191
+#define IDC_STATIC_LOGO                 1192
+#define IDC_STATIC_HOST                 1193
+#define IDC_STATIC_LOGIN                1194
+#define IDC_STATIC_PASSWD               1195
+#define IDC_STATIC_FTCANCEL             1196
+#define IDC_STATIC_FTCURRFILE           1197
+#define IDC_STATIC_ECHOSVR              1198
+#define IDC_STATIC_ECHONAME             1199
+#define IDC_STATIC_ECHOPASS             1200
+#define IDC_STATIC_ECHOPROXY            1201
+#define IDC_STATIC_ECHOPROXY_ADDR       1202
+#define IDC_STATIC_ECHOPROXY_PORT       1203
+#define IDC_STATIC_ECHOPROXY_NAME       1204
+#define IDC_STATIC_ECHOPROXY_PASS       1205
 #define ID_SESSION_SET_CRECT            32777
 #define IDC_ALLOW_COMPRESSLEVEL         32778
 #define IDC_ALLOW_JPEG                  32779
@@ -230,7 +248,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        274
 #define _APS_NEXT_COMMAND_VALUE         40011
-#define _APS_NEXT_CONTROL_VALUE         1188
+#define _APS_NEXT_CONTROL_VALUE         1206
 #define _APS_NEXT_SYMED_VALUE           244
 #endif
 #endif

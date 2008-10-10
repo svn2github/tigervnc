@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="8.00"
 	Name="WinVNC"
 	ProjectGUID="{EA6A09AC-04BB-423D-8842-CA48DF901058}"
 	RootNamespace="WinVNC"
 	SccLocalPath="."
-	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -93,8 +92,6 @@
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -113,6 +110,9 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -193,8 +193,6 @@
 				GenerateMapFile="true"
 				MapFileName=".\$(ConfigurationName)/WinVNC.map"
 				SubSystem="2"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -215,6 +213,9 @@
 				Name="VCAppVerifierTool"
 			/>
 			<Tool
+				Name="VCWebDeploymentTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -231,14 +232,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ConnectionsAccess.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ControlPanel.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\d3des.c"
 				>
 			</File>
@@ -247,23 +240,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\echoConCtrl.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\echoConnection.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\echoPropView.cpp"
-				>
-			</File>
-			<File
 				RelativePath="FileTransferItemInfo.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\GracePeriod.cpp"
 				>
 			</File>
 			<File
@@ -558,14 +535,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ConnectionsAccess.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ControlPanel.h"
-				>
-			</File>
-			<File
 				RelativePath=".\d3des.h"
 				>
 			</File>
@@ -574,23 +543,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\echoConCtrl.h"
-				>
-			</File>
-			<File
-				RelativePath=".\echoConnection.h"
-				>
-			</File>
-			<File
-				RelativePath=".\echoPropView.h"
-				>
-			</File>
-			<File
 				RelativePath="FileTransferItemInfo.h"
-				>
-			</File>
-			<File
-				RelativePath=".\GracePeriod.h"
 				>
 			</File>
 			<File

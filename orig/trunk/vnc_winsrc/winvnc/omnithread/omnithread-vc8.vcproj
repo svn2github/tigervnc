@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="8.00"
 	Name="omnithread"
-	ProjectGUID="{0434BF2B-6310-4BB5-804E-F7A11C074CA2}"
-	TargetFrameworkVersion="131072"
+	ProjectGUID="{2D948CAF-9622-495C-AB44-6337A6A9D440}"
+	SccLocalPath="."
 	>
 	<Platforms>
 		<Platform
@@ -15,11 +15,11 @@
 	</ToolFiles>
 	<Configurations>
 		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory=".\../Debug"
-			IntermediateDirectory=".\../Debug"
+			Name="Release|Win32"
+			OutputDirectory=".\../Release"
+			IntermediateDirectory=".\../Release"
 			ConfigurationType="4"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			>
@@ -37,25 +37,36 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
+				PreprocessorDefinitions="NDEBUG"
+				MkTypLibCompatible="true"
+				SuppressStartupBanner="true"
+				TargetEnvironment="1"
+				TypeLibraryName=".\../Release/omnithread.tlb"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="0"
-				PreprocessorDefinitions="_DEBUG;WIN32;_WINDOWS;__NT__;_WINSTATIC;__WIN32__"
-				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\../Debug/omnithread.pch"
-				AssemblerListingLocation=".\../Debug/"
-				ObjectFile=".\../Debug/"
-				ProgramDataBaseFileName=".\../Debug/"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="."
+				PreprocessorDefinitions="NDEBUG;WIN32;_WINDOWS;__WIN32__;__NT__;__x86__;_WINSTATIC;_LIB"
+				StringPooling="true"
+				RuntimeLibrary="0"
+				BufferSecurityCheck="false"
+				EnableFunctionLevelLinking="true"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile=".\../Release/omnithread.pch"
+				AssemblerListingLocation=".\../Release/"
+				ObjectFile=".\../Release/"
+				ProgramDataBaseFileName=".\../Release/"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
-				DebugInformationFormat="1"
+				CompileAs="2"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
 				Culture="1033"
 			/>
 			<Tool
@@ -63,8 +74,6 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\../Debug\omnithread.lib"
-				SuppressStartupBanner="true"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -74,8 +83,6 @@
 			/>
 			<Tool
 				Name="VCBscMakeTool"
-				SuppressStartupBanner="true"
-				OutputFile=".\../Debug/omnithread.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -85,11 +92,11 @@
 			/>
 		</Configuration>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory=".\../Release"
-			IntermediateDirectory=".\../Release"
+			Name="Debug|Win32"
+			OutputDirectory=".\../Debug"
+			IntermediateDirectory=".\../Debug"
 			ConfigurationType="4"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			>
@@ -107,36 +114,44 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
+				PreprocessorDefinitions="_DEBUG"
+				MkTypLibCompatible="true"
+				SuppressStartupBanner="true"
+				TargetEnvironment="1"
+				TypeLibraryName=".\../Debug/omnithread.tlb"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="2"
-				InlineFunctionExpansion="1"
-				PreprocessorDefinitions="NDEBUG;WIN32;_WINDOWS;__NT__;_WINSTATIC;__WIN32__"
-				StringPooling="true"
-				RuntimeLibrary="0"
-				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile=".\../Release/omnithread.pch"
-				AssemblerListingLocation=".\../Release/"
-				ObjectFile=".\../Release/"
-				ProgramDataBaseFileName=".\../Release/"
+				Optimization="0"
+				AdditionalIncludeDirectories="."
+				PreprocessorDefinitions="_DEBUG;WIN32;_WINDOWS;__WIN32__;__NT__;__x86__;_WINSTATIC;_LIB"
+				BasicRuntimeChecks="3"
+				SmallerTypeCheck="true"
+				RuntimeLibrary="1"
+				BufferSecurityCheck="true"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile=".\../Debug/omnithread.pch"
+				AssemblerListingLocation=".\../Debug/"
+				ObjectFile=".\../Debug/"
+				ProgramDataBaseFileName=".\../Debug/"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
+				DebugInformationFormat="4"
+				CompileAs="2"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				Culture="1033"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="2057"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\../Release\omnithread.lib"
-				SuppressStartupBanner="true"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -146,8 +161,6 @@
 			/>
 			<Tool
 				Name="VCBscMakeTool"
-				SuppressStartupBanner="true"
-				OutputFile=".\../Release/omnithread.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -163,22 +176,6 @@
 		<File
 			RelativePath="nt.cpp"
 			>
-			<FileConfiguration
-				Name="Debug|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					PreprocessorDefinitions=""
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					PreprocessorDefinitions=""
-				/>
-			</FileConfiguration>
 		</File>
 		<File
 			RelativePath="nt.h"

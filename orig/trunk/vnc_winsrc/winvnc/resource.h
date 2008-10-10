@@ -206,6 +206,22 @@
 #define IDC_ECHO_HTTP_PWD               1170
 #define IDC_ECHO_HTTP_USERNAME          1171
 #define IDC_ECHO_ADV                    1172
+#define IDC_STATIC_HELP                 1174
+#define IDC_STATIC_FORMATS              1175
+#define IDC_STATIC_NOTE                 1176
+#define IDC_STATIC_URL                  1177
+#define IDC_STATIC_VERSION              1178
+#define IDC_STATIC_COPYRIGHTS           1179
+#define IDC_STATIC_BASEDON              1180
+#define IDC_STATIC_CONNSTATUS           1181
+#define IDC_STATIC_ECHOSVR              1182
+#define IDC_STATIC_ECHONAME             1183
+#define IDC_STATIC_ECHOPASS             1184
+#define IDC_STATIC_ECHOPROXY            1185
+#define IDC_STATIC_ECHOPROXY_ADDR       1186
+#define IDC_STATIC_ECHOPROXY_PORT       1187
+#define IDC_STATIC_ECHOPROXY_NAME       1188
+#define IDC_STATIC_ECHOPROXY_PASS       1189
 #define ID_PROPERTIES                   40001
 #define ID_CLOSE                        40002
 #define ID_KILLCLIENTS                  40003
@@ -221,7 +237,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        159
 #define _APS_NEXT_COMMAND_VALUE         40009
-#define _APS_NEXT_CONTROL_VALUE         1173
+#define _APS_NEXT_CONTROL_VALUE         1190
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

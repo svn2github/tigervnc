@@ -47,6 +47,11 @@ HooksUpdateDetector::~HooksUpdateDetector(void)
   }
 }
 
+void HooksUpdateDetector::onTerminate()
+{
+  PostMessage(m_hooksTargetWindow->getHWND(), WM_QUIT, 0, 0);
+}
+
 void HooksUpdateDetector::execute()
 {
   // Dll initializing
@@ -80,6 +85,7 @@ void HooksUpdateDetector::execute()
   Rect screenRect;
   while (!m_terminated) {
     if (!PeekMessage(&msg, m_hooksTargetWindow->getHWND(), NULL, NULL, PM_REMOVE)) {
+      //Sleep(1);
       if (!WaitMessage()) {
         break;
       }
@@ -98,6 +104,7 @@ void HooksUpdateDetector::execute()
 
       doOutUpdate();
     } else if (msg.message == WM_QUIT) {
+      Sleep(1);
       break;
     } else {
       DispatchMessage(&msg);

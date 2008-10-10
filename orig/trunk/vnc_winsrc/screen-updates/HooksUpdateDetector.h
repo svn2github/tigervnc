@@ -43,6 +43,7 @@ public:
 
 protected:
   virtual void execute();
+  virtual void onTerminate();
 
   CriticalSection *m_updateKeeperCriticalSection;
   ScreenGrabber *m_screenGrabber;

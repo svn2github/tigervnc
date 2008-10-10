@@ -238,6 +238,7 @@ private:
 	void SendClientCutText(char *str, int len);
 	void ReadServerCutText();
 
+	void ReadSetColourMapEntries();
 	void ReadBell();
 
 	void SendRFBMsg(CARD8 msgType, void* data, int length);

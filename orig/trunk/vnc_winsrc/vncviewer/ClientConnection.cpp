@@ -2767,8 +2767,7 @@ void* ClientConnection::run_undetached(void* arg) {
 				ReadScreenUpdate();
 				break;
 			case rfbSetColourMapEntries:
-		        vnclog.Print(3, _T("rfbSetColourMapEntries read but not supported\n") );
-				throw WarningException("Unhandled SetColormap message type received!\n");
+				ReadSetColourMapEntries();
 				break;
 			case rfbBell:
 				ReadBell();
@@ -2990,6 +2989,21 @@ void ClientConnection::ReadServerCutText() {
 	UpdateLocalClipboard(m_netbuf, len);
 }
 
+void ClientConnection::ReadSetColourMapEntries()
+{
+	// Currently, we read and silently ignore SetColourMapEntries.
+
+	rfbSetColourMapEntriesMsg msg;
+	vnclog.Print(3, _T("Read server colour map entries (ignored)\n"));
+	ReadExact((char *)&msg, sz_rfbSetColourMapEntriesMsg);
+	int numEntries = Swap16IfLE(msg.nColours);
+
+	if (numEntries > 0) {
+		int nBytes = 6 * numEntries;
+		CheckBufferSize(nBytes);
+		ReadExact(m_netbuf, nBytes);
+	}
+}
 
 void ClientConnection::ReadBell() {
 	rfbBellMsg bm;

@@ -85,7 +85,7 @@ void HooksUpdateDetector::execute()
       }
     } else if (msg.message == RFB_SCREEN_UPDATE) {
       Rect rect;
-      rect.left =	(SHORT)LOWORD(msg.wParam);
+      rect.left = (SHORT)LOWORD(msg.wParam);
       rect.top = (SHORT)HIWORD(msg.wParam);
       rect.right = (SHORT)LOWORD(msg.lParam);
       rect.bottom = (SHORT)HIWORD(msg.lParam);

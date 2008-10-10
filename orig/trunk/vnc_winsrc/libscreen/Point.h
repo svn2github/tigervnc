@@ -26,6 +26,8 @@ struct Point
 {
   Point() : x(0), y(0) {}
 
+  inline void clear() { x = 0; y = 0; }
+
   int x;
   int y;
 };

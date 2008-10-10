@@ -40,14 +40,12 @@ void UpdateKeeper::addChangedRegion(rfb::Region *changedRegion)
   rfb::Region *copiedRegion = &m_updateContainer.copiedRegion;
   rfb::Region movedRegion(*copiedRegion);
 
-  Point offsetReg;
-  offsetReg.x = m_updateContainer.copyOffsetX;
-  offsetReg.y = m_updateContainer.copyOffsetY;
-  movedRegion.move(&offsetReg);
+  Point *copyOffset = &m_updateContainer.copyOffset;
+  movedRegion.move(copyOffset);
   movedRegion.assign_subtract(*changedRegion);
-  offsetReg.x = -offsetReg.x;
-  offsetReg.y = -offsetReg.y;
-  movedRegion.move(&offsetReg);
+  copyOffset->x = -copyOffset->x;
+  copyOffset->y = -copyOffset->y;
+  movedRegion.move(copyOffset);
   *copiedRegion = movedRegion;
 
   m_updateContainer.changedRegion.assign_union(*changedRegion);
@@ -59,31 +57,26 @@ void UpdateKeeper::addChangedRect(const Rect *changedRect)
   addChangedRegion(&region);
 }
 
-void UpdateKeeper::addCopyRegion(rfb::Region *cpyReg, const Point *offsetReg)
+void UpdateKeeper::addCopyRegion(rfb::Region *cpyReg, const Point *copyOffset)
 {
   rfb::Region *changedRegion = &m_updateContainer.changedRegion;
   rfb::Region *copiedRegion = &m_updateContainer.copiedRegion;
 
   // Destroy previous copiedRegion
-  Point oldOffsetReg;
   rfb::Region movedRegion(*copiedRegion);
-
-  oldOffsetReg.x = m_updateContainer.copyOffsetX;
-  oldOffsetReg.y = m_updateContainer.copyOffsetY;
-  movedRegion.move(&oldOffsetReg);
+  movedRegion.move(&m_updateContainer.copyOffset);
   changedRegion->assign_union(movedRegion);
 
   // Create new copiedRegion
   cpyReg->assign_subtract(*changedRegion);
 
   movedRegion = *cpyReg;
-  movedRegion.move(offsetReg);
+  movedRegion.move(copyOffset);
 
   changedRegion->assign_subtract(movedRegion);
 
   copiedRegion = cpyReg;
-  m_updateContainer.copyOffsetX = offsetReg->x;
-  m_updateContainer.copyOffsetY = offsetReg->y;
+  m_updateContainer.copyOffset = *copyOffset;
 }
 
 void UpdateKeeper::setScreenSizeChanged()

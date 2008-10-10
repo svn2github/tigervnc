@@ -23,6 +23,7 @@
 #define __UPDATECONTAINER_H__
 
 #include "Region.h"
+#include "libscreen/Point.h"
 
 class UpdateContainer
 {
@@ -38,8 +39,7 @@ public:
   bool screenSizeChanged;
   bool cursorPosChanged;
   bool cursorShapeChanged;
-  int copyOffsetX;
-  int copyOffsetY;
+  Point copyOffset;
 
   void clear();
   bool isEmpty() const;

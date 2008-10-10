@@ -36,7 +36,7 @@ public:
   void addChangedRegion(rfb::Region *changedRegion);
   void addChangedRect(const Rect *changedRect);
 
-  void addCopyRegion(rfb::Region *cpyReg, const Point *offsetReg);
+  void addCopyRegion(rfb::Region *cpyReg, const Point *copyOffset);
 
   void setScreenSizeChanged();
   void setCursorPosChanged();

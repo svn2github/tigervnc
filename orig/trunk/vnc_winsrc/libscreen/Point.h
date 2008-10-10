@@ -25,8 +25,12 @@
 struct Point
 {
   Point() : x(0), y(0) {}
+  Point(int x_, int y_) : x(x_), y(y_) {}
 
   inline void clear() { x = 0; y = 0; }
+
+  inline Point getReverse() const { Point point(-x, -y);
+                                    return point; }
 
   int x;
   int y;

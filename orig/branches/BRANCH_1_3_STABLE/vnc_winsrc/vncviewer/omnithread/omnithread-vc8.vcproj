@@ -15,8 +15,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory=".\../Debug"
-			IntermediateDirectory=".\../Debug"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
@@ -42,10 +42,6 @@
 				Optimization="0"
 				PreprocessorDefinitions="_DEBUG;WIN32;_WINDOWS;__NT__;_WINSTATIC;__WIN32__"
 				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\../Debug/omnithread.pch"
-				AssemblerListingLocation=".\../Debug/"
-				ObjectFile=".\../Debug/"
-				ProgramDataBaseFileName=".\../Debug/"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="1"
@@ -62,7 +58,6 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\../Debug\omnithread.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -74,7 +69,6 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\../Debug/omnithread.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -85,8 +79,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory=".\../Release"
-			IntermediateDirectory=".\../Release"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
@@ -115,10 +109,6 @@
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile=".\../Release/omnithread.pch"
-				AssemblerListingLocation=".\../Release/"
-				ObjectFile=".\../Release/"
-				ProgramDataBaseFileName=".\../Release/"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
 			/>
@@ -134,7 +124,6 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\../Release\omnithread.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -146,7 +135,6 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\../Release/omnithread.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"

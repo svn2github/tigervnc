@@ -45,12 +45,14 @@ public:
   bool wait();
   bool suspend();
   bool resume();
-  inline void terminate() { m_terminated = true; }
+  inline void terminate() { m_terminated = true;
+                            onTerminate(); }
   bool isActive() const { return m_active; }
   bool setPriority(THREAD_PRIORITY value);
 
 protected:
   virtual void execute() = 0;
+  virtual void onTerminate() {}
 
   static DWORD WINAPI threadProc(LPVOID pThread);
 

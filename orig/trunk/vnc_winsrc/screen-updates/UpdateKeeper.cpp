@@ -37,16 +37,7 @@ void UpdateKeeper::addChangedRegion(rfb::Region *changedRegion)
   rfb::Region borderRegion(m_borderRect);
   changedRegion->assign_intersect(borderRegion);
 
-  rfb::Region *copiedRegion = &m_updateContainer.copiedRegion;
-  rfb::Region movedRegion(*copiedRegion);
-
-  Point *copyOffset = &m_updateContainer.copyOffset;
-  movedRegion.move(copyOffset);
-  movedRegion.assign_subtract(*changedRegion);
-  copyOffset->x = -copyOffset->x;
-  copyOffset->y = -copyOffset->y;
-  movedRegion.move(copyOffset);
-  *copiedRegion = movedRegion;
+  m_updateContainer.copiedRegion.assign_subtract(*changedRegion);
 
   m_updateContainer.changedRegion.assign_union(*changedRegion);
 }
@@ -63,24 +54,23 @@ void UpdateKeeper::addCopyRegion(rfb::Region *cpyReg, const Point *copyOffset)
   rfb::Region *copiedRegion = &m_updateContainer.copiedRegion;
 
   // Destroy previous copiedRegion
-  rfb::Region movedCopyRegion(*copiedRegion);
-  rfb::Region movedChangedRegion(*changedRegion);
-  movedCopyRegion.move(&m_updateContainer.copyOffset);
-  changedRegion->assign_union(movedCopyRegion);
+  changedRegion->assign_union(*copiedRegion);
+
+  rfb::Region srcCopyRegion(*cpyReg);
+  rfb::Region srcChangedRegion(*changedRegion);
+  srcCopyRegion.move(copyOffset);
 
   // Create new copiedRegion
-  movedChangedRegion.assign_intersect(*cpyReg);
-  cpyReg->assign_subtract(*changedRegion);
+  srcChangedRegion.assign_intersect(srcCopyRegion);
+  srcCopyRegion.assign_subtract(*changedRegion);
 
-  movedCopyRegion = *cpyReg;
-  movedCopyRegion.move(copyOffset);
-  movedChangedRegion.move(copyOffset);
-
-  changedRegion->assign_union(movedChangedRegion);
-  changedRegion->assign_subtract(movedCopyRegion);
-
-  copiedRegion = cpyReg;
+  *copiedRegion = srcCopyRegion;
   m_updateContainer.copyOffset = *copyOffset;
+  copiedRegion->move(&copyOffset->getReverse());
+
+  srcChangedRegion.move(&copyOffset->getReverse());
+  changedRegion->assign_union(srcChangedRegion);
+  changedRegion->assign_subtract(*copiedRegion);
 }
 
 void UpdateKeeper::setScreenSizeChanged()

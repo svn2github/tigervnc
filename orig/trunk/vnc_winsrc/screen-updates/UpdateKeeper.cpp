@@ -63,17 +63,21 @@ void UpdateKeeper::addCopyRegion(rfb::Region *cpyReg, const Point *copyOffset)
   rfb::Region *copiedRegion = &m_updateContainer.copiedRegion;
 
   // Destroy previous copiedRegion
-  rfb::Region movedRegion(*copiedRegion);
-  movedRegion.move(&m_updateContainer.copyOffset);
-  changedRegion->assign_union(movedRegion);
+  rfb::Region movedCopyRegion(*copiedRegion);
+  rfb::Region movedChangedRegion(*changedRegion);
+  movedCopyRegion.move(&m_updateContainer.copyOffset);
+  changedRegion->assign_union(movedCopyRegion);
 
   // Create new copiedRegion
+  movedChangedRegion.assign_intersect(*cpyReg);
   cpyReg->assign_subtract(*changedRegion);
 
-  movedRegion = *cpyReg;
-  movedRegion.move(copyOffset);
+  movedCopyRegion = *cpyReg;
+  movedCopyRegion.move(copyOffset);
+  movedChangedRegion.move(copyOffset);
 
-  changedRegion->assign_subtract(movedRegion);
+  changedRegion->assign_union(movedChangedRegion);
+  changedRegion->assign_subtract(movedCopyRegion);
 
   copiedRegion = cpyReg;
   m_updateContainer.copyOffset = *copyOffset;

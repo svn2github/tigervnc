@@ -23,6 +23,7 @@
 #define __UPDATEKEEPER_H__
 
 #include "Region.h"
+#include "libscreen/Point.h"
 #include "UpdateFilter.h"
 #include "UpdateContainer.h"
 
@@ -35,7 +36,7 @@ public:
   void addChangedRegion(rfb::Region *changedRegion);
   void addChangedRect(const Rect *changedRect);
 
-  void addCopyRegion();
+  void addCopyRegion(rfb::Region *cpyReg, const Point *offsetReg);
 
   void setScreenSizeChanged();
   void setCursorPosChanged();

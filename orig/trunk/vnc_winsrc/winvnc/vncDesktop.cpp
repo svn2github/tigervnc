@@ -2491,62 +2491,54 @@ vncDesktop::PollArea(RECT &rect)
 	}
 }
 
-void
-vncDesktop::CopyRect(RECT &dest, POINT &source)
+void vncDesktop::CopyRect(const RECT &rcDest, const POINT &ptSrc)
 {
+	const int offset_x = rcDest.left - ptSrc.x;
+	const int offset_y = rcDest.top - ptSrc.y;
+
 	// Clip the destination to the screen
 	RECT destrect;
-	if (!IntersectRect(&destrect, &dest, &m_server->GetSharedRect()))
+	if (!IntersectRect(&destrect, &rcDest, &m_server->GetSharedRect()))
 		return;
-	
-	// Adjust the source correspondingly
-	source.x = source.x + (destrect.left - dest.left);
-	source.y = source.y + (destrect.top - dest.top);
+
+	// NOTE: This is important. Each pixel in destrect is either salvaged
+	//       by copyrect or became dirty.
+	m_changed_rgn.AddRect(destrect);
 
 	// Work out the source rectangle
 	RECT srcrect;
-
-	// Is this a continuation of an earlier window drag?
-	if (m_copyrect_set &&
-		((source.x == m_copyrect_rect.left) && (source.y == m_copyrect_rect.top))) {
-		// Yes, so use the old source position
-		srcrect.left = m_copyrect_src.x;
-		srcrect.top = m_copyrect_src.y;
-	} else {
-		// No, so use this source position
-		srcrect.left = source.x;
-		srcrect.top = source.y;
-	}
-	
-	// And fill out the right & bottom using the dest rect
-	srcrect.right = destrect.right-destrect.left + srcrect.left;
-	srcrect.bottom = destrect.bottom-destrect.top + srcrect.top;
+	srcrect.left = destrect.left - offset_x;
+	srcrect.top = destrect.top - offset_y;
+	srcrect.right = srcrect.left + destrect.right - destrect.left;
+	srcrect.bottom = srcrect.top + destrect.bottom - destrect.top;
 
 	// Clip the source to the screen
 	RECT srcrect2;
 	if (!IntersectRect(&srcrect2, &srcrect, &m_server->GetSharedRect()))
 		return;
 
-	// Correct the destination rectangle
 	destrect.left += (srcrect2.left - srcrect.left);
 	destrect.top += (srcrect2.top - srcrect.top);
-	destrect.right = srcrect2.right-srcrect2.left + destrect.left;
-	destrect.bottom = srcrect2.bottom-srcrect2.top + destrect.top;
+	destrect.right = srcrect2.right - srcrect2.left + destrect.left;
+	destrect.bottom = srcrect2.bottom - srcrect2.top + destrect.top;
 
-	// Is there an existing CopyRect rectangle?
-	if (m_copyrect_set) {
-		// Yes, so compare their areas!
-		if (((destrect.right-destrect.left) * (destrect.bottom-destrect.top))
-			< ((m_copyrect_rect.right-m_copyrect_rect.left) * (m_copyrect_rect.bottom-m_copyrect_rect.top)))
-			return;
+	if ( destrect.right - destrect.left >= 16 &&
+		 destrect.bottom - destrect.top >= 16 ) {
+		m_changed_rgn.SubtractRect(destrect);
+
+		m_copyrect_rect = destrect;
+		m_copyrect_src.x = srcrect2.left;
+		m_copyrect_src.y = srcrect2.top;
+		m_copyrect_set = TRUE;
+
+		//DPF(("CopyRect: (%d, %d) (%d, %d, %d, %d)\n",
+		//	m_copyrect_src.x,
+		//	m_copyrect_src.y,
+		//	m_copyrect_rect.left,
+		//	m_copyrect_rect.top,
+		//	m_copyrect_rect.right,
+		//	m_copyrect_rect.bottom));
 	}
-
-	// Set the copyrect...
-	m_copyrect_rect = destrect;
-	m_copyrect_src.x = srcrect2.left;
-	m_copyrect_src.y = srcrect2.top;
-	m_copyrect_set = TRUE;
-	
 }
 
 //

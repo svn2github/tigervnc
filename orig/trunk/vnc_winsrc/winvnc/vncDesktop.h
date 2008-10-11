@@ -116,8 +116,8 @@ public:
 
 	// Method to obtain the DIBsection buffer if fast blits are enabled
 	// If they're disabled, it'll return NULL
-	inline BYTE *MainBuffer() {return m_mainbuff;};
-	void CopyRect(RECT &dest, POINT &source);
+	inline BYTE *MainBuffer() { return m_mainbuff; }
+	void CopyRect(const RECT &dest, const POINT &source);
 
 	BOOL			m_initialClipBoardSeen;
 

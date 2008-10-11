@@ -154,7 +154,7 @@ protected:
 	BOOL SetPalette();
 
 	void CopyToBuffer(RECT &rect, BYTE *scrBuff);
-	void CopyRectToBuffer(RECT &dest, POINT &source);
+	void CopyRectToBuffer(const RECT &dest, const POINT &source);
 	void CalcCopyRects();
 	
 	// Routine to attempt enabling optimised DIBsection blits

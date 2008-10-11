@@ -2551,27 +2551,38 @@ vncDesktop::CopyRect(RECT &dest, POINT &source)
 	
 }
 
-void
-vncDesktop::CopyRectToBuffer(RECT &dest, POINT &source)
+//
+// Copy the data from one region of the back buffer to another.
+//
+
+void vncDesktop::CopyRectToBuffer(const RECT &dest, const POINT &source)
 {
-	// Copy the data from one region of the back-buffer to another!
-	BYTE *srcptr = m_mainbuff + (source.y * m_bytesPerRow) +
-		(source.x * m_scrinfo.format.bitsPerPixel/8);
-	BYTE *destptr = m_backbuff + (dest.top * m_bytesPerRow) +
-		(dest.left * m_scrinfo.format.bitsPerPixel/8);
-	const UINT bytesPerLine = (dest.right-dest.left)*(m_scrinfo.format.bitsPerPixel/8);
-	if (dest.top < source.y) {
-		for (int y=dest.top; y < dest.bottom; y++)
-		{
+	const int src_x = source.x - m_bmrect.left;
+	const int src_y = source.y - m_bmrect.top;
+	_ASSERTE(src_x >= 0);
+	_ASSERTE(src_y >= 0);
+
+	const int dst_x = dest.left - m_bmrect.left;
+	const int dst_y = dest.top - m_bmrect.top;
+	_ASSERTE(dst_x >= 0);
+	_ASSERTE(dst_y >= 0);
+
+	const unsigned int bytesPerPixel = m_scrinfo.format.bitsPerPixel / 8;
+	const unsigned int bytesPerLine = (dest.right - dest.left) * bytesPerPixel;
+
+	BYTE *srcptr = m_mainbuff + src_y * m_bytesPerRow + src_x * bytesPerPixel;
+	BYTE *destptr = m_backbuff + dst_y * m_bytesPerRow + dst_x * bytesPerPixel;
+
+	if (dst_y < src_y) {
+		for (int y = dest.top; y < dest.bottom; y++) {
 			memmove(destptr, srcptr, bytesPerLine);
 			srcptr+=m_bytesPerRow;
 			destptr+=m_bytesPerRow;
 		}
 	} else {
-		srcptr += (m_bytesPerRow * ((dest.bottom-dest.top)-1));
-		destptr += (m_bytesPerRow * ((dest.bottom-dest.top)-1));
-		for (int y=dest.bottom; y > dest.top; y--)
-		{
+		srcptr += m_bytesPerRow * (dest.bottom - dest.top - 1);
+		destptr += m_bytesPerRow * (dest.bottom - dest.top - 1);
+		for (int y = dest.bottom; y > dest.top; y--) {
 			memmove(destptr, srcptr, bytesPerLine);
 			srcptr-=m_bytesPerRow;
 			destptr-=m_bytesPerRow;

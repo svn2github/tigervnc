@@ -2550,7 +2550,7 @@ vncDesktop::CopyRect(RECT &dest, POINT &source)
 }
 
 //
-// Copy the data from one region of the back buffer to another.
+// Copy the data from one rectangle of the back buffer to another.
 //
 
 void vncDesktop::CopyRectToBuffer(const RECT &dest, const POINT &source)
@@ -2568,7 +2568,7 @@ void vncDesktop::CopyRectToBuffer(const RECT &dest, const POINT &source)
 	const unsigned int bytesPerPixel = m_scrinfo.format.bitsPerPixel / 8;
 	const unsigned int bytesPerLine = (dest.right - dest.left) * bytesPerPixel;
 
-	BYTE *srcptr = m_mainbuff + src_y * m_bytesPerRow + src_x * bytesPerPixel;
+	BYTE *srcptr = m_backbuff + src_y * m_bytesPerRow + src_x * bytesPerPixel;
 	BYTE *destptr = m_backbuff + dst_y * m_bytesPerRow + dst_x * bytesPerPixel;
 
 	if (dst_y < src_y) {

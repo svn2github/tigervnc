@@ -701,6 +701,42 @@
 			>
 		</File>
 		<File
+			RelativePath=".\DirManager.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\DirManager.h"
+			>
+		</File>
+		<File
+			RelativePath=".\echoConCtrl.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\echoConCtrl.h"
+			>
+		</File>
+		<File
+			RelativePath=".\echoConnection.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\echoConnection.h"
+			>
+		</File>
+		<File
+			RelativePath=".\echoPropView.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\echoPropView.h"
+			>
+		</File>
+		<File
+			RelativePath=".\echoTypes.h"
+			>
+		</File>
+		<File
 			RelativePath="Exception.cpp"
 			>
 			<FileConfiguration
@@ -724,6 +760,30 @@
 		</File>
 		<File
 			RelativePath="Exception.h"
+			>
+		</File>
+		<File
+			RelativePath=".\FileInfo.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\FileInfo.h"
+			>
+		</File>
+		<File
+			RelativePath=".\FileInfoEx.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\FileInfoEx.h"
+			>
+		</File>
+		<File
+			RelativePath=".\FileReader.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\FileReader.h"
 			>
 		</File>
 		<File
@@ -753,29 +813,59 @@
 			>
 		</File>
 		<File
-			RelativePath="FileTransferItemInfo.cpp"
+			RelativePath=".\FileTransferDialog.cpp"
 			>
-			<FileConfiguration
-				Name="Debug|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					AdditionalIncludeDirectories=""
-					PreprocessorDefinitions=""
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					AdditionalIncludeDirectories=""
-					PreprocessorDefinitions=""
-				/>
-			</FileConfiguration>
 		</File>
 		<File
-			RelativePath="FileTransferItemInfo.h"
+			RelativePath=".\FileTransferDialog.h"
+			>
+		</File>
+		<File
+			RelativePath=".\FileTransferTypes.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\FileTransferTypes.h"
+			>
+		</File>
+		<File
+			RelativePath=".\FileWriter.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\FileWriter.h"
+			>
+		</File>
+		<File
+			RelativePath=".\FTEditBox.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\FTEditBox.h"
+			>
+		</File>
+		<File
+			RelativePath=".\FTListView.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\FTListView.h"
+			>
+		</File>
+		<File
+			RelativePath=".\FTStatusBox.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\FTStatusBox.h"
+			>
+		</File>
+		<File
+			RelativePath=".\FTToolBar.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\FTToolBar.h"
 			>
 		</File>
 		<File
@@ -806,6 +896,10 @@
 		</File>
 		<File
 			RelativePath="HotKeys.h"
+			>
+		</File>
+		<File
+			RelativePath=".\InterfaceDllProxyInfo.h"
 			>
 		</File>
 		<File
@@ -892,6 +986,22 @@
 		</File>
 		<File
 			RelativePath="LoginAuthDialog.h"
+			>
+		</File>
+		<File
+			RelativePath=".\ProgressControls.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\ProgressControls.h"
+			>
+		</File>
+		<File
+			RelativePath=".\QuitFullScreenWindow.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\QuitFullScreenWindow.h"
 			>
 		</File>
 		<File

@@ -546,6 +546,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\echoTypes.h"
+				>
+			</File>
+			<File
 				RelativePath="FileTransferItemInfo.h"
 				>
 			</File>

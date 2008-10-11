@@ -232,6 +232,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ConnectionsAccess.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ControlPanel.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\d3des.c"
 				>
 			</File>
@@ -240,7 +248,23 @@
 				>
 			</File>
 			<File
+				RelativePath=".\echoConCtrl.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\echoConnection.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\echoPropView.cpp"
+				>
+			</File>
+			<File
 				RelativePath="FileTransferItemInfo.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\GracePeriod.cpp"
 				>
 			</File>
 			<File
@@ -495,6 +519,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ConnectionsAccess.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ControlPanel.h"
+				>
+			</File>
+			<File
 				RelativePath=".\d3des.h"
 				>
 			</File>
@@ -503,7 +535,27 @@
 				>
 			</File>
 			<File
+				RelativePath=".\echoConCtrl.h"
+				>
+			</File>
+			<File
+				RelativePath=".\echoConnection.h"
+				>
+			</File>
+			<File
+				RelativePath=".\echoPropView.h"
+				>
+			</File>
+			<File
+				RelativePath=".\echoTypes.h"
+				>
+			</File>
+			<File
 				RelativePath="FileTransferItemInfo.h"
+				>
+			</File>
+			<File
+				RelativePath=".\GracePeriod.h"
 				>
 			</File>
 			<File

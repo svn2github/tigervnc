@@ -84,11 +84,11 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 winmm.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib uuid.lib wsock32.lib comctl32.lib htmlhelp.lib /nologo /subsystem:windows /map /debug /machine:I386 /nodefaultlib:"libcd" /pdbtype:sept
+# ADD LINK32 winmm.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib uuid.lib wsock32.lib comctl32.lib htmlhelp.lib /nologo /subsystem:windows /map /debug /machine:I386 /pdbtype:sept
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PreLink_Desc=Updating BuildTime
-PreLink_Cmds=cl /c /nologo /Fo.\Debug\ /Fd.\Debug /MT BuildTime.cpp
+PreLink_Cmds=cl /c /nologo /Fo.\Debug\ /Fd.\Debug /MTd BuildTime.cpp
 # End Special Build Tool
 
 !ENDIF 

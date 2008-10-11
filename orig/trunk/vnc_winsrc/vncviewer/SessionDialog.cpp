@@ -108,7 +108,8 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 				SetDlgItemText(hwnd, IDC_HOSTNAME_EDIT, _this->m_pOpt->m_display);
 			}
 			_this->cmp(hwnd);
-			
+
+			UpdateConnectButton(hwnd);
 			SetFocus(hcombo);
             return TRUE;
 		}
@@ -137,10 +138,14 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 					_this->m_pOpt->LoadOpt(buffer,KEY_VNCVIEWER_HISTORI);
 					
 					_this->cmp(hwnd);
-					
+
+					EnableConnectButton(hwnd, TRUE);
 					SetFocus(hcombo);
-					return TRUE;
 				}
+				break;
+			case CBN_EDITCHANGE:
+				UpdateConnectButton(hwnd);
+				break;
 			}
 			return TRUE;
 		case IDC_LOAD:
@@ -153,8 +158,9 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 							_this->m_cc->m_host);
 					SetDlgItemText(hwnd, IDC_HOSTNAME_EDIT,
 									_this->m_pOpt->m_display);
-					 _this->cmp(hwnd);
+					_this->cmp(hwnd);
 				}
+				UpdateConnectButton(hwnd);
 				SetFocus(hcombo);
 				return TRUE;
 			}
@@ -193,7 +199,6 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 				_tcscpy(_this->m_pOpt->m_display, display);
 				
 				EndDialog(_this->m_pOpt->m_hParent, FALSE);
-				EndDialog(hwnd, TRUE);
 
 			}
 			return TRUE;						
@@ -260,6 +265,18 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 	return 0;
 }
 
+void SessionDialog::EnableConnectButton(HWND hDialog, BOOL bEnable)
+{
+	HWND hConnectButton = GetDlgItem(hDialog, IDC_OK);
+	EnableWindow(hConnectButton, bEnable);
+}
+
+void SessionDialog::UpdateConnectButton(HWND hDialog)
+{
+	HWND hHostComboBox = GetDlgItem(hDialog, IDC_HOSTNAME_EDIT);
+	BOOL hostNotEmpty = (GetWindowTextLength(hHostComboBox) != 0);
+	EnableConnectButton(hDialog, hostNotEmpty);
+}
 
 int SessionDialog::cmp(HWND hwnd)
 {

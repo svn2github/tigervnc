@@ -2040,8 +2040,6 @@ vncDesktop::CheckUpdates()
 			m_videodriver->ResetCounter();
 	}
 
-	// DEBUG: Continue auditing the code from this point.
-
 	// If we have incremental update requests
 	if (m_server->IncrRgnRequested()) {
 

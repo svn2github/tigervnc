@@ -48,17 +48,6 @@ class vncDesktop;
 #include "VideoDriver.h"
 #include "GracePeriod.h"
 
-#ifdef HORIZONLIVE
-#include "PollCycleControl.h"
-#include "PollingScanLinesAdjacent.h"
-#include "PollingScanLines.h"
-#include "PollingQuadrant.h"
-#include "horizon/horizonPollingAdapter.h"
-#include "horizon/horizonPollingType.h"
-#include "horizon/horizonMenu.h"
-#endif
-
-
 // Constants
 extern const UINT RFB_SCREEN_UPDATE;
 extern const UINT RFB_COPYRECT_UPDATE;
@@ -120,13 +109,6 @@ public:
 	void CopyRect(const RECT &dest, const POINT &source);
 
 	BOOL			m_initialClipBoardSeen;
-
-#ifdef HORIZONLIVE
-	// friend classes
-	friend class PollingScanLinesAdjacent ;
-	friend class PollingScanLines ;
-	friend class PollingQuadrant ;
-#endif
 
 	// Implementation
 protected:
@@ -266,26 +248,6 @@ protected:
 	static int		m_pollingStep;
 	
 	GracePeriod m_remote_event_gp;
-
-#ifdef HORIZONLIVE
-	bool checkInvalidSharedWindow( RECT& new_rect ) ;
-	bool checkInvalidSharedArea( RECT& new_rect ) ;
-
-	bool sendWindowClosedMessage( void ) ;
-	bool sendWindowIconicMessage( void ) ;
-	bool sendWindowOffScreenMessage( void ) ;
-
-	bool displayMessageInViewer( const char* message, int message_length, 
-		bool clear_area = true ) ;
-	
-	bool restoreSharedArea( void ) ;
-
-	bool wasWindowOpen ;
-	bool wasWindowIconic ;
-	bool wasWindowOnScreen ;
-	
-	horizonPollingAdapter* m_polling_adapter ;
-#endif
 };
 
 #endif // _WINVNC_VNCDESKTOP

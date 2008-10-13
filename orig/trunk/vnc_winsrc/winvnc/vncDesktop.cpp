@@ -44,12 +44,10 @@
 #include "WallpaperUtils.h"
 #include "TsSessions.h"
 
-#ifndef HORIZONLIVE
 #if (_MSC_VER>= 1300)
 #include <fstream>
 #else
 #include <fstream.h>
-#endif
 #endif
 
 // Constants
@@ -249,14 +247,6 @@ vncDesktopThread::run_undetached(void *arg)
 		{
 			break;
 		}
-#ifdef HORIZONLIVE
-		else if (msg.message == LS_QUIT)
-		{
-			// this is our custom quit message
-			vnclog.Print(LL_INTINFO, VNCLOG("Received LS_QUIT message.\n"));
-			break;
-		}
-#endif
 		else
 		{
 			// Process any other messages normally
@@ -338,14 +328,6 @@ vncDesktop::vncDesktop()
 	m_videodriver = NULL;
 	m_timer_blank_screen = 0;
 
-#ifdef HORIZONLIVE
-	// init polling object factory
-	m_polling_adapter = new horizonPollingAdapter( this ) ;
-	
-	wasWindowOpen = true ;
-	wasWindowIconic = false ;
-	wasWindowOnScreen = true ;
-#endif
 }
 
 vncDesktop::~vncDesktop()
@@ -367,15 +349,6 @@ vncDesktop::~vncDesktop()
 
 	// Let's call Shutdown just in case something went wrong...
 	Shutdown();
-
-#ifdef HORIZONLIVE
-	// clean-up polling factory
-	if ( m_polling_adapter != NULL )
-	{
-		delete m_polling_adapter ;
-		m_polling_adapter = NULL ;
-	}
-#endif
 }
 
 // Routine to startup and install all the hooks and stuff
@@ -440,11 +413,9 @@ vncDesktop::Startup()
 	ActivateHooks();
 	m_hooks_may_change = true;
 
-#ifndef HORIZONLIVE
 	// Start up the keyboard and mouse filters
 	SetKeyboardFilterHook(m_server->LocalInputsDisabled());
 	SetMouseFilterHook(m_server->LocalInputsDisabled());
-#endif
 
 	// Start up the keyboard and mouse hooks  for 
 	// local event priority over remote impl.
@@ -493,11 +464,10 @@ vncDesktop::Shutdown()
 		m_hooks_may_change = false;
 		ShutdownHooks();
 
-#ifndef HORIZONLIVE
 		// Stop the keyboard and mouse filters
 		SetKeyboardFilterHook(false);
 		SetMouseFilterHook(false);
-#endif
+
 		// The window is being closed - remove it from the viewer list
 		ChangeClipboardChain(m_hwnd, m_hnextviewer);
 
@@ -807,11 +777,9 @@ void vncDesktop::ChangeResNow()
 void
 vncDesktop::SetupDisplayForConnection()
 {
-#ifndef HORIZONLIVE
 	KillScreenSaver();
 
 	ChangeResNow(); // *** - Jeremy Peaks
-#endif
 }
 
 void
@@ -1257,9 +1225,7 @@ vncDesktop::Init(vncServer *server)
 void
 vncDesktop::RequestUpdate()
 {
-#ifndef HORIZONLIVE
 	PostMessage(m_hwnd, WM_TIMER, TIMER_POLL, 0);
-#endif
 }
 
 int
@@ -1957,26 +1923,6 @@ vncDesktop::CheckUpdates()
 	RECT rect = m_server->GetSharedRect();
 	RECT new_rect;
 	
-#ifdef HORIZONLIVE 
-	if ( m_server->WindowShared() )
-	{
-		// invalid window
-		if ( checkInvalidSharedWindow( new_rect ) == true )
-			return TRUE ;
-	}
-	else if ( m_server->ScreenAreaShared() )
-	{
-		// invalid screen area
-		if ( checkInvalidSharedArea( new_rect ) == true )
-			return TRUE ;
-	}
-	else
-	{
-		// use the desktop
-		if ( ::CopyRect( &new_rect, &m_bmrect ) == FALSE )
-			return TRUE ;
-	}
-#else
 	if (m_server->WindowShared()) {
 		HWND hwnd = m_server->GetWindowShared();
 		GetWindowRect(hwnd, &new_rect);
@@ -2010,7 +1956,6 @@ vncDesktop::CheckUpdates()
 		m_server->KillAuthClients();
 		return FALSE;
 	}
-#endif
 		
 	// Update screen size if required
 	if (!EqualRect(&new_rect, &rect)) {
@@ -2045,22 +1990,6 @@ vncDesktop::CheckUpdates()
 
 		vncRegion rgn;
 
-#ifdef HORIZONLIVE
-		if ( GetPollingFlag() == TRUE ) 
-		{
-			// reset polling flag
-			SetPollingFlag( FALSE ) ;
-	
-			// inform the PollCycleControl that we're starting to poll
-			PollCycleControl::GetInstance()->MarkPollStart() ;
-
-			// run polling algorithm
-			m_polling_adapter->PerformPolling() ;	
-	
-			// inform the PollCycleControl that we're done polling
-			PollCycleControl::GetInstance()->MarkPollStop() ;
-		}
-#else
 		// Use either a mirror video driver, or perform polling
 		if (m_videodriver != NULL) {
 			// FIXME: If there were no incremental update requests
@@ -2073,7 +2002,6 @@ vncDesktop::CheckUpdates()
 				PerformPolling();
 			}
 		}
-#endif
 
 		// Check for moved windows
 		if (m_server->FullScreen())
@@ -2142,10 +2070,6 @@ vncDesktop::SetPollingTimer()
 
 	int polling_diviser = 16 ;
 	
-#ifdef HORIZONLIVE	
-	polling_diviser = m_polling_adapter->GetCycleDivisor() ;
-#endif
-
 	UINT msec;
 	if (m_videodriver != NULL) {
 		msec = driverCycle;
@@ -2156,10 +2080,6 @@ vncDesktop::SetPollingTimer()
 		}
 	}
 	
-#ifdef HORIZONLIVE
-	PollCycleControl::GetInstance()->SetPollCycle( msec ) ;
-#endif
-
 	m_timer_polling = SetTimer(Window(), TIMER_POLL, msec, NULL);
 }
 
@@ -2646,424 +2566,3 @@ vncDesktop::BlankScreen(BOOL set)
 		SendMessage(GetDesktopWindow(), WM_SYSCOMMAND, SC_MONITORPOWER, (LPARAM)-1);
 	}
 }
-
-#ifdef HORIZONLIVE
-
-bool
-vncDesktop::sendWindowClosedMessage( void )
-{
-	static const char* message = 
-		"The shared window was closed.\n"
-		"Please wait for the next update." 
-	;
- 
-	return displayMessageInViewer( message, strlen( message ) ) ;
-}
-
-bool
-vncDesktop::sendWindowIconicMessage( void )
-{
-	static const char* message = 
-		"The shared window is minimized.\n"
-		"Please wait for the next update." 
-	;
- 
-	return displayMessageInViewer( message, strlen( message ) ) ;
-}
-
-bool
-vncDesktop::sendWindowOffScreenMessage( void )
-{
-	static const char* message = 
-		"The shared window is off-screen.\n"
-		"Please wait for the next update." 
-	;
-
-	return displayMessageInViewer( message, strlen( message ) ) ;
-}
-
-bool
-vncDesktop::restoreSharedArea( void )
-{
-	// get shared area rect
-	RECT rect ;
-
-	if ( m_server->WindowShared() ) 
-	{
-		WINDOWPLACEMENT wndpl ;
-		wndpl.length = sizeof( WINDOWPLACEMENT ) ;
-		
-		if ( ::GetWindowPlacement( m_server->GetWindowShared(), &wndpl ) == FALSE )
-			return false ;
-
-		// rect is the intersection of the restored window and the desktop
-		::IntersectRect( &rect, &wndpl.rcNormalPosition, &m_bmrect ) ;
-
-		if ( ::IsRectEmpty( &rect ) == TRUE )
-			return false ;
-	}
-	else if ( m_server->ScreenAreaShared() )
-	{
-		rect = m_server->GetScreenAreaRect() ;
-	}
-	else
-	{
-		rect = m_bmrect ;
-	}
-	
-	// load the bitmap into the device context
-	HBITMAP oldbitmap = ( HBITMAP )( ::SelectObject( m_hmemdc, m_membitmap ) ) ;
-	if ( oldbitmap == NULL ) return false ;
-	
-	// copy the on-screen data in to our device context
-	::BitBlt(
-		m_hmemdc, 
-		rect.left, rect.top,
-		rect.right - rect.left, 
-		rect.bottom - rect.top,
-		m_hrootdc, 
-		rect.left, rect.top,
-		SRCCOPY
-	) ;
-	
-	// restore the old bitmap
-	::SelectObject( m_hmemdc, oldbitmap ) ;
-	
-	// copy the on-screen data in rect to the main buffer
-	CopyToBuffer( rect, m_mainbuff ) ;
-	CopyToBuffer( rect, m_backbuff ) ;
-	
-	// update the shared-area size
-	m_server->SetSharedRect( rect ) ;
-
-	// tell the clients that rect has changed
-//	m_server->UpdateRect( rect ) ;
-
-	// tell the clients there's a new frame-buffer size
-	m_server->SetNewFBSize( TRUE ) ;
-
-	// send the message to the clients
-	m_server->TriggerUpdate() ;	
-
-	// clear the changed regions
-	m_changed_rgn.Clear() ;
-
-	return true ;
-}
-
-bool 
-vncDesktop::displayMessageInViewer( 
-	const char* message, 
-	int message_length,
-	bool clear_area
-)
-{
-	BOOL rv ;
-	int margin = 16;
-
-	//
-	// determine if text will fit in shared aread
-	//
-	
-	// get number of lines, since GetTextExtentPoint32() 
-	// doesn't calculate return characters
-	
-	int message_lines = 1 ;
-	char* cp = strchr( message, '\n' ) ;
-	
-	while ( ( cp != NULL ) && ( cp + 1 != NULL ) )
-	{
-		cp = strchr( cp + 1, '\n' ) ; // find next occurance
-		++message_lines ; // increment number of lines
-	}
-
-	// get the extent of the text
-	SIZE text_extent ;
-	rv = ::GetTextExtentPoint32( m_hmemdc, message, message_length, &text_extent ) ;
-
-	if ( rv == FALSE )
-		return false ;
-
-	// adjust based on lines in the message
-	text_extent.cx = text_extent.cx / message_lines ;
-	text_extent.cy = text_extent.cy * message_lines ;
-
-	//
-	// create rect we're going to use
-	//
-
-	RECT rect ;
-
-	// horizontal coordinates
-	rect.left = 0 ;
-	rect.right = ( text_extent.cx + margin ) + margin ;
-	
-	// vertical coordinates
-	rect.top = 0 ;
-	rect.bottom = ( text_extent.cy + margin ) + margin ;
-
-	// normalize the rect to the screen
-	::IntersectRect( &rect, &rect, &m_bmrect ) ;
-
-	//
-	// capture the current screen
-	//
-
-	// load the bitmap into the device context
-	HBITMAP oldbitmap = ( HBITMAP )( ::SelectObject( m_hmemdc, m_membitmap ) ) ;
-	if ( oldbitmap == NULL ) return false ;
-
-/*
-	rv = ::BitBlt(
-		m_hmemdc, 
-		rect.left, rect.top,
-		rect.right - rect.left, 
-		rect.bottom - rect.top,
-		m_hrootdc, 
-		rect.left, rect.top,
-		SRCCOPY
-	) ;
-
-	if ( rv == FALSE )
-		return false ;
-*/
-
-	//
-	// determine the text's rectangle
-	//
-
-	// put text message in upper left corner
-	RECT text_rect ;
-	::CopyRect( &text_rect, &rect ) ;
-	text_rect.left = rect.left + margin;
-	text_rect.top = rect.top + margin;
-	text_rect.right = rect.left + margin + text_extent.cx;
-	text_rect.bottom = rect.top + margin + text_extent.cy;
-
-	//
-	// fill the background
-	//
-
-	RECT fill_rect ;
-
-	if ( clear_area == true )
-	{
-		// use the shared-area rectangle
-		::CopyRect( &fill_rect, &rect ) ;
-	}
-	else
-	{
-		// use the text's rectangle
-		::CopyRect( &fill_rect, &text_rect ) ;
-		
-		// add some margins
-		::InflateRect( &fill_rect, 10, 10 ) ;
-	}
-
-	// select the background brush
-	::SelectObject( m_hmemdc, GetStockObject( GRAY_BRUSH ) ) ;
-
-	// fill the shared area with the background brush
-	rv = ::Rectangle( 
-		m_hmemdc,
-		fill_rect.left, fill_rect.top,
-		fill_rect.right, fill_rect.bottom
-	) ;
-
-	if ( rv == FALSE )
-		return false ;
-
-	//
-	// write the message
-	//
-
-	// make text background transparent
-	::SetBkMode( m_hmemdc, TRANSPARENT ) ;
-
-	int height = ::DrawText(
-		m_hmemdc,
-		message, 
-		message_length,
-		&text_rect,
-		DT_LEFT
-	) ;
-
-	//
-	// return device context to previous state
-	//
-	
-	::SelectObject( m_hmemdc, oldbitmap ) ;
-
-	//
-	// do the vnc update dance
-	//
-	
-	// warp cursor to bottom-right corner of shared-area
-	POINT p;
-	p.x = m_bmrect.right ;
-	p.y = m_bmrect.bottom ;
-	m_server->setFakeCursorPos(p);
-	m_server->provideFakeCursorPos(TRUE);
-	
-	// copy the rect data in to the main buffer
-	CopyToBuffer( rect, m_mainbuff ) ;
-	CopyToBuffer( rect, m_backbuff ) ;
-
-	// set the new shared area size
-	m_server->SetSharedRect( rect ) ;
-		
-	// tell server to update frame buffer
-	m_server->SetNewFBSize( TRUE ) ;
-
-	// send the message to the clients
-	m_server->TriggerUpdate() ;
-
-	// done faking cursor position
-	m_server->provideFakeCursorPos(FALSE);
-
-	// clear the changed regions
-	m_changed_rgn.Clear() ;
-
-	return true ;
-}
-
-bool 
-vncDesktop::checkInvalidSharedWindow( RECT &new_rect )
-{
-	// assume the window is open and restored, to start 
-	static bool wasWindowOpen = true ;
-	static bool wasWindowIconic = false ;
-
-	// get shared window handle
-	HWND hwnd = m_server->GetWindowShared() ;
-
-	// check window state
-
-	// window is closed, or we can't get the bounding rect
-	if ( ::IsWindow( hwnd ) == FALSE )
-	{
-		// override remote inputs
-		if ( m_remote_event_gp.isPeriodExpired() )
-			m_remote_event_gp.restart() ;
-	
-		// send the message if the window was open and not minimized
-		if ( wasWindowOpen == true ) 
-		{		
-			// send the window closed message to the viewer
-			sendWindowClosedMessage() ;
-
-			// remember the window was closed
-			wasWindowOpen = false ;
-
-			// prompt the host to pick a new window
-			horizonMenu::GetInstance()->ShowPropertiesDialog() ;
-		}
-
-		// make sure message is appearing
-		m_server->TriggerUpdate() ;
-
-		return true ;
-	}
-
-	// window is minimized
-	if ( ::IsIconic( m_server->GetWindowShared() ) == TRUE )
-	{
-		// override remote inputs
-		if ( m_remote_event_gp.isPeriodExpired() )
-			m_remote_event_gp.restart() ;
-
-		// send the message if the window was open and not minimized
-		if ( wasWindowIconic == false )
-		{
-			sendWindowIconicMessage() ;
-
-			// remember the window was closed
-			wasWindowIconic = true ;
-		}
-		
-		// make sure message is appearing
-		m_server->TriggerUpdate() ;
-					
-		return true ;
-	}
-
-	// make sure the rect is on screen
-	RECT rect ;
-
-	// get the window bounds
-	::GetWindowRect( hwnd, &rect ) ;
-
-	// intersect with the desktop rect
-	::IntersectRect( &rect, &rect, &m_bmrect ) ;
-
-	if ( ::IsRectEmpty( &rect ) )
-		return true ;
-
-	// window is okay
-	
-	// reset the message if necessary
-	if ( wasWindowIconic == true || wasWindowOpen == false )
-	{
-		// reset window state flags
-		wasWindowIconic = false ;
-		wasWindowOpen = true ;
-
-		// get rid of message
-		restoreSharedArea() ;
-
-		return true ;
-	}
-
-	// return the intersected window bounds
-	::CopyRect( &new_rect, &rect ) ;
-
-	return false ;
-}
-
-bool
-vncDesktop::checkInvalidSharedArea( RECT& new_rect ) 
-{
-	static bool wasWindowOnScreen = true ;
-
-	RECT rect = m_server->GetScreenAreaRect() ;
-
-	// intersect with the desktop rect
-	::IntersectRect( &rect, &rect, &m_bmrect ) ;
-
-	// check that it's not empty
-	if ( ::IsRectEmpty( &rect ) )
-	{
-		// override remote inputs
-		if ( m_remote_event_gp.isPeriodExpired() )
-			m_remote_event_gp.restart() ;
-
-		if ( wasWindowOnScreen == true )
-		{
-			// send the window off-screen message to the viewer
-			sendWindowOffScreenMessage() ;
-			
-			// remember window was off-screen
-			wasWindowOnScreen = false ;
-		}
-		
-		// make sure message is appearing
-		m_server->TriggerUpdate() ;
-		
-		return true ;
-	}
-	else if ( wasWindowOnScreen == false ) 
-	{
-		restoreSharedArea() ;
-	
-		// remember window was on screen
-		wasWindowOnScreen = true ;
-		
-		return true ;
-	}
-	
-	// return the new rect
-	::CopyRect( &new_rect, &rect ) ;
-
-	return false ;
-}
-#endif // HORIZONLIVE

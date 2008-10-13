@@ -23,10 +23,10 @@
 // whence you received this file, check http://www.uk.research.att.com/vnc or contact
 // the authors on vnc@uk.research.att.com for information on obtaining it.
 
-// VNCHooks.cpp : Defines the implementation of the DLL.
+// ScreenHooks.cpp : Defines the implementation of the DLL.
 //
 
-#include "VNCHooks.h"
+#include "ScreenHooks.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -89,14 +89,14 @@ BOOL HookMaster = FALSE;							// Is this instance veneto itself?
 BOOL appHookedOK = FALSE;							// Did InitInstance succeed?
 
 /////////////////////////////////////////////////////////////////////////////
-// Registered messages & atoms to be used by VNCHooks.DLL
+// Registered messages & atoms to be used by ScreenHooks.DLL
 
 // Messages
-const UINT VNC_DEFERRED_UPDATE = RegisterWindowMessage("VNCHooks.Deferred.UpdateMessage");
+const UINT VNC_DEFERRED_UPDATE = RegisterWindowMessage("ScreenHooks.Deferred.UpdateMessage");
 
 // Atoms
-const char *VNC_WINDOWPOS_ATOMNAME = "VNCHooks.CopyRect.WindowPos";
-const char *VNC_POPUPSELN_ATOMNAME = "VNCHooks.PopUpMenu.Selected";
+const char *VNC_WINDOWPOS_ATOMNAME = "ScreenHooks.CopyRect.WindowPos";
+const char *VNC_POPUPSELN_ATOMNAME = "ScreenHooks.PopUpMenu.Selected";
 ATOM VNC_WINDOWPOS_ATOM = NULL;
 ATOM VNC_POPUPSELN_ATOM = NULL;
 
@@ -1116,7 +1116,7 @@ char * NameFromPath(const char *path)
 
 static const TCHAR szSoftware[] = "Software";
 static const TCHAR szCompany[] = "ORL";
-static const TCHAR szProfile[] = "VNCHooks";
+static const TCHAR szProfile[] = "ScreenHooks";
 
 HKEY GetRegistryKey()
 {

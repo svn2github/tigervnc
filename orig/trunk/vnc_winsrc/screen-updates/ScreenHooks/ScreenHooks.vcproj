@@ -2,8 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="VNCHooks"
+	Name="ScreenHooks"
 	ProjectGUID="{CE9A94DA-45A1-4BAC-AFA3-CE6D9FD28964}"
+	RootNamespace="ScreenHooks"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -70,7 +71,7 @@
 				AdditionalOptions="/MACHINE:I386"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				ModuleDefinitionFile=".\VNCHooks.def"
+				ModuleDefinitionFile="ScreenHooks.def"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -156,7 +157,7 @@
 				AdditionalOptions="/MACHINE:I386"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				ModuleDefinitionFile=".\VNCHooks.def"
+				ModuleDefinitionFile="ScreenHooks.def"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
@@ -193,19 +194,19 @@
 			>
 		</File>
 		<File
-			RelativePath=".\VNCHooks.cpp"
+			RelativePath=".\ScreenHooks.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\VNCHooks.def"
+			RelativePath=".\ScreenHooks.def"
 			>
 		</File>
 		<File
-			RelativePath=".\VNCHooks.h"
+			RelativePath=".\ScreenHooks.h"
 			>
 		</File>
 		<File
-			RelativePath=".\VNCHooks.rc"
+			RelativePath=".\ScreenHooks.rc"
 			>
 		</File>
 	</Files>

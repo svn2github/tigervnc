@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Developer Studio generated include file.
-// Used by VNCHooks.rc
+// Used by ScreenHooks.rc
 //
 
 // Next default values for new objects

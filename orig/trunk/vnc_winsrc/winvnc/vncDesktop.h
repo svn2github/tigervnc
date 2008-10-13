@@ -121,10 +121,6 @@ protected:
 	BOOL InitDesktop();
 	void KillScreenSaver();
 
-	void ChangeResNow();
-	void SetupDisplayForConnection();
-	void ResetDisplayToNormal();
-
 	BOOL InitBitmap();
 	BOOL InitWindow();
 	BOOL ThunkBitmapInfo();

@@ -265,8 +265,6 @@ vncDesktopThread::run_undetached(void *arg)
 
 	// Clear all the hooks and close windows, etc.
 	m_desktop->Shutdown();
-	// Return display settings to previous values.
-	m_desktop->ResetDisplayToNormal();
 	// Turn on the screen.
 	m_desktop->BlankScreen(FALSE);
 
@@ -347,8 +345,7 @@ vncDesktop::Startup()
 		return FALSE;
 	}
 
-	// Configure the display for optimal VNC performance.
-	SetupDisplayForConnection();
+	KillScreenSaver();
 
 	// Initialise the Desktop object
 	if (!InitDesktop()) {
@@ -648,125 +645,6 @@ vncDesktop::KillScreenSaver()
 			}
 			break;
 		}
-	}
-}
-
-void vncDesktop::ChangeResNow()
-{
-	BOOL settingsUpdated = false;
-	int i = 0;
-	lpDevMode = new DEVMODE; // *** create an instance of DEVMODE - Jeremy Peaks
-
-	// *** WBB - Obtain the current display settings.
-	if (! EnumDisplaySettings( 0, ENUM_CURRENT_SETTINGS, lpDevMode)) {
-
-		vnclog.Print(LL_INTINFO, VNCLOG("SCR-WBB: could not get "
-										"current display settings!\n"));
-		delete lpDevMode;
-		lpDevMode = NULL;
-		return;
-
-	}
-
-	vnclog.Print(LL_INTINFO, VNCLOG("SCR-WBB: current display: "
-									"w=%d h=%d bpp=%d vRfrsh=%d.\n"),
-				 lpDevMode->dmPelsWidth,
-				 lpDevMode->dmPelsHeight,
-				 lpDevMode->dmBitsPerPel,
-				 lpDevMode->dmDisplayFrequency);
-
-	origPelsWidth = lpDevMode->dmPelsWidth; // *** sets the original resolution for use later
-	origPelsHeight = lpDevMode->dmPelsHeight; // *** - Jeremy Peaks
-
-	// *** Open the registry key for resolution settings
-	HKEY checkdetails;
-	RegOpenKeyEx(HKEY_LOCAL_MACHINE, 
-				WINVNC_REGISTRY_KEY,
-				0,
-				KEY_READ,
-				&checkdetails);
-	
-	int slen=MAX_REG_ENTRY_LEN;
-	int valType;
-	char inouttext[MAX_REG_ENTRY_LEN];
-
-	memset(inouttext, 0, MAX_REG_ENTRY_LEN);
-	
-	// *** Get the registry values for resolution change - Jeremy Peaks
-	RegQueryValueEx(checkdetails,
-		"ResWidth",
-		NULL,
-		(LPDWORD) &valType,
-		(LPBYTE) &inouttext,
-		(LPDWORD) &slen);
-
-	
-	if ((valType == REG_SZ) &&
-		atol(inouttext)) { // *** if width is 0, then this isn't a valid resolution, so do nothing - Jeremy Peaks
-		lpDevMode->dmPelsWidth = atol(inouttext);
-
-		memset(inouttext, 0, MAX_REG_ENTRY_LEN);
-
-		RegQueryValueEx(checkdetails,
-			"ResHeight",
-			NULL,
-			(LPDWORD) &valType,
-			(LPBYTE) &inouttext,
-			(LPDWORD) &slen);
-		
-		lpDevMode->dmPelsHeight = atol(inouttext);
-		if ((valType == REG_SZ ) &&
-			(lpDevMode->dmPelsHeight > 0)) {
-
-			vnclog.Print(LL_INTINFO, VNCLOG("SCR-WBB: attempting to change "
-											"resolution w=%d h=%d\n"),
-						 lpDevMode->dmPelsWidth, lpDevMode->dmPelsHeight);
-
-			// *** make res change - Jeremy Peaks
-			long resultOfResChange = ChangeDisplaySettings( lpDevMode, CDS_TEST);
-			if (resultOfResChange == DISP_CHANGE_SUCCESSFUL) {
-				ChangeDisplaySettings( lpDevMode, CDS_UPDATEREGISTRY);
-				settingsUpdated = true;
-			}
-		} 
-	}
-
-	if (! settingsUpdated) {
-		// Did not change the resolution.
-		if ( lpDevMode != NULL ) {
-			delete lpDevMode;
-			lpDevMode = NULL;
-		}
-	}
-
-	if (checkdetails != NULL) {
-		RegCloseKey(checkdetails);
-	}
-}
-
-void
-vncDesktop::SetupDisplayForConnection()
-{
-	KillScreenSaver();
-
-	ChangeResNow(); // *** - Jeremy Peaks
-}
-
-void
-vncDesktop::ResetDisplayToNormal()
-{
-	if (lpDevMode != NULL) {
-
-		// *** In case the resolution was changed, revert to original settings now
-		lpDevMode->dmPelsWidth = origPelsWidth;
-		lpDevMode->dmPelsHeight = origPelsHeight;
-
-		long resultOfResChange = ChangeDisplaySettings(lpDevMode, CDS_TEST);
-		if (resultOfResChange == DISP_CHANGE_SUCCESSFUL)
-			ChangeDisplaySettings(lpDevMode, CDS_UPDATEREGISTRY);
-
-		delete lpDevMode;
-		lpDevMode = NULL;
 	}
 }
 
@@ -1846,9 +1724,6 @@ vncDesktop::CheckUpdates()
 			m_server->KillAuthClients();
 			return FALSE;
 		}
-
-		// Now attempt to re-install them!
-		ChangeResNow();
 
 		if (!Startup()) {
 			vnclog.Print(LL_INTERR, VNCLOG("failed to re-start desktop server.\n"));

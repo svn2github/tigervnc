@@ -24,9 +24,9 @@
 #include "region/Rect.h"
 
 // Constants
-const UINT RFB_SCREEN_UPDATE = RegisterWindowMessage(_T("WinVNC.Update.DrawRect"));
-const UINT RFB_COPYRECT_UPDATE = RegisterWindowMessage(_T("WinVNC.Update.CopyRect"));
-const UINT RFB_MOUSE_UPDATE = RegisterWindowMessage(_T("WinVNC.Update.Mouse"));
+const UINT RFB_SCREEN_UPDATE = RegisterWindowMessage(_T("TightVNC.Server.Update.DrawRect"));
+const UINT RFB_COPYRECT_UPDATE = RegisterWindowMessage(_T("TightVNC.Server.Update.CopyRect"));
+const UINT RFB_MOUSE_UPDATE = RegisterWindowMessage(_T("TightVNC.Server.Update.Mouse"));
 
 HooksUpdateDetector::HooksUpdateDetector(UpdateKeeper *updateKeeper,
                                          ScreenGrabber *screenGrabber,

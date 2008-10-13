@@ -21,7 +21,7 @@
 
 #include "HooksUpdateDetector.h"
 #include "TCHAR.h"
-#include "libscreen/Rect.h"
+#include "region/Rect.h"
 
 // Constants
 const UINT RFB_SCREEN_UPDATE = RegisterWindowMessage(_T("WinVNC.Update.DrawRect"));

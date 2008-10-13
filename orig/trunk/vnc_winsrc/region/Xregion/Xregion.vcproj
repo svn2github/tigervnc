@@ -2,11 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="screen-updates"
-	ProjectGUID="{B41E017A-8039-4E85-81E9-FD860516A448}"
-	RootNamespace="screenupdates"
-	Keyword="Win32Proj"
-	TargetFrameworkVersion="196613"
+	Name="Xregion"
+	ProjectGUID="{FD11D041-F493-4C07-BC3D-6E7DEE802463}"
+	TargetFrameworkVersion="0"
 	>
 	<Platforms>
 		<Platform
@@ -21,7 +19,10 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="4"
-			CharacterSet="1"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="2"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -42,12 +43,12 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
+				PreprocessorDefinitions="_DEBUG;_LIB;WIN32"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				UsePrecompiledHeader="0"
 				WarningLevel="3"
+				SuppressStartupBanner="true"
 				DebugInformationFormat="4"
 			/>
 			<Tool
@@ -55,12 +56,15 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="2057"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				SuppressStartupBanner="true"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -70,6 +74,7 @@
 			/>
 			<Tool
 				Name="VCBscMakeTool"
+				SuppressStartupBanner="true"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -83,8 +88,10 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="4"
-			CharacterSet="1"
-			WholeProgramOptimization="1"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="2"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -104,26 +111,29 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
-				EnableIntrinsicFunctions="true"
+				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="../"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
+				PreprocessorDefinitions="NDEBUG;_LIB;WIN32"
+				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
-				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				DebugInformationFormat="3"
+				SuppressStartupBanner="true"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="2057"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				SuppressStartupBanner="true"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -133,6 +143,7 @@
 			/>
 			<Tool
 				Name="VCBscMakeTool"
+				SuppressStartupBanner="true"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -147,109 +158,61 @@
 	<Files>
 		<Filter
 			Name="Source Files"
-			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
-			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
+			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
-				RelativePath=".\HooksTargetWindow.cpp"
+				RelativePath="Region.c"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+					/>
+				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\HooksUpdateDetector.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Poller.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Region.cxx"
-				>
-			</File>
-			<File
-				RelativePath=".\UpdateContainer.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\UpdateDetector.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\UpdateFilter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\UpdateHandler.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\UpdateKeeper.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\UpdateListener.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Window.cpp"
+				RelativePath="..\Region.cxx"
 				>
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
+			Filter="h;hpp;hxx;hm;inl"
 			>
 			<File
-				RelativePath=".\CriticalSection.h"
+				RelativePath="..\Dimension.h"
 				>
 			</File>
 			<File
-				RelativePath=".\HooksTargetWindow.h"
+				RelativePath="..\Point.h"
 				>
 			</File>
 			<File
-				RelativePath=".\HooksUpdateDetector.h"
+				RelativePath="..\Rect.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Poller.h"
+				RelativePath="..\Region.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Region.h"
+				RelativePath="region.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Thread.h"
-				>
-			</File>
-			<File
-				RelativePath=".\UpdateContainer.h"
-				>
-			</File>
-			<File
-				RelativePath=".\UpdateDetector.h"
-				>
-			</File>
-			<File
-				RelativePath=".\UpdateFilter.h"
-				>
-			</File>
-			<File
-				RelativePath=".\UpdateHandler.h"
-				>
-			</File>
-			<File
-				RelativePath=".\UpdateKeeper.h"
-				>
-			</File>
-			<File
-				RelativePath=".\UpdateListener.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Window.h"
+				RelativePath="Xregion.h"
 				>
 			</File>
 		</Filter>

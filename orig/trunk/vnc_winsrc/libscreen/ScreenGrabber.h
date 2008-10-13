@@ -22,9 +22,9 @@
 #ifndef __SCREENGRABBER_H__
 #define __SCREENGRABBER_H__
 
-#include "Rect.h"
-#include "Dimension.h"
-#include "Point.h"
+#include "region/Rect.h"
+#include "region/Dimension.h"
+#include "region/Point.h"
 #include "PixelFormat.h"
 #include "FrameBuffer.h"
 

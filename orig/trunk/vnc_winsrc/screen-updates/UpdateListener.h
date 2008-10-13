@@ -22,7 +22,7 @@
 #ifndef __UPDATELISTENER_H__
 #define __UPDATELISTENER_H__
 
-#include "CriticalSection.h"
+#include "thread/CriticalSection.h"
 
 class UpdateListener
 {

@@ -24,7 +24,7 @@
 
 #include "libscreen/WindowsScreenGrabber.h"
 #include "libscreen/FrameBuffer.h"
-#include "CriticalSection.h"
+#include "thread/CriticalSection.h"
 #include "UpdateContainer.h"
 
 class UpdateFilter

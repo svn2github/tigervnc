@@ -25,7 +25,7 @@
 #include "UpdateDetector.h"
 #include "libscreen/WindowsScreenGrabber.h"
 #include "libscreen/FrameBuffer.h"
-#include "libscreen/Rect.h"
+#include "region/Rect.h"
 
 #define DEFAULT_SLEEP_TIME 1000
 

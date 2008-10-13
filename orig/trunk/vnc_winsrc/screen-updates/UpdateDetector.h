@@ -23,7 +23,7 @@
 #define __UPDATEDETECTOR_H__
 
 #include "UpdateKeeper.h"
-#include "Thread.h"
+#include "thread/Thread.h"
 #include "UpdateListener.h"
 
 class UpdateDetector : public Thread

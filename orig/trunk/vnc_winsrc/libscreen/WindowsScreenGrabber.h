@@ -28,7 +28,7 @@
 #endif
 
 #include "ScreenGrabber.h"
-#include "Rect.h"
+#include "region/Rect.h"
 #include "rfb/inttypes.h"
 
 //

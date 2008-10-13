@@ -23,7 +23,7 @@
 #define __FRAMEBUFFER_H__
 
 #include "rfb/inttypes.h"
-#include "Dimension.h"
+#include "region/Dimension.h"
 #include "PixelFormat.h"
 
 class FrameBuffer

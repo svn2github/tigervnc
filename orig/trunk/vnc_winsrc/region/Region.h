@@ -21,8 +21,8 @@
 #ifndef __RFB_REGION_INCLUDED__
 #define __RFB_REGION_INCLUDED__
 
-#include <libscreen/Rect.h>
-#include <libscreen/Point.h>
+#include "Rect.h"
+#include "Point.h"
 #include <vector>
 
 struct _XRegion;

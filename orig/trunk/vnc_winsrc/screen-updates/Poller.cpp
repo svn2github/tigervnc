@@ -21,7 +21,7 @@
 
 #include <windows.h>
 #include "Poller.h"
-#include "Region.h"
+#include "region/Region.h"
 
 Poller::Poller(UpdateKeeper *updateKeeper,
                ScreenGrabber *screenGrabber,

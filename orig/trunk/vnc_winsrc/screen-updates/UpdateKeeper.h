@@ -22,8 +22,8 @@
 #ifndef __UPDATEKEEPER_H__
 #define __UPDATEKEEPER_H__
 
-#include "Region.h"
-#include "libscreen/Point.h"
+#include "region/Region.h"
+#include "region/Point.h"
 #include "UpdateFilter.h"
 #include "UpdateContainer.h"
 

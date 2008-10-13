@@ -45,7 +45,6 @@ class vncDesktop;
 #include "RectList.h"
 #include "translate.h"
 #include <omnithread.h>
-#include "VideoDriver.h"
 #include "GracePeriod.h"
 
 // Constants

@@ -26,7 +26,7 @@
 #include "HooksTargetWindow.h"
 #include "libscreen/FrameBuffer.h"
 
-#define LIBRARY_NAME "VNCHooks.dll"
+#define LIBRARY_NAME "ScreenHooks.dll"
 #define SET_HOOK_FUNCTION_NAME "SetHook"
 #define UNSET_HOOK_FUNCTION_NAME "UnSetHook"
 

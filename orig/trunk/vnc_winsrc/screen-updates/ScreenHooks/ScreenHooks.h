@@ -36,8 +36,8 @@
 // This version created:
 // 24/11/97
 
-#if !defined(_VNCHOOKS_DLL_)
-#define _VNCHOOKS_DLL_
+#ifndef __SCREENHOOKS_H__
+#define __SCREENHOOKS_H__
 
 #include <windows.h>
 
@@ -77,4 +77,4 @@ extern "C"
 
 }
 
-#endif // !defined(_VNCHOOKS_DLL_)
+#endif // __SCREENHOOKS_H__

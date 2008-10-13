@@ -1445,8 +1445,9 @@ vncProperties::LoadEchoConnectionSettings(HKEY key)
 		m_server->m_echoConCtrl.add(&echoProp);
 
 		index += strlen((char *)&nameArray[index]) + 1;
+
+		RegCloseKey(hkServerInfo);
 	}
-	RegCloseKey(hkServerInfo);
 	RegCloseKey(hkEchoServers);
 }
 

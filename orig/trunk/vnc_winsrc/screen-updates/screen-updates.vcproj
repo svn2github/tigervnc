@@ -163,10 +163,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Region.cxx"
-				>
-			</File>
-			<File
 				RelativePath=".\UpdateContainer.cpp"
 				>
 			</File>

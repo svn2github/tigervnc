@@ -78,7 +78,6 @@ public:
 
 	// Hooking stuff
 	void TryActivateHooks();
-	BOOL DriverActive() { return m_videodriver != NULL; }
 
 	// Routine to signal a vncServer to trigger an update
 	void RequestUpdate();
@@ -150,12 +149,6 @@ protected:
 
 	// Detecting updates
 	BOOL CheckUpdates();
-	void SetPollingTimer();
-	void SetPollingFlag(BOOL set) { m_polling_flag = set; }
-	BOOL GetPollingFlag() { return m_polling_flag; }
-	void PerformPolling();
-	void PollWindow(HWND hwnd);
-	void PollArea(RECT &rect);
 	void CheckRects(vncRegion &rgn, rectlist &rects);
 	void GetChangedRegion(vncRegion &rgn, const RECT &rect);
 	void UpdateChangedRect(vncRegion &rgn, const RECT &rect);
@@ -167,14 +160,9 @@ protected:
 
 	// Timer identifiers (the third one is not used in any real timer)
 	enum TimerID {
-		TIMER_POLL = 1,
 		TIMER_BLANK_SCREEN = 2,
 		TIMER_RESTORE_SCREEN = 3
 	};
-
-	// Video driver stuff
-	BOOL InitVideoDriver();
-	void ShutdownVideoDriver();
 
 	// DATA
 
@@ -182,16 +170,11 @@ protected:
 	vncServer 		*m_server;
 	omni_thread 	*m_thread;
 	HWND			m_hwnd;
-	BOOL			m_polling_flag;
-	UINT			m_timer_polling;
 	UINT			m_timer_blank_screen;
 	HWND			m_hnextviewer;
 	BOOL			m_clipboard_active;
 	BOOL			m_hooks_active;
 	BOOL			m_hooks_may_change;
-
-	// Video driver stuff
-	vncVideoDriver	*m_videodriver;
 
 	// device contexts for memory and the screen
 	HDC				m_hmemdc;
@@ -244,9 +227,6 @@ protected:
 	RECT			m_copyrect_rect;
 	POINT			m_copyrect_src;
 
-	static const int m_pollingOrder[32];
-	static int		m_pollingStep;
-	
 	GracePeriod m_remote_event_gp;
 };
 

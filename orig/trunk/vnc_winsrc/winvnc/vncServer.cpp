@@ -1753,5 +1753,5 @@ vncServer::GetWindowShared()
 
 BOOL
 vncServer::DriverActive() {
-	return (m_desktop != NULL) ? m_desktop->DriverActive() : FALSE;
+	return FALSE;
 }

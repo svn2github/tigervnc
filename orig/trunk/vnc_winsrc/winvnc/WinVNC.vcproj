@@ -341,10 +341,6 @@
 				>
 			</File>
 			<File
-				RelativePath="VideoDriver.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\vncauth.c"
 				>
 			</File>
@@ -605,10 +601,6 @@
 			</File>
 			<File
 				RelativePath=".\TsSessions.h"
-				>
-			</File>
-			<File
-				RelativePath="VideoDriver.h"
 				>
 			</File>
 			<File

@@ -33,7 +33,8 @@ HooksUpdateDetector::HooksUpdateDetector(UpdateKeeper *updateKeeper,
                                          CriticalSection *updateKeeperCriticalSection)
 : UpdateDetector(updateKeeper),
 m_screenGrabber(screenGrabber),
-m_updateKeeperCriticalSection(updateKeeperCriticalSection)
+m_updateKeeperCriticalSection(updateKeeperCriticalSection),
+m_hooksTargetWindow(0)
 {
 }
 
@@ -49,7 +50,9 @@ HooksUpdateDetector::~HooksUpdateDetector(void)
 
 void HooksUpdateDetector::onTerminate()
 {
-  PostMessage(m_hooksTargetWindow->getHWND(), WM_QUIT, 0, 0);
+  if (m_hooksTargetWindow != 0) {
+    PostMessage(m_hooksTargetWindow->getHWND(), WM_QUIT, 0, 0);
+  }
 }
 
 void HooksUpdateDetector::execute()

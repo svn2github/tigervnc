@@ -312,7 +312,7 @@ vncServer::Authenticated(vncClientId clientid)
 					m_wallpaper_wait = TRUE;
 					DoNotify(WM_SRV_CLIENT_HIDEWALLPAPER, 0, 0);
 				}
-				m_desktop = new vncDesktop();
+				m_desktop = new WinDesktop();
 				if (m_desktop == NULL)
 				{
 					vnclog.Print(LL_CONNERR, VNCLOG("failed to allocate desktop object\n"));
@@ -1250,7 +1250,7 @@ vncServer::GetScreenInfo(int &width, int &height, int &depth)
 	// Is a desktop object currently active?
 	if (m_desktop == NULL)
 	{
-		vncDesktop desktop;
+		WinDesktop desktop;
 
 		// No, so create a dummy desktop and interrogate it
 		if (!desktop.Init(this))

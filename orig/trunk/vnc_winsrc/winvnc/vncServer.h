@@ -29,10 +29,10 @@
 
 // vncServer class handles the following functions:
 // - Allowing clients to be dynamically added and removed
-// - Propagating updates from the local vncDesktop object
+// - Propagating updates from the local WinDesktop object
 //   to all the connected clients
 // - Propagating mouse movements and keyboard events from
-//   clients to the local vncDesktop
+//   clients to the local WinDesktop
 // It also creates the vncSockConnect and vncCORBAConnect
 // servers, which respectively allow connections via sockets
 // and via the ORB interface
@@ -342,7 +342,7 @@ protected:
 	vncHTTPConnect		*m_httpConn;
 
 	// The desktop handler
-	vncDesktop			*m_desktop;
+	WinDesktop			*m_desktop;
 
 	// General preferences
 	UINT				m_port;

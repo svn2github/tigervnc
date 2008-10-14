@@ -37,7 +37,7 @@
 //   handles them
 // - Handles incoming updates properly, using a vncBuffer
 //   object to keep track of screen changes
-// It uses a vncBuffer and is passed the vncDesktop and
+// It uses a vncBuffer and is passed the WinDesktop and
 // vncServer to communicate with.
 
 // Includes
@@ -48,7 +48,7 @@
 // Custom
 #include "vncClient.h"
 #include "VSocket.h"
-#include "vncDesktop.h"
+#include "WinDesktop.h"
 #include "vncRegion.h"
 #include "vncBuffer.h"
 #include "vncService.h"
@@ -2242,7 +2242,7 @@ vncClient::SendUpdate()
 		m_full_rgn.Clear();
 	} else {
 		if (!m_incr_rgn.IsEmpty()) {
-			// Get region to send from vncDesktop
+			// Get region to send from WinDesktop
 			toBeSent.Combine(m_changed_rgn);
 
 			// Mouse stuff for the case when cursor shape updates are off

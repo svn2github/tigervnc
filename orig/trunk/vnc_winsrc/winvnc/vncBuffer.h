@@ -29,7 +29,7 @@
 
 // The vncBuffer object provides a client-local copy of the screen
 // It can tell the client which bits have changed in a given region
-// It uses the specified vncDesktop to read screen data from
+// It uses the specified WinDesktop to read screen data from
 
 class vncBuffer;
 
@@ -39,7 +39,7 @@ class vncBuffer;
 
 // Includes
 
-#include "vncDesktop.h"
+#include "WinDesktop.h"
 #include "vncEncoder.h"
 #include "vncRegion.h"
 #include "RectList.h"
@@ -51,7 +51,7 @@ class vncBuffer
 // Methods
 public:
 	// Create/Destroy methods
-	vncBuffer(vncDesktop *desktop);
+	vncBuffer(WinDesktop *desktop);
 	~vncBuffer();
 
 	// BUFFER INFO
@@ -107,7 +107,7 @@ protected:
 	rfbPixelFormat		m_clientformat;
 	rfbTranslateFnType	m_transfunc;
 
-	vncDesktop	   *m_desktop;
+	WinDesktop	   *m_desktop;
 	vncEncoder	   *m_encoder;
 	bool           zlib_encoder_in_use;
 	vncEncoder     *m_hold_zlib_encoder;

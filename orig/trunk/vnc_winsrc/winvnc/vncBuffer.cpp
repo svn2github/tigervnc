@@ -32,7 +32,7 @@
 
 // Header
 
-#include "vncDesktop.h"
+#include "WinDesktop.h"
 #include "vncEncoder.h"
 #include "vncEncodeRRE.h"
 #include "vncEncodeCoRRE.h"
@@ -46,7 +46,7 @@
 
 // Implementation
 
-vncBuffer::vncBuffer(vncDesktop *desktop)
+vncBuffer::vncBuffer(WinDesktop *desktop)
 {
 	m_desktop = desktop;
 	m_encoder = NULL;
@@ -198,7 +198,7 @@ vncBuffer::CheckBuffer()
 	}
 
 
-		// Take the main buffer pointer and size from vncDesktop 
+		// Take the main buffer pointer and size from WinDesktop 
 		m_mainbuff = m_desktop->MainBuffer();
 		m_mainsize = m_desktop->ScreenBuffSize();
 

@@ -32,7 +32,7 @@
 //   handles them
 // - Handles incoming updates properly, using a vncBuffer
 //   object to keep track of screen changes
-// It uses a vncBuffer and is passed the vncDesktop and
+// It uses a vncBuffer and is passed the WinDesktop and
 // vncServer to communicate with.
 
 class vncClient;
@@ -52,7 +52,7 @@ typedef std::list<vncClientId> vncClientList;
 
 // Custom
 #include "rectlist.h"
-#include "vncDesktop.h"
+#include "WinDesktop.h"
 #include "vncRegion.h"
 #include "vncBuffer.h"
 #include "vncKeymap.h"

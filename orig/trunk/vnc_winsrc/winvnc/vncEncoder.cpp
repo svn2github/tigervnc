@@ -460,7 +460,7 @@ vncEncoder::SendEmptyCursorShape(VSocket *outConn)
 }
 
 BOOL
-vncEncoder::SendCursorShape(VSocket *outConn, vncDesktop *desktop)
+vncEncoder::SendCursorShape(VSocket *outConn, WinDesktop *desktop)
 {
 	// Make sure the function is used correctly
 	if (!m_use_xcursor && !m_use_richcursor)
@@ -537,7 +537,7 @@ vncEncoder::SendCursorShape(VSocket *outConn, vncDesktop *desktop)
 			return FALSE;
 		}
 		if (!desktop->GetRichCursorData(cbits, hcursor, width, height)) {
-			vnclog.Print(LL_INTINFO, VNCLOG("vncDesktop::GetRichCursorData() failed.\n"));
+			vnclog.Print(LL_INTINFO, VNCLOG("WinDesktop::GetRichCursorData() failed.\n"));
 			delete[] mbits;
 			delete[] cbits;
 			return FALSE;

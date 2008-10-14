@@ -94,7 +94,7 @@ public:
 
 	// Supporting cursor shape updates
 	BOOL SendEmptyCursorShape(VSocket *outConn);
-	BOOL SendCursorShape(VSocket *outConn, vncDesktop *desktop);
+	BOOL SendCursorShape(VSocket *outConn, WinDesktop *desktop);
 
 protected:
 	BOOL SetTranslateFunction();

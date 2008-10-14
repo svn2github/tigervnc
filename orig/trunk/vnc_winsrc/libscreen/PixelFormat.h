@@ -26,16 +26,28 @@
 
 struct PixelFormat
 {
-  UINT16 bitsPerPixel;
-  UINT8 colorDepth;
+  PixelFormat()
+  {
+    union {
+      char test;
+      int i;
+    } testBigEndian;
+    testBigEndian.i = 1;
+    bigEndian = (testBigEndian.test == 0);
+  }
 
-  UINT32 redMax;
-  UINT32 greenMax;
-  UINT32 blueMax;
+  unsigned short bitsPerPixel;
+  unsigned short colorDepth;
 
-  UINT8 redShift;
-  UINT8 greenShift;
-  UINT8 blueShift;
+  unsigned short redMax;
+  unsigned short greenMax;
+  unsigned short blueMax;
+
+  unsigned short redShift;
+  unsigned short greenShift;
+  unsigned short blueShift;
+
+  bool bigEndian;
 };
 
 #endif // __PIXELFORMAT_H__

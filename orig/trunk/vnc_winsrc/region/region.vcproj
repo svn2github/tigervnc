@@ -2,9 +2,11 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="Xregion"
-	ProjectGUID="{FD11D041-F493-4C07-BC3D-6E7DEE802463}"
-	TargetFrameworkVersion="0"
+	Name="region"
+	ProjectGUID="{14A47432-7AB8-4CA1-A36E-81117AABFD2C}"
+	RootNamespace="region"
+	Keyword="Win32Proj"
+	TargetFrameworkVersion="196613"
 	>
 	<Platforms>
 		<Platform
@@ -19,10 +21,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="4"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -42,13 +41,12 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../"
-				PreprocessorDefinitions="_DEBUG;_LIB;WIN32"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				SuppressStartupBanner="true"
 				DebugInformationFormat="4"
 			/>
 			<Tool
@@ -56,15 +54,12 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG"
-				Culture="2057"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				SuppressStartupBanner="true"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -74,7 +69,6 @@
 			/>
 			<Tool
 				Name="VCBscMakeTool"
-				SuppressStartupBanner="true"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -88,10 +82,8 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="4"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
+			CharacterSet="1"
+			WholeProgramOptimization="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -111,29 +103,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
-				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="../"
-				PreprocessorDefinitions="NDEBUG;_LIB;WIN32"
-				StringPooling="true"
+				EnableIntrinsicFunctions="true"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				SuppressStartupBanner="true"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
-				Culture="2057"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				SuppressStartupBanner="true"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -143,7 +131,6 @@
 			/>
 			<Tool
 				Name="VCBscMakeTool"
-				SuppressStartupBanner="true"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -158,41 +145,33 @@
 	<Files>
 		<Filter
 			Name="Source Files"
-			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
+			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="Region.c"
+				RelativePath=".\Region.cxx"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl"
+			Filter="h;hpp;hxx;hm;inl;inc;xsd"
+			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="region.h"
+				RelativePath=".\Dimension.h"
 				>
 			</File>
 			<File
-				RelativePath="Xregion.h"
+				RelativePath=".\Point.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Rect.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Region.h"
 				>
 			</File>
 		</Filter>

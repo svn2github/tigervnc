@@ -76,6 +76,7 @@ void UpdateHandler::extract(UpdateContainer *updateContainer)
 
 void UpdateHandler::execute()
 {
+  m_backupFrameBuffer->assignProperties(m_screenGrabber->getScreenBuffer());
   m_poller->resume();
   m_hooks->resume();
 }

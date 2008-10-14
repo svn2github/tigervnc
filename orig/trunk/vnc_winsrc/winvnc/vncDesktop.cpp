@@ -410,6 +410,8 @@ vncDesktop::Startup()
 		return FALSE;
 	}
 
+  startupUpdateHandler();
+
 	// Everything is ok, so return TRUE
 	return TRUE;
 }
@@ -418,6 +420,8 @@ vncDesktop::Startup()
 BOOL
 vncDesktop::Shutdown()
 {
+  shutdownUpdateHandler();
+
 	// If we created timers then kill them
 	if (m_timer_blank_screen) {
 		KillTimer(Window(), TIMER_BLANK_SCREEN);
@@ -2211,4 +2215,16 @@ vncDesktop::BlankScreen(BOOL set)
 		SystemParametersInfo(SPI_SETPOWEROFFACTIVE, 0, NULL, 0);
 		SendMessage(GetDesktopWindow(), WM_SYSCOMMAND, SC_MONITORPOWER, (LPARAM)-1);
 	}
+}
+
+void vncDesktop::startupUpdateHandler()
+{
+  m_updateHandler = new UpdateHandler;
+  m_updateHandler->setOutUpdateListener(this);
+  m_updateHandler->execute();
+}
+
+void vncDesktop::shutdownUpdateHandler()
+{
+  delete m_updateHandler;
 }

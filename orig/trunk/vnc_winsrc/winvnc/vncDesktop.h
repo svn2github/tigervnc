@@ -47,6 +47,9 @@ class vncDesktop;
 #include <omnithread.h>
 #include "GracePeriod.h"
 
+#include "screen-updates/UpdateListener.h"
+#include "screen-updates/UpdateHandler.h"
+
 // Constants
 extern const UINT RFB_SCREEN_UPDATE;
 extern const UINT RFB_COPYRECT_UPDATE;
@@ -57,7 +60,7 @@ extern const char szDesktopSink[];
 
 // Class definition
 
-class vncDesktop
+class vncDesktop : public UpdateListener
 {
 
 // Fields
@@ -107,6 +110,8 @@ public:
 	void CopyRect(const RECT &dest, const POINT &source);
 
 	BOOL			m_initialClipBoardSeen;
+
+  const FrameBuffer *getFrameBuffer() const;
 
 	// Implementation
 protected:
@@ -158,6 +163,11 @@ protected:
 		TIMER_BLANK_SCREEN = 2,
 		TIMER_RESTORE_SCREEN = 3
 	};
+
+  void startupUpdateHandler();
+  void shutdownUpdateHandler();
+
+  virtual void onUpdate(void *pSender) {}
 
 	// DATA
 
@@ -223,6 +233,8 @@ protected:
 	POINT			m_copyrect_src;
 
 	GracePeriod m_remote_event_gp;
+
+  UpdateHandler *m_updateHandler;
 };
 
 #endif // _WINVNC_VNCDESKTOP

@@ -353,10 +353,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\vncDesktop.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\vncHTTPConnect.cpp"
 				>
 			</File>
@@ -394,6 +390,10 @@
 			</File>
 			<File
 				RelativePath="WallpaperUtils.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\WinDesktop.cpp"
 				>
 			</File>
 			<File
@@ -658,10 +658,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\vncDesktop.h"
-				>
-			</File>
-			<File
 				RelativePath=".\vncEncodeCoRRE.h"
 				>
 			</File>
@@ -747,6 +743,10 @@
 			</File>
 			<File
 				RelativePath="WallpaperUtils.h"
+				>
+			</File>
+			<File
+				RelativePath=".\WinDesktop.h"
 				>
 			</File>
 			<File

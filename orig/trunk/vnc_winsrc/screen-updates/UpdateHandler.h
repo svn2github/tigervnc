@@ -27,6 +27,7 @@
 #include "UpdateFilter.h"
 #include "libscreen/WindowsScreenGrabber.h"
 #include "libscreen/FrameBuffer.h"
+#include "thread/AutoLock.h"
 #include "UpdateListener.h"
 #include "UpdateDetector.h"
 
@@ -40,6 +41,8 @@ public:
 
   virtual void execute();
   virtual void terminate();
+
+  bool checkForUpdates(rfb::Region *region);
 
   void setOutUpdateListener(UpdateListener *outUpdateListener)
   { 

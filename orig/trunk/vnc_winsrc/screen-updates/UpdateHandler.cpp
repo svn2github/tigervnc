@@ -101,3 +101,11 @@ void UpdateHandler::onUpdate(void *pSender)
 
   m_criticalSection->leave();
 }
+
+bool UpdateHandler::checkForUpdates(rfb::Region *region)
+{
+  AutoLock aL(m_criticalSection);
+  bool result = !m_updateKeeper->getUpdateContainer()->isEmpty();
+
+  return result;
+}

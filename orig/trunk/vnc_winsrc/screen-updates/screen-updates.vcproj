@@ -197,10 +197,6 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\CriticalSection.h"
-				>
-			</File>
-			<File
 				RelativePath=".\HooksTargetWindow.h"
 				>
 			</File>
@@ -210,14 +206,6 @@
 			</File>
 			<File
 				RelativePath=".\Poller.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Region.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Thread.h"
 				>
 			</File>
 			<File

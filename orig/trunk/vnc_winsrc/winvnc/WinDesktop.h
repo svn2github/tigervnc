@@ -31,6 +31,7 @@ class WinDesktop;
 
 #include "screen-updates/UpdateHandler.h"
 #include "screen-updates/UpdateListener.h"
+#include "thread/AutoLock.h"
 
 class WinDesktop : public UpdateListener
 {
@@ -56,6 +57,8 @@ public:
 
 protected:
   virtual void onUpdate(void *pSender);
+
+  bool sendUpdate();
 
   UpdateHandler *m_updateHandler;
   vncServer *m_server;

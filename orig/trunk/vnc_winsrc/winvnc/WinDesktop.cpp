@@ -48,10 +48,12 @@ bool WinDesktop::Init(vncServer *server)
 
 void WinDesktop::onUpdate(void *pSender)
 {
+  sendUpdate();
 }
 
 void WinDesktop::RequestUpdate()
 {
+  sendUpdate();
 }
 
 void WinDesktop::SetClipText(LPSTR text)
@@ -66,6 +68,7 @@ void WinDesktop::FillDisplayInfo(rfbServerInitMsg *scrInfo)
 {
   const FrameBuffer *fb = m_updateHandler->getBackupFrameBuffer();
   PixelFormat pf = fb->getPixelFormat();
+
   scrInfo->format.bigEndian = pf.bigEndian;
   scrInfo->format.bitsPerPixel  = (CARD8)pf.bitsPerPixel;
   scrInfo->format.redMax        = pf.redMax;
@@ -78,6 +81,9 @@ void WinDesktop::FillDisplayInfo(rfbServerInitMsg *scrInfo)
   scrInfo->format.trueColour    = 1;
   scrInfo->format.pad1          = 0;
   scrInfo->format.pad2          = 0;
+
+  scrInfo->framebufferWidth = fb->getDimension().width;
+  scrInfo->framebufferHeight = fb->getDimension().height;
 }
 
 void WinDesktop::SetLocalInputDisableHook(BOOL enable)
@@ -124,4 +130,35 @@ HCURSOR WinDesktop::GetCursor() const
 BOOL WinDesktop::GetRichCursorData(BYTE *databuf, HCURSOR hcursor, int width, int height)
 {
   return TRUE;
+}
+
+bool WinDesktop::sendUpdate()
+{
+  if (!m_server->IncrRgnRequested() && !m_server->FullRgnRequested()) {
+    return true;
+  }
+
+  UpdateContainer updateContainer;
+  {
+    AutoLock al(&m_updateListenerCriticalSection);
+    m_updateHandler->extract(&updateContainer);
+  }
+
+  std::vector<Rect> rects;
+  std::vector<Rect>::iterator iRect;
+  updateContainer.changedRegion.get_rects(&rects);
+  int numRects = updateContainer.changedRegion.numRects();
+
+  if (numRects == 0) {
+    return true;
+  }
+
+  vncRegion changedRegion;
+  changedRegion.assignFromNewFormat(&updateContainer.changedRegion);
+
+  m_server->UpdateRegion(changedRegion);
+
+  m_server->TriggerUpdate();
+
+  return true;
 }

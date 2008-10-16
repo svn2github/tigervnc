@@ -46,6 +46,25 @@ vncRegion::~vncRegion()
 	Clear();
 }
 
+void vncRegion::assignFromNewFormat(rfb::Region *newFormatRegion)
+{
+	Clear();
+
+	std::vector<Rect> rects;
+	std::vector<Rect>::iterator iRect;
+	newFormatRegion->get_rects(&rects);
+
+	RECT addingRect;
+	for (iRect = rects.begin(); iRect < rects.end(); iRect++) {
+		addingRect.left     = (*iRect).left;
+		addingRect.top      = (*iRect).top;
+		addingRect.right    = (*iRect).right;
+		addingRect.bottom   = (*iRect).bottom;
+
+		AddRect(addingRect);
+	}
+}
+
 void vncRegion::AddRect(RECT &new_rect)
 {
 	HRGN newregion;

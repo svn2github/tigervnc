@@ -38,6 +38,7 @@ class vncRegion;
 #include "stdhdrs.h"
 #include <list>
 #include "RectList.h"
+#include "region/Region.h"
 
 // Class definition
 class vncRegion
@@ -51,6 +52,8 @@ public:
 	// Create/Destroy methods
 	vncRegion();
 	~vncRegion();
+
+	void assignFromNewFormat(rfb::Region *newFormatRegion);
 
 	void AddRect(RECT &rect);				// Add another rectangle to the regions
 	void SubtractRect(RECT &rect);			// Subtract a rectangle from the regions

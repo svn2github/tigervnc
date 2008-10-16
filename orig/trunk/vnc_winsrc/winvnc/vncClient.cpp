@@ -1050,8 +1050,8 @@ vncClientThread::run(void *arg)
 					}
 
 					// Trigger an update
-					m_server->RequestUpdate();
 				}
+				m_server->RequestUpdate();
 			}
 			break;
 

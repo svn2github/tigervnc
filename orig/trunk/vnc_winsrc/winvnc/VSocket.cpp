@@ -587,8 +587,6 @@ VSocket::SendFromQueue()
 
 	// Maximum data size to send at once
 	size_t portion_size = out_queue->data_size - bytes_sent;
-	if (portion_size > 32768)
-		portion_size = 32768;
 
 	// Try to send some data
 	int bytes = Send(out_queue->data_ptr + bytes_sent, portion_size);

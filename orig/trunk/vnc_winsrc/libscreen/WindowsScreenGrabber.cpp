@@ -59,7 +59,7 @@ bool WindowsScreenGrabber::openDIBSection()
   }
 
   BMI bmi;
-  if (!getBMI(&bmi)) {
+  if (!getBMI(&bmi, m_screenDC)) {
     return false;
   }
 
@@ -158,11 +158,16 @@ bool WindowsScreenGrabber::getScreenSizeChanged()
   return false;
 }
 
-bool WindowsScreenGrabber::getBMI(BMI *bmi)
+bool WindowsScreenGrabber::getBMI(BMI *bmi, HDC dc)
 {
-  HDC screenDC = GetDC(0);
-  if (screenDC == NULL) {
-    return false;
+  HDC bitmapDC;
+  if (dc == 0) {
+    bitmapDC = GetDC(0);
+    if (bitmapDC == NULL) {
+      return false;
+    }
+  } else {
+    bitmapDC = dc;
   }
 
   memset(bmi, 0, sizeof(BMI));
@@ -170,23 +175,26 @@ bool WindowsScreenGrabber::getBMI(BMI *bmi)
   bmi->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 
   HBITMAP hbm;
-  hbm = (HBITMAP) GetCurrentObject(screenDC, OBJ_BITMAP);
-  if (GetDIBits(screenDC, hbm, 0, m_fullScreenRect.getHeight(), NULL, (LPBITMAPINFO) bmi, DIB_RGB_COLORS) == 0) {
+  hbm = (HBITMAP) GetCurrentObject(bitmapDC, OBJ_BITMAP);
+  if (GetDIBits(bitmapDC, hbm, 0, 0, NULL, (LPBITMAPINFO) bmi, DIB_RGB_COLORS) == 0) {
     DeleteObject(hbm);
-    DeleteDC(screenDC);
+    DeleteDC(bitmapDC);
     return false;
   }
 
   // The color table is filled only if it is used BI_BITFIELDS
   if (bmi->bmiHeader.biCompression == BI_BITFIELDS) {
-    if (GetDIBits(screenDC, hbm, 0, m_fullScreenRect.getHeight(), NULL, (LPBITMAPINFO) bmi, DIB_RGB_COLORS) == 0) {
+    if (GetDIBits(bitmapDC, hbm, 0, 0, NULL, (LPBITMAPINFO) bmi, DIB_RGB_COLORS) == 0) {
       DeleteObject(hbm);
-      DeleteDC(screenDC);
+      DeleteDC(bitmapDC);
       return false;
     }
   }
+
   DeleteObject(hbm);
-  DeleteDC(screenDC);
+  if (dc == 0) {
+    DeleteDC(bitmapDC);
+  }
   return true;
 }
 
@@ -206,11 +214,6 @@ bool WindowsScreenGrabber::applyNewPixelFormat()
 
 bool WindowsScreenGrabber::applyNewFullScreenRect()
 {
-  BMI bmi;
-  if (!getBMI(&bmi)) {
-    return false;
-  }
-
   m_fullScreenRect.left = GetSystemMetrics(SM_XVIRTUALSCREEN);
   m_fullScreenRect.top = GetSystemMetrics(SM_YVIRTUALSCREEN);
   m_fullScreenRect.setWidth(GetSystemMetrics(SM_CXVIRTUALSCREEN));

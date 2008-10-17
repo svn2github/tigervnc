@@ -89,7 +89,7 @@ public:
     UINT32 blue;
   };
 
-  bool getBMI(BMI *bmi);
+  static bool getBMI(BMI *bmi, HDC dc = 0);
 
 protected:
   virtual bool openDIBSection();

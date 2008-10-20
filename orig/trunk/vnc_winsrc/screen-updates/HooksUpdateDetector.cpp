@@ -72,7 +72,7 @@ void HooksUpdateDetector::execute()
   HINSTANCE hinst = GetModuleHandle(0);
 
   m_hooksTargetWindow = new HooksTargetWindow(hinst);
-  if (m_hooksTargetWindow->getHWND() == 0) {
+  if (!m_hooksTargetWindow->createWindow()) {
     return;
   }
 

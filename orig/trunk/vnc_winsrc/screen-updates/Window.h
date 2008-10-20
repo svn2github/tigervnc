@@ -30,6 +30,8 @@ public:
   Window(HINSTANCE hinst, TCHAR *windowClassName);
   virtual ~Window(void);
 
+  bool createWindow();
+
   HWND getHWND() const { return m_hwnd; }
 
 protected:

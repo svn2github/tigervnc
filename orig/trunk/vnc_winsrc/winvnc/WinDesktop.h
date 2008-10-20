@@ -55,13 +55,18 @@ public:
   HCURSOR GetCursor() const;
   BOOL GetRichCursorData(BYTE *databuf, HCURSOR hcursor, int width, int height);
 
+  void shareRect();
+
 protected:
   virtual void onUpdate();
 
   bool sendUpdate();
 
+  void setNewScreenSize();
+
   UpdateHandler *m_updateHandler;
   vncServer *m_server;
+  RECT m_bmrect;
 };
 
 #endif // __WINDESKTOP_H__

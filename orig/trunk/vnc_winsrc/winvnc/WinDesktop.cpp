@@ -1,4 +1,5 @@
 //  Copyright (C) 2008 GlavSoft LLC. All Rights Reserved.
+//  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
 //
 //  This file is part of the TightVNC software.
 //
@@ -35,6 +36,8 @@ WinDesktop::~WinDesktop()
 bool WinDesktop::Init(vncServer *server)
 {
   m_server = server;
+
+  setNewScreenSize();
 
   m_updateHandler = new UpdateHandler;
   if (m_updateHandler == 0) {
@@ -164,6 +167,10 @@ bool WinDesktop::sendUpdate()
     m_server->UpdateMouse();
   }
 
+  if (updateContainer.screenSizeChanged) {
+    setNewScreenSize();
+  }
+
   std::vector<Rect> rects;
   std::vector<Rect>::iterator iRect;
   updateContainer.changedRegion.get_rects(&rects);
@@ -175,7 +182,74 @@ bool WinDesktop::sendUpdate()
     m_server->UpdateRegion(changedRegion);
   }
 
+  shareRect();
   m_server->TriggerUpdate();
 
   return true;
+}
+
+void WinDesktop::shareRect()
+{
+  // EXAMINE THE SHARED AREA / WINDOW
+
+  RECT rect = m_server->GetSharedRect();
+  RECT new_rect;
+
+  if (m_server->WindowShared()) {
+    HWND hwnd = m_server->GetWindowShared();
+    GetWindowRect(hwnd, &new_rect);
+  } else if (m_server->ScreenAreaShared()) {
+    new_rect = m_server->GetScreenAreaRect();
+  } else {
+    new_rect = m_bmrect;
+  }
+
+  if ((m_server->WindowShared() || m_server->GetApplication()) &&
+      m_server->GetWindowShared() == NULL) {
+    // Disconnect clients if the shared window has dissapeared.
+    // FIXME: Make this behavior configurable.
+    MessageBox(NULL, "You have exited an application that is being\n"
+                     "viewed/controlled from a remote PC. Exiting this\n"
+                     "application will terminate the session with the remote PC.",
+                     "Warning", MB_ICONWARNING | MB_OK);
+    vnclog.Print(LL_CONNERR, VNCLOG("shared window not found - disconnecting clients\n"));
+    m_server->KillAuthClients();
+    return;
+  }
+
+  // intersect the shared rect with the desktop rect
+  IntersectRect(&new_rect, &new_rect, &m_bmrect);
+
+  // Disconnect clients if the shared window is empty (dissapeared).
+  // FIXME: Make this behavior configurable.
+  if (new_rect.right - new_rect.left == 0 ||
+      new_rect.bottom - new_rect.top == 0) {
+    vnclog.Print(LL_CONNERR, VNCLOG("shared window empty - disconnecting clients\n"));
+    m_server->KillAuthClients();
+    return;
+  }
+
+  // Update screen size if required
+  if (!EqualRect(&new_rect, &rect)) {
+    m_server->SetSharedRect(new_rect);
+    bool sendnewfb = false;
+
+    if (rect.right - rect.left != new_rect.right - new_rect.left ||
+        rect.bottom - rect.top != new_rect.bottom - new_rect.top ) {
+      sendnewfb = true;
+    }
+
+    // FIXME: We should not send NewFBSize if a client
+    //        did not send framebuffer update request.
+    m_server->SetNewFBSize(sendnewfb);
+    return;
+  }		
+}
+
+void WinDesktop::setNewScreenSize()
+{
+  m_bmrect.left   = 0;
+  m_bmrect.top    = 0;
+  m_bmrect.right  = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+  m_bmrect.bottom = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 }

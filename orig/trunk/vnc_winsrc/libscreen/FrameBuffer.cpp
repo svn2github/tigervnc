@@ -47,7 +47,7 @@ bool FrameBuffer::assignProperties(const FrameBuffer *srcFrameBuffer, const bool
   return true;
 }
 
-bool FrameBuffer::cmp(FrameBuffer *frameBuffer)
+bool FrameBuffer::cmp(const FrameBuffer *frameBuffer)
 {
   return m_dimension.cmpDim(&(frameBuffer->getDimension())) &&
          (memcmp(&m_pixelFormat, &(frameBuffer->getPixelFormat()),

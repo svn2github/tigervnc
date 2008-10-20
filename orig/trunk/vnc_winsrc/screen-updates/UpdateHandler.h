@@ -51,13 +51,13 @@ public:
 
   const FrameBuffer *getBackupFrameBuffer() const { return m_backupFrameBuffer; }
 
-  virtual void onUpdate(void *pSender);
+  virtual void onUpdate();
 
 private:
   inline void doOutUpdate()
   {
     if (m_outUpdateListener != 0) {
-      m_outUpdateListener->synchroOnUpdate(this);
+      m_outUpdateListener->synchroOnUpdate();
     }
   }
 

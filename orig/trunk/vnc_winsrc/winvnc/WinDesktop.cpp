@@ -46,7 +46,7 @@ bool WinDesktop::Init(vncServer *server)
   return true;
 }
 
-void WinDesktop::onUpdate(void *pSender)
+void WinDesktop::onUpdate()
 {
   sendUpdate();
 }

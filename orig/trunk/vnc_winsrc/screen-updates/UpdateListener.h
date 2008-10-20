@@ -31,15 +31,15 @@ public:
   virtual ~UpdateListener(void);
 
   // Interface function
-  virtual void synchroOnUpdate(void *pSender)
+  virtual void synchroOnUpdate()
   {
     m_updateListenerCriticalSection.enter();
-    onUpdate(pSender);
+    onUpdate();
     m_updateListenerCriticalSection.leave();
   }
 
 protected:
-  virtual void onUpdate(void *pSender) = 0;
+  virtual void onUpdate() = 0;
 
   CriticalSection m_updateListenerCriticalSection;
 };

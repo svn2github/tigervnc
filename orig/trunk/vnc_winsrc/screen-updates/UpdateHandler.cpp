@@ -89,7 +89,7 @@ void UpdateHandler::terminate()
   m_hooks->wait();
 }
 
-void UpdateHandler::onUpdate(void *pSender)
+void UpdateHandler::onUpdate()
 {
   m_criticalSection->enter();
 

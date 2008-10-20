@@ -56,7 +56,7 @@ public:
   BOOL GetRichCursorData(BYTE *databuf, HCURSOR hcursor, int width, int height);
 
 protected:
-  virtual void onUpdate(void *pSender);
+  virtual void onUpdate();
 
   bool sendUpdate();
 

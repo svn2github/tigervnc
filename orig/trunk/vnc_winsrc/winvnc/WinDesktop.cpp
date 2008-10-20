@@ -124,7 +124,16 @@ RECT WinDesktop::MouseRect()
 
 HCURSOR WinDesktop::GetCursor() const
 {
-  return LoadCursor(NULL, IDC_ARROW);
+  CURSORINFO cursorInfo;
+  cursorInfo.cbSize = sizeof(CURSORINFO);
+  GetCursorInfo(&cursorInfo);
+
+  HCURSOR hCursor = cursorInfo.hCursor;
+  if (hCursor  == NULL) {
+    return NULL;
+  }
+
+  return hCursor;
 }
 
 BOOL WinDesktop::GetRichCursorData(BYTE *databuf, HCURSOR hcursor, int width, int height)

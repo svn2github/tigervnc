@@ -159,6 +159,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\MouseDetector.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Poller.cpp"
 				>
 			</File>
@@ -202,6 +206,10 @@
 			</File>
 			<File
 				RelativePath=".\HooksUpdateDetector.h"
+				>
+			</File>
+			<File
+				RelativePath=".\MouseDetector.h"
 				>
 			</File>
 			<File

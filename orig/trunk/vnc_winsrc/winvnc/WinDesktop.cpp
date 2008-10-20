@@ -147,10 +147,21 @@ bool WinDesktop::sendUpdate()
     return true;
   }
 
+  m_server->UpdateMouse();
+
   UpdateContainer updateContainer;
+
   {
     AutoLock al(&m_updateListenerCriticalSection);
     m_updateHandler->extract(&updateContainer);
+  }
+
+  if (updateContainer.isEmpty()) {
+    return true;
+  }
+
+  if (updateContainer.cursorPosChanged) {
+    m_server->UpdateMouse();
   }
 
   std::vector<Rect> rects;
@@ -158,14 +169,11 @@ bool WinDesktop::sendUpdate()
   updateContainer.changedRegion.get_rects(&rects);
   int numRects = updateContainer.changedRegion.numRects();
 
-  if (numRects == 0) {
-    return true;
+  if (numRects > 0) {
+    vncRegion changedRegion;
+    changedRegion.assignFromNewFormat(&updateContainer.changedRegion);
+    m_server->UpdateRegion(changedRegion);
   }
-
-  vncRegion changedRegion;
-  changedRegion.assignFromNewFormat(&updateContainer.changedRegion);
-
-  m_server->UpdateRegion(changedRegion);
 
   m_server->TriggerUpdate();
 

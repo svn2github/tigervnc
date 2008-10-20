@@ -66,6 +66,7 @@ private:
   UpdateFilter *m_updateFilter;
   UpdateDetector *m_poller;
   UpdateDetector *m_hooks;
+  UpdateDetector *m_mouseDetector;
   ScreenGrabber *m_screenGrabber;
   FrameBuffer *m_backupFrameBuffer;
   CriticalSection *m_criticalSection;

@@ -38,6 +38,10 @@ public:
 
   bool copyFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
                 const int srcX, const int srcY);
+  // Return value: true - if equal
+  //               false - if PixelFormats or data differs
+  bool cmpFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
+               const int srcX, const int srcY);
 
   bool setDimension(const Dimension *newDim, bool resizeBuff = true);
   bool setDimension(const Rect *rect, bool resizeBuff = true)

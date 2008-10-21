@@ -46,9 +46,6 @@ protected:
   virtual void execute();
 
 private:
-  bool cmpFrameBuff(const Rect *rect, const FrameBuffer *fb1,
-                    const FrameBuffer *fb2);
-
   ScreenGrabber *m_screenGrabber;
   FrameBuffer *m_backupFrameBuffer;
   CriticalSection *m_frameBufferCriticalSection;

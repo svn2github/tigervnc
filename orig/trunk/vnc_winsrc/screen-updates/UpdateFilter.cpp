@@ -62,16 +62,15 @@ void UpdateFilter::filter(UpdateContainer *updateContainer)
     }
   }
 
-  Rect *rect, resultRect;
+  Rect *rect;
   for (iRect = rects.begin(); iRect < rects.end(); iRect++) {
     rect = &(*iRect);
 
     // FIXME: Here should be cutting rect edges
-    resultRect = *rect;
-
-    tmpChangedRegion.addRect(resultRect);
-    m_frameBuffer->copyFrom(&resultRect, screenFrameBuffer, resultRect.left,
-                            resultRect.top);
+    if (!m_frameBuffer->cmpFrom(rect, screenFrameBuffer, rect->left, rect->top)) {
+      tmpChangedRegion.addRect(*rect);
+      m_frameBuffer->copyFrom(rect, screenFrameBuffer, rect->left, rect->top);
+    }
   }
 
   updateContainer->changedRegion = tmpChangedRegion;

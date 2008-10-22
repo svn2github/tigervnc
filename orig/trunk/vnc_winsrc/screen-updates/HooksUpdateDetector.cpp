@@ -34,7 +34,10 @@ HooksUpdateDetector::HooksUpdateDetector(UpdateKeeper *updateKeeper,
 : UpdateDetector(updateKeeper),
 m_screenGrabber(screenGrabber),
 m_updateKeeperCriticalSection(updateKeeperCriticalSection),
-m_hooksTargetWindow(0)
+m_hooksTargetWindow(0),
+m_hHooks(0),
+m_pSetHook(0),
+m_pUnSetHook(0)
 {
 }
 
@@ -45,6 +48,9 @@ HooksUpdateDetector::~HooksUpdateDetector(void)
       m_pUnSetHook(m_hooksTargetWindow->getHWND());
     }
     ::FreeLibrary(m_hHooks);
+  }
+  if (m_hooksTargetWindow) {
+    delete m_hooksTargetWindow;
   }
 }
 

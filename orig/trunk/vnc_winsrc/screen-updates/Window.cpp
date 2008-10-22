@@ -39,10 +39,12 @@ m_windowClassName(0)
 
 Window::~Window(void)
 {
+  DestroyWindow(m_hwnd);
+
   if (m_windowClassName != 0) {
+    UnregisterClass(m_windowClassName, m_hinst);
     free(m_windowClassName);
   }
-  CloseWindow(m_hwnd);
 }
 
 bool Window::createWindow()

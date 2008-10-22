@@ -175,6 +175,8 @@ VSocket::Create()
 VBool
 VSocket::Close()
 {
+  omni_mutex_lock l(queue_lock);
+
   if (sock >= 0)
     {
 	  vnclog.Print(LL_SOCKINFO, VNCLOG("closing socket\n"));
@@ -202,6 +204,8 @@ VSocket::Close()
 VBool
 VSocket::Shutdown()
 {
+  omni_mutex_lock l(queue_lock);
+
   if (sock >= 0)
     {
 	  vnclog.Print(LL_SOCKINFO, VNCLOG("shutdown socket\n"));

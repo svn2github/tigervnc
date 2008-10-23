@@ -169,6 +169,7 @@ bool WinDesktop::sendUpdate()
 
   if (updateContainer.screenSizeChanged) {
     setNewScreenSize();
+    return true;
   }
 
   std::vector<Rect> rects;
@@ -241,7 +242,7 @@ void WinDesktop::shareRect()
 
     // FIXME: We should not send NewFBSize if a client
     //        did not send framebuffer update request.
-    m_server->SetNewFBSize(sendnewfb);
+    m_server->SetNewFBSize();
     return;
   }		
 }

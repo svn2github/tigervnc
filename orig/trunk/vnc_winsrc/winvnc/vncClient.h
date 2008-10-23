@@ -122,7 +122,7 @@ public:
 	void	setStartTime(time_t start) {startTime = start;}
 	void	setStopUpdate(BOOL stop) {m_stopupdate = stop;}
 	BOOL	getStopUpdate() {return m_stopupdate;}
-	BOOL SetNewFBSize(BOOL sendnewfb);
+	BOOL SetNewFBSize();
 	BOOL IncrRgnRequested(){return !m_incr_rgn.IsEmpty();};
 	BOOL FullRgnRequested(){return !m_full_rgn.IsEmpty();};
 	void UpdateLocalFormat();
@@ -142,6 +142,7 @@ protected:
 	BOOL SendLastRect();
 	BOOL SendPalette();
 	BOOL isPtInSharedArea(POINT &p);
+    BOOL SendNewFBSize();
 
 
 

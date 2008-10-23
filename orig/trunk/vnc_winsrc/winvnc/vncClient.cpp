@@ -2184,7 +2184,7 @@ vncClient::SendUpdate()
 {
 	// First, check if we need to send pending NewFBSize message
 	if (m_use_NewFBSize && m_fb_size_changed) {
-		SetNewFBSize(TRUE);
+		SendNewFBSize();
 		return TRUE;
 	}
 
@@ -2534,43 +2534,42 @@ vncClient::SendCursorPosUpdate()
 // Send NewFBSize pseudo-rectangle to notify the client about
 // framebuffer size change
 BOOL
-vncClient::SetNewFBSize(BOOL sendnewfb)
+vncClient::SetNewFBSize()
 {
-	rfbFramebufferUpdateRectHeader hdr;
-	RECT sharedRect;
-
-	sharedRect = m_server->GetSharedRect();
-
-	m_full_rgn.Clear();
-	m_incr_rgn.Clear();
-	m_full_rgn.AddRect(sharedRect);
-
-	if (!m_use_NewFBSize) {
-		// We cannot send NewFBSize message right now, maybe later
-		m_fb_size_changed = TRUE;
-
-	} else if (sendnewfb) {
-		hdr.r.x = 0;
-		hdr.r.y = 0;
-		hdr.r.w = Swap16IfLE(sharedRect.right - sharedRect.left);
-		hdr.r.h = Swap16IfLE(sharedRect.bottom - sharedRect.top);
-		hdr.encoding = Swap32IfLE(rfbEncodingNewFBSize);
-
-		rfbFramebufferUpdateMsg header;
-		header.nRects = Swap16IfLE(1);
-		if (!SendRFBMsg(rfbFramebufferUpdate, (BYTE *)&header,
-			sz_rfbFramebufferUpdateMsg))
-            return FALSE;
-
-		// Now send the message
-		if (!m_socket->SendQueued((char *)&hdr, sizeof(hdr)))
-			return FALSE;
-
-		// No pending NewFBSize anymore
-		m_fb_size_changed = FALSE;
-	}
-
+	m_fb_size_changed = TRUE;
 	return TRUE;
+}
+
+BOOL
+vncClient::SendNewFBSize()
+{
+  RECT sharedRect = m_server->GetSharedRect();
+
+  m_full_rgn.Clear();
+  m_incr_rgn.Clear();
+  m_full_rgn.AddRect(sharedRect);
+
+  rfbFramebufferUpdateRectHeader hdr;
+  hdr.r.x = 0;
+  hdr.r.y = 0;
+  hdr.r.w = Swap16IfLE(sharedRect.right - sharedRect.left);
+  hdr.r.h = Swap16IfLE(sharedRect.bottom - sharedRect.top);
+  hdr.encoding = Swap32IfLE(rfbEncodingNewFBSize);
+
+  rfbFramebufferUpdateMsg header;
+  header.nRects = Swap16IfLE(1);
+  if (!SendRFBMsg(rfbFramebufferUpdate, (BYTE *)&header,
+    sz_rfbFramebufferUpdateMsg))
+    return FALSE;
+
+  // Now send the message
+  if (!m_socket->SendQueued((char *)&hdr, sizeof(hdr)))
+    return FALSE;
+
+  // No pending NewFBSize anymore
+  m_fb_size_changed = FALSE;
+
+  return TRUE;
 }
 
 void

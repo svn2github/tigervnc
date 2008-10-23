@@ -308,7 +308,7 @@ public:
 	virtual void FullScreen(BOOL enable) { m_full_screen = enable; }
 	virtual BOOL ScreenAreaShared() { return m_screen_area; }
 	virtual void ScreenAreaShared(BOOL enable) { m_screen_area = enable; }
-	virtual void SetNewFBSize(BOOL sendnewfb);
+	virtual void SetNewFBSize();
 	virtual BOOL FullRgnRequested();
 	virtual BOOL IncrRgnRequested();
 	virtual	void UpdateLocalFormat();

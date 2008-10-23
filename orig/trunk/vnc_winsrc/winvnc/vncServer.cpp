@@ -1628,7 +1628,7 @@ vncServer::SetMouseCounter(int count, POINT &cursor_pos, BOOL mousemove)
 }
 
 void 
-vncServer::SetNewFBSize(BOOL sendnewfb)
+vncServer::SetNewFBSize()
 {
 	vncClientList::iterator i;
 	omni_mutex_lock l(m_clientsLock);
@@ -1637,7 +1637,7 @@ vncServer::SetNewFBSize(BOOL sendnewfb)
 	for (i = m_authClients.begin(); i != m_authClients.end(); i++)
 	{
 		// Post the update
-		GetClient(*i)->SetNewFBSize( sendnewfb);
+		GetClient(*i)->SetNewFBSize();
 	}
 }
 

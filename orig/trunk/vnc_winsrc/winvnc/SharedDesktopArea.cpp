@@ -204,7 +204,7 @@ bool SharedDesktopArea::Apply()
 	if (IsChecked(IDC_APPLICATION)) {
 		// FIXME: Here NewFBSize is sent just to redraw the whole framebuffer.
 		//        This should be done by other means, without NewFBSize.
-		m_server->SetNewFBSize(TRUE);
+		m_server->SetNewFBSize();
 	}
 
 	return true;

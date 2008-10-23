@@ -168,10 +168,6 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\Dimension.h"
-				>
-			</File>
-			<File
 				RelativePath=".\FrameBuffer.h"
 				>
 			</File>
@@ -181,14 +177,6 @@
 			</File>
 			<File
 				RelativePath=".\PixelFormat.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Point.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Rect.h"
 				>
 			</File>
 			<File

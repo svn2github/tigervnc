@@ -20,14 +20,11 @@
 // TightVNC homepage on the Web: http://www.tightvnc.com/
 
 #include "MouseDetector.h"
-#include "thread/AutoLock.h"
 
 #define MOUSE_SLEEP_TIME 10
 
-MouseDetector::MouseDetector(UpdateKeeper *updateKeeper,
-                             CriticalSection *updateKeeperCritSec)
-: UpdateDetector(updateKeeper),
-  m_updateKeeperCritSec(updateKeeperCritSec)
+MouseDetector::MouseDetector(UpdateKeeper *updateKeeper)
+: UpdateDetector(updateKeeper)
 {
   m_sleepTime = MOUSE_SLEEP_TIME;
 }
@@ -46,10 +43,7 @@ void MouseDetector::execute()
       m_lastCursorPos.x = curPoint.x;
       m_lastCursorPos.y = curPoint.y;
 
-      {
-        AutoLock aL(m_updateKeeperCritSec);
-        m_updateKeeper->setCursorPosChanged();
-      }
+      m_updateKeeper->setCursorPosChanged();
 
       doOutUpdate();
     }

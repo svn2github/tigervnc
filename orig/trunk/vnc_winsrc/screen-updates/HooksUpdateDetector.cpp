@@ -30,10 +30,10 @@ const UINT RFB_MOUSE_UPDATE = RegisterWindowMessage(_T("TightVNC.Server.Update.M
 
 HooksUpdateDetector::HooksUpdateDetector(UpdateKeeper *updateKeeper,
                                          ScreenGrabber *screenGrabber,
-                                         CriticalSection *updateKeeperCriticalSection)
+                                         CriticalSection *scrGrabberCritSect)
 : UpdateDetector(updateKeeper),
 m_screenGrabber(screenGrabber),
-m_updateKeeperCriticalSection(updateKeeperCriticalSection),
+m_scrGrabberCritSect(scrGrabberCritSect),
 m_hooksTargetWindow(0),
 m_hHooks(0),
 m_pSetHook(0),
@@ -138,11 +138,12 @@ void HooksUpdateDetector::execute()
       rect.right = (SHORT)LOWORD(msg.lParam);
       rect.bottom = (SHORT)HIWORD(msg.lParam);
 
-      m_updateKeeperCriticalSection->enter();
+      m_scrGrabberCritSect->enter();
       screenRect = m_screenGrabber->getScreenRect();
+      m_scrGrabberCritSect->leave();
+
       rect.move(-screenRect.left, -screenRect.top);
       m_updateKeeper->addChangedRect(&rect);
-      m_updateKeeperCriticalSection->leave();
 
       doOutUpdate();
     } else if (msg.message == WM_QUIT) {

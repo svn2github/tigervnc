@@ -41,8 +41,7 @@ UpdateHandler::UpdateHandler(void)
                                     m_screenGrabber,
                                     m_criticalSection);
   m_hooks->setOutUpdateListener(this);
-  m_mouseDetector = new MouseDetector(m_updateKeeper,
-                                      m_criticalSection);
+  m_mouseDetector = new MouseDetector(m_updateKeeper);
   m_mouseDetector->setOutUpdateListener(this);
 }
 

@@ -27,15 +27,13 @@
 class MouseDetector : public UpdateDetector
 {
 public:
-  MouseDetector(UpdateKeeper *updateKeeper,
-                CriticalSection *updateKeeperCritSec);
+  MouseDetector(UpdateKeeper *updateKeeper);
   virtual ~MouseDetector(void);
 
 protected:
   virtual void execute();
 
 private:
-  CriticalSection *m_updateKeeperCritSec;
   int m_sleepTime;
   Point m_lastCursorPos;
 };

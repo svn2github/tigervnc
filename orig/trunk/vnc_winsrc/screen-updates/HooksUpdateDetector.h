@@ -38,15 +38,16 @@ class HooksUpdateDetector : public UpdateDetector
 public:
   HooksUpdateDetector(UpdateKeeper *updateKeeper,
                       ScreenGrabber *screenGrabber,
-                      CriticalSection *updateKeeperCriticalSection);
+                      CriticalSection *scrGrabberCritSect);
   virtual ~HooksUpdateDetector(void);
 
 protected:
   virtual void execute();
   virtual void onTerminate();
 
-  CriticalSection *m_updateKeeperCriticalSection;
+  CriticalSection *m_scrGrabberCritSect;
   ScreenGrabber *m_screenGrabber;
+
   HMODULE m_hHooks;
   PSetHook m_pSetHook;
   PUnSetHook m_pUnSetHook;

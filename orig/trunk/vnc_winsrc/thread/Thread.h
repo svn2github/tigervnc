@@ -53,6 +53,7 @@ public:
 protected:
   virtual void execute() = 0;
   virtual void onTerminate() {}
+  virtual void waitTerminated(unsigned int sleepTime, int quant = 100);
 
   static DWORD WINAPI threadProc(LPVOID pThread);
 

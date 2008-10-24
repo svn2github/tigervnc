@@ -20,6 +20,7 @@
 // TightVNC homepage on the Web: http://www.tightvnc.com/
 
 #include "Thread.h"
+#include "time.h"
 
 Thread::Thread(void)
 : m_terminated(false), m_active(false)
@@ -41,6 +42,15 @@ DWORD WINAPI Thread::threadProc(LPVOID pThread)
 bool Thread::wait()
 {
   return (WaitForSingleObject(m_hThread, INFINITE) != WAIT_FAILED);
+}
+
+void Thread::waitTerminated(unsigned int sleepTime, int quant)
+{
+  unsigned int beginTime = time::getCurrentTime();
+
+  while (!m_terminated && !((time::getCurrentTime() - beginTime) > sleepTime)) {
+    Sleep(quant);
+  }
 }
 
 bool Thread::suspend()

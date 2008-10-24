@@ -178,6 +178,10 @@
 				RelativePath=".\Thread.h"
 				>
 			</File>
+			<File
+				RelativePath=".\time.h"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

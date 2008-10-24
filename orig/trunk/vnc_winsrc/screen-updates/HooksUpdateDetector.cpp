@@ -43,15 +43,6 @@ m_pUnSetHook(0)
 
 HooksUpdateDetector::~HooksUpdateDetector(void)
 {
-  if (m_hHooks != 0) {
-    if (m_hooksTargetWindow->getHWND() != 0) {
-      m_pUnSetHook(m_hooksTargetWindow->getHWND());
-    }
-    ::FreeLibrary(m_hHooks);
-  }
-  if (m_hooksTargetWindow) {
-    delete m_hooksTargetWindow;
-  }
 }
 
 void HooksUpdateDetector::onTerminate()
@@ -61,40 +52,82 @@ void HooksUpdateDetector::onTerminate()
   }
 }
 
-void HooksUpdateDetector::execute()
+bool HooksUpdateDetector::initHook()
 {
+  HINSTANCE hinst = GetModuleHandle(0);
+
+  m_hooksTargetWindow = new HooksTargetWindow(hinst);
+  if (!m_hooksTargetWindow->createWindow()) {
+    return false;
+  }
+
   // Dll initializing
   if ((m_hHooks = ::LoadLibrary(_T(LIBRARY_NAME))) == 0) {
-    return;
+    return false;
   }
 
   m_pSetHook = (PSetHook)::GetProcAddress(m_hHooks, SET_HOOK_FUNCTION_NAME);
   m_pUnSetHook = (PUnSetHook)::GetProcAddress(m_hHooks, UNSET_HOOK_FUNCTION_NAME);
   if (!m_pSetHook || !m_pUnSetHook)
   {
-    return;
-  }
-
-  HINSTANCE hinst = GetModuleHandle(0);
-
-  m_hooksTargetWindow = new HooksTargetWindow(hinst);
-  if (!m_hooksTargetWindow->createWindow()) {
-    return;
+    return false;
   }
 
   // Hooks initializing
   if (m_pSetHook(m_hooksTargetWindow->getHWND(),
-             RFB_SCREEN_UPDATE,
-             RFB_COPYRECT_UPDATE,
-             RFB_MOUSE_UPDATE) == FALSE) {
-    return;
+                 RFB_SCREEN_UPDATE,
+                 RFB_COPYRECT_UPDATE,
+                 RFB_MOUSE_UPDATE) == FALSE) {
+    return false;
+  }
+
+  return true;
+}
+
+bool HooksUpdateDetector::unInitHook()
+{
+  bool result = true;
+
+  if (m_pUnSetHook) {
+    if (m_hooksTargetWindow) {
+      if (m_hooksTargetWindow->getHWND() != 0) {
+        result &= (m_pUnSetHook(m_hooksTargetWindow->getHWND()) != FALSE);
+      }
+    }
+    m_pUnSetHook = 0;
+    m_pSetHook = 0;
+  }
+
+  if (m_hHooks != 0) {
+    if ((result &= (::FreeLibrary(m_hHooks) != FALSE))) {
+      m_hHooks = 0;
+    }
+  }
+
+  if (m_hooksTargetWindow) {
+    delete m_hooksTargetWindow;
+    m_hooksTargetWindow = 0;
+  }
+
+  return result;
+}
+
+void HooksUpdateDetector::execute()
+{
+  while (!m_terminated) {
+    if (!initHook()) {
+      waitTerminated(5000);
+      unInitHook();
+      waitTerminated(5000);
+    } else {
+      break;
+    }
   }
 
   MSG msg;
   Rect screenRect;
   while (!m_terminated) {
     if (!PeekMessage(&msg, m_hooksTargetWindow->getHWND(), NULL, NULL, PM_REMOVE)) {
-      //Sleep(1);
       if (!WaitMessage()) {
         break;
       }
@@ -119,4 +152,6 @@ void HooksUpdateDetector::execute()
       DispatchMessage(&msg);
     }
   }
+
+  unInitHook();
 }

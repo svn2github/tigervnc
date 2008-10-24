@@ -51,6 +51,10 @@ protected:
   PSetHook m_pSetHook;
   PUnSetHook m_pUnSetHook;
   HooksTargetWindow *m_hooksTargetWindow;
+
+private:
+  bool HooksUpdateDetector::initHook();
+  bool HooksUpdateDetector::unInitHook();
 };
 
 #endif // __HOOKSUPDATEDETECTOR_H__

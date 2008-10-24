@@ -49,7 +49,7 @@ public:
     m_outUpdateListener = outUpdateListener;
   }
 
-  void setExcludedRegion(rfb::Region *excludedRegion);
+  void setExcludedRegion(const rfb::Region *excludedRegion);
 
   const FrameBuffer *getBackupFrameBuffer() const { return m_backupFrameBuffer; }
 

@@ -35,6 +35,8 @@ UpdateKeeper::~UpdateKeeper(void)
 
 void UpdateKeeper::addChangedRegion(rfb::Region *changedRegion)
 {
+  AutoLock al(&m_updContCritSec);
+
   rfb::Region borderRegion(m_borderRect);
   changedRegion->assign_intersect(borderRegion);
 
@@ -51,6 +53,8 @@ void UpdateKeeper::addChangedRect(const Rect *changedRect)
 
 void UpdateKeeper::addCopyRegion(rfb::Region *cpyReg, const Point *copyOffset)
 {
+  AutoLock al(&m_updContCritSec);
+
   rfb::Region *changedRegion = &m_updateContainer.changedRegion;
   rfb::Region *copiedRegion = &m_updateContainer.copiedRegion;
 
@@ -76,6 +80,8 @@ void UpdateKeeper::addCopyRegion(rfb::Region *cpyReg, const Point *copyOffset)
 
 void UpdateKeeper::setScreenSizeChanged()
 {
+  AutoLock al(&m_updContCritSec);
+
   // Reinitializing m_borderRect
   m_borderRect.setRect(&m_frameBuffer->getDimension().getRect());
 
@@ -84,26 +90,26 @@ void UpdateKeeper::setScreenSizeChanged()
 
 void UpdateKeeper::setCursorPosChanged()
 {
+  AutoLock al(&m_updContCritSec);
   m_updateContainer.cursorPosChanged = true;
 }
 
 void UpdateKeeper::extract(UpdateContainer *updateContainer)
 {
   {
-    AutoLock al(&m_exclRegCritSec);
-    m_updateContainer.changedRegion.assign_subtract(m_excludedRegion);
-    m_updateContainer.copiedRegion.assign_subtract(m_excludedRegion);
+    AutoLock al(&m_updContCritSec);
+    *updateContainer = m_updateContainer;
+    m_updateContainer.clear();
   }
-
-  m_updateFilter->filter(&m_updateContainer);
-
-  *updateContainer = m_updateContainer;
-
-  // Clear all changes
-  m_updateContainer.clear();
+  {
+    AutoLock al(&m_exclRegCritSec);
+    updateContainer->changedRegion.assign_subtract(m_excludedRegion);
+    updateContainer->copiedRegion.assign_subtract(m_excludedRegion);
+  }
+  m_updateFilter->filter(updateContainer);
 }
 
-void UpdateKeeper::setExcludedRegion(rfb::Region *excludedRegion)
+void UpdateKeeper::setExcludedRegion(const rfb::Region *excludedRegion)
 {
   AutoLock al(&m_exclRegCritSec);
 

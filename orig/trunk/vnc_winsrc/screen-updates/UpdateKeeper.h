@@ -41,7 +41,7 @@ public:
   void setScreenSizeChanged();
   void setCursorPosChanged();
 
-  void setExcludedRegion(rfb::Region *excludedRegion);
+  void setExcludedRegion(const rfb::Region *excludedRegion);
 
   const UpdateContainer *getUpdateContainer() const { return &m_updateContainer; }
 
@@ -58,6 +58,7 @@ private:
   CriticalSection m_exclRegCritSec;
 
   UpdateContainer m_updateContainer;
+  CriticalSection m_updContCritSec;
 };
 
 #endif // __UPDATEKEEPER_H__

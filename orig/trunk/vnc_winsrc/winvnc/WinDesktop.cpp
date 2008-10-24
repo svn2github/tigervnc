@@ -129,7 +129,11 @@ HCURSOR WinDesktop::GetCursor() const
 {
   CURSORINFO cursorInfo;
   cursorInfo.cbSize = sizeof(CURSORINFO);
-  GetCursorInfo(&cursorInfo);
+  int result = GetCursorInfo(&cursorInfo);
+
+  if (result == 0) {
+#include "GetLastError.cpp"
+  }
 
   HCURSOR hCursor = cursorInfo.hCursor;
   if (hCursor  == NULL) {
@@ -141,7 +145,56 @@ HCURSOR WinDesktop::GetCursor() const
 
 BOOL WinDesktop::GetRichCursorData(BYTE *databuf, HCURSOR hcursor, int width, int height)
 {
-  return TRUE;
+  PixelFormat pixelFormat = m_updateHandler->getBackupFrameBuffer()->getPixelFormat();
+
+  HDC screenDC = GetDC(0);
+  if (screenDC == NULL) {
+    return false;
+  }
+
+  WindowsScreenGrabber::BMI bmi;
+  if (!WindowsScreenGrabber::getBMI(&bmi, screenDC)) {
+    return false;
+  }
+
+  bmi.bmiHeader.biBitCount = pixelFormat.bitsPerPixel;
+  bmi.bmiHeader.biWidth = width;
+  bmi.bmiHeader.biHeight = -height;
+  bmi.bmiHeader.biCompression = BI_BITFIELDS;
+  bmi.red   = pixelFormat.redMax   << pixelFormat.redShift;
+  bmi.green = pixelFormat.greenMax << pixelFormat.greenShift;
+  bmi.blue  = pixelFormat.blueMax  << pixelFormat.blueShift;
+
+  HDC destDC = CreateCompatibleDC(NULL);
+  if (destDC == NULL) {
+    DeleteDC(screenDC);
+    return FALSE;
+  }
+
+  void *buffer;
+  HBITMAP hbmDIB = CreateDIBSection(destDC, (BITMAPINFO *) &bmi, DIB_RGB_COLORS, &buffer, NULL, NULL);
+  if (hbmDIB == 0) {
+    DeleteDC(destDC);
+    DeleteDC(screenDC);
+    return FALSE;
+  }
+
+  HBITMAP hbmOld = (HBITMAP) SelectObject(destDC, hbmDIB);
+
+  memset(buffer, 0xff, width * height * 4);
+  // Draw the cursor
+  int result = DrawIconEx(destDC, 0, 0, hcursor, 0, 0, 0, NULL, DI_IMAGE);
+
+  if (result) {
+    memcpy(databuf, buffer, width * height * 4);
+  }
+
+  SelectObject(destDC, hbmOld);
+  DeleteObject(hbmDIB);
+  DeleteDC(destDC);
+  DeleteDC(screenDC);
+
+  return result;
 }
 
 bool WinDesktop::sendUpdate()
@@ -149,8 +202,6 @@ bool WinDesktop::sendUpdate()
   if (!m_server->IncrRgnRequested() && !m_server->FullRgnRequested()) {
     return true;
   }
-
-  m_server->UpdateMouse();
 
   UpdateContainer updateContainer;
 

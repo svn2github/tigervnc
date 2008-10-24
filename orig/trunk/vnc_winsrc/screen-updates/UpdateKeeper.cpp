@@ -20,6 +20,7 @@
 // TightVNC homepage on the Web: http://www.tightvnc.com/
 
 #include "UpdateKeeper.h"
+#include "thread/AutoLock.h"
 
 UpdateKeeper::UpdateKeeper(UpdateFilter *updateFilter, const FrameBuffer *frameBuffer)
 : m_updateFilter(updateFilter),
@@ -88,10 +89,27 @@ void UpdateKeeper::setCursorPosChanged()
 
 void UpdateKeeper::extract(UpdateContainer *updateContainer)
 {
+  {
+    AutoLock al(&m_exclRegCritSec);
+    m_updateContainer.changedRegion.assign_subtract(m_excludedRegion);
+    m_updateContainer.copiedRegion.assign_subtract(m_excludedRegion);
+  }
+
   m_updateFilter->filter(&m_updateContainer);
 
   *updateContainer = m_updateContainer;
 
   // Clear all changes
   m_updateContainer.clear();
+}
+
+void UpdateKeeper::setExcludedRegion(rfb::Region *excludedRegion)
+{
+  AutoLock al(&m_exclRegCritSec);
+
+  if(excludedRegion == 0) {
+    m_excludedRegion.clear();
+  } else {
+    m_excludedRegion = *excludedRegion;
+  }
 }

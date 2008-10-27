@@ -33,6 +33,16 @@ public:
   UpdateKeeper(UpdateFilter *updateFilter, const FrameBuffer *frameBuffer);
   ~UpdateKeeper(void);
 
+  void lock()
+  {
+    m_updContCritSec.enter();
+  }
+
+  void unLock()
+  {
+    m_updContCritSec.leave();
+  }
+
   void addChangedRegion(rfb::Region *changedRegion);
   void addChangedRect(const Rect *changedRect);
 

@@ -40,11 +40,15 @@ UpdateHandler::UpdateHandler(UpdateListener *registerUpdateListener)
   m_hooks->setOutUpdateListener(this);
   m_mouseDetector = new MouseDetector(m_updateKeeper);
   m_mouseDetector->setOutUpdateListener(this);
+
+  executeDetectors();
 }
 
 UpdateHandler::~UpdateHandler(void)
 {
-  terminate();
+  AutoLock al(&m_criticalSection);
+
+  terminateDetectors();
   delete m_mouseDetector;
   delete m_poller;
   delete m_hooks;
@@ -71,7 +75,7 @@ void UpdateHandler::extract(UpdateContainer *updateContainer)
   m_criticalSection.leave();
 }
 
-void UpdateHandler::execute()
+void UpdateHandler::executeDetectors()
 {
   m_backupFrameBuffer.assignProperties(m_screenGrabber.getScreenBuffer());
   m_poller->resume();
@@ -79,7 +83,7 @@ void UpdateHandler::execute()
   m_mouseDetector->resume();
 }
 
-void UpdateHandler::terminate()
+void UpdateHandler::terminateDetectors()
 {
   m_poller->terminate();
   m_hooks->terminate();

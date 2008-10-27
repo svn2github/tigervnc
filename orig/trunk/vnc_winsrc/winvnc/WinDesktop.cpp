@@ -43,7 +43,6 @@ bool WinDesktop::Init(vncServer *server)
   if (m_updateHandler == 0) {
     return false;
   }
-  m_updateHandler->execute();
 
   return true;
 }

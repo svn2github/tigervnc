@@ -39,8 +39,8 @@ public:
 
   void extract(UpdateContainer *updateContainer);
 
-  virtual void execute();
-  virtual void terminate();
+  virtual void executeDetectors();
+  virtual void terminateDetectors();
 
   bool checkForUpdates(rfb::Region *region);
 

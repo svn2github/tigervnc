@@ -111,8 +111,19 @@ void UpdateHandler::onUpdate()
 
 bool UpdateHandler::checkForUpdates(rfb::Region *region)
 {
-  AutoLock aL(m_criticalSection);
-  bool result = !m_updateKeeper->getUpdateContainer()->isEmpty();
+  m_updateKeeper->lock();
+  UpdateContainer updateContainer = *m_updateKeeper->getUpdateContainer();
+  m_updateKeeper->unLock();
+
+  rfb::Region resultRegion = updateContainer.changedRegion;
+  resultRegion.assign_union(updateContainer.copiedRegion);
+
+  resultRegion.assign_intersect(*region);
+
+  bool result = updateContainer.cursorPosChanged ||
+                updateContainer.cursorShapeChanged ||
+                updateContainer.screenSizeChanged ||
+                !resultRegion.is_empty();
 
   return result;
 }

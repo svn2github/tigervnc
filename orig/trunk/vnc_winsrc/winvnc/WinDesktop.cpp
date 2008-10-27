@@ -39,11 +39,10 @@ bool WinDesktop::Init(vncServer *server)
 
   setNewScreenSize();
 
-  m_updateHandler = new UpdateHandler;
+  m_updateHandler = new UpdateHandler(this);
   if (m_updateHandler == 0) {
     return false;
   }
-  m_updateHandler->setOutUpdateListener(this);
   m_updateHandler->execute();
 
   return true;

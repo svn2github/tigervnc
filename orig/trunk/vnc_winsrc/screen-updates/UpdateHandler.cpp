@@ -24,8 +24,8 @@
 #include "HooksUpdateDetector.h"
 #include "MouseDetector.h"
 
-UpdateHandler::UpdateHandler(void)
-: m_outUpdateListener(0)
+UpdateHandler::UpdateHandler(UpdateListener *registerUpdateListener)
+: m_registerUpdateListener(registerUpdateListener)
 {
   m_criticalSection = new CriticalSection;
   m_screenGrabber = new WindowsScreenGrabber;

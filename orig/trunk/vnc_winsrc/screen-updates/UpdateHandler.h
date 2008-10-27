@@ -34,7 +34,7 @@
 class UpdateHandler : public UpdateListener
 {
 public:
-  UpdateHandler(void);
+  UpdateHandler(UpdateListener *outUpdateListener);
   ~UpdateHandler(void);
 
   void extract(UpdateContainer *updateContainer);
@@ -43,11 +43,6 @@ public:
   virtual void terminate();
 
   bool checkForUpdates(rfb::Region *region);
-
-  void setOutUpdateListener(UpdateListener *outUpdateListener)
-  { 
-    m_outUpdateListener = outUpdateListener;
-  }
 
   void setExcludedRegion(const rfb::Region *excludedRegion);
 
@@ -58,12 +53,12 @@ public:
 private:
   inline void doOutUpdate()
   {
-    if (m_outUpdateListener != 0) {
-      m_outUpdateListener->synchroOnUpdate();
+    if (m_registerUpdateListener != 0) {
+      m_registerUpdateListener->synchroOnUpdate();
     }
   }
 
-  UpdateListener *m_outUpdateListener;
+  UpdateListener *m_registerUpdateListener;
   UpdateKeeper *m_updateKeeper;
   UpdateFilter *m_updateFilter;
   UpdateDetector *m_poller;

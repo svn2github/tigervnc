@@ -27,19 +27,16 @@
 UpdateHandler::UpdateHandler(UpdateListener *registerUpdateListener)
 : m_registerUpdateListener(registerUpdateListener)
 {
-  m_criticalSection = new CriticalSection;
-  m_screenGrabber = new WindowsScreenGrabber;
-  m_backupFrameBuffer = new FrameBuffer;
-  m_updateFilter = new UpdateFilter(m_screenGrabber, m_backupFrameBuffer,
-                                    m_criticalSection);
+  m_updateFilter = new UpdateFilter(&m_screenGrabber, &m_backupFrameBuffer,
+                                    &m_criticalSection);
   m_updateKeeper = new UpdateKeeper(m_updateFilter,
-                                    m_screenGrabber->getScreenBuffer());
-  m_poller = new Poller(m_updateKeeper, m_screenGrabber,
-                                m_backupFrameBuffer, m_criticalSection);
+                                    m_screenGrabber.getScreenBuffer());
+  m_poller = new Poller(m_updateKeeper, &m_screenGrabber,
+                        &m_backupFrameBuffer, &m_criticalSection);
   m_poller->setOutUpdateListener(this);
   m_hooks = new HooksUpdateDetector(m_updateKeeper,
-                                    m_screenGrabber,
-                                    m_criticalSection);
+                                    &m_screenGrabber,
+                                    &m_criticalSection);
   m_hooks->setOutUpdateListener(this);
   m_mouseDetector = new MouseDetector(m_updateKeeper);
   m_mouseDetector->setOutUpdateListener(this);
@@ -53,34 +50,32 @@ UpdateHandler::~UpdateHandler(void)
   delete m_hooks;
   delete m_updateKeeper;
   delete m_updateFilter;
-  delete m_screenGrabber;
-  delete m_backupFrameBuffer;
 }
 
 void UpdateHandler::extract(UpdateContainer *updateContainer)
 {
-  m_criticalSection->enter();
+  m_criticalSection.enter();
 
   m_updateKeeper->extract(&m_updateContainer);
 
   // Checking for screen properties changing or frame buffers differ
-  if (m_screenGrabber->getPropertiesChanged() ||
-      !m_backupFrameBuffer->cmp(m_screenGrabber->getScreenBuffer())) {
-    if (m_screenGrabber->getScreenSizeChanged()) {
+  if (m_screenGrabber.getPropertiesChanged() ||
+      !m_backupFrameBuffer.cmp(m_screenGrabber.getScreenBuffer())) {
+    if (m_screenGrabber.getScreenSizeChanged()) {
       m_updateContainer.screenSizeChanged = true;
     }
-    m_screenGrabber->applyNewProperties();
-    m_backupFrameBuffer->assignProperties(m_screenGrabber->getScreenBuffer());
+    m_screenGrabber.applyNewProperties();
+    m_backupFrameBuffer.assignProperties(m_screenGrabber.getScreenBuffer());
   }
 
   *updateContainer = m_updateContainer;
 
-  m_criticalSection->leave();
+  m_criticalSection.leave();
 }
 
 void UpdateHandler::execute()
 {
-  m_backupFrameBuffer->assignProperties(m_screenGrabber->getScreenBuffer());
+  m_backupFrameBuffer.assignProperties(m_screenGrabber.getScreenBuffer());
   m_poller->resume();
   m_hooks->resume();
   m_mouseDetector->resume();
@@ -98,15 +93,15 @@ void UpdateHandler::terminate()
 
 void UpdateHandler::onUpdate()
 {
-  m_criticalSection->enter();
+  m_criticalSection.enter();
 
   if (!m_updateKeeper->getUpdateContainer()->isEmpty()) {
-    m_criticalSection->leave();
+    m_criticalSection.leave();
     doOutUpdate();
     return;
   }
 
-  m_criticalSection->leave();
+  m_criticalSection.leave();
 }
 
 bool UpdateHandler::checkForUpdates(rfb::Region *region)

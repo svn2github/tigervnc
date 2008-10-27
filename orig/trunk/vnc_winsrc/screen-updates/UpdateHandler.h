@@ -46,7 +46,7 @@ public:
 
   void setExcludedRegion(const rfb::Region *excludedRegion);
 
-  const FrameBuffer *getBackupFrameBuffer() const { return m_backupFrameBuffer; }
+  const FrameBuffer *getBackupFrameBuffer() const { return &m_backupFrameBuffer; }
 
   virtual void onUpdate();
 
@@ -64,9 +64,9 @@ private:
   UpdateDetector *m_poller;
   UpdateDetector *m_hooks;
   UpdateDetector *m_mouseDetector;
-  ScreenGrabber *m_screenGrabber;
-  FrameBuffer *m_backupFrameBuffer;
-  CriticalSection *m_criticalSection;
+  WindowsScreenGrabber m_screenGrabber;
+  FrameBuffer m_backupFrameBuffer;
+  CriticalSection m_criticalSection;
 
   UpdateContainer m_updateContainer;
 };

@@ -20,7 +20,6 @@
 // TightVNC homepage on the Web: http://www.tightvnc.com/
 
 #include "Thread.h"
-#include "time.h"
 
 Thread::Thread(void)
 : m_terminated(false), m_active(false)
@@ -46,9 +45,9 @@ bool Thread::wait()
 
 void Thread::waitTerminated(unsigned int sleepTime, int quant)
 {
-  unsigned int beginTime = time::getCurrentTime();
+  int times = sleepTime/quant + sleepTime%quant;
 
-  while (!m_terminated && !((time::getCurrentTime() - beginTime) > sleepTime)) {
+  while (!m_terminated && times-- > 0) {
     Sleep(quant);
   }
 }

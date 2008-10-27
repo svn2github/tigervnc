@@ -67,8 +67,6 @@ private:
   WindowsScreenGrabber m_screenGrabber;
   FrameBuffer m_backupFrameBuffer;
   CriticalSection m_criticalSection;
-
-  UpdateContainer m_updateContainer;
 };
 
 #endif // __UPDATEHANDLER_H__

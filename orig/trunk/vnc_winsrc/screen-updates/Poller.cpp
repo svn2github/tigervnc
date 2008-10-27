@@ -64,33 +64,29 @@ void Poller::execute()
     screenFrameBuffer = m_screenGrabber->getScreenBuffer();
     if (!screenFrameBuffer->cmp(m_backupFrameBuffer)) {
       m_updateKeeper->setScreenSizeChanged();
-      m_frameBufferCriticalSection->leave();
-      doOutUpdate();
-      Sleep(m_sleepTime);
-      continue;
-    }
+    } else {
+      m_screenGrabber->grab();
 
-    m_screenGrabber->grab();
+      // Polling
+      int pollingWidth = m_pollingRect.getWidth();
+      int pollingHeight = m_pollingRect.getHeight();
+      int screenWidth = screenFrameBuffer->getDimension().width;
+      int screenHeight = screenFrameBuffer->getDimension().height;
 
-    // Polling
-    int pollingWidth = m_pollingRect.getWidth();
-    int pollingHeight = m_pollingRect.getHeight();
-    int screenWidth = screenFrameBuffer->getDimension().width;
-    int screenHeight = screenFrameBuffer->getDimension().height;
-
-    Rect scanRect;
-    for (int iRow = 0; iRow < screenHeight; iRow += pollingHeight) {
-      for (int iCol = 0; iCol < screenWidth; iCol += pollingWidth) {
-        scanRect.setRect(iCol, iRow, min(iCol + pollingWidth, screenWidth),
-                         min(iRow + pollingHeight, screenHeight));
-        if (!screenFrameBuffer->cmpFrom(&scanRect, m_backupFrameBuffer,
-                                        scanRect.left, scanRect.top)) {
-          region.addRect(scanRect);
+      Rect scanRect;
+      for (int iRow = 0; iRow < screenHeight; iRow += pollingHeight) {
+        for (int iCol = 0; iCol < screenWidth; iCol += pollingWidth) {
+          scanRect.setRect(iCol, iRow, min(iCol + pollingWidth, screenWidth),
+                           min(iRow + pollingHeight, screenHeight));
+          if (!screenFrameBuffer->cmpFrom(&scanRect, m_backupFrameBuffer,
+                                          scanRect.left, scanRect.top)) {
+            region.addRect(scanRect);
+          }
         }
       }
-    }
 
-    m_updateKeeper->addChangedRegion(&region);
+      m_updateKeeper->addChangedRegion(&region);
+    }
 
     // Leave from the critical section
     m_frameBufferCriticalSection->leave();

@@ -154,7 +154,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\MouseGrabber.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ScreenGrabber.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\WindowsMouseGrabber.cpp"
 				>
 			</File>
 			<File
@@ -176,11 +184,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\MouseGrabber.h"
+				>
+			</File>
+			<File
 				RelativePath=".\PixelFormat.h"
 				>
 			</File>
 			<File
 				RelativePath=".\ScreenGrabber.h"
+				>
+			</File>
+			<File
+				RelativePath=".\WindowsMouseGrabber.h"
 				>
 			</File>
 			<File

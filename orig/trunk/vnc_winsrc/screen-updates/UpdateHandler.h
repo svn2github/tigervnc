@@ -46,7 +46,7 @@ public:
 
   void setExcludedRegion(const rfb::Region *excludedRegion);
 
-  const FrameBuffer *getBackupFrameBuffer() const { return &m_backupFrameBuffer; }
+  const FrameBuffer *getFrameBuffer() const { return &m_backupFrameBuffer; }
 
   virtual void onUpdate();
 

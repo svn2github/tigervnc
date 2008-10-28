@@ -130,7 +130,6 @@ HCURSOR WinDesktop::GetCursor() const
   int result = GetCursorInfo(&cursorInfo);
 
   if (result == 0) {
-#include "GetLastError.cpp"
   }
 
   HCURSOR hCursor = cursorInfo.hCursor;

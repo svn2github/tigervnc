@@ -67,7 +67,7 @@ void WinDesktop::TryActivateHooks()
 
 void WinDesktop::FillDisplayInfo(rfbServerInitMsg *scrInfo)
 {
-  const FrameBuffer *fb = m_updateHandler->getBackupFrameBuffer();
+  const FrameBuffer *fb = m_updateHandler->getFrameBuffer();
   PixelFormat pf = fb->getPixelFormat();
 
   scrInfo->format.bigEndian = pf.bigEndian;
@@ -97,12 +97,12 @@ void WinDesktop::SetLocalInputPriorityHook(BOOL enable)
 
 BYTE *WinDesktop::MainBuffer()
 {
-  return (BYTE *)m_updateHandler->getBackupFrameBuffer()->getBuffer();
+  return (BYTE *)m_updateHandler->getFrameBuffer()->getBuffer();
 }
 
 int WinDesktop::ScreenBuffSize()
 {
-  return m_updateHandler->getBackupFrameBuffer()->getBufferSize();
+  return m_updateHandler->getFrameBuffer()->getBufferSize();
 }
 
 void WinDesktop::CaptureScreen(RECT &UpdateArea, BYTE *scrBuff)
@@ -143,7 +143,7 @@ HCURSOR WinDesktop::GetCursor() const
 
 BOOL WinDesktop::GetRichCursorData(BYTE *databuf, HCURSOR hcursor, int width, int height)
 {
-  PixelFormat pixelFormat = m_updateHandler->getBackupFrameBuffer()->getPixelFormat();
+  PixelFormat pixelFormat = m_updateHandler->getFrameBuffer()->getPixelFormat();
 
   HDC screenDC = GetDC(0);
   if (screenDC == NULL) {

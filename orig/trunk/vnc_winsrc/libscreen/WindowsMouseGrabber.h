@@ -30,6 +30,11 @@ class WindowsMouseGrabber : public MouseGrabber
 public:
   WindowsMouseGrabber(void);
   virtual ~WindowsMouseGrabber(void);
+
+  virtual bool grab(PixelFormat *pixelFormat);
+
+protected:
+  bool grabPixels(PixelFormat *pixelFormat);
 };
 
 #endif // __WINDOWSMOUSEGRABBER_H__

@@ -127,5 +127,4 @@ bool UpdateHandler::checkForUpdates(rfb::Region *region)
 
 void UpdateHandler::setExcludedRegion(const rfb::Region *excludedRegion)
 {
-  m_updateKeeper->setExcludedRegion(excludedRegion);
 }

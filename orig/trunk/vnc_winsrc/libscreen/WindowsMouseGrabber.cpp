@@ -52,6 +52,7 @@ bool WindowsMouseGrabber::grabPixels(PixelFormat *pixelFormat)
   } else if (hCursor == m_lastHCursor) {
     return true;
   }
+  m_lastHCursor = hCursor;
 
   // Get bitmap mask
   ICONINFO iconInfo;

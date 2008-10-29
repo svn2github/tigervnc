@@ -34,7 +34,7 @@ class WinDesktop;
 #include "libscreen/WindowsMouseGrabber.h"
 #include "thread/AutoLock.h"
 
-class WinDesktop : public UpdateListener
+class WinDesktop : public UpdateListener, public Thread
 {
 public:
   WinDesktop();
@@ -61,6 +61,16 @@ public:
 protected:
   virtual void onUpdate();
 
+  void winDesktopNotify()
+  {
+    if (m_hEvent != 0) {
+      SetEvent(m_hEvent);
+    }
+  }
+
+  virtual void execute();
+  virtual void onTerminate();
+
   bool sendUpdate();
 
   void setNewScreenSize();
@@ -69,6 +79,8 @@ protected:
   WindowsMouseGrabber m_mouseGrabber;
   vncServer *m_server;
   RECT m_bmrect;
+
+  HANDLE m_hEvent;
 };
 
 #endif // __WINDESKTOP_H__

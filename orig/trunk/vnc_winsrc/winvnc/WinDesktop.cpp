@@ -24,13 +24,18 @@
 
 WinDesktop::WinDesktop()
 : m_updateHandler(0),
-  m_server(0)
+  m_server(0),
+  m_hEvent(0)
 {
 }
 
 WinDesktop::~WinDesktop()
 {
-  delete m_updateHandler;
+  terminate();
+  wait();
+  if (m_updateHandler != 0) {
+    delete m_updateHandler;
+  }
 }
 
 bool WinDesktop::Init(vncServer *server)
@@ -44,17 +49,42 @@ bool WinDesktop::Init(vncServer *server)
     return false;
   }
 
+  resume();
+
   return true;
+}
+
+void WinDesktop::onTerminate()
+{
+  winDesktopNotify();
+}
+
+void WinDesktop::execute()
+{
+  m_hEvent = CreateEvent(NULL, FALSE, TRUE, NULL);
+  if (m_hEvent == 0) {
+    return;
+  }
+
+  while(!m_terminated) {
+    WaitForSingleObject(m_hEvent, INFINITE);
+    if (!m_terminated) {
+      sendUpdate();
+    }
+  }
+
+  CloseHandle(m_hEvent);
+  m_hEvent = 0;
 }
 
 void WinDesktop::onUpdate()
 {
-  sendUpdate();
+  winDesktopNotify();
 }
 
 void WinDesktop::RequestUpdate()
 {
-  sendUpdate();
+  winDesktopNotify();
 }
 
 void WinDesktop::SetClipText(LPSTR text)

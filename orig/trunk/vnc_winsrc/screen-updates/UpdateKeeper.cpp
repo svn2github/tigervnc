@@ -101,6 +101,21 @@ void UpdateKeeper::extract(UpdateContainer *updateContainer)
     *updateContainer = m_updateContainer;
     m_updateContainer.clear();
   }
-
+  {
+    AutoLock al(&m_exclRegCritSec);
+    updateContainer->changedRegion.assign_subtract(m_excludedRegion);
+    updateContainer->copiedRegion.assign_subtract(m_excludedRegion);
+  }
   m_updateFilter->filter(updateContainer);
+}
+
+void UpdateKeeper::setExcludedRegion(const rfb::Region *excludedRegion)
+{
+  AutoLock al(&m_exclRegCritSec);
+
+  if(excludedRegion == 0) {
+    m_excludedRegion.clear();
+  } else {
+    m_excludedRegion = *excludedRegion;
+  }
 }

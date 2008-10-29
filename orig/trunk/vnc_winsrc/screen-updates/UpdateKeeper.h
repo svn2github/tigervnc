@@ -51,6 +51,8 @@ public:
   void setScreenSizeChanged();
   void setCursorPosChanged();
 
+  void setExcludedRegion(const rfb::Region *excludedRegion);
+
   const UpdateContainer *getUpdateContainer() const { return &m_updateContainer; }
 
   void extract(UpdateContainer *updateContainer);
@@ -61,6 +63,9 @@ private:
   // For getDimension() only
   const FrameBuffer *m_frameBuffer;
   Rect m_borderRect;
+
+  rfb::Region m_excludedRegion;
+  CriticalSection m_exclRegCritSec;
 
   UpdateContainer m_updateContainer;
   CriticalSection m_updContCritSec;

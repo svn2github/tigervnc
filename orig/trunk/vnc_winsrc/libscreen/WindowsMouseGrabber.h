@@ -35,6 +35,8 @@ public:
 
 protected:
   bool grabPixels(PixelFormat *pixelFormat);
+
+  HCURSOR m_lastHCursor;
 };
 
 #endif // __WINDOWSMOUSEGRABBER_H__

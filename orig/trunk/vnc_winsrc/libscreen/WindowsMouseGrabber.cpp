@@ -23,6 +23,7 @@
 #include "WindowsScreenGrabber.h"
 
 WindowsMouseGrabber::WindowsMouseGrabber(void)
+: m_lastHCursor(0)
 {
 }
 
@@ -48,6 +49,8 @@ bool WindowsMouseGrabber::grabPixels(PixelFormat *pixelFormat)
   HCURSOR hCursor = cursorInfo.hCursor;
   if (hCursor == NULL) {
     return false;
+  } else if (hCursor == m_lastHCursor) {
+    return true;
   }
 
   // Get bitmap mask

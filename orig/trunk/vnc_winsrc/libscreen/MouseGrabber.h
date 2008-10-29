@@ -32,6 +32,8 @@ public:
 
   virtual bool grab(PixelFormat *pixelFormat) = 0;
 
+  virtual bool getCursorChanged() = 0;
+
   const FrameBuffer &getPixels() const { return m_pixels; }
   const FrameBuffer &getMask() const { return m_mask; }
 

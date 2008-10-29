@@ -33,8 +33,12 @@ public:
 
   virtual bool grab(PixelFormat *pixelFormat);
 
+  virtual bool getCursorChanged();
+
 protected:
   bool grabPixels(PixelFormat *pixelFormat);
+
+  HCURSOR getHCursor();
 
   HCURSOR m_lastHCursor;
 };

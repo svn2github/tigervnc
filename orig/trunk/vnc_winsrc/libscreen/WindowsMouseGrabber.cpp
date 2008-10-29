@@ -31,6 +31,16 @@ WindowsMouseGrabber::~WindowsMouseGrabber(void)
 {
 }
 
+bool WindowsMouseGrabber::getCursorChanged()
+{
+  HCURSOR hCursor = getHCursor();
+  if (hCursor == m_lastHCursor) {
+    return false;
+  }
+
+  return true;
+}
+
 bool WindowsMouseGrabber::grab(PixelFormat *pixelFormat)
 {
   return grabPixels(pixelFormat);
@@ -38,19 +48,9 @@ bool WindowsMouseGrabber::grab(PixelFormat *pixelFormat)
 
 bool WindowsMouseGrabber::grabPixels(PixelFormat *pixelFormat)
 {
-  CURSORINFO cursorInfo;
-  cursorInfo.cbSize = sizeof(CURSORINFO);
-  GetCursorInfo(&cursorInfo);
-
-  if (GetCursorInfo(&cursorInfo) == 0) {
+  HCURSOR hCursor = getHCursor();
+  if (hCursor == 0) {
     return false;
-  }
-
-  HCURSOR hCursor = cursorInfo.hCursor;
-  if (hCursor == NULL) {
-    return false;
-  } else if (hCursor == m_lastHCursor) {
-    return true;
   }
   m_lastHCursor = hCursor;
 
@@ -131,12 +131,25 @@ bool WindowsMouseGrabber::grabPixels(PixelFormat *pixelFormat)
 
   memset(buffer, 0xff, width * height * 4);
 
-  result = DrawIconEx(destDC, 0, 0, hCursor, 0, 0, 0, NULL, DI_IMAGE);
+  result = DrawIconEx(destDC, 0, 0, hCursor, 0, 0, 0, NULL, DI_IMAGE) != 0;
 
   SelectObject(destDC, hbmOld);
   DeleteObject(hbmDIB);
   DeleteDC(destDC);
   DeleteDC(screenDC);
 
-  return result != 0;
+  return result;
+}
+
+HCURSOR WindowsMouseGrabber::getHCursor()
+{
+  CURSORINFO cursorInfo;
+  cursorInfo.cbSize = sizeof(CURSORINFO);
+  GetCursorInfo(&cursorInfo);
+
+  if (GetCursorInfo(&cursorInfo) == 0) {
+    return false;
+  }
+
+  return cursorInfo.hCursor;
 }

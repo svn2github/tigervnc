@@ -1110,8 +1110,8 @@ vncClientThread::run(void *arg)
 					}
 
 					// to put position relative to screen
-					msg.pe.x = msg.pe.x + coord.left;
-					msg.pe.y = msg.pe.y + coord.top;
+					msg.pe.x = msg.pe.x + (CARD16)coord.left;
+					msg.pe.y = msg.pe.y + (CARD16)coord.top;
 					bool isblack = false;
 					if (m_server->GetApplication()) {				
 						if (!m_server->GetBlackRegion()->IsEmpty()) {
@@ -2684,7 +2684,7 @@ vncClient::SendFileDownloadPortion()
 			SendFileDownloadData(m_modTime);
 			return;
 		} else {
-			SendFileDownloadData(dwNumberOfBytesRead, pBuff);
+			SendFileDownloadData((CARD16)dwNumberOfBytesRead, pBuff);
 		}
 	} else {
 		char buf[] = "Download failed. Can't read from file";
@@ -2723,8 +2723,8 @@ vncClient::SendFileDirSizeData(DWORD64 size64)
 {
 	omni_mutex_lock l(m_sendUpdateLock);
 
-	CARD16 size16 = ((size64 & 0x0000FFFF00000000) >> 32);
-	CARD32 size32 = (size64 & 0x00000000FFFFFFFF);
+	CARD16 size16 = (CARD16)((size64 & 0x0000FFFF00000000) >> 32);
+	CARD32 size32 = (CARD32)(size64 & 0x00000000FFFFFFFF);
 
 	rfbFileDirSizeDataMsg fdsd;
 	fdsd.type = rfbFileDirSizeData;

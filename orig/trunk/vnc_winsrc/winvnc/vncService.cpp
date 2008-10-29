@@ -505,7 +505,7 @@ vncService::FindWindowByTitle(char *substr)
 	strncpy(l_substr, substr, 255);
 	l_substr[255] = 0;
 	int i;
-	for (i = 0; i < strlen(substr); i++) {
+	for (i = 0; i < (int)strlen(substr); i++) {
 		l_substr[i] = tolower(l_substr[i]);
 	}
 

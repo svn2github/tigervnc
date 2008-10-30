@@ -58,6 +58,8 @@ public:
   void setBuffer(void *newBuffer) { m_buffer = newBuffer; }
   inline virtual void *getBuffer() const { return m_buffer; }
   inline virtual int getBufferSize() const;
+  inline int getBytesPerRow() const { return m_dimension.width *
+                                             m_pixelFormat.bitsPerPixel / 8; }
 
 protected:
   bool resizeBuffer();

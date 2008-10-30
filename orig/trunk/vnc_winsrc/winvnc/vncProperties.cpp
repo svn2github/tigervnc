@@ -285,11 +285,13 @@ vncProperties::ParentDlgProc(HWND hwnd,
 				(DLGPROC)_this->ConnectionsAccessDlgProc,
 				(LONG)_this);
 
+#ifdef ENABLE_ECHO_CONNECTIONS
 			_this->m_hEchoConnection = CreateDialogParam(hAppInstance, 
 				MAKEINTRESOURCE(IDD_ECHO_CONNECTION),
 				hwnd,
 				(DLGPROC)_this->EchoConnectionDlgProc,
 				(LONG)_this);
+#endif
 
 			// Add child dialogs to the TabDialogContainer.
 			_this->m_tabContainer.addDialog(_this->m_hIncoming, "Server");
@@ -298,7 +300,9 @@ vncProperties::ParentDlgProc(HWND hwnd,
 			_this->m_tabContainer.addDialog(_this->m_hQuerySettings, "Query");
 			_this->m_tabContainer.addDialog(_this->m_hAdministration, "Administration");
 			_this->m_tabContainer.addDialog(_this->m_hConnectionsAccess, "Access Control");
+#ifdef ENABLE_ECHO_CONNECTIONS
 			_this->m_tabContainer.addDialog(_this->m_hEchoConnection, "Echo Servers");
+#endif
 
 			// Add tabs to the tab control.
 			_this->m_hTab = GetDlgItem(hwnd, IDC_TAB);

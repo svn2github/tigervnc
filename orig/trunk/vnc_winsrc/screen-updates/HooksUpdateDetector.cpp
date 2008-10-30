@@ -145,7 +145,7 @@ void HooksUpdateDetector::execute()
       rect.move(-screenRect.left, -screenRect.top);
       m_updateKeeper->addChangedRect(&rect);
 
-      doOutUpdate();
+      m_outUpdateListener->doUpdate();
     } else if (msg.message == WM_QUIT) {
       Sleep(1);
       break;

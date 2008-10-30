@@ -51,13 +51,6 @@ public:
   virtual void onUpdate();
 
 private:
-  inline void doOutUpdate()
-  {
-    if (m_registerUpdateListener != 0) {
-      m_registerUpdateListener->synchroOnUpdate();
-    }
-  }
-
   UpdateListener *m_registerUpdateListener;
   UpdateKeeper *m_updateKeeper;
   UpdateFilter *m_updateFilter;

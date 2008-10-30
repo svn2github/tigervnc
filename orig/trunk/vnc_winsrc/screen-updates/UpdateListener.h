@@ -31,9 +31,11 @@ public:
   virtual ~UpdateListener(void);
 
   // Interface function
-  virtual void synchroOnUpdate()
+  virtual void doUpdate()
   {
-    onUpdate();
+    if (this != 0) {
+      onUpdate();
+    }
   }
 
 protected:

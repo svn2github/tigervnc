@@ -41,13 +41,6 @@ public:
   }
 
 protected:
-  inline void doOutUpdate()
-  {
-    if (m_outUpdateListener != 0) {
-      m_outUpdateListener->synchroOnUpdate();
-    }
-  }
-
   UpdateKeeper *m_updateKeeper;
 
   UpdateListener *m_outUpdateListener;

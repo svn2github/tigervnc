@@ -33,9 +33,6 @@ WinDesktop::~WinDesktop()
 {
   terminate();
   wait();
-  if (m_updateHandler != 0) {
-    delete m_updateHandler;
-  }
 }
 
 bool WinDesktop::Init(vncServer *server)
@@ -66,11 +63,20 @@ void WinDesktop::execute()
     return;
   }
 
+  m_updateHandler = new UpdateHandler(this);
+  if (m_updateHandler == 0) {
+    m_terminated = true;
+  }
+
   while(!m_terminated) {
     WaitForSingleObject(m_hEvent, INFINITE);
     if (!m_terminated) {
       sendUpdate();
     }
+  }
+
+  if (m_updateHandler != 0) {
+    delete m_updateHandler;
   }
 
   CloseHandle(m_hEvent);

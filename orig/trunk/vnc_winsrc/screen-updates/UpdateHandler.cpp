@@ -46,8 +46,6 @@ UpdateHandler::UpdateHandler(UpdateListener *registerUpdateListener)
 
 UpdateHandler::~UpdateHandler(void)
 {
-  AutoLock al(&m_criticalSection);
-
   terminateDetectors();
   delete m_mouseDetector;
   delete m_poller;

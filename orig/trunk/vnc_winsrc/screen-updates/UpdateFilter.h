@@ -38,6 +38,10 @@ public:
   void filter(UpdateContainer *updateContainer);
 
 private:
+  void getChangedRegion(rfb::Region &rgn, const Rect &rect);
+  void updateChangedRect(rfb::Region &rgn, const Rect &rect);
+  void updateChangedSubRect(rfb::Region &rgn, const Rect &rect);
+
   ScreenGrabber *m_screenGrabber;
   FrameBuffer *m_frameBuffer;
   CriticalSection *m_frameBufferCriticalSection;

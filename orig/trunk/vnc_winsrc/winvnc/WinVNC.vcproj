@@ -466,6 +466,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\TabDialogContainer.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\vncAbout.cpp"
 					>
 				</File>
@@ -597,6 +601,10 @@
 			</File>
 			<File
 				RelativePath=".\stdhdrs.h"
+				>
+			</File>
+			<File
+				RelativePath=".\TabDialogContainer.h"
 				>
 			</File>
 			<File

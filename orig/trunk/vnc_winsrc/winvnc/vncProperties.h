@@ -55,6 +55,8 @@ class vncProperties;
 #include "ConnectionsAccess.h"
 #include "echoPropView.h"
 #include "commctrl.h"
+#include "TabDialogContainer.h"
+
 // The vncProperties class itself
 class vncProperties
 {
@@ -188,6 +190,8 @@ private:
 	// Remember previously selected tab.
 	int m_tab_id;
 	bool m_tab_id_restore;
+
+	TabDialogContainer m_tabContainer;
 
 	HWND m_hDialog;
 	HWND m_hTab;

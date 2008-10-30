@@ -245,33 +245,9 @@ vncProperties::ParentDlgProc(HWND hwnd,
 
 			InitCommonControls();
 
-			_this->m_hTab = GetDlgItem(hwnd, IDC_TAB);
+			_this->m_tabContainer.clear();
 
-			TCITEM item;
-			item.mask = TCIF_TEXT; 
-			item.pszText = "Server";
-			TabCtrl_InsertItem(_this->m_hTab, 0, &item);
-			item.pszText = "Hooks";
-			TabCtrl_InsertItem(_this->m_hTab, 1, &item);
-			item.pszText = "Display";
-			TabCtrl_InsertItem(_this->m_hTab, 2, &item);
-			item.pszText = "Query";
-			TabCtrl_InsertItem(_this->m_hTab, 3, &item);
-			item.pszText = "Administration";
-			TabCtrl_InsertItem(_this->m_hTab, 4, &item);
-			item.pszText = "Access Control";
-			TabCtrl_InsertItem(_this->m_hTab, 5, &item);
-			item.pszText = "Echo Servers";
-			TabCtrl_InsertItem(_this->m_hTab, 6, &item);
-
-			int tab_id = (_this->m_tab_id_restore) ? _this->m_tab_id : 0;
-			TabCtrl_SetCurSel(_this->m_hTab, tab_id);
-
-			_this->m_hShared = CreateDialogParam(hAppInstance, 
-				MAKEINTRESOURCE(IDD_SHARED_DESKTOP_AREA),
-				hwnd,
-				(DLGPROC)_this->SharedDlgProc,
-				(LONG)_this);
+			// Create child dialogs.
 
 			_this->m_hIncoming = CreateDialogParam(hAppInstance,
 				MAKEINTRESOURCE(IDD_INCOMING),
@@ -285,6 +261,12 @@ vncProperties::ParentDlgProc(HWND hwnd,
 				(DLGPROC)_this->PollDlgProc,
 				(LONG)_this);
 
+			_this->m_hShared = CreateDialogParam(hAppInstance, 
+				MAKEINTRESOURCE(IDD_SHARED_DESKTOP_AREA),
+				hwnd,
+				(DLGPROC)_this->SharedDlgProc,
+				(LONG)_this);
+
 			_this->m_hQuerySettings = CreateDialogParam(hAppInstance, 
 				MAKEINTRESOURCE(IDD_QUERY_SETTINGS),
 				hwnd,
@@ -296,43 +278,49 @@ vncProperties::ParentDlgProc(HWND hwnd,
 				hwnd,
 				(DLGPROC)_this->AdministrationDlgProc,
 				(LONG)_this);
+
 			_this->m_hConnectionsAccess = CreateDialogParam(hAppInstance, 
 				MAKEINTRESOURCE(IDD_CONNECTIONS_ACCESS),
 				hwnd,
 				(DLGPROC)_this->ConnectionsAccessDlgProc,
 				(LONG)_this);
+
 			_this->m_hEchoConnection = CreateDialogParam(hAppInstance, 
 				MAKEINTRESOURCE(IDD_ECHO_CONNECTION),
 				hwnd,
 				(DLGPROC)_this->EchoConnectionDlgProc,
 				(LONG)_this);
 
+			// Add child dialogs to the TabDialogContainer.
+			_this->m_tabContainer.addDialog(_this->m_hIncoming, "Server");
+			_this->m_tabContainer.addDialog(_this->m_hPoll, "Hooks");
+			_this->m_tabContainer.addDialog(_this->m_hShared, "Display");
+			_this->m_tabContainer.addDialog(_this->m_hQuerySettings, "Query");
+			_this->m_tabContainer.addDialog(_this->m_hAdministration, "Administration");
+			_this->m_tabContainer.addDialog(_this->m_hConnectionsAccess, "Access Control");
+			_this->m_tabContainer.addDialog(_this->m_hEchoConnection, "Echo Servers");
+
+			// Add tabs to the tab control.
+			_this->m_hTab = GetDlgItem(hwnd, IDC_TAB);
+			TCITEM item;
+			item.mask = TCIF_TEXT;
+			for (int id = 0; id < _this->m_tabContainer.getNumDialogs(); id++) {
+				item.pszText = (LPSTR)_this->m_tabContainer.getLabel(id);
+				TabCtrl_InsertItem(_this->m_hTab, id, &item);
+			}
+			int tab_id = (_this->m_tab_id_restore) ? _this->m_tab_id : 0;
+			TabCtrl_SetCurSel(_this->m_hTab, tab_id);
+
 			// Position child dialogs, to fit the Tab control's display area
 			RECT rc;
 			GetWindowRect(_this->m_hTab, &rc);
 			MapWindowPoints(NULL, hwnd, (POINT *)&rc, 2);
 			TabCtrl_AdjustRect(_this->m_hTab, FALSE, &rc);
-			SetWindowPos(_this->m_hIncoming, HWND_TOP, rc.left, rc.top,
-						 rc.right - rc.left, rc.bottom - rc.top,
-						 (tab_id == 0) ? SWP_SHOWWINDOW : SWP_HIDEWINDOW);
-			SetWindowPos(_this->m_hPoll, HWND_TOP, rc.left, rc.top,
-						 rc.right - rc.left, rc.bottom - rc.top,
-						 (tab_id == 1) ? SWP_SHOWWINDOW : SWP_HIDEWINDOW);
-			SetWindowPos(_this->m_hShared, HWND_TOP, rc.left, rc.top,
-						 rc.right - rc.left, rc.bottom - rc.top,
-						 (tab_id == 2) ? SWP_SHOWWINDOW : SWP_HIDEWINDOW);
-			SetWindowPos(_this->m_hQuerySettings, HWND_TOP, rc.left, rc.top,
-						 rc.right - rc.left, rc.bottom - rc.top,
-						 (tab_id == 3) ? SWP_SHOWWINDOW : SWP_HIDEWINDOW);
-			SetWindowPos(_this->m_hAdministration, HWND_TOP, rc.left, rc.top,
-						 rc.right - rc.left, rc.bottom - rc.top,
-						 (tab_id == 4) ? SWP_SHOWWINDOW : SWP_HIDEWINDOW);
-			SetWindowPos(_this->m_hConnectionsAccess, HWND_TOP, rc.left, rc.top,
-						 rc.right - rc.left, rc.bottom - rc.top,
-						 (tab_id == 5) ? SWP_SHOWWINDOW : SWP_HIDEWINDOW);
-			SetWindowPos(_this->m_hEchoConnection, HWND_TOP, rc.left, rc.top,
-						 rc.right - rc.left, rc.bottom - rc.top,
-						 (tab_id == 6) ? SWP_SHOWWINDOW : SWP_HIDEWINDOW);
+			for (int id = 0; id < _this->m_tabContainer.getNumDialogs(); id++) {
+				SetWindowPos(_this->m_tabContainer.getWindow(id), HWND_TOP,
+							 rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top,
+							 (tab_id == id) ? SWP_SHOWWINDOW : SWP_HIDEWINDOW);
+			}
 
 			// Set the dialog box's title to indicate which Properties we're editting
 			if (_this->m_usersettings) {
@@ -365,23 +353,11 @@ vncProperties::ParentDlgProc(HWND hwnd,
 					} else {
 						return 0;
 					}
-					// FIXME: Map between tab IDs and subdialogs in one place.
-					const HWND subDialogList[7] = {
-						_this->m_hIncoming,
-						_this->m_hPoll,
-						_this->m_hShared,
-						_this->m_hQuerySettings,
-						_this->m_hAdministration,
-						_this->m_hConnectionsAccess,
-						_this->m_hEchoConnection
-					};
-					if (id >= 7) {
-						// Invalid tab ID.
-						return 0;
+					if (id < _this->m_tabContainer.getNumDialogs()) {
+						HWND subDialog = _this->m_tabContainer.getWindow(id);
+						ShowWindow(subDialog, style);
+						SetFocus(subDialog);
 					}
-					HWND subDialog = subDialogList[id];
-					ShowWindow(subDialog, style);						
-					SetFocus(subDialog);
 					return 0;
 				}
 			}
@@ -392,13 +368,9 @@ vncProperties::ParentDlgProc(HWND hwnd,
 		{
 		case IDOK:
 		case IDC_APPLY:
-			SendMessage(_this->m_hIncoming, WM_COMMAND, IDC_APPLY,0);
-			SendMessage(_this->m_hPoll, WM_COMMAND, IDC_APPLY,0);
-			SendMessage(_this->m_hShared, WM_COMMAND, IDC_APPLY,0);
-			SendMessage(_this->m_hQuerySettings, WM_COMMAND, IDC_APPLY,0);
-			SendMessage(_this->m_hAdministration, WM_COMMAND, IDC_APPLY,0);
-			SendMessage(_this->m_hConnectionsAccess, WM_COMMAND, IDC_APPLY,0);
-			SendMessage(_this->m_hEchoConnection, WM_COMMAND, IDC_APPLY,0);
+			for (int id = 0; id < _this->m_tabContainer.getNumDialogs(); id++) {
+				SendMessage(_this->m_tabContainer.getWindow(id), WM_COMMAND, IDC_APPLY, 0);
+			}
 
 			// Remember selected tab, except when in default settings.
 			if (_this->m_usersettings)
@@ -413,6 +385,7 @@ vncProperties::ParentDlgProc(HWND hwnd,
 				vnclog.Print(LL_INTINFO, VNCLOG("enddialog (OK)\n"));
 				_this->m_returncode_valid = TRUE;
 				EndDialog(hwnd, IDOK);
+				_this->m_tabContainer.clear();
 				_this->m_dlgvisible = FALSE;
 				_this->m_hTab = NULL;
 			}
@@ -421,6 +394,7 @@ vncProperties::ParentDlgProc(HWND hwnd,
 			vnclog.Print(LL_INTINFO, VNCLOG("enddialog (CANCEL)\n"));
 			_this->m_returncode_valid = TRUE;
 			EndDialog(hwnd, IDCANCEL);
+			_this->m_tabContainer.clear();
 			_this->m_dlgvisible = FALSE;
 			_this->m_hTab = NULL;
 			return TRUE;		

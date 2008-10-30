@@ -1756,3 +1756,15 @@ BOOL
 vncServer::DriverActive() {
 	return FALSE;
 }
+
+void vncServer::getVideoRegion(rfb::Region *region) const
+{
+  region->clear();
+  WINDOWINFO wi;
+  wi.cbSize = sizeof(WINDOWINFO);
+  if (GetWindowInfo(getVideoHWND(), &wi)) {
+    Rect videoRect(wi.rcClient.left, wi.rcClient.top,
+                   wi.rcClient.right, wi.rcClient.bottom);
+    region->addRect(&videoRect);
+  }
+}

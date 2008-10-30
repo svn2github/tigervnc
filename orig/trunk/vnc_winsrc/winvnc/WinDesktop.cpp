@@ -238,36 +238,33 @@ bool WinDesktop::sendUpdate()
   }
 
   if (updateContainer.isEmpty()) {
-    return true;
-  }
+    // Check for video area presence.
+    rfb::Region videoRegion;
+    m_server->getVideoRegion(&videoRegion);
+    if (videoRegion.is_empty()) {
+      return true;
+    }
+  } else {
 
-  if (updateContainer.cursorPosChanged) {
-    m_server->UpdateMouse();
-  }
+    if (updateContainer.cursorPosChanged) {
+      m_server->UpdateMouse();
+    }
 
-  if (updateContainer.screenSizeChanged) {
-    setNewScreenSize();
-    return true;
-  }
+    if (updateContainer.screenSizeChanged) {
+      setNewScreenSize();
+      return true;
+    }
 
-  // Add video area to the UpdateContainer.changedRegion
-  WINDOWINFO wi;
-  wi.cbSize = sizeof(WINDOWINFO);
-  if (GetWindowInfo(m_server->getVideoHWND(), &wi)) {
-    Rect videoRect(wi.rcClient.left, wi.rcClient.top,
-                   wi.rcClient.right, wi.rcClient.bottom);
-    updateContainer.changedRegion.addRect(&videoRect);
-  }
+    std::vector<Rect> rects;
+    std::vector<Rect>::iterator iRect;
+    updateContainer.changedRegion.get_rects(&rects);
+    int numRects = updateContainer.changedRegion.numRects();
 
-  std::vector<Rect> rects;
-  std::vector<Rect>::iterator iRect;
-  updateContainer.changedRegion.get_rects(&rects);
-  int numRects = updateContainer.changedRegion.numRects();
-
-  if (numRects > 0) {
-    vncRegion changedRegion;
-    changedRegion.assignFromNewFormat(&updateContainer.changedRegion);
-    m_server->UpdateRegion(changedRegion);
+    if (numRects > 0) {
+      vncRegion changedRegion;
+      changedRegion.assignFromNewFormat(&updateContainer.changedRegion);
+      m_server->UpdateRegion(changedRegion);
+    }
   }
 
   shareRect();

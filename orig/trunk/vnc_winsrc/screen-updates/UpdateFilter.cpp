@@ -54,7 +54,8 @@ void UpdateFilter::filter(UpdateContainer *updateContainer)
   std::vector<Rect> rects;
   std::vector<Rect>::iterator iRect;
   updateContainer->changedRegion.get_rects(&rects);
-  int numRects = updateContainer->changedRegion.numRects();
+
+  updateContainer->changedRegion.clear();
 
   // Grabbing
   for (iRect = rects.begin(); iRect < rects.end(); iRect++) {
@@ -68,18 +69,15 @@ void UpdateFilter::filter(UpdateContainer *updateContainer)
   Rect *rect;
   for (iRect = rects.begin(); iRect < rects.end(); iRect++) {
     rect = &(*iRect);
-    //tmpChangedRegion.addRect(*rect);
-    getChangedRegion(tmpChangedRegion, *rect);
+    getChangedRegion(updateContainer->changedRegion, *rect);
   }
 
-  tmpChangedRegion.get_rects(&rects);
+  updateContainer->changedRegion.get_rects(&rects);
 
   for (iRect = rects.begin(); iRect < rects.end(); iRect++) {
     rect = &(*iRect);
     m_frameBuffer->copyFrom(rect, screenFrameBuffer, rect->left, rect->top);
   }
-
-  updateContainer->changedRegion = tmpChangedRegion;
 
   m_frameBufferCriticalSection->leave();
 }

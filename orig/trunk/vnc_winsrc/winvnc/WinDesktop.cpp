@@ -250,6 +250,15 @@ bool WinDesktop::sendUpdate()
     return true;
   }
 
+  // Add video area to the UpdateContainer.changedRegion
+  WINDOWINFO wi;
+  wi.cbSize = sizeof(WINDOWINFO);
+  if (GetWindowInfo(m_server->getVideoHWND(), &wi)) {
+    Rect videoRect(wi.rcClient.left, wi.rcClient.top,
+                   wi.rcClient.right, wi.rcClient.bottom);
+    updateContainer.changedRegion.addRect(&videoRect);
+  }
+
   std::vector<Rect> rects;
   std::vector<Rect>::iterator iRect;
   updateContainer.changedRegion.get_rects(&rects);

@@ -53,6 +53,7 @@ vncServer::vncServer()
 	m_corbaConn = NULL;
 	m_httpConn = NULL;
 	m_desktop = NULL;
+    m_videoHWND = NULL;
 	m_name = NULL;
 	m_port = DISPLAY_TO_PORT(0);
 	m_port_http = DISPLAY_TO_HPORT(0);

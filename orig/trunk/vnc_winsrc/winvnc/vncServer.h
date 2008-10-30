@@ -113,6 +113,9 @@ public:
 	virtual BOOL DesktopActive() { return m_desktop != NULL; }
 	virtual BOOL DriverActive();
 
+	void setVideoHWND(HWND videoHWND) { m_videoHWND = videoHWND; }
+	HWND getVideoHWND() const { return m_videoHWND; }
+
 protected:
 	// Send a notification message
 	virtual void DoNotify(UINT message, WPARAM wparam, LPARAM lparam);
@@ -343,6 +346,8 @@ protected:
 
 	// The desktop handler
 	WinDesktop			*m_desktop;
+
+    HWND				m_videoHWND;
 
 	// General preferences
 	UINT				m_port;

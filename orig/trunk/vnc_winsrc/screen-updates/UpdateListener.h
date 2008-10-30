@@ -33,15 +33,11 @@ public:
   // Interface function
   virtual void synchroOnUpdate()
   {
-    m_updateListenerCriticalSection.enter();
     onUpdate();
-    m_updateListenerCriticalSection.leave();
   }
 
 protected:
   virtual void onUpdate() = 0;
-
-  CriticalSection m_updateListenerCriticalSection;
 };
 
 #endif // __UPDATELISTENER_H__

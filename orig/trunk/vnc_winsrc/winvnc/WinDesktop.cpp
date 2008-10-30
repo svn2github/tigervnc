@@ -231,11 +231,7 @@ bool WinDesktop::sendUpdate()
   }
 
   UpdateContainer updateContainer;
-
-  {
-    AutoLock al(&m_updateListenerCriticalSection);
-    m_updateHandler->extract(&updateContainer);
-  }
+  m_updateHandler->extract(&updateContainer);
 
   if (updateContainer.isEmpty()) {
     // Check for video area presence.

@@ -47,6 +47,18 @@ bool FrameBuffer::assignProperties(const FrameBuffer *srcFrameBuffer, const bool
   return true;
 }
 
+bool FrameBuffer::assignClone(const FrameBuffer *srcFrameBuffer)
+{
+  if (!assignProperties(srcFrameBuffer)) {
+    return false;
+  }
+
+  Rect fbRect = &m_dimension.getRect();
+  copyFrom(&fbRect, srcFrameBuffer, fbRect.left, fbRect.top);
+
+  return true;
+}
+
 bool FrameBuffer::cmp(const FrameBuffer *frameBuffer)
 {
   return m_dimension.cmpDim(&frameBuffer->getDimension()) &&

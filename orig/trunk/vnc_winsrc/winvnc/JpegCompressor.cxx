@@ -1,11 +1,8 @@
-#include <stdlib.h>
 
-#include <rfb/JpegCompressor.h>
-
-using namespace rfb;
+#include "JpegCompressor.h"
 
 const int StandardJpegCompressor::ALLOC_CHUNK_SIZE = 65536;
-const int StandardJpegCompressor::DEFAULT_QUALITY = 75;
+const int StandardJpegCompressor::DEFAULT_JPEG_QUALITY = 75;
 
 //
 // Extend jpeg_destination_mgr struct with a pointer to our object.
@@ -151,8 +148,8 @@ StandardJpegCompressor::setQuality(int level)
 //
 
 void
-StandardJpegCompressor::compress(const rdr::U32 *buf,
-                                 const PixelFormat *fmt,
+StandardJpegCompressor::compress(const CARD32 *buf,
+                                 const rfbPixelFormat *fmt,
                                  int w, int h, int stride)
 {
   m_cinfo.image_width = w;
@@ -160,7 +157,7 @@ StandardJpegCompressor::compress(const rdr::U32 *buf,
 
   jpeg_start_compress(&m_cinfo, TRUE);
 
-  const rdr::U32 *src = buf;
+  const CARD32 *src = buf;
 
   // We'll pass up to 8 rows to jpeg_write_scanlines().
   JSAMPLE *rgb = new JSAMPLE[w * 3 * 8];

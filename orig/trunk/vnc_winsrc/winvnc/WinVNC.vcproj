@@ -409,6 +409,10 @@
 				Filter=".cpp, .c"
 				>
 				<File
+					RelativePath=".\JpegCompressor.cxx"
+					>
+				</File>
+				<File
 					RelativePath=".\vncEncodeCoRRE.cpp"
 					>
 				</File>
@@ -549,6 +553,10 @@
 			</File>
 			<File
 				RelativePath="InputHandlingControls.h"
+				>
+			</File>
+			<File
+				RelativePath=".\JpegCompressor.h"
 				>
 			</File>
 			<File

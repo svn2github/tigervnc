@@ -47,7 +47,7 @@ bool FrameBuffer::assignProperties(const FrameBuffer *srcFrameBuffer, const bool
   return true;
 }
 
-bool FrameBuffer::assignClone(const FrameBuffer *srcFrameBuffer)
+bool FrameBuffer::clone(const FrameBuffer *srcFrameBuffer)
 {
   if (!assignProperties(srcFrameBuffer)) {
     return false;

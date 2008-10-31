@@ -33,7 +33,7 @@ public:
   virtual ~FrameBuffer(void);
 
   bool assignProperties(const FrameBuffer *srcFrameBuffer, const bool resizeBuff = true);
-  bool assignClone(const FrameBuffer *srcFrameBuffer);
+  bool clone(const FrameBuffer *srcFrameBuffer);
 
   bool cmp(const FrameBuffer *frameBuffer);
 

@@ -1865,11 +1865,16 @@ vncClient::vncClient()
 
 	m_use_NewFBSize = FALSE;
 
+	m_jpegEncoder = 0;
 }
 
 vncClient::~vncClient()
 {
 	vnclog.Print(LL_INTINFO, VNCLOG("~vncClient() executing...\n"));
+
+	if (m_jpegEncoder != 0) {
+		delete m_jpegEncoder;
+	}
 
 	// We now know the thread is dead, so we can clean up
 	if (m_client_name != 0) {
@@ -1967,6 +1972,10 @@ vncClient::SetBuffer(vncBuffer *buffer)
 	// to the screen buffer.  This means that there only need
 	// be a buffer when there's at least one authenticated client.
 	m_buffer = buffer;
+
+	if (m_jpegEncoder == 0) {
+		m_jpegEncoder = new WindowsScreenJpegEncoder;
+	}
 }
 
 
@@ -2390,12 +2399,67 @@ vncClient::SendRectangle(RECT &rect)
 		omni_mutex_lock l(m_regionLock);
 		sharedRect = m_server->GetSharedRect();
 	}
+	// FIXME: This can result in an empty rectangle.
 	IntersectRect(&rect, &rect, &sharedRect);
 	// Get the buffer to encode the rectangle
 	UINT bytes = m_buffer->TranslateRect(rect, m_socket, sharedRect.left, sharedRect.top);
 
     // Send the encoded data
     return m_socket->SendQueued((char *)(m_buffer->GetClientBuffer()), bytes);
+}
+
+// FIXME: Get rid of the static function.
+static BOOL SendJpegRectHeader(int compressedLen, VSocket *socket)
+{
+  char buf[4];
+  int bufBytes = 0;
+
+  buf[bufBytes++] = (char)0x90;
+  buf[bufBytes++] = compressedLen & 0x7F;
+  if (compressedLen > 0x7F) {
+    buf[bufBytes-1] |= 0x80;
+    buf[bufBytes++] = compressedLen >> 7 & 0x7F;
+    if (compressedLen > 0x3FFF) {
+      buf[bufBytes-1] |= 0x80;
+      buf[bufBytes++] = compressedLen >> 14 & 0xFF;
+    }
+  }
+  return socket->SendQueued(buf, bufBytes);
+}
+
+// FIXME: Rewrite this function.
+BOOL
+vncClient::SendVideoRectangle(RECT &rect)
+{
+  RECT sharedRect;
+  {
+    omni_mutex_lock l(m_regionLock);
+    sharedRect = m_server->GetSharedRect();
+  }
+  // FIXME: This can result in an empty rectangle.
+  IntersectRect(&rect, &rect, &sharedRect);
+
+  rect.left += sharedRect.left;
+  rect.right += sharedRect.top;
+  m_jpegEncoder->encodeRectangle(rect);
+  const char *data = m_jpegEncoder->getDataPtr();
+  size_t len = m_jpegEncoder->getDataLength();
+
+  // Send the encoded data
+  rfbFramebufferUpdateRectHeader surh;
+  surh.r.x = (CARD16)rect.left;
+  surh.r.y = (CARD16)rect.top;
+  surh.r.w = (CARD16)(rect.right - rect.left);
+  surh.r.h = (CARD16)(rect.bottom - rect.top);
+  surh.r.x = Swap16IfLE(surh.r.x - sharedRect.left);
+  surh.r.y = Swap16IfLE(surh.r.y - sharedRect.top);
+  surh.r.w = Swap16IfLE(surh.r.w);
+  surh.r.h = Swap16IfLE(surh.r.h);
+  surh.encoding = Swap32IfLE(rfbEncodingTight);
+
+  return m_socket->SendQueued((const char *)&surh, sizeof(rfbFramebufferUpdateRectHeader)) &&
+         SendJpegRectHeader(len, m_socket) &&
+         m_socket->SendQueued(data, len);
 }
 
 // Send a single CopyRect message

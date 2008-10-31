@@ -440,6 +440,10 @@
 					RelativePath=".\vncEncodeZlibHex.cpp"
 					>
 				</File>
+				<File
+					RelativePath=".\WindowsScreenJpegEncoder.cpp"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="GUI"
@@ -767,6 +771,10 @@
 			</File>
 			<File
 				RelativePath=".\WinDesktop.h"
+				>
+			</File>
+			<File
+				RelativePath=".\WindowsScreenJpegEncoder.h"
 				>
 			</File>
 			<File

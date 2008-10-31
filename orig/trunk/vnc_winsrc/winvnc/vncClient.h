@@ -56,6 +56,7 @@ typedef std::list<vncClientId> vncClientList;
 #include "vncRegion.h"
 #include "vncBuffer.h"
 #include "vncKeymap.h"
+#include "WindowsScreenJpegEncoder.h"
 
 // The vncClient class itself
 
@@ -136,6 +137,7 @@ protected:
 	BOOL SendRFBMsg(CARD8 type, BYTE *buffer, int buflen);
 	BOOL SendRectangles(rectlist &rects);
 	BOOL SendRectangle(RECT &rect);
+	BOOL SendVideoRectangle(RECT &rect);
 	BOOL SendCopyRect(RECT &dest, POINT &source);
 	BOOL SendCursorShapeUpdate();
 	BOOL SendCursorPosUpdate();
@@ -159,6 +161,9 @@ protected:
 
 	// The screen buffer
 	vncBuffer		*m_buffer;
+
+	// Special encoder for video data
+	WindowsScreenJpegEncoder *m_jpegEncoder;
 
 	// The server
 	vncServer		*m_server;

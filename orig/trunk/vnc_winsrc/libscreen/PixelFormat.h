@@ -36,6 +36,18 @@ struct PixelFormat
     bigEndian = (testBigEndian.test == 0);
   }
 
+  bool cmp(const PixelFormat *pf) {
+    return bitsPerPixel == pf->bitsPerPixel &&
+           colorDepth   == pf->colorDepth &&
+           redMax       == pf->redMax &&
+           greenMax     == pf->greenMax &&
+           blueMax      == pf->blueMax &&
+           redShift     == pf->redShift &&
+           greenShift   == pf->greenShift &&
+           blueShift    == pf->blueShift &&
+           bigEndian    == pf->bigEndian;
+  }
+
   unsigned short bitsPerPixel;
   unsigned short colorDepth;
 

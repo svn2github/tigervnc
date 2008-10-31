@@ -241,10 +241,6 @@ bool WindowsScreenGrabber::grab(const Rect *rect)
 
 bool WindowsScreenGrabber::grabByDIBSection(const Rect *rect)
 {
-  if (getPropertiesChanged()) {
-    return false;
-  }
-
   Dimension workDim = m_workFrameBuffer.getDimension();
   if (workDim.width != m_dibSectionDim.width ||
       workDim.height != m_dibSectionDim.height) {
@@ -259,7 +255,7 @@ bool WindowsScreenGrabber::grabByDIBSection(const Rect *rect)
     return false;
   }
 
-  return true;
+  return !getPropertiesChanged();
 }
 
 bool WindowsScreenGrabber::fillPixelFormat(PixelFormat *pixelFormat, const BMI *bmi)

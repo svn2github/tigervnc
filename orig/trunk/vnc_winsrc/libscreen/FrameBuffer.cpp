@@ -49,16 +49,14 @@ bool FrameBuffer::assignProperties(const FrameBuffer *srcFrameBuffer, const bool
 
 bool FrameBuffer::cmp(const FrameBuffer *frameBuffer)
 {
-  return m_dimension.cmpDim(&(frameBuffer->getDimension())) &&
-         (memcmp(&m_pixelFormat, &(frameBuffer->getPixelFormat()),
-         sizeof(PixelFormat)) == 0);
+  return m_dimension.cmpDim(&frameBuffer->getDimension()) &&
+         m_pixelFormat.cmp(&frameBuffer->getPixelFormat());
 }
 
 bool FrameBuffer::copyFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
                            const int srcX, const int srcY)
 {
-  if (memcmp(&m_pixelFormat, &srcFrameBuffer->getPixelFormat(),
-              sizeof(PixelFormat)) != 0) {
+  if (!m_pixelFormat.cmp(&srcFrameBuffer->getPixelFormat())) {
     return false;
   }
 
@@ -111,8 +109,7 @@ bool FrameBuffer::cmpFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffer
                            const int srcX, const int srcY)
 {
   // FIXME: Remove code duplicate (copyFrom() function)
-  if (memcmp(&m_pixelFormat, &srcFrameBuffer->getPixelFormat(),
-              sizeof(PixelFormat)) != 0) {
+  if (!m_pixelFormat.cmp(&srcFrameBuffer->getPixelFormat())) {
     return false;
   }
 

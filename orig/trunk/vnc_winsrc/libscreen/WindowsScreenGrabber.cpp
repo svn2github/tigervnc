@@ -134,7 +134,7 @@ bool WindowsScreenGrabber::getPixelFormatChanged()
   PixelFormat frameBufferPF = m_workFrameBuffer.getPixelFormat();
   fillPixelFormat(&currentPF, &bmi);
 
-  if (memcmp(&frameBufferPF, &currentPF, sizeof(PixelFormat))) {
+  if (!frameBufferPF.cmp(&currentPF)) {
     return true;
   }
 

@@ -67,7 +67,7 @@ void UpdateHandler::extract(UpdateContainer *updateContainer)
       updateContainer->screenSizeChanged = true;
     }
     m_screenGrabber.applyNewProperties();
-    m_backupFrameBuffer.assignProperties(m_screenGrabber.getScreenBuffer());
+    m_backupFrameBuffer.clone(m_screenGrabber.getScreenBuffer());
   }
 
   m_criticalSection.leave();

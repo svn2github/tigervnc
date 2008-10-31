@@ -37,7 +37,7 @@ public:
   UpdateHandler(UpdateListener *outUpdateListener);
   ~UpdateHandler(void);
 
-  void extract(UpdateContainer *updateContainer);
+  void extract(UpdateContainer *updateContainer, bool fullUpdateRequest = false);
 
   virtual void executeDetectors();
   virtual void terminateDetectors();

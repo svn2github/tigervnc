@@ -231,12 +231,15 @@ BOOL WinDesktop::GetRichCursorData(BYTE *databuf, HCURSOR hcursor, int width, in
 
 bool WinDesktop::sendUpdate()
 {
-  if (!m_server->IncrRgnRequested() && !m_server->FullRgnRequested()) {
+  bool fullUpdateRequest = m_server->FullRgnRequested() != 0;
+  bool incrUpdateRequest = m_server->IncrRgnRequested() != 0;
+
+  if (!incrUpdateRequest && !fullUpdateRequest) {
     return true;
   }
 
   UpdateContainer updateContainer;
-  m_updateHandler->extract(&updateContainer);
+  m_updateHandler->extract(&updateContainer, fullUpdateRequest);
 
   if (updateContainer.isEmpty()) {
     // Check for video area presence.

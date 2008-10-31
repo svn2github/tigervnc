@@ -54,9 +54,13 @@ UpdateHandler::~UpdateHandler(void)
   delete m_updateFilter;
 }
 
-void UpdateHandler::extract(UpdateContainer *updateContainer)
+void UpdateHandler::extract(UpdateContainer *updateContainer, bool fullUpdateRequest)
 {
   m_criticalSection.enter();
+
+  if (fullUpdateRequest) {
+    m_updateKeeper->addChangedRect(&m_screenGrabber.getScreenRect());
+  }
 
   m_updateKeeper->extract(updateContainer);
 

@@ -51,6 +51,8 @@ bool WinDesktop::Init(vncServer *server)
     return false;
   }
 
+  m_pixelFormat = m_updateHandler->getFrameBuffer()->getPixelFormat();
+
   resume();
 
   return true;
@@ -101,17 +103,17 @@ void WinDesktop::TryActivateHooks()
 void WinDesktop::FillDisplayInfo(rfbServerInitMsg *scrInfo)
 {
   const FrameBuffer *fb = m_updateHandler->getFrameBuffer();
-  PixelFormat pf = fb->getPixelFormat();
+  m_pixelFormat = fb->getPixelFormat();
 
-  scrInfo->format.bigEndian = pf.bigEndian;
-  scrInfo->format.bitsPerPixel  = (CARD8)pf.bitsPerPixel;
-  scrInfo->format.redMax        = pf.redMax;
-  scrInfo->format.redShift      = (CARD8)pf.redShift;
-  scrInfo->format.greenMax      = pf.greenMax;
-  scrInfo->format.greenShift    = (CARD8)pf.greenShift;
-  scrInfo->format.blueMax       = pf.blueMax;
-  scrInfo->format.blueShift     = (CARD8)pf.blueShift;
-  scrInfo->format.depth         = (CARD8)pf.colorDepth;
+  scrInfo->format.bigEndian     = m_pixelFormat.bigEndian;
+  scrInfo->format.bitsPerPixel  = (CARD8)m_pixelFormat.bitsPerPixel;
+  scrInfo->format.redMax        = m_pixelFormat.redMax;
+  scrInfo->format.redShift      = (CARD8)m_pixelFormat.redShift;
+  scrInfo->format.greenMax      = m_pixelFormat.greenMax;
+  scrInfo->format.greenShift    = (CARD8)m_pixelFormat.greenShift;
+  scrInfo->format.blueMax       = m_pixelFormat.blueMax;
+  scrInfo->format.blueShift     = (CARD8)m_pixelFormat.blueShift;
+  scrInfo->format.depth         = (CARD8)m_pixelFormat.colorDepth;
   scrInfo->format.trueColour    = 1;
   scrInfo->format.pad1          = 0;
   scrInfo->format.pad2          = 0;
@@ -251,7 +253,13 @@ bool WinDesktop::sendUpdate()
 
     if (updateContainer.screenSizeChanged) {
       setNewScreenSize();
+      updateBufferNotify();
       return true;
+    }
+
+    // Checking for PixelFormat changing
+    if (!m_pixelFormat.cmp(&m_updateHandler->getFrameBuffer()->getPixelFormat())) {
+      updateBufferNotify();
     }
 
     std::vector<Rect> rects;
@@ -336,4 +344,10 @@ void WinDesktop::setNewScreenSize()
   m_bmrect.top    = 0;
   m_bmrect.right  = GetSystemMetrics(SM_CXVIRTUALSCREEN);
   m_bmrect.bottom = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+}
+
+void WinDesktop::updateBufferNotify()
+{
+  m_server->UpdateLocalFormat();
+  m_server->UpdatePalette();
 }

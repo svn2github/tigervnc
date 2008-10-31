@@ -75,8 +75,11 @@ protected:
 
   void setNewScreenSize();
 
+  void updateBufferNotify();
+
   UpdateHandler *m_updateHandler;
   WindowsMouseGrabber m_mouseGrabber;
+  PixelFormat m_pixelFormat;
   vncServer *m_server;
   RECT m_bmrect;
 

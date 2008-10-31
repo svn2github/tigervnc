@@ -9,6 +9,7 @@ extern "C" {
 
 #include "stdhdrs.h"
 #include "rfb.h"
+#include "libscreen/PixelFormat.h"
 
 //
 // An abstract interface for performing JPEG compression.
@@ -23,7 +24,7 @@ public:
   virtual void setQuality(int level) = 0;
 
   // Actually compress an image.
-  virtual void compress(const CARD32 *buf, const rfbPixelFormat *fmt,
+  virtual void compress(const CARD32 *buf, const PixelFormat *fmt,
                         int w, int h, int stride) = 0;
 
   // Access results of the compression.
@@ -46,7 +47,7 @@ public:
   virtual void setQuality(int level);
 
   // Actually compress the image.
-  virtual void compress(const CARD32 *buf, const rfbPixelFormat *fmt,
+  virtual void compress(const CARD32 *buf, const PixelFormat *fmt,
                         int w, int h, int stride);
 
   // Access results of the compression.

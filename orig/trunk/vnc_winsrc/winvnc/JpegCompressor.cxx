@@ -149,7 +149,7 @@ StandardJpegCompressor::setQuality(int level)
 
 void
 StandardJpegCompressor::compress(const CARD32 *buf,
-                                 const rfbPixelFormat *fmt,
+                                 const PixelFormat *fmt,
                                  int w, int h, int stride)
 {
   m_cinfo.image_width = w;

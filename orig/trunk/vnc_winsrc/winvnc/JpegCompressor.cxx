@@ -65,7 +65,7 @@ StandardJpegCompressor::StandardJpegCompressor()
   m_cinfo.input_components = 3;
   m_cinfo.in_color_space = JCS_RGB;
   jpeg_set_defaults(&m_cinfo);
-  jpeg_set_quality(&m_cinfo, DEFAULT_QUALITY, true);
+  jpeg_set_quality(&m_cinfo, DEFAULT_JPEG_QUALITY, true);
 
   // We prefer speed over quality.
   m_cinfo.dct_method = JDCT_FASTEST;

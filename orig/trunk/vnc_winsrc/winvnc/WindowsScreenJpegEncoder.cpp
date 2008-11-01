@@ -22,6 +22,7 @@
 #include "WindowsScreenJpegEncoder.h"
 
 WindowsScreenJpegEncoder::WindowsScreenJpegEncoder()
+: m_headerLength(0)
 {
 }
 
@@ -47,4 +48,22 @@ void WindowsScreenJpegEncoder::encodeRectangle(const RECT &rect)
   _ASSERT(fmt.colorDepth == 24);
 
   m_compressor.compress(ptr, &fmt, r.getWidth(), r.getHeight(), stride);
+
+  encodeLength(getDataLength());
+}
+
+void WindowsScreenJpegEncoder::encodeLength(int compressedLen)
+{
+  m_headerLength = 0;
+
+  m_header[m_headerLength++] = (char)0x90;
+  m_header[m_headerLength++] = compressedLen & 0x7F;
+  if (compressedLen > 0x7F) {
+    m_header[m_headerLength-1] |= 0x80;
+    m_header[m_headerLength++] = compressedLen >> 7 & 0x7F;
+    if (compressedLen > 0x3FFF) {
+      m_header[m_headerLength-1] |= 0x80;
+      m_header[m_headerLength++] = compressedLen >> 14 & 0xFF;
+    }
+  }
 }

@@ -2408,25 +2408,6 @@ vncClient::SendRectangle(RECT &rect)
     return m_socket->SendQueued((char *)(m_buffer->GetClientBuffer()), bytes);
 }
 
-// FIXME: Get rid of the static function.
-static BOOL SendJpegRectHeader(int compressedLen, VSocket *socket)
-{
-  char buf[4];
-  int bufBytes = 0;
-
-  buf[bufBytes++] = (char)0x90;
-  buf[bufBytes++] = compressedLen & 0x7F;
-  if (compressedLen > 0x7F) {
-    buf[bufBytes-1] |= 0x80;
-    buf[bufBytes++] = compressedLen >> 7 & 0x7F;
-    if (compressedLen > 0x3FFF) {
-      buf[bufBytes-1] |= 0x80;
-      buf[bufBytes++] = compressedLen >> 14 & 0xFF;
-    }
-  }
-  return socket->SendQueued(buf, bufBytes);
-}
-
 // FIXME: Rewrite this function.
 BOOL
 vncClient::SendVideoRectangle(RECT &rect)
@@ -2442,8 +2423,10 @@ vncClient::SendVideoRectangle(RECT &rect)
   rect.left += sharedRect.left;
   rect.right += sharedRect.top;
   m_jpegEncoder->encodeRectangle(rect);
+  const char *header = m_jpegEncoder->getHeaderPtr();
+  size_t headerLen = m_jpegEncoder->getHeaderLength();
   const char *data = m_jpegEncoder->getDataPtr();
-  size_t len = m_jpegEncoder->getDataLength();
+  size_t dataLen = m_jpegEncoder->getDataLength();
 
   // Send the encoded data
   rfbFramebufferUpdateRectHeader surh;
@@ -2457,9 +2440,9 @@ vncClient::SendVideoRectangle(RECT &rect)
   surh.r.h = Swap16IfLE(surh.r.h);
   surh.encoding = Swap32IfLE(rfbEncodingTight);
 
-  return m_socket->SendQueued((const char *)&surh, sizeof(rfbFramebufferUpdateRectHeader)) &&
-         SendJpegRectHeader(len, m_socket) &&
-         m_socket->SendQueued(data, len);
+  return (m_socket->SendQueued((const char *)&surh, sizeof(surh)) &&
+          m_socket->SendQueued(header, headerLen) &&
+          m_socket->SendQueued(data, dataLen));
 }
 
 // Send a single CopyRect message

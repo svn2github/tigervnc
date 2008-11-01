@@ -37,12 +37,18 @@ public:
   void encodeRectangle(const RECT &rect);
 
   // Access results of the compression.
+  size_t getHeaderLength() { return m_headerLength; }
+  const char *getHeaderPtr() { return m_header; }
   size_t getDataLength() { return m_compressor.getDataLength(); }
   const char *getDataPtr() { return m_compressor.getDataPtr(); }
 
 private:
+  void encodeLength(int compressedLen);
+
   StandardJpegCompressor m_compressor;
   WindowsScreenGrabber m_grabber;
+  char m_header[4];
+  size_t m_headerLength;
 };
 
 #endif // __WINDOWSSCREENJPEGENCODER_H__

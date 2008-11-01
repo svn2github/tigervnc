@@ -20,12 +20,14 @@
 // TightVNC homepage on the Web: http://www.tightvnc.com/
 
 #include "WindowsScreenGrabber.h"
+#include "DesktopSelector.h"
 
 WindowsScreenGrabber::WindowsScreenGrabber(void)
 : m_destDC(NULL), m_screenDC(NULL), m_hbmDIB(NULL), m_hbmOld(NULL)
 {
   setWorkRectDefault();
   applyNewProperties();
+  DesktopSelector::init();
 }
 
 WindowsScreenGrabber::~WindowsScreenGrabber(void)
@@ -224,6 +226,11 @@ bool WindowsScreenGrabber::applyNewFullScreenRect()
 
 bool WindowsScreenGrabber::grab(const Rect *rect)
 {
+  // FIXME: vncService function temporary usage should be removed.
+  if (!DesktopSelector::selectDesktop(NULL)) {
+    return false;
+  }
+
   if (rect != NULL) {
     return grabByDIBSection(rect);
   }

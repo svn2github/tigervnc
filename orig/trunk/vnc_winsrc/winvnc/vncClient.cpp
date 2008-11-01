@@ -2355,7 +2355,7 @@ vncClient::SendUpdate()
 	}
 
 	// Encode & send the actual rectangles
-	if (!SendRectangles(toBeSentList))
+	if (!sendRectangles(toBeSentList, false))
 		return TRUE;
 
 	// Send LastRect marker if needed.
@@ -2370,24 +2370,20 @@ vncClient::SendUpdate()
 	return TRUE;
 }
 
-// Send a set of rectangles
-BOOL
-vncClient::SendRectangles(rectlist &rects)
+bool vncClient::sendRectangles(rectlist &rects, bool asVideo)
 {
-	RECT rect;
+  typedef BOOL (vncClient::*SendFuncPtr)(RECT &rect);
+  SendFuncPtr sendFunction =
+    asVideo ? &vncClient::SendVideoRectangle : &vncClient::SendRectangle;
 
-	// Work through the list of rectangles, sending each one
-	while(!rects.empty())
-	{
-		rect = rects.front();
-		if (!SendRectangle(rect))
-			return FALSE;
-
-		rects.pop_front();
-	}
-	rects.clear();
-
-	return TRUE;
+  while (!rects.empty()) {
+    RECT rect = rects.front();
+    if (!(this->*sendFunction)(rect)) {
+      return false;
+    }
+    rects.pop_front();
+  }
+  return true;
 }
 
 // Tell the encoder to send a single rectangle

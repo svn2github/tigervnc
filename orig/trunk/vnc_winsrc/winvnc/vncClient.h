@@ -135,8 +135,16 @@ public:
 protected:
 	BOOL SendUpdate();
 	BOOL SendRFBMsg(CARD8 type, BYTE *buffer, int buflen);
-	BOOL SendRectangles(rectlist &rects);
-	BOOL SendRectangle(RECT &rect);
+
+    //
+    // Send a list of rectangles. Each rectangle which was sent successfully is
+    // removed from the rectangle list. If asVideo is true, all the rectangles
+    // will be encoded using an encoder suitable for video (currently, JPEG
+    // encoder is be used for video).
+    //
+    bool sendRectangles(rectlist &rects, bool asVideo);
+
+    BOOL SendRectangle(RECT &rect);
 	BOOL SendVideoRectangle(RECT &rect);
 	BOOL SendCopyRect(RECT &dest, POINT &source);
 	BOOL SendCursorShapeUpdate();

@@ -39,9 +39,6 @@ public:
 
   void extract(UpdateContainer *updateContainer, bool fullUpdateRequest = false);
 
-  virtual void executeDetectors();
-  virtual void terminateDetectors();
-
   bool checkForUpdates(rfb::Region *region);
 
   void setExcludedRegion(const rfb::Region *excludedRegion);
@@ -51,6 +48,9 @@ public:
   virtual void onUpdate();
 
 private:
+  virtual void executeDetectors();
+  virtual void terminateDetectors();
+
   UpdateListener *m_registerUpdateListener;
   UpdateKeeper *m_updateKeeper;
   UpdateFilter *m_updateFilter;

@@ -1100,16 +1100,10 @@ vncClientThread::run(void *arg)
 					m_client->m_cursor_pos.x = msg.pe.x;
 					m_client->m_cursor_pos.y = msg.pe.y;
 
-					// if we share only one window...
+					// Obtain the shared part of the screen
+					RECT coord = m_server->GetSharedRect();
 
-					RECT coord;
-					{
-						omni_mutex_lock l(m_client->m_regionLock);
-
-						coord = m_server->GetSharedRect();
-					}
-
-					// to put position relative to screen
+					// Compute the position relative to screen
 					msg.pe.x = msg.pe.x + (CARD16)coord.left;
 					msg.pe.y = msg.pe.y + (CARD16)coord.top;
 					bool isblack = false;
@@ -2390,14 +2384,11 @@ bool vncClient::sendRectangles(rectlist &rects, bool asVideo)
 BOOL
 vncClient::SendRectangle(RECT &rect)
 {
-	RECT sharedRect;
-	{
-		omni_mutex_lock l(m_regionLock);
-		sharedRect = m_server->GetSharedRect();
-	}
 	// FIXME: This can result in an empty rectangle.
+	RECT sharedRect = m_server->GetSharedRect();
 	IntersectRect(&rect, &rect, &sharedRect);
-	// Get the buffer to encode the rectangle
+
+    // Get the buffer to encode the rectangle
 	UINT bytes = m_buffer->TranslateRect(rect, m_socket, sharedRect.left, sharedRect.top);
 
     // Send the encoded data
@@ -2408,12 +2399,8 @@ vncClient::SendRectangle(RECT &rect)
 BOOL
 vncClient::SendVideoRectangle(RECT &rect)
 {
-  RECT sharedRect;
-  {
-    omni_mutex_lock l(m_regionLock);
-    sharedRect = m_server->GetSharedRect();
-  }
   // FIXME: This can result in an empty rectangle.
+  RECT sharedRect = m_server->GetSharedRect();
   IntersectRect(&rect, &rect, &sharedRect);
 
   rect.left += sharedRect.left;

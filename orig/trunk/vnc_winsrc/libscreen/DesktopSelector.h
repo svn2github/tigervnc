@@ -29,8 +29,11 @@
 class DesktopSelector
 {
 public:
-  static BOOL selectDesktop(TCHAR *name);
+  static BOOL selectDesktop();
   static BOOL selectHDESK(HDESK new_desktop);
+
+  static HDESK getCurrentDesktop();
+  static BOOL getDesktopChanging();
 
   inline static BOOL isWinNT()
   {

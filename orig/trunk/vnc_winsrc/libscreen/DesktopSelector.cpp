@@ -27,49 +27,36 @@ unsigned int DesktopSelector::m_platform_id = 0;
 unsigned int DesktopSelector::m_version_major = 0;
 unsigned int DesktopSelector::m_version_minor = 0;
 
-BOOL DesktopSelector::selectDesktop(TCHAR *name)
+HDESK DesktopSelector::getCurrentDesktop()
 {
+  HDESK desktop = 0;
   // Are we running on NT?
-  if (isWinNT())
-  {
-    HDESK desktop;
+  if (isWinNT()) {
+    // No, so open the input desktop
+    desktop = OpenInputDesktop(0, TRUE,
+                               DESKTOP_CREATEMENU | DESKTOP_CREATEWINDOW |
+                               DESKTOP_ENUMERATE | DESKTOP_HOOKCONTROL |
+                               DESKTOP_WRITEOBJECTS | DESKTOP_READOBJECTS |
+                               DESKTOP_SWITCHDESKTOP | GENERIC_WRITE);
+  }
 
-    if (name != NULL)
-    {
-      // Attempt to open the named desktop
-      desktop = OpenDesktop(name, 0, FALSE,
-                            DESKTOP_CREATEMENU | DESKTOP_CREATEWINDOW |
-                            DESKTOP_ENUMERATE | DESKTOP_HOOKCONTROL |
-                            DESKTOP_WRITEOBJECTS | DESKTOP_READOBJECTS |
-                            DESKTOP_SWITCHDESKTOP | GENERIC_WRITE);
-    }
-    else
-    {
-      // No, so open the input desktop
-      desktop = OpenInputDesktop(0, FALSE,
-                                 DESKTOP_CREATEMENU | DESKTOP_CREATEWINDOW |
-                                 DESKTOP_ENUMERATE | DESKTOP_HOOKCONTROL |
-                                 DESKTOP_WRITEOBJECTS | DESKTOP_READOBJECTS |
-                                 DESKTOP_SWITCHDESKTOP | GENERIC_WRITE);
-    }
+  return desktop;
+}
 
-    // Did we succeed?
-    if (desktop == NULL) {
-      return FALSE;
-    }
+BOOL DesktopSelector::selectDesktop()
+{
+  HDESK desktop = getCurrentDesktop();
 
+  if (isWinNT()) {
     // Switch to the new desktop
     if (!selectHDESK(desktop)) {
       // Failed to enter the new desktop, so free it!
       if (!CloseDesktop(desktop)) {}
       return FALSE;
     }
-
-    // We successfully switched desktops!
-    return TRUE;
   }
 
-  return (name == NULL);
+  return TRUE;
 }
 
 BOOL DesktopSelector::selectHDESK(HDESK new_desktop)
@@ -93,9 +80,55 @@ BOOL DesktopSelector::selectHDESK(HDESK new_desktop)
 
     // Switched successfully - destroy the old desktop
     if (!CloseDesktop(old_desktop))
-
       return TRUE;
   }
 
   return TRUE;
+}
+
+BOOL DesktopSelector::getDesktopChanging()
+{
+  // Are we running on NT?
+  if (isWinNT())
+  {
+    // Get the input and thread desktops
+    HDESK threaddesktop = GetThreadDesktop(GetCurrentThreadId());
+    HDESK inputdesktop = OpenInputDesktop(0, TRUE,
+                                          DESKTOP_CREATEMENU |
+                                          DESKTOP_CREATEWINDOW |
+                                          DESKTOP_ENUMERATE |
+                                          DESKTOP_HOOKCONTROL |
+                                          DESKTOP_WRITEOBJECTS |
+                                          DESKTOP_READOBJECTS |
+                                          DESKTOP_SWITCHDESKTOP |
+                                          GENERIC_WRITE);
+
+    if (inputdesktop == NULL) {
+      // Returning TRUE on ERROR_BUSY fixes the bug #1109102.
+      // FIXME: Probably this is not the most correct way to do it.
+      return (GetLastError() == ERROR_BUSY) ? FALSE : TRUE;
+    }
+
+    DWORD dummy;
+    char threadname[256];
+    char inputname[256];
+
+    if (!GetUserObjectInformation(threaddesktop, UOI_NAME, &threadname, 256, &dummy)) {
+      if (!CloseDesktop(inputdesktop)) {}
+      return FALSE;
+    }
+
+    if (!GetUserObjectInformation(inputdesktop, UOI_NAME, &inputname, 256, &dummy)) {
+      if (!CloseDesktop(inputdesktop)) {}
+      return FALSE;
+    }
+
+    if (!CloseDesktop(inputdesktop)) {}
+
+    if (strcmp(threadname, inputname) != 0) {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
 }

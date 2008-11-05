@@ -284,6 +284,46 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 			}
 			continue;
 		}
+		if (strncmp(&szCmdLine[i], winvncVideoClass, arglen) == 0 &&
+			arglen == strlen(winvncVideoClass))
+		{
+			// Find a window to share, by its title
+			i += arglen;
+
+			cancelConnect = true;	// Ignore the -connect option unless
+									// there will be valid window to share
+
+			int start = i, end;
+			while (szCmdLine[start] && szCmdLine[start] <= ' ') start++;
+			if (szCmdLine[start] == '"') {
+				start++;
+				char *ptr = strchr(&szCmdLine[start], '"');
+				if (ptr == NULL) {
+					end = strlen(szCmdLine);
+					i = end;
+				} else {
+					end = ptr - szCmdLine;
+					i = end + 1;
+				}
+			} else {
+				end = start;
+				while (szCmdLine[end] > ' ') end++;
+				i = end;
+			}
+			if (end - start > 0) {
+				char *title = new char[end - start + 1];
+				if (title != NULL) {
+					strncpy(title, &szCmdLine[start], end - start);
+					title[end - start] = 0;
+					HWND hwndFound = vncService::FindWindowByClass(title);
+					if (hwndFound != NULL)
+						cancelConnect = false;
+					vncService::PostVideoClass(hwndFound);
+					delete [] title;
+				}
+			}
+			continue;
+		}
 		if (strncmp(&szCmdLine[i], winvncAddNewClient, arglen) == 0 &&
 			arglen == strlen(winvncAddNewClient) && connectName == NULL)
 		{

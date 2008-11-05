@@ -49,6 +49,7 @@ const UINT MENU_SERVER_SHAREALL = RegisterWindowMessage("WinVNC.Server.ShareAll"
 const UINT MENU_SERVER_SHAREPRIMARY = RegisterWindowMessage("WinVNC.Server.SharePrimary");
 const UINT MENU_SERVER_SHAREAREA = RegisterWindowMessage("WinVNC.Server.ShareArea");
 const UINT MENU_SERVER_SHAREWINDOW = RegisterWindowMessage("WinVNC.Server.ShareWindow");
+const UINT MENU_SERVER_VIDEOCLASS = RegisterWindowMessage("WinVNC.Server.VideoClass");
 const UINT MENU_DEFAULT_PROPERTIES_SHOW = RegisterWindowMessage("WinVNC.Properties.Default.Show");
 const UINT MENU_ABOUTBOX_SHOW = RegisterWindowMessage("WinVNC.AboutBox.Show");
 const UINT MENU_SERVICEHELPER_MSG = RegisterWindowMessage("WinVNC.ServiceHelper.Message");
@@ -564,6 +565,14 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 				_this->m_server->ScreenAreaShared(false);
 				_this->m_server->WindowShared(true);
 				_this->m_server->SetApplication(false);
+			}
+			return 0;
+		}
+		if (iMsg == MENU_SERVER_VIDEOCLASS)
+		{
+			HWND hVideoWindow = (HWND)wParam;
+			if (hVideoWindow != NULL) {
+				_this->m_server->setVideoHWND(hVideoWindow);
 			}
 			return 0;
 		}

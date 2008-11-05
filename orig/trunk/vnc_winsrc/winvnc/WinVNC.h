@@ -78,6 +78,8 @@ const char winvncSharePrimary[]		= "-shareprimary";
 const char winvncShareArea[]		= "-sharearea";
 const char winvncShareWindow[]		= "-sharewindow";
 
+const char winvncVideoClass[]		= "-videoclass";
+
 const char winvncAddNewClient[]		= "-connect";
 const char winvncKillAllClients[]	= "-killallclients";
 

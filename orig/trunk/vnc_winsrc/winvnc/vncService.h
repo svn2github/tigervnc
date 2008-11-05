@@ -116,6 +116,9 @@ public:
 	static BOOL PostShareWindow(HWND hwnd);
 	static HWND FindWindowByTitle(char *substr);
 
+	static BOOL PostVideoClass(HWND hwnd);
+	static HWND FindWindowByClass(char *substr);
+
 	// Routine to make any currently running version of WinVNC show the
 	// Properties dialog for the default settings, so the user can make changes
 	static BOOL ShowDefaultProperties();

@@ -532,6 +532,18 @@ vncService::FindWindowByTitle(char *substr)
 	return hWindow;
 }
 
+HWND
+vncService::FindWindowByClass(char *substr)
+{
+	// Find window
+	HWND hwnd;
+	if ((hwnd = FindWindow(substr, NULL)) == NULL) {
+		MessageBox(NULL, "Unable to find a window with the specified class name.",
+				   szAppName, MB_ICONEXCLAMATION | MB_OK);
+	}
+	return hwnd;
+}
+
 BOOL
 vncService::PostShareAll()
 {
@@ -577,6 +589,19 @@ vncService::PostShareWindow(HWND hwnd)
 {
 	// Post to the WinVNC menu window
 	if (!PostToWinVNC(MENU_SERVER_SHAREWINDOW, (WPARAM)hwnd, 0))
+	{
+		MessageBox(NULL, "No existing instance of WinVNC could be contacted", szAppName, MB_ICONEXCLAMATION | MB_OK);
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+BOOL
+vncService::PostVideoClass(HWND hwnd)
+{
+	// Post to the WinVNC menu window
+	if (!PostToWinVNC(MENU_SERVER_VIDEOCLASS, (WPARAM)hwnd, 0))
 	{
 		MessageBox(NULL, "No existing instance of WinVNC could be contacted", szAppName, MB_ICONEXCLAMATION | MB_OK);
 		return FALSE;

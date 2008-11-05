@@ -77,6 +77,9 @@ protected:
 
   void updateBufferNotify();
 
+  // Check if the desktop handle has been changed and restart.
+  bool checkCurrentDesktop(bool *changed);
+
   UpdateHandler *m_updateHandler;
   WindowsMouseGrabber m_mouseGrabber;
   PixelFormat m_pixelFormat;

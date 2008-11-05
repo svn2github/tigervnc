@@ -20,6 +20,7 @@
 // TightVNC homepage on the Web: http://www.tightvnc.com/
 
 #include "MouseDetector.h"
+#include "libscreen/DesktopSelector.h"
 
 #define MOUSE_SLEEP_TIME 10
 
@@ -35,6 +36,8 @@ MouseDetector::~MouseDetector(void)
 
 void MouseDetector::execute()
 {
+  DesktopSelector::selectDesktop();
+
   POINT curPoint;
 
   while (!m_terminated) {

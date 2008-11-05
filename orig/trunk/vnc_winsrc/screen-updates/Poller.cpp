@@ -22,6 +22,7 @@
 #include <windows.h>
 #include "Poller.h"
 #include "region/Region.h"
+#include "libscreen/DesktopSelector.h"
 
 Poller::Poller(UpdateKeeper *updateKeeper,
                ScreenGrabber *screenGrabber,
@@ -42,6 +43,8 @@ Poller::~Poller(void)
 
 void Poller::execute()
 {
+  DesktopSelector::selectDesktop();
+
   FrameBuffer *screenFrameBuffer;
 
   m_frameBufferCriticalSection->enter();

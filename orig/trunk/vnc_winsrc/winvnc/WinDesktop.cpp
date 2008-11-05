@@ -21,12 +21,15 @@
 // TightVNC homepage on the Web: http://www.tightvnc.com/
 
 #include "WinDesktop.h"
+#include "libscreen/DesktopSelector.h"
+#include "thread/time.h"
 
 WinDesktop::WinDesktop()
 : m_updateHandler(0),
   m_server(0),
   m_hEvent(0)
 {
+  DesktopSelector::init();
 }
 
 WinDesktop::~WinDesktop()
@@ -69,7 +72,6 @@ void WinDesktop::execute()
   if (m_hEvent == 0) {
     return;
   }
-
 
   while(!m_terminated) {
     WaitForSingleObject(m_hEvent, INFINITE);
@@ -238,8 +240,16 @@ bool WinDesktop::sendUpdate()
     return true;
   }
 
+  bool desktopChanged = false;
+  checkCurrentDesktop(&desktopChanged);
+
   UpdateContainer updateContainer;
   m_updateHandler->extract(&updateContainer, fullUpdateRequest);
+
+  if (desktopChanged) {
+    setNewScreenSize();
+    updateBufferNotify();
+  }
 
   if (updateContainer.isEmpty()) {
     // Check for video area presence.
@@ -249,7 +259,6 @@ bool WinDesktop::sendUpdate()
       return true;
     }
   } else {
-
     if (updateContainer.cursorPosChanged) {
       m_server->UpdateMouse();
     }
@@ -353,4 +362,26 @@ void WinDesktop::updateBufferNotify()
 {
   m_server->UpdateLocalFormat();
   m_server->UpdatePalette();
+}
+
+bool WinDesktop::checkCurrentDesktop(bool *changed)
+{
+  *changed = false;
+
+  if (DesktopSelector::getDesktopChanging()) {
+    if (!DesktopSelector::selectDesktop()) {
+      vnclog.Print(LL_INTERR, VNCLOG("cannot select desktop\n"));
+      return false;
+    }
+
+    // Restarting UpdateHandler;
+    if (m_updateHandler != 0) {
+      delete m_updateHandler;
+    }
+    m_updateHandler = new UpdateHandler(this);
+
+    *changed = true;
+  }
+
+  return true;
 }

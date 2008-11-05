@@ -22,6 +22,7 @@
 #include "HooksUpdateDetector.h"
 #include "TCHAR.h"
 #include "region/Rect.h"
+#include "libscreen/DesktopSelector.h"
 
 // Constants
 const UINT RFB_SCREEN_UPDATE = RegisterWindowMessage(_T("TightVNC.Server.Update.DrawRect"));
@@ -54,6 +55,8 @@ void HooksUpdateDetector::onTerminate()
 
 bool HooksUpdateDetector::initHook()
 {
+  DesktopSelector::selectDesktop();
+
   HINSTANCE hinst = GetModuleHandle(0);
 
   m_hooksTargetWindow = new HooksTargetWindow(hinst);

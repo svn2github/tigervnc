@@ -71,8 +71,7 @@ bool HooksUpdateDetector::initHook()
 
   m_pSetHook = (PSetHook)::GetProcAddress(m_hHooks, SET_HOOK_FUNCTION_NAME);
   m_pUnSetHook = (PUnSetHook)::GetProcAddress(m_hHooks, UNSET_HOOK_FUNCTION_NAME);
-  if (!m_pSetHook || !m_pUnSetHook)
-  {
+  if (!m_pSetHook || !m_pUnSetHook) {
     return false;
   }
 

@@ -2236,15 +2236,17 @@ vncClient::SendUpdate()
 	toBeSent.Clear();
 
 	if (!m_full_rgn.IsEmpty()) {
-		m_incr_rgn.Clear();
-		m_copyrect_set = false;
+		m_incr_rgn.Clear(); // FIXME: Why incremental region is cleared here?
+		m_copyrect_set = false; // FIXME: Why CopyRect is removed even if it is not in m_full_region?
 		toBeSent.Combine(m_full_rgn);
-		m_changed_rgn.Clear();
+		m_changed_rgn.Clear(); // FIXME: Should not we remove changes only within m_full_region?
 		m_full_rgn.Clear();
 	} else {
 		if (!m_incr_rgn.IsEmpty()) {
 			// Get region to send from WinDesktop
 			toBeSent.Combine(m_changed_rgn);
+			// FIXME: Should we intersect toBeSent with shared desktop area?
+			// FIXME: Should we intersect toBeSent with m_incr_rgn?
 
 			// Mouse stuff for the case when cursor shape updates are off
 			if (!m_cursor_update_sent && !m_cursor_update_pending) {
@@ -2271,7 +2273,7 @@ vncClient::SendUpdate()
 					m_mousemoved = FALSE;
 				}
 			}
-			m_changed_rgn.Clear();
+			m_changed_rgn.Clear(); // FIXME: Clear just what we actually sent?
 		}
 	}
 

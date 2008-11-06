@@ -2366,13 +2366,10 @@ vncClient::SendUpdate()
 
 bool vncClient::sendRectangles(rectlist &rects, bool asVideo)
 {
-  typedef BOOL (vncClient::*SendFuncPtr)(RECT &rect);
-  SendFuncPtr sendFunction =
-    asVideo ? &vncClient::SendVideoRectangle : &vncClient::SendRectangle;
-
   while (!rects.empty()) {
     RECT rect = rects.front();
-    if (!(this->*sendFunction)(rect)) {
+    BOOL success = asVideo ? SendVideoRectangle(rect) : SendRectangle(rect);
+    if (!success) {
       return false;
     }
     rects.pop_front();

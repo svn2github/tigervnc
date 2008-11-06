@@ -2232,21 +2232,21 @@ vncClient::SendUpdate()
 		}
 	}
 
-	vncRegion toBeSent; // region to actually be sent
-	toBeSent.Clear();
+	vncRegion normalUpdates; // region to actually be sent
+	normalUpdates.Clear();
 
 	if (!m_full_rgn.IsEmpty()) {
 		m_incr_rgn.Clear(); // FIXME: Why incremental region is cleared here?
 		m_copyrect_set = false; // FIXME: Why CopyRect is removed even if it is not in m_full_region?
-		toBeSent.Combine(m_full_rgn);
+		normalUpdates.Combine(m_full_rgn);
 		m_changed_rgn.Clear(); // FIXME: Should not we remove changes only within m_full_region?
 		m_full_rgn.Clear();
 	} else {
 		if (!m_incr_rgn.IsEmpty()) {
 			// Get region to send from WinDesktop
-			toBeSent.Combine(m_changed_rgn);
-			// FIXME: Should we intersect toBeSent with shared desktop area?
-			// FIXME: Should we intersect toBeSent with m_incr_rgn?
+			normalUpdates.Combine(m_changed_rgn);
+			// FIXME: Should we intersect normalUpdates with shared desktop area?
+			// FIXME: Should we intersect normalUpdates with m_incr_rgn?
 
 			// Mouse stuff for the case when cursor shape updates are off
 			if (!m_cursor_update_sent && !m_cursor_update_pending) {
@@ -2255,7 +2255,7 @@ vncClient::SendUpdate()
 				if (!m_mousemoved) {
 					vncRegion tmpMouseRgn;
 					tmpMouseRgn.AddRect(m_oldmousepos);
-					tmpMouseRgn.Intersect(toBeSent);
+					tmpMouseRgn.Intersect(normalUpdates);
 					if (!tmpMouseRgn.IsEmpty()) 
 						m_mousemoved = TRUE;
 				}
@@ -2263,12 +2263,12 @@ vncClient::SendUpdate()
 				if (m_mousemoved) {
 					// Include an update for its previous position
 					if (IntersectRect(&m_oldmousepos, &m_oldmousepos, &m_server->GetSharedRect())) 
-						toBeSent.AddRect(m_oldmousepos);
+						normalUpdates.AddRect(m_oldmousepos);
 					// Update the cached mouse position
 					m_oldmousepos = m_buffer->GrabMouse();
 					// Include an update for its current position
 					if (IntersectRect(&m_oldmousepos, &m_oldmousepos, &m_server->GetSharedRect())) 
-						toBeSent.AddRect(m_oldmousepos);
+						normalUpdates.AddRect(m_oldmousepos);
 					// Indicate the move has been handled
 					m_mousemoved = FALSE;
 				}
@@ -2277,12 +2277,12 @@ vncClient::SendUpdate()
 		}
 	}
 
-	// Get the final list of normal rectangles to send.
-	rectlist toBeSentList;
-    BOOL notEmpty = toBeSent.Rectangles(toBeSentList);
+    // Get the final list of normal rectangles to send.
+    rectlist normalUpdatesList;
+    BOOL notEmpty = normalUpdates.Rectangles(normalUpdatesList);
 
     // Compute the number of encoded rectangles.
-    int numrects = notEmpty ? getNumEncodedRects(toBeSentList, false) : 0;
+    int numrects = notEmpty ? getNumEncodedRects(normalUpdatesList, false) : 0;
 
 	if (numrects != -1) {
 		// Count cursor shape and cursor position updates.
@@ -2340,7 +2340,7 @@ vncClient::SendUpdate()
 	}
 
 	// Encode & send the actual rectangles
-	if (!sendRectangles(toBeSentList, false))
+	if (!sendRectangles(normalUpdatesList, false))
 		return TRUE;
 
 	// Send LastRect marker if needed.
@@ -2350,7 +2350,7 @@ vncClient::SendUpdate()
 	}
 
 	// Both lists should be empty when we exit
-	_ASSERT(toBeSentList.empty());
+	_ASSERT(normalUpdatesList.empty());
 
 	return TRUE;
 }

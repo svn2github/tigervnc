@@ -139,15 +139,20 @@ protected:
     //
     // Return the number of rectangles produced by currently selected encoder
     // while processing the specified list of rectangles. The returned value
-    // may be greater than the number of elements of rectlist because some
+    // may be greater than the number of elements in rectlist because some
     // encoders may actually produce several smaller rectangles while encoding
     // one big rectangle.
     //
     // A special value -1 is returned when the encoder requires that LastRect
-    // extension will be used. In that case, the number
-    // of rectangles sent can be arbitrary and special LastRect pseudo-rectangle
+    // extension will be used. In that case, the number of rectangles sent can
+    // be arbitrary and special "LastRect" pseudo-rectangle is sent to specify
+    // that there are no more rectangles in this update.
     //
-    int getNumEncodedRects(rectlist &rects);
+    // If asVideo is true, all the rectangles are assumed to be encoded using
+    // an encoder suitable for video (currently, JPEG encoder is be used for
+    // video).
+    //
+    int getNumEncodedRects(rectlist &rects, bool asVideo);
 
     //
     // Send a list of rectangles. Each rectangle which was sent successfully is

@@ -2281,7 +2281,7 @@ vncClient::SendUpdate()
     BOOL notEmpty = toBeSent.Rectangles(toBeSentList);
 
     // Compute the number of encoded rectangles.
-    int numrects = notEmpty ? getNumEncodedRects(toBeSentList) : 0;
+    int numrects = notEmpty ? getNumEncodedRects(toBeSentList, false) : 0;
 
 	if (numrects != -1) {
 		// Count cursor shape and cursor position updates.
@@ -2307,7 +2307,11 @@ vncClient::SendUpdate()
 
 	// Otherwise, send <number of rectangles> header
 	rfbFramebufferUpdateMsg header;
-	header.nRects = Swap16IfLE(numrects);
+    if (numrects == -1) {
+      header.nRects = Swap16IfLE(0xFFFF);
+    } else {
+      header.nRects = Swap16IfLE(numrects);
+    }
 	if (!SendRFBMsg(rfbFramebufferUpdate, (BYTE *) &header, sz_rfbFramebufferUpdateMsg))
 		return TRUE;
 
@@ -2350,12 +2354,17 @@ vncClient::SendUpdate()
 	return TRUE;
 }
 
-int vncClient::getNumEncodedRects(rectlist &rects)
+int vncClient::getNumEncodedRects(rectlist &rects, bool asVideo)
 {
   int sum = 0;
 
   for (rectlist::iterator i = rects.begin(); i != rects.end(); i++) {
-    int numSubRects = m_buffer->GetNumCodedRects(*i);
+    int numSubRects;
+    if (asVideo) {
+      numSubRects = m_jpegEncoder->getNumCodedRects(*i);
+    } else {
+      numSubRects = m_buffer->GetNumCodedRects(*i);
+    }
     if (numSubRects == 0) {
       // Skip remaining rectangles if the encoder will use LastRect extension.
       return -1;

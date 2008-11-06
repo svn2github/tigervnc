@@ -2191,9 +2191,6 @@ vncClient::SendUpdate()
 		return TRUE;
 	}
 
-	vncRegion toBeSent;			// Region to actually be sent
-	vncRegion toBeDone;			// Region to check
-
 	// Prepare to send cursor position update if necessary
 	if (m_server->hasFakeCursorPos()) {
 		POINT p = m_server->getFakeCursorPos();
@@ -2235,7 +2232,9 @@ vncClient::SendUpdate()
 		}
 	}
 
+	vncRegion toBeSent; // region to actually be sent
 	toBeSent.Clear();
+
 	if (!m_full_rgn.IsEmpty()) {
 		m_incr_rgn.Clear();
 		m_copyrect_set = false;

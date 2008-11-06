@@ -2236,46 +2236,47 @@ vncClient::SendUpdate()
 	normalUpdates.Clear();
 
 	if (!m_full_rgn.IsEmpty()) {
-		m_incr_rgn.Clear(); // FIXME: Why incremental region is cleared here?
 		m_copyrect_set = false; // FIXME: Why CopyRect is removed even if it is not in m_full_region?
 		normalUpdates.Combine(m_full_rgn);
-		m_changed_rgn.Clear(); // FIXME: Should not we remove changes only within m_full_region?
 		m_full_rgn.Clear();
-	} else {
-		if (!m_incr_rgn.IsEmpty()) {
-			// Get region to send from WinDesktop
-			normalUpdates.Combine(m_changed_rgn);
-			// FIXME: Should we intersect normalUpdates with shared desktop area?
-			// FIXME: Should we intersect normalUpdates with m_incr_rgn?
-
-			// Mouse stuff for the case when cursor shape updates are off
-			if (!m_cursor_update_sent && !m_cursor_update_pending) {
-				// If the mouse hasn't moved, see if its position is in the rect
-				// we're sending. If so, make sure the full mouse rect is sent.
-				if (!m_mousemoved) {
-					vncRegion tmpMouseRgn;
-					tmpMouseRgn.AddRect(m_oldmousepos);
-					tmpMouseRgn.Intersect(normalUpdates);
-					if (!tmpMouseRgn.IsEmpty()) 
-						m_mousemoved = TRUE;
-				}
-				// If the mouse has moved (or otherwise needs an update):
-				if (m_mousemoved) {
-					// Include an update for its previous position
-					if (IntersectRect(&m_oldmousepos, &m_oldmousepos, &m_server->GetSharedRect())) 
-						normalUpdates.AddRect(m_oldmousepos);
-					// Update the cached mouse position
-					m_oldmousepos = m_buffer->GrabMouse();
-					// Include an update for its current position
-					if (IntersectRect(&m_oldmousepos, &m_oldmousepos, &m_server->GetSharedRect())) 
-						normalUpdates.AddRect(m_oldmousepos);
-					// Indicate the move has been handled
-					m_mousemoved = FALSE;
-				}
-			}
-			m_changed_rgn.Clear(); // FIXME: Clear just what we actually sent?
-		}
 	}
+
+	if (!m_incr_rgn.IsEmpty()) {
+		// Get region to send from WinDesktop
+		normalUpdates.Combine(m_changed_rgn);
+		// FIXME: Should we intersect normalUpdates with shared desktop area?
+		// FIXME: Should we intersect normalUpdates with m_incr_rgn?
+
+		// Mouse stuff for the case when cursor shape updates are off
+		if (!m_cursor_update_sent && !m_cursor_update_pending) {
+			// If the mouse hasn't moved, see if its position is in the rect
+			// we're sending. If so, make sure the full mouse rect is sent.
+			if (!m_mousemoved) {
+				vncRegion tmpMouseRgn;
+				tmpMouseRgn.AddRect(m_oldmousepos);
+				tmpMouseRgn.Intersect(normalUpdates);
+				if (!tmpMouseRgn.IsEmpty()) 
+					m_mousemoved = TRUE;
+			}
+			// If the mouse has moved (or otherwise needs an update):
+			if (m_mousemoved) {
+				// Include an update for its previous position
+				if (IntersectRect(&m_oldmousepos, &m_oldmousepos, &m_server->GetSharedRect())) 
+					normalUpdates.AddRect(m_oldmousepos);
+				// Update the cached mouse position
+				m_oldmousepos = m_buffer->GrabMouse();
+				// Include an update for its current position
+				if (IntersectRect(&m_oldmousepos, &m_oldmousepos, &m_server->GetSharedRect())) 
+					normalUpdates.AddRect(m_oldmousepos);
+				// Indicate the move has been handled
+				m_mousemoved = FALSE;
+			}
+		}
+		m_incr_rgn.Clear();
+	}
+
+    // The region that will be sent should be excluded from m_changed_rgn.
+    m_changed_rgn.Subtract(normalUpdates);
 
     // Get the final list of normal rectangles to send.
     rectlist normalUpdatesList;
@@ -2298,9 +2299,7 @@ vncClient::SendUpdate()
 		if (m_copyrect_set)
 			numrects++;
 		// If there are no rectangles then return
-		if (numrects != 0)
-			m_incr_rgn.Clear();
-		else
+		if (numrects == 0)
 			return FALSE;
 	}
 

@@ -59,7 +59,8 @@ void UpdateHandler::extract(UpdateContainer *updateContainer, bool fullUpdateReq
   m_criticalSection.enter();
 
   if (fullUpdateRequest) {
-    m_updateKeeper->addChangedRect(&m_screenGrabber.getScreenRect());
+    Rect updRect(&m_backupFrameBuffer.getDimension().getRect());
+    m_updateKeeper->addChangedRect(&updRect);
   }
 
   m_updateKeeper->extract(updateContainer);

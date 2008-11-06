@@ -2192,7 +2192,6 @@ vncClient::SendUpdate()
 	}
 
 	vncRegion toBeSent;			// Region to actually be sent
-	rectlist toBeSentList;		// List of rectangles to actually send
 	vncRegion toBeDone;			// Region to check
 
 	// Prepare to send cursor position update if necessary
@@ -2277,27 +2276,14 @@ vncClient::SendUpdate()
 		}
 	}
 
-	// Get the list of changed rectangles!
-	int numrects = 0;
-	if (toBeSent.Rectangles(toBeSentList))
-	{
-		// Find out how many rectangles this update will contain
-		rectlist::iterator i;
-		int numsubrects;
-		for (i=toBeSentList.begin(); i != toBeSentList.end(); i++)
-		{
-			numsubrects = m_buffer->GetNumCodedRects(*i);
+	// Get the final list of normal rectangles to send.
+	rectlist toBeSentList;
+    BOOL notEmpty = toBeSent.Rectangles(toBeSentList);
 
-			// Skip remaining rectangles if an encoder will use LastRect extension.
-			if (numsubrects == 0) {
-				numrects = 0xFFFF;
-				break;
-			}
-			numrects += numsubrects;
-		}
-	}
+    // Compute the number of encoded rectangles.
+    int numrects = notEmpty ? getNumEncodedRects(toBeSentList) : 0;
 
-	if (numrects != 0xFFFF) {
+	if (numrects != -1) {
 		// Count cursor shape and cursor position updates.
 #ifdef HORIZONLIVE
 		if (m_cursor_update_pending && isPtInSharedArea(m_cursor_pos))
@@ -2353,7 +2339,7 @@ vncClient::SendUpdate()
 		return TRUE;
 
 	// Send LastRect marker if needed.
-	if (numrects == 0xFFFF) {
+	if (numrects == -1) {
 		if (!SendLastRect())
 			return TRUE;
 	}
@@ -2362,6 +2348,22 @@ vncClient::SendUpdate()
 	_ASSERT(toBeSentList.empty());
 
 	return TRUE;
+}
+
+int vncClient::getNumEncodedRects(rectlist &rects)
+{
+  int sum = 0;
+
+  for (rectlist::iterator i = rects.begin(); i != rects.end(); i++) {
+    int numSubRects = m_buffer->GetNumCodedRects(*i);
+    if (numSubRects == 0) {
+      // Skip remaining rectangles if the encoder will use LastRect extension.
+      return -1;
+    }
+    sum += numSubRects;
+  }
+
+  return sum;
 }
 
 bool vncClient::sendRectangles(rectlist &rects, bool asVideo)

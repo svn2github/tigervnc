@@ -137,6 +137,19 @@ protected:
 	BOOL SendRFBMsg(CARD8 type, BYTE *buffer, int buflen);
 
     //
+    // Return the number of rectangles produced by currently selected encoder
+    // while processing the specified list of rectangles. The returned value
+    // may be greater than the number of elements of rectlist because some
+    // encoders may actually produce several smaller rectangles while encoding
+    // one big rectangle.
+    //
+    // A special value -1 is returned when the encoder requires that LastRect
+    // extension will be used. In that case, the number
+    // of rectangles sent can be arbitrary and special LastRect pseudo-rectangle
+    //
+    int getNumEncodedRects(rectlist &rects);
+
+    //
     // Send a list of rectangles. Each rectangle which was sent successfully is
     // removed from the rectangle list. If asVideo is true, all the rectangles
     // will be encoded using an encoder suitable for video (currently, JPEG

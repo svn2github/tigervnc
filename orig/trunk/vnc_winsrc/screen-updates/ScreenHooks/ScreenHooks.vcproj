@@ -209,10 +209,6 @@
 			RelativePath=".\ScreenHooks.h"
 			>
 		</File>
-		<File
-			RelativePath=".\ScreenHooks.rc"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>

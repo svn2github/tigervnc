@@ -37,12 +37,29 @@ public:
   UpdateHandler(UpdateListener *outUpdateListener);
   ~UpdateHandler(void);
 
+  // The extract() function fills in a UpdateContainer object. 
+  // Also, if screen properties (such as resolution, pixel format)
+  // has changed the function reconfigures FrameBuffers. The
+  // reconfiguration posible the only one function.
+
+  // Parameters: 
+  //   updateContainer - pointer to a UpdateContainer object that will be filled,
+  //   fullUpdateRequest - Флаг запроса полного обновления.
   void extract(UpdateContainer *updateContainer, bool fullUpdateRequest = false);
 
+  // Checking a region for updates.
+  // Return:
+  //   true - if updates presents,
+  //   false - if not.
   bool checkForUpdates(rfb::Region *region);
 
+  // Set a region excluded from the region that updates detects.
   void setExcludedRegion(const rfb::Region *excludedRegion);
 
+  // The function provides access to FrameBuffer data.
+  // The data usage be able until next extract() function call.
+  // Return:
+  //   constant pointer to the FrameBuffer object.
   const FrameBuffer *getFrameBuffer() const { return &m_backupFrameBuffer; }
 
   virtual void onUpdate();

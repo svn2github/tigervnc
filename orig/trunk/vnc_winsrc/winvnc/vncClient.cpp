@@ -2232,8 +2232,7 @@ vncClient::SendUpdate()
 		}
 	}
 
-	vncRegion normalUpdates; // region to actually be sent
-	normalUpdates.Clear();
+    vncRegion normalUpdates;    // region with normal screen updates
 
 	if (!m_full_rgn.IsEmpty()) {
 		m_copyrect_set = false; // FIXME: Why CopyRect is removed even if it is not in m_full_region?

@@ -2272,7 +2272,6 @@ vncClient::SendUpdate()
 				m_mousemoved = FALSE;
 			}
 		}
-		m_incr_rgn.Clear();
 	}
 
     // The region that will be sent should be excluded from m_changed_rgn.
@@ -2303,9 +2302,12 @@ vncClient::SendUpdate()
 			return FALSE;
 	}
 
+    // Now we know that something will be sent so we may clear m_incr_rgn.
+    m_incr_rgn.Clear();
+
 	omni_mutex_lock l(m_sendUpdateLock);
 
-	// Otherwise, send <number of rectangles> header
+	// Send <number of rectangles> header.
 	rfbFramebufferUpdateMsg header;
     if (numrects == -1) {
       header.nRects = Swap16IfLE(0xFFFF);

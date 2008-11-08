@@ -533,13 +533,17 @@ vncService::FindWindowByTitle(char *substr)
 }
 
 HWND
-vncService::FindWindowByClass(char *substr)
+vncService::FindWindowByClass(char *className)
 {
-	// Find window
-	HWND hwnd;
-	if ((hwnd = FindWindow(substr, NULL)) == NULL) {
+	HWND hwnd = FindWindow(className, NULL);
+	if (hwnd == NULL) {
 		MessageBox(NULL, "Unable to find a window with the specified class name.",
 				   szAppName, MB_ICONEXCLAMATION | MB_OK);
+	} else {
+		if (IsIconic(hwnd)) {
+			SendMessage(hwnd, WM_SYSCOMMAND, SC_RESTORE, 0);
+		}
+		SetForegroundWindow(hwnd);
 	}
 	return hwnd;
 }

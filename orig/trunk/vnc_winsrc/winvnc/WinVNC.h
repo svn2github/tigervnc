@@ -92,7 +92,8 @@ const char winvncUsageText[] =
 	" [-install] [-remove] [-reinstall] [-reload]\n"
 	" [-settings] [-defaultsettings] [-killallclients]\n"
 	" [-shareall] [-shareprimary] [-sharearea WxH+X+Y]\n"
-	" [-sharewindow  \"title\"] [-about] [-help]\n";
+	" [-sharewindow \"title\"] [-videoclass \"windowclass\"]\n"
+    " [-about] [-help]\n";
 
 #endif // __WINVNC_H
 

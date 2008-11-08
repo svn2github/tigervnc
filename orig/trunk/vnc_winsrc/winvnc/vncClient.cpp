@@ -2233,6 +2233,7 @@ vncClient::SendUpdate()
 	}
 
     vncRegion normalUpdates;    // region with normal screen updates
+    vncRegion videoUpdates;     // region with video (to be encoded with JPEG)
 
 	if (!m_full_rgn.IsEmpty()) {
 		m_copyrect_set = false; // FIXME: Why CopyRect is removed even if it is not in m_full_region?
@@ -2241,10 +2242,11 @@ vncClient::SendUpdate()
 	}
 
 	if (!m_incr_rgn.IsEmpty()) {
-		// Get region to send from WinDesktop
 		normalUpdates.Combine(m_changed_rgn);
-		// FIXME: Should we intersect normalUpdates with shared desktop area?
-		// FIXME: Should we intersect normalUpdates with m_incr_rgn?
+		m_server->getVideoRegion(&videoUpdates);
+		normalUpdates.Subtract(videoUpdates);
+		// FIXME: Should we intersect regions with shared desktop area?
+		// FIXME: Should we intersect regions with m_incr_rgn?
 
 		// Mouse stuff for the case when cursor shape updates are off
 		if (!m_cursor_update_sent && !m_cursor_update_pending) {
@@ -2275,29 +2277,38 @@ vncClient::SendUpdate()
 
     // The region that will be sent should be excluded from m_changed_rgn.
     m_changed_rgn.Subtract(normalUpdates);
+    m_changed_rgn.Subtract(videoUpdates);
+
+    // Get the final list of video rectangles to send.
+    rectlist videoUpdatesList;
+    videoUpdates.Rectangles(videoUpdatesList);
+    int numVideoRects = getNumEncodedRects(videoUpdatesList, true);
 
     // Get the final list of normal rectangles to send.
     rectlist normalUpdatesList;
-    BOOL notEmpty = normalUpdates.Rectangles(normalUpdatesList);
+    normalUpdates.Rectangles(normalUpdatesList);
+    int numNormalRects = getNumEncodedRects(normalUpdatesList, false);
 
-    // Compute the number of encoded rectangles.
-    int numrects = notEmpty ? getNumEncodedRects(normalUpdatesList, false) : 0;
-
-	if (numrects != -1) {
+    // Compute the total number of rectangles: normal, video, CopyRect and
+    // various pseudo-rectangles. Skip calculations if LastRect extestion
+    // will be used (set numTotalRects to 0xFFFF in that case).
+    int numTotalRects = 0xFFFF;
+    if (numVideoRects != -1 && numNormalRects != -1) {
+		numTotalRects = numVideoRects + numNormalRects;
 		// Count cursor shape and cursor position updates.
 #ifdef HORIZONLIVE
 		if (m_cursor_update_pending && isPtInSharedArea(m_cursor_pos))
 #else
 		if (m_cursor_update_pending)
 #endif
-			numrects++;
+			numTotalRects++;
 		if (m_cursor_pos_changed)
-			numrects++;
-		// Handle the copyrect region
+			numTotalRects++;
+		// Currently, we support just one CopyRect rectangle.
 		if (m_copyrect_set)
-			numrects++;
-		// If there are no rectangles then return
-		if (numrects == 0)
+			numTotalRects++;
+		// If there are no rectangles then return.
+		if (numTotalRects == 0)
 			return FALSE;
 	}
 
@@ -2308,11 +2319,7 @@ vncClient::SendUpdate()
 
 	// Send <number of rectangles> header.
 	rfbFramebufferUpdateMsg header;
-    if (numrects == -1) {
-      header.nRects = Swap16IfLE(0xFFFF);
-    } else {
-      header.nRects = Swap16IfLE(numrects);
-    }
+	header.nRects = Swap16IfLE(numTotalRects);
 	if (!SendRFBMsg(rfbFramebufferUpdate, (BYTE *) &header, sz_rfbFramebufferUpdateMsg))
 		return TRUE;
 
@@ -2339,12 +2346,16 @@ vncClient::SendUpdate()
 			return TRUE;
 	}
 
-	// Encode & send the actual rectangles
+	// Encode & send video rectangles
+	if (!sendRectangles(videoUpdatesList, true))
+		return TRUE;
+
+	// Encode & send normal updates
 	if (!sendRectangles(normalUpdatesList, false))
 		return TRUE;
 
 	// Send LastRect marker if needed.
-	if (numrects == -1) {
+	if (numTotalRects == 0xFFFF) {
 		if (!SendLastRect())
 			return TRUE;
 	}
@@ -2586,7 +2597,7 @@ vncClient::SendNewFBSize()
 
   m_full_rgn.Clear();
   m_incr_rgn.Clear();
-  m_full_rgn.AddRect(sharedRect);
+  // m_full_rgn.AddRect(sharedRect);
 
   rfbFramebufferUpdateRectHeader hdr;
   hdr.r.x = 0;

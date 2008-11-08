@@ -2597,7 +2597,6 @@ vncClient::SendNewFBSize()
 
   m_full_rgn.Clear();
   m_incr_rgn.Clear();
-  // m_full_rgn.AddRect(sharedRect);
 
   rfbFramebufferUpdateRectHeader hdr;
   hdr.r.x = 0;

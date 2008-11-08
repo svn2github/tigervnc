@@ -1768,3 +1768,10 @@ void vncServer::getVideoRegion(rfb::Region *region) const
     region->addRect(&videoRect);
   }
 }
+
+void vncServer::getVideoRegion(vncRegion *region) const
+{
+  rfb::Region temp;
+  getVideoRegion(&temp);
+  region->assignFromNewFormat(&temp);
+}

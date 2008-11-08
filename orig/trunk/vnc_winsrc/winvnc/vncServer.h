@@ -116,6 +116,7 @@ public:
 	void setVideoHWND(HWND videoHWND) { m_videoHWND = videoHWND; }
 	HWND getVideoHWND() const { return m_videoHWND; }
 	void getVideoRegion(rfb::Region *region) const;
+	void getVideoRegion(vncRegion *region) const;
 
 protected:
 	// Send a notification message

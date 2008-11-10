@@ -81,6 +81,8 @@ bool WinDesktop::Init(vncServer *server)
 
   SetLocalInputDisableHook(m_server->LocalInputsDisabled());
 
+  shareRect();
+
   resume();
 
   return true;

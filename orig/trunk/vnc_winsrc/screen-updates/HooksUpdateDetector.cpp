@@ -24,6 +24,9 @@
 #include "region/Rect.h"
 #include "libscreen/DesktopSelector.h"
 
+typedef int (*SetHookFunction)(HWND hWnd, UINT UpdateMsg, UINT CopyMsg, UINT MouseMsg);
+typedef int (*UnsetHookFunction)(HWND hWnd);
+
 // Constants
 const UINT RFB_SCREEN_UPDATE = RegisterWindowMessage(_T("TightVNC.Server.Update.DrawRect"));
 const UINT RFB_COPYRECT_UPDATE = RegisterWindowMessage(_T("TightVNC.Server.Update.CopyRect"));
@@ -55,8 +58,6 @@ void HooksUpdateDetector::onTerminate()
 
 bool HooksUpdateDetector::initHook()
 {
-  DesktopSelector::selectDesktop();
-
   HINSTANCE hinst = GetModuleHandle(0);
 
   m_hooksTargetWindow = new HooksTargetWindow(hinst);
@@ -65,21 +66,22 @@ bool HooksUpdateDetector::initHook()
   }
 
   // Dll initializing
-  if ((m_hHooks = ::LoadLibrary(_T(LIBRARY_NAME))) == 0) {
+  if ((m_hHooks = LoadLibrary(_T(LIBRARY_NAME))) == 0) {
     return false;
   }
 
-  m_pSetHook = (PSetHook)::GetProcAddress(m_hHooks, SET_HOOK_FUNCTION_NAME);
-  m_pUnSetHook = (PUnSetHook)::GetProcAddress(m_hHooks, UNSET_HOOK_FUNCTION_NAME);
+  m_pSetHook = GetProcAddress(m_hHooks, SET_HOOK_FUNCTION_NAME);
+  m_pUnSetHook = GetProcAddress(m_hHooks, UNSET_HOOK_FUNCTION_NAME);
   if (!m_pSetHook || !m_pUnSetHook) {
     return false;
   }
 
   // Hooks initializing
-  if (m_pSetHook(m_hooksTargetWindow->getHWND(),
-                 RFB_SCREEN_UPDATE,
-                 RFB_COPYRECT_UPDATE,
-                 RFB_MOUSE_UPDATE) == FALSE) {
+  SetHookFunction setHookFunction = (SetHookFunction)m_pSetHook;
+  if (setHookFunction(m_hooksTargetWindow->getHWND(),
+                      RFB_SCREEN_UPDATE,
+                      RFB_COPYRECT_UPDATE,
+                      RFB_MOUSE_UPDATE) == FALSE) {
     return false;
   }
 
@@ -93,7 +95,8 @@ bool HooksUpdateDetector::unInitHook()
   if (m_pUnSetHook) {
     if (m_hooksTargetWindow) {
       if (m_hooksTargetWindow->getHWND() != 0) {
-        result &= (m_pUnSetHook(m_hooksTargetWindow->getHWND()) != FALSE);
+        UnsetHookFunction unsetHookFunction = (UnsetHookFunction)m_pSetHook;
+        result &= (unsetHookFunction(m_hooksTargetWindow->getHWND()) != FALSE);
       }
     }
     m_pUnSetHook = 0;
@@ -116,6 +119,8 @@ bool HooksUpdateDetector::unInitHook()
 
 void HooksUpdateDetector::execute()
 {
+  DesktopSelector::selectDesktop();
+
   while (!m_terminated) {
     if (!initHook()) {
       waitTerminated(5000);

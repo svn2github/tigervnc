@@ -30,9 +30,6 @@
 #define SET_HOOK_FUNCTION_NAME "SetHook"
 #define UNSET_HOOK_FUNCTION_NAME "UnSetHook"
 
-typedef int (*PSetHook)(HWND hWnd, UINT UpdateMsg, UINT CopyMsg, UINT MouseMsg);
-typedef int (*PUnSetHook)(HWND hWnd);
-
 class HooksUpdateDetector : public UpdateDetector
 {
 public:
@@ -49,8 +46,8 @@ protected:
   ScreenGrabber *m_screenGrabber;
 
   HMODULE m_hHooks;
-  PSetHook m_pSetHook;
-  PUnSetHook m_pUnSetHook;
+  FARPROC m_pSetHook;
+  FARPROC m_pUnSetHook;
   HooksTargetWindow *m_hooksTargetWindow;
 
 private:

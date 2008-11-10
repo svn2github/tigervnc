@@ -282,67 +282,61 @@ bool WinDesktop::sendUpdate()
     return true;
   }
 
-  if (fullUpdateRequest) {
-    RECT r;
-    r = m_server->GetSharedRect();
-    Rect sharedRect(r.left, r.top, r.right, r.bottom);
-    rfb::Region sharedReg(&sharedRect);
-    m_updateHandler->setFullUpdateRequested(&sharedReg);
-  }
-
   bool desktopChanged = false;
   checkCurrentDesktop(&desktopChanged);
 
+  bool sharedRectChanged = shareRect();
+  RECT r = m_server->GetSharedRect();
+  Rect sharedRect(r.left, r.top, r.right, r.bottom);
+  rfb::Region sharedReg(&sharedRect);
+
+  if (fullUpdateRequest || sharedRectChanged) {
+    m_updateHandler->setFullUpdateRequested(&sharedReg);
+  }
+
   UpdateContainer updateContainer;
   m_updateHandler->extract(&updateContainer);
+
+  updateContainer.changedRegion.assign_intersect(sharedReg);
 
   if (desktopChanged) {
     setNewScreenSize();
     updateBufferNotify();
   }
 
-  if (updateContainer.isEmpty()) {
-    // Check for video area presence.
-    rfb::Region videoRegion;
-    m_server->getVideoRegion(&videoRegion);
-    if (videoRegion.is_empty()) {
-      return true;
-    }
-  } else {
-    if (updateContainer.cursorPosChanged) {
-      m_server->UpdateMouse();
-    }
-
-    if (updateContainer.screenSizeChanged) {
-      setNewScreenSize();
-      updateBufferNotify();
-      return true;
-    }
-
-    // Checking for PixelFormat changing
-    if (!m_pixelFormat.cmp(&m_updateHandler->getFrameBuffer()->getPixelFormat())) {
-      updateBufferNotify();
-    }
-
-    std::vector<Rect> rects;
-    std::vector<Rect>::iterator iRect;
-    updateContainer.changedRegion.get_rects(&rects);
-    int numRects = updateContainer.changedRegion.numRects();
-
-    if (numRects > 0) {
-      vncRegion changedRegion;
-      changedRegion.assignFromNewFormat(&updateContainer.changedRegion);
-      m_server->UpdateRegion(changedRegion);
-    }
+  if (updateContainer.cursorPosChanged) {
+    m_server->UpdateMouse();
   }
 
-  shareRect();
+  if (updateContainer.screenSizeChanged) {
+    setNewScreenSize();
+    updateBufferNotify();
+    return true;
+  }
+
+  // Checking for PixelFormat changing
+  if (!m_pixelFormat.cmp(&m_updateHandler->getFrameBuffer()->getPixelFormat())) {
+    updateBufferNotify();
+  }
+
+  updateContainer.changedRegion.assign_union(sharedReg);
+  std::vector<Rect> rects;
+  std::vector<Rect>::iterator iRect;
+  updateContainer.changedRegion.get_rects(&rects);
+  int numRects = updateContainer.changedRegion.numRects();
+
+  if (numRects > 0) {
+    vncRegion changedRegion;
+    changedRegion.assignFromNewFormat(&updateContainer.changedRegion);
+    m_server->UpdateRegion(changedRegion);
+  }
+
   m_server->TriggerUpdate();
 
   return true;
 }
 
-void WinDesktop::shareRect()
+bool WinDesktop::shareRect()
 {
   // EXAMINE THE SHARED AREA / WINDOW
 
@@ -368,7 +362,7 @@ void WinDesktop::shareRect()
                      "Warning", MB_ICONWARNING | MB_OK);
     vnclog.Print(LL_CONNERR, VNCLOG("shared window not found - disconnecting clients\n"));
     m_server->KillAuthClients();
-    return;
+    return false;
   }
 
   // intersect the shared rect with the desktop rect
@@ -380,7 +374,7 @@ void WinDesktop::shareRect()
       new_rect.bottom - new_rect.top == 0) {
     vnclog.Print(LL_CONNERR, VNCLOG("shared window empty - disconnecting clients\n"));
     m_server->KillAuthClients();
-    return;
+    return false;
   }
 
   // Update screen size if required
@@ -391,7 +385,10 @@ void WinDesktop::shareRect()
         rect.bottom - rect.top != new_rect.bottom - new_rect.top ) {
       m_server->SetNewFBSize();
     }
-  }		
+    return true;
+  }
+
+  return false;
 }
 
 void WinDesktop::setNewScreenSize()

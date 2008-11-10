@@ -81,7 +81,17 @@ bool WinDesktop::Init(vncServer *server)
 
   SetLocalInputDisableHook(m_server->LocalInputsDisabled());
 
-  shareRect();
+  RECT rect;
+  if (m_server->WindowShared()) {
+    GetWindowRect(m_server->GetWindowShared(), &rect);
+  } else if (m_server->ScreenAreaShared()) {
+    rect = m_server->GetScreenAreaRect();
+  } else {
+    rect = m_bmrect;
+  }
+
+  IntersectRect(&rect, &rect, &m_bmrect);
+  m_server->SetSharedRect(rect);
 
   resume();
 

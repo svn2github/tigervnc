@@ -270,11 +270,19 @@ bool WinDesktop::sendUpdate()
     return true;
   }
 
+  if (fullUpdateRequest) {
+    RECT r;
+    r = m_server->GetSharedRect();
+    Rect sharedRect(r.left, r.top, r.right, r.bottom);
+    rfb::Region sharedReg(&sharedRect);
+    m_updateHandler->setFullUpdateRequested(&sharedReg);
+  }
+
   bool desktopChanged = false;
   checkCurrentDesktop(&desktopChanged);
 
   UpdateContainer updateContainer;
-  m_updateHandler->extract(&updateContainer, fullUpdateRequest);
+  m_updateHandler->extract(&updateContainer);
 
   if (desktopChanged) {
     setNewScreenSize();

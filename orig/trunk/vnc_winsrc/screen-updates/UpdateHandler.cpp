@@ -54,14 +54,9 @@ UpdateHandler::~UpdateHandler(void)
   delete m_updateFilter;
 }
 
-void UpdateHandler::extract(UpdateContainer *updateContainer, bool fullUpdateRequest)
+void UpdateHandler::extract(UpdateContainer *updateContainer)
 {
   m_criticalSection.enter();
-
-  if (fullUpdateRequest) {
-    Rect updRect(&m_backupFrameBuffer.getDimension().getRect());
-    m_updateKeeper->addChangedRect(&updRect);
-  }
 
   m_updateKeeper->extract(updateContainer);
 
@@ -76,6 +71,11 @@ void UpdateHandler::extract(UpdateContainer *updateContainer, bool fullUpdateReq
   }
 
   m_criticalSection.leave();
+}
+
+void UpdateHandler::setFullUpdateRequested(const rfb::Region *region)
+{
+  m_updateKeeper->addChangedRegion(region);
 }
 
 void UpdateHandler::executeDetectors()

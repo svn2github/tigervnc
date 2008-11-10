@@ -44,8 +44,9 @@ public:
 
   // Parameters: 
   //   updateContainer - pointer to a UpdateContainer object that will be filled,
-  //   fullUpdateRequest - Флаг запроса полного обновления.
-  void extract(UpdateContainer *updateContainer, bool fullUpdateRequest = false);
+  void extract(UpdateContainer *updateContainer);
+
+  void setFullUpdateRequested(const rfb::Region *region);
 
   // Checking a region for updates.
   // Return:

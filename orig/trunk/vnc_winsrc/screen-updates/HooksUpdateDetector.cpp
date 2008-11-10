@@ -95,7 +95,7 @@ bool HooksUpdateDetector::unInitHook()
   if (m_pUnSetHook) {
     if (m_hooksTargetWindow) {
       if (m_hooksTargetWindow->getHWND() != 0) {
-        UnsetHookFunction unsetHookFunction = (UnsetHookFunction)m_pSetHook;
+        UnsetHookFunction unsetHookFunction = (UnsetHookFunction)m_pUnSetHook;
         result &= (unsetHookFunction(m_hooksTargetWindow->getHWND()) != FALSE);
       }
     }

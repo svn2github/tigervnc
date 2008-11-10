@@ -376,17 +376,11 @@ void WinDesktop::shareRect()
   // Update screen size if required
   if (!EqualRect(&new_rect, &rect)) {
     m_server->SetSharedRect(new_rect);
-    bool sendnewfb = false;
 
     if (rect.right - rect.left != new_rect.right - new_rect.left ||
         rect.bottom - rect.top != new_rect.bottom - new_rect.top ) {
-      sendnewfb = true;
+      m_server->SetNewFBSize();
     }
-
-    // FIXME: We should not send NewFBSize if a client
-    //        did not send framebuffer update request.
-    m_server->SetNewFBSize();
-    return;
   }		
 }
 

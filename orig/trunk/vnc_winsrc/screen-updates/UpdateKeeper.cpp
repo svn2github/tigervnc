@@ -33,16 +33,15 @@ UpdateKeeper::~UpdateKeeper(void)
 {
 }
 
-void UpdateKeeper::addChangedRegion(rfb::Region *changedRegion)
+void UpdateKeeper::addChangedRegion(const rfb::Region *changedRegion)
 {
   AutoLock al(&m_updContCritSec);
 
-  rfb::Region borderRegion(m_borderRect);
-  changedRegion->assign_intersect(borderRegion);
-
   m_updateContainer.copiedRegion.assign_subtract(*changedRegion);
-
   m_updateContainer.changedRegion.assign_union(*changedRegion);
+
+  rfb::Region borderRegion(m_borderRect);
+  m_updateContainer.changedRegion.assign_intersect(borderRegion);
 }
 
 void UpdateKeeper::addChangedRect(const Rect *changedRect)
@@ -51,7 +50,7 @@ void UpdateKeeper::addChangedRect(const Rect *changedRect)
   addChangedRegion(&region);
 }
 
-void UpdateKeeper::addCopyRegion(rfb::Region *cpyReg, const Point *copyOffset)
+void UpdateKeeper::addCopyRegion(const rfb::Region *cpyReg, const Point *copyOffset)
 {
   AutoLock al(&m_updContCritSec);
 

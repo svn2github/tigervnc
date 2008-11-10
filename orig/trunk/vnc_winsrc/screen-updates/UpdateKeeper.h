@@ -43,10 +43,10 @@ public:
     m_updContCritSec.leave();
   }
 
-  void addChangedRegion(rfb::Region *changedRegion);
+  void addChangedRegion(const rfb::Region *changedRegion);
   void addChangedRect(const Rect *changedRect);
 
-  void addCopyRegion(rfb::Region *cpyReg, const Point *copyOffset);
+  void addCopyRegion(const rfb::Region *cpyReg, const Point *copyOffset);
 
   void setScreenSizeChanged();
   void setCursorPosChanged();

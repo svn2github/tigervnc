@@ -23,6 +23,14 @@
 #include "WinDesktop.h"
 #include "libscreen/DesktopSelector.h"
 #include "thread/time.h"
+#include <TCHAR.h>
+
+#define HOOK_LIBRARY_NAME "ScreenHooks.dll"
+#define SET_KEYBOARD_FILTER_FUN_NAME "SetKeyboardFilterHook"
+#define SET_MOUSE_FILTER_FUN_NAME "SetMouseFilterHook"
+
+typedef int (*SetKeyboardFilterHook)(BOOL activate);
+typedef int (*SetMouseFilterHook)(BOOL activate);
 
 WinDesktop::WinDesktop()
 : m_updateHandler(0),
@@ -30,6 +38,15 @@ WinDesktop::WinDesktop()
   m_hEvent(0)
 {
   DesktopSelector::init();
+
+  // Loading dynamic library
+  m_dynamicLibrary = new DynamicLibrary(_T(HOOK_LIBRARY_NAME));
+
+  m_setKeyboardFilterHook = m_dynamicLibrary->getProcAddress(_T(SET_KEYBOARD_FILTER_FUN_NAME));
+  m_setMouseFilterHook = m_dynamicLibrary->getProcAddress(_T(SET_MOUSE_FILTER_FUN_NAME));
+  if (!m_setKeyboardFilterHook || !m_setMouseFilterHook) {
+    vnclog.Print(LL_INTERR, VNCLOG("cannot initialize hooks\n"));
+  }
 }
 
 WinDesktop::~WinDesktop()
@@ -40,6 +57,12 @@ WinDesktop::~WinDesktop()
   if (m_updateHandler != 0) {
     delete m_updateHandler;
     m_updateHandler = 0;
+  }
+
+  SetLocalInputDisableHook(false);
+
+  if (m_dynamicLibrary != 0) {
+    delete m_dynamicLibrary;
   }
 }
 
@@ -55,6 +78,8 @@ bool WinDesktop::Init(vncServer *server)
   }
 
   m_pixelFormat = m_updateHandler->getFrameBuffer()->getPixelFormat();
+
+  SetLocalInputDisableHook(m_server->LocalInputsDisabled());
 
   resume();
 
@@ -126,6 +151,11 @@ void WinDesktop::FillDisplayInfo(rfbServerInitMsg *scrInfo)
 
 void WinDesktop::SetLocalInputDisableHook(BOOL enable)
 {
+  SetKeyboardFilterHook setKeyboardFH = (SetKeyboardFilterHook) m_setKeyboardFilterHook;
+  SetMouseFilterHook setMouseFH = (SetMouseFilterHook) m_setMouseFilterHook;
+
+  setKeyboardFH(enable);
+  setMouseFH(enable);
 }
 
 void WinDesktop::SetLocalInputPriorityHook(BOOL enable)

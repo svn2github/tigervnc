@@ -33,6 +33,7 @@ class WinDesktop;
 #include "screen-updates/UpdateListener.h"
 #include "libscreen/WindowsMouseGrabber.h"
 #include "thread/AutoLock.h"
+#include "system/DynamicLibrary.h"
 
 class WinDesktop : public UpdateListener, public Thread
 {
@@ -85,6 +86,11 @@ protected:
   PixelFormat m_pixelFormat;
   vncServer *m_server;
   RECT m_bmrect;
+
+  // Hooks
+  DynamicLibrary *m_dynamicLibrary;
+  FARPROC m_setKeyboardFilterHook;
+  FARPROC m_setMouseFilterHook;
 
   HANDLE m_hEvent;
 };

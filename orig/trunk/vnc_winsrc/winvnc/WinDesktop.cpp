@@ -297,6 +297,10 @@ bool WinDesktop::sendUpdate()
   UpdateContainer updateContainer;
   m_updateHandler->extract(&updateContainer);
 
+  if (sharedRectChanged) {
+    updateContainer.changedRegion.assign_union(sharedReg);
+  }
+
   updateContainer.changedRegion.assign_intersect(sharedReg);
 
   if (desktopChanged) {
@@ -319,7 +323,6 @@ bool WinDesktop::sendUpdate()
     updateBufferNotify();
   }
 
-  updateContainer.changedRegion.assign_union(sharedReg);
   std::vector<Rect> rects;
   std::vector<Rect>::iterator iRect;
   updateContainer.changedRegion.get_rects(&rects);

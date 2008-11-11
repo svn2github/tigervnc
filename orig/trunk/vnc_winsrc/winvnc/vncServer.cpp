@@ -1658,6 +1658,18 @@ vncServer::FullRgnRequested()
 	return FALSE;
 }
 
+void vncServer::getFullRgnRequested(rfb::Region *region)
+{
+	vncClientList::iterator i;
+	omni_mutex_lock l(m_clientsLock);
+
+	// Iterate over the authorised clients
+	for (i = m_authClients.begin(); i != m_authClients.end(); i++)
+	{
+		GetClient(*i)->getFullRgnRequested(region);
+	}
+}
+
 BOOL 
 vncServer::IncrRgnRequested()
 {

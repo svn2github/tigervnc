@@ -315,6 +315,7 @@ public:
 	virtual void ScreenAreaShared(BOOL enable) { m_screen_area = enable; }
 	virtual void SetNewFBSize();
 	virtual BOOL FullRgnRequested();
+	virtual void getFullRgnRequested(rfb::Region *region);
 	virtual BOOL IncrRgnRequested();
 	virtual	void UpdateLocalFormat();
 	                                                                                     

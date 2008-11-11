@@ -275,8 +275,8 @@ BOOL WinDesktop::GetRichCursorData(BYTE *databuf, HCURSOR hcursor, int width, in
 
 bool WinDesktop::sendUpdate()
 {
-  bool fullUpdateRequest = m_server->FullRgnRequested() != 0;
-  bool incrUpdateRequest = m_server->IncrRgnRequested() != 0;
+  bool fullUpdateRequest = m_server->FullRgnRequested() != FALSE;
+  bool incrUpdateRequest = m_server->IncrRgnRequested() != FALSE;
 
   if (!incrUpdateRequest && !fullUpdateRequest) {
     return true;
@@ -286,11 +286,20 @@ bool WinDesktop::sendUpdate()
   checkCurrentDesktop(&desktopChanged);
 
   bool sharedRectChanged = shareRect();
+
+  rfb::Region fullRgnReq;
+  m_server->getFullRgnRequested(&fullRgnReq);
+
   RECT r = m_server->GetSharedRect();
   Rect sharedRect(r.left, r.top, r.right, r.bottom);
   rfb::Region sharedReg(&sharedRect);
 
-  if (fullUpdateRequest || sharedRectChanged) {
+  if (fullUpdateRequest) {
+    m_updateHandler->setFullUpdateRequested(&fullRgnReq);
+  }
+
+  if (sharedRectChanged) {
+    // sharedReg always contains fullRgnReq.
     m_updateHandler->setFullUpdateRequested(&sharedReg);
   }
 

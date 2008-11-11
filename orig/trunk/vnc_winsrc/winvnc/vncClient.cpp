@@ -2628,6 +2628,19 @@ vncClient::SendNewFBSize()
   return TRUE;
 }
 
+void vncClient::getFullRgnRequested(rfb::Region *region)
+{
+  rectlist vncRectanles;
+  rectlist::iterator iVncRect;
+
+  m_full_rgn.Rectangles(vncRectanles);
+  for (iVncRect = vncRectanles.begin(); iVncRect != vncRectanles.end(); iVncRect++) {
+    RECT *vR = &(*iVncRect);
+    Rect rect(vR->left, vR->top, vR->right, vR->bottom);
+    region->addRect(rect);
+  }
+}
+
 void
 vncClient::UpdateLocalFormat()
 {

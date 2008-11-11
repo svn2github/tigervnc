@@ -126,6 +126,7 @@ public:
 	BOOL SetNewFBSize();
 	BOOL IncrRgnRequested(){return !m_incr_rgn.IsEmpty();};
 	BOOL FullRgnRequested(){return !m_full_rgn.IsEmpty();};
+	void getFullRgnRequested(rfb::Region *region);
 	void UpdateLocalFormat();
 
 	char * ConvertPath(char *path);

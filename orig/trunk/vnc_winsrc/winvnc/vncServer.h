@@ -313,6 +313,8 @@ public:
 	virtual void FullScreen(BOOL enable) { m_full_screen = enable; }
 	virtual BOOL ScreenAreaShared() { return m_screen_area; }
 	virtual void ScreenAreaShared(BOOL enable) { m_screen_area = enable; }
+	// Returns true if shared rectangle was changed.
+	bool updateSharedRect();
 	virtual void SetNewFBSize();
 	virtual BOOL FullRgnRequested();
 	virtual void getFullRgnRequested(rfb::Region *region);

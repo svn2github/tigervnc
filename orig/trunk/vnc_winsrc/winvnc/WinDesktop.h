@@ -57,8 +57,7 @@ public:
   HCURSOR GetCursor() const;
   BOOL GetRichCursorData(BYTE *databuf, HCURSOR hcursor, int width, int height);
 
-  // Returns true if shared rectangle was changed.
-  bool shareRect();
+  RECT getBMRect() const { return m_bmrect; }
 
 protected:
   virtual void onUpdate();

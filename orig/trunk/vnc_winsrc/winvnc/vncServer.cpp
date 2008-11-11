@@ -1642,6 +1642,61 @@ vncServer::SetNewFBSize()
 	}
 }
 
+bool vncServer::updateSharedRect()
+{
+	// EXAMINE THE SHARED AREA / WINDOW
+
+	RECT rect = GetSharedRect();
+	RECT new_rect;
+	RECT bmRect = m_desktop->getBMRect();
+
+	if (WindowShared()) {
+		HWND hwnd = GetWindowShared();
+		GetWindowRect(hwnd, &new_rect);
+	} else if (ScreenAreaShared()) {
+		new_rect = GetScreenAreaRect();
+	} else {
+		new_rect = bmRect;
+	}
+
+	if ((WindowShared() || GetApplication()) &&
+		GetWindowShared() == NULL) {
+			// Disconnect clients if the shared window has dissapeared.
+			// FIXME: Make this behavior configurable.
+			MessageBox(NULL, "You have exited an application that is being\n"
+							 "viewed/controlled from a remote PC. Exiting this\n"
+							 "application will terminate the session with the remote PC.",
+							 "Warning", MB_ICONWARNING | MB_OK);
+			vnclog.Print(LL_CONNERR, VNCLOG("shared window not found - disconnecting clients\n"));
+			KillAuthClients();
+			return false;
+	}
+
+	// intersect the shared rect with the desktop rect
+	IntersectRect(&new_rect, &new_rect, &bmRect);
+
+	// Disconnect clients if the shared window is empty (dissapeared).
+	// FIXME: Make this behavior configurable.
+	if (new_rect.right - new_rect.left == 0 ||
+		new_rect.bottom - new_rect.top == 0) {
+			vnclog.Print(LL_CONNERR, VNCLOG("shared window empty - disconnecting clients\n"));
+			KillAuthClients();
+			return false;
+	}
+
+	// Update screen size if required
+	if (!EqualRect(&new_rect, &rect)) {
+		SetSharedRect(new_rect);
+
+		if (rect.right - rect.left != new_rect.right - new_rect.left ||
+			rect.bottom - rect.top != new_rect.bottom - new_rect.top ) {
+				SetNewFBSize();
+		}
+		return true;
+	}
+
+	return false;
+}
 
 BOOL 
 vncServer::FullRgnRequested()

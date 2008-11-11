@@ -2191,6 +2191,11 @@ vncClient::SendUpdate()
 		return TRUE;
 	}
 
+	// Shortcuts to the shared part of the screen (as a RECT and a vncRegion).
+	RECT sharedRect = m_server->GetSharedRect();
+	vncRegion sharedRegion;
+	sharedRegion.AddRect(sharedRect);
+
 	// Prepare to send cursor position update if necessary
 	if (m_server->hasFakeCursorPos()) {
 		POINT p = m_server->getFakeCursorPos();
@@ -2204,9 +2209,8 @@ vncClient::SendUpdate()
 				cursor_pos.x = 0;
 				cursor_pos.y = 0;
 			}
-			RECT shared_rect = m_server->GetSharedRect();
-			cursor_pos.x -= shared_rect.left;
-			cursor_pos.y -= shared_rect.top;
+			cursor_pos.x -= sharedRect.left;
+			cursor_pos.y -= sharedRect.top;
 #ifdef HORIZONLIVE
 			if (!isPtInSharedArea(cursor_pos)) {
 				m_cursor_pos_changed = FALSE;
@@ -2214,13 +2218,13 @@ vncClient::SendUpdate()
 #else
 			if (cursor_pos.x < 0) {
 				cursor_pos.x = 0;
-			} else if (cursor_pos.x >= shared_rect.right - shared_rect.left) {
-				cursor_pos.x = shared_rect.right - shared_rect.left - 1;
+			} else if (cursor_pos.x >= sharedRect.right - sharedRect.left) {
+				cursor_pos.x = sharedRect.right - sharedRect.left - 1;
 			}
 			if (cursor_pos.y < 0) {
 				cursor_pos.y = 0;
-			} else if (cursor_pos.y >= shared_rect.bottom - shared_rect.top) {
-				cursor_pos.y = shared_rect.bottom - shared_rect.top - 1;
+			} else if (cursor_pos.y >= sharedRect.bottom - sharedRect.top) {
+				cursor_pos.y = sharedRect.bottom - sharedRect.top - 1;
 			}
 #endif
 			if (cursor_pos.x == m_cursor_pos.x && cursor_pos.y == m_cursor_pos.y) {
@@ -2242,11 +2246,20 @@ vncClient::SendUpdate()
 	}
 
 	if (!m_incr_rgn.IsEmpty()) {
-		normalUpdates.Combine(m_changed_rgn);
+		// Forget about all changes beyond the shared region.
+		m_changed_rgn.Intersect(sharedRegion);
+
+		// Get the region that should be treated as video.
 		m_server->getVideoRegion(&videoUpdates);
+		videoUpdates.Intersect(sharedRegion);
+		videoUpdates.Intersect(m_incr_rgn);
+
+		// Construct the region with incremental updates for the specified area
+		// and add it to "normal updates". Video region should not be included.
+		vncRegion incrUpdates;
+		normalUpdates.Combine(m_changed_rgn);
+		normalUpdates.Intersect(m_incr_rgn);
 		normalUpdates.Subtract(videoUpdates);
-		// FIXME: Should we intersect regions with shared desktop area?
-		// FIXME: Should we intersect regions with m_incr_rgn?
 
 		// Mouse stuff for the case when cursor shape updates are off
 		if (!m_cursor_update_sent && !m_cursor_update_pending) {
@@ -2404,9 +2417,7 @@ bool vncClient::sendRectangles(rectlist &rects, bool asVideo)
 BOOL
 vncClient::SendRectangle(RECT &rect)
 {
-	// FIXME: This can result in an empty rectangle.
 	RECT sharedRect = m_server->GetSharedRect();
-	IntersectRect(&rect, &rect, &sharedRect);
 
     // Get the buffer to encode the rectangle
 	UINT bytes = m_buffer->TranslateRect(rect, m_socket, sharedRect.left, sharedRect.top);
@@ -2419,9 +2430,7 @@ vncClient::SendRectangle(RECT &rect)
 BOOL
 vncClient::SendVideoRectangle(RECT &rect)
 {
-  // FIXME: This can result in an empty rectangle.
   RECT sharedRect = m_server->GetSharedRect();
-  IntersectRect(&rect, &rect, &sharedRect);
 
   rect.left += sharedRect.left;
   rect.right += sharedRect.top;

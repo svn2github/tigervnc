@@ -163,11 +163,13 @@ void WinDesktop::FillDisplayInfo(rfbServerInitMsg *scrInfo)
 
 void WinDesktop::SetLocalInputDisableHook(BOOL enable)
 {
-  SetKeyboardFilterHook setKeyboardFH = (SetKeyboardFilterHook) m_setKeyboardFilterHook;
-  SetMouseFilterHook setMouseFH = (SetMouseFilterHook) m_setMouseFilterHook;
+  SetKeyboardFilterHook setKeyboardFH = (SetKeyboardFilterHook)m_setKeyboardFilterHook;
+  SetMouseFilterHook setMouseFH = (SetMouseFilterHook)m_setMouseFilterHook;
 
-  setKeyboardFH(enable);
-  setMouseFH(enable);
+  if (setKeyboardFH && setMouseFH) {
+    setKeyboardFH(enable);
+    setMouseFH(enable);
+  }
 }
 
 void WinDesktop::SetLocalInputPriorityHook(BOOL enable)

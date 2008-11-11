@@ -2432,8 +2432,6 @@ vncClient::SendVideoRectangle(RECT &rect)
 {
   RECT sharedRect = m_server->GetSharedRect();
 
-  rect.left += sharedRect.left;
-  rect.right += sharedRect.top;
   m_jpegEncoder->encodeRectangle(rect);
   const char *header = m_jpegEncoder->getHeaderPtr();
   size_t headerLen = m_jpegEncoder->getHeaderLength();

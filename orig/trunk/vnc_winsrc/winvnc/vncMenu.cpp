@@ -476,9 +476,8 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 			// Shutdown!
 			// Try to clean ourselves up nicely, if possible...
 
-			// Firstly, disable incoming CORBA or socket connections
+			// Firstly, disable incoming socket connections
 			_this->m_server->SockConnect(FALSE);
-			_this->m_server->CORBAConnect(FALSE);
 
 			// Now kill all the server's clients
 			_this->m_server->KillAuthClients();

@@ -982,7 +982,6 @@ vncProperties::Load(BOOL usersettings)
 	m_pref_AutoPortSelect=TRUE;
 	m_pref_PortNumber=RFB_PORT_OFFSET;
 	m_pref_SockConnect=TRUE;
-	m_pref_CORBAConn=FALSE;
 	{
 		vncPasswd::FromClear crypt;
 		memcpy(m_pref_passwd, crypt, MAXPWLEN);
@@ -1108,8 +1107,6 @@ vncProperties::LoadUserPrefs(HKEY appkey)
 	// Load the view-only password
 	loaded = LoadPassword(appkey, m_pref_passwd_viewonly, "PasswordViewOnly");
 	m_pref_passwd_viewonly_set = m_pref_passwd_viewonly_set || loaded;
-	// CORBA Settings
-	m_pref_CORBAConn=LoadInt(appkey, "CORBAConnect", m_pref_CORBAConn);
 
 	// Remote access prefs
 	m_pref_EnableRemoteInputs=LoadInt(appkey, "InputsEnabled", m_pref_EnableRemoteInputs);
@@ -1156,9 +1153,6 @@ vncProperties::ApplyUserPrefs()
 	m_server->SetBeepConnect(m_pref_BeepConnect);
 	m_server->SetBeepDisconnect(m_pref_BeepDisconnect);
 	
-	// Set the CORBA connection status
-	m_server->CORBAConnect(m_pref_CORBAConn);
-
 	// Remote access prefs
 	m_server->EnableRemoteInputs(m_pref_EnableRemoteInputs);
 	m_server->SetLockSettings(m_pref_LockSettings);
@@ -1311,11 +1305,6 @@ vncProperties::SaveUserPrefs(HKEY appkey)
 		SavePassword(appkey, passwd, "Password");
 	if (m_server->GetPasswordViewOnly(passwd))
 		SavePassword(appkey, passwd, "PasswordViewOnly");
-
-#if(defined(_CORBA))
-	// Don't save the CORBA enabled flag if CORBA is not compiled in!
-	SaveInt(appkey, "CORBAConnect", m_server->CORBAConnected());
-#endif
 
 	// Polling prefs
 	SaveInt(appkey, "PollUnderCursor", m_server->PollUnderCursor());

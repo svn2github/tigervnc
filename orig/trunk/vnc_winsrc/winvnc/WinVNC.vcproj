@@ -52,7 +52,7 @@
 				FavorSizeOrSpeed="1"
 				WholeProgramOptimization="true"
 				AdditionalIncludeDirectories="./omnithread;./zlib;.."
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;__WIN32__;__NT__;__x86__;_WINSTATIC;NCORBA;XMD_H;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;__WIN32__;__NT__;__x86__;_WINSTATIC;XMD_H;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -145,7 +145,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="./omnithread;./zlib;.."
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;__WIN32__;__NT__;__x86__;NCORBA;_WINSTATIC;XMD_H;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;__WIN32__;__NT__;__x86__;_WINSTATIC;XMD_H;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE"
 				BasicRuntimeChecks="1"
 				RuntimeLibrary="1"
 				BufferSecurityCheck="true"
@@ -675,10 +675,6 @@
 			</File>
 			<File
 				RelativePath=".\vncConnDialog.h"
-				>
-			</File>
-			<File
-				RelativePath=".\vncCorbaConnect.h"
 				>
 			</File>
 			<File

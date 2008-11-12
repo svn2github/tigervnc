@@ -33,9 +33,7 @@
 //   to all the connected clients
 // - Propagating mouse movements and keyboard events from
 //   clients to the local WinDesktop
-// It also creates the vncSockConnect and vncCORBAConnect
-// servers, which respectively allow connections via sockets
-// and via the ORB interface
+// It also creates vncSockConnect allowing socket connections.
 
 class vncServer;
 
@@ -43,7 +41,6 @@ class vncServer;
 #define _WINVNC_VNCSERVER
 
 // Custom
-#include "vncCORBAConnect.h"
 #include "vncSockConnect.h"
 #include "vncHTTPConnect.h"
 #include "vncClient.h"
@@ -231,9 +228,6 @@ public:
 	virtual BOOL SetDisableTrayIcon(BOOL disableTrayIcon);
 	virtual BOOL GetDisableTrayIcon();
 
-	// CORBA connection handling
-	virtual BOOL CORBAConnect(BOOL on);
-	virtual BOOL CORBAConnected();
 	virtual void GetScreenInfo(int &width, int &height, int &depth);
 
 	// Allow connections without password authentication?
@@ -346,7 +340,6 @@ public:
 protected:
 	// Connection servers
 	vncSockConnect		*m_socketConn;
-	vncCorbaConnect		*m_corbaConn;
 	vncHTTPConnect		*m_httpConn;
 
 	// The desktop handler

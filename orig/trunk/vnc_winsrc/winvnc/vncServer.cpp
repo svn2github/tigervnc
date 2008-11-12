@@ -39,7 +39,6 @@
 #include "WinVNC.h"
 #include "vncServer.h"
 #include "vncSockConnect.h"
-#include "vncCorbaConnect.h"
 #include "vncClient.h"
 #include "vncService.h"
 
@@ -50,7 +49,6 @@ vncServer::vncServer()
 
 	// Initialise some important stuffs...
 	m_socketConn = NULL;
-	m_corbaConn = NULL;
 	m_httpConn = NULL;
 	m_desktop = NULL;
     m_videoHWND = NULL;
@@ -157,12 +155,6 @@ vncServer::~vncServer()
 	{
 		delete m_socketConn;
 		m_socketConn = NULL;
-	}
-
-	if (m_corbaConn != NULL)
-	{
-		delete m_corbaConn;
-		m_corbaConn = NULL;
 	}
 
 	if (m_httpConn != NULL)
@@ -1196,47 +1188,6 @@ BOOL
 vncServer::GetDisableTrayIcon()
 {
 	return m_disableTrayIcon;
-}
-
-// CORBA connection handling
-BOOL
-vncServer::CORBAConnect(BOOL On)
-{
-	// Are we being asked to switch CORBA connects on or off?
-	if (On)
-	{
-		// Is there a CORBA object?
-		if (m_corbaConn == NULL)
-		{
-			m_corbaConn = new vncCorbaConnect();
-		}
-		if (m_corbaConn == NULL)
-			return FALSE;
-		if (!m_corbaConn->Init(this))
-		{
-			delete m_corbaConn;
-			m_corbaConn = NULL;
-			return FALSE;
-		}
-	}
-	else
-	{
-		// Is there a listening socket?
-		if (m_corbaConn != NULL)
-		{
-			// Close the socket
-			delete m_corbaConn;
-			m_corbaConn = NULL;
-		}
-	}
-
-	return TRUE;
-}
-
-BOOL
-vncServer::CORBAConnected()
-{
-	return m_corbaConn != NULL;
 }
 
 void

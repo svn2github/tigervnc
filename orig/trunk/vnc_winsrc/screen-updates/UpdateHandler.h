@@ -74,6 +74,7 @@ private:
   UpdateFilter *m_updateFilter;
   UpdateDetector *m_poller;
   UpdateDetector *m_hooks;
+  UpdateDetector *m_copyRectDetector;
   UpdateDetector *m_mouseDetector;
   WindowsScreenGrabber m_screenGrabber;
   FrameBuffer m_backupFrameBuffer;

@@ -22,6 +22,7 @@
 #include "UpdateHandler.h"
 #include "Poller.h"
 #include "HooksUpdateDetector.h"
+#include "CopyRectDetector.h"
 #include "MouseDetector.h"
 
 UpdateHandler::UpdateHandler(UpdateListener *registerUpdateListener)
@@ -38,6 +39,8 @@ UpdateHandler::UpdateHandler(UpdateListener *registerUpdateListener)
                                     &m_screenGrabber,
                                     &m_criticalSection);
   m_hooks->setOutUpdateListener(this);
+  m_copyRectDetector = new CopyRectDetector(m_updateKeeper);
+  m_copyRectDetector->setOutUpdateListener(this);
   m_mouseDetector = new MouseDetector(m_updateKeeper);
   m_mouseDetector->setOutUpdateListener(this);
 
@@ -48,6 +51,7 @@ UpdateHandler::~UpdateHandler(void)
 {
   terminateDetectors();
   delete m_mouseDetector;
+  delete m_copyRectDetector;
   delete m_poller;
   delete m_hooks;
   delete m_updateKeeper;
@@ -83,15 +87,18 @@ void UpdateHandler::executeDetectors()
   m_backupFrameBuffer.assignProperties(m_screenGrabber.getScreenBuffer());
   m_poller->resume();
   m_hooks->resume();
+  m_copyRectDetector->resume();
   m_mouseDetector->resume();
 }
 
 void UpdateHandler::terminateDetectors()
 {
   m_poller->terminate();
+  m_copyRectDetector->terminate();
   m_hooks->terminate();
   m_mouseDetector->terminate();
   m_poller->wait();
+  m_copyRectDetector->wait();
   m_hooks->wait();
   m_mouseDetector->wait();
 }

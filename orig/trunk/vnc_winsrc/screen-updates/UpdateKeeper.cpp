@@ -77,6 +77,12 @@ void UpdateKeeper::addCopyRegion(const rfb::Region *cpyReg, const Point *copyOff
   changedRegion->assign_subtract(*copiedRegion);
 }
 
+void UpdateKeeper::addCopyRect(const Rect *copyRect, const Point *copyOffset)
+{
+  rfb::Region region(copyRect);
+  addCopyRegion(&region, copyOffset);
+}
+
 void UpdateKeeper::setScreenSizeChanged()
 {
   AutoLock al(&m_updContCritSec);

@@ -334,15 +334,30 @@ bool WinDesktop::sendUpdate()
     updateBufferNotify();
   }
 
-  std::vector<Rect> rects;
-  std::vector<Rect>::iterator iRect;
-  updateContainer.changedRegion.get_rects(&rects);
   int numRects = updateContainer.changedRegion.numRects();
 
   if (numRects > 0) {
     vncRegion changedRegion;
     changedRegion.assignFromNewFormat(&updateContainer.changedRegion);
     m_server->UpdateRegion(changedRegion);
+  }
+
+  // FIXME: Change m_server->CopyRect(Rect *) to m_server->copyRegion(Region *)
+  std::vector<Rect> rects;
+  std::vector<Rect>::iterator iRect;
+  updateContainer.copiedRegion.get_rects(&rects);
+  numRects = updateContainer.copiedRegion.numRects();
+  if (numRects > 0) {
+    iRect = rects.begin();
+    RECT rect;
+    rect.left   = (*iRect).left;
+    rect.top    = (*iRect).top;
+    rect.right  = (*iRect).right;
+    rect.bottom = (*iRect).bottom;
+    POINT copySrc;
+    copySrc.x = updateContainer.copySrc.x;
+    copySrc.y = updateContainer.copySrc.y;
+    m_server->CopyRect(rect, copySrc);
   }
 
   m_server->TriggerUpdate();

@@ -117,8 +117,69 @@ bool FrameBuffer::copyFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffe
   return true;
 }
 
+void FrameBuffer::move(const Rect *dstRect, const int srcX, const int srcY)
+{
+  // FIXME: Remove code duplicate (copyFrom() function)
+  Dimension srcDimension = getDimension();
+  Rect dstBufferRect = m_dimension.getRect();
+  Rect srcBufferRect = srcDimension.getRect();
+
+  // Building srcRect
+  Rect srcRect(srcX, srcY, srcX + dstRect->getWidth(), srcY + dstRect->getHeight());
+
+  // Finding common area between the dstRect, srcRect and the FrameBuffers
+  Rect dstRectFB = dstBufferRect.intersection(dstRect);
+  Rect srcRectFB = srcBufferRect.intersection(&srcRect);
+
+  // Finding common area between the dstRectFB and the srcRectFB
+  Rect dstCommonArea(&dstRectFB);
+  Rect srcCommonArea(&srcRectFB);
+  // Move to common place (left = 0, top = 0)
+  dstCommonArea.move(-dstRect->left, -dstRect->top);
+  srcCommonArea.move(-srcRect.left, -srcRect.top);
+
+  Rect commonRect(&dstCommonArea.intersection(&srcCommonArea));
+
+  // Moving commonRect to destination coordinates and source
+  Rect resultDstRect(&commonRect), resultSrcRect(&commonRect);
+  resultDstRect.move(dstRect->left, dstRect->top);
+  resultSrcRect.move(srcX, srcY);
+
+  // Data copy
+  int pixelSize = m_pixelFormat.bitsPerPixel / 8;
+  int strideBytes = m_dimension.width * pixelSize;
+
+  int resultHeight = resultDstRect.getHeight();
+  int resultWidthBytes = resultDstRect.getWidth() * pixelSize;
+
+  UINT8 *pdst, *psrc;
+
+  if (srcY > dstRect->top) {
+    // Pointers set to first string of the rectanles
+    pdst = (UINT8 *)m_buffer + resultDstRect.top * strideBytes
+           + pixelSize * resultDstRect.left;
+    psrc = (UINT8 *)m_buffer + resultSrcRect.top * strideBytes
+           + pixelSize * resultSrcRect.left;
+
+    for (int i = 0; i < resultHeight; i++, pdst += strideBytes, psrc += strideBytes) {
+      memcpy(pdst, psrc, resultWidthBytes);
+    }
+
+  } else {
+    // Pointers set to last string of the rectanles
+    pdst = (UINT8 *)m_buffer + (resultDstRect.bottom - 1) * strideBytes
+           + pixelSize * resultDstRect.left;
+    psrc = (UINT8 *)m_buffer + (resultSrcRect.bottom - 1) * strideBytes
+           + pixelSize * resultSrcRect.left;
+
+    for (int i = resultHeight - 1; i >= 0; i--, pdst -= strideBytes, psrc -= strideBytes) {
+      memmove(pdst, psrc, resultWidthBytes);
+    }
+  }
+}
+
 bool FrameBuffer::cmpFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
-                           const int srcX, const int srcY)
+                          const int srcX, const int srcY)
 {
   // FIXME: Remove code duplicate (copyFrom() function)
   if (!m_pixelFormat.cmp(&srcFrameBuffer->getPixelFormat())) {

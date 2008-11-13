@@ -50,9 +50,23 @@ void UpdateFilter::filter(UpdateContainer *updateContainer)
     return;
   }
 
-  // Getting rectangle vector
   std::vector<Rect> rects;
   std::vector<Rect>::iterator iRect;
+
+  // Processing copiedRegion
+  // Repeat CopyRect operation in m_frameBuffer
+  Point *src = &updateContainer->copySrc;
+  // Getting rectangle vector
+  updateContainer->copiedRegion.get_rects(&rects);
+  for (iRect = rects.begin(); iRect < rects.end(); iRect++) {
+    m_frameBuffer->move(&(*iRect), src->x, src->y);
+  }
+
+  // Add copiedRegion to changedRegion
+  updateContainer->changedRegion.assign_union(updateContainer->copiedRegion);
+
+  // Processing changedRegion
+  // Getting rectangle vector
   updateContainer->changedRegion.get_rects(&rects);
 
   updateContainer->changedRegion.clear();

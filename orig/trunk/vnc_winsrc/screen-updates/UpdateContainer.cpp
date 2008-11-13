@@ -37,7 +37,7 @@ void UpdateContainer::clear()
   screenSizeChanged = false;
   cursorPosChanged = false;
   cursorShapeChanged = false;
-  copyOffset.clear();
+  copySrc.clear();
 }
 
 UpdateContainer& UpdateContainer::operator=(const UpdateContainer& src)
@@ -49,7 +49,7 @@ UpdateContainer& UpdateContainer::operator=(const UpdateContainer& src)
   screenSizeChanged   = src.screenSizeChanged;
   cursorPosChanged    = src.cursorPosChanged;
   cursorShapeChanged  = src.cursorShapeChanged;
-  copyOffset          = src.copyOffset;
+  copySrc             = src.copySrc;
 
   return *this;
 }

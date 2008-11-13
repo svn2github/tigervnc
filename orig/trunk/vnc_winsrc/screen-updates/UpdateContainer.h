@@ -39,7 +39,7 @@ public:
   bool screenSizeChanged;
   bool cursorPosChanged;
   bool cursorShapeChanged;
-  Point copyOffset;
+  Point copySrc;
 
   void clear();
   bool isEmpty() const;

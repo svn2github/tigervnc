@@ -85,6 +85,11 @@ void UpdateKeeper::addCopyRect(const Rect *copyRect, const Point *src)
   // Move addonChangedRegion and add it to changedRegion.
   addonChangedRegion.move(copyRect->left - src->x, copyRect->top - src->y);
   changedRegion->assign_union(addonChangedRegion);
+
+  // Clipping regions
+  rfb::Region borderRegion(m_borderRect);
+  m_updateContainer.changedRegion.assign_intersect(borderRegion);
+  m_updateContainer.copiedRegion.assign_intersect(borderRegion);
 }
 
 void UpdateKeeper::setScreenSizeChanged()

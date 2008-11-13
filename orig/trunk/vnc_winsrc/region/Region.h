@@ -49,7 +49,7 @@ namespace rfb {
 
     void clear();
     void reset(const Rect& r);
-    void move(const Point *delta);
+    void move(const int deltaX, const int deltaY);
     void setOrderedRects(const std::vector<Rect>& rects);
     void setExtentsAndOrderedRects(const ShortRect* extents, int nRects,
                                    const ShortRect* rects);

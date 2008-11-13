@@ -98,9 +98,9 @@ void rfb::Region::reset(const Rect& r) {
   }
 }
 
-void rfb::Region::move(const Point *delta)
+void rfb::Region::move(const int deltaX, const int deltaY)
 {
-  XOffsetRegion(xrgn, delta->x, delta->y);
+  XOffsetRegion(xrgn, deltaX, deltaY);
 }
 
 void rfb::Region::setOrderedRects(const std::vector<Rect>& rects) {

@@ -50,37 +50,41 @@ void UpdateKeeper::addChangedRect(const Rect *changedRect)
   addChangedRegion(&region);
 }
 
-void UpdateKeeper::addCopyRegion(const rfb::Region *cpyReg, const Point *copyOffset)
+void UpdateKeeper::addCopyRect(const Rect *copyRect, const Point *src)
 {
   AutoLock al(&m_updContCritSec);
+
+  m_updateContainer.copySrc = *src;
 
   rfb::Region *changedRegion = &m_updateContainer.changedRegion;
   rfb::Region *copiedRegion = &m_updateContainer.copiedRegion;
 
-  // Destroy previous copiedRegion
-  changedRegion->assign_union(*copiedRegion);
+  // Old copiedRegion must be added to changedRegion - (?)
+  if (!copiedRegion->is_empty()) {
+    changedRegion->assign_union(*copiedRegion);
+    copiedRegion->clear();
+    addChangedRect(copyRect);
+    return;
+  }
 
-  rfb::Region srcCopyRegion(*cpyReg);
-  rfb::Region srcChangedRegion(*changedRegion);
-  srcCopyRegion.move(copyOffset);
+  copiedRegion->clear();
+  copiedRegion->addRect(*copyRect);
 
-  // Create new copiedRegion
-  srcChangedRegion.assign_intersect(srcCopyRegion);
-  srcCopyRegion.assign_subtract(*changedRegion);
-
-  *copiedRegion = srcCopyRegion;
-  m_updateContainer.copyOffset = *copyOffset;
-  copiedRegion->move(&copyOffset->getReverse());
-
-  srcChangedRegion.move(&copyOffset->getReverse());
-  changedRegion->assign_union(srcChangedRegion);
+  // copiedRegion must be substracted from changedRegion
   changedRegion->assign_subtract(*copiedRegion);
-}
 
-void UpdateKeeper::addCopyRect(const Rect *copyRect, const Point *copyOffset)
-{
-  rfb::Region region(copyRect);
-  addCopyRegion(&region, copyOffset);
+  // Create copy of copyRect in the source coordinates.
+  Rect srcCopyRect(copyRect);
+  srcCopyRect.setLocation(src->x, src->y);
+
+  // Create region that is intersection of changedRegion and srcCopyRect.
+  rfb::Region addonChangedRegion;
+  addonChangedRegion.addRect(srcCopyRect);
+  addonChangedRegion.assign_intersect(*changedRegion);
+
+  // Move addonChangedRegion and add it to changedRegion.
+  addonChangedRegion.move(copyRect->left - src->x, copyRect->top - src->y);
+  changedRegion->assign_union(addonChangedRegion);
 }
 
 void UpdateKeeper::setScreenSizeChanged()

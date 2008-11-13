@@ -65,7 +65,7 @@ public:
     int offsetX = destX - left;
     int offsetY = destY - top;
     left    = destX;
-    right   += offsetY;
+    right   += offsetX;
     top     = destY;
     bottom  += offsetY;
   }

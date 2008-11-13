@@ -60,6 +60,16 @@ public:
     bottom  += offsetY;
   }
 
+  inline void setLocation(int destX, int destY)
+  {
+    int offsetX = destX - left;
+    int offsetY = destY - top;
+    left    = destX;
+    right   += offsetY;
+    top     = destY;
+    bottom  += offsetY;
+  }
+
   inline bool cmpRect(const Rect *rect) { return  rect->left == left &&
                                                   rect->top == top &&
                                                   rect->right == right &&

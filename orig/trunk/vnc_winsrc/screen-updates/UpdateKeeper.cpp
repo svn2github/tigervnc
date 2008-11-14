@@ -54,14 +54,21 @@ void UpdateKeeper::addCopyRect(const Rect *copyRect, const Point *src)
 {
   AutoLock al(&m_updContCritSec);
 
-  if ((src->x == 0) && (src->y == 0) || copyRect->isEmpty()) {
+  if (copyRect->isEmpty()) {
     return;
   }
 
-  m_updateContainer.copySrc = *src;
-
   rfb::Region *changedRegion = &m_updateContainer.changedRegion;
   rfb::Region *copiedRegion = &m_updateContainer.copiedRegion;
+  Point *copySrc = &m_updateContainer.copySrc;
+
+  *copySrc = *src;
+
+  // Clipping source coordinates with m_borderRect
+  copySrc->x = copySrc->x > m_borderRect.left   ? copySrc->x : m_borderRect.left;
+  copySrc->x = copySrc->x < m_borderRect.right  ? copySrc->x : m_borderRect.right;
+  copySrc->y = copySrc->y > m_borderRect.top    ? copySrc->y : m_borderRect.top;
+  copySrc->y = copySrc->y < m_borderRect.bottom ? copySrc->y : m_borderRect.bottom;
 
   // Old copiedRegion must be added to changedRegion - (?)
   if (!copiedRegion->is_empty()) {

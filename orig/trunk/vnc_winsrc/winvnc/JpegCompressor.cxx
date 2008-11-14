@@ -175,6 +175,10 @@ StandardJpegCompressor::compress(const CARD32 *buf,
                                  const PixelFormat *fmt,
                                  int w, int h, int stride)
 {
+  bool useQuickConversion =
+    (fmt->bitsPerPixel == 32 && fmt->colorDepth == 24 &&
+     fmt->redMax == 255 && fmt->greenMax == 255 && fmt->blueMax == 255);
+
   m_cinfo.image_width = w;
   m_cinfo.image_height = h;
 
@@ -200,7 +204,11 @@ StandardJpegCompressor::compress(const CARD32 *buf,
       max_rows = 8;
     }
     for (int dy = 0; dy < max_rows; dy++) {
-      convertRow24(row_pointer[dy], src, fmt, w);
+      if (useQuickConversion) {
+        convertRow24(row_pointer[dy], src, fmt, w);
+      } else {
+        convertRow(row_pointer[dy], src, fmt, w);
+      }
       src += stride;
     }
     jpeg_write_scanlines(&m_cinfo, row_pointer, max_rows);
@@ -214,6 +222,20 @@ StandardJpegCompressor::compress(const CARD32 *buf,
 void
 StandardJpegCompressor::convertRow24(JSAMPLE *dst, const void *src,
                                      const PixelFormat *fmt, int numPixels)
+{
+  const CARD32 *srcPixels = (const CARD32 *)src;
+  for (int x = 0; x < numPixels; x++) {
+    dst[x*3]   = (JSAMPLE)(srcPixels[x] >> fmt->redShift);
+    dst[x*3+1] = (JSAMPLE)(srcPixels[x] >> fmt->greenShift);
+    dst[x*3+2] = (JSAMPLE)(srcPixels[x] >> fmt->blueShift);
+  }
+}
+
+// FIXME: Currently, this is a copy of convertRow24, it makes the same
+//        assumptions about the pixel format.
+void
+StandardJpegCompressor::convertRow(JSAMPLE *dst, const void *src,
+                                   const PixelFormat *fmt, int numPixels)
 {
   const CARD32 *srcPixels = (const CARD32 *)src;
   for (int x = 0; x < numPixels; x++) {

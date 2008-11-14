@@ -100,6 +100,13 @@ protected:
 
   // Convert one row (scanline) from the specified pixel format to the format
   // supported by the IJG JPEG library (one byte per one color component).
+  void convertRow(JSAMPLE *dst, const void *src,
+                  const PixelFormat *fmt, int numPixels);
+
+  // Convert one row (scanline) from the specified pixel format to the format
+  // supported by the IJG JPEG library (one byte per one color component).
+  // This is a faster version assuming that source pixels are 32-bit values
+  // with actual color depth of 24 (redMax, greenMax and blueMax are all 255).
   void convertRow24(JSAMPLE *dst, const void *src,
                     const PixelFormat *fmt, int numPixels);
 };

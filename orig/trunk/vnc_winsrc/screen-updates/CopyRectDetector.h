@@ -19,16 +19,22 @@
 //
 // TightVNC homepage on the Web: http://www.tightvnc.com/
 
-#include "UpdateDetector.h"
+#include "region/Rect.h"
+#include "region/Point.h"
+#include "windows.h"
 
-class CopyRectDetector : public UpdateDetector
+class CopyRectDetector
 {
 public:
-  CopyRectDetector(UpdateKeeper *updateKeeper);
-  virtual ~CopyRectDetector(void);
+  CopyRectDetector();
+  virtual ~CopyRectDetector();
+
+  void detectWindowMovements(Rect *copyRect, Point *source);
 
 protected:
-  virtual void execute();
+  static BOOL CALLBACK enumWindowsFnCopyRect(HWND hwnd, LPARAM arg);
+  BOOL checkWindowMovements(HWND hwnd);
 
-  static BOOL CALLBACK EnumWindowsFnCopyRect(HWND hwnd, LPARAM arg);
+  Rect *m_copyRect;
+  Point *m_source;
 };

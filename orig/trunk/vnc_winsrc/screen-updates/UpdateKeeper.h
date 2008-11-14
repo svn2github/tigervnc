@@ -26,6 +26,7 @@
 #include "region/Point.h"
 #include "UpdateFilter.h"
 #include "UpdateContainer.h"
+#include "CopyRectDetector.h"
 
 class UpdateKeeper
 {
@@ -59,6 +60,7 @@ public:
 
 private:
   UpdateFilter *m_updateFilter;
+  CopyRectDetector m_copyRectDetector;
 
   // For getDimension() only
   const FrameBuffer *m_frameBuffer;

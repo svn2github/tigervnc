@@ -54,6 +54,10 @@ void UpdateKeeper::addCopyRect(const Rect *copyRect, const Point *src)
 {
   AutoLock al(&m_updContCritSec);
 
+  if ((src->x == 0) && (src->y == 0) || copyRect->isEmpty()) {
+    return;
+  }
+
   m_updateContainer.copySrc = *src;
 
   rfb::Region *changedRegion = &m_updateContainer.changedRegion;
@@ -111,7 +115,13 @@ void UpdateKeeper::setCursorPosChanged()
 void UpdateKeeper::extract(UpdateContainer *updateContainer)
 {
   {
+    Rect copyRect;
+    Point copySrc;
+    m_copyRectDetector.detectWindowMovements(&copyRect, &copySrc);
+    addCopyRect(&copyRect, &copySrc);
+
     AutoLock al(&m_updContCritSec);
+
     *updateContainer = m_updateContainer;
     m_updateContainer.clear();
   }

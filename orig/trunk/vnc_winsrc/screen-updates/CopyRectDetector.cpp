@@ -23,34 +23,50 @@
 #include "CopyRectDetector.h"
 #include "tchar.h"
 
-#define DEFAULT_SLEEP_TIME 10
-
 ATOM VNC_WINDOWPOS_ATOM = NULL;
 const TCHAR *VNC_WINDOWPOS_ATOMNAME = _T("VNCHooks.CopyRect.WindowPos");
 
-CopyRectDetector::CopyRectDetector(UpdateKeeper *updateKeeper)
-: UpdateDetector(updateKeeper)
+CopyRectDetector::CopyRectDetector()
+: m_copyRect(0)
 {
+  VNC_WINDOWPOS_ATOM = GlobalAddAtom(VNC_WINDOWPOS_ATOMNAME);
 }
 
-CopyRectDetector::~CopyRectDetector(void)
+CopyRectDetector::~CopyRectDetector()
 {
+  // Free the WindowPos atom!
+  if (VNC_WINDOWPOS_ATOM != NULL) {
+    GlobalDeleteAtom(VNC_WINDOWPOS_ATOM);
+  }
+}
+
+void CopyRectDetector::detectWindowMovements(Rect *copyRect, Point *source)
+{
+  if (VNC_WINDOWPOS_ATOM != 0) {
+    m_copyRect = copyRect;
+    m_source = source;
+    EnumWindows((WNDENUMPROC)enumWindowsFnCopyRect, (LPARAM)this);
+    m_copyRect = 0;
+    source = 0;
+  }
 }
 
 // Callback routine used internally to catch window movement...
-BOOL CALLBACK CopyRectDetector::EnumWindowsFnCopyRect(HWND hwnd, LPARAM arg)
+BOOL CALLBACK CopyRectDetector::enumWindowsFnCopyRect(HWND hwnd, LPARAM arg)
 {
   CopyRectDetector *_this = (CopyRectDetector *)arg;
+  return _this->checkWindowMovements(hwnd);
+}
 
+BOOL CopyRectDetector::checkWindowMovements(HWND hwnd)
+{
   //For excluding the popup windows
   if ((GetWindowLong( hwnd, GWL_STYLE) & WS_POPUP) ==0)
   {
-
     HANDLE prop = GetProp(hwnd, (LPCTSTR) MAKELONG(VNC_WINDOWPOS_ATOM, 0));
+
     if (prop != NULL) {
-
       if (IsWindowVisible(hwnd)) {
-
         RECT dest;
         Point source;
 
@@ -66,13 +82,15 @@ BOOL CALLBACK CopyRectDetector::EnumWindowsFnCopyRect(HWND hwnd, LPARAM arg)
             SHORT x = (SHORT) dest.left;
             SHORT y = (SHORT) dest.top;
             SetProp(hwnd,
-              (LPCTSTR) MAKELONG(VNC_WINDOWPOS_ATOM, 0),
-              (HANDLE) MAKELONG(x, y));
+                    (LPCTSTR) MAKELONG(VNC_WINDOWPOS_ATOM, 0),
+                    (HANDLE) MAKELONG(x, y));
 
             // Store of the copyrect
             Rect destRect(dest.left, dest.top, dest.right, dest.bottom);
-            _this->m_updateKeeper->addCopyRect(&destRect, &source);
-            _this->m_outUpdateListener->doUpdate();
+            m_copyRect->setRect(&destRect);
+            *m_source = source;
+            // Stop EnumWindows() function.
+            return FALSE;
           }
         } else {
           RemoveProp(hwnd, (LPCTSTR) MAKELONG(VNC_WINDOWPOS_ATOM, 0));
@@ -96,21 +114,4 @@ BOOL CALLBACK CopyRectDetector::EnumWindowsFnCopyRect(HWND hwnd, LPARAM arg)
     }
   }
   return TRUE;
-}
-
-void CopyRectDetector::execute()
-{
-  if ((VNC_WINDOWPOS_ATOM = GlobalAddAtom(VNC_WINDOWPOS_ATOMNAME)) == 0) {
-    return;
-  }
-
-  while (!m_terminated) {
-    EnumWindows((WNDENUMPROC)EnumWindowsFnCopyRect, (LPARAM) this);
-    Sleep(DEFAULT_SLEEP_TIME);
-  }
-
-  // Free the WindowPos atom!
-  if (VNC_WINDOWPOS_ATOM != NULL) {
-    GlobalDeleteAtom(VNC_WINDOWPOS_ATOM);
-  }
 }

@@ -27,7 +27,6 @@
 #include "libscreen/WindowsScreenGrabber.h"
 #include "JpegCompressor.h"
 
-// FIXME: JPEG quality level should be configurable.
 // FIXME: Tight-encoded rectangles should not be wider than 2048 pixels.
 // FIXME: Fall back to other encoders if color depth is not 24.
 // FIXME: Don't use this encoder if the client does not support Tight+JPEG.
@@ -38,6 +37,7 @@ public:
   WindowsScreenJpegEncoder();
   virtual ~WindowsScreenJpegEncoder();
 
+  void setQuality(int level);
   UINT getNumCodedRects(const RECT &rect) const;
   void encodeRectangle(const RECT &rect);
 

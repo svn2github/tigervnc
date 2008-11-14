@@ -856,6 +856,7 @@ vncClientThread::run(void *arg)
 			}
 
 			m_client->m_buffer->SetQualityLevel(-1);
+			m_client->m_jpegEncoder->setQuality(6);
 			m_client->m_buffer->SetCompressLevel(6);
 			m_client->m_buffer->EnableXCursor(FALSE);
 			m_client->m_buffer->EnableRichCursor(FALSE);
@@ -935,6 +936,7 @@ vncClientThread::run(void *arg)
 						// Client specified image quality level used for JPEG compression
 						int level = (int)(Swap32IfLE(encoding) - rfbEncodingQualityLevel0);
 						m_client->m_buffer->SetQualityLevel(level);
+						m_client->m_jpegEncoder->setQuality(level);
 						vnclog.Print(LL_INTINFO, VNCLOG("image quality level requested: %d\n"), level);
 						continue;
 					}

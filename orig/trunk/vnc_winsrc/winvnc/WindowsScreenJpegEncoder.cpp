@@ -30,6 +30,16 @@ WindowsScreenJpegEncoder::~WindowsScreenJpegEncoder()
 {
 }
 
+void WindowsScreenJpegEncoder::setQuality(int level)
+{
+  if (level < 0) {
+    level = 0;
+  } else if (level > 9) {
+    level = 9;
+  }
+  m_compressor.setQuality(level * 10 + 5);
+}
+
 UINT WindowsScreenJpegEncoder::getNumCodedRects(const RECT &rect) const
 {
   return 1;

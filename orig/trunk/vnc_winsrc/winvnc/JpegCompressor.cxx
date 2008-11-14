@@ -164,6 +164,7 @@ StandardJpegCompressor::setQuality(int level)
 //
 // Perform JPEG compression.
 //
+// FIXME: Add proper error handling.
 // FIXME: This function assumes that (fmt->bpp == 32 &&
 //        fmt->depth == 24 && fmt->redMax == 255 &&
 //        fmt->greenMax == 255 && fmt->blueMax == 255).
@@ -199,12 +200,7 @@ StandardJpegCompressor::compress(const CARD32 *buf,
       max_rows = 8;
     }
     for (int dy = 0; dy < max_rows; dy++) {
-      JSAMPLE *dst = row_pointer[dy];
-      for (int x = 0; x < w; x++) {
-        dst[x*3]   = (JSAMPLE)(src[x] >> fmt->redShift);
-        dst[x*3+1] = (JSAMPLE)(src[x] >> fmt->greenShift);
-        dst[x*3+2] = (JSAMPLE)(src[x] >> fmt->blueShift);
-      }
+      convertRow24(row_pointer[dy], src, fmt, w);
       src += stride;
     }
     jpeg_write_scanlines(&m_cinfo, row_pointer, max_rows);
@@ -215,3 +211,14 @@ StandardJpegCompressor::compress(const CARD32 *buf,
   jpeg_finish_compress(&m_cinfo);
 }
 
+void
+StandardJpegCompressor::convertRow24(JSAMPLE *dst, const void *src,
+                                     const PixelFormat *fmt, int numPixels)
+{
+  const CARD32 *srcPixels = (const CARD32 *)src;
+  for (int x = 0; x < numPixels; x++) {
+    dst[x*3]   = (JSAMPLE)(srcPixels[x] >> fmt->redShift);
+    dst[x*3+1] = (JSAMPLE)(srcPixels[x] >> fmt->greenShift);
+    dst[x*3+2] = (JSAMPLE)(srcPixels[x] >> fmt->blueShift);
+  }
+}

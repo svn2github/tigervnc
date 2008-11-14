@@ -97,6 +97,11 @@ protected:
   unsigned char *m_cdata;
   size_t m_cdata_allocated;
   size_t m_cdata_ready;
+
+  // Convert one row (scanline) from the specified pixel format to the format
+  // supported by the IJG JPEG library (one byte per one color component).
+  void convertRow24(JSAMPLE *dst, const void *src,
+                    const PixelFormat *fmt, int numPixels);
 };
 
 #endif // __JPEGCOMPRESSOR_H__

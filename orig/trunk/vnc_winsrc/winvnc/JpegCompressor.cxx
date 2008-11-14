@@ -65,7 +65,9 @@ term_destination (j_compress_ptr cinfo)
 //
 
 StandardJpegCompressor::StandardJpegCompressor()
-  : m_cdata(0),
+  : m_quality(-1), // make sure (m_quality != n_new_quality)
+    m_new_quality(DEFAULT_JPEG_QUALITY),
+    m_cdata(0),
     m_cdata_allocated(0),
     m_cdata_ready(0)
 {
@@ -81,11 +83,11 @@ StandardJpegCompressor::StandardJpegCompressor()
   dest->_this = this;
   m_cinfo.dest = (jpeg_destination_mgr *)dest;
 
-  // Set up a destination manager.
+  // Set up compression parameters. Do not set quality level here,
+  // it will be set right before the compression.
   m_cinfo.input_components = 3;
   m_cinfo.in_color_space = JCS_RGB;
   jpeg_set_defaults(&m_cinfo);
-  jpeg_set_quality(&m_cinfo, DEFAULT_JPEG_QUALITY, true);
 
   // We prefer speed over quality.
   m_cinfo.dct_method = JDCT_FASTEST;
@@ -156,7 +158,7 @@ StandardJpegCompressor::setQuality(int level)
   } else if (level > 100) {
     level = 100;
   }
-  jpeg_set_quality(&m_cinfo, level, true);
+  m_new_quality = level;
 }
 
 //
@@ -174,6 +176,11 @@ StandardJpegCompressor::compress(const CARD32 *buf,
 {
   m_cinfo.image_width = w;
   m_cinfo.image_height = h;
+
+  if (m_new_quality != m_quality) {
+    jpeg_set_quality(&m_cinfo, m_new_quality, true);
+    m_quality = m_new_quality;
+  }
 
   jpeg_start_compress(&m_cinfo, TRUE);
 

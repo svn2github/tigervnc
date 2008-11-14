@@ -88,6 +88,9 @@ protected:
   static const int ALLOC_CHUNK_SIZE;
   static const int DEFAULT_JPEG_QUALITY;
 
+  int m_quality;
+  int m_new_quality;
+
   struct jpeg_compress_struct m_cinfo;
   struct jpeg_error_mgr m_jerr;
 

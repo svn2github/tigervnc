@@ -35,6 +35,7 @@ Thread::~Thread(void)
 DWORD WINAPI Thread::threadProc(LPVOID pThread)
 {
   ((Thread *)pThread)->execute();
+  ((Thread *)pThread)->m_active = false;
   return 0;
 }
 

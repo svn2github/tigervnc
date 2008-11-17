@@ -61,14 +61,21 @@ void UpdateKeeper::addCopyRect(const Rect *copyRect, const Point *src)
   rfb::Region *changedRegion = &m_updateContainer.changedRegion;
   rfb::Region *copiedRegion = &m_updateContainer.copiedRegion;
   Point *copySrc = &m_updateContainer.copySrc;
+  Rect dstCopyRect(copyRect);
 
-  *copySrc = *src;
+  // Create copy of copyRect in the source coordinates.
+  Rect srcCopyRect(copyRect);
+  srcCopyRect.setLocation(src->x, src->y);
 
-  // Clipping source coordinates with m_borderRect
-  copySrc->x = copySrc->x > m_borderRect.left   ? copySrc->x : m_borderRect.left;
-  copySrc->x = copySrc->x < m_borderRect.right  ? copySrc->x : m_borderRect.right;
-  copySrc->y = copySrc->y > m_borderRect.top    ? copySrc->y : m_borderRect.top;
-  copySrc->y = copySrc->y < m_borderRect.bottom ? copySrc->y : m_borderRect.bottom;
+  // Clipping
+  dstCopyRect = dstCopyRect.intersection(&m_borderRect, &srcCopyRect);
+  if (dstCopyRect.isEmpty()) {
+    return;
+  }
+
+  srcCopyRect = srcCopyRect.intersection(&m_borderRect);
+  copySrc->x = srcCopyRect.left;
+  copySrc->y = srcCopyRect.top;
 
   // Old copiedRegion must be added to changedRegion - (?)
   if (!copiedRegion->is_empty()) {
@@ -79,14 +86,10 @@ void UpdateKeeper::addCopyRect(const Rect *copyRect, const Point *src)
   }
 
   copiedRegion->clear();
-  copiedRegion->addRect(*copyRect);
+  copiedRegion->addRect(dstCopyRect);
 
   // copiedRegion must be substracted from changedRegion
   changedRegion->assign_subtract(*copiedRegion);
-
-  // Create copy of copyRect in the source coordinates.
-  Rect srcCopyRect(copyRect);
-  srcCopyRect.setLocation(src->x, src->y);
 
   // Create region that is intersection of changedRegion and srcCopyRect.
   rfb::Region addonChangedRegion;
@@ -94,7 +97,8 @@ void UpdateKeeper::addCopyRect(const Rect *copyRect, const Point *src)
   addonChangedRegion.assign_intersect(*changedRegion);
 
   // Move addonChangedRegion and add it to changedRegion.
-  addonChangedRegion.move(copyRect->left - src->x, copyRect->top - src->y);
+  addonChangedRegion.move(dstCopyRect.left - copySrc->x,
+                          dstCopyRect.top - copySrc->y);
   changedRegion->assign_union(addonChangedRegion);
 
   // Clipping regions

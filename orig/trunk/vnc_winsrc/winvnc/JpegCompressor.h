@@ -45,7 +45,8 @@ public:
   virtual void setQuality(int level) = 0;
 
   // Actually compress an image.
-  virtual void compress(const CARD32 *buf, const PixelFormat *fmt,
+  // Note that the stride value is measured in bytes not pixels.
+  virtual void compress(const void *buf, const PixelFormat *fmt,
                         int w, int h, int stride) = 0;
 
   // Access results of the compression.
@@ -68,7 +69,7 @@ public:
   virtual void setQuality(int level);
 
   // Actually compress the image.
-  virtual void compress(const CARD32 *buf, const PixelFormat *fmt,
+  virtual void compress(const void *buf, const PixelFormat *fmt,
                         int w, int h, int stride);
 
   // Access results of the compression.

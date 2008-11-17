@@ -51,11 +51,11 @@ void WindowsScreenJpegEncoder::encodeRectangle(const RECT &rect)
   m_grabber.grab(&r);
   const FrameBuffer *fb = m_grabber.getScreenBuffer();
 
-  const CARD32 *ptr = (const CARD32 *)fb->getBuffer();
-  int stride = fb->getDimension().width;
-  ptr += r.top * stride + r.left;
   PixelFormat fmt = fb->getPixelFormat();
-  _ASSERT(fmt.colorDepth == 24);
+  int bytesPerPixel = fmt.bitsPerPixel / 8;
+  const char *ptr = (const char *)fb->getBuffer();
+  ptr += (r.top * fb->getDimension().width + r.left) * bytesPerPixel;
+  int stride = fb->getDimension().width * bytesPerPixel;
 
   m_compressor.compress(ptr, &fmt, r.getWidth(), r.getHeight(), stride);
 

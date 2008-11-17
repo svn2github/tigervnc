@@ -161,17 +161,9 @@ StandardJpegCompressor::setQuality(int level)
   m_new_quality = level;
 }
 
-//
-// Perform JPEG compression.
-//
 // FIXME: Add proper error handling.
-// FIXME: This function assumes that (fmt->bpp == 32 &&
-//        fmt->depth == 24 && fmt->redMax == 255 &&
-//        fmt->greenMax == 255 && fmt->blueMax == 255).
-//
-
 void
-StandardJpegCompressor::compress(const CARD32 *buf,
+StandardJpegCompressor::compress(const void *buf,
                                  const PixelFormat *fmt,
                                  int w, int h, int stride)
 {
@@ -189,7 +181,7 @@ StandardJpegCompressor::compress(const CARD32 *buf,
 
   jpeg_start_compress(&m_cinfo, TRUE);
 
-  const CARD32 *src = buf;
+  const char *src = (const char *)buf;
 
   // We'll pass up to 8 rows to jpeg_write_scanlines().
   JSAMPLE *rgb = new JSAMPLE[w * 3 * 8];
@@ -224,10 +216,11 @@ StandardJpegCompressor::convertRow24(JSAMPLE *dst, const void *src,
                                      const PixelFormat *fmt, int numPixels)
 {
   const CARD32 *srcPixels = (const CARD32 *)src;
-  for (int x = 0; x < numPixels; x++) {
-    dst[x*3]   = (JSAMPLE)(srcPixels[x] >> fmt->redShift);
-    dst[x*3+1] = (JSAMPLE)(srcPixels[x] >> fmt->greenShift);
-    dst[x*3+2] = (JSAMPLE)(srcPixels[x] >> fmt->blueShift);
+  while (numPixels--) {
+    CARD32 pixel = *srcPixels++;
+    *dst++ = (JSAMPLE)(pixel >> fmt->redShift);
+    *dst++ = (JSAMPLE)(pixel >> fmt->greenShift);
+    *dst++ = (JSAMPLE)(pixel >> fmt->blueShift);
   }
 }
 
@@ -237,10 +230,21 @@ void
 StandardJpegCompressor::convertRow(JSAMPLE *dst, const void *src,
                                    const PixelFormat *fmt, int numPixels)
 {
-  const CARD32 *srcPixels = (const CARD32 *)src;
-  for (int x = 0; x < numPixels; x++) {
-    dst[x*3]   = (JSAMPLE)(srcPixels[x] >> fmt->redShift);
-    dst[x*3+1] = (JSAMPLE)(srcPixels[x] >> fmt->greenShift);
-    dst[x*3+2] = (JSAMPLE)(srcPixels[x] >> fmt->blueShift);
+  if (fmt->bitsPerPixel == 32) {
+    const CARD32 *srcPixels = (const CARD32 *)src;
+    for (int x = 0; x < numPixels; x++) {
+      CARD32 pixel = *srcPixels++;
+      *dst++ = (JSAMPLE)((pixel >> fmt->redShift & fmt->redMax) * 255 / fmt->redMax);
+      *dst++ = (JSAMPLE)((pixel >> fmt->greenShift & fmt->greenMax) * 255 / fmt->greenMax);
+      *dst++ = (JSAMPLE)((pixel >> fmt->blueShift & fmt->blueMax) * 255 / fmt->blueMax);
+    }
+  } else { // assuming (fmt->bitsPerPixel == 16)
+    const CARD16 *srcPixels = (const CARD16 *)src;
+    for (int x = 0; x < numPixels; x++) {
+      CARD16 pixel = *srcPixels++;
+      *dst++ = (JSAMPLE)((pixel >> fmt->redShift & fmt->redMax) * 255 / fmt->redMax);
+      *dst++ = (JSAMPLE)((pixel >> fmt->greenShift & fmt->greenMax) * 255 / fmt->greenMax);
+      *dst++ = (JSAMPLE)((pixel >> fmt->blueShift & fmt->blueMax) * 255 / fmt->blueMax);
+    }
   }
 }

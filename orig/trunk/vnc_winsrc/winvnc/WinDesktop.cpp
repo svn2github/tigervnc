@@ -365,8 +365,6 @@ bool WinDesktop::sendUpdate()
   return true;
 }
 
-
-
 void WinDesktop::setNewScreenSize()
 {
   m_bmrect.left   = 0;

@@ -750,7 +750,7 @@ vncClientThread::run(void *arg)
 
 	// Endian swaps
 	RECT sharedRect;
-	sharedRect = m_server->GetSharedRect();
+	sharedRect = m_client->getEffectiveViewport();
 	server_ini.framebufferWidth = Swap16IfLE(sharedRect.right- sharedRect.left);
 	server_ini.framebufferHeight = Swap16IfLE(sharedRect.bottom - sharedRect.top);
 	server_ini.format.redMax = Swap16IfLE(server_ini.format.redMax);
@@ -1015,7 +1015,7 @@ vncClientThread::run(void *arg)
 				{
 					omni_mutex_lock l(m_client->m_regionLock);
 
-					sharedRect = m_server->GetSharedRect();
+					sharedRect = m_client->getEffectiveViewport();
 					// Get the specified rectangle as the region to send updates for.
 					update.left = Swap16IfLE(msg.fur.x)+ sharedRect.left;
 					update.top = Swap16IfLE(msg.fur.y)+ sharedRect.top;
@@ -1103,7 +1103,7 @@ vncClientThread::run(void *arg)
 					m_client->m_cursor_pos.y = msg.pe.y;
 
 					// Obtain the shared part of the screen
-					RECT coord = m_server->GetSharedRect();
+					RECT coord = m_client->getEffectiveViewport();
 
 					// Compute the position relative to screen
 					msg.pe.x = msg.pe.x + (CARD16)coord.left;
@@ -1862,6 +1862,10 @@ vncClient::vncClient()
 	m_use_NewFBSize = FALSE;
 
 	m_jpegEncoder = 0;
+
+	RECT r;
+	SetRectEmpty(&r);
+	setViewport(r);
 }
 
 vncClient::~vncClient()
@@ -2015,7 +2019,7 @@ vncClient::UpdateMouse()
 	if (!m_mousemoved && !m_cursor_update_sent)	{
 		omni_mutex_lock l(m_regionLock);
 
-		if (IntersectRect(&m_oldmousepos, &m_oldmousepos, &m_server->GetSharedRect()))
+		if (IntersectRect(&m_oldmousepos, &m_oldmousepos, &getEffectiveViewport()))
 			m_changed_rgn.AddRect(m_oldmousepos);
 
 		m_mousemoved = TRUE;
@@ -2035,7 +2039,7 @@ vncClient::UpdateRect(RECT &rect)
 
 	omni_mutex_lock l(m_regionLock);
 
-	if (IntersectRect(&rect, &rect, &m_server->GetSharedRect()))
+	if (IntersectRect(&rect, &rect, &getEffectiveViewport()))
 		m_changed_rgn.AddRect(rect);
 }
 
@@ -2051,7 +2055,7 @@ vncClient::UpdateRegion(vncRegion &region)
 
 		// Merge the two
 		vncRegion dummy;
-		dummy.AddRect(m_server->GetSharedRect());
+		dummy.AddRect(getEffectiveViewport());
 		region.Intersect(dummy);
 
 		m_changed_rgn.Combine(region);
@@ -2073,32 +2077,31 @@ vncClient::CopyRect(RECT &dest, POINT &source)
 
 		// Clip the destination to the screen
 		RECT destrect;
-		if (!IntersectRect(&destrect, &dest, &m_server->GetSharedRect()))
+		if (!IntersectRect(&destrect, &dest, &getEffectiveViewport()))
 			return;
 
-		// Adjust the source correspondingly
-		source.x = source.x + (destrect.left - dest.left);
-		source.y = source.y + (destrect.top - dest.top);
-
-		// Work out the source rectangle
+		// Work out the source rectangle corresponding to destrect.
 		RECT srcrect;
-		srcrect.left = source.x;
-		srcrect.top = source.y;
-
-		// And fill out the right & bottom using the dest rect
-		srcrect.right = destrect.right-destrect.left + srcrect.left;
-		srcrect.bottom = destrect.bottom-destrect.top + srcrect.top;
+		srcrect.left = source.x + (destrect.left - dest.left);
+		srcrect.top = source.y + (destrect.top - dest.top);
+		srcrect.right = destrect.right - destrect.left + srcrect.left;
+		srcrect.bottom = destrect.bottom - destrect.top + srcrect.top;
 
 		// Clip the source to the screen
 		RECT srcrect2;
-		if (!IntersectRect(&srcrect2, &srcrect, &m_server->GetSharedRect()))
+		if (!IntersectRect(&srcrect2, &srcrect, &getEffectiveViewport()))
 			return;
 
 		// Correct the destination rectangle
 		destrect.left += (srcrect2.left - srcrect.left);
 		destrect.top += (srcrect2.top - srcrect.top);
-		destrect.right = srcrect2.right-srcrect2.left + destrect.left;
-		destrect.bottom = srcrect2.bottom-srcrect2.top + destrect.top;
+		destrect.right = srcrect2.right - srcrect2.left + destrect.left;
+		destrect.bottom = srcrect2.bottom - srcrect2.top + destrect.top;
+
+		// The region that was removed from the CopyRect destination should be
+		// added to m_changed_rgn to make sure everything is drawn.
+		m_changed_rgn.AddRect(dest);
+		m_changed_rgn.SubtractRect(destrect);
 
 		// Set the copyrect...
 		m_copyrect_rect = destrect;
@@ -2177,11 +2180,11 @@ vncClient::SendRFBMsg(CARD8 type, BYTE *buffer, int buflen)
 BOOL
 vncClient::isPtInSharedArea(POINT &p)
 {
-    RECT shared_rect = m_server->GetSharedRect();
-    if (p.x >= 0 && p.x < shared_rect.right - shared_rect.left &&
-	p.y >= 0 && p.y < shared_rect.bottom - shared_rect.top) 
-	return TRUE;
-    return FALSE;
+	RECT shared_rect = getEffectiveViewport();
+	if (p.x >= 0 && p.x < shared_rect.right - shared_rect.left &&
+		p.y >= 0 && p.y < shared_rect.bottom - shared_rect.top) 
+		return TRUE;
+	return FALSE;
 }
 
 BOOL
@@ -2194,7 +2197,10 @@ vncClient::SendUpdate()
 	}
 
 	// Shortcuts to the shared part of the screen (as a RECT and a vncRegion).
-	RECT sharedRect = m_server->GetSharedRect();
+	RECT sharedRect = getEffectiveViewport();
+	if (IsRectEmpty(&sharedRect)) {
+		return TRUE;
+	}
 	vncRegion sharedRegion;
 	sharedRegion.AddRect(sharedRect);
 
@@ -2277,12 +2283,12 @@ vncClient::SendUpdate()
 			// If the mouse has moved (or otherwise needs an update):
 			if (m_mousemoved) {
 				// Include an update for its previous position
-				if (IntersectRect(&m_oldmousepos, &m_oldmousepos, &m_server->GetSharedRect())) 
+				if (IntersectRect(&m_oldmousepos, &m_oldmousepos, &getEffectiveViewport())) 
 					normalUpdates.AddRect(m_oldmousepos);
 				// Update the cached mouse position
 				m_oldmousepos = m_buffer->GrabMouse();
 				// Include an update for its current position
-				if (IntersectRect(&m_oldmousepos, &m_oldmousepos, &m_server->GetSharedRect())) 
+				if (IntersectRect(&m_oldmousepos, &m_oldmousepos, &getEffectiveViewport())) 
 					normalUpdates.AddRect(m_oldmousepos);
 				// Indicate the move has been handled
 				m_mousemoved = FALSE;
@@ -2419,7 +2425,7 @@ bool vncClient::sendRectangles(rectlist &rects, bool asVideo)
 BOOL
 vncClient::SendRectangle(RECT &rect)
 {
-	RECT sharedRect = m_server->GetSharedRect();
+	RECT sharedRect = getEffectiveViewport();
 
     // Get the buffer to encode the rectangle
 	UINT bytes = m_buffer->TranslateRect(rect, m_socket, sharedRect.left, sharedRect.top);
@@ -2432,7 +2438,7 @@ vncClient::SendRectangle(RECT &rect)
 BOOL
 vncClient::SendVideoRectangle(RECT &rect)
 {
-  RECT sharedRect = m_server->GetSharedRect();
+  RECT sharedRect = getEffectiveViewport();
 
   m_jpegEncoder->encodeRectangle(rect);
   const char *header = m_jpegEncoder->getHeaderPtr();
@@ -2461,26 +2467,35 @@ vncClient::SendVideoRectangle(RECT &rect)
 BOOL
 vncClient::SendCopyRect(RECT &dest, POINT &source)
 {
-	// Create the message header
-	rfbFramebufferUpdateRectHeader copyrecthdr;
-	copyrecthdr.r.x = Swap16IfLE(dest.left);
-	copyrecthdr.r.y = Swap16IfLE(dest.top);
-	copyrecthdr.r.w = Swap16IfLE(dest.right-dest.left);
-	copyrecthdr.r.h = Swap16IfLE(dest.bottom-dest.top);
-	copyrecthdr.encoding = Swap32IfLE(rfbEncodingCopyRect);
+  RECT viewport = getEffectiveViewport();
 
-	// Create the CopyRect-specific section
-	rfbCopyRect copyrectbody;
-	copyrectbody.srcX = Swap16IfLE(source.x);
-	copyrectbody.srcY = Swap16IfLE(source.y);
+  int destX = dest.left - viewport.left;
+  int destY = dest.top - viewport.top;
+  int sourceX = source.x - viewport.left;
+  int sourceY = source.y - viewport.top;
+  int width = dest.right - dest.left;
+  int height = dest.bottom - dest.top;
 
-	// Now send the message;
-	if (!m_socket->SendQueued((char *)&copyrecthdr, sizeof(copyrecthdr)))
-		return FALSE;
-	if (!m_socket->SendQueued((char *)&copyrectbody, sizeof(copyrectbody)))
-		return FALSE;
+  // Create the message header
+  rfbFramebufferUpdateRectHeader rectHeader;
+  rectHeader.r.x = Swap16IfLE(destX);
+  rectHeader.r.y = Swap16IfLE(destY);
+  rectHeader.r.w = Swap16IfLE(width);
+  rectHeader.r.h = Swap16IfLE(height);
+  rectHeader.encoding = Swap32IfLE(rfbEncodingCopyRect);
 
-	return TRUE;
+  // Create the CopyRect-specific section
+  rfbCopyRect rectData;
+  rectData.srcX = Swap16IfLE(sourceX);
+  rectData.srcY = Swap16IfLE(sourceY);
+
+  // Now send the message;
+  if (!m_socket->SendQueued((char *)&rectHeader, sizeof(rectHeader)))
+    return FALSE;
+  if (!m_socket->SendQueued((char *)&rectData, sizeof(rectData)))
+    return FALSE;
+
+  return TRUE;
 }
 
 // Send LastRect marker indicating that there are no more rectangles to send
@@ -2602,7 +2617,7 @@ vncClient::SetNewFBSize()
 BOOL
 vncClient::SendNewFBSize()
 {
-  RECT sharedRect = m_server->GetSharedRect();
+  RECT sharedRect = getEffectiveViewport();
 
   m_full_rgn.Clear();
   m_incr_rgn.Clear();
@@ -2647,6 +2662,18 @@ void
 vncClient::UpdateLocalFormat()
 {
 	m_buffer->UpdateLocalFormat();
+}
+
+RECT vncClient::getEffectiveViewport() const
+{
+	RECT serverRect = m_server->GetSharedRect();
+	if (IsRectEmpty(&m_viewport)) {
+		return serverRect;
+	}
+
+	RECT result;
+	IntersectRect(&result, &serverRect, &m_viewport);
+	return result;
 }
 
 char *

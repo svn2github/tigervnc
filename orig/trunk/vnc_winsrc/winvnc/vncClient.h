@@ -132,6 +132,8 @@ public:
 	char * ConvertPath(char *path);
 	char * ConvertToNetPath(char *path);
 
+	void setViewport(const RECT &r) { m_viewport = r; }
+
 	// Update routines
 protected:
 	BOOL SendUpdate();
@@ -173,7 +175,7 @@ protected:
 	BOOL isPtInSharedArea(POINT &p);
     BOOL SendNewFBSize();
 
-
+	RECT getEffectiveViewport() const;
 
 	// Internal stuffs
 protected:
@@ -252,6 +254,8 @@ protected:
 	BOOL			m_use_PointerPos;
 
 	omni_mutex		m_sendUpdateLock;
+
+	RECT			m_viewport;
 
 private:
 	unsigned int FiletimeToTime70(FILETIME filetime);

@@ -43,6 +43,7 @@ class vncServer;
 // Custom
 #include "vncSockConnect.h"
 #include "vncHTTPConnect.h"
+#include "SocketServer.h"
 #include "vncClient.h"
 #include "vncRegion.h"
 #include "vncPasswd.h"
@@ -73,9 +74,10 @@ public:
 	// Client handling functions
 	virtual void DisableClients(BOOL state);
 	virtual BOOL ClientsDisabled();
-	virtual vncClientId AddClient(VSocket *socket, BOOL reverse, BOOL shared);
-	virtual vncClientId AddClient(VSocket *socket, BOOL reverse, BOOL shared,
-								  BOOL keysenabled, BOOL ptrenabled);
+	virtual vncClientId AddClient(VSocket *socket, const RECT *viewport,
+								  BOOL reverse, BOOL shared);
+	virtual vncClientId AddClient(VSocket *socket, const RECT *viewport,
+								  BOOL reverse, BOOL shared, BOOL keysenabled, BOOL ptrenabled);
 	virtual BOOL Authenticated(vncClientId client);
 	virtual void KillClient(vncClientId client);
 
@@ -178,6 +180,7 @@ public:
 		}
 	};
 	virtual BOOL AutoPortSelect() {return m_autoportselect;};
+	virtual void setExtraPorts(const char *spec);
 
 	// Password set/retrieve.  Note that these functions now handle the encrypted
 	// form, not the plaintext form.  The buffer passwd MUST be MAXPWLEN in size.
@@ -341,6 +344,7 @@ protected:
 	// Connection servers
 	vncSockConnect		*m_socketConn;
 	vncHTTPConnect		*m_httpConn;
+	SocketServer		*m_socketServer;
 
 	// The desktop handler
 	WinDesktop			*m_desktop;

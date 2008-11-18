@@ -50,6 +50,8 @@ vncServer::vncServer()
 	// Initialise some important stuffs...
 	m_socketConn = NULL;
 	m_httpConn = NULL;
+	m_socketServer = NULL;
+
 	m_desktop = NULL;
     m_videoHWND = NULL;
 	m_name = NULL;
@@ -144,23 +146,26 @@ vncServer::vncServer()
 #endif
 
 	m_wallpaper_wait = FALSE;
+
+	m_socketServer = new SocketServer;
 }
 
 vncServer::~vncServer()
 {
 	vnclog.Print(LL_STATE, VNCLOG("shutting down server object\n"));
 
-	// If there is a socket_conn object then delete it
-	if (m_socketConn != NULL)
-	{
+	// If there are listening socket objects then delete them.
+	if (m_socketConn != NULL) {
 		delete m_socketConn;
 		m_socketConn = NULL;
 	}
-
-	if (m_httpConn != NULL)
-	{
+	if (m_httpConn != NULL) {
 		delete m_httpConn;
 		m_httpConn = NULL;
+	}
+	if (m_socketServer != NULL) {
+		delete m_socketServer;
+		m_socketServer = NULL;
 	}
 
 	// Remove any active clients!
@@ -217,14 +222,15 @@ vncServer::ClientsDisabled()
 }
 
 vncClientId
-vncServer::AddClient(VSocket *socket, BOOL reverse, BOOL shared)
+vncServer::AddClient(VSocket *socket, const RECT *viewport,
+					 BOOL reverse, BOOL shared)
 {
-	return AddClient(socket, reverse, shared, TRUE, TRUE);
+	return AddClient(socket, viewport, reverse, shared, TRUE, TRUE);
 }
 
 vncClientId
-vncServer::AddClient(VSocket *socket, BOOL reverse, BOOL shared,
-					 BOOL keysenabled, BOOL ptrenabled)
+vncServer::AddClient(VSocket *socket, const RECT *viewport,
+					 BOOL reverse, BOOL shared, BOOL keysenabled, BOOL ptrenabled)
 {
 	vncClient *client;
 
@@ -255,6 +261,7 @@ vncServer::AddClient(VSocket *socket, BOOL reverse, BOOL shared,
 	// Set the client's settings
 	client->EnableKeyboard(keysenabled && m_enable_remote_inputs);
 	client->EnablePointer(ptrenabled && m_enable_remote_inputs);
+	client->setViewport(*viewport);
 
 	// Start the client
 	if (!client->Init(this, socket, reverse, shared, clientid))
@@ -1004,7 +1011,12 @@ void vncServer::LocalInputPriority(BOOL disable)
 	
 }  
 
-
+void vncServer::setExtraPorts(const char *spec)
+{
+	if (m_socketServer != 0) {
+		m_socketServer->setListenPorts(this, spec);
+	}
+}
 
 // Socket connection handling
 BOOL
@@ -1040,8 +1052,7 @@ vncServer::SockConnect(BOOL On)
 						if (!tempsock.Connect("localhost", m_port))
 						{
 							// Couldn't connect, so this port is probably usable!
-							if (m_socketConn->Init(this, m_port))
-							{
+							if (m_socketConn->Init(this, m_port, 0)) {
 								ok = TRUE;
 								break;
 							}
@@ -1058,8 +1069,7 @@ vncServer::SockConnect(BOOL On)
 			} else
 			{
 				// No autoportselect
-				if (!m_socketConn->Init(this, m_port))
-				{
+				if (!m_socketConn->Init(this, m_port, 0)) {
 					delete m_socketConn;
 					m_socketConn = NULL;
 					return FALSE;

@@ -647,7 +647,7 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 				tmpsock->Create();
 				if (tmpsock->Connect(nameDup, nport)) {
 					// Add the new client to this server
-					_this->m_server->AddClient(tmpsock, TRUE, TRUE);
+					_this->m_server->AddClient(tmpsock, 0, TRUE, TRUE);
 				} else {
 					delete tmpsock;
 				}

@@ -115,7 +115,7 @@ BOOL CALLBACK vncConnDialog::vncConnDlgProc(HWND hwnd,
 				// Add the new client to this server
 				BOOL full = SendDlgItemMessage(hwnd, IDC_FULL_CONTROL_CON,
 												BM_GETCHECK, 0, 0) == BST_CHECKED;
-				_this->m_server->AddClient(tmpsock, TRUE, TRUE, full, full);
+				_this->m_server->AddClient(tmpsock, 0, TRUE, TRUE, full, full);
 
 				// And close the dialog
                 EndDialog(hwnd, TRUE);

@@ -52,7 +52,7 @@ public:
 	~vncSockConnect();
 
 	// Init
-	virtual VBool Init(vncServer *server, UINT port);
+	virtual VBool Init(vncServer *server, UINT port, const RECT *viewport);
 
 	// Implementation
 protected:

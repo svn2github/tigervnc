@@ -39,7 +39,8 @@ class vncSockConnectThread : public omni_thread
 {
 public:
 	// Init routine
-	virtual BOOL Init(VSocket *socket, vncServer *server);
+	virtual BOOL Init(VSocket *socket, const RECT *viewport,
+					  vncServer *server);
 
 	// Code to be executed by the thread
 	virtual void *run_undetached(void * arg);
@@ -49,10 +50,14 @@ public:
 protected:
 	VSocket		*m_socket;
 	vncServer	*m_server;
+
+	// The viewport that will be assigned for new clients
+	RECT m_viewport;
 };
 
 // Method implementations
-BOOL vncSockConnectThread::Init(VSocket *socket, vncServer *server)
+BOOL vncSockConnectThread::Init(VSocket *socket, const RECT *viewport,
+								vncServer *server)
 {
 	// Save the server pointer
 	m_server = server;
@@ -60,7 +65,13 @@ BOOL vncSockConnectThread::Init(VSocket *socket, vncServer *server)
 	// Save the socket pointer
 	m_socket = socket;
 
-	// Start the thread
+	// Save viewport if specified.
+	SetRectEmpty(&m_viewport);
+	if (viewport != 0) {
+		m_viewport = *viewport;
+	}
+
+    // Start the thread
 	m_shutdown = FALSE;
 	start_undetached();
 
@@ -82,7 +93,7 @@ void *vncSockConnectThread::run_undetached(void * arg)
 			vnclog.Print(LL_CLIENTS, VNCLOG("accepted connection from %s\n"),
 						 new_socket->GetPeerName());
 			// Successful accept - start the client unauthenticated
-			m_server->AddClient(new_socket, FALSE, FALSE);
+			m_server->AddClient(new_socket, &m_viewport, FALSE, FALSE);
 		}
 	}
 
@@ -113,7 +124,7 @@ vncSockConnect::~vncSockConnect()
     }
 }
 
-BOOL vncSockConnect::Init(vncServer *server, UINT port)
+BOOL vncSockConnect::Init(vncServer *server, UINT port, const RECT *viewport)
 {
 	// Save the port id
 	m_port = port;
@@ -136,6 +147,5 @@ BOOL vncSockConnect::Init(vncServer *server, UINT port)
 		return FALSE;
 
 	// And start it running
-	return ((vncSockConnectThread *)m_thread)->Init(&m_socket, server);
+	return ((vncSockConnectThread *)m_thread)->Init(&m_socket, viewport, server);
 }
-

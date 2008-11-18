@@ -856,7 +856,7 @@ vncProperties::LoadString(HKEY key, LPCSTR keyname)
 	if (key == NULL)
 		return 0;
 
-	// Get the length of the AuthHosts string
+	// Get the length of the string
 	if (RegQueryValueEx(key,
 		keyname,
 		NULL,
@@ -871,7 +871,7 @@ vncProperties::LoadString(HKEY key, LPCSTR keyname)
 	if (buffer == 0)
 		return 0;
 
-	// Get the AuthHosts string data
+	// Get the string data
 	if (RegQueryValueEx(key,
 		keyname,
 		NULL,
@@ -972,6 +972,10 @@ vncProperties::Load(BOOL usersettings)
 	} else {
 		m_server->SetAuthHosts(0);
 	}
+
+	char *extraPortsSpec = LoadString(hkLocal, "ExtraPorts");
+	m_server->setExtraPorts(extraPortsSpec);
+	delete[] extraPortsSpec;
 
 	LoadEchoConnectionSettings(hkLocal);
 

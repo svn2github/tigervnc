@@ -22,7 +22,7 @@
 #ifndef __MOUSEGRABBER_H__
 #define __MOUSEGRABBER_H__
 
-#include "FrameBuffer.h"
+#include "CursorShape.h"
 
 class MouseGrabber
 {
@@ -36,12 +36,10 @@ public:
   // Calling this function resets the state back to unchanged.
   virtual bool isCursorShapeChanged() = 0;
 
-  const FrameBuffer &getPixels() const { return m_pixels; }
-  const FrameBuffer &getMask() const { return m_mask; }
+  virtual const CursorShape *getCursorShape() const { return &m_cursorShape; }
 
 protected:
-  FrameBuffer m_pixels;
-  FrameBuffer m_mask;
+  CursorShape m_cursorShape;
 };
 
 #endif // __MOUSEGRABBER_H__

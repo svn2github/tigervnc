@@ -80,14 +80,17 @@ bool WindowsMouseGrabber::grabPixels(PixelFormat *pixelFormat)
   int height = bmMask.bmHeight;
   int widthBytes = bmMask.bmWidthBytes;
 
+  FrameBuffer *mask = &m_cursorShape.mask;
+  FrameBuffer *pixels= &m_cursorShape.pixels;
+
   PixelFormat pf;
   pf.bitsPerPixel = 1;
-  m_mask.setPixelFormat(&pf, false);
-  m_mask.setDimension(&Dimension(widthBytes, height));
+  mask->setPixelFormat(&pf, false);
+  mask->setDimension(&Dimension(widthBytes, height));
 
   bool result = GetBitmapBits(iconInfo.hbmMask,
                               bmMask.bmWidthBytes * bmMask.bmHeight,
-                              m_mask.getBuffer()) != 0;
+                              mask->getBuffer()) != 0;
   DeleteObject(iconInfo.hbmMask);
   if (!result) {
     return false;
@@ -126,7 +129,7 @@ bool WindowsMouseGrabber::grabPixels(PixelFormat *pixelFormat)
     return FALSE;
   }
 
-  m_mask.setBuffer(buffer);
+  mask->setBuffer(buffer);
 
   HBITMAP hbmOld = (HBITMAP) SelectObject(destDC, hbmDIB);
 

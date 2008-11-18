@@ -149,7 +149,6 @@ HCURSOR WindowsMouseGrabber::getHCursor()
 {
   CURSORINFO cursorInfo;
   cursorInfo.cbSize = sizeof(CURSORINFO);
-  GetCursorInfo(&cursorInfo);
 
   if (GetCursorInfo(&cursorInfo) == 0) {
     return false;

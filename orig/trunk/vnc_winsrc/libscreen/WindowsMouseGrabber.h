@@ -33,7 +33,7 @@ public:
 
   virtual bool grab(PixelFormat *pixelFormat);
 
-  virtual bool getCursorChanged();
+  virtual bool isCursorShapeChanged();
 
 protected:
   bool grabPixels(PixelFormat *pixelFormat);

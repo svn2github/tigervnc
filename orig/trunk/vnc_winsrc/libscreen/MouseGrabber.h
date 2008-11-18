@@ -32,7 +32,9 @@ public:
 
   virtual bool grab(PixelFormat *pixelFormat) = 0;
 
-  virtual bool getCursorChanged() = 0;
+  // Returns true if the cursor shape has been changed, false otherwise.
+  // Calling this function resets the state back to unchanged.
+  virtual bool isCursorShapeChanged() = 0;
 
   const FrameBuffer &getPixels() const { return m_pixels; }
   const FrameBuffer &getMask() const { return m_mask; }

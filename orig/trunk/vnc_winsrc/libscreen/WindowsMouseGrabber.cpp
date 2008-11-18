@@ -31,12 +31,13 @@ WindowsMouseGrabber::~WindowsMouseGrabber(void)
 {
 }
 
-bool WindowsMouseGrabber::getCursorChanged()
+bool WindowsMouseGrabber::isCursorShapeChanged()
 {
   HCURSOR hCursor = getHCursor();
   if (hCursor == m_lastHCursor) {
     return false;
   }
+  m_lastHCursor = hCursor;
 
   return true;
 }

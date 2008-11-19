@@ -194,6 +194,14 @@
 				RelativePath=".\wsconfig.cpp"
 				>
 			</File>
+			<Filter
+				Name="common"
+				>
+				<File
+					RelativePath=".\common\tstring.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -216,6 +224,14 @@
 				RelativePath=".\wsconfig.h"
 				>
 			</File>
+			<Filter
+				Name="common"
+				>
+				<File
+					RelativePath=".\common\tstring.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Resource Files"

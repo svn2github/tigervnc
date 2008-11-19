@@ -71,7 +71,7 @@ public:
   WindowsScreenGrabber(void);
   virtual ~WindowsScreenGrabber(void);
 
-  virtual bool grab(const Rect *rect);
+  virtual bool grab(const Rect *rect = 0);
 
   inline virtual bool getPropertiesChanged();
   inline virtual bool getPixelFormatChanged();

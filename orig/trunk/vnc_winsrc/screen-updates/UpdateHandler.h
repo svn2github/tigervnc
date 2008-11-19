@@ -26,6 +26,7 @@
 #include "UpdateKeeper.h"
 #include "UpdateFilter.h"
 #include "libscreen/WindowsScreenGrabber.h"
+#include "libscreen/WindowsMouseGrabber.h"
 #include "libscreen/FrameBuffer.h"
 #include "thread/AutoLock.h"
 #include "UpdateListener.h"
@@ -62,6 +63,7 @@ public:
   // Return:
   //   constant pointer to the FrameBuffer object.
   const FrameBuffer *getFrameBuffer() const { return &m_backupFrameBuffer; }
+  const CursorShape *getCursorShape() const { return m_mouseGrabber.getCursorShape(); }
 
   virtual void onUpdate();
 
@@ -76,6 +78,7 @@ private:
   UpdateDetector *m_hooks;
   UpdateDetector *m_mouseDetector;
   WindowsScreenGrabber m_screenGrabber;
+  WindowsMouseGrabber m_mouseGrabber;
   FrameBuffer m_backupFrameBuffer;
   CriticalSection m_criticalSection;
 };

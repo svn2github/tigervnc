@@ -70,6 +70,11 @@ void UpdateHandler::extract(UpdateContainer *updateContainer)
     m_backupFrameBuffer.clone(m_screenGrabber.getScreenBuffer());
   }
 
+  if (m_mouseGrabber.isCursorShapeChanged()) {
+    updateContainer->cursorShapeChanged = true;
+    m_mouseGrabber.grab(&m_backupFrameBuffer.getPixelFormat());
+  }
+
   m_criticalSection.leave();
 }
 

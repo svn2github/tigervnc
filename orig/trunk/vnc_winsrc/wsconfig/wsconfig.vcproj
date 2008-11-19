@@ -41,6 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
+				AdditionalIncludeDirectories="./"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -114,6 +115,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories="./"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -202,6 +204,22 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="ui"
+				>
+				<File
+					RelativePath=".\ui\Control.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\ui\ListBox.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\ui\TextBox.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -229,6 +247,22 @@
 				>
 				<File
 					RelativePath=".\common\tstring.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="ui"
+				>
+				<File
+					RelativePath=".\ui\Control.h"
+					>
+				</File>
+				<File
+					RelativePath=".\ui\ListBox.h"
+					>
+				</File>
+				<File
+					RelativePath=".\ui\TextBox.h"
 					>
 				</File>
 			</Filter>

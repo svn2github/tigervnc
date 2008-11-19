@@ -28,7 +28,7 @@
 struct CursorShape
 {
   FrameBuffer pixels;
-  FrameBuffer mask;
+  char *mask;
   Point hotSpot;
 };
 

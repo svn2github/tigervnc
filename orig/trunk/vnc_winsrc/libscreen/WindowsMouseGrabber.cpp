@@ -25,10 +25,14 @@
 WindowsMouseGrabber::WindowsMouseGrabber(void)
 : m_lastHCursor(0)
 {
+  m_cursorShape.mask = 0;
 }
 
 WindowsMouseGrabber::~WindowsMouseGrabber(void)
 {
+  if (m_cursorShape.mask != 0) {
+    delete []m_cursorShape.mask;
+  }
 }
 
 bool WindowsMouseGrabber::isCursorShapeChanged()
@@ -65,6 +69,8 @@ bool WindowsMouseGrabber::grabPixels(PixelFormat *pixelFormat)
     return false;
   }
 
+  bool isColorShape = (iconInfo.hbmColor != NULL);
+
   BITMAP bmMask;
   if (!GetObject(iconInfo.hbmMask, sizeof(BITMAP), (LPVOID)&bmMask)) {
     DeleteObject(iconInfo.hbmMask);
@@ -76,21 +82,28 @@ bool WindowsMouseGrabber::grabPixels(PixelFormat *pixelFormat)
     return false;
   }
 
+  m_cursorShape.hotSpot.x = iconInfo.xHotspot;
+  m_cursorShape.hotSpot.y = iconInfo.yHotspot;
+
   int width = bmMask.bmWidth;
-  int height = bmMask.bmHeight;
+  int height = isColorShape ? bmMask.bmHeight : bmMask.bmHeight/2;
   int widthBytes = bmMask.bmWidthBytes;
 
-  FrameBuffer *mask = &m_cursorShape.mask;
   FrameBuffer *pixels= &m_cursorShape.pixels;
 
-  PixelFormat pf;
-  pf.bitsPerPixel = 1;
-  mask->setPixelFormat(&pf, false);
-  mask->setDimension(&Dimension(widthBytes, height));
+  pixels->setDimension(&Dimension(width, height), false);
+  pixels->setPixelFormat(pixelFormat);
+
+  if (m_cursorShape.mask != 0) {
+    delete[] m_cursorShape.mask;
+  }
+  m_cursorShape.mask = new char[widthBytes * bmMask.bmHeight];
+  char *mask = m_cursorShape.mask;
 
   bool result = GetBitmapBits(iconInfo.hbmMask,
-                              bmMask.bmWidthBytes * bmMask.bmHeight,
-                              mask->getBuffer()) != 0;
+                              widthBytes * bmMask.bmHeight,
+                              mask) != 0;
+
   DeleteObject(iconInfo.hbmMask);
   if (!result) {
     return false;
@@ -129,13 +142,17 @@ bool WindowsMouseGrabber::grabPixels(PixelFormat *pixelFormat)
     return FALSE;
   }
 
-  mask->setBuffer(buffer);
-
-  HBITMAP hbmOld = (HBITMAP) SelectObject(destDC, hbmDIB);
-
-  memset(buffer, 0xff, width * height * 4);
+  HBITMAP hbmOld = (HBITMAP)SelectObject(destDC, hbmDIB);
 
   result = DrawIconEx(destDC, 0, 0, hCursor, 0, 0, 0, NULL, DI_IMAGE) != 0;
+
+  memcpy(pixels->getBuffer(), buffer, pixels->getBufferSize());
+
+  if (!isColorShape) {
+    fixCursorShape(pixels, mask, mask + widthBytes * height);
+  } else {
+    inverse(mask, widthBytes * height);
+  }
 
   SelectObject(destDC, hbmOld);
   DeleteObject(hbmDIB);
@@ -155,4 +172,56 @@ HCURSOR WindowsMouseGrabber::getHCursor()
   }
 
   return cursorInfo.hCursor;
+}
+
+void WindowsMouseGrabber::inverse(char *bits, int count)
+{
+  for (int i = 0; i < count; i++, bits++) {
+    *bits = ~*bits;
+  }
+}
+
+void WindowsMouseGrabber::fixCursorShape(FrameBuffer *pixels, char *maskAND, char *maskXOR)
+{
+  char *pixelsBuffer = (char *)pixels->getBuffer();
+  char *pixel;
+  int pixelSize = pixels->getPixelFormat().bitsPerPixel / 8;
+  int pixelCount = pixels->getBufferSize() / pixelSize;
+
+  char *maskANDByte = maskAND - 1;
+  char *maskXORByte = maskXOR - 1;
+
+  bool maskANDBit, maskXORBit;
+
+  for (int iPixel = 0; iPixel < pixelCount; iPixel++) {
+    pixel = pixelsBuffer + iPixel * pixelSize;
+
+    if ((iPixel % 8) == 0) {
+      // Next byte of maskAND and maskXOR
+      maskANDByte++;
+      maskXORByte++;
+    }
+
+    maskANDBit = testBit(*maskANDByte, iPixel % 8);
+    maskXORBit = testBit(*maskXORByte, iPixel % 8);
+
+    if (!maskANDBit && !maskXORBit) { // Black dot
+      memset(pixel, 0, pixelSize);
+    } else if (!maskANDBit && maskXORBit) { // White dot
+      memset(pixel, 0xff, pixelSize);
+    } else if (maskANDBit && maskXORBit) { // Inverted
+      memset(pixel, 0, pixelSize);
+    }
+  }
+
+  inverse(maskAND, pixelCount / 8);
+  for (int i = 0; i < pixelCount / 8; i++) {
+    *(maskAND +i) |= *(maskXOR + i);
+  }
+}
+
+bool WindowsMouseGrabber::testBit(char byte, int index)
+{
+  char dummy = 128 >> index;
+  return (dummy & byte) != 0;
 }

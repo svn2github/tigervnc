@@ -40,6 +40,10 @@ protected:
 
   HCURSOR getHCursor();
 
+  static void inverse(char *bits, int count);
+  static void fixCursorShape(FrameBuffer *pixels, char *maskAND, char *maskXOR);
+  static bool testBit(char byte, int index);
+
   HCURSOR m_lastHCursor;
 };
 

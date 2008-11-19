@@ -67,13 +67,26 @@ void UpdateKeeper::addCopyRect(const Rect *copyRect, const Point *src)
   Rect srcCopyRect(copyRect);
   srcCopyRect.setLocation(src->x, src->y);
 
-  // Clipping
-  dstCopyRect = dstCopyRect.intersection(&m_borderRect, &srcCopyRect);
+  // Clipping dstCopyRect
+  dstCopyRect = dstCopyRect.intersection(&m_borderRect);
+  // Correcting source coordinates
+  srcCopyRect.left    += dstCopyRect.left - copyRect->left;
+  srcCopyRect.top     += dstCopyRect.top - copyRect->top;
+  srcCopyRect.right   += dstCopyRect.right - copyRect->right;
+  srcCopyRect.bottom  += dstCopyRect.bottom - copyRect->bottom;
+  // Clipping srcCopyRect
+  Rect dummySrcCopyRect(&srcCopyRect);
+  srcCopyRect = srcCopyRect.intersection(&m_borderRect);
+  // Correcting destination coordinates
+  dstCopyRect.left    += srcCopyRect.left - dummySrcCopyRect.left;
+  dstCopyRect.top     += srcCopyRect.top - dummySrcCopyRect.top;
+  dstCopyRect.right   += srcCopyRect.right - dummySrcCopyRect.right;
+  dstCopyRect.bottom  += srcCopyRect.bottom - dummySrcCopyRect.bottom;
+
   if (dstCopyRect.isEmpty()) {
     return;
   }
 
-  srcCopyRect = srcCopyRect.intersection(&m_borderRect);
   copySrc->x = srcCopyRect.left;
   copySrc->y = srcCopyRect.top;
 

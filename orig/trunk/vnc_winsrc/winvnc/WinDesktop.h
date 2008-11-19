@@ -50,12 +50,7 @@ public:
   void SetLocalInputPriorityHook(BOOL enable);
   BYTE *MainBuffer();
   int ScreenBuffSize();
-  void CaptureScreen(RECT &UpdateArea, BYTE *scrBuff); // could be protected?
-  void CaptureMouse(BYTE *scrBuff, UINT scrBuffSize);
-  RECT MouseRect();
-
-  HCURSOR GetCursor() const;
-  BOOL GetRichCursorData(BYTE *databuf, HCURSOR hcursor, int width, int height);
+  const CursorShape *getCursorShape() const { return m_updateHandler->getCursorShape(); }
 
   RECT getBMRect() const { return m_bmrect; }
 

@@ -67,7 +67,6 @@ public:
 	UINT GetNumCodedRects(RECT &rect);
 
 	// SCREEN CAPTURE
-	RECT GrabMouse();
 	BOOL SetClientFormat(rfbPixelFormat &format);
 
 	// CONFIGURING ENCODER
@@ -83,7 +82,6 @@ public:
 	UINT TranslateRect(const RECT &rect, VSocket *outConn, int offsetx, int offsety);
 
 	// SENDING CURSOR SHAPE UPDATES
-	BOOL IsCursorUpdatePending();
 	BOOL SendCursorShape(VSocket *outConn);
 	BOOL SendEmptyCursorShape(VSocket *outConn);
 	void UpdateLocalFormat();

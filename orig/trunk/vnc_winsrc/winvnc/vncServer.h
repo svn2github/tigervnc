@@ -131,6 +131,7 @@ public:
 	virtual void UpdateRegion(vncRegion &region);
 	virtual void CopyRect(RECT &dest, POINT &source);
 	virtual void UpdateMouse();
+	virtual void UpdateMouseShape();
 	virtual void UpdateClipText(LPSTR text);
 	virtual void UpdatePalette();
 

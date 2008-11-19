@@ -88,6 +88,7 @@ public:
 	// Update handling functions
 	virtual void TriggerUpdate();
 	virtual void UpdateMouse();
+	virtual void UpdateMouseShape();
 	virtual void UpdateRect(RECT &rect);
 	virtual void UpdateRegion(vncRegion &region);
 	virtual void CopyRect(RECT &dest, POINT &source);

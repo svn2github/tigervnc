@@ -787,6 +787,21 @@ vncServer::UpdateMouse()
 }
 
 void
+vncServer::UpdateMouseShape()
+{
+	vncClientList::iterator i;
+	
+	omni_mutex_lock l(m_clientsLock);
+
+	// Post this mouse update to all the connected clients
+	for (i = m_authClients.begin(); i != m_authClients.end(); i++)
+	{
+		// Post the update
+		GetClient(*i)->UpdateMouseShape();
+	}
+}
+
+void
 vncServer::UpdateClipText(LPSTR text)
 {
 	vncClientList::iterator i;

@@ -218,15 +218,6 @@ vncBuffer::GetNumCodedRects(RECT &rect)
 	return m_encoder->NumCodedRects(rect);
 }
 
-RECT
-vncBuffer::GrabMouse()
-{
-	m_desktop->CaptureScreen(m_desktop->MouseRect(), m_mainbuff);
-	m_desktop->CaptureMouse(m_mainbuff, m_mainsize);
-
-	return m_desktop->MouseRect();
-}
-
 BOOL
 vncBuffer::SetClientFormat(rfbPixelFormat &format)
 {
@@ -468,20 +459,6 @@ vncBuffer::TranslateRect(const RECT &rect, VSocket *outConn,
 	// Call the encoder to encode the rectangle into the client buffer...
 	return m_encoder->EncodeRect(m_mainbuff, outConn, m_clientbuff, rect,
 								 offsetx, offsety);
-}
-
-// Check if cursor shape update should be sent
-BOOL
-vncBuffer::IsCursorUpdatePending()
-{
-	if (m_use_xcursor || m_use_richcursor) {
-		HCURSOR temp_hcursor = m_desktop->GetCursor();
-		if (temp_hcursor != m_hcursor) {
-			m_hcursor = temp_hcursor;
-			return TRUE;
-		}
-	}
-	return FALSE;
 }
 
 BOOL

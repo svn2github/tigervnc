@@ -462,123 +462,21 @@ vncEncoder::SendEmptyCursorShape(VSocket *outConn)
 BOOL
 vncEncoder::SendCursorShape(VSocket *outConn, WinDesktop *desktop)
 {
-	// Make sure the function is used correctly
-	if (!m_use_xcursor && !m_use_richcursor)
+	if (!m_use_richcursor)
 		return FALSE;
 
-	// Check mouse cursor handle
-	HCURSOR hcursor = desktop->GetCursor();
-	if (hcursor == NULL) {
-		vnclog.Print(LL_INTINFO, VNCLOG("cursor handle is NULL.\n"));
-		return FALSE;
-	}
+    const CursorShape *cursorShape = desktop->getCursorShape();
+    const FrameBuffer *pixels = &cursorShape->pixels;
+    const char *mask = cursorShape->mask;
 
-	// Get cursor info
-	ICONINFO IconInfo;
-	if (!GetIconInfo(hcursor, &IconInfo)) {
-		vnclog.Print(LL_INTINFO, VNCLOG("GetIconInfo() failed.\n"));
-		return FALSE;
-	}
-	BOOL isColorCursor = FALSE;
-	if (IconInfo.hbmColor != NULL) {
-		isColorCursor = TRUE;
-		DeleteObject(IconInfo.hbmColor);
-	}
-	if (IconInfo.hbmMask == NULL) {
-		vnclog.Print(LL_INTINFO, VNCLOG("cursor bitmap handle is NULL.\n"));
-		return FALSE;
-	}
+	BOOL success = SendRichCursorShape(outConn,
+									   (BYTE *)mask,
+                                       (BYTE *)pixels->getBuffer(),
+                                       cursorShape->hotSpot.x,
+                                       cursorShape->hotSpot.y,
+                                       pixels->getDimension().width,
+                                       pixels->getDimension().height);
 
-	// Check bitmap info for the cursor
-	BITMAP bmMask;
-	if (!GetObject(IconInfo.hbmMask, sizeof(BITMAP), (LPVOID)&bmMask)) {
-		vnclog.Print(LL_INTINFO, VNCLOG("GetObject() for bitmap failed.\n"));
-		DeleteObject(IconInfo.hbmMask);
-		return FALSE;
-	}
-	if (bmMask.bmPlanes != 1 || bmMask.bmBitsPixel != 1) {
-		vnclog.Print(LL_INTINFO, VNCLOG("incorrect data in cursor bitmap.\n"));
-		DeleteObject(IconInfo.hbmMask);
-		return FALSE;
-	}
-
-	// Get monochrome bitmap data for cursor
-	// NOTE: they say we should use GetDIBits() instead of GetBitmapBits().
-	BYTE *mbits = new BYTE[bmMask.bmWidthBytes * bmMask.bmHeight];
-	if (mbits == NULL)
-		return FALSE;
-
-	BOOL success = GetBitmapBits(IconInfo.hbmMask,
-								 bmMask.bmWidthBytes * bmMask.bmHeight, mbits);
-	DeleteObject(IconInfo.hbmMask);
-
-	if (!success) {
-		vnclog.Print(LL_INTINFO, VNCLOG("GetBitmapBits() failed.\n"));
-		delete[] mbits;
-		return FALSE;
-	}
-
-	// Compute cursor dimensions
-	int width = bmMask.bmWidth;
-	int height = (isColorCursor) ? bmMask.bmHeight : bmMask.bmHeight/2;
-
-	// Call appropriate routine to send cursor shape update
-	if (!isColorCursor && m_use_xcursor) {
-		FixCursorMask(mbits, NULL, width, bmMask.bmHeight, bmMask.bmWidthBytes);
-		success = SendXCursorShape(outConn, mbits,
-								   IconInfo.xHotspot, IconInfo.yHotspot,
-								   width, height);
-	}
-	else if (m_use_richcursor) {
-		int cbits_size = width * height * 4;
-		BYTE *cbits = new BYTE[cbits_size];
-		if (cbits == NULL) {
-			delete[] mbits;
-			return FALSE;
-		}
-		if (!desktop->GetRichCursorData(cbits, hcursor, width, height)) {
-			vnclog.Print(LL_INTINFO, VNCLOG("WinDesktop::GetRichCursorData() failed.\n"));
-			delete[] mbits;
-			delete[] cbits;
-			return FALSE;
-		}
-		FixCursorMask(mbits, cbits, width, height, bmMask.bmWidthBytes);
-		success = SendRichCursorShape(outConn, mbits, cbits,
-									  IconInfo.xHotspot, IconInfo.yHotspot,
-									  width, height);
-		delete[] cbits;
-	}
-	else {
-		success = FALSE;	// FIXME: We could convert RichCursor -> XCursor.
-	}
-
-	// Cleanup
-	delete[] mbits;
-
-	return success;
-}
-
-BOOL
-vncEncoder::SendXCursorShape(VSocket *outConn, BYTE *mask,
-							 int xhot, int yhot, int width, int height)
-{
-	rfbFramebufferUpdateRectHeader hdr;
-	hdr.r.x = Swap16IfLE(xhot);
-	hdr.r.y = Swap16IfLE(yhot);
-	hdr.r.w = Swap16IfLE(width);
-	hdr.r.h = Swap16IfLE(height);
-	hdr.encoding = Swap32IfLE(rfbEncodingXCursor);
-
-	BYTE colors[6] = { 0, 0, 0, 0xFF, 0xFF, 0xFF };
-	int maskRowSize = (width + 7) / 8;
-	int maskSize = maskRowSize * height;
-
-	if ( !outConn->SendQueued((char *)&hdr, sizeof(hdr)) ||
-		 !outConn->SendQueued((char *)colors, 6) ||
-		 !outConn->SendQueued((char *)&mask[maskSize], maskSize) ||
-		 !outConn->SendQueued((char *)mask, maskSize) ) {
-		return FALSE;
-	}
 	return TRUE;
 }
 

@@ -1989,9 +1989,6 @@ vncClient::TriggerUpdate()
 
 	if (m_updatewanted && !m_stopupdate)
 	{
-		// Check if cursor shape update has to be sent
-		m_cursor_update_pending = m_buffer->IsCursorUpdatePending();
-
 		// Send an update if one is waiting
 		if (!m_changed_rgn.IsEmpty() ||
 			!m_full_rgn.IsEmpty() ||
@@ -2028,6 +2025,12 @@ vncClient::UpdateMouse()
 
 		SetCursorPosChanged();
 	}
+}
+
+void
+vncClient::UpdateMouseShape()
+{
+  m_cursor_update_pending = TRUE;
 }
 
 void
@@ -2286,7 +2289,6 @@ vncClient::SendUpdate()
 				if (IntersectRect(&m_oldmousepos, &m_oldmousepos, &getEffectiveViewport())) 
 					normalUpdates.AddRect(m_oldmousepos);
 				// Update the cached mouse position
-				m_oldmousepos = m_buffer->GrabMouse();
 				// Include an update for its current position
 				if (IntersectRect(&m_oldmousepos, &m_oldmousepos, &getEffectiveViewport())) 
 					normalUpdates.AddRect(m_oldmousepos);

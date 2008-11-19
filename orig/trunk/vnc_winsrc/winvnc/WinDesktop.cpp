@@ -186,95 +186,6 @@ int WinDesktop::ScreenBuffSize()
   return m_updateHandler->getFrameBuffer()->getBufferSize();
 }
 
-void WinDesktop::CaptureScreen(RECT &UpdateArea, BYTE *scrBuff)
-{
-}
-
-void WinDesktop::CaptureMouse(BYTE *scrBuff, UINT scrBuffSize)
-{
-}
-
-RECT WinDesktop::MouseRect()
-{
-  RECT rect;
-  rect.left = 0;
-  rect.top = 0;
-  rect.right = 0;
-  rect.bottom = 0;
-  return rect;
-}
-
-HCURSOR WinDesktop::GetCursor() const
-{
-  CURSORINFO cursorInfo;
-  cursorInfo.cbSize = sizeof(CURSORINFO);
-  int result = GetCursorInfo(&cursorInfo);
-
-  if (result == 0) {
-  }
-
-  HCURSOR hCursor = cursorInfo.hCursor;
-  if (hCursor  == NULL) {
-    return NULL;
-  }
-
-  return hCursor;
-}
-
-BOOL WinDesktop::GetRichCursorData(BYTE *databuf, HCURSOR hcursor, int width, int height)
-{
-  PixelFormat pixelFormat = m_updateHandler->getFrameBuffer()->getPixelFormat();
-
-  HDC screenDC = GetDC(0);
-  if (screenDC == NULL) {
-    return false;
-  }
-
-  WindowsScreenGrabber::BMI bmi;
-  if (!WindowsScreenGrabber::getBMI(&bmi, screenDC)) {
-    return false;
-  }
-
-  bmi.bmiHeader.biBitCount = pixelFormat.bitsPerPixel;
-  bmi.bmiHeader.biWidth = width;
-  bmi.bmiHeader.biHeight = -height;
-  bmi.bmiHeader.biCompression = BI_BITFIELDS;
-  bmi.red   = pixelFormat.redMax   << pixelFormat.redShift;
-  bmi.green = pixelFormat.greenMax << pixelFormat.greenShift;
-  bmi.blue  = pixelFormat.blueMax  << pixelFormat.blueShift;
-
-  HDC destDC = CreateCompatibleDC(NULL);
-  if (destDC == NULL) {
-    DeleteDC(screenDC);
-    return FALSE;
-  }
-
-  void *buffer;
-  HBITMAP hbmDIB = CreateDIBSection(destDC, (BITMAPINFO *) &bmi, DIB_RGB_COLORS, &buffer, NULL, NULL);
-  if (hbmDIB == 0) {
-    DeleteDC(destDC);
-    DeleteDC(screenDC);
-    return FALSE;
-  }
-
-  HBITMAP hbmOld = (HBITMAP) SelectObject(destDC, hbmDIB);
-
-  memset(buffer, 0xff, width * height * 4);
-  // Draw the cursor
-  int result = DrawIconEx(destDC, 0, 0, hcursor, 0, 0, 0, NULL, DI_IMAGE);
-
-  if (result) {
-    memcpy(databuf, buffer, width * height * 4);
-  }
-
-  SelectObject(destDC, hbmOld);
-  DeleteObject(hbmDIB);
-  DeleteDC(destDC);
-  DeleteDC(screenDC);
-
-  return result;
-}
-
 bool WinDesktop::sendUpdate()
 {
   bool fullUpdateRequest = m_server->FullRgnRequested() != FALSE;
@@ -332,6 +243,10 @@ bool WinDesktop::sendUpdate()
   // Checking for PixelFormat changing
   if (!m_pixelFormat.cmp(&m_updateHandler->getFrameBuffer()->getPixelFormat())) {
     updateBufferNotify();
+  }
+
+  if (updateContainer.cursorShapeChanged) {
+    m_server->UpdateMouseShape();
   }
 
   int numRects = updateContainer.changedRegion.numRects();

@@ -149,7 +149,11 @@ void HooksUpdateDetector::execute()
       screenRect = m_screenGrabber->getScreenRect();
       m_scrGrabberCritSect->leave();
 
-      rect.move(-screenRect.left, -screenRect.top);
+      // Adjust
+      int destopX = GetSystemMetrics(SM_XVIRTUALSCREEN);
+      int destopY = GetSystemMetrics(SM_YVIRTUALSCREEN);
+
+      rect.move(-destopX, -destopY);
       m_updateKeeper->addChangedRect(&rect);
 
       m_outUpdateListener->doUpdate();

@@ -32,12 +32,8 @@ const UINT RFB_SCREEN_UPDATE = RegisterWindowMessage(_T("TightVNC.Server.Update.
 const UINT RFB_COPYRECT_UPDATE = RegisterWindowMessage(_T("TightVNC.Server.Update.CopyRect"));
 const UINT RFB_MOUSE_UPDATE = RegisterWindowMessage(_T("TightVNC.Server.Update.Mouse"));
 
-HooksUpdateDetector::HooksUpdateDetector(UpdateKeeper *updateKeeper,
-                                         ScreenGrabber *screenGrabber,
-                                         CriticalSection *scrGrabberCritSect)
+HooksUpdateDetector::HooksUpdateDetector(UpdateKeeper *updateKeeper)
 : UpdateDetector(updateKeeper),
-m_screenGrabber(screenGrabber),
-m_scrGrabberCritSect(scrGrabberCritSect),
 m_hooksTargetWindow(0),
 m_hHooks(0),
 m_pSetHook(0),
@@ -145,10 +141,6 @@ void HooksUpdateDetector::execute()
       rect.right = (SHORT)LOWORD(msg.lParam);
       rect.bottom = (SHORT)HIWORD(msg.lParam);
 
-      m_scrGrabberCritSect->enter();
-      screenRect = m_screenGrabber->getScreenRect();
-      m_scrGrabberCritSect->leave();
-
       // Adjust
       int destopX = GetSystemMetrics(SM_XVIRTUALSCREEN);
       int destopY = GetSystemMetrics(SM_YVIRTUALSCREEN);
@@ -158,7 +150,6 @@ void HooksUpdateDetector::execute()
 
       m_outUpdateListener->doUpdate();
     } else if (msg.message == WM_QUIT) {
-      Sleep(1);
       break;
     } else {
       DispatchMessage(&msg);

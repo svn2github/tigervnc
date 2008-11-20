@@ -24,7 +24,6 @@
 
 #include "UpdateDetector.h"
 #include "HooksTargetWindow.h"
-#include "libscreen/FrameBuffer.h"
 
 #define LIBRARY_NAME "ScreenHooks.dll"
 #define SET_HOOK_FUNCTION_NAME "SetHook"
@@ -33,17 +32,12 @@
 class HooksUpdateDetector : public UpdateDetector
 {
 public:
-  HooksUpdateDetector(UpdateKeeper *updateKeeper,
-                      ScreenGrabber *screenGrabber,
-                      CriticalSection *scrGrabberCritSect);
+  HooksUpdateDetector(UpdateKeeper *updateKeeper);
   virtual ~HooksUpdateDetector(void);
 
 protected:
   virtual void execute();
   virtual void onTerminate();
-
-  CriticalSection *m_scrGrabberCritSect;
-  ScreenGrabber *m_screenGrabber;
 
   HMODULE m_hHooks;
   FARPROC m_pSetHook;

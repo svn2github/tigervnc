@@ -34,9 +34,7 @@ UpdateHandler::UpdateHandler(UpdateListener *registerUpdateListener)
   m_poller = new Poller(m_updateKeeper, &m_screenGrabber,
                         &m_backupFrameBuffer, &m_criticalSection);
   m_poller->setOutUpdateListener(this);
-  m_hooks = new HooksUpdateDetector(m_updateKeeper,
-                                    &m_screenGrabber,
-                                    &m_criticalSection);
+  m_hooks = new HooksUpdateDetector(m_updateKeeper);
   m_hooks->setOutUpdateListener(this);
   m_mouseDetector = new MouseDetector(m_updateKeeper);
   m_mouseDetector->setOutUpdateListener(this);

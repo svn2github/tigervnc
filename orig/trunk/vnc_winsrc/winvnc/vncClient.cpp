@@ -2078,7 +2078,7 @@ vncClient::CopyRect(RECT &dest, POINT &source)
 	{
 		omni_mutex_lock l(m_regionLock);
 
-		// Clip the destination to the screen
+		// Clip the destination to the viewport.
 		RECT destrect;
 		if (!IntersectRect(&destrect, &dest, &getEffectiveViewport()))
 			return;
@@ -2090,24 +2090,28 @@ vncClient::CopyRect(RECT &dest, POINT &source)
 		srcrect.right = destrect.right - destrect.left + srcrect.left;
 		srcrect.bottom = destrect.bottom - destrect.top + srcrect.top;
 
-		// Clip the source to the screen
+		// Clip the source to the viewport.
 		RECT srcrect2;
 		if (!IntersectRect(&srcrect2, &srcrect, &getEffectiveViewport()))
 			return;
 
-		// Correct the destination rectangle
-		destrect.left += (srcrect2.left - srcrect.left);
-		destrect.top += (srcrect2.top - srcrect.top);
-		destrect.right = srcrect2.right - srcrect2.left + destrect.left;
-		destrect.bottom = srcrect2.bottom - srcrect2.top + destrect.top;
+		// Compute corrected destination rectangle. This removes the pixels which
+		// would be copied from the outside of the viewport.
+		RECT destrect2;
+		destrect2.left = destrect.left + (srcrect2.left - srcrect.left);
+		destrect2.top = destrect.top + (srcrect2.top - srcrect.top);
+		destrect2.right = destrect.left + (srcrect2.right - srcrect2.left);
+		destrect2.bottom = destrect.top + (srcrect2.bottom - srcrect2.top);
 
 		// The region that was removed from the CopyRect destination should be
 		// added to m_changed_rgn to make sure everything is drawn.
-		m_changed_rgn.AddRect(dest);
-		m_changed_rgn.SubtractRect(destrect);
+		vncRegion copiedFromNowhere;
+		copiedFromNowhere.AddRect(destrect);
+		copiedFromNowhere.SubtractRect(destrect2);
+		m_changed_rgn.Combine(copiedFromNowhere);
 
-		// Set the copyrect...
-		m_copyrect_rect = destrect;
+		// Store final CopyRect.
+		m_copyrect_rect = destrect2;
 		m_copyrect_src.x = srcrect2.left;
 		m_copyrect_src.y = srcrect2.top;
 

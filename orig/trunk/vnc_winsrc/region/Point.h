@@ -29,9 +29,6 @@ struct Point
 
   inline void clear() { x = 0; y = 0; }
 
-  inline Point getReverse() const { Point point(-x, -y);
-                                    return point; }
-
   int x;
   int y;
 };

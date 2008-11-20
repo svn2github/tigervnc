@@ -94,19 +94,6 @@ public:
                    (bottom < other->bottom) ? bottom : other->bottom);
     return result;
   }
-
-  Rect intersection(const Rect *borderRect, const Rect *other) const {
-    Rect borderedOther(other);
-    Rect borderedThis(this);
-
-    borderedOther = borderedOther.intersection(borderRect);
-    borderedThis = borderedThis.intersection(borderRect);
-
-    borderedOther.move(left - other->left, top - other->top);
-    borderedThis = borderedThis.intersection(&borderedOther);
-
-    return borderedThis;
-  }
 };
 
 #endif // __RECT_H__

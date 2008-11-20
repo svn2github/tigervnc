@@ -86,9 +86,15 @@ BOOL CopyRectDetector::checkWindowMovements(HWND hwnd)
                     (HANDLE) MAKELONG(x, y));
 
             // Store of the copyrect
-            Rect destRect(dest.left, dest.top, dest.right, dest.bottom);
-            m_copyRect->setRect(&destRect);
+            m_copyRect->setRect(&Rect(dest.left, dest.top, dest.right, dest.bottom));
             *m_source = source;
+
+            // Adjust
+            int destopX = GetSystemMetrics(SM_XVIRTUALSCREEN);
+            int destopY = GetSystemMetrics(SM_YVIRTUALSCREEN);
+            m_copyRect->move(-destopX, -destopY);
+            m_source->move(-destopX, -destopY);
+
             // Stop EnumWindows() function.
             return FALSE;
           }

@@ -19,6 +19,9 @@
 //
 // TightVNC homepage on the Web: http://www.tightvnc.com/
 
+#ifndef __COPYRECTDETECTOR_H__
+#define __COPYRECTDETECTOR_H__
+
 #include "region/Rect.h"
 #include "region/Point.h"
 #include "windows.h"
@@ -38,3 +41,5 @@ protected:
   Rect *m_copyRect;
   Point *m_source;
 };
+
+#endif // __COPYRECTDETECTOR_H__

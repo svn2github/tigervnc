@@ -29,6 +29,8 @@ struct Point
 
   inline void clear() { x = 0; y = 0; }
 
+  inline void move(int deltaX, int deltaY) { x += deltaX; y += deltaY; }
+
   int x;
   int y;
 };

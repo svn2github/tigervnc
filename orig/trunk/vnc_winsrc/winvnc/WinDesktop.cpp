@@ -208,7 +208,7 @@ bool WinDesktop::sendUpdate()
   rfb::Region sharedReg(&sharedRect);
 
   if (fullUpdateRequest) {
-    //m_updateHandler->setFullUpdateRequested(&fullRgnReq);
+    m_updateHandler->setFullUpdateRequested(&fullRgnReq);
   }
 
   if (sharedRectChanged) {

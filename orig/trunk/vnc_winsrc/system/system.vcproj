@@ -153,6 +153,10 @@
 				RelativePath=".\DynamicLibrary.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\WinTimeMillis.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -161,6 +165,10 @@
 			>
 			<File
 				RelativePath=".\DynamicLibrary.h"
+				>
+			</File>
+			<File
+				RelativePath=".\WinTimeMillis.h"
 				>
 			</File>
 		</Filter>

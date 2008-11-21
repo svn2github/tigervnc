@@ -208,7 +208,7 @@ bool WinDesktop::sendUpdate()
   rfb::Region sharedReg(&sharedRect);
 
   if (fullUpdateRequest) {
-    m_updateHandler->setFullUpdateRequested(&fullRgnReq);
+    //m_updateHandler->setFullUpdateRequested(&fullRgnReq);
   }
 
   if (sharedRectChanged) {
@@ -249,19 +249,11 @@ bool WinDesktop::sendUpdate()
     m_server->UpdateMouseShape();
   }
 
-  int numRects = updateContainer.changedRegion.numRects();
-
-  if (numRects > 0) {
-    vncRegion changedRegion;
-    changedRegion.assignFromNewFormat(&updateContainer.changedRegion);
-    m_server->UpdateRegion(changedRegion);
-  }
-
   // FIXME: Change m_server->CopyRect(Rect *) to m_server->copyRegion(Region *)
   std::vector<Rect> rects;
   std::vector<Rect>::iterator iRect;
   updateContainer.copiedRegion.get_rects(&rects);
-  numRects = updateContainer.copiedRegion.numRects();
+  int numRects = updateContainer.copiedRegion.numRects();
   if (numRects > 0) {
     iRect = rects.begin();
     RECT rect;
@@ -273,6 +265,14 @@ bool WinDesktop::sendUpdate()
     copySrc.x = updateContainer.copySrc.x;
     copySrc.y = updateContainer.copySrc.y;
     m_server->CopyRect(rect, copySrc);
+  }
+
+  numRects = updateContainer.changedRegion.numRects();
+
+  if (numRects > 0) {
+    vncRegion changedRegion;
+    changedRegion.assignFromNewFormat(&updateContainer.changedRegion);
+    m_server->UpdateRegion(changedRegion);
   }
 
   m_server->TriggerUpdate();

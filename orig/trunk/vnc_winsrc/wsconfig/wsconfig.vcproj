@@ -185,6 +185,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\PortMappingVector.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Rect.cpp"
 				>
 			</File>
@@ -256,6 +260,10 @@
 			</File>
 			<File
 				RelativePath=".\PortMappingDialog.h"
+				>
+			</File>
+			<File
+				RelativePath=".\PortMappingVector.h"
 				>
 			</File>
 			<File

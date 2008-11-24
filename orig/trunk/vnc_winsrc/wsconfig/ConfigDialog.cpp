@@ -17,6 +17,30 @@ void ConfigDialog::initControls()
   m_ctrlMappingListBox.setWindow(GetDlgItem(dialogHwnd, IDC_MAPPINGS));
 }
 
+void ConfigDialog::onCommand(UINT controlID, UINT notificationID)
+{
+  switch (controlID) {
+  case IDOK:
+    onOKButtonClick();
+    break;
+  case IDCANCEL:
+    onCancelButtonClick();
+    break;
+  case IDC_APPLY:
+    onApplyButtonClick();
+    break;
+  case IDC_ADD_PORT:
+    onAddButtonClick();
+    break;
+  case IDC_EDIT_PORT:
+    onEditButtonClick();
+    break;
+  case IDC_REMOVE_PORT:
+    onRemoveButtonClick();
+    break;
+  }
+}
+
 void ConfigDialog::onInitDialog()
 {
   initControls();
@@ -36,10 +60,12 @@ void ConfigDialog::onRemoveButtonClick()
 
 void ConfigDialog::onCancelButtonClick()
 {
+  kill(0);
 }
 
 void ConfigDialog::onOKButtonClick()
 {
+  kill(0);
 }
 
 void ConfigDialog::onApplyButtonClick()

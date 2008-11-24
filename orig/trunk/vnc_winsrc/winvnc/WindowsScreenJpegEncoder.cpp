@@ -48,7 +48,12 @@ UINT WindowsScreenJpegEncoder::getNumCodedRects(const RECT &rect) const
 void WindowsScreenJpegEncoder::encodeRectangle(const RECT &rect)
 {
   Rect r(rect.left, rect.top, rect.right, rect.bottom);
-  m_grabber.grab(&r);
+  if (!m_grabber.grab(&r)) {
+    if (m_grabber.getPropertiesChanged()) {
+      m_grabber.applyNewProperties();
+      m_grabber.grab(&r);
+    }
+  }
   const FrameBuffer *fb = m_grabber.getScreenBuffer();
 
   PixelFormat fmt = fb->getPixelFormat();

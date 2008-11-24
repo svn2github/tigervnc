@@ -8,6 +8,7 @@ public:
   ~Rect();
 public:
   static bool tryParse(LPTSTR string);
+  static bool parse(LPTSTR string, Rect *out);
 public:
   int x;
   int y;

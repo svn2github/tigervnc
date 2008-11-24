@@ -4,6 +4,7 @@
 #include "ui/BaseDialog.h"
 #include "ui/Control.h"
 #include "ui/ListBox.h"
+#include "Settings.h"
 
 class ConfigDialog : public BaseDialog
 {
@@ -25,6 +26,8 @@ protected:
 protected:
   // Controls
   ListBox m_ctrlMappingListBox;
+  // Settings
+  Settings m_config;
 };
 
 #endif

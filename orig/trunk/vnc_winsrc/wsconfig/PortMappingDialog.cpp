@@ -48,6 +48,16 @@ bool PortMappingDialog::isUserDataValid()
 void PortMappingDialog::onInitDialog()
 {
   initControls();
+  if (m_dialogType == Add) {
+    m_portTextBox.setText(_T("5901"));
+    m_geometryTextBox.setText(_T("640x480+0+0"));
+  }
+  if (m_dialogType == Edit) {
+    TCHAR str[10];
+    _ltot(m_mapping.port, &str[0], 10);
+    m_portTextBox.setText(str);
+    m_geometryTextBox.setText((TCHAR *)m_mapping.rect.toString().c_str());
+  }
 }
 
 void PortMappingDialog::onCommand(UINT cID, UINT nID)

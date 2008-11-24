@@ -3,7 +3,7 @@
 
 #include "ui/BaseDialog.h"
 #include "ui/TextBox.h"
-#include "Rect.h"
+#include "PortMapping.h"
 
 typedef enum {
   Add   = 0x0,
@@ -15,6 +15,11 @@ class PortMappingDialog : public BaseDialog
 public:
   PortMappingDialog();
   ~PortMappingDialog();
+public:
+  PortMapping getMapping() { return m_mapping; }
+  void setMapping(PortMapping mapping) { m_mapping = mapping; }
+  PortMappingDialogType getDialogType() { return m_dialogType; }
+  void setDialogType(PortMappingDialogType dialogType) { m_dialogType = dialogType; }
 protected:
   void initControls();
   bool isUserDataValid();
@@ -22,17 +27,11 @@ protected:
   virtual void onCommand(UINT cID, UINT nID);
   void onOkButtonClick();
   void onCancelButtonClick();
-
-  Rect getRect() { return m_rect; }
-  void setRect(Rect rect) { m_rect = rect; }
-
-  PortMappingDialogType getDialogType() { return m_dialogType; }
-  void setDialogType(PortMappingDialogType dialogType) { m_dialogType = dialogType; }
 protected:
   TextBox m_geometryTextBox;
   TextBox m_portTextBox;
   PortMappingDialogType m_dialogType;
-  Rect m_rect;
+  PortMapping m_mapping;
 };
 
 #endif

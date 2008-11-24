@@ -7,6 +7,7 @@ class StringParser
 {
 public:
   static bool tryParseInt(tstring str);
+  static bool parseInt(tstring str, int *out);
 };
 
 #endif

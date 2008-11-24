@@ -15,6 +15,7 @@ public:
   int show();
   int showModal();
   void setResourceName(LPTSTR resourceName);
+  virtual void kill(int code);
 protected:
   virtual void onInitDialog();
   virtual void onNotify(UINT controlID, LPARAM data);

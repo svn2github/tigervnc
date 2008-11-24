@@ -30,6 +30,11 @@ int BaseDialog::show()
   return 0;
 }
 
+void BaseDialog::kill(int code)
+{
+  EndDialog(m_ctrlThis.getWindow(), code);
+}
+
 int BaseDialog::showModal()
 {
   int dialogResult = -1;

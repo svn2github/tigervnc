@@ -54,10 +54,7 @@ bool ScreenGrabber::setWorkRectDefault()
     return false;
   }
 
-  m_workFrameBuffer.setDimension(&m_fullScreenRect, false);
-
-  m_offsetFrameBuffer.x = m_fullScreenRect.left;
-  m_offsetFrameBuffer.y = m_fullScreenRect.top;
+  setWorkRect(&m_fullScreenRect);
 
   return true;
 }

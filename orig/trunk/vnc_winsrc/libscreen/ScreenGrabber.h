@@ -87,8 +87,9 @@ public:
   inline virtual bool getPixelFormatChanged() = 0;
   inline virtual bool getScreenSizeChanged() = 0;
 
-  /* Set new values of m_workFrameBuffer and m_fullScreenRect 
-  if properties of the screen is changed*/
+  // Set new values of the WorkRect to default (to full screen rectangle coordinates)
+  // and m_fullScreenRect if desktop properties has been changed.
+  // Also m_pixelFormat set to actual value.
   virtual bool applyNewProperties();
 
 protected:

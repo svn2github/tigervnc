@@ -6,10 +6,15 @@
 ConfigDialog::ConfigDialog(void)
 {
   setResourceName(_T("WSConfig.MainDialog"));
+  m_settingsManager = new RegistrySettingsManager();
+  ((RegistrySettingsManager *)m_settingsManager)->setRootHKEY(HKEY_CURRENT_USER);
+  ((RegistrySettingsManager *)m_settingsManager)->setRootFolderName(_T("\\Software\\ORL\\WinWNC3"));
+  m_settingsManager->setInstance(m_settingsManager);
 }
 
 ConfigDialog::~ConfigDialog(void)
 {
+  delete m_settingsManager;
 }
 
 void ConfigDialog::initControls()

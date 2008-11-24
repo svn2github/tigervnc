@@ -1,6 +1,8 @@
 #ifndef _CONFIG_DIALOG_H_
 #define _CONFIG_DIALOG_H_
 
+#include "common/SettingsManager.h"
+#include "common/RegistrySettingsManager.h"
 #include "ui/BaseDialog.h"
 #include "ui/Control.h"
 #include "ui/ListBox.h"
@@ -31,6 +33,7 @@ protected:
   Control m_ctrlRemoveButton;
   // Settings
   Settings m_config;
+  SettingsManager *m_settingsManager;
 };
 
 #endif

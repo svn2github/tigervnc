@@ -1808,6 +1808,8 @@ void vncServer::getVideoRegion(rfb::Region *region) const
   if (GetWindowInfo(getVideoHWND(), &wi)) {
     Rect videoRect(wi.rcClient.left, wi.rcClient.top,
                    wi.rcClient.right, wi.rcClient.bottom);
+    videoRect.move(-GetSystemMetrics(SM_XVIRTUALSCREEN),
+                   -GetSystemMetrics(SM_YVIRTUALSCREEN));
     region->addRect(&videoRect);
   }
 }

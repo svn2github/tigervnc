@@ -38,12 +38,14 @@ bool PortMappingDialog::isUserDataValid()
 {
   if (!Rect::tryParse((TCHAR *)m_geometryTextBox.getText().c_str())) {
     MessageBox(m_ctrlThis.getWindow(), _T("Wrong geometry string format"), _T("Error"), MB_OK | MB_ICONWARNING);
+    m_geometryTextBox.setFocus();
     return false;
   }
   int port;
   StringParser::parseInt((TCHAR *)m_portTextBox.getText().c_str(), &port);
   if ((port < 1) || (port > 65535)) {
     MessageBox(m_ctrlThis.getWindow(), _T("Port must be between 1 and 65535"), _T("Error"), MB_OK | MB_ICONWARNING);
+    m_portTextBox.setFocus();
     return false;
   }
   return true;

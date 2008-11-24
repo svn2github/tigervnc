@@ -23,9 +23,12 @@ protected:
   void onCancelButtonClick();
   void onOKButtonClick();
   void onApplyButtonClick();
+  void onMappingListBoxSelChange();
 protected:
   // Controls
   ListBox m_ctrlMappingListBox;
+  Control m_ctrlEditButton;
+  Control m_ctrlRemoveButton;
   // Settings
   Settings m_config;
 };

@@ -15,12 +15,16 @@ PortMappingDialog::~PortMappingDialog()
 
 void PortMappingDialog::onCancelButtonClick()
 {
-  kill(0);
+  kill(IDCANCEL);
 }
 
 void PortMappingDialog::onOkButtonClick()
 {
-  kill(0);
+  if (!isUserDataValid())
+    return ;
+  Rect::parse((TCHAR *)m_geometryTextBox.getText().c_str(), &m_mapping.rect);
+  StringParser::parseInt(m_portTextBox.getText(), &m_mapping.port);
+  kill(IDOK);
 }
 
 void PortMappingDialog::initControls()

@@ -1,17 +1,19 @@
 #ifndef _CONFIG_DIALOG_H_
 #define _CONFIG_DIALOG_H_
 
+#include "ui/BaseDialog.h"
 #include "ui/Control.h"
 #include "ui/ListBox.h"
 
-class ConfigDialog
+class ConfigDialog : public BaseDialog
 {
 public:
   ConfigDialog(void);
   ~ConfigDialog(void);
 protected:
+  void initControls();
   // Init dialog handler
-  void onInitDialog(HWND hWnd);
+  virtual void onInitDialog();
   // Button handlers
   void onAddButtonClick();
   void onEditButtonClick();
@@ -21,7 +23,6 @@ protected:
   void onApplyButtonClick();
 protected:
   // Controls
-  Control m_ctrlThis;
   ListBox m_ctrlMappingListBox;
 };
 

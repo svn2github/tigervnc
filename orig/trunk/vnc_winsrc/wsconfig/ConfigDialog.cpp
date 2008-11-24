@@ -8,7 +8,7 @@ ConfigDialog::ConfigDialog(void)
   setResourceName(_T("WSConfig.MainDialog"));
   m_settingsManager = new RegistrySettingsManager();
   ((RegistrySettingsManager *)m_settingsManager)->setRootHKEY(HKEY_CURRENT_USER);
-  ((RegistrySettingsManager *)m_settingsManager)->setRootFolderName(_T("\\Software\\ORL\\WinWNC3"));
+  ((RegistrySettingsManager *)m_settingsManager)->setRootFolderName(_T("Software\\ORL\\WinVNC3\\"));
   m_settingsManager->setInstance(m_settingsManager);
 }
 
@@ -142,9 +142,13 @@ void ConfigDialog::onCancelButtonClick()
 
 void ConfigDialog::onOKButtonClick()
 {
+  onApplyButtonClick();
   kill(0);
 }
 
 void ConfigDialog::onApplyButtonClick()
 {
+  if (!m_config.saveToStorage(m_settingsManager)) {
+    MessageBox(m_ctrlThis.getWindow(), _T("Cannot save data to storage"), _T("Error"), MB_OK | MB_ICONERROR);
+  }
 }

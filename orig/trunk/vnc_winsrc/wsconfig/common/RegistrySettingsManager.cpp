@@ -68,8 +68,8 @@ LPTSTR RegistrySettingsManager::getKeyName(LPCTSTR key)
   int len = _tcslen(key);
   int n = str.find_last_of('\\',len);
 
-  TCHAR *res = new TCHAR[len];
-  _tcscpy_s(res, len, str.substr(0,n).c_str());
+  TCHAR *res = new TCHAR[len + 1];
+  _tcscpy(res, str.substr(0,n == -1 ? len : n).c_str());
 
   if (n == -1) return res;
 

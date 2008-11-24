@@ -1178,6 +1178,9 @@ vncClientThread::run(void *arg)
 						HWND temp = GetDesktopWindow();
 						GetWindowRect(temp,&coord);
 
+						msg.pe.x += GetSystemMetrics(SM_XVIRTUALSCREEN);
+						msg.pe.y += GetSystemMetrics(SM_YVIRTUALSCREEN);
+
 						unsigned long x = (msg.pe.x * 65535) / (coord.right - coord.left - 1);
 						unsigned long y = (msg.pe.y * 65535) / (coord.bottom - coord.top - 1);
 
@@ -2224,6 +2227,8 @@ vncClient::SendUpdate()
 				cursor_pos.x = 0;
 				cursor_pos.y = 0;
 			}
+			cursor_pos.x -= GetSystemMetrics(SM_XVIRTUALSCREEN);
+			cursor_pos.y -= GetSystemMetrics(SM_YVIRTUALSCREEN);
 			cursor_pos.x -= sharedRect.left;
 			cursor_pos.y -= sharedRect.top;
 #ifdef HORIZONLIVE

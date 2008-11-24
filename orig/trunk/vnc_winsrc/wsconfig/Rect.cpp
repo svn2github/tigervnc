@@ -12,6 +12,24 @@ Rect::~Rect()
 {
 }
 
+tstring Rect::toString()
+{
+  TCHAR str[10];
+  tstring out = _T("");
+  _ltot(width, &str[0], 10);
+  out += str;
+  out += _T("x");
+  _ltot(height, &str[0], 10);
+  out += str;
+  out += _T("+");
+  _ltot(x, &str[0], 10);
+  out += str;
+  out += _T("+");
+  _ltot(y, &str[0], 10);
+  out += str;
+  return out;
+}
+
 bool Rect::parse(LPTSTR string, Rect *out)
 {
   tstring src = string;

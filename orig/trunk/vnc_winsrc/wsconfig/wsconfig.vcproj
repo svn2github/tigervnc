@@ -224,6 +224,14 @@
 				Name="common"
 				>
 				<File
+					RelativePath=".\common\RegistrySettingsManager.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\common\SettingsManager.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\common\StringParser.cpp"
 					>
 				</File>
@@ -301,6 +309,14 @@
 			<Filter
 				Name="common"
 				>
+				<File
+					RelativePath=".\common\RegistrySettingsManager.h"
+					>
+				</File>
+				<File
+					RelativePath=".\common\SettingsManager.h"
+					>
+				</File>
 				<File
 					RelativePath=".\common\StringParser.h"
 					>

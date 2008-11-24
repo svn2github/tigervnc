@@ -32,7 +32,13 @@ int BaseDialog::show()
 
 int BaseDialog::showModal()
 {
-  return 0;
+  int dialogResult = -1;
+  if ((dialogResult = DialogBoxParam(NULL, (TCHAR *)m_resourceName.c_str(),
+                     NULL, modalDialogProc, (LPARAM)this)) == -1) {
+    // Error notification
+    //
+  }
+  return dialogResult;
 }
 
 void BaseDialog::onInitDialog()

@@ -11,6 +11,7 @@ public:
   ~PortMapping();
 public:
   tstring toString();
+  static bool parse(tstring str, PortMapping *mapping);
 public:
   int port;
   Rect rect;

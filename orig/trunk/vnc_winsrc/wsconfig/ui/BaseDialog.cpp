@@ -2,16 +2,19 @@
 #include "BaseDialog.h"
 
 BaseDialog::BaseDialog()
+: m_ctrlParent(NULL)
 {
   m_resourceName = _T("");
 }
 
 BaseDialog::BaseDialog(tstring resourceName)
+: m_ctrlParent(NULL)
 {
   m_resourceName = resourceName;
 }
 
 BaseDialog::BaseDialog(LPTSTR resourceName)
+: m_ctrlParent(NULL)
 {
   m_resourceName = resourceName;
 }
@@ -23,6 +26,11 @@ BaseDialog::~BaseDialog()
 void BaseDialog::setResourceName(LPTSTR resourceName)
 {
   m_resourceName = resourceName;
+}
+
+void BaseDialog::setParent(Control *ctrlParent)
+{
+  m_ctrlParent = ctrlParent;
 }
 
 int BaseDialog::show()
@@ -38,8 +46,9 @@ void BaseDialog::kill(int code)
 int BaseDialog::showModal()
 {
   int dialogResult = -1;
+  HWND parentHwnd = m_ctrlParent == NULL ? NULL : m_ctrlParent->getWindow();
   if ((dialogResult = DialogBoxParam(NULL, (TCHAR *)m_resourceName.c_str(),
-                     NULL, modalDialogProc, (LPARAM)this)) == -1) {
+                     parentHwnd, modalDialogProc, (LPARAM)this)) == -1) {
     // Error notification
     //
   }

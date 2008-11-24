@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 #include "ConfigDialog.h"
+#include "PortMappingDialog.h"
 #include "Resource.h"
 
 ConfigDialog::ConfigDialog(void)
@@ -48,10 +49,16 @@ void ConfigDialog::onInitDialog()
 
 void ConfigDialog::onAddButtonClick()
 {
+  PortMappingDialog portMappingDialog;
+  portMappingDialog.setParent(&m_ctrlThis);
+  portMappingDialog.showModal();
 }
 
 void ConfigDialog::onEditButtonClick()
 {
+  PortMappingDialog portMappingDialog;
+  portMappingDialog.setParent(&m_ctrlThis);
+  portMappingDialog.showModal();
 }
 
 void ConfigDialog::onRemoveButtonClick()

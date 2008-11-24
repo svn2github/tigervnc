@@ -15,6 +15,7 @@ public:
   int show();
   int showModal();
   void setResourceName(LPTSTR resourceName);
+  void setParent(Control *ctrlParent);
   virtual void kill(int code);
 protected:
   virtual void onInitDialog();
@@ -25,6 +26,7 @@ protected:
 protected:
   tstring m_resourceName; // Name of dialog resource
   Control m_ctrlThis;     // This dialog control
+  Control *m_ctrlParent;
 };
 
 #endif

@@ -4,6 +4,7 @@
 
 PortMappingDialog::PortMappingDialog()
 {
+  setResourceName(_T("WSConfig.EditPortMapping"));
 }
 
 PortMappingDialog::~PortMappingDialog()

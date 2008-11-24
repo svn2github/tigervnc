@@ -66,6 +66,8 @@ void UpdateHandler::extract(UpdateContainer *updateContainer)
     }
     m_screenGrabber.applyNewProperties();
     m_backupFrameBuffer.clone(m_screenGrabber.getScreenBuffer());
+    updateContainer->changedRegion.clear();
+    updateContainer->copiedRegion.clear();
   }
 
   if (m_mouseGrabber.isCursorShapeChanged()) {

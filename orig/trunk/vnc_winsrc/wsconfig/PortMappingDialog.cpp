@@ -4,6 +4,7 @@
 #include "PortMappingDialog.h"
 
 PortMappingDialog::PortMappingDialog()
+: m_dialogType(Add)
 {
   setResourceName(_T("WSConfig.EditPortMapping"));
 }

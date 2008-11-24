@@ -177,6 +177,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\PortMapping.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\PortMappingDialog.cpp"
 				>
 			</File>
@@ -244,6 +248,10 @@
 			>
 			<File
 				RelativePath=".\ConfigDialog.h"
+				>
+			</File>
+			<File
+				RelativePath=".\PortMapping.h"
 				>
 			</File>
 			<File

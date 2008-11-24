@@ -7,6 +7,8 @@ public:
   Rect();
   ~Rect();
 public:
+  static bool tryParse(LPTSTR string);
+public:
   int x;
   int y;
   int width;

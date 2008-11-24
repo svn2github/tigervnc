@@ -9,3 +9,8 @@ Rect::Rect()
 Rect::~Rect()
 {
 }
+
+bool Rect::tryParse(LPTSTR string)
+{
+  return false;
+}

@@ -51,6 +51,7 @@ void ConfigDialog::onAddButtonClick()
 {
   PortMappingDialog portMappingDialog;
   portMappingDialog.setParent(&m_ctrlThis);
+  portMappingDialog.setDialogType(Add);
   portMappingDialog.showModal();
 }
 
@@ -58,6 +59,7 @@ void ConfigDialog::onEditButtonClick()
 {
   PortMappingDialog portMappingDialog;
   portMappingDialog.setParent(&m_ctrlThis);
+  portMappingDialog.setDialogType(Edit);
   portMappingDialog.showModal();
 }
 

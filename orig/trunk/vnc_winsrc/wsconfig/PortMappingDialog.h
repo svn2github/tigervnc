@@ -10,9 +10,13 @@ public:
   PortMappingDialog();
   ~PortMappingDialog();
 protected:
+  void initControls();
+  virtual void onInitDialog();
   virtual void onCommand(UINT cID, UINT nID);
   void onOkButtonClick();
   void onCancelButtonClick();
+protected:
+  TextBox m_geometryTextBox;
 };
 
 #endif

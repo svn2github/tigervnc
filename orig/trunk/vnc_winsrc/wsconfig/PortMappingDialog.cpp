@@ -21,6 +21,17 @@ void PortMappingDialog::onOkButtonClick()
   kill(0);
 }
 
+void PortMappingDialog::initControls()
+{
+  HWND dialogHwnd = m_ctrlThis.getWindow();
+  m_geometryTextBox.setWindow(GetDlgItem(dialogHwnd, IDC_GEOMETRY_EDIT));
+}
+
+void PortMappingDialog::onInitDialog()
+{
+  initControls();
+}
+
 void PortMappingDialog::onCommand(UINT cID, UINT nID)
 {
   switch (cID) {

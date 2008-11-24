@@ -219,6 +219,8 @@ bool WindowsScreenGrabber::applyNewFullScreenRect()
   m_fullScreenRect.setWidth(GetSystemMetrics(SM_CXVIRTUALSCREEN));
   m_fullScreenRect.setHeight(GetSystemMetrics(SM_CYVIRTUALSCREEN));
 
+  setWorkRect(&m_fullScreenRect);
+
   return true;
 }
 

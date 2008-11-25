@@ -169,6 +169,18 @@ void ConfigDialog::onApplyButtonClick()
   }
   else {
     m_ctrlApplyButton.disable();
+
+    // Restart server
+    STARTUPINFO sti;
+    ZeroMemory(&sti,sizeof(STARTUPINFO));
+    sti.cb = sizeof(STARTUPINFO);
+    PROCESS_INFORMATION pi;
+    TCHAR *szCmdline = _tcsdup(TEXT("\"WinVNC.exe\" -reload"));
+    BOOL bResult = CreateProcess(NULL, (TCHAR *)szCmdline, NULL, NULL, FALSE, NULL, NULL, NULL, &sti, &pi);
+    delete []szCmdline;
+    if (bResult == FALSE) {
+      MessageBox(m_ctrlThis.getWindow(), _T("Cannot restart WinVNC.exe"), _T("Warning"), MB_OK | MB_ICONWARNING);
+    }
   }
 }
 

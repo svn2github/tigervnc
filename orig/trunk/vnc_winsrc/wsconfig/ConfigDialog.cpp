@@ -165,7 +165,7 @@ void ConfigDialog::onOKButtonClick()
 void ConfigDialog::onApplyButtonClick()
 {
   if (!m_config.saveToStorage(m_settingsManager)) {
-    MessageBox(m_ctrlThis.getWindow(), _T("Cannot save data to storage"), _T("Error"), MB_OK | MB_ICONERROR);
+    MessageBox(m_ctrlThis.getWindow(), _T("Cannot save congifuration"), _T("Error"), MB_OK | MB_ICONERROR);
   }
   else {
     m_ctrlApplyButton.disable();
@@ -179,7 +179,15 @@ void ConfigDialog::onApplyButtonClick()
     BOOL bResult = CreateProcess(NULL, (TCHAR *)szCmdline, NULL, NULL, FALSE, NULL, NULL, NULL, &sti, &pi);
     delete []szCmdline;
     if (bResult == FALSE) {
-      MessageBox(m_ctrlThis.getWindow(), _T("Cannot restart WinVNC.exe"), _T("Warning"), MB_OK | MB_ICONWARNING);
+      const TCHAR *msg =
+        _T("The changes have been saved but may not be applied to the")
+        _T(" TightVNC Server.\n")
+        _T("\n")
+        _T("Normally, the configuration utility not only saves the")
+        _T(" configuration in the registry, but also instructs currently")
+        _T(" running TightVNC Server to reload its settings.")
+        _T(" However, it could not launch WinVNC.exe to do that.");
+      MessageBox(m_ctrlThis.getWindow(), msg, _T("Warning"), MB_OK | MB_ICONWARNING);
     }
   }
 }

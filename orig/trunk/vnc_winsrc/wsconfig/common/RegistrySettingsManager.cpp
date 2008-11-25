@@ -160,12 +160,15 @@ bool RegistrySettingsManager::setString(LPCTSTR name, LPTSTR value)
   keyName = getKeyName(name);
   folderName = getFolderName(name);
 
-  if (ERROR_SUCCESS != RegOpenKey(m_appRootKey, folderName, &hkey)) {
-
-    if (ERROR_SUCCESS != RegCreateKey(m_appRootKey, folderName, &hkey)) {
-      bError = true;
+  if (_tcscmp(folderName, _T("")) == 0) {
+    hkey = m_appRootKey;
+  }
+  else {
+    if (ERROR_SUCCESS != RegOpenKey(m_appRootKey, folderName, &hkey)) {
+      if (ERROR_SUCCESS != RegCreateKey(m_appRootKey, folderName, &hkey)) {
+        bError = true;
+      }
     }
-
   }
 
   if (ERROR_SUCCESS != RegSetValueEx(hkey, keyName, 0,  dataType, (BYTE*)&value[0], lpcbData)) {
@@ -175,7 +178,9 @@ bool RegistrySettingsManager::setString(LPCTSTR name, LPTSTR value)
   delete []keyName;
   delete []folderName;
 
-  RegCloseKey(hkey);
+  if (hkey != m_appRootKey) {
+    RegCloseKey(hkey);
+  }
 
   return true;
 }

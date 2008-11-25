@@ -27,11 +27,13 @@ protected:
   void onOKButtonClick();
   void onApplyButtonClick();
   void onMappingListBoxSelChange();
+  void onMappingListBoxDoubleClick();
 protected:
   // Controls
   ListBox m_ctrlMappingListBox;
   Control m_ctrlEditButton;
   Control m_ctrlRemoveButton;
+  Control m_ctrlApplyButton;
   // Settings
   Settings m_config;
   SettingsManager *m_settingsManager;

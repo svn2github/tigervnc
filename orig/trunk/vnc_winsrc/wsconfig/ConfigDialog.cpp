@@ -23,6 +23,7 @@ void ConfigDialog::initControls()
   m_ctrlMappingListBox.setWindow(GetDlgItem(dialogHwnd, IDC_MAPPINGS));
   m_ctrlEditButton.setWindow(GetDlgItem(dialogHwnd, IDC_EDIT_PORT));
   m_ctrlRemoveButton.setWindow(GetDlgItem(dialogHwnd, IDC_REMOVE_PORT));
+  m_ctrlApplyButton.setWindow(GetDlgItem(dialogHwnd, IDC_APPLY));
 }
 
 void ConfigDialog::loadSettings()
@@ -59,6 +60,9 @@ void ConfigDialog::onCommand(UINT controlID, UINT notificationID)
     case LBN_SELCHANGE:
       onMappingListBoxSelChange();
       break;
+    case LBN_DBLCLK:
+      onMappingListBoxDoubleClick();
+      break;
     }
     break;
   }
@@ -93,6 +97,7 @@ void ConfigDialog::onAddButtonClick()
     PortMapping newMapping = portMappingDialog.getMapping();
     m_config.m_vPortMapping.push_back(newMapping);
     m_ctrlMappingListBox.addString((TCHAR *)newMapping.toString().c_str());
+    m_ctrlApplyButton.enable();
   }
 }
 
@@ -111,6 +116,7 @@ void ConfigDialog::onEditButtonClick()
     PortMapping *oldPtrMapping = &m_config.m_vPortMapping.at(selectedIndex);
     *oldPtrMapping = editedMapping;
     m_ctrlMappingListBox.setItemText(selectedIndex,(TCHAR *)editedMapping.toString().c_str());
+    m_ctrlApplyButton.enable();
   }
 }
 
@@ -125,6 +131,7 @@ void ConfigDialog::onRemoveButtonClick()
   for (int j = 0; it != m_config.m_vPortMapping.end(); it++) {
     if (j == selectedIndex) {
       m_config.m_vPortMapping.erase(it);
+      m_ctrlApplyButton.enable();
       break;
     }
     j++;
@@ -160,4 +167,13 @@ void ConfigDialog::onApplyButtonClick()
   if (!m_config.saveToStorage(m_settingsManager)) {
     MessageBox(m_ctrlThis.getWindow(), _T("Cannot save data to storage"), _T("Error"), MB_OK | MB_ICONERROR);
   }
+  else {
+    m_ctrlApplyButton.disable();
+  }
+}
+
+void ConfigDialog::onMappingListBoxDoubleClick()
+{
+  if (m_ctrlMappingListBox.getSelectedIndex() != -1)
+    onEditButtonClick();
 }

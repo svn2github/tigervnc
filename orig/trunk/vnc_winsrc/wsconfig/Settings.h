@@ -10,6 +10,7 @@ public:
   Settings();
 public:
   bool saveToStorage(SettingsManager *sm);
+  bool loadFromStorage(SettingsManager *sm);
 public:
   PortMappingVector m_vPortMapping;
 };

@@ -15,6 +15,7 @@ public:
   ~ConfigDialog(void);
 protected:
   void initControls();
+  void loadSettings();
   // Init dialog handler
   virtual void onInitDialog();
   virtual void onCommand(UINT controlID, UINT notificationID);

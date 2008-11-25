@@ -25,6 +25,14 @@ void ConfigDialog::initControls()
   m_ctrlRemoveButton.setWindow(GetDlgItem(dialogHwnd, IDC_REMOVE_PORT));
 }
 
+void ConfigDialog::loadSettings()
+{
+  m_config.loadFromStorage(m_settingsManager);
+  for (int i = 0; i < m_config.m_vPortMapping.size(); i++) {
+    m_ctrlMappingListBox.addString((TCHAR *)m_config.m_vPortMapping.at(i).toString().c_str());
+  }
+}
+
 void ConfigDialog::onCommand(UINT controlID, UINT notificationID)
 {
   switch (controlID) {
@@ -59,6 +67,7 @@ void ConfigDialog::onCommand(UINT controlID, UINT notificationID)
 void ConfigDialog::onInitDialog()
 {
   initControls();
+  loadSettings();
 }
 
 void ConfigDialog::onMappingListBoxSelChange()

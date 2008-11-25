@@ -20,3 +20,35 @@ bool Settings::saveToStorage(SettingsManager *sm)
   }
   return saveResult;
 }
+
+bool Settings::loadFromStorage(SettingsManager *sm)
+{
+  bool loadResult = true;
+  TCHAR strVal[1024*4];
+  if (!sm->getString(_T("ExtraPorts"), &strVal[0])) {
+    loadResult = false;
+  }
+  else {
+    tstring strMappings = strVal;
+    size_t index = 0;
+    size_t lastIndex = 0;
+    while (true) {
+      index = strMappings.find(_T(","), lastIndex);
+      if (index == tstring::npos) {
+        break;
+      }
+      tstring strMapping = strMappings.substr(lastIndex, index - lastIndex);
+      PortMapping newPortMapping;
+      if (PortMapping::parse(strMapping, &newPortMapping)) {
+        m_vPortMapping.push_back(newPortMapping);
+      }
+      lastIndex = index + 1;
+    }
+    tstring strMapping = strMappings.substr(lastIndex, strMappings.size() - lastIndex);
+    PortMapping newPortMapping;
+    if (PortMapping::parse(strMapping, &newPortMapping)) {
+      m_vPortMapping.push_back(newPortMapping);
+    }
+  }
+  return loadResult;
+}

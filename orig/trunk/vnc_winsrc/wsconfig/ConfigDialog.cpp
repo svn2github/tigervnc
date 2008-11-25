@@ -30,7 +30,7 @@ void ConfigDialog::loadSettings()
 {
   m_config.loadFromStorage(m_settingsManager);
   for (int i = 0; i < m_config.m_vPortMapping.size(); i++) {
-    m_ctrlMappingListBox.addString((TCHAR *)m_config.m_vPortMapping.at(i).toString().c_str());
+    m_ctrlMappingListBox.insertString(i, (TCHAR *)m_config.m_vPortMapping.at(i).toString().c_str());
   }
 }
 

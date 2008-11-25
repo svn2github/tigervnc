@@ -216,6 +216,10 @@ bool WinDesktop::sendUpdate()
     m_updateHandler->setFullUpdateRequested(&sharedReg);
   }
 
+  rfb::Region videoRegion;
+  m_server->getVideoRegion(&videoRegion);
+  m_updateHandler->setFullUpdateRequested(&videoRegion);
+
   UpdateContainer updateContainer;
   m_updateHandler->extract(&updateContainer);
 

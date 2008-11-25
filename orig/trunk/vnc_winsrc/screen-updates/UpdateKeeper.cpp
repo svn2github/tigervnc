@@ -123,10 +123,6 @@ void UpdateKeeper::addCopyRect(const Rect *copyRect, const Point *src)
 void UpdateKeeper::setScreenSizeChanged()
 {
   AutoLock al(&m_updContCritSec);
-
-  // Reinitializing m_borderRect
-  m_borderRect.setRect(&m_frameBuffer->getDimension().getRect());
-
   m_updateContainer.screenSizeChanged = true;
 }
 
@@ -138,6 +134,16 @@ void UpdateKeeper::setCursorPosChanged()
 
 void UpdateKeeper::extract(UpdateContainer *updateContainer)
 {
+  {
+    AutoLock al(&m_updContCritSec);
+
+    // Reinitializing m_borderRect
+    m_borderRect.setRect(&m_frameBuffer->getDimension().getRect());
+    // Clipping regions
+    rfb::Region borderRegion(m_borderRect);
+    m_updateContainer.changedRegion.assign_intersect(borderRegion);
+    m_updateContainer.copiedRegion.assign_intersect(borderRegion);
+  }
   {
     Rect copyRect;
     Point copySrc;

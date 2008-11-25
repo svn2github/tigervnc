@@ -22,16 +22,21 @@
 #ifndef __UPDATEKEEPER_H__
 #define __UPDATEKEEPER_H__
 
+#include "UpdateListener.h"
 #include "region/Region.h"
 #include "region/Point.h"
 #include "UpdateFilter.h"
 #include "UpdateContainer.h"
 #include "CopyRectDetector.h"
+#include "thread/Thread.h"
+#include "system/WinTimeMillis.h"
+#include "thread/CriticalSection.h"
 
-class UpdateKeeper
+class UpdateKeeper : public Thread
 {
 public:
-  UpdateKeeper(UpdateFilter *updateFilter, const FrameBuffer *frameBuffer);
+  UpdateKeeper(UpdateFilter *updateFilter, const FrameBuffer *frameBuffer,
+               UpdateListener *updateListener);
   ~UpdateKeeper(void);
 
   void lock()
@@ -59,6 +64,9 @@ public:
   void extract(UpdateContainer *updateContainer);
 
 private:
+  virtual void execute();
+  void hold(UpdateContainer *updateContainer);
+
   UpdateFilter *m_updateFilter;
   CopyRectDetector m_copyRectDetector;
 
@@ -71,6 +79,12 @@ private:
 
   UpdateContainer m_updateContainer;
   CriticalSection m_updContCritSec;
+
+  rfb::Region m_heldChangedRegion;
+  WinTimeMillis m_heldTime;
+  CriticalSection m_heldRegCritSec;
+
+  UpdateListener *m_updateListener;
 };
 
 #endif // __UPDATEKEEPER_H__

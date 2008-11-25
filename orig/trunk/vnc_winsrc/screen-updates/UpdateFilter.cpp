@@ -62,9 +62,6 @@ void UpdateFilter::filter(UpdateContainer *updateContainer)
     m_frameBuffer->move(&(*iRect), src->x, src->y);
   }
 
-  // Add copiedRegion to changedRegion
-  updateContainer->changedRegion.assign_union(updateContainer->copiedRegion);
-
   // Processing changedRegion
   // Getting rectangle vector
   updateContainer->changedRegion.get_rects(&rects);

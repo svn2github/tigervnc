@@ -22,22 +22,33 @@
 #include "UpdateKeeper.h"
 #include "thread/AutoLock.h"
 
-UpdateKeeper::UpdateKeeper(UpdateFilter *updateFilter, const FrameBuffer *frameBuffer)
+#define SLEEP_TIME 10
+#define HOLD_TIME 300
+
+UpdateKeeper::UpdateKeeper(UpdateFilter *updateFilter,
+                           const FrameBuffer *frameBuffer,
+                           UpdateListener *updateListener)
 : m_updateFilter(updateFilter),
-m_frameBuffer(frameBuffer)
+  m_frameBuffer(frameBuffer),
+  m_updateListener(updateListener)
 {
   m_borderRect.setRect(&m_frameBuffer->getDimension().getRect());
+  resume();
 }
 
 UpdateKeeper::~UpdateKeeper(void)
 {
+  terminate();
+  wait();
 }
 
 void UpdateKeeper::addChangedRegion(const rfb::Region *changedRegion)
 {
   AutoLock al(&m_updContCritSec);
 
-  m_updateContainer.copiedRegion.assign_subtract(*changedRegion);
+  // FIXME: Calling assign_subtract() function is correct if use
+  // copy region instead of copy rectangle.
+  //m_updateContainer.copiedRegion.assign_subtract(*changedRegion);
   m_updateContainer.changedRegion.assign_union(*changedRegion);
 
   rfb::Region borderRegion(m_borderRect);
@@ -160,6 +171,9 @@ void UpdateKeeper::extract(UpdateContainer *updateContainer)
     updateContainer->changedRegion.assign_subtract(m_excludedRegion);
     updateContainer->copiedRegion.assign_subtract(m_excludedRegion);
   }
+
+  hold(updateContainer);
+
   m_updateFilter->filter(updateContainer);
 }
 
@@ -171,5 +185,57 @@ void UpdateKeeper::setExcludedRegion(const rfb::Region *excludedRegion)
     m_excludedRegion.clear();
   } else {
     m_excludedRegion = *excludedRegion;
+  }
+}
+
+void UpdateKeeper::hold(UpdateContainer *updateContainer)
+{
+  AutoLock alHeldReg(&m_heldRegCritSec);
+
+  // Check for "CopyRect" presence.
+  if (!updateContainer->copiedRegion.is_empty()) {
+    // Add copiedRegion with destination coordinate
+    m_heldChangedRegion.assign_union(updateContainer->copiedRegion);
+
+    // Add copiedRegion with source coordinate
+    rfb::Region srcCopiedRegion(updateContainer->copiedRegion);
+    Point *src = &updateContainer->copySrc;
+    Point dst(srcCopiedRegion.get_bounding_rect().left, srcCopiedRegion.get_bounding_rect().top);
+
+    srcCopiedRegion.move(src->x - dst.x, src->y - dst.y);
+    m_heldChangedRegion.assign_union(srcCopiedRegion);
+
+    m_heldTime.update();
+  }
+
+  if (!m_heldChangedRegion.is_empty()) {
+    // Hold changedRegion
+    m_heldChangedRegion.assign_union(updateContainer->changedRegion);
+    updateContainer->changedRegion.clear();
+  }
+}
+
+void UpdateKeeper::execute()
+{
+  WinTimeMillis currentTime;
+
+  while(!m_terminated) {
+    m_heldRegCritSec.enter();
+
+    if (!m_heldChangedRegion.is_empty()) {
+      currentTime.update();
+      if (currentTime.diffFrom(&m_heldTime) > HOLD_TIME) {
+        addChangedRegion(&m_heldChangedRegion);
+        m_heldChangedRegion.clear();
+
+        m_heldRegCritSec.leave();
+        m_updateListener->doUpdate();
+        continue;
+      }
+    }
+
+    m_heldRegCritSec.leave();
+
+    Sleep(SLEEP_TIME);
   }
 }

@@ -30,7 +30,8 @@ UpdateHandler::UpdateHandler(UpdateListener *registerUpdateListener)
   m_updateFilter = new UpdateFilter(&m_screenGrabber, &m_backupFrameBuffer,
                                     &m_criticalSection);
   m_updateKeeper = new UpdateKeeper(m_updateFilter,
-                                    m_screenGrabber.getScreenBuffer());
+                                    m_screenGrabber.getScreenBuffer(),
+                                    this);
   m_poller = new Poller(m_updateKeeper, &m_screenGrabber,
                         &m_backupFrameBuffer, &m_criticalSection);
   m_poller->setOutUpdateListener(this);

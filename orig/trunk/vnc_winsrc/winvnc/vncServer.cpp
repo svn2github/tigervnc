@@ -1805,7 +1805,8 @@ void vncServer::getVideoRegion(rfb::Region *region) const
   region->clear();
   WINDOWINFO wi;
   wi.cbSize = sizeof(WINDOWINFO);
-  if (GetWindowInfo(getVideoHWND(), &wi)) {
+  HWND videoHWND = getVideoHWND();
+  if (videoHWND != 0 && GetWindowInfo(videoHWND, &wi)) {
     Rect videoRect(wi.rcClient.left, wi.rcClient.top,
                    wi.rcClient.right, wi.rcClient.bottom);
     videoRect.move(-GetSystemMetrics(SM_XVIRTUALSCREEN),

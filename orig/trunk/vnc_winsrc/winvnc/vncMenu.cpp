@@ -570,9 +570,7 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 		if (iMsg == MENU_SERVER_VIDEOCLASS)
 		{
 			HWND hVideoWindow = (HWND)wParam;
-			if (hVideoWindow != NULL) {
-				_this->m_server->setVideoHWND(hVideoWindow);
-			}
+			_this->m_server->setVideoHWND(hVideoWindow);
 			return 0;
 		}
 		if (iMsg == MENU_DEFAULT_PROPERTIES_SHOW)

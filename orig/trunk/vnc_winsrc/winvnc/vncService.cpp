@@ -535,6 +535,10 @@ vncService::FindWindowByTitle(char *substr)
 HWND
 vncService::FindWindowByClass(char *className)
 {
+	if (className == NULL || *className == '\0') {
+		return 0;
+	}
+
 	HWND hwnd = FindWindow(className, NULL);
 	if (hwnd == NULL) {
 		MessageBox(NULL, "Unable to find a window with the specified class name.",

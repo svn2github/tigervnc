@@ -40,6 +40,7 @@
 #include "WinVNC.h"
 #include "vncMenu.h"
 #include "vncTimedMsgBox.h"
+#include "windows-lib/WindowFinder.h"
 
 // Error message logging
 void LogErrorMsg(char *message);
@@ -539,7 +540,7 @@ vncService::FindWindowByClass(char *className)
 		return 0;
 	}
 
-	HWND hwnd = FindWindow(className, NULL);
+    HWND hwnd = WindowFinder::findWindowByClass(className);
 	if (hwnd == NULL) {
 		MessageBox(NULL, "Unable to find a window with the specified class name.",
 				   szAppName, MB_ICONEXCLAMATION | MB_OK);

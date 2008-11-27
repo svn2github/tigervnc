@@ -65,6 +65,9 @@ public:
 
 protected:
   bool resizeBuffer();
+  void clipRect(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
+                const int srcX, const int srcY,
+                Rect *dstClippedRect, Rect *srcClippedRect);
 
   Dimension m_dimension;
 

@@ -65,6 +65,37 @@ bool FrameBuffer::cmp(const FrameBuffer *frameBuffer)
          m_pixelFormat.cmp(&frameBuffer->getPixelFormat());
 }
 
+void FrameBuffer::clipRect(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
+                           const int srcX, const int srcY,
+                           Rect *dstClippedRect, Rect *srcClippedRect)
+{
+  Rect dstBufferRect = m_dimension.getRect();
+  Rect srcBufferRect = srcFrameBuffer->getDimension().getRect();
+
+  // Building srcRect
+  Rect srcRect(srcX, srcY, srcX + dstRect->getWidth(), srcY + dstRect->getHeight());
+
+  // Finding common area between the dstRect, srcRect and the FrameBuffers
+  Rect dstRectFB = dstBufferRect.intersection(dstRect);
+  Rect srcRectFB = srcBufferRect.intersection(&srcRect);
+
+  // Finding common area between the dstRectFB and the srcRectFB
+  Rect dstCommonArea(&dstRectFB);
+  Rect srcCommonArea(&srcRectFB);
+  // Move to common place (left = 0, top = 0)
+  dstCommonArea.move(-dstRect->left, -dstRect->top);
+  srcCommonArea.move(-srcRect.left, -srcRect.top);
+
+  Rect commonRect(&dstCommonArea.intersection(&srcCommonArea));
+
+  // Moving commonRect to destination coordinates and source
+  dstClippedRect->setRect(&commonRect);
+  dstClippedRect->move(dstRect->left, dstRect->top);
+
+  srcClippedRect->setRect(&commonRect);
+  srcClippedRect->move(srcRect.left, srcRect.top);
+}
+
 bool FrameBuffer::copyFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
                            const int srcX, const int srcY)
 {
@@ -72,46 +103,64 @@ bool FrameBuffer::copyFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffe
     return false;
   }
 
-  Dimension srcDimension = srcFrameBuffer->getDimension();
-  Rect dstBufferRect = m_dimension.getRect();
-  Rect srcBufferRect = srcDimension.getRect();
+  Rect srcClippedRect, dstClippedRect;
 
-  // Building srcRect
-  Rect srcRect(srcX, srcY, srcX + dstRect->getWidth(), srcY + dstRect->getHeight());
+  clipRect(dstRect, srcFrameBuffer, srcX, srcY, &dstClippedRect, &srcClippedRect);
 
-  // Finding common area between the dstRect, srcRect and the FrameBuffers
-  Rect dstRectFB = dstBufferRect.intersection(dstRect);
-  Rect srcRectFB = srcBufferRect.intersection(&srcRect);
-
-  // Finding common area between the dstRectFB and the srcRectFB
-  Rect dstCommonArea(&dstRectFB);
-  Rect srcCommonArea(&srcRectFB);
-  // Move to common place (left = 0, top = 0)
-  dstCommonArea.move(-dstRect->left, -dstRect->top);
-  srcCommonArea.move(-srcRect.left, -srcRect.top);
-
-  Rect commonRect(&dstCommonArea.intersection(&srcCommonArea));
-
-  // Moving commonRect to destination coordinates and source
-  Rect resultDstRect(&commonRect);
-  resultDstRect.move(dstRect->left, dstRect->top);
-  int resultSrcX = srcRect.left + commonRect.left;
-  int resultSrcY = srcRect.top + commonRect.top;
-
-  // Data copy
-  int dstStride = m_dimension.width;
-  int srcStride = srcDimension.width;
-  int pdstPixel = resultDstRect.top * dstStride + resultDstRect.left;
-  int psrcPixel = resultSrcY * srcStride + resultSrcX;
-  int resultHeight = resultDstRect.getHeight();
-  int resultWidth = resultDstRect.getWidth();
+  // Shortcuts
   int pixelSize = m_pixelFormat.bitsPerPixel / 8;
-  UINT8 *srcDataBuffer = (UINT8 *)srcFrameBuffer->getBuffer();
+  int dstStrideBytes = m_dimension.width * pixelSize;
+  int srcStrideBytes = srcFrameBuffer->getDimension().width * pixelSize;
 
-  for (int i = 0; i < resultHeight; i++, pdstPixel += dstStride, psrcPixel += srcStride) {
-    memcpy((UINT8 *)m_buffer + pdstPixel * pixelSize,
-           srcDataBuffer + psrcPixel * pixelSize,
-           resultWidth * pixelSize);
+  int resultHeight = dstClippedRect.getHeight();
+  int resultWidthBytes = dstClippedRect.getWidth() * pixelSize;
+
+  UINT8 *pdst = (UINT8 *)m_buffer
+                + dstClippedRect.top * dstStrideBytes
+                + pixelSize * dstClippedRect.left;
+
+  UINT8 *psrc = (UINT8 *)srcFrameBuffer->getBuffer()
+                + srcClippedRect.top * srcStrideBytes
+                + pixelSize * srcClippedRect.left;
+
+  for (int i = 0; i < resultHeight; i++, pdst += dstStrideBytes, psrc += srcStrideBytes) {
+    memcpy(pdst, psrc, resultWidthBytes);
+  }
+
+  return true;
+}
+
+bool FrameBuffer::cmpFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
+                          const int srcX, const int srcY)
+{
+  if (!m_pixelFormat.cmp(&srcFrameBuffer->getPixelFormat())) {
+    return false;
+  }
+
+  Rect srcClippedRect, dstClippedRect;
+
+  clipRect(dstRect, srcFrameBuffer, srcX, srcY, &dstClippedRect, &srcClippedRect);
+
+  // Shortcuts
+  int pixelSize = m_pixelFormat.bitsPerPixel / 8;
+  int dstStrideBytes = m_dimension.width * pixelSize;
+  int srcStrideBytes = srcFrameBuffer->getDimension().width * pixelSize;
+
+  int resultHeight = dstClippedRect.getHeight();
+  int resultWidthBytes = dstClippedRect.getWidth() * pixelSize;
+
+  UINT8 *pdst = (UINT8 *)m_buffer
+                + dstClippedRect.top * dstStrideBytes
+                + pixelSize * dstClippedRect.left;
+
+  UINT8 *psrc = (UINT8 *)srcFrameBuffer->getBuffer()
+                + srcClippedRect.top * srcStrideBytes
+                + pixelSize * srcClippedRect.left;
+
+  for (int i = 0; i < resultHeight; i++, pdst += dstStrideBytes, psrc += srcStrideBytes) {
+    if (memcmp(pdst, psrc, resultWidthBytes) != 0) {
+      return false;
+    }
   }
 
   return true;
@@ -119,47 +168,25 @@ bool FrameBuffer::copyFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffe
 
 void FrameBuffer::move(const Rect *dstRect, const int srcX, const int srcY)
 {
-  // FIXME: Remove code duplicate (copyFrom() function)
-  Dimension srcDimension = getDimension();
-  Rect dstBufferRect = m_dimension.getRect();
-  Rect srcBufferRect = srcDimension.getRect();
+  Rect srcClippedRect, dstClippedRect;
 
-  // Building srcRect
-  Rect srcRect(srcX, srcY, srcX + dstRect->getWidth(), srcY + dstRect->getHeight());
-
-  // Finding common area between the dstRect, srcRect and the FrameBuffers
-  Rect dstRectFB = dstBufferRect.intersection(dstRect);
-  Rect srcRectFB = srcBufferRect.intersection(&srcRect);
-
-  // Finding common area between the dstRectFB and the srcRectFB
-  Rect dstCommonArea(&dstRectFB);
-  Rect srcCommonArea(&srcRectFB);
-  // Move to common place (left = 0, top = 0)
-  dstCommonArea.move(-dstRect->left, -dstRect->top);
-  srcCommonArea.move(-srcRect.left, -srcRect.top);
-
-  Rect commonRect(&dstCommonArea.intersection(&srcCommonArea));
-
-  // Moving commonRect to destination coordinates and source
-  Rect resultDstRect(&commonRect), resultSrcRect(&commonRect);
-  resultDstRect.move(dstRect->left, dstRect->top);
-  resultSrcRect.move(srcX, srcY);
+  clipRect(dstRect, this, srcX, srcY, &dstClippedRect, &srcClippedRect);
 
   // Data copy
   int pixelSize = m_pixelFormat.bitsPerPixel / 8;
   int strideBytes = m_dimension.width * pixelSize;
 
-  int resultHeight = resultDstRect.getHeight();
-  int resultWidthBytes = resultDstRect.getWidth() * pixelSize;
+  int resultHeight = dstClippedRect.getHeight();
+  int resultWidthBytes = dstClippedRect.getWidth() * pixelSize;
 
   UINT8 *pdst, *psrc;
 
   if (srcY > dstRect->top) {
     // Pointers set to first string of the rectanles
-    pdst = (UINT8 *)m_buffer + resultDstRect.top * strideBytes
-           + pixelSize * resultDstRect.left;
-    psrc = (UINT8 *)m_buffer + resultSrcRect.top * strideBytes
-           + pixelSize * resultSrcRect.left;
+    pdst = (UINT8 *)m_buffer + dstClippedRect.top * strideBytes
+           + pixelSize * dstClippedRect.left;
+    psrc = (UINT8 *)m_buffer + srcClippedRect.top * strideBytes
+           + pixelSize * srcClippedRect.left;
 
     for (int i = 0; i < resultHeight; i++, pdst += strideBytes, psrc += strideBytes) {
       memcpy(pdst, psrc, resultWidthBytes);
@@ -167,70 +194,15 @@ void FrameBuffer::move(const Rect *dstRect, const int srcX, const int srcY)
 
   } else {
     // Pointers set to last string of the rectanles
-    pdst = (UINT8 *)m_buffer + (resultDstRect.bottom - 1) * strideBytes
-           + pixelSize * resultDstRect.left;
-    psrc = (UINT8 *)m_buffer + (resultSrcRect.bottom - 1) * strideBytes
-           + pixelSize * resultSrcRect.left;
+    pdst = (UINT8 *)m_buffer + (dstClippedRect.bottom - 1) * strideBytes
+           + pixelSize * dstClippedRect.left;
+    psrc = (UINT8 *)m_buffer + (srcClippedRect.bottom - 1) * strideBytes
+           + pixelSize * srcClippedRect.left;
 
     for (int i = resultHeight - 1; i >= 0; i--, pdst -= strideBytes, psrc -= strideBytes) {
       memmove(pdst, psrc, resultWidthBytes);
     }
   }
-}
-
-bool FrameBuffer::cmpFrom(const Rect *dstRect, const FrameBuffer *srcFrameBuffer,
-                          const int srcX, const int srcY)
-{
-  // FIXME: Remove code duplicate (copyFrom() function)
-  if (!m_pixelFormat.cmp(&srcFrameBuffer->getPixelFormat())) {
-    return false;
-  }
-
-  Dimension srcDimension = srcFrameBuffer->getDimension();
-  Rect dstBufferRect = m_dimension.getRect();
-  Rect srcBufferRect = srcDimension.getRect();
-
-  // Building srcRect
-  Rect srcRect(srcX, srcY, srcX + dstRect->getWidth(), srcY + dstRect->getHeight());
-
-  // Finding common area between the dstRect, srcRect and the FrameBuffers
-  Rect dstRectFB = dstBufferRect.intersection(dstRect);
-  Rect srcRectFB = srcBufferRect.intersection(&srcRect);
-
-  // Finding common area between the dstRectFB and the srcRectFB
-  Rect dstCommonArea(&dstRectFB);
-  Rect srcCommonArea(&srcRectFB);
-  // Move to common place (left = 0, top = 0)
-  dstCommonArea.move(-dstRect->left, -dstRect->top);
-  srcCommonArea.move(-srcRect.left, -srcRect.top);
-
-  Rect commonRect(&dstCommonArea.intersection(&srcCommonArea));
-
-  // Moving commonRect to destination coordinates and source
-  Rect resultDstRect(&commonRect);
-  resultDstRect.move(dstRect->left, dstRect->top);
-  int resultSrcX = srcRect.left + commonRect.left;
-  int resultSrcY = srcRect.top + commonRect.top;
-
-  // Data copy
-  int dstStride = m_dimension.width;
-  int srcStride = srcDimension.width;
-  int pdstPixel = resultDstRect.top * dstStride + resultDstRect.left;
-  int psrcPixel = resultSrcY * srcStride + resultSrcX;
-  int resultHeight = resultDstRect.getHeight();
-  int resultWidth = resultDstRect.getWidth();
-  int pixelSize = m_pixelFormat.bitsPerPixel / 8;
-  UINT8 *srcDataBuffer = (UINT8 *)srcFrameBuffer->getBuffer();
-
-  for (int i = 0; i < resultHeight; i++, pdstPixel += dstStride, psrcPixel += srcStride) {
-    if (memcmp((UINT8 *)m_buffer + pdstPixel * pixelSize,
-                srcDataBuffer + psrcPixel * pixelSize,
-                resultWidth * pixelSize) != 0) {
-      return false;
-    }
-  }
-
-  return true;
 }
 
 bool FrameBuffer::setPixelFormat(const PixelFormat *pixelFormat, bool resizeBuff)

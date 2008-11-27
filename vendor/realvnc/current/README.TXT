@@ -2,7 +2,7 @@
 VNC Free Edition Source Distribution for Windows platforms
 =============================================
 
-VNC Free Edition is Copyright RealVNC Ltd. 2002-2004.  This software is
+VNC Free Edition is Copyright RealVNC Ltd. 2002-2008.  This software is
 distributed under the GNU General Public Licence as published by the
 Free Software Foundation.  See the accompanying licence.txt file for
 the conditions under which the software is made available.

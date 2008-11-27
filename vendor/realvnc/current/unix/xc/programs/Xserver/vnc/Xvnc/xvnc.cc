@@ -1,5 +1,5 @@
 /* Copyright (c) 1993  X Consortium
-   Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+   Copyright (C) 2002-2008 RealVNC Ltd.  All Rights Reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -85,8 +85,8 @@ extern "C" {
                             unsigned long, char*);
 }
 
-#define XVNCVERSION "Free Edition 4.1.2"
-#define XVNCCOPYRIGHT ("Copyright (C) 2002-2005 RealVNC Ltd.\n" \
+#define XVNCVERSION "Free Edition 4.1.3"
+#define XVNCCOPYRIGHT ("Copyright (C) 2002-2008 RealVNC Ltd.\n" \
                        "See http://www.realvnc.com for information on VNC.\n")
 
 

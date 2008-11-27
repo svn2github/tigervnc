@@ -1974,13 +1974,16 @@ fi
 
 
 
-echo $ac_n "checking for vsnprintf""... $ac_c" 1>&6
-echo "configure:1979: checking for vsnprintf" >&5
+if test "$SOLARIS" = yes; then
+    VSNPRINTF_DEFINE=
+else
+  echo $ac_n "checking for vsnprintf""... $ac_c" 1>&6
+echo "configure:1982: checking for vsnprintf" >&5
 if eval "test \"`echo '$''{'ac_cv_func_vsnprintf'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 1984 "configure"
+#line 1987 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char vsnprintf(); below.  */
@@ -2006,7 +2009,7 @@ vsnprintf();
 
 ; return 0; }
 EOF
-if { (eval echo configure:2010: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2013: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_func_vsnprintf=yes"
 else
@@ -2026,12 +2029,13 @@ else
 VSNPRINTF_DEFINE=
 fi
 
+fi
 
 
 echo $ac_n "checking for socklen_t""... $ac_c" 1>&6
-echo "configure:2033: checking for socklen_t" >&5
+echo "configure:2037: checking for socklen_t" >&5
 cat > conftest.$ac_ext <<EOF
-#line 2035 "configure"
+#line 2039 "configure"
 #include "confdefs.h"
 #include <sys/types.h>
  #include <sys/socket.h>
@@ -2040,7 +2044,7 @@ socklen_t x;
 accept(0, 0, &x);
 ; return 0; }
 EOF
-if { (eval echo configure:2044: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:2048: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   echo "$ac_t""yes" 1>&6
 SOCKLEN_T_DEFINE='-DVNC_SOCKLEN_T=socklen_t'

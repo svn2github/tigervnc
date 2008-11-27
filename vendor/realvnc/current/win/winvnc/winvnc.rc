@@ -53,8 +53,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 4,1,2,0
- PRODUCTVERSION 4,1,2,0
+ FILEVERSION 4,1,3,0
+ PRODUCTVERSION 4,1,3,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -71,13 +71,13 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "RealVNC Ltd."
             VALUE "FileDescription", "VNC Server Free Edition for Win32"
-            VALUE "FileVersion", "4.1.2"
+            VALUE "FileVersion", "4.1.3"
             VALUE "InternalName", "free4/winvnc"
-            VALUE "LegalCopyright", "Copyright © RealVNC Ltd. 2002-2005"
+            VALUE "LegalCopyright", "Copyright © RealVNC Ltd. 2002-2008"
             VALUE "LegalTrademarks", "RealVNC"
             VALUE "OriginalFilename", "winvnc4.exe"
             VALUE "ProductName", "VNC Server Free Edition"
-            VALUE "ProductVersion", "4.1.2"
+            VALUE "ProductVersion", "4.1.3"
         END
     END
     BLOCK "VarFileInfo"

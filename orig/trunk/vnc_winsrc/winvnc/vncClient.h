@@ -56,6 +56,7 @@ typedef std::list<vncClientId> vncClientList;
 #include "vncRegion.h"
 #include "vncBuffer.h"
 #include "vncKeymap.h"
+#include "libscreen/FrameBuffer.h"
 #include "WindowsScreenJpegEncoder.h"
 
 // The vncClient class itself
@@ -86,7 +87,7 @@ public:
 	virtual void SetBuffer(vncBuffer *buffer);
 
 	// Update handling functions
-	virtual void TriggerUpdate();
+	virtual void TriggerUpdate(const FrameBuffer *fb);
 	virtual void UpdateMouse();
 	virtual void UpdateMouseShape();
 	virtual void UpdateRect(RECT &rect);
@@ -137,7 +138,7 @@ public:
 
 	// Update routines
 protected:
-	BOOL SendUpdate();
+	BOOL SendUpdate(const FrameBuffer *fb);
 	BOOL SendRFBMsg(CARD8 type, BYTE *buffer, int buflen);
 
     //
@@ -164,10 +165,12 @@ protected:
     // will be encoded using an encoder suitable for video (currently, JPEG
     // encoder is be used for video).
     //
-    bool sendRectangles(rectlist &rects, bool asVideo);
+    // NOTE: fb is used only for encoding video data.
+    //
+    bool sendRectangles(rectlist &rects, const FrameBuffer *fb, bool asVideo);
 
     BOOL SendRectangle(RECT &rect);
-	BOOL SendVideoRectangle(RECT &rect);
+	BOOL SendVideoRectangle(const FrameBuffer *fb, RECT &rect);
 	BOOL SendCopyRect(RECT &dest, POINT &source);
 	BOOL SendCursorShapeUpdate();
 	BOOL SendCursorPosUpdate();

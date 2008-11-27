@@ -48,6 +48,7 @@ class vncServer;
 #include "vncRegion.h"
 #include "vncPasswd.h"
 #include "echoConCtrl.h"
+#include "libscreen/FrameBuffer.h"
 
 // Includes
 #include "stdhdrs.h"
@@ -126,7 +127,7 @@ public:
 	virtual void RequestUpdate();
 
 	// Update handling, used by the screen server
-	virtual void TriggerUpdate();
+	virtual void TriggerUpdate(const FrameBuffer *fb);
 	virtual void UpdateRect(RECT &rect);
 	virtual void UpdateRegion(vncRegion &region);
 	virtual void CopyRect(RECT &dest, POINT &source);

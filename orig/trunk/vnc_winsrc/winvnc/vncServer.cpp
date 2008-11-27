@@ -709,7 +709,7 @@ vncServer::RequestUpdate()
 
 // Update handling
 void
-vncServer::TriggerUpdate()
+vncServer::TriggerUpdate(const FrameBuffer *fb)
 {
 	vncClientList::iterator i;
 	
@@ -719,7 +719,7 @@ vncServer::TriggerUpdate()
 	for (i = m_authClients.begin(); i != m_authClients.end(); i++)
 	{
 		// Post the update
-		GetClient(*i)->TriggerUpdate();
+		GetClient(*i)->TriggerUpdate(fb);
 	}
 }
 

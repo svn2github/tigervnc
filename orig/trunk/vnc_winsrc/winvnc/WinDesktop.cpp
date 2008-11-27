@@ -279,7 +279,7 @@ bool WinDesktop::sendUpdate()
     m_server->UpdateRegion(changedRegion);
   }
 
-  m_server->TriggerUpdate();
+  m_server->TriggerUpdate(m_updateHandler->getFrameBuffer());
 
   return true;
 }

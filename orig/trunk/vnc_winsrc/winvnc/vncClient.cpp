@@ -1983,7 +1983,7 @@ vncClient::SetBuffer(vncBuffer *buffer)
 
 
 void
-vncClient::TriggerUpdate()
+vncClient::TriggerUpdate(const FrameBuffer *fb)
 {
 	// Lock the updates stored so far
 	omni_mutex_lock l(m_regionLock);
@@ -2008,7 +2008,7 @@ vncClient::TriggerUpdate()
 			}
 
 			// Now send the update
-			m_updatewanted = !SendUpdate();
+			m_updatewanted = !SendUpdate(fb);
 		}
 	}
 }
@@ -2198,7 +2198,7 @@ vncClient::isPtInSharedArea(POINT &p)
 }
 
 BOOL
-vncClient::SendUpdate()
+vncClient::SendUpdate(const FrameBuffer *fb)
 {
 	// First, check if we need to send pending NewFBSize message
 	if (m_use_NewFBSize && m_fb_size_changed) {
@@ -2379,11 +2379,11 @@ vncClient::SendUpdate()
 	}
 
 	// Encode & send video rectangles
-	if (!sendRectangles(videoUpdatesList, true))
+	if (!sendRectangles(videoUpdatesList, fb, true))
 		return TRUE;
 
 	// Encode & send normal updates
-	if (!sendRectangles(normalUpdatesList, false))
+	if (!sendRectangles(normalUpdatesList, fb, false))
 		return TRUE;
 
 	// Send LastRect marker if needed.
@@ -2419,11 +2419,11 @@ int vncClient::getNumEncodedRects(rectlist &rects, bool asVideo)
   return sum;
 }
 
-bool vncClient::sendRectangles(rectlist &rects, bool asVideo)
+bool vncClient::sendRectangles(rectlist &rects, const FrameBuffer *fb, bool asVideo)
 {
   while (!rects.empty()) {
     RECT rect = rects.front();
-    BOOL success = asVideo ? SendVideoRectangle(rect) : SendRectangle(rect);
+    BOOL success = asVideo ? SendVideoRectangle(fb, rect) : SendRectangle(rect);
     if (!success) {
       return false;
     }
@@ -2447,11 +2447,11 @@ vncClient::SendRectangle(RECT &rect)
 
 // FIXME: Rewrite this function.
 BOOL
-vncClient::SendVideoRectangle(RECT &rect)
+vncClient::SendVideoRectangle(const FrameBuffer *fb, RECT &rect)
 {
   RECT sharedRect = getEffectiveViewport();
 
-  m_jpegEncoder->encodeRectangle(rect);
+  m_jpegEncoder->encodeRectangle(fb, rect);
   const char *header = m_jpegEncoder->getHeaderPtr();
   size_t headerLen = m_jpegEncoder->getHeaderLength();
   const char *data = m_jpegEncoder->getDataPtr();

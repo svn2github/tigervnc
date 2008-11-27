@@ -24,7 +24,7 @@
 
 #include "stdhdrs.h"
 #include "rfb.h"
-#include "libscreen/WindowsScreenGrabber.h"
+#include "libscreen/FrameBuffer.h"
 #include "JpegCompressor.h"
 
 // FIXME: Tight-encoded rectangles should not be wider than 2048 pixels.
@@ -39,7 +39,7 @@ public:
 
   void setQuality(int level);
   UINT getNumCodedRects(const RECT &rect) const;
-  void encodeRectangle(const RECT &rect);
+  void encodeRectangle(const FrameBuffer *fb, const RECT &rect);
 
   // Access results of the compression.
   size_t getHeaderLength() { return m_headerLength; }
@@ -51,7 +51,6 @@ private:
   void encodeLength(int compressedLen);
 
   StandardJpegCompressor m_compressor;
-  WindowsScreenGrabber m_grabber;
   char m_header[4];
   size_t m_headerLength;
 };

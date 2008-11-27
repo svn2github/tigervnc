@@ -28,7 +28,7 @@
 #include "JpegCompressor.h"
 
 // FIXME: Tight-encoded rectangles should not be wider than 2048 pixels.
-// FIXME: Fall back to other encoders if color depth is not 24.
+// FIXME: Fall back to other encoders if bits-per-pixel is 8.
 // FIXME: Don't use this encoder if the client does not support Tight+JPEG.
 
 class WindowsScreenJpegEncoder

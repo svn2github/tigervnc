@@ -75,7 +75,7 @@
 			<Tool
 				Name="VCPreLinkEventTool"
 				Description="Updating BuildTime"
-				CommandLine="cl /MT /Fo&quot;.\Release/&quot; /Fd&quot;.\Release/&quot; /nologo /c BuildTime.cpp"
+				CommandLine="cl /MT /Fo$(IntDir)  /nologo /c BuildTime.cpp"
 			/>
 			<Tool
 				Name="VCLinkerTool"
@@ -168,7 +168,7 @@
 			<Tool
 				Name="VCPreLinkEventTool"
 				Description="Updating BuildTime"
-				CommandLine="cl /MTd /Fo&quot;.\Debug/&quot; /Fd&quot;.\Debug/&quot; /nologo /c BuildTime.cpp"
+				CommandLine="cl /MTd /Fo$(IntDir)  /nologo /c BuildTime.cpp"
 			/>
 			<Tool
 				Name="VCLinkerTool"
@@ -209,7 +209,7 @@
 		<Configuration
 			Name="DebugNoUnicode|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="1"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
@@ -260,7 +260,7 @@
 			<Tool
 				Name="VCPreLinkEventTool"
 				Description="Updating BuildTime"
-				CommandLine="cl /MTd /Fo&quot;.\Debug/&quot; /Fd&quot;.\Debug/&quot; /nologo /c BuildTime.cpp"
+				CommandLine="cl /MTd /Fo$(IntDir)  /nologo /c BuildTime.cpp"
 			/>
 			<Tool
 				Name="VCLinkerTool"
@@ -301,7 +301,7 @@
 		<Configuration
 			Name="ReleaseNoUnicode|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="1"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
@@ -357,7 +357,7 @@
 			<Tool
 				Name="VCPreLinkEventTool"
 				Description="Updating BuildTime"
-				CommandLine="cl /MT /Fo&quot;.\Release/&quot; /Fd&quot;.\Release/&quot; /nologo /c BuildTime.cpp"
+				CommandLine="cl /MT /Fo$(IntDir)  /nologo /c BuildTime.cpp"
 			/>
 			<Tool
 				Name="VCLinkerTool"

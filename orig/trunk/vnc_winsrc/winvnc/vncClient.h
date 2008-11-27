@@ -257,6 +257,10 @@ protected:
 	BOOL			m_use_NewFBSize;
 	BOOL			m_use_PointerPos;
 
+	// True if both Tight encoding and JPEG image quality were specified
+	// by the client in SetEncodings message.
+	bool			m_isJpegAllowed;
+
 	omni_mutex		m_sendUpdateLock;
 
 	RECT			m_viewport;

@@ -57,6 +57,7 @@ public:
 	// BUFFER INFO
 	RECT GetSize();
 	rfbPixelFormat GetLocalFormat();
+	bool isClientEightBitsPerPixel();
 	BYTE *GetClientBuffer();
 	BOOL GetRemotePalette(RGBQUAD *quadbuff, UINT ncolours);
 

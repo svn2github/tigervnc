@@ -863,6 +863,7 @@ vncClientThread::run(void *arg)
 			m_client->m_buffer->EnableLastRect(FALSE);
 			m_client->m_use_PointerPos = FALSE;
 			m_client->m_use_NewFBSize = FALSE;
+			m_client->m_isJpegAllowed = false;
 
 			m_client->m_cursor_update_pending = FALSE;
 			m_client->m_cursor_update_sent = FALSE;
@@ -875,6 +876,8 @@ vncClientThread::run(void *arg)
 				BOOL encoding_set = FALSE;
 				BOOL shapeupdates_requested = FALSE;
 				BOOL pointerpos_requested = FALSE;
+				bool wasTightEncodingAllowed = false;
+				bool wasJpegQualitySet = false;
 
 				{
 					omni_mutex_lock l(m_client->m_regionLock);
@@ -937,6 +940,7 @@ vncClientThread::run(void *arg)
 						int level = (int)(Swap32IfLE(encoding) - rfbEncodingQualityLevel0);
 						m_client->m_buffer->SetQualityLevel(level);
 						m_client->m_jpegEncoder->setQuality(level);
+						wasJpegQualitySet = true;
 						vnclog.Print(LL_INTINFO, VNCLOG("image quality level requested: %d\n"), level);
 						continue;
 					}
@@ -961,6 +965,11 @@ vncClientThread::run(void *arg)
 						continue;
 					}
 
+					// We'd like to remember if Tight encoding was in the list.
+					if (Swap32IfLE(encoding) == rfbEncodingTight) {
+						wasTightEncodingAllowed = true;
+					}
+
 					// Have we already found a suitable encoding?
 					if (!encoding_set)
 					{
@@ -973,6 +982,8 @@ vncClientThread::run(void *arg)
 
 					}
 				}
+
+				m_client->m_isJpegAllowed = wasTightEncodingAllowed && wasJpegQualitySet;
 
 				// Enable CursorPos encoding only if cursor shape updates were
 				// requested by the client.
@@ -1864,6 +1875,7 @@ vncClient::vncClient()
 
 	m_use_NewFBSize = FALSE;
 
+	m_isJpegAllowed = false;
 	m_jpegEncoder = 0;
 
 	RECT r;
@@ -2305,6 +2317,12 @@ vncClient::SendUpdate(const FrameBuffer *fb)
 				m_mousemoved = FALSE;
 			}
 		}
+	}
+
+	// Send video as normal updates if JPEG cannot be used for any reason.
+	if (!m_isJpegAllowed || m_buffer->isClientEightBitsPerPixel()) {
+		normalUpdates.Combine(videoUpdates);
+		videoUpdates.Clear();
 	}
 
     // The region that will be sent should be excluded from m_changed_rgn.

@@ -130,6 +130,11 @@ vncBuffer::GetLocalFormat()
 	return m_scrinfo.format;
 }
 
+bool vncBuffer::isClientEightBitsPerPixel()
+{
+	return (m_clientformat.bitsPerPixel == 8);
+}
+
 BYTE *
 vncBuffer::GetClientBuffer()
 {

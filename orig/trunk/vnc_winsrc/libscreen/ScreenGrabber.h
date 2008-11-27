@@ -77,8 +77,10 @@ public:
   virtual void setWorkRect(Rect *workRect);
   virtual Rect getWorkRect() const { return Rect(m_offsetFrameBuffer.x,
                                                  m_offsetFrameBuffer.y,
-                                                 m_workFrameBuffer.getDimension().width,
-                                                 m_workFrameBuffer.getDimension().height); }
+                                                 m_workFrameBuffer.getDimension().width +
+                                                 m_offsetFrameBuffer.x,
+                                                 m_workFrameBuffer.getDimension().height +
+                                                 m_offsetFrameBuffer.y); }
   /* Provides read access to rectangular coordinates of the screen (desktop).*/
   virtual Rect getScreenRect() { return m_fullScreenRect; }
 

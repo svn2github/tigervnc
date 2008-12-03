@@ -33,7 +33,7 @@ DynamicLibrary::~DynamicLibrary()
   }
 }
 
-FARPROC DynamicLibrary::getProcAddress(const TCHAR *procName)
+FARPROC DynamicLibrary::getProcAddress(const char *procName)
 {
   if (m_hLibrary) {
     return GetProcAddress(m_hLibrary, (LPCSTR)procName);

@@ -30,7 +30,7 @@ public:
   DynamicLibrary(const TCHAR *libraryName);
   virtual ~DynamicLibrary();
 
-  FARPROC getProcAddress(const TCHAR *procName);
+  FARPROC getProcAddress(const char *procName);
 
 protected:
   HMODULE m_hLibrary;

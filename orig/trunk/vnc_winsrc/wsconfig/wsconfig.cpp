@@ -8,6 +8,10 @@
 int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                        LPTSTR lpCmdLine, int nCmdShow)
 {
+  if (!BaseDialog::InitCommonControlsEx()) {
+    // Error notification
+    return 1;
+  }
   ConfigDialog configDialog;
   configDialog.showModal();
   return 0;

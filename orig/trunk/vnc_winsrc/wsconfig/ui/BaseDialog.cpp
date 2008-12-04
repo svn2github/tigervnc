@@ -73,13 +73,20 @@ void BaseDialog::onDestroy()
 
 BOOL CALLBACK BaseDialog::modalDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {  
-  BaseDialog *_this = (BaseDialog *)GetWindowLong(hwnd, GWL_USERDATA);
-
-  switch (uMsg) {
-  case WM_INITDIALOG:
+  BaseDialog *_this;
+  if (uMsg == WM_INITDIALOG) {
     _this = (BaseDialog *)lParam;
     SetWindowLong(hwnd, GWL_USERDATA, (LONG)_this);
     _this->m_ctrlThis.setWindow(hwnd);
+  } else {
+    _this = (BaseDialog *)GetWindowLong(hwnd, GWL_USERDATA);
+    if (_this == 0) {
+      return FALSE;
+    }
+  }
+
+  switch (uMsg) {
+  case WM_INITDIALOG:
     _this->onInitDialog();
     break;
   case WM_NOTIFY:

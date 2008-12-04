@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 #include "BaseDialog.h"
+#include <commctrl.h>
 
 BaseDialog::BaseDialog()
 : m_ctrlParent(NULL)
@@ -79,6 +80,17 @@ BOOL BaseDialog::onCommand(UINT controlID, UINT notificationID)
 BOOL BaseDialog::onDestroy()
 {
   return TRUE;
+}
+
+bool BaseDialog::InitCommonControlsEx()
+{
+  INITCOMMONCONTROLSEX iccsex = {0};
+  iccsex.dwICC = ICC_LISTVIEW_CLASSES | ICC_NATIVEFNTCTL_CLASS |
+                 ICC_PAGESCROLLER_CLASS | ICC_PROGRESS_CLASS |
+                 ICC_TAB_CLASSES | ICC_TREEVIEW_CLASSES |
+                 ICC_UPDOWN_CLASS | ICC_USEREX_CLASSES;
+  iccsex.dwSize = sizeof(INITCOMMONCONTROLSEX);
+  return (::InitCommonControlsEx(&iccsex) == TRUE);
 }
 
 BOOL CALLBACK BaseDialog::modalDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)

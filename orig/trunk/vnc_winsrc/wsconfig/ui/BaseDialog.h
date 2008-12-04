@@ -17,6 +17,8 @@ public:
   void setResourceName(LPTSTR resourceName);
   void setParent(Control *ctrlParent);
   virtual void kill(int code);
+
+  static bool InitCommonControlsEx();
 protected:
   virtual BOOL onInitDialog();
   virtual BOOL onNotify(UINT controlID, LPARAM data);

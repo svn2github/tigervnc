@@ -54,27 +54,31 @@ int BaseDialog::showModal()
   }
   dialogResult = DialogBoxParam(GetModuleHandle(NULL), dialogName, parentHwnd,
                                 modalDialogProc, (LPARAM)this);
-  if (dialogResult) == -1) {
+  if (dialogResult == -1) {
     // Error notification
     //
   }
   return dialogResult;
 }
 
-void BaseDialog::onInitDialog()
+BOOL BaseDialog::onInitDialog()
 {
+  return TRUE;
 }
 
-void BaseDialog::onNotify(UINT controlID, LPARAM data)
+BOOL BaseDialog::onNotify(UINT controlID, LPARAM data)
 {
+  return TRUE;
 }
 
-void BaseDialog::onCommand(UINT controlID, UINT notificationID)
+BOOL BaseDialog::onCommand(UINT controlID, UINT notificationID)
 {
+  return TRUE;
 }
 
-void BaseDialog::onDestroy()
+BOOL BaseDialog::onDestroy()
 {
+  return TRUE;
 }
 
 BOOL CALLBACK BaseDialog::modalDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -93,17 +97,13 @@ BOOL CALLBACK BaseDialog::modalDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 
   switch (uMsg) {
   case WM_INITDIALOG:
-    _this->onInitDialog();
-    break;
+    return _this->onInitDialog();
   case WM_NOTIFY:
-    _this->onNotify(LOWORD(wParam), lParam);
-    break;
+    return _this->onNotify(LOWORD(wParam), lParam);
   case WM_COMMAND:
-    _this->onCommand(LOWORD(wParam), HIWORD(wParam));
-    break;
+    return _this->onCommand(LOWORD(wParam), HIWORD(wParam));
   case WM_DESTROY:
-    _this->onDestroy();
-    break;
+    return _this->onDestroy();
   }
 
   return FALSE;

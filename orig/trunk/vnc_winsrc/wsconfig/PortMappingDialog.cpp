@@ -51,7 +51,7 @@ bool PortMappingDialog::isUserDataValid()
   return true;
 }
 
-void PortMappingDialog::onInitDialog()
+BOOL PortMappingDialog::onInitDialog()
 {
   initControls();
   if (m_dialogType == Add) {
@@ -64,9 +64,10 @@ void PortMappingDialog::onInitDialog()
     m_portTextBox.setText(str);
     m_geometryTextBox.setText((TCHAR *)m_mapping.rect.toString().c_str());
   }
+  return TRUE;
 }
 
-void PortMappingDialog::onCommand(UINT cID, UINT nID)
+BOOL PortMappingDialog::onCommand(UINT cID, UINT nID)
 {
   switch (cID) {
   case IDOK:
@@ -76,4 +77,5 @@ void PortMappingDialog::onCommand(UINT cID, UINT nID)
     onCancelButtonClick();
     break;
   }
+  return TRUE;
 }

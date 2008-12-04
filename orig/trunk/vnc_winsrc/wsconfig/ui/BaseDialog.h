@@ -18,10 +18,10 @@ public:
   void setParent(Control *ctrlParent);
   virtual void kill(int code);
 protected:
-  virtual void onInitDialog();
-  virtual void onNotify(UINT controlID, LPARAM data);
-  virtual void onCommand(UINT controlID, UINT notificationID);
-  virtual void onDestroy();
+  virtual BOOL onInitDialog();
+  virtual BOOL onNotify(UINT controlID, LPARAM data);
+  virtual BOOL onCommand(UINT controlID, UINT notificationID);
+  virtual BOOL onDestroy();
   static BOOL CALLBACK modalDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 protected:
   tstring m_resourceName; // Name of dialog resource

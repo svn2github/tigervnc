@@ -23,8 +23,8 @@ public:
 protected:
   void initControls();
   bool isUserDataValid();
-  virtual void onInitDialog();
-  virtual void onCommand(UINT cID, UINT nID);
+  virtual BOOL onInitDialog();
+  virtual BOOL onCommand(UINT cID, UINT nID);
   void onOkButtonClick();
   void onCancelButtonClick();
 protected:

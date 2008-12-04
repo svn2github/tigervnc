@@ -34,7 +34,7 @@ void ConfigDialog::loadSettings()
   }
 }
 
-void ConfigDialog::onCommand(UINT controlID, UINT notificationID)
+BOOL ConfigDialog::onCommand(UINT controlID, UINT notificationID)
 {
   switch (controlID) {
   case IDOK:
@@ -66,12 +66,14 @@ void ConfigDialog::onCommand(UINT controlID, UINT notificationID)
     }
     break;
   }
+  return TRUE;
 }
 
-void ConfigDialog::onInitDialog()
+BOOL ConfigDialog::onInitDialog()
 {
   initControls();
   loadSettings();
+  return TRUE;
 }
 
 void ConfigDialog::onMappingListBoxSelChange()

@@ -17,8 +17,8 @@ protected:
   void initControls();
   void loadSettings();
   // Init dialog handler
-  virtual void onInitDialog();
-  virtual void onCommand(UINT controlID, UINT notificationID);
+  virtual BOOL onInitDialog();
+  virtual BOOL onCommand(UINT controlID, UINT notificationID);
   // Button handlers
   void onAddButtonClick();
   void onEditButtonClick();

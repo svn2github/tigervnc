@@ -25,13 +25,6 @@
 #include "thread/time.h"
 #include <TCHAR.h>
 
-#define HOOK_LIBRARY_NAME "ScreenHooks.dll"
-#define SET_KEYBOARD_FILTER_FUN_NAME "SetKeyboardFilterHook"
-#define SET_MOUSE_FILTER_FUN_NAME "SetMouseFilterHook"
-
-typedef int (*SetKeyboardFilterHook)(BOOL activate);
-typedef int (*SetMouseFilterHook)(BOOL activate);
-
 WinDesktop::WinDesktop()
 : m_updateHandler(0),
   m_inputBlocker(0),

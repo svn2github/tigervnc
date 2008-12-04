@@ -45,10 +45,16 @@ void BaseDialog::kill(int code)
 
 int BaseDialog::showModal()
 {
+  TCHAR *dialogName = (TCHAR *)m_resourceName.c_str();
   int dialogResult = -1;
-  HWND parentHwnd = m_ctrlParent == NULL ? NULL : m_ctrlParent->getWindow();
-  if ((dialogResult = DialogBoxParam(NULL, (TCHAR *)m_resourceName.c_str(),
-                     parentHwnd, modalDialogProc, (LPARAM)this)) == -1) {
+  HWND parentHwnd = NULL;
+
+  if (m_ctrlParent != NULL) {
+    parentHwnd = m_ctrlParent->getWindow();
+  }
+  dialogResult = DialogBoxParam(NULL, dialogName, parentHwnd, modalDialogProc,
+                               (LPARAM)this);
+  if (dialogResult) == -1) {
     // Error notification
     //
   }

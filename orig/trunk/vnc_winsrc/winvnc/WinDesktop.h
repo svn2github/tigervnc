@@ -34,6 +34,7 @@ class WinDesktop;
 #include "libscreen/WindowsMouseGrabber.h"
 #include "thread/AutoLock.h"
 #include "system/DynamicLibrary.h"
+#include "input-blocker/InputBlocker.h"
 
 class WinDesktop : public UpdateListener, public Thread
 {
@@ -46,7 +47,7 @@ public:
   void SetClipText(LPSTR text);
   void TryActivateHooks();
   void FillDisplayInfo(rfbServerInitMsg *scrInfo);
-  void SetLocalInputDisableHook(BOOL enable);
+  void SetLocalInputDisableHook(bool block);
   void SetLocalInputPriorityHook(BOOL enable);
   BYTE *MainBuffer();
   int ScreenBuffSize();
@@ -82,10 +83,7 @@ protected:
   vncServer *m_server;
   RECT m_bmrect;
 
-  // Hooks
-  DynamicLibrary *m_dynamicLibrary;
-  FARPROC m_setKeyboardFilterHook;
-  FARPROC m_setMouseFilterHook;
+  InputBlocker *m_inputBlocker;
 
   HANDLE m_hEvent;
 };

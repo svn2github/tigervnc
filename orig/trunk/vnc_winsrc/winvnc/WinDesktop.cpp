@@ -34,19 +34,13 @@ typedef int (*SetMouseFilterHook)(BOOL activate);
 
 WinDesktop::WinDesktop()
 : m_updateHandler(0),
+  m_inputBlocker(0),
   m_server(0),
   m_hEvent(0)
 {
   DesktopSelector::init();
 
-  // Loading dynamic library
-  m_dynamicLibrary = new DynamicLibrary(_T(HOOK_LIBRARY_NAME));
-
-  m_setKeyboardFilterHook = m_dynamicLibrary->getProcAddress(_T(SET_KEYBOARD_FILTER_FUN_NAME));
-  m_setMouseFilterHook = m_dynamicLibrary->getProcAddress(_T(SET_MOUSE_FILTER_FUN_NAME));
-  if (!m_setKeyboardFilterHook || !m_setMouseFilterHook) {
-    vnclog.Print(LL_INTERR, VNCLOG("cannot initialize hooks\n"));
-  }
+  m_inputBlocker = new InputBlocker;
 }
 
 WinDesktop::~WinDesktop()
@@ -56,13 +50,11 @@ WinDesktop::~WinDesktop()
 
   if (m_updateHandler != 0) {
     delete m_updateHandler;
-    m_updateHandler = 0;
   }
 
-  SetLocalInputDisableHook(false);
-
-  if (m_dynamicLibrary != 0) {
-    delete m_dynamicLibrary;
+  if (m_inputBlocker != 0) {
+    SetLocalInputDisableHook(false);
+    delete m_inputBlocker;
   }
 }
 
@@ -79,7 +71,7 @@ bool WinDesktop::Init(vncServer *server)
 
   m_pixelFormat = m_updateHandler->getFrameBuffer()->getPixelFormat();
 
-  SetLocalInputDisableHook(m_server->LocalInputsDisabled());
+  SetLocalInputDisableHook(m_server->LocalInputsDisabled() != 0);
 
   RECT rect;
   if (m_server->WindowShared()) {
@@ -161,15 +153,10 @@ void WinDesktop::FillDisplayInfo(rfbServerInitMsg *scrInfo)
   scrInfo->framebufferHeight = fb->getDimension().height;
 }
 
-void WinDesktop::SetLocalInputDisableHook(BOOL enable)
+void WinDesktop::SetLocalInputDisableHook(bool block)
 {
-  SetKeyboardFilterHook setKeyboardFH = (SetKeyboardFilterHook)m_setKeyboardFilterHook;
-  SetMouseFilterHook setMouseFH = (SetMouseFilterHook)m_setMouseFilterHook;
-
-  if (setKeyboardFH && setMouseFH) {
-    setKeyboardFH(enable);
-    setMouseFH(enable);
-  }
+  m_inputBlocker->setKeyboardBlocking(block);
+  m_inputBlocker->setMouseBlocking(block);
 }
 
 void WinDesktop::SetLocalInputPriorityHook(BOOL enable)
@@ -314,6 +301,12 @@ bool WinDesktop::checkCurrentDesktop(bool *changed)
     }
     m_updateHandler = new UpdateHandler(this);
 
+    // Restarting InputBlocker;
+    if(m_inputBlocker != 0) {
+      delete m_inputBlocker;
+    }
+    m_inputBlocker = new InputBlocker;
+    
     *changed = true;
   }
 

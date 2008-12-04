@@ -52,8 +52,8 @@ int BaseDialog::showModal()
   if (m_ctrlParent != NULL) {
     parentHwnd = m_ctrlParent->getWindow();
   }
-  dialogResult = DialogBoxParam(NULL, dialogName, parentHwnd, modalDialogProc,
-                               (LPARAM)this);
+  dialogResult = DialogBoxParam(GetModuleHandle(NULL), dialogName, parentHwnd,
+                                modalDialogProc, (LPARAM)this);
   if (dialogResult) == -1) {
     // Error notification
     //

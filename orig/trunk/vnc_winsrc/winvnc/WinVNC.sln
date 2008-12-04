@@ -12,6 +12,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WinVNC", "WinVNC.vcproj", "
 		{2D948CAF-9622-495C-AB44-6337A6A9D440} = {2D948CAF-9622-495C-AB44-6337A6A9D440}
 		{A477D6D4-F137-44E3-A586-3F13F22CF53B} = {A477D6D4-F137-44E3-A586-3F13F22CF53B}
 		{CE9A94DA-45A1-4BAC-AFA3-CE6D9FD28964} = {CE9A94DA-45A1-4BAC-AFA3-CE6D9FD28964}
+		{8C4A6FE5-8A15-4485-B8C5-904008C5673B} = {8C4A6FE5-8A15-4485-B8C5-904008C5673B}
 		{A44055F1-6AAA-4F72-8939-C5C294CE6EEE} = {A44055F1-6AAA-4F72-8939-C5C294CE6EEE}
 	EndProjectSection
 EndProject
@@ -46,6 +47,11 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "system", "..\system\system.vcproj", "{56EADC5B-9C2C-431C-9275-98FE9088518B}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "windows-lib", "..\windows-lib\windows-lib.vcproj", "{A477D6D4-F137-44E3-A586-3F13F22CF53B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "input-blocker", "..\input-blocker\input-blocker.vcproj", "{8C4A6FE5-8A15-4485-B8C5-904008C5673B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{56EADC5B-9C2C-431C-9275-98FE9088518B} = {56EADC5B-9C2C-431C-9275-98FE9088518B}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -151,6 +157,14 @@ Global
 		{A477D6D4-F137-44E3-A586-3F13F22CF53B}.Release|Win32.Build.0 = Release|Win32
 		{A477D6D4-F137-44E3-A586-3F13F22CF53B}.ReleaseNoUnicode|Win32.ActiveCfg = ReleaseNoUnicode|Win32
 		{A477D6D4-F137-44E3-A586-3F13F22CF53B}.ReleaseNoUnicode|Win32.Build.0 = ReleaseNoUnicode|Win32
+		{8C4A6FE5-8A15-4485-B8C5-904008C5673B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{8C4A6FE5-8A15-4485-B8C5-904008C5673B}.Debug|Win32.Build.0 = Debug|Win32
+		{8C4A6FE5-8A15-4485-B8C5-904008C5673B}.DebugNoUnicode|Win32.ActiveCfg = DebugNoUnicode|Win32
+		{8C4A6FE5-8A15-4485-B8C5-904008C5673B}.DebugNoUnicode|Win32.Build.0 = DebugNoUnicode|Win32
+		{8C4A6FE5-8A15-4485-B8C5-904008C5673B}.Release|Win32.ActiveCfg = Release|Win32
+		{8C4A6FE5-8A15-4485-B8C5-904008C5673B}.Release|Win32.Build.0 = Release|Win32
+		{8C4A6FE5-8A15-4485-B8C5-904008C5673B}.ReleaseNoUnicode|Win32.ActiveCfg = ReleaseNoUnicode|Win32
+		{8C4A6FE5-8A15-4485-B8C5-904008C5673B}.ReleaseNoUnicode|Win32.Build.0 = ReleaseNoUnicode|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

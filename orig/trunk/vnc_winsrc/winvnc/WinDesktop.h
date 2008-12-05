@@ -54,6 +54,7 @@ public:
   const CursorShape *getCursorShape() const { return m_updateHandler->getCursorShape(); }
 
   RECT getBMRect() const { return m_bmrect; }
+  static BOOL getWindowRect(HWND hwnd, RECT *windowRect);
 
 protected:
   virtual void onUpdate();

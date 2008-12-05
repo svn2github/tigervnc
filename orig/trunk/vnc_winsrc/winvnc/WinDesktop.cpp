@@ -68,7 +68,7 @@ bool WinDesktop::Init(vncServer *server)
 
   RECT rect;
   if (m_server->WindowShared()) {
-    GetWindowRect(m_server->GetWindowShared(), &rect);
+    getWindowRect(m_server->GetWindowShared(), &rect);
   } else if (m_server->ScreenAreaShared()) {
     rect = m_server->GetScreenAreaRect();
   } else {
@@ -270,6 +270,17 @@ void WinDesktop::setNewScreenSize()
   m_bmrect.top    = 0;
   m_bmrect.right  = GetSystemMetrics(SM_CXVIRTUALSCREEN);
   m_bmrect.bottom = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+}
+
+BOOL WinDesktop::getWindowRect(HWND hwnd, RECT *windowRect)
+{
+  BOOL result = GetWindowRect(hwnd, windowRect);
+  if (result) {
+    OffsetRect(windowRect,
+               -GetSystemMetrics(SM_XVIRTUALSCREEN),
+               -GetSystemMetrics(SM_YVIRTUALSCREEN));
+  }
+  return result;
 }
 
 void WinDesktop::updateBufferNotify()

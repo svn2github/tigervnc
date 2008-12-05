@@ -1628,7 +1628,7 @@ bool vncServer::updateSharedRect()
 
 	if (WindowShared()) {
 		HWND hwnd = GetWindowShared();
-		GetWindowRect(hwnd, &new_rect);
+		WinDesktop::getWindowRect(hwnd, &new_rect);
 	} else if (ScreenAreaShared()) {
 		new_rect = GetScreenAreaRect();
 	} else {

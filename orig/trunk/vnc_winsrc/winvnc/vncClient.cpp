@@ -1,3 +1,4 @@
+//  Copyright (C) 2008 GlavSoft LLC. All Rights Reserved.
 //  Copyright (C) 2001-2006 Constantin Kaplinsky. All Rights Reserved.
 //  Copyright (C) 2002 Vladimir Vologzhanin. All Rights Reserved.
 //  Copyright (C) 2000 Tridia Corporation. All Rights Reserved.
@@ -2083,9 +2084,24 @@ vncClient::UpdateRegion(vncRegion &region)
 void
 vncClient::CopyRect(RECT &dest, POINT &source)
 {
-	// If CopyRect encoding is disabled or we already have a CopyRect pending,
-	// then just redraw the region.
-	if (!m_copyrect_use || m_copyrect_set) {
+	bool canAddCopyRect = m_copyrect_use;
+
+	// If there were any non-CopyRect updates that intersect with CopyRect
+	// source rectangle, we cannot send this CopyRect. Currently, we don't
+	// check for intersection and do not send CopyRect if there were any
+	// non-CopyRect updates.
+	if (canAddCopyRect && !m_changed_rgn.IsEmpty()) {
+		canAddCopyRect = false;
+	}
+
+	// Handle the case when we already have a CopyRect pending.
+	// Currently, we just do not allow the second CopyRect.
+	if (canAddCopyRect && m_copyrect_set) {
+		canAddCopyRect = false;
+	}
+
+	// If we cannot add CopyRect for any reason, convert it to a normal update.
+	if (!canAddCopyRect) {
 		UpdateRect(dest);
 		return;
 	}

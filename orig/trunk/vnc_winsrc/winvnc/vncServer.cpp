@@ -1004,7 +1004,7 @@ vncServer::DisableLocalInputs(BOOL disable)
 	{
 		m_disable_local_inputs = disable;
 		if ( AuthClientCount() != 0 )
-			m_desktop->SetLocalInputDisableHook(disable);
+			m_desktop->SetLocalInputDisableHook(disable != 0);
 	}
 }
 

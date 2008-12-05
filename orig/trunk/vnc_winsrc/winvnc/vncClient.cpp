@@ -2086,7 +2086,7 @@ vncClient::CopyRect(RECT &dest, POINT &source)
 {
 	omni_mutex_lock l(m_regionLock);
 
-	bool canAddCopyRect = m_copyrect_use;
+	bool canAddCopyRect = m_copyrect_use != 0;
 
 	// If there were any non-CopyRect updates that intersect with CopyRect
 	// source rectangle, we cannot send this CopyRect. Currently, we don't

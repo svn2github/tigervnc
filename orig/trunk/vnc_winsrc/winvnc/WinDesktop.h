@@ -53,7 +53,16 @@ public:
   int ScreenBuffSize();
   const CursorShape *getCursorShape() const { return m_updateHandler->getCursorShape(); }
 
-  RECT getBMRect() const { return m_bmrect; }
+  static Rect getFrameBufferRect() { return Rect(0, 0,
+                                                 GetSystemMetrics(SM_CXVIRTUALSCREEN),
+                                                 GetSystemMetrics(SM_CYVIRTUALSCREEN)); }
+  static Rect getDesktopRect()
+  {
+    Rect rect = getFrameBufferRect();
+    rect.move(GetSystemMetrics(SM_XVIRTUALSCREEN),
+              GetSystemMetrics(SM_YVIRTUALSCREEN));
+    return rect;
+  }
   static BOOL getWindowRect(HWND hwnd, RECT *windowRect);
 
 protected:
@@ -82,7 +91,7 @@ protected:
   WindowsMouseGrabber m_mouseGrabber;
   PixelFormat m_pixelFormat;
   vncServer *m_server;
-  RECT m_bmrect;
+  Rect m_frameBufferRect;
 
   InputBlocker *m_inputBlocker;
 

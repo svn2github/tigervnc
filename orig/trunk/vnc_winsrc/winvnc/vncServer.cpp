@@ -1542,29 +1542,13 @@ vncServer::SetWindowShared(HWND hWnd)
 void 
 vncServer::SetMatchSizeFields(int left,int top,int right,int bottom)
 {
-	RECT trect;
-	GetWindowRect(GetDesktopWindow(), &trect);
+  Rect rect(left, top, right, bottom);
+  Rect desktopRect = WinDesktop::getDesktopRect();
 
-/*	if ( right - left < 32 )
-		right = left + 32;
-	
-	if ( bottom - top < 32)
-		bottom = top + 32 ;*/
+  rect.move(-desktopRect.left, -desktopRect.top);
+  rect.intersection(&WinDesktop::getFrameBufferRect());
 
-	if( right > trect.right )
-		right = trect.right;
-	if( bottom > trect.bottom )
-		bottom = trect.bottom;
-	if( left < trect.left)
-		left = trect.left;
-	if( top < trect.top)
-		top = trect.top;
-
- 
-	m_screenarea_rect.left=left;
-	m_screenarea_rect.top=top;
-	m_screenarea_rect.bottom=bottom;
-	m_screenarea_rect.right=right;
+  m_screenarea_rect = rect.toWindowsRect();
 }
 
 
@@ -1624,15 +1608,15 @@ bool vncServer::updateSharedRect()
 
 	RECT rect = GetSharedRect();
 	RECT new_rect;
-	RECT bmRect = m_desktop->getBMRect();
+	Rect frmBuffRect = m_desktop->getFrameBufferRect();
 
 	if (WindowShared()) {
 		HWND hwnd = GetWindowShared();
-		WinDesktop::getWindowRect(hwnd, &new_rect);
+		m_desktop->getWindowRect(hwnd, &new_rect);
 	} else if (ScreenAreaShared()) {
 		new_rect = GetScreenAreaRect();
 	} else {
-		new_rect = bmRect;
+		new_rect = frmBuffRect.toWindowsRect();
 	}
 
 	if ((WindowShared() || GetApplication()) &&
@@ -1649,7 +1633,7 @@ bool vncServer::updateSharedRect()
 	}
 
 	// intersect the shared rect with the desktop rect
-	IntersectRect(&new_rect, &new_rect, &bmRect);
+	IntersectRect(&new_rect, &new_rect, &frmBuffRect.toWindowsRect());
 
 	// Disconnect clients if the shared window is empty (dissapeared).
 	// FIXME: Make this behavior configurable.

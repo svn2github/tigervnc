@@ -72,10 +72,10 @@ bool WinDesktop::Init(vncServer *server)
   } else if (m_server->ScreenAreaShared()) {
     rect = m_server->GetScreenAreaRect();
   } else {
-    rect = m_bmrect;
+    rect = m_frameBufferRect.toWindowsRect();
   }
 
-  IntersectRect(&rect, &rect, &m_bmrect);
+  IntersectRect(&rect, &rect, &m_frameBufferRect.toWindowsRect());
   m_server->SetSharedRect(rect);
 
   resume();
@@ -266,19 +266,17 @@ bool WinDesktop::sendUpdate()
 
 void WinDesktop::setNewScreenSize()
 {
-  m_bmrect.left   = 0;
-  m_bmrect.top    = 0;
-  m_bmrect.right  = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-  m_bmrect.bottom = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+  m_frameBufferRect = getFrameBufferRect();
 }
 
 BOOL WinDesktop::getWindowRect(HWND hwnd, RECT *windowRect)
 {
   BOOL result = GetWindowRect(hwnd, windowRect);
   if (result) {
+    Rect desktopRect = getDesktopRect();
     OffsetRect(windowRect,
-               -GetSystemMetrics(SM_XVIRTUALSCREEN),
-               -GetSystemMetrics(SM_YVIRTUALSCREEN));
+               -desktopRect.left,
+               -desktopRect.top);
   }
   return result;
 }

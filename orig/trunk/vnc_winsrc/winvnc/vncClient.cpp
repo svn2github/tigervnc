@@ -2228,12 +2228,6 @@ vncClient::isPtInSharedArea(POINT &p)
 BOOL
 vncClient::SendUpdate(const FrameBuffer *fb)
 {
-	// First, check if we need to send pending NewFBSize message
-	if (m_use_NewFBSize && m_fb_size_changed) {
-		SendNewFBSize();
-		return TRUE;
-	}
-
 	// Shortcuts to the shared part of the screen (as a RECT and a vncRegion).
 	RECT sharedRect = getEffectiveViewport();
 	if (IsRectEmpty(&sharedRect)) {
@@ -2241,6 +2235,14 @@ vncClient::SendUpdate(const FrameBuffer *fb)
 	}
 	vncRegion sharedRegion;
 	sharedRegion.AddRect(sharedRect);
+
+	// First, check if we need to send pending NewFBSize message
+	if (m_use_NewFBSize && m_fb_size_changed) {
+		SendNewFBSize();
+        m_changed_rgn.AddRect(sharedRect);
+		m_copyrect_set = FALSE;
+		return TRUE;
+	}
 
 	// Prepare to send cursor position update if necessary
 	if (m_server->hasFakeCursorPos()) {

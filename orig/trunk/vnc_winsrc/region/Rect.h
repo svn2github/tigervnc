@@ -22,6 +22,8 @@
 #ifndef __RECT_H__
 #define __RECT_H__
 
+#include <windows.h>
+
 class Rect
 {
 public:
@@ -44,12 +46,30 @@ public:
     right = rt;
     bottom = bm;
   }
+
   inline void setRect(const Rect *rect)
   {
     left    = rect->left;
     top     = rect->top;
     right   = rect->right;
     bottom  = rect->bottom;
+  }
+
+  // Convert to windows RECT
+  inline RECT toWindowsRect() { RECT winRect;
+                                winRect.left    = left;
+                                winRect.top     = top;
+                                winRect.right   = right;
+                                winRect.bottom  = bottom;
+                                return winRect; }
+
+  // Load from windows RECT
+  inline void fromWindowsRect(RECT *winRect)
+  {
+    left    = winRect->left;
+    top     = winRect->top;
+    right   = winRect->right;
+    bottom  = winRect->bottom;
   }
 
   inline void move(int offsetX, int offsetY)

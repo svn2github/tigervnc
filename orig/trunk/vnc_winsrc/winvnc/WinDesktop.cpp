@@ -76,29 +76,36 @@ void WinDesktop::onTerminate()
 
 bool WinDesktop::threadInit()
 {
-  m_hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-  if (m_hEvent == 0) {
+  m_hUpdateHandlerEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+  if (m_hUpdateHandlerEvent == 0) {
     return false;
   }
 
   resume();
 
   bool result = true;
-  int waitres = WaitForSingleObject(m_hEvent, INFINITE);
+  int waitres = WaitForSingleObject(m_hUpdateHandlerEvent, INFINITE);
   if (!m_updateHandler) {
-    vnclog.Print(LL_INTERR, VNCLOG("failed to initialize UpdateHandler"));
+    vnclog.Print(LL_INTERR, VNCLOG("failed to initialize UpdateHandler\n"));
     result = false;
   }
 
-  CloseHandle(m_hEvent);
-  m_hEvent = 0;
+  CloseHandle(m_hUpdateHandlerEvent);
+  m_hUpdateHandlerEvent = 0;
   return result;
 }
 
 void WinDesktop::execute()
 {
+  vnclog.Print(LL_INTINFO, VNCLOG("execute main WinDesktop thread\n"));
+
   m_updateHandler = new UpdateHandler(this);
-  winDesktopNotify();
+
+  // Notify
+  if (m_hUpdateHandlerEvent != 0) {
+    SetEvent(m_hUpdateHandlerEvent);
+  }
+
   if (m_updateHandler == 0) {
     return;
   }
@@ -127,11 +134,13 @@ void WinDesktop::execute()
 
 void WinDesktop::onUpdate()
 {
+  vnclog.Print(LL_INTINFO, VNCLOG("WinDesktop::onUpdate()\n"));
   winDesktopNotify();
 }
 
 void WinDesktop::RequestUpdate()
 {
+  vnclog.Print(LL_INTINFO, VNCLOG("WinDesktop::RequestUpdate()\n"));
   winDesktopNotify();
 }
 
@@ -278,6 +287,7 @@ bool WinDesktop::sendUpdate()
     m_server->UpdateRegion(changedRegion);
   }
 
+  vnclog.Print(LL_INTINFO, VNCLOG("calling the TriggerUpdate() function\n"));
   m_server->TriggerUpdate(m_updateHandler->getFrameBuffer());
 
   return true;

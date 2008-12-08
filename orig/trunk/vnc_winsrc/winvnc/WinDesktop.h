@@ -97,6 +97,7 @@ protected:
   InputBlocker *m_inputBlocker;
 
   HANDLE m_hEvent;
+  HANDLE m_hUpdateHandlerEvent;
 };
 
 #endif // __WINDESKTOP_H__

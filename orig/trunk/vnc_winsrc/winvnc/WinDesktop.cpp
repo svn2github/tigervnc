@@ -40,10 +40,6 @@ WinDesktop::~WinDesktop()
   terminate();
   wait();
 
-  if (m_updateHandler != 0) {
-    delete m_updateHandler;
-  }
-
   if (m_inputBlocker != 0) {
     SetLocalInputDisableHook(false);
     delete m_inputBlocker;
@@ -70,15 +66,7 @@ bool WinDesktop::Init(vncServer *server)
   IntersectRect(&rect, &rect, &m_frameBufferRect.toWindowsRect());
   m_server->SetSharedRect(rect);
 
-  resume();
-
-  int i = 0;
-  while (!m_updateHandler && i < 200) {
-    Sleep(10);
-    i++;
-  }
-
-  return m_updateHandler != 0;
+  return threadInit();
 }
 
 void WinDesktop::onTerminate()
@@ -86,9 +74,31 @@ void WinDesktop::onTerminate()
   winDesktopNotify();
 }
 
+bool WinDesktop::threadInit()
+{
+  m_hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+  if (m_hEvent == 0) {
+    return false;
+  }
+
+  resume();
+
+  bool result = true;
+  int waitres = WaitForSingleObject(m_hEvent, INFINITE);
+  if (!m_updateHandler) {
+    vnclog.Print(LL_INTERR, VNCLOG("failed to initialize UpdateHandler"));
+    result = false;
+  }
+
+  CloseHandle(m_hEvent);
+  m_hEvent = 0;
+  return result;
+}
+
 void WinDesktop::execute()
 {
   m_updateHandler = new UpdateHandler(this);
+  winDesktopNotify();
   if (m_updateHandler == 0) {
     return;
   }
@@ -109,6 +119,10 @@ void WinDesktop::execute()
 
   CloseHandle(m_hEvent);
   m_hEvent = 0;
+
+  if (m_updateHandler != 0) {
+    delete m_updateHandler;
+  }
 }
 
 void WinDesktop::onUpdate()

@@ -77,6 +77,7 @@ protected:
 
   virtual void execute();
   virtual void onTerminate();
+  bool threadInit();
 
   bool sendUpdate();
 

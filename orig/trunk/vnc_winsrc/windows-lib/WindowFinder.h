@@ -22,7 +22,7 @@
 #ifndef __WINDOWFINDER_H__
 #define __WINDOWFINDER_H__
 
-#include "windows.h"
+#include "winhdr.h"
 
 class WindowFinder
 {

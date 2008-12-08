@@ -24,7 +24,7 @@
 
 #include "region/Rect.h"
 #include "region/Point.h"
-#include "windows.h"
+#include "windows-lib/winhdr.h"
 
 class CopyRectDetector
 {

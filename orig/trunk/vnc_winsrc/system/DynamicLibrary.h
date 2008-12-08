@@ -22,7 +22,7 @@
 #ifndef __DYNAMICLIBRARY_H__
 #define __DYNAMICLIBRARY_H__
 
-#include <windows.h>
+#include "windows-lib/winhdr.h"
 
 class DynamicLibrary
 {

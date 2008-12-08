@@ -19,7 +19,7 @@
 //
 // TightVNC homepage on the Web: http://www.tightvnc.com/
 
-#include <windows.h>
+#include "windows-lib/winhdr.h"
 #include "Poller.h"
 #include "region/Region.h"
 #include "libscreen/DesktopSelector.h"

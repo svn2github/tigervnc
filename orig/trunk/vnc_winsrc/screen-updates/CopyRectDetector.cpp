@@ -21,7 +21,7 @@
 // TightVNC homepage on the Web: http://www.tightvnc.com/
 
 #include "CopyRectDetector.h"
-#include "tchar.h"
+#include "windows-lib/winhdr.h"
 
 ATOM VNC_WINDOWPOS_ATOM = NULL;
 const TCHAR *VNC_WINDOWPOS_ATOMNAME = _T("VNCHooks.CopyRect.WindowPos");

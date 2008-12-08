@@ -22,7 +22,7 @@
 #ifndef __WINTIMEMILLIS_H__
 #define __WINTIMEMILLIS_H__
 
-#include <windows.h>
+#include "windows-lib/winhdr.h"
 
 class WinTimeMillis
 {

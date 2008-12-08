@@ -22,7 +22,7 @@
 #ifndef __INPUTBLOCKER_H__
 #define __INPUTBLOCKER_H__
 
-#include <windows.h>
+#include "windows-lib/winhdr.h"
 #include "thread/Thread.h"
 
 // Only one instance of this class may be created.

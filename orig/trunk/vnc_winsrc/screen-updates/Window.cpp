@@ -20,7 +20,6 @@
 // TightVNC homepage on the Web: http://www.tightvnc.com/
 
 #include "Window.h"
-#include "TCHAR.h"
 
 #define DEFAULT_WINDOW_CLASS_NAME "WindowClass"
 

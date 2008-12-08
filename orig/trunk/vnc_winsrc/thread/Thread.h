@@ -22,7 +22,7 @@
 #ifndef __THREAD_H__
 #define __THREAD_H__
 
-#include <windows.h>
+#include "windows-lib/winhdr.h"
 #include "CriticalSection.h"
 
 enum THREAD_PRIORITY

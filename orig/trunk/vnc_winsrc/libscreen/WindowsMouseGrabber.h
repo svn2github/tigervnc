@@ -23,7 +23,7 @@
 #define __WINDOWSMOUSEGRABBER_H__
 
 #include "MouseGrabber.h"
-#include "Windows.h"
+#include "windows-lib/winhdr.h"
 
 class WindowsMouseGrabber : public MouseGrabber
 {

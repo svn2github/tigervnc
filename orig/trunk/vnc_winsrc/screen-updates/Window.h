@@ -22,7 +22,7 @@
 #ifndef __WINDOW_H__
 #define __WINDOW_H__
 
-#include "windows.h"
+#include "windows-lib/winhdr.h"
 
 class Window
 {

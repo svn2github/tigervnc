@@ -20,7 +20,6 @@
 // TightVNC homepage on the Web: http://www.tightvnc.com/
 
 #include "WindowFinder.h"
-#include "tchar.h"
 
 struct WindowParam
 {

@@ -23,7 +23,6 @@
 #include "WinDesktop.h"
 #include "libscreen/DesktopSelector.h"
 #include "thread/time.h"
-#include <TCHAR.h>
 
 WinDesktop::WinDesktop()
 : m_updateHandler(0),

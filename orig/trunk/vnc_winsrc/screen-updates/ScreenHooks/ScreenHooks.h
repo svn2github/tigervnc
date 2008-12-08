@@ -39,7 +39,7 @@
 #ifndef __SCREENHOOKS_H__
 #define __SCREENHOOKS_H__
 
-#include <windows.h>
+#include "windows-lib/winhdr.h"
 
 #pragma warning(disable : 4996)
 

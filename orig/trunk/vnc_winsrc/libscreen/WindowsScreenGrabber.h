@@ -22,7 +22,7 @@
 #ifndef __WINDOWSSCREENGRABBER_H__
 #define __WINDOWSSCREENGRABBER_H__
 
-#include <windows.h>
+#include "windows-lib/winhdr.h"
 #ifndef CAPTUREBLT
 #define CAPTUREBLT          (DWORD)0x40000000 /* Include layered windows */
 #endif

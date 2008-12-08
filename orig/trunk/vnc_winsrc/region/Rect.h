@@ -22,7 +22,7 @@
 #ifndef __RECT_H__
 #define __RECT_H__
 
-#include <windows.h>
+#include "windows-lib/winhdr.h"
 
 class Rect
 {

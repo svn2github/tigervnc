@@ -19,8 +19,8 @@
 //
 // TightVNC homepage on the Web: http://www.tightvnc.com/
 
+#include "windows-lib/winhdr.h"
 #include "HooksUpdateDetector.h"
-#include "TCHAR.h"
 #include "region/Rect.h"
 #include "libscreen/DesktopSelector.h"
 

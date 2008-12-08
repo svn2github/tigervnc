@@ -22,7 +22,7 @@
 #ifndef __CRITICALSECTION_H__
 #define __CRITICALSECTION_H__
 
-#include "windows.h"
+#include "windows-lib/winhdr.h"
 
 class CriticalSection
 {

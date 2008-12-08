@@ -56,13 +56,6 @@ bool WinDesktop::Init(vncServer *server)
 
   setNewScreenSize();
 
-  m_updateHandler = new UpdateHandler(this);
-  if (m_updateHandler == 0) {
-    return false;
-  }
-
-  m_pixelFormat = m_updateHandler->getFrameBuffer()->getPixelFormat();
-
   SetLocalInputDisableHook(m_server->LocalInputsDisabled() != 0);
 
   RECT rect;
@@ -79,7 +72,13 @@ bool WinDesktop::Init(vncServer *server)
 
   resume();
 
-  return true;
+  int i = 0;
+  while (!m_updateHandler && i < 200) {
+    Sleep(10);
+    i++;
+  }
+
+  return m_updateHandler != 0;
 }
 
 void WinDesktop::onTerminate()
@@ -89,6 +88,13 @@ void WinDesktop::onTerminate()
 
 void WinDesktop::execute()
 {
+  m_updateHandler = new UpdateHandler(this);
+  if (m_updateHandler == 0) {
+    return;
+  }
+
+  m_pixelFormat = m_updateHandler->getFrameBuffer()->getPixelFormat();
+
   m_hEvent = CreateEvent(NULL, FALSE, TRUE, NULL);
   if (m_hEvent == 0) {
     return;

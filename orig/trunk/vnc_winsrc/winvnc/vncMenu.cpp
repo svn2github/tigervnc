@@ -571,6 +571,19 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 		{
 			HWND hVideoWindow = (HWND)wParam;
 			_this->m_server->setVideoHWND(hVideoWindow);
+			if (hVideoWindow) {
+				WINDOWINFO wi;
+				wi.cbSize = sizeof(WINDOWINFO);
+				if (GetWindowInfo(hVideoWindow, &wi)) {
+					vnclog.Print(LL_INTINFO, VNCLOG("set video area %dx%d+%d+%d\n"),
+								 wi.rcClient.right - wi.rcClient.left,
+								 wi.rcClient.bottom - wi.rcClient.top,
+								 wi.rcClient.left,
+								 wi.rcClient.top);
+				}
+			} else {
+				vnclog.Print(LL_INTINFO, VNCLOG("video window discarded\n"));
+			}
 			return 0;
 		}
 		if (iMsg == MENU_DEFAULT_PROPERTIES_SHOW)

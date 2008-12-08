@@ -196,6 +196,8 @@ int WinDesktop::ScreenBuffSize()
 
 bool WinDesktop::sendUpdate()
 {
+  vnclog.Print(LL_INTINFO, VNCLOG("WinDesktop::sendUpdateCalled()\n"));
+
   bool fullUpdateRequest = m_server->FullRgnRequested() != FALSE;
   bool incrUpdateRequest = m_server->IncrRgnRequested() != FALSE;
 
@@ -286,6 +288,18 @@ bool WinDesktop::sendUpdate()
     changedRegion.assignFromNewFormat(&updateContainer.changedRegion);
     m_server->UpdateRegion(changedRegion);
   }
+
+  vnclog.Print(LL_INTINFO, VNCLOG("UpdateContainer: "
+               "changedRegion = %d; "
+               "copiedRegion = %d; "
+               "cursorPosChanged = %d; "
+               "cursorShapeChanged = %d; "
+               "screenSizeChanged = %d\n"),
+               (int)!updateContainer.changedRegion.is_empty(),
+               (int)!updateContainer.copiedRegion.is_empty(),
+               (int)updateContainer.cursorPosChanged,
+               (int)updateContainer.cursorShapeChanged,
+               (int)updateContainer.screenSizeChanged);
 
   vnclog.Print(LL_INTINFO, VNCLOG("calling the TriggerUpdate() function\n"));
   m_server->TriggerUpdate(m_updateHandler->getFrameBuffer());

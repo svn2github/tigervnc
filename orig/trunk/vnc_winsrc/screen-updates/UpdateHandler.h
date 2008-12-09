@@ -44,7 +44,7 @@ public:
   // reconfiguration posible the only one function.
 
   // Parameters: 
-  //   updateContainer - pointer to a UpdateContainer object that will be filled,
+  //   updateContainer - pointer to a UpdateContainer object that will be filled
   void extract(UpdateContainer *updateContainer);
 
   void setFullUpdateRequested(const rfb::Region *region);
@@ -65,11 +65,12 @@ public:
   const FrameBuffer *getFrameBuffer() const { return &m_backupFrameBuffer; }
   const CursorShape *getCursorShape() const { return m_mouseGrabber.getCursorShape(); }
 
-  virtual void onUpdate();
 
 private:
   virtual void executeDetectors();
   virtual void terminateDetectors();
+
+  virtual void onUpdate();
 
   UpdateListener *m_registerUpdateListener;
   UpdateKeeper *m_updateKeeper;

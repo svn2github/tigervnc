@@ -42,11 +42,21 @@ public:
   // Also, if screen properties (such as resolution, pixel format)
   // has changed the function reconfigures FrameBuffers. The
   // reconfiguration posible the only one function.
+  //
+  // If screen size or pixel format have changed the copied region
+  // and the changed region will be cleaned, FrameBuffers will
+  // be reinitialized. Also, if screen size have changed the
+  // screenSizeChanged flag will be set to true. In the next
+  // time call of this function no additional information about
+  // these changes will present.
 
   // Parameters: 
   //   updateContainer - pointer to a UpdateContainer object that will be filled
   void extract(UpdateContainer *updateContainer);
 
+  // This function unconventionally set to update pending of the frame buffer
+  // in the next time call of the extract() function. All found changes
+  // saves to the changedRegion and copiedRegion.
   void setFullUpdateRequested(const rfb::Region *region);
 
   // Checking a region for updates.
@@ -56,6 +66,7 @@ public:
   bool checkForUpdates(rfb::Region *region);
 
   // Set a region excluded from the region that updates detects.
+  // excludedRegion will never be present in changedRegion or copiedRegion.
   void setExcludedRegion(const rfb::Region *excludedRegion);
 
   // The function provides access to FrameBuffer data.
@@ -64,7 +75,6 @@ public:
   //   constant pointer to the FrameBuffer object.
   const FrameBuffer *getFrameBuffer() const { return &m_backupFrameBuffer; }
   const CursorShape *getCursorShape() const { return m_mouseGrabber.getCursorShape(); }
-
 
 private:
   virtual void executeDetectors();

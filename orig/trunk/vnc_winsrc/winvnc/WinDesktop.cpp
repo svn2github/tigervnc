@@ -97,7 +97,7 @@ bool WinDesktop::threadInit()
 
 void WinDesktop::execute()
 {
-  vnclog.Print(LL_INTINFO, VNCLOG("execute main WinDesktop thread\n"));
+  vnclog.Print(LL_INTINFO, VNCLOG("starting main WinDesktop thread\n"));
 
   m_updateHandler = new UpdateHandler(this);
 
@@ -134,13 +134,13 @@ void WinDesktop::execute()
 
 void WinDesktop::onUpdate()
 {
-  vnclog.Print(LL_INTINFO, VNCLOG("WinDesktop::onUpdate()\n"));
+  vnclog.Print(LL_INTINFO, VNCLOG("update detected\n"));
   winDesktopNotify();
 }
 
 void WinDesktop::RequestUpdate()
 {
-  vnclog.Print(LL_INTINFO, VNCLOG("WinDesktop::RequestUpdate()\n"));
+  vnclog.Print(LL_INTINFO, VNCLOG("update requested by client\n"));
   winDesktopNotify();
 }
 
@@ -196,14 +196,15 @@ int WinDesktop::ScreenBuffSize()
 
 bool WinDesktop::sendUpdate()
 {
-  vnclog.Print(LL_INTINFO, VNCLOG("WinDesktop::sendUpdateCalled()\n"));
-
   bool fullUpdateRequest = m_server->FullRgnRequested() != FALSE;
   bool incrUpdateRequest = m_server->IncrRgnRequested() != FALSE;
 
   if (!incrUpdateRequest && !fullUpdateRequest) {
+    vnclog.Print(LL_INTINFO, VNCLOG("clients not ready for update\n"));
     return true;
   }
+
+  vnclog.Print(LL_INTINFO, VNCLOG("clients ready, preparing for update\n"));
 
   bool desktopChanged = false;
   checkCurrentDesktop(&desktopChanged);
@@ -251,6 +252,7 @@ bool WinDesktop::sendUpdate()
   if (updateContainer.screenSizeChanged) {
     setNewScreenSize();
     updateBufferNotify();
+	vnclog.Print(LL_INTINFO, VNCLOG("screen size changed\n"));
     return true;
   }
 
@@ -290,18 +292,17 @@ bool WinDesktop::sendUpdate()
   }
 
   vnclog.Print(LL_INTINFO, VNCLOG("UpdateContainer: "
-               "change=%d "
+               "changes=%d "
                "copy=%d "
                "pos=%d "
                "shape=%d "
-               "size=%d\n"),
-               (int)!updateContainer.changedRegion.is_empty(),
-               (int)!updateContainer.copiedRegion.is_empty(),
+               "fbsize=%d\n"),
+			   updateContainer.changedRegion.numRects(),
+               updateContainer.copiedRegion.numRects(),
                (int)updateContainer.cursorPosChanged,
                (int)updateContainer.cursorShapeChanged,
                (int)updateContainer.screenSizeChanged);
 
-  vnclog.Print(LL_INTINFO, VNCLOG("calling the TriggerUpdate() function\n"));
   m_server->TriggerUpdate(m_updateHandler->getFrameBuffer());
 
   return true;

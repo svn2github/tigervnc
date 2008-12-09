@@ -572,10 +572,13 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 			HWND hVideoWindow = (HWND)wParam;
 			_this->m_server->setVideoHWND(hVideoWindow);
 			if (hVideoWindow) {
+				vnclog.Print(LL_INTINFO, VNCLOG("video window set, hwnd 0x%08lx\n"),
+							 (unsigned long)hVideoWindow);
 				WINDOWINFO wi;
 				wi.cbSize = sizeof(WINDOWINFO);
 				if (GetWindowInfo(hVideoWindow, &wi)) {
-					vnclog.Print(LL_INTINFO, VNCLOG("set video area %dx%d+%d+%d\n"),
+					vnclog.Print(LL_INTINFO,
+								 VNCLOG("video window geometry is %ldx%ld+%ld+%ld\n"),
 								 wi.rcClient.right - wi.rcClient.left,
 								 wi.rcClient.bottom - wi.rcClient.top,
 								 wi.rcClient.left,

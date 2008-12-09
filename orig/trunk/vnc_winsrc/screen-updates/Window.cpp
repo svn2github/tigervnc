@@ -23,7 +23,7 @@
 
 #define DEFAULT_WINDOW_CLASS_NAME "WindowClass"
 
-Window::Window(HINSTANCE hinst, TCHAR *windowClassName)
+Window::Window(const HINSTANCE hinst, const TCHAR *windowClassName)
 : m_hwnd(0),
 m_hinst(hinst),
 m_windowClassName(0)

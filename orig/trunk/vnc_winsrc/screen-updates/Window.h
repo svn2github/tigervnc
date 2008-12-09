@@ -27,7 +27,7 @@
 class Window
 {
 public:
-  Window(HINSTANCE hinst, TCHAR *windowClassName);
+  Window(const HINSTANCE hinst, const TCHAR *windowClassName);
   virtual ~Window(void);
 
   bool createWindow();

@@ -2389,6 +2389,18 @@ vncClient::SendUpdate(const FrameBuffer *fb)
 	if (!SendRFBMsg(rfbFramebufferUpdate, (BYTE *) &header, sz_rfbFramebufferUpdateMsg))
 		return TRUE;
 
+	vnclog.Print(LL_INTINFO, VNCLOG("SendUpdate(): "
+									"change=%d "
+									"copy=%d "
+									"pos=%d "
+									"shape=%d "
+									"video=%d\n"),
+									(int)!normalUpdatesList.empty(),
+									(int)m_copyrect_set,
+									(int)m_cursor_pos_changed,
+									(int)m_cursor_update_pending,
+									(int)!videoUpdatesList.empty());
+
 	// Send mouse cursor shape update
 #ifdef HORIZONLIVE
 	if (m_cursor_update_pending && isPtInSharedArea(m_cursor_pos)) {

@@ -290,11 +290,11 @@ bool WinDesktop::sendUpdate()
   }
 
   vnclog.Print(LL_INTINFO, VNCLOG("UpdateContainer: "
-               "changedRegion = %d; "
-               "copiedRegion = %d; "
-               "cursorPosChanged = %d; "
-               "cursorShapeChanged = %d; "
-               "screenSizeChanged = %d\n"),
+               "change=%d "
+               "copy=%d "
+               "pos=%d "
+               "shape=%d "
+               "size=%d\n"),
                (int)!updateContainer.changedRegion.is_empty(),
                (int)!updateContainer.copiedRegion.is_empty(),
                (int)updateContainer.cursorPosChanged,

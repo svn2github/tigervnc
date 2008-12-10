@@ -38,13 +38,13 @@ protected:
   // Function must return true value if the message has been processed.
   virtual bool wndProc(UINT message, WPARAM wParam, LPARAM lParam) { return true; }
 
-	HWND m_hwnd;
+  HWND m_hwnd;
 
-	HINSTANCE m_hinst;
+  HINSTANCE m_hinst;
   TCHAR *m_windowClassName;
 
 private:
-	ATOM regClass(HINSTANCE hinst, TCHAR *windowClassName);
+  ATOM regClass(HINSTANCE hinst, TCHAR *windowClassName);
 
   static LRESULT CALLBACK staticWndProc(HWND hwnd,
                                         UINT message,

@@ -222,6 +222,7 @@
 #define IDC_STATIC_ECHOPROXY_PORT       1187
 #define IDC_STATIC_ECHOPROXY_NAME       1188
 #define IDC_STATIC_ECHOPROXY_PASS       1189
+#define IDC_PRIMARY_DISPLAY             1190
 #define ID_PROPERTIES                   40001
 #define ID_CLOSE                        40002
 #define ID_KILLCLIENTS                  40003
@@ -237,7 +238,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        159
 #define _APS_NEXT_COMMAND_VALUE         40009
-#define _APS_NEXT_CONTROL_VALUE         1190
+#define _APS_NEXT_CONTROL_VALUE         1191
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

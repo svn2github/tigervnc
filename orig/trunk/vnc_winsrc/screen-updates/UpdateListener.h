@@ -31,7 +31,7 @@ public:
   virtual ~UpdateListener(void);
 
   // Interface function
-  virtual void doUpdate()
+  void doUpdate()
   {
     if (this != 0) {
       onUpdate();

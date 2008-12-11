@@ -57,7 +57,7 @@ BEGIN
     LTEXT           "Formats host:display and host::port are supported.\nThe default is to use display 0 or port 5500.",
                     IDC_STATIC_FORMATS,7,58,178,18,NOT WS_GROUP
     LTEXT           "Note: Host must be running VNC viewer in 'listen' mode.",
-                    IDC_STATIC_NOTE,7,76,178,10,SS_CENTERIMAGE | NOT
+                    IDC_STATIC_NOTE,7,76,178,10,SS_CENTERIMAGE | NOT 
                     WS_GROUP
     CONTROL         "Full control",IDC_FULL_CONTROL_CON,"Button",
                     BS_AUTORADIOBUTTON,65,34,48,14
@@ -183,7 +183,7 @@ IDD_PROPERTIES_PARENT DIALOGEX 0, 0, 304, 212
 STYLE DS_MODALFRAME | DS_CENTER | DS_CONTEXTHELP | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP | WS_EX_CONTROLPARENT
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "&OK",IDOK,139,193,50,14,WS_GROUP
     PUSHBUTTON      "&Cancel",IDCANCEL,194,193,50,14
@@ -281,11 +281,12 @@ FONT 8, "MS Sans Serif"
 BEGIN
     GROUPBOX        "Polling modes",IDC_STATIC_POLLING,5,5,133,74
     CONTROL         "Poll foreground window",IDC_POLL_FOREGROUND,"Button",
-                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,13,16,120,12
+                    BS_AUTOCHECKBOX | WS_DISABLED | WS_GROUP | WS_TABSTOP,13,
+                    16,120,12
     CONTROL         "Poll window under cursor",IDC_POLL_UNDER_CURSOR,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,13,31,120,12
+                    BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,13,31,120,12
     CONTROL         "Poll full screen",IDC_POLL_FULLSCREEN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,13,46,120,12
+                    BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,13,46,120,12
     LTEXT           "Polling cycle:",IDC_STATIC_PCYCLE,26,61,49,12,
                     SS_CENTERIMAGE | NOT WS_GROUP
     EDITTEXT        IDC_POLLING_CYCLE,78,61,27,12,ES_AUTOHSCROLL
@@ -293,14 +294,14 @@ BEGIN
                     WS_GROUP
     GROUPBOX        "Window polling",IDC_STATIC_WNDPOLLING,147,5,136,43
     CONTROL         "Poll console windows only",IDC_CONSOLE_ONLY,"Button",
-                    BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,155,16,125,
-                    12
+                    BS_AUTOCHECKBOX | BS_MULTILINE | WS_DISABLED | 
+                    WS_TABSTOP,155,16,125,12
     CONTROL         "Poll on event received only",IDC_ONEVENT_ONLY,"Button",
-                    BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,155,31,125,
-                    12
+                    BS_AUTOCHECKBOX | BS_MULTILINE | WS_DISABLED | 
+                    WS_TABSTOP,155,31,125,12
     GROUPBOX        "Mirror driver status",IDC_STATIC_DRVSTATUS,147,52,136,
                     27
-    LTEXT           "No information - no clients connected",
+    LTEXT           "[driver is not supported in this version]",
                     IDC_STATIC_DRVINFO,155,62,125,12,SS_CENTERIMAGE
     GROUPBOX        "Troubleshooting",IDC_STATIC_TRSH,5,83,278,44
     CONTROL         "Don't use VNCHooks.DLL while polling full screen",
@@ -308,7 +309,7 @@ BEGIN
                     13,94,209,12
     CONTROL         "Don't use mirror display driver even if available",
                     IDC_DONT_USE_DRIVER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,13,109,209,12
+                    WS_DISABLED | WS_TABSTOP,13,109,209,12
 END
 
 IDD_QUERY_SETTINGS DIALOG DISCARDABLE  0, 0, 288, 85

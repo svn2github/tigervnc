@@ -38,7 +38,7 @@ m_windowClassName(0)
 
 Window::~Window(void)
 {
-  DestroyWindow(m_hwnd);
+  destroyWindow();
 
   if (m_windowClassName != 0) {
     UnregisterClass(m_windowClassName, m_hinst);
@@ -53,7 +53,7 @@ bool Window::createWindow()
   }
 
   m_hwnd = ::CreateWindow(m_windowClassName, _T("Window"),
-                          0, 0, 0, 1, 1, HWND_MESSAGE, NULL, m_hinst, NULL);
+                          0, 0, 0, 1, 1, HWND_MESSAGE, NULL, m_hinst, this);
   if (m_hwnd == 0) {
     return false;
   }
@@ -62,11 +62,24 @@ bool Window::createWindow()
   return true;
 }
 
+void Window::destroyWindow()
+{
+  if (m_hwnd) {
+    DestroyWindow(m_hwnd);
+    m_hwnd = 0;
+  }
+}
+
 LRESULT CALLBACK Window::staticWndProc(HWND hwnd, UINT message,
                                        WPARAM wParam, LPARAM lParam)
 {
   Window *_this;
-  _this = (Window *)GetWindowLong(hwnd, GWL_USERDATA);
+  if (message == WM_CREATE) {
+    _this = (Window *)((CREATESTRUCT *)lParam)->lpCreateParams;
+    wParam = (WPARAM)hwnd; // Pass hwnd throw wParam
+  } else {
+    _this = (Window *)GetWindowLong(hwnd, GWL_USERDATA);
+  }
   if (_this != NULL) {
     if (_this->wndProc(message, wParam, lParam)) {
       return 0;

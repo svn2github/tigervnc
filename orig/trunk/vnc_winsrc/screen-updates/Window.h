@@ -30,7 +30,8 @@ public:
   Window(const HINSTANCE hinst, const TCHAR *windowClassName);
   virtual ~Window(void);
 
-  bool createWindow();
+  virtual bool createWindow();
+  virtual void destroyWindow();
 
   HWND getHWND() const { return m_hwnd; }
 

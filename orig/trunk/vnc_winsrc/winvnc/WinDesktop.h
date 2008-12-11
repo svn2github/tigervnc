@@ -31,6 +31,7 @@ class WinDesktop;
 
 #include "screen-updates/UpdateHandler.h"
 #include "screen-updates/UpdateListener.h"
+#include "system/Clipboard.h"
 #include "libscreen/WindowsMouseGrabber.h"
 #include "thread/AutoLock.h"
 #include "system/DynamicLibrary.h"
@@ -44,7 +45,7 @@ public:
 
   bool Init(vncServer *server);
   void RequestUpdate();
-  void SetClipText(LPSTR text);
+  void setClipText(LPSTR text);
   void TryActivateHooks();
   void FillDisplayInfo(rfbServerInitMsg *scrInfo);
   void SetLocalInputDisableHook(bool block);
@@ -98,6 +99,8 @@ protected:
 
   HANDLE m_hEvent;
   HANDLE m_hUpdateHandlerEvent;
+
+  Clipboard m_clipboard;
 };
 
 #endif // __WINDESKTOP_H__

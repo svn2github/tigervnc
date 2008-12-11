@@ -837,7 +837,7 @@ vncServer::UpdateLocalClipText(LPSTR text)
 	omni_mutex_lock l(m_desktopLock);
 
 	if (m_desktop != NULL)
-		m_desktop->SetClipText(text);
+		m_desktop->setClipText(text);
 }
 
 // Changing hook settings

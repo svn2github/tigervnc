@@ -33,6 +33,7 @@ WinDesktop::WinDesktop()
   DesktopSelector::init();
 
   m_inputBlocker = new InputBlocker;
+  m_clipboard.setUpdateListener(this);
 }
 
 WinDesktop::~WinDesktop()
@@ -144,8 +145,9 @@ void WinDesktop::RequestUpdate()
   winDesktopNotify();
 }
 
-void WinDesktop::SetClipText(LPSTR text)
+void WinDesktop::setClipText(LPSTR text)
 {
+  m_clipboard.writeToClipBoard(text);
 }
 
 void WinDesktop::TryActivateHooks()
@@ -205,6 +207,12 @@ bool WinDesktop::sendUpdate()
   }
 
   vnclog.Print(LL_INTINFO, VNCLOG("clients ready, preparing for update\n"));
+
+  // Send new clipboard text
+  TCHAR *clipText = m_clipboard.extract();
+  if (clipText) {
+    m_server->UpdateClipText(clipText);
+  }
 
   bool desktopChanged = false;
   checkCurrentDesktop(&desktopChanged);

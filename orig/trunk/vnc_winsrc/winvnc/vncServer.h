@@ -312,6 +312,8 @@ public:
 	virtual void FullScreen(BOOL enable) { m_full_screen = enable; }
 	virtual BOOL ScreenAreaShared() { return m_screen_area; }
 	virtual void ScreenAreaShared(BOOL enable) { m_screen_area = enable; }
+	virtual void isPrimaryDisplay(bool value) { m_isPrimaryDisplay = value; }
+	virtual bool isPrimaryDisplay() const { return m_isPrimaryDisplay; }
 	// Returns true if shared rectangle was changed.
 	bool updateSharedRect();
 	virtual void SetNewFBSize();
@@ -413,6 +415,7 @@ protected:
 	BOOL				m_full_screen;                       
 	BOOL				m_screen_area;
 	DWORD				m_idwindowproc;
+	bool				m_isPrimaryDisplay;
 
 	// local event priority stuff                                        
 	BOOL				m_local_input_priority;                    

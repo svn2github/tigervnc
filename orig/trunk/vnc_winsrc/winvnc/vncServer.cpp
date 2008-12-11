@@ -115,6 +115,7 @@ vncServer::vncServer()
 	m_full_screen = TRUE;
 	m_WindowShared= FALSE;
 	m_Application = FALSE;
+	m_isPrimaryDisplay = false;
 	m_BlackRegion.Clear();
 	m_hwndShared = NULL;
 	m_idwindowproc = 0;

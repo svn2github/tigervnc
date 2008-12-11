@@ -21,6 +21,7 @@
 
 
 #include "SharedDesktopArea.h"
+#include "WinDesktop.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -184,14 +185,18 @@ bool SharedDesktopArea::Apply()
 		return false;
 	}
 
+	bool fake = false;
 	m_server->FullScreen(IsChecked(IDC_FULLSCREEN));
 	m_server->ScreenAreaShared(IsChecked(IDC_SCREEN));
+	m_server->isPrimaryDisplay(fake);
 	m_server->WindowShared(IsChecked(IDC_WINDOW));
 	m_server->SetApplication(IsChecked(IDC_APPLICATION));
 
 	if (m_server->FullScreen()) {
-		RECT temp;
-		GetWindowRect(GetDesktopWindow(), &temp);
+		Rect temp = WinDesktop::getDesktopRect();
+		m_server->SetMatchSizeFields(temp.left, temp.top, temp.right, temp.bottom);
+	}else if (m_server->isPrimaryDisplay()) {
+		Rect temp = WinDesktop::getPrimaryDisplayRect();
 		m_server->SetMatchSizeFields(temp.left, temp.top, temp.right, temp.bottom);
 	} else if (m_server->ScreenAreaShared()) {
 		int left, right, top, bottom;

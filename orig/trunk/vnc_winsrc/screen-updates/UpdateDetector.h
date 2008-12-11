@@ -35,15 +35,22 @@ public:
   void setUpdateKeeper(UpdateKeeper *updateKeeper) { m_updateKeeper = updateKeeper; }
   UpdateKeeper *getUpdateKeeper() const { return m_updateKeeper; }
 
-  void setOutUpdateListener(UpdateListener *outUpdateListener)
+  void setOutUpdateListener(UpdateListener *updateListener)
   { 
-    m_outUpdateListener = outUpdateListener;
+    m_updateListener = updateListener;
   }
 
 protected:
+  void doUpdate()
+  {
+    if (m_updateListener) {
+      m_updateListener->onUpdate();
+    }
+  }
+
   UpdateKeeper *m_updateKeeper;
 
-  UpdateListener *m_outUpdateListener;
+  UpdateListener *m_updateListener;
 };
 
 #endif // __UPDATEDETECTOR_H__

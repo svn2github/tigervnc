@@ -77,6 +77,13 @@ public:
   const CursorShape *getCursorShape() const { return m_mouseGrabber.getCursorShape(); }
 
 private:
+  void doUpdate()
+  {
+    if (m_registerUpdateListener) {
+      m_registerUpdateListener->onUpdate();
+    }
+  }
+
   virtual void executeDetectors();
   virtual void terminateDetectors();
 

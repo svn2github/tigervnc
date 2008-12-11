@@ -50,6 +50,12 @@ public:
   }
 
 protected:
+  void doUpdate()
+  {
+    if (m_updateListener) {
+      m_updateListener->onUpdate();
+    }
+  }
   virtual bool wndProc(UINT message, WPARAM wParam, LPARAM lParam);
 
   virtual void execute();

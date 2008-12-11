@@ -229,7 +229,7 @@ void UpdateKeeper::execute()
         m_heldChangedRegion.clear();
 
         m_heldRegCritSec.leave();
-        m_updateListener->doUpdate();
+        doUpdate();
         continue;
       }
     }

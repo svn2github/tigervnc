@@ -96,7 +96,7 @@ void Poller::execute()
 
     // Send event
     if (!region.is_empty()) {
-      m_outUpdateListener->doUpdate();
+      doUpdate();
     }
 
     Sleep(m_sleepTime);

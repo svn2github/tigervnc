@@ -108,7 +108,7 @@ void UpdateHandler::onUpdate()
 
   if (!m_updateKeeper->getUpdateContainer()->isEmpty()) {
     m_criticalSection.leave();
-    m_registerUpdateListener->doUpdate();
+    doUpdate();
     return;
   }
 

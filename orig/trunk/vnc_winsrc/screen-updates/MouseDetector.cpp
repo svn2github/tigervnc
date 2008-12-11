@@ -48,7 +48,7 @@ void MouseDetector::execute()
 
       m_updateKeeper->setCursorPosChanged();
 
-      m_outUpdateListener->doUpdate();
+      doUpdate();
     }
 
     Sleep(m_sleepTime);

@@ -64,6 +64,13 @@ public:
   void extract(UpdateContainer *updateContainer);
 
 private:
+  void doUpdate()
+  {
+    if (m_updateListener) {
+      m_updateListener->onUpdate();
+    }
+  }
+
   virtual void execute();
   void hold(UpdateContainer *updateContainer);
 

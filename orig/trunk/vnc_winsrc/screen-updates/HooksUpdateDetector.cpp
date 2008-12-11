@@ -148,7 +148,7 @@ void HooksUpdateDetector::execute()
       rect.move(-destopX, -destopY);
       m_updateKeeper->addChangedRect(&rect);
 
-      m_outUpdateListener->doUpdate();
+      doUpdate();
     } else if (msg.message == WM_QUIT) {
       break;
     } else {

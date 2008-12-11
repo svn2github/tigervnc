@@ -141,7 +141,7 @@ bool Clipboard::wndProc(UINT message, WPARAM wParam, LPARAM lParam)
   case WM_DRAWCLIPBOARD:  // clipboard contents changed.
     m_isClipboardChanged = true;
 
-    m_updateListener->doUpdate();
+    doUpdate();
 
     SendMessage(m_hwndNextViewer, message, wParam, lParam);
 

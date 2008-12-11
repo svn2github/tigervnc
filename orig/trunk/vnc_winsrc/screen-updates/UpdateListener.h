@@ -31,14 +31,6 @@ public:
   virtual ~UpdateListener(void);
 
   // Interface function
-  void doUpdate()
-  {
-    if (this != 0) {
-      onUpdate();
-    }
-  }
-
-protected:
   virtual void onUpdate() = 0;
 };
 

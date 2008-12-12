@@ -275,43 +275,6 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,160,149,110,12
 END
 
-IDD_UPDATE_HANDLING DIALOG DISCARDABLE  0, 0, 288, 132
-STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE
-FONT 8, "MS Sans Serif"
-BEGIN
-    GROUPBOX        "Polling modes",IDC_STATIC_POLLING,5,5,133,74
-    CONTROL         "Poll foreground window",IDC_POLL_FOREGROUND,"Button",
-                    BS_AUTOCHECKBOX | WS_DISABLED | WS_GROUP | WS_TABSTOP,13,
-                    16,120,12
-    CONTROL         "Poll window under cursor",IDC_POLL_UNDER_CURSOR,"Button",
-                    BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,13,31,120,12
-    CONTROL         "Poll full screen",IDC_POLL_FULLSCREEN,"Button",
-                    BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,13,46,120,12
-    LTEXT           "Polling cycle:",IDC_STATIC_PCYCLE,26,61,49,12,
-                    SS_CENTERIMAGE | NOT WS_GROUP
-    EDITTEXT        IDC_POLLING_CYCLE,78,61,27,12,ES_AUTOHSCROLL
-    LTEXT           "ms",IDC_STATIC_MS,112,61,19,12,SS_CENTERIMAGE | NOT 
-                    WS_GROUP
-    GROUPBOX        "Window polling",IDC_STATIC_WNDPOLLING,147,5,136,43
-    CONTROL         "Poll console windows only",IDC_CONSOLE_ONLY,"Button",
-                    BS_AUTOCHECKBOX | BS_MULTILINE | WS_DISABLED | 
-                    WS_TABSTOP,155,16,125,12
-    CONTROL         "Poll on event received only",IDC_ONEVENT_ONLY,"Button",
-                    BS_AUTOCHECKBOX | BS_MULTILINE | WS_DISABLED | 
-                    WS_TABSTOP,155,31,125,12
-    GROUPBOX        "Mirror driver status",IDC_STATIC_DRVSTATUS,147,52,136,
-                    27
-    LTEXT           "[driver is not supported in this version]",
-                    IDC_STATIC_DRVINFO,155,62,125,12,SS_CENTERIMAGE
-    GROUPBOX        "Troubleshooting",IDC_STATIC_TRSH,5,83,278,44
-    CONTROL         "Don't use VNCHooks.DLL while polling full screen",
-                    IDC_DONT_SET_HOOKS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    13,94,209,12
-    CONTROL         "Don't use mirror display driver even if available",
-                    IDC_DONT_USE_DRIVER,"Button",BS_AUTOCHECKBOX | 
-                    WS_DISABLED | WS_TABSTOP,13,109,209,12
-END
-
 IDD_QUERY_SETTINGS DIALOG DISCARDABLE  0, 0, 288, 85
 STYLE DS_CONTROL | WS_CHILD | WS_VISIBLE
 FONT 8, "MS Sans Serif"
@@ -638,23 +601,6 @@ BEGIN
         HORZGUIDE, 72
         HORZGUIDE, 90
         HORZGUIDE, 118
-    END
-
-    IDD_UPDATE_HANDLING, DIALOG
-    BEGIN
-        LEFTMARGIN, 5
-        RIGHTMARGIN, 283
-        VERTGUIDE, 13
-        VERTGUIDE, 26
-        VERTGUIDE, 133
-        VERTGUIDE, 147
-        VERTGUIDE, 155
-        VERTGUIDE, 280
-        TOPMARGIN, 5
-        BOTTOMMARGIN, 127
-        HORZGUIDE, 22
-        HORZGUIDE, 37
-        HORZGUIDE, 79
     END
 
     IDD_QUERY_SETTINGS, DIALOG
@@ -1051,10 +997,7 @@ BEGIN
     IDC_DISPLAYNO           "The display number determines which TCP ports will be used for accepting client connections. Display 0 corresponds to ports 5900 (VNC port) and 5800 (HTTP port), display 1 to ports 5901 and 5801 and so on."
     IDC_PASSWORD            "Users authenticated with the primary password are given full control over the server's desktop. Note that only first 8 characters of passwords are used in the standard VNC authentication."
     IDC_UPDATE_BORDER       "Update handling options determine what methods are used to detect screen updates."
-    IDC_POLL_FULLSCREEN     "Scan the whole screen contents for changes. Setting this option guarantees reliable update detection but can notably increase CPU usage. Note that polling is not used with mirror display driver."
     IDC_CONSOLE_ONLY        "When set, window polling is performed only for console windows. Pixel changes in console windows cannot be detected by the hooks DLL, so this option is set by default."
-    IDC_POLL_FOREGROUND     "Poll the foreground (active) window. This is the default polling mode. Note that polling is not used with mirror display driver."
-    IDC_POLL_UNDER_CURSOR   "Poll the window under cursor. Note that polling is not used with mirror display driver."
     IDC_ONEVENT_ONLY        "When set, window polling is performed only on receiving keyboard or mouse events from a VNC viewer."
     IDC_REMOTE_DISABLE      "Set this option to give higher priority to local keyboard and pointer. This blocks remote input while local keyboard or mouse is in use."
     IDC_PORTHTTP            "TCP port of the built-in Web server serving the Java viewer applet."

@@ -710,10 +710,6 @@
 					>
 				</File>
 				<File
-					RelativePath="PollControls.cpp"
-					>
-				</File>
-				<File
 					RelativePath="QuerySettingsControls.cpp"
 					>
 				</File>
@@ -825,10 +821,6 @@
 			</File>
 			<File
 				RelativePath=".\ParseHost.h"
-				>
-			</File>
-			<File
-				RelativePath="PollControls.h"
 				>
 			</File>
 			<File

@@ -255,12 +255,6 @@ vncProperties::ParentDlgProc(HWND hwnd,
 				(DLGPROC)_this->IncomingDlgProc,
 				(LONG)_this);
 
-			_this->m_hPoll = CreateDialogParam(hAppInstance, 
-				MAKEINTRESOURCE(IDD_UPDATE_HANDLING),
-				hwnd,
-				(DLGPROC)_this->PollDlgProc,
-				(LONG)_this);
-
 			_this->m_hShared = CreateDialogParam(hAppInstance, 
 				MAKEINTRESOURCE(IDD_SHARED_DESKTOP_AREA),
 				hwnd,
@@ -295,7 +289,6 @@ vncProperties::ParentDlgProc(HWND hwnd,
 
 			// Add child dialogs to the TabDialogContainer.
 			_this->m_tabContainer.addDialog(_this->m_hIncoming, "Server");
-			_this->m_tabContainer.addDialog(_this->m_hPoll, "Hooks");
 			_this->m_tabContainer.addDialog(_this->m_hShared, "Display");
 			_this->m_tabContainer.addDialog(_this->m_hQuerySettings, "Query");
 			_this->m_tabContainer.addDialog(_this->m_hAdministration, "Administration");
@@ -603,50 +596,6 @@ BOOL CALLBACK vncProperties::EchoConnectionDlgProc(HWND hwnd, UINT uMsg,
 		ListView_DeleteAllItems(GetDlgItem(hwnd, IDC_ECHOSERVERS_LIST));
 		delete _this->m_pEchoPropView;      
 		_this->m_pEchoPropView = NULL;  
-		return 0;
-	}
-	return 0;
-}
-
-BOOL CALLBACK vncProperties::PollDlgProc(HWND hwnd, UINT uMsg,
-                                         WPARAM wParam, LPARAM lParam)
-{
-	// We use the dialog-box's USERDATA to store a _this pointer
-	// This is set only once WM_INITDIALOG has been recieved, though!
-	vncProperties *_this = (vncProperties *) GetWindowLong(hwnd, GWL_USERDATA);
-	
-	switch (uMsg)
-	{
-	case WM_INITDIALOG:
-		{
-			// Retrieve the Dialog box parameter and use it as a pointer
-			// to the calling vncProperties object
-			SetWindowLong(hwnd, GWL_USERDATA, lParam);
-			vncProperties *_this = (vncProperties *) lParam;
-
-			_this->m_pollcontrols = new PollControls(hwnd, _this->m_server); 
-			return 0;
-		}
-	case WM_HELP:	
-		VNCHelp::Popup(lParam);
-		return 0;
-	case WM_COMMAND:	
-		switch (LOWORD(wParam))
-		{
-		case IDC_POLL_FOREGROUND:
-		case IDC_POLL_UNDER_CURSOR:
-		case IDC_POLL_FULLSCREEN:
-			_this->m_pollcontrols->Validate();
-			return TRUE;
-		case IDC_APPLY:
-			_this->m_pollcontrols->Apply();
-			return TRUE;
-		}
-		return 0;
-	case WM_DESTROY:
-		delete _this->m_pollcontrols;
-		_this->m_pollcontrols = NULL;  
-		_this->m_hPoll = NULL;
 		return 0;
 	}
 	return 0;

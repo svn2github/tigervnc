@@ -62,10 +62,7 @@
 #define IDC_DISPLAYNO                   1008
 #define IDC_PASSWORD                    1009
 #define IDC_UPDATE_BORDER               1010
-#define IDC_POLL_FULLSCREEN             1011
 #define IDC_CONSOLE_ONLY                1012
-#define IDC_POLL_FOREGROUND             1013
-#define IDC_POLL_UNDER_CURSOR           1014
 #define IDC_ONEVENT_ONLY                1015
 #define IDC_REMOTE_DISABLE              1016
 #define IDC_PORTHTTP                    1017

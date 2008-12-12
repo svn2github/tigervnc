@@ -64,9 +64,12 @@ public:
               GetSystemMetrics(SM_YVIRTUALSCREEN));
     return rect;
   }
-  static Rect getPrimaryDisplayRect() { return Rect(0, 0,
-                                                    GetSystemMetrics(SM_CXSCREEN),
-                                                    GetSystemMetrics(SM_CYSCREEN)); }
+  static Rect getPrimaryDisplayRect() {
+    Rect rect(GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
+    rect.move(-GetSystemMetrics(SM_XVIRTUALSCREEN),
+              -GetSystemMetrics(SM_YVIRTUALSCREEN));
+    return rect;
+  }
   static BOOL getWindowRect(HWND hwnd, RECT *windowRect);
 
 protected:

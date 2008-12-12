@@ -530,13 +530,22 @@ LRESULT CALLBACK vncMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 			PostMessage(hwnd, WM_COMMAND, MAKELONG(ID_PROPERTIES, 0), 0);
 			return 0;
 		}
-		if (iMsg == MENU_SERVER_SHAREALL || iMsg == MENU_SERVER_SHAREPRIMARY)
+		if (iMsg == MENU_SERVER_SHAREALL)
 		{
 			_this->m_properties.HideMatchWindow();
 			_this->m_server->FullScreen(true);
 			_this->m_server->ScreenAreaShared(false);
 			_this->m_server->WindowShared(false);
 			_this->m_server->SetApplication(false);
+			return 0;
+		}
+		if (iMsg == MENU_SERVER_SHAREPRIMARY)
+		{
+			_this->m_properties.HideMatchWindow();
+			_this->m_server->FullScreen(false);
+			_this->m_server->isPrimaryDisplay(true);
+			_this->m_server->ScreenAreaShared(false);
+			_this->m_server->WindowShared(false);
 			return 0;
 		}
 		if (iMsg == MENU_SERVER_SHAREAREA)

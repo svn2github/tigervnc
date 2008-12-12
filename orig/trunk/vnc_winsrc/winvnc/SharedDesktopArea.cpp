@@ -185,10 +185,9 @@ bool SharedDesktopArea::Apply()
 		return false;
 	}
 
-	bool fake = false;
 	m_server->FullScreen(IsChecked(IDC_FULLSCREEN));
 	m_server->ScreenAreaShared(IsChecked(IDC_SCREEN));
-	m_server->isPrimaryDisplay(fake);
+	m_server->isPrimaryDisplay(IsChecked(IDC_PRIMARY_DISPLAY_ONLY));
 	m_server->WindowShared(IsChecked(IDC_WINDOW));
 	m_server->SetApplication(IsChecked(IDC_APPLICATION));
 

@@ -200,7 +200,7 @@ BEGIN
     CONTROL         "Full desktop",IDC_FULLSCREEN,"Button",
                     BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,13,16,261,12
     CONTROL         "Primary display (in multi-monitor configurations)",
-                    IDC_PRIMARY_DISPLAY,"Button",BS_AUTORADIOBUTTON | 
+                    IDC_PRIMARY_DISPLAY_ONLY,"Button",BS_AUTORADIOBUTTON | 
                     WS_TABSTOP,13,30,261,12
     CONTROL         "Rectangular area",IDC_SCREEN,"Button",
                     BS_AUTORADIOBUTTON | WS_TABSTOP,13,44,261,12

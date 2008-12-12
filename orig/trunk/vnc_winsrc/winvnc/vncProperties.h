@@ -46,7 +46,7 @@ class vncProperties;
 #include "stdhdrs.h"
 #include "vncServer.h"
 #include "MatchWindow.h"
-#include "PollControls.h"
+//#include "PollControls.h"
 #include "InputHandlingControls.h" 
 #include "SharedDesktopArea.h"
 #include "IncomingConnectionsControls.h"

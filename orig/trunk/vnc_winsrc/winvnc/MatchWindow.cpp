@@ -25,6 +25,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "MatchWindow.h"
+#include "WinDesktop.h"
 
 static const int MW_WIDTH = 5 ;
 static const int MW_MARGRIN = ( MW_WIDTH / 2 ) + 1 ;
@@ -227,8 +228,7 @@ LRESULT CALLBACK CMatchWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, L
 				// to help us determine on-screen bounds
 				//
 				
-				RECT wDesktopRect;
-				::GetWindowRect( ::GetDesktopWindow(), &wDesktopRect );
+				RECT wDesktopRect = WinDesktop::getDesktopRect().toWindowsRect();
 			
 				RECT wRect;
 				::GetWindowRect( hWnd, &wRect );
@@ -241,51 +241,51 @@ LRESULT CALLBACK CMatchWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, L
 				switch (iCornerNumber)
 				{
 				case 0:
-					wRect.left=0;
-					wRect.top=0;
+					wRect.left = wDesktopRect.left;
+					wRect.top = wDesktopRect.top;
 					wRect.bottom-=MW_WIDTH*3;
 					wRect.right-=MW_WIDTH*3;
 					break;
 				case 1:
-					wRect.left=0;
-					wRect.top=0;
+					wRect.left = wDesktopRect.left;
+					wRect.top = wDesktopRect.top;
 					wRect.bottom-=MW_WIDTH*3;
-					wRect.right=GetSystemMetrics(SM_CXSCREEN);
+					wRect.right = wDesktopRect.right;
 					break;
 				case 2:
 					wRect.left+=MW_WIDTH*3;
-					wRect.top=0;
+					wRect.top = wDesktopRect.top;
 					wRect.bottom-=MW_WIDTH*3;
-					wRect.right=GetSystemMetrics(SM_CXSCREEN);
+					wRect.right = wDesktopRect.right;
 					break;
 				case 3:
 					wRect.left+=MW_WIDTH*3;
-					wRect.top=0;
-					wRect.bottom=GetSystemMetrics(SM_CYSCREEN);
-					wRect.right=GetSystemMetrics(SM_CXSCREEN);
+					wRect.top = wDesktopRect.top;
+					wRect.bottom = wDesktopRect.bottom;
+					wRect.right = wDesktopRect.right;
 					break;
 				case 4:
 					wRect.left+=MW_WIDTH*3;
 					wRect.top+=MW_WIDTH*3;
-					wRect.bottom=GetSystemMetrics(SM_CYSCREEN);
-					wRect.right=GetSystemMetrics(SM_CXSCREEN);
+					wRect.bottom = wDesktopRect.bottom;
+					wRect.right = wDesktopRect.right;
 					break;
 				case 5:
-					wRect.left=0;
+					wRect.left = wDesktopRect.left;
 					wRect.top+=MW_WIDTH*3;
-					wRect.bottom=GetSystemMetrics(SM_CYSCREEN);
-					wRect.right=GetSystemMetrics(SM_CXSCREEN);
+					wRect.bottom = wDesktopRect.bottom;
+					wRect.right = wDesktopRect.right;
 					break;
 				case 6:
-					wRect.left=0;
+					wRect.left = wDesktopRect.left;
 					wRect.top+=MW_WIDTH*3;
-					wRect.bottom=GetSystemMetrics(SM_CYSCREEN);
+					wRect.bottom = wDesktopRect.bottom;
 					wRect.right-=MW_WIDTH*3;
 					break;
 				case 7:
-					wRect.left=0;
-					wRect.top=0;
-					wRect.bottom=GetSystemMetrics(SM_CYSCREEN);
+					wRect.left = wDesktopRect.left;
+					wRect.top = wDesktopRect.top;
+					wRect.bottom = wDesktopRect.bottom;
 					wRect.right-=MW_WIDTH*3;
 					break;
 				}

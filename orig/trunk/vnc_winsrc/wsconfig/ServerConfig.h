@@ -23,6 +23,7 @@
 #define _SERVER_CONFIG_H_
 
 #include "common/tstring.h"
+#include "Rect.h"
 
 class ServerConfig
 {

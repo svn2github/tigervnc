@@ -164,6 +164,12 @@ public:
     m_sharedAreaType = type;
   }
 
+  Rect getSharedRect() { return m_sharedRect; }
+
+  void setSharedRect(Rect rect) {
+    m_sharedRect = rect;
+  }
+
 protected:
 
   //
@@ -209,6 +215,7 @@ protected:
   //
 
   SharedDesktopAreaType m_sharedAreaType;
+  Rect m_sharedRect;
 };
 
 #endif

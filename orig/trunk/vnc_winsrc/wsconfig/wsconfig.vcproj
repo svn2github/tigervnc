@@ -179,6 +179,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\IPAccessRecord.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\PortMapping.cpp"
 				>
 			</File>
@@ -270,6 +274,10 @@
 			>
 			<File
 				RelativePath=".\ConfigDialog.h"
+				>
+			</File>
+			<File
+				RelativePath=".\IPAccessRecord.h"
 				>
 			</File>
 			<File

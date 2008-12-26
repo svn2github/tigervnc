@@ -203,6 +203,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ServerConfig.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Settings.cpp"
 				>
 			</File>
@@ -306,6 +310,10 @@
 			</File>
 			<File
 				RelativePath=".\Resource.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ServerConfig.h"
 				>
 			</File>
 			<File

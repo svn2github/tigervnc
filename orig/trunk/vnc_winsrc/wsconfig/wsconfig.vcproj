@@ -179,7 +179,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\IPAccessRecord.cpp"
+				RelativePath=".\IpAccessControl.cpp"
 				>
 			</File>
 			<File
@@ -277,7 +277,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\IPAccessRecord.h"
+				RelativePath=".\IpAccessControl.h"
 				>
 			</File>
 			<File

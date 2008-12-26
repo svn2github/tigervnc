@@ -20,7 +20,7 @@
 // TightVNC homepage on the Web: http://www.tightvnc.com/
 
 #include "StdAfx.h"
-#include "IPAccessRecord.h"
+#include "IpAccessControl.h"
 
 IpAccessControl::IpAccessControl()
 : m_action(ACCESS_TYPE_ALLOW)

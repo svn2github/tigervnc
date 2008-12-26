@@ -25,8 +25,40 @@
 class QueryConfig
 {
 public:
+
+  enum QueryAction {
+    QA_ACCEPT = 0,
+    QA_REFUSE = 1
+  };
+
+public:
   QueryConfig();
   ~QueryConfig();
+
+  bool isQueryConsoleOnIncomingConnectionsEnabled() {
+    return m_queryConsoleOnIncomingConnections;
+  }
+  void enableQueryConsoleOnIncomingConnections(bool enabled) {
+    m_queryConsoleOnIncomingConnections = enabled;
+  }
+
+  bool isAllowedOptionsToAcceptWithoutAuth() {
+    return m_allowOptionsToAcceptWithoutAuth;
+  }
+  void allowOptionsToAcceptWithoutAuth(bool enabled) {
+    m_allowOptionsToAcceptWithoutAuth = enabled;
+  }
+
+  unsigned int getQueryTimeout() { return m_queryTimeout; }
+  void setQueryTimeout(unsigned int timeout) { m_queryTimeout = timeout; }
+
+  QueryAction getDefaultAction() { return m_defaultAction; }
+  void setDefaultAction(QueryAction defaultAction) { m_defaultAction = defaultAction; }
+protected:
+  bool m_queryConsoleOnIncomingConnections;
+  bool m_allowOptionsToAcceptWithoutAuth;
+  unsigned int m_queryTimeout;
+  QueryAction m_defaultAction;
 };
 
 #endif

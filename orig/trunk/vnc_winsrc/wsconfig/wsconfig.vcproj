@@ -203,6 +203,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\QueryConfig.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Rect.cpp"
 				>
 			</File>
@@ -310,6 +314,10 @@
 			</File>
 			<File
 				RelativePath=".\PortMappingVector.h"
+				>
+			</File>
+			<File
+				RelativePath=".\QueryConfig.h"
 				>
 			</File>
 			<File

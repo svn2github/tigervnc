@@ -23,6 +23,7 @@
 #include "QueryConfig.h"
 
 QueryConfig::QueryConfig()
+: m_defaultAction(QA_REFUSE)
 {
 }
 

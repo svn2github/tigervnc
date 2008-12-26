@@ -27,6 +27,73 @@ class ServerConfig
 public:
   ServerConfig(void);
   ~ServerConfig(void);
+
+  //
+  // Input handling options access methods
+  //
+
+  void blockRemoteInputEvents(bool blockEnabled) {
+    m_blockRemoteInputEvents = blockEnabled;
+    if (m_blockRemoteInputEvents) {
+      blockRemoteInputOnLocalActivity(false);
+    }
+  }
+
+  bool isBlockingRemoteInputEvents() { return m_blockRemoteInputEvents; }
+
+  void blockRemoteInputOnLocalActivity(bool blockEnabled) {
+    m_blockRemoteInputOnLocalActivity = blockEnabled;
+  }
+
+  bool isBlockingRemoteInputOnLocalActivity() {
+    return m_blockRemoteInputOnLocalActivity;
+  }
+
+  void enableLocalInputDuringClientSession(bool enabled) {
+    m_noLocalInputDuringClientSessions = !enabled;
+    if (m_noLocalInputDuringClientSessions) {
+      blockRemoteInputOnLocalActivity(false);
+    }
+  }
+
+  bool isLocalInputDuringClientSessionEnabled() {
+    return !m_noLocalInputDuringClientSessions;
+  }
+
+  void enableBlankScreenOnClientConnection(bool enabled) {
+    m_blankScreenOnClientConnections = enabled;
+  }
+
+  bool isBlackScreenOnClientConnectionEnabled() {
+    return m_blankScreenOnClientConnections;
+  }
+
+  //
+  // Other server options access methods
+  //
+
+  void enableFileTransfers(bool enabled) { m_fileTransfersEnabled = enabled; }
+  bool isFileTransfersEnabled() { return m_fileTransfersEnabled; }
+
+  void enableRemovingDesktopWallpaper(bool enabled) { m_allowRemovingDesktopWallpaper = enabled; }
+  bool isRemovingDesktopWallpaperEnabled() { return m_allowRemovingDesktopWallpaper; }
+protected:
+
+  //
+  // Input handling options members group
+  //
+
+  bool m_blockRemoteInputEvents;
+  bool m_blockRemoteInputOnLocalActivity;
+  bool m_noLocalInputDuringClientSessions;
+  bool m_blankScreenOnClientConnections;
+
+  //
+  // Other server options members group
+  //
+
+  bool m_fileTransfersEnabled;
+  bool m_allowRemovingDesktopWallpaper;
 };
 
 #endif

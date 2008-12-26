@@ -29,6 +29,21 @@ public:
   ~ServerConfig(void);
 
   //
+  // Display (or port numbers) group
+  //
+
+  void setDisplayNumber(int displayNum) {
+    m_vncPort = 5900 + displayNum;
+    m_httpPort = 5800 + displayNum;
+  }
+
+  void setVncPort(int port) { m_vncPort = port; }
+  int getVncPort() { return m_vncPort; }
+
+  void setHttpPort(int port) { m_httpPort = port; }
+  int getHttpPort() { return m_httpPort; }
+
+  //
   // Input handling options access methods
   //
 
@@ -85,6 +100,13 @@ public:
   void enableRemovingDesktopWallpaper(bool enabled) { m_allowRemovingDesktopWallpaper = enabled; }
   bool isRemovingDesktopWallpaperEnabled() { return m_allowRemovingDesktopWallpaper; }
 protected:
+
+  //
+  // Server port numbers
+  //
+
+  int m_vncPort;
+  int m_httpPort;
 
   //
   // Input handling options members group

@@ -23,7 +23,7 @@
 #include "ServerConfig.h"
 
 ServerConfig::ServerConfig()
-: m_inactivityTimeout(3)
+: m_inactivityTimeout(3), m_vncPort(5900), m_httpPort(5800)
 {
 }
 

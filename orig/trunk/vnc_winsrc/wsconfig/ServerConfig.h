@@ -22,6 +22,8 @@
 #ifndef _SERVER_CONFIG_H_
 #define _SERVER_CONFIG_H_
 
+#include "common/tstring.h"
+
 class ServerConfig
 {
 public:

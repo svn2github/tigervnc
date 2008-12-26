@@ -50,7 +50,7 @@ void ConfigDialog::initControls()
 void ConfigDialog::loadSettings()
 {
   m_config.loadFromStorage(m_settingsManager);
-  for (int i = 0; i < m_config.getPortMappingContainer().size(); i++) {
+  for (size_t i = 0; i < m_config.getPortMappingContainer().size(); i++) {
     m_ctrlMappingListBox.insertString(i, (TCHAR *)m_config.getPortMappingContainer().at(i).toString().c_str());
   }
 }

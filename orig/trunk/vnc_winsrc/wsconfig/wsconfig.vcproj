@@ -183,6 +183,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\IpAccessControlContainer.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\PortMapping.cpp"
 				>
 			</File>
@@ -278,6 +282,10 @@
 			</File>
 			<File
 				RelativePath=".\IpAccessControl.h"
+				>
+			</File>
+			<File
+				RelativePath=".\IpAccessControlContainer.h"
 				>
 			</File>
 			<File

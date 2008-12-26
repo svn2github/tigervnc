@@ -42,7 +42,11 @@ public:
   bool isBlockingRemoteInputEvents() { return m_blockRemoteInputEvents; }
 
   void blockRemoteInputOnLocalActivity(bool blockEnabled) {
-    m_blockRemoteInputOnLocalActivity = blockEnabled;
+    if ((m_blockRemoteInputEvents) || (m_noLocalInputDuringClientSessions)) {
+      m_blockRemoteInputOnLocalActivity = false;
+    } else {
+      m_blockRemoteInputOnLocalActivity = blockEnabled;
+    }
   }
 
   bool isBlockingRemoteInputOnLocalActivity() {

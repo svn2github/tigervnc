@@ -50,8 +50,8 @@ void ConfigDialog::initControls()
 void ConfigDialog::loadSettings()
 {
   m_config.loadFromStorage(m_settingsManager);
-  for (int i = 0; i < m_config.m_vPortMapping.size(); i++) {
-    m_ctrlMappingListBox.insertString(i, (TCHAR *)m_config.m_vPortMapping.at(i).toString().c_str());
+  for (int i = 0; i < m_config.getPortMappingContainer().size(); i++) {
+    m_ctrlMappingListBox.insertString(i, (TCHAR *)m_config.getPortMappingContainer().at(i).toString().c_str());
   }
 }
 
@@ -118,7 +118,7 @@ void ConfigDialog::onAddButtonClick()
   portMappingDialog.setDialogType(Add);
   if (portMappingDialog.showModal() == IDOK) {
     PortMapping newMapping = portMappingDialog.getMapping();
-    m_config.m_vPortMapping.push_back(newMapping);
+    m_config.getPortMappingContainer().push_back(newMapping);
     m_ctrlMappingListBox.addString((TCHAR *)newMapping.toString().c_str());
     m_ctrlApplyButton.enable();
   }
@@ -133,10 +133,10 @@ void ConfigDialog::onEditButtonClick()
   if (selectedIndex == -1) {
     return ;
   }
-  portMappingDialog.setMapping(m_config.m_vPortMapping.at(selectedIndex));
+  portMappingDialog.setMapping(m_config.getPortMappingContainer().at(selectedIndex));
   if (portMappingDialog.showModal() == IDOK) {
     PortMapping editedMapping = portMappingDialog.getMapping();
-    PortMapping *oldPtrMapping = &m_config.m_vPortMapping.at(selectedIndex);
+    PortMapping *oldPtrMapping = &m_config.getPortMappingContainer().at(selectedIndex);
     *oldPtrMapping = editedMapping;
     m_ctrlMappingListBox.setItemText(selectedIndex,(TCHAR *)editedMapping.toString().c_str());
     m_ctrlApplyButton.enable();
@@ -150,10 +150,10 @@ void ConfigDialog::onRemoveButtonClick()
     return ;
   }
   m_ctrlMappingListBox.removeString(selectedIndex);
-  PortMappingVector::iterator it = m_config.m_vPortMapping.begin();
-  for (int j = 0; it != m_config.m_vPortMapping.end(); it++) {
+  PortMappingVector::iterator it = m_config.getPortMappingContainer().begin();
+  for (int j = 0; it != m_config.getPortMappingContainer().end(); it++) {
     if (j == selectedIndex) {
-      m_config.m_vPortMapping.erase(it);
+      m_config.getPortMappingContainer().erase(it);
       m_ctrlApplyButton.enable();
       break;
     }

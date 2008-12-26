@@ -32,7 +32,9 @@ public:
 public:
   bool saveToStorage(SettingsManager *sm);
   bool loadFromStorage(SettingsManager *sm);
-public:
+
+  PortMappingVector &getPortMappingContainer() { return m_vPortMapping; }
+protected:
   PortMappingVector m_vPortMapping;
 };
 

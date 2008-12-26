@@ -25,6 +25,19 @@
 class ServerConfig
 {
 public:
+
+  //
+  // Enum defines server action when last client disconnects
+  // from VNC server.
+  //
+
+  enum ClientDisconnectActionType {
+    CDAT_DO_NOTHING = 0,
+    CDAT_LOCK_WORKSTATION = 1,
+    CDAT_LOGOUT_WORKSTATION = 2
+  };
+
+public:
   ServerConfig(void);
   ~ServerConfig(void);
 
@@ -99,6 +112,18 @@ public:
 
   void enableRemovingDesktopWallpaper(bool enabled) { m_allowRemovingDesktopWallpaper = enabled; }
   bool isRemovingDesktopWallpaperEnabled() { return m_allowRemovingDesktopWallpaper; }
+
+  //
+  // Last client disconnect action members access group
+  //
+
+  void setServerActionOnLastClientDisconnect(ClientDisconnectActionType action) {
+    m_lastClientDisconnectAction = action;
+  }
+
+  ClientDisconnectActionType getServerActionOnLastClientDisconnect() {
+    return m_lastClientDisconnectAction;
+  }
 protected:
 
   //
@@ -125,6 +150,12 @@ protected:
 
   bool m_fileTransfersEnabled;
   bool m_allowRemovingDesktopWallpaper;
+
+  //
+  // Last client disconnect action members group
+  //
+
+  ClientDisconnectActionType m_lastClientDisconnectAction;
 };
 
 #endif

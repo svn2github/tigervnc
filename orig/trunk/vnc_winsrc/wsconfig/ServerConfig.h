@@ -53,6 +53,9 @@ public:
     return m_blockRemoteInputOnLocalActivity;
   }
 
+  unsigned int getInactivityTimeout() { return m_inactivityTimeout; }
+  void setInactivityTimeout(unsigned int value) { m_inactivityTimeout = value; }
+
   void enableLocalInputDuringClientSession(bool enabled) {
     m_noLocalInputDuringClientSessions = !enabled;
     if (m_noLocalInputDuringClientSessions) {
@@ -91,6 +94,8 @@ protected:
   bool m_blockRemoteInputOnLocalActivity;
   bool m_noLocalInputDuringClientSessions;
   bool m_blankScreenOnClientConnections;
+
+  unsigned int m_inactivityTimeout;
 
   //
   // Other server options members group

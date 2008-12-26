@@ -23,6 +23,7 @@
 #include "ServerConfig.h"
 
 ServerConfig::ServerConfig()
+: m_inactivityTimeout(3)
 {
 }
 

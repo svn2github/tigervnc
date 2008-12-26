@@ -124,6 +124,21 @@ public:
   ClientDisconnectActionType getServerActionOnLastClientDisconnect() {
     return m_lastClientDisconnectAction;
   }
+
+  //
+  // Incoming connections options group
+  //
+
+  bool allowSocketConnections() { return m_allowSocketConnections; }
+  void enableSocketConnections(bool enabled) { m_allowSocketConnections = enabled; }
+
+  //
+  // FIXME: Keep it just as string in memory without encription?
+  //
+
+  tstring getPassword() { return m_password; }
+  void setPassord(tstring value) { m_password = value; }
+
 protected:
 
   //
@@ -156,6 +171,13 @@ protected:
   //
 
   ClientDisconnectActionType m_lastClientDisconnectAction;
+
+  //
+  // Incoming connections options group
+  //
+
+  bool m_allowSocketConnections;
+  tstring m_password;
 };
 
 #endif

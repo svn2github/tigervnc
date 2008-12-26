@@ -25,8 +25,78 @@
 class AdministrationConfig
 {
 public:
+
+  enum ConnectionPriority {
+    ACCP_DISCONNECT_EXISTING_CONNECTIONS = 0,
+    ACCP_AUTOMATIC_SHARED_SESSIONS = 1,
+    ACCP_REFUSE_CONCURENT_CONNECTIONS = 2
+  };
+
+public:
   AdministrationConfig();
   ~AdministrationConfig();
+
+  bool allowLoopbackConnections() { return m_allowLoopbackConnections; }
+  void enableLoopbackConnections(bool enabled) {
+    m_allowLoopbackConnections = enabled;
+  }
+
+  bool allowOnlyLoopbackConnections() {
+    return m_allowOnlyLoopbackConnections;
+  }
+  void enableOnlyLoopbackConnections(bool enabled) {
+    m_allowOnlyLoopbackConnections = enabled;
+  }
+
+  bool isLogEnabled() {
+    return m_logEnabled;
+  }
+  void enableLog(bool enabled) {
+    m_logEnabled = enabled;
+  }
+
+  bool isLogDebugInformationEnabled() {
+    return m_logDebugInformation;
+  }
+  void enableLoggingDebugInformation(bool enabled) {
+    m_logDebugInformation = enabled;
+  }
+
+  bool isBuiltInHttpServerEnabled() {
+    return m_builtinHttpServerEnabled;
+  }
+  void enableBuiltinHttpServer(bool enabled) {
+    m_builtinHttpServerEnabled = enabled;
+  }
+
+  bool isAppletParamInUrlEnabled() {
+    return m_appletParamInUrlEnabled;
+  }
+  void enableAppletParamInUrl(bool enabled) {
+    m_appletParamInUrlEnabled = enabled;
+  }
+
+  ConnectionPriority getConnectionPriority() {
+    return m_connectionPriority;
+  }
+  void setConnectionPriority(ConnectionPriority priority) {
+    m_connectionPriority = priority;
+  }
+protected:
+  bool m_disableEmptyPasswords;
+
+  //
+  // FIXME: Do we need this members if we have IpAccessControlConatiner?
+  //
+
+  bool m_allowLoopbackConnections;
+  bool m_allowOnlyLoopbackConnections;
+
+  bool m_logEnabled;
+  bool m_logDebugInformation;
+  bool m_builtinHttpServerEnabled;
+  bool m_appletParamInUrlEnabled;
+  ConnectionPriority m_connectionPriority;
 };
 
 #endif

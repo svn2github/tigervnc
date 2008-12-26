@@ -23,6 +23,7 @@
 #include "AdministrationConfig.h"
 
 AdministrationConfig::AdministrationConfig()
+: m_connectionPriority(ACCP_REFUSE_CONCURENT_CONNECTIONS)
 {
 }
 

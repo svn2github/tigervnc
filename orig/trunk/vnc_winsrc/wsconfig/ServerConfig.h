@@ -44,6 +44,16 @@ public:
     DA_LOGOUT_WORKSTATION = 2
   };
 
+  //
+  // Client connection priority enum
+  //
+
+  enum ClientConnectionPriority {
+    CCP_DISCONNECT_EXISTING_CONNECTIONS = 0,
+    CCP_AUTOMATIC_SHARED_SESSIONS = 1,
+    CCP_REFUSE_CONCURENT_CONNECTIONS = 2
+  };
+
 public:
   ServerConfig(void);
   ~ServerConfig(void);
@@ -103,6 +113,42 @@ public:
   tstring getPassword() { return m_password; }
   void setPassord(tstring value) { m_password = value; }
 
+  //
+  // Settings from Administration tab
+  //
+
+  bool isOnlyLoopbackConnectionsAllowed() {
+    return m_allowOnlyLoopbackConnections;
+  }
+
+  void enableOnlyLoopbackConnections(bool enabled) {
+    m_allowOnlyLoopbackConnections = enabled;
+  }
+
+  bool isHttpServerEnabled() {
+    return m_httpServerEnabled;
+  }
+  void enableHttpServer(bool enabled) {
+    m_httpServerEnabled = enabled;
+  }
+
+  bool isAppletParamInUrlEnabled() {
+    return m_appletParamInUrlEnabled;
+  }
+  void enableAppletParamInUrl(bool enabled) {
+    m_appletParamInUrlEnabled = enabled;
+  }
+
+  ClientConnectionPriority getClientConnectionPriority() {
+    return m_clientConnectionPriority;
+  }
+  void setClientConnectionPriority(ClientConnectionPriority priority) {
+    m_clientConnectionPriority = priority;
+  }
+
+  int getLogLevel() { return m_logLevel; }
+  void setLogLevel(int logLevel) { m_logLevel = logLevel; }
+
 protected:
 
   //
@@ -133,6 +179,17 @@ protected:
 
   bool m_allowSocketConnections;
   tstring m_password;
+
+  //
+  // Settings from Administration tab
+  //
+
+  bool m_disableEmptyPasswords;
+  bool m_allowOnlyLoopbackConnections;
+  bool m_httpServerEnabled;
+  bool m_appletParamInUrlEnabled;
+  ClientConnectionPriority m_clientConnectionPriority;
+  int m_logLevel;
 };
 
 #endif

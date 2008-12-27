@@ -23,6 +23,7 @@
 #include "InputHandlingConfig.h"
 
 InputHandlingConfig::InputHandlingConfig()
+: m_inactivityTimeout(3)
 {
 }
 

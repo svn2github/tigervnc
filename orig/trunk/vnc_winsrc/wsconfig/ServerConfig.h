@@ -38,7 +38,7 @@ public:
   // from VNC server.
   //
 
-  enum ClientDisconnectActionType {
+  enum DisconnectAction {
     CDAT_DO_NOTHING = 0,
     CDAT_LOCK_WORKSTATION = 1,
     CDAT_LOGOUT_WORKSTATION = 2
@@ -81,12 +81,12 @@ public:
   // Last client disconnect action members access group
   //
 
-  void setServerActionOnLastClientDisconnect(ClientDisconnectActionType action) {
-    m_lastClientDisconnectAction = action;
+  void setServerActionOnLastClientDisconnect(DisconnectAction action) {
+    m_disconnectAction = action;
   }
 
-  ClientDisconnectActionType getServerActionOnLastClientDisconnect() {
-    return m_lastClientDisconnectAction;
+  DisconnectAction getServerActionOnLastClientDisconnect() {
+    return m_disconnectAction;
   }
 
   //
@@ -122,10 +122,10 @@ protected:
   bool m_allowRemovingDesktopWallpaper;
 
   //
-  // Last client disconnect action members group
+  // Server action when last client disconnects from server
   //
 
-  ClientDisconnectActionType m_lastClientDisconnectAction;
+  DisconnectAction m_disconnectAction;
 
   //
   // Incoming connections options group

@@ -39,9 +39,9 @@ public:
   //
 
   enum DisconnectAction {
-    CDAT_DO_NOTHING = 0,
-    CDAT_LOCK_WORKSTATION = 1,
-    CDAT_LOGOUT_WORKSTATION = 2
+    DA_DO_NOTHING = 0,
+    DA_LOCK_WORKSTATION = 1,
+    DA_LOGOUT_WORKSTATION = 2
   };
 
 public:

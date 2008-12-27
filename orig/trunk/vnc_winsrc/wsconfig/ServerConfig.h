@@ -117,6 +117,14 @@ public:
   // Settings from Administration tab
   //
 
+  bool isEmptyPasswordAllowed(bool enabled) {
+    return !m_disableEmptyPasswords;
+  }
+
+  void allowEmptyPassword(bool enabled) {
+    m_disableEmptyPasswords = !enabled;
+  }
+
   bool isOnlyLoopbackConnectionsAllowed() {
     return m_allowOnlyLoopbackConnections;
   }

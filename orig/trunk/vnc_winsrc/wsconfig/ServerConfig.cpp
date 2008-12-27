@@ -24,7 +24,8 @@
 
 ServerConfig::ServerConfig()
 : m_vncPort(5900), m_httpPort(5800),
-  m_disconnectAction(DA_DO_NOTHING)
+  m_disconnectAction(DA_DO_NOTHING), m_logLevel(0),
+  m_clientConnectionPriority(CCP_REFUSE_CONCURENT_CONNECTIONS)
 {
 }
 

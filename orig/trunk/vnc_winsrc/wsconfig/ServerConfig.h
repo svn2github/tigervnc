@@ -30,17 +30,6 @@ class ServerConfig
 public:
 
   //
-  // Area type that can be shared by the server
-  //
-
-  enum SharedDesktopAreaType {
-    SDAT_FULL_DESKTOP = 0,
-    SDAT_PRIMARY_DISPLAY = 1,
-    SDAT_RECTANGULAR_AREA = 2,
-    SDAT_ONE_WINDOW = 3
-  };
-
-  //
   // Enum defines server action when last client disconnects
   // from VNC server.
   //
@@ -153,24 +142,6 @@ public:
   tstring getPassword() { return m_password; }
   void setPassord(tstring value) { m_password = value; }
 
-  //
-  // Desktop shared area
-  //
-
-  SharedDesktopAreaType getSharedAreaType() {
-    return m_sharedAreaType;
-  }
-
-  void setSharedAreaType(SharedDesktopAreaType type) {
-    m_sharedAreaType = type;
-  }
-
-  Rect getSharedRect() { return m_sharedRect; }
-
-  void setSharedRect(Rect rect) {
-    m_sharedRect = rect;
-  }
-
 protected:
 
   //
@@ -210,13 +181,6 @@ protected:
 
   bool m_allowSocketConnections;
   tstring m_password;
-
-  //
-  // Display tab (see WinVNC properties dialog) members
-  //
-
-  SharedDesktopAreaType m_sharedAreaType;
-  Rect m_sharedRect;
 };
 
 #endif

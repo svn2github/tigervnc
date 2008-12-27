@@ -39,22 +39,9 @@ public:
   bool allowOnlyLoopbackConnections() {
     return m_allowOnlyLoopbackConnections;
   }
+
   void enableOnlyLoopbackConnections(bool enabled) {
     m_allowOnlyLoopbackConnections = enabled;
-  }
-
-  bool isLogEnabled() {
-    return m_logEnabled;
-  }
-  void enableLog(bool enabled) {
-    m_logEnabled = enabled;
-  }
-
-  bool isLogDebugInformationEnabled() {
-    return m_logDebugInformation;
-  }
-  void enableLoggingDebugInformation(bool enabled) {
-    m_logDebugInformation = enabled;
   }
 
   bool isBuiltInHttpServerEnabled() {
@@ -77,20 +64,16 @@ public:
   void setConnectionPriority(ConnectionPriority priority) {
     m_connectionPriority = priority;
   }
+
+  int getLogLevel() { return m_logLevel; }
+  void setLogLevel(int logLevel) { m_logLevel = logLevel; }
 protected:
   bool m_disableEmptyPasswords;
-
-  //
-  // FIXME: Do we need this members if we have IpAccessControlConatiner?
-  //
-
   bool m_allowOnlyLoopbackConnections;
-
-  bool m_logEnabled;
-  bool m_logDebugInformation;
   bool m_builtinHttpServerEnabled;
   bool m_appletParamInUrlEnabled;
   ConnectionPriority m_connectionPriority;
+  int m_logLevel;
 };
 
 #endif

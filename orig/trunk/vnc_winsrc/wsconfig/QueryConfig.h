@@ -35,13 +35,6 @@ public:
   QueryConfig();
   ~QueryConfig();
 
-  bool isQueryConsoleOnIncomingConnectionsEnabled() {
-    return m_queryConsoleOnIncomingConnections;
-  }
-  void enableQueryConsoleOnIncomingConnections(bool enabled) {
-    m_queryConsoleOnIncomingConnections = enabled;
-  }
-
   bool isAllowedOptionsToAcceptWithoutAuth() {
     return m_allowOptionsToAcceptWithoutAuth;
   }
@@ -55,7 +48,6 @@ public:
   QueryAction getDefaultAction() { return m_defaultAction; }
   void setDefaultAction(QueryAction defaultAction) { m_defaultAction = defaultAction; }
 protected:
-  bool m_queryConsoleOnIncomingConnections;
   bool m_allowOptionsToAcceptWithoutAuth;
   unsigned int m_queryTimeout;
   QueryAction m_defaultAction;

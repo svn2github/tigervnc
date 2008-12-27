@@ -36,11 +36,6 @@ public:
   AdministrationConfig();
   ~AdministrationConfig();
 
-  bool allowLoopbackConnections() { return m_allowLoopbackConnections; }
-  void enableLoopbackConnections(bool enabled) {
-    m_allowLoopbackConnections = enabled;
-  }
-
   bool allowOnlyLoopbackConnections() {
     return m_allowOnlyLoopbackConnections;
   }
@@ -89,7 +84,6 @@ protected:
   // FIXME: Do we need this members if we have IpAccessControlConatiner?
   //
 
-  bool m_allowLoopbackConnections;
   bool m_allowOnlyLoopbackConnections;
 
   bool m_logEnabled;

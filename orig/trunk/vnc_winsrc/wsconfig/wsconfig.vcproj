@@ -183,6 +183,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\InputHandlingConfig.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\IpAccessControl.cpp"
 				>
 			</File>
@@ -294,6 +298,10 @@
 			</File>
 			<File
 				RelativePath=".\ConfigDialog.h"
+				>
+			</File>
+			<File
+				RelativePath=".\InputHandlingConfig.h"
 				>
 			</File>
 			<File

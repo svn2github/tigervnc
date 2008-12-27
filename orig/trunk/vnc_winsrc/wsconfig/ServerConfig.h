@@ -25,6 +25,10 @@
 #include "common/tstring.h"
 #include "Rect.h"
 
+//
+// FIXME: truncate members and methods names
+//
+
 class ServerConfig
 {
 public:
@@ -58,49 +62,6 @@ public:
 
   void setHttpPort(int port) { m_httpPort = port; }
   int getHttpPort() { return m_httpPort; }
-
-  //
-  // Input handling options access methods
-  //
-
-  void blockRemoteInputEvents(bool blockEnabled) {
-    m_blockRemoteInputEvents = blockEnabled;
-    if (m_blockRemoteInputEvents) {
-      blockRemoteInputOnLocalActivity(false);
-    }
-  }
-
-  bool isBlockingRemoteInputEvents() { return m_blockRemoteInputEvents; }
-
-  void blockRemoteInputOnLocalActivity(bool blockEnabled) {
-    if ((m_blockRemoteInputEvents) || (m_noLocalInputDuringClientSessions)) {
-      m_blockRemoteInputOnLocalActivity = false;
-    } else {
-      m_blockRemoteInputOnLocalActivity = blockEnabled;
-    }
-  }
-
-  bool isBlockingRemoteInputOnLocalActivity() {
-    return m_blockRemoteInputOnLocalActivity;
-  }
-
-  unsigned int getInactivityTimeout() { return m_inactivityTimeout; }
-  void setInactivityTimeout(unsigned int value) { m_inactivityTimeout = value; }
-
-  void enableLocalInputDuringClientSession(bool enabled) {
-    m_noLocalInputDuringClientSessions = !enabled;
-    if (m_noLocalInputDuringClientSessions) {
-      blockRemoteInputOnLocalActivity(false);
-    }
-  }
-
-  bool isLocalInputDuringClientSessionEnabled() {
-    return !m_noLocalInputDuringClientSessions;
-  }
-
-  void enableBlankScreenOnClientConnection(bool enabled) {
-    m_blankScreenOnClientConnections = enabled;
-  }
 
   bool isBlackScreenOnClientConnectionEnabled() {
     return m_blankScreenOnClientConnections;
@@ -151,16 +112,7 @@ protected:
   int m_vncPort;
   int m_httpPort;
 
-  //
-  // Input handling options members group
-  //
-
-  bool m_blockRemoteInputEvents;
-  bool m_blockRemoteInputOnLocalActivity;
-  bool m_noLocalInputDuringClientSessions;
   bool m_blankScreenOnClientConnections;
-
-  unsigned int m_inactivityTimeout;
 
   //
   // Other server options members group

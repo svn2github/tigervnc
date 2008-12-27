@@ -74,18 +74,18 @@ public:
   void enableFileTransfers(bool enabled) { m_fileTransfersEnabled = enabled; }
   bool isFileTransfersEnabled() { return m_fileTransfersEnabled; }
 
+  //
+  // FIXME: What is this???
+  //
+
   void enableRemovingDesktopWallpaper(bool enabled) { m_allowRemovingDesktopWallpaper = enabled; }
   bool isRemovingDesktopWallpaperEnabled() { return m_allowRemovingDesktopWallpaper; }
 
-  //
-  // Last client disconnect action members access group
-  //
-
-  void setServerActionOnLastClientDisconnect(DisconnectAction action) {
+  void setClientDisconnectAction(DisconnectAction action) {
     m_disconnectAction = action;
   }
 
-  DisconnectAction getServerActionOnLastClientDisconnect() {
+  DisconnectAction getClientDisconnectAction() {
     return m_disconnectAction;
   }
 
@@ -93,7 +93,7 @@ public:
   // Incoming connections options group
   //
 
-  bool allowSocketConnections() { return m_allowSocketConnections; }
+  bool isSocketConnectionsAllowed() { return m_allowSocketConnections; }
   void enableSocketConnections(bool enabled) { m_allowSocketConnections = enabled; }
 
   //

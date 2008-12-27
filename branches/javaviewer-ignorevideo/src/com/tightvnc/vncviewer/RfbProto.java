@@ -100,6 +100,8 @@ class RfbProto {
   // Non-standard client-to-server messages
   final static int EnableContinuousUpdates = 150;
   final static int VideoRectangleSelection = 151;
+  final static int VideoFreeze = 152;
+  final static String SigVideoFreeze = "VD_FREEZ";
   final static String SigEnableContinuousUpdates = "CUC_ENCU";
   final static String SigVideoRectangleSelection = "VRECTSEL";
 
@@ -502,6 +504,9 @@ class RfbProto {
     clientMsgCaps.add(VideoRectangleSelection, TightVncVendor,
                       SigVideoRectangleSelection,
                       "Select a rectangle to be treated as video");
+    clientMsgCaps.add(VideoFreeze, TightVncVendor,
+                      SigVideoFreeze,
+                      "Disable/enable video rectangle");
 
     // Supported encoding types
     encodingCaps.add(EncodingCopyRect, StandardVendor,
@@ -1399,6 +1404,27 @@ class RfbProto {
     os.write(b);
 
     System.out.println("Video rectangle selection message sent");
+  }
+
+  void trySendVideoFreeze(boolean freeze) throws IOException
+  {
+    if (!clientMsgCaps.isEnabled(VideoFreeze)) {
+      System.out.println("Video freeze is not supported by the server");
+      return;
+    }
+
+    byte[] b = new byte[2];
+    byte fb = 0;
+    if (freeze) {
+      fb = 1;
+    }
+
+    b[0] = (byte) VideoFreeze;
+    b[1] = (byte) fb;
+
+    os.write(b);
+
+    System.out.println("Video freeze selection message sent");
   }
 
 

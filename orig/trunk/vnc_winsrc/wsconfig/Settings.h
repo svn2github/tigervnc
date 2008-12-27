@@ -52,6 +52,29 @@ public:
   QueryConfig &getQueryConfig() { return m_queryConfig; }
 
   InputHandlingConfig &getInputConfig() { return m_inputConfig; }
+private:
+
+  //
+  // Serialize and deserialize methods
+  //
+
+  bool savePortMappingContainerToStorage(SettingsManager *sm);
+  bool loadPortMappingContainerFromStorage(SettingsManager *sm, PortMappingVector *portMapping);
+
+  bool saveIpAccessControlContainerToStorage(SettingsManager *sm);
+  bool loadIpAccessControlContainerFromStorage(SettingsManager *sm,
+                                               IpAccessControlContainer *ipContainer);
+
+  bool saveServerConfigToStorage(SettingsManager *sm);
+  bool loadServerConfigFromStorage(SettingsManager *sm, ServerConfig *config);
+
+  bool saveQueryConfigToStorage(SettingsManager *sm);
+  bool loadQueryConfigFromStorage(SettingsManager *sm, QueryConfig *config);
+
+  bool saveInputHandlingConfigToStorage(SettingsManager *sm);
+  bool loadInputHandlingConfigFromStorage(SettingsManager *sm,
+                                          InputHandlingConfig *config);
+
 protected:
   PortMappingVector m_vPortMapping;
   IpAccessControlContainer m_accessControlContainer;

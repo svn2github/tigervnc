@@ -26,17 +26,17 @@ class AdministrationConfig
 {
 public:
 
-  enum ConnectionPriority {
-    ACCP_DISCONNECT_EXISTING_CONNECTIONS = 0,
-    ACCP_AUTOMATIC_SHARED_SESSIONS = 1,
-    ACCP_REFUSE_CONCURENT_CONNECTIONS = 2
+  enum ClientConnectionPriority {
+    CCP_DISCONNECT_EXISTING_CONNECTIONS = 0,
+    CCP_AUTOMATIC_SHARED_SESSIONS = 1,
+    CCP_REFUSE_CONCURENT_CONNECTIONS = 2
   };
 
 public:
   AdministrationConfig();
   ~AdministrationConfig();
 
-  bool allowOnlyLoopbackConnections() {
+  bool isOnlyLoopbackConnectionsAllowed() {
     return m_allowOnlyLoopbackConnections;
   }
 
@@ -44,11 +44,11 @@ public:
     m_allowOnlyLoopbackConnections = enabled;
   }
 
-  bool isBuiltInHttpServerEnabled() {
-    return m_builtinHttpServerEnabled;
+  bool isHttpServerEnabled() {
+    return m_httpServerEnabled;
   }
-  void enableBuiltinHttpServer(bool enabled) {
-    m_builtinHttpServerEnabled = enabled;
+  void enableHttpServer(bool enabled) {
+    m_httpServerEnabled = enabled;
   }
 
   bool isAppletParamInUrlEnabled() {
@@ -58,11 +58,11 @@ public:
     m_appletParamInUrlEnabled = enabled;
   }
 
-  ConnectionPriority getConnectionPriority() {
-    return m_connectionPriority;
+  ClientConnectionPriority getClientConnectionPriority() {
+    return m_clientConnectionPriority;
   }
-  void setConnectionPriority(ConnectionPriority priority) {
-    m_connectionPriority = priority;
+  void setClientConnectionPriority(ClientConnectionPriority priority) {
+    m_clientConnectionPriority = priority;
   }
 
   int getLogLevel() { return m_logLevel; }
@@ -70,9 +70,9 @@ public:
 protected:
   bool m_disableEmptyPasswords;
   bool m_allowOnlyLoopbackConnections;
-  bool m_builtinHttpServerEnabled;
+  bool m_httpServerEnabled;
   bool m_appletParamInUrlEnabled;
-  ConnectionPriority m_connectionPriority;
+  ClientConnectionPriority m_clientConnectionPriority;
   int m_logLevel;
 };
 

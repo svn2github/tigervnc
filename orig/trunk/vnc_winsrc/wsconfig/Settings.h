@@ -24,6 +24,10 @@
 
 #include "common/SettingsManager.h"
 #include "PortMappingVector.h"
+#include "IpAccessControlContainer.h"
+#include "ServerConfig.h"
+#include "QueryConfig.h"
+#include "InputHandlingConfig.h"
 
 class Settings
 {
@@ -33,9 +37,32 @@ public:
   bool saveToStorage(SettingsManager *sm);
   bool loadFromStorage(SettingsManager *sm);
 
+  //
+  // Protected members read methods
+  //
+
   PortMappingVector &getPortMappingContainer() { return m_vPortMapping; }
+
+  IpAccessControlContainer getAccessControlContainer() {
+    return m_accessControlContainer;
+  }
+
+  ServerConfig &getServerConfig() { return m_serverConfig; }
+
+  QueryConfig &getQueryConfig() { return m_queryConfig; }
+
+  InputHandlingConfig &getInputConfig() { return m_inputConfig; }
 protected:
   PortMappingVector m_vPortMapping;
+  IpAccessControlContainer m_accessControlContainer;
+  ServerConfig m_serverConfig;
+  QueryConfig m_queryConfig;
+
+  //
+  // FIXME: Maybe move this member to ServerConfig class?
+  //
+
+  InputHandlingConfig m_inputConfig;
 };
 
 #endif

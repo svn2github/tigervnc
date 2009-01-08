@@ -57,7 +57,7 @@ LINK32=link.exe
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PreLink_Desc=Updating BuildTime
-PreLink_Cmds=cl /c /nologo /Fo.\Release\ /Fd.\Release /MT BuildTime.cpp
+PreLink_Cmds=cl /c /nologo /Fo.\Release\vncviewer\ /Fd.\Release\vncviewer /MT BuildTime.cpp
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "vncviewer - Win32 Debug"
@@ -88,7 +88,7 @@ LINK32=link.exe
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PreLink_Desc=Updating BuildTime
-PreLink_Cmds=cl /c /nologo /Fo.\Debug\ /Fd.\Debug /MTd BuildTime.cpp
+PreLink_Cmds=cl /c /nologo /Fo.\Debug\vncviewer\ /Fd.\Debug\vncviewer /MTd BuildTime.cpp
 # End Special Build Tool
 
 !ENDIF 

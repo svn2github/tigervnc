@@ -60,7 +60,7 @@ LINK32=link.exe
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PreLink_Desc=Updating BuildTime
-PreLink_Cmds=cl /c /nologo /Fo.\Release\ /Fd.\Release /MT BuildTime.cpp
+PreLink_Cmds=cl /c /nologo /Fo.\Release\winvnc\ /Fd.\Release\winvnc /MT BuildTime.cpp
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Debug"
@@ -92,7 +92,7 @@ LINK32=link.exe
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PreLink_Desc=Updating BuildTime
-PreLink_Cmds=cl /c /nologo /Fo.\Debug\ /Fd.\Debug /MTd BuildTime.cpp
+PreLink_Cmds=cl /c /nologo /Fo.\Debug\winvnc\ /Fd.\Debug\winvnc /MTd BuildTime.cpp
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 Profile"
@@ -124,7 +124,7 @@ LINK32=link.exe
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PreLink_Desc=Updating BuildTime
-PreLink_Cmds=cl /c /nologo /Fo.\Profile\ /Fd.\Profile /MT BuildTime.cpp
+PreLink_Cmds=cl /c /nologo /Fo.\Profile\winvnc\ /Fd.\Profile\winvnc /MT BuildTime.cpp
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "WinVNC - Win32 HorizonLive"

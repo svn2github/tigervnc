@@ -761,7 +761,7 @@ vncService::PostReloadMessage()
 
 // ROUTINE TO PROCESS AN INCOMING INSTANCE OF THE ABOVE MESSAGE
 BOOL
-vncService::ProcessUserHelperMessage(WPARAM wParam, LPARAM lParam) {
+vncService::ProcessUserHelperMessage(DWORD processId) {
 	// - Check the platform type
 	if (!IsWinNT() || !vncService::RunningAsService())
 		return TRUE;
@@ -778,7 +778,7 @@ vncService::ProcessUserHelperMessage(WPARAM wParam, LPARAM lParam) {
 	g_impersonating_user = FALSE;
 
 	// - Open the specified process
-	HANDLE processHandle = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, (DWORD)lParam);
+	HANDLE processHandle = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, processId);
 	if (processHandle == NULL) {
 		vnclog.Print(LL_INTERR, VNCLOG("failed to open specified process, error=%d\n"),
 					 GetLastError());

@@ -71,7 +71,7 @@ public:
 	static BOOL PostUserHelperMessage();
 	static BOOL PostReloadMessage();
 	// Routine to process a user helper message
-	static BOOL ProcessUserHelperMessage(WPARAM wParam, LPARAM lParam);
+	static BOOL ProcessUserHelperMessage(DWORD processId);
 
 	// Routines to establish which OS we're running on
 	static BOOL IsWin95();

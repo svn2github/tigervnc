@@ -828,6 +828,8 @@ vncClientThread::run(void *arg)
 				break;
 			}
 
+			vnclog.Print(LL_INTINFO, VNCLOG("SetPixelFormat message received\n"));
+
 			// Swap the relevant bits.
 			msg.spf.format.redMax = Swap16IfLE(msg.spf.format.redMax);
 			msg.spf.format.greenMax = Swap16IfLE(msg.spf.format.greenMax);
@@ -856,6 +858,8 @@ vncClientThread::run(void *arg)
 				connected = FALSE;
 				break;
 			}
+
+			vnclog.Print(LL_INTINFO, VNCLOG("SetEncodings message received\n"));
 
 			m_client->m_buffer->SetQualityLevel(-1);
 			m_client->m_buffer->SetCompressLevel(6);
@@ -1009,6 +1013,12 @@ vncClientThread::run(void *arg)
 				break;
 			}
 
+			if (msg.fur.incremental) {
+				vnclog.Print(LL_INTINFO, VNCLOG("FramebufferUpdateRequest(incr) received\n"));
+			} else {
+				vnclog.Print(LL_INTINFO, VNCLOG("FramebufferUpdateRequest(full) received\n"));
+			}
+
 			{
 				RECT update;
 				RECT sharedRect;
@@ -1071,6 +1081,8 @@ vncClientThread::run(void *arg)
 			// Read the rest of the message:
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbKeyEventMsg-1))
 			{
+				vnclog.Print(LL_INTINFO, VNCLOG("KeyEvent message received\n"));
+
 				if (m_client->IsKeyboardEnabled() && !m_client->IsInputBlocked())
 				{
 					msg.ke.key = Swap32IfLE(msg.ke.key);
@@ -1086,6 +1098,8 @@ vncClientThread::run(void *arg)
 			// Read the rest of the message:
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbPointerEventMsg-1))
 			{
+				vnclog.Print(LL_INTINFO, VNCLOG("PointerEvent message received\n"));
+
 				if (m_client->IsPointerEnabled() && !m_client->IsInputBlocked())
 				{
 					// Convert the coords to Big Endian
@@ -1190,6 +1204,8 @@ vncClientThread::run(void *arg)
 			// Read the rest of the message:
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbClientCutTextMsg-1))
 			{
+				vnclog.Print(LL_INTINFO, VNCLOG("ClientCutText message received\n"));
+
 				// Allocate storage for the text
 				const UINT length = Swap32IfLE(msg.cct.length);
 				char *text = new char [length+1];
@@ -1219,6 +1235,8 @@ vncClientThread::run(void *arg)
 			}
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileListRequestMsg-1))
 			{
+				vnclog.Print(LL_INTINFO, VNCLOG("FileListRequest message received\n"));
+
 				msg.flr.dirNameSize = Swap16IfLE(msg.flr.dirNameSize);
 				if (msg.flr.dirNameSize > 255) break;
 				char path[255 + 1];
@@ -1333,6 +1351,8 @@ vncClientThread::run(void *arg)
 			}
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileDownloadRequestMsg-1))
 			{
+				vnclog.Print(LL_INTINFO, VNCLOG("FileDownloadRequest message received\n"));
+
 				if (!vncService::tryImpersonate()) {
 					char reason[] = "Cannot impersonate logged on user";
 					int reasonLen = strlen(reason);
@@ -1404,6 +1424,8 @@ vncClientThread::run(void *arg)
 			}
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileUploadRequestMsg-1))
 			{
+				vnclog.Print(LL_INTINFO, VNCLOG("FileUploadRequest message received\n"));
+
 				if (!vncService::tryImpersonate()) {
 					char reason[] = "Cannot impersonate logged on user";
 					int reasonLen = strlen(reason);
@@ -1466,6 +1488,8 @@ vncClientThread::run(void *arg)
 			}
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileUploadDataMsg-1))
 			{
+				vnclog.Print(LL_INTINFO, VNCLOG("FileUploadData message received\n"));
+
 				if (!vncService::tryImpersonate()) {
 					char reason[] = "Cannot impersonate logged on user";
 					int reasonLen = strlen(reason);
@@ -1533,6 +1557,8 @@ vncClientThread::run(void *arg)
 			}
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileDownloadCancelMsg-1))
 			{
+				vnclog.Print(LL_INTINFO, VNCLOG("FileDownloadCancel message received\n"));
+
 				vncService::tryImpersonate();
 				msg.fdc.reasonLen = Swap16IfLE(msg.fdc.reasonLen);
 				char *reason = new char[msg.fdc.reasonLen + 1];
@@ -1551,6 +1577,8 @@ vncClientThread::run(void *arg)
 			}
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileUploadFailedMsg-1))
 			{
+				vnclog.Print(LL_INTINFO, VNCLOG("FileUploadFailed message received\n"));
+
 				vncService::tryImpersonate();
 				msg.fuf.reasonLen = Swap16IfLE(msg.fuf.reasonLen);
 				char *reason = new char[msg.fuf.reasonLen + 1];
@@ -1569,6 +1597,8 @@ vncClientThread::run(void *arg)
 			}
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileCreateDirRequestMsg-1))
 			{
+				vnclog.Print(LL_INTINFO, VNCLOG("FileCreateDirRequest message received\n"));
+
 				vncService::tryImpersonate();
 				msg.fcdr.dNameLen = Swap16IfLE(msg.fcdr.dNameLen);
 				char *dirName = new char[msg.fcdr.dNameLen + 1];

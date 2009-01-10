@@ -1225,11 +1225,32 @@ vncClientThread::run(void *arg)
 				m_socket->ReadExact(path, msg.flr.dirNameSize);
 				path[msg.flr.dirNameSize] = '\0';
 				ConvertPath(path);
+				if (!vncService::tryImpersonate()) {
+					omni_mutex_lock l(m_client->m_sendUpdateLock);
+					rfbFileListDataMsg fld;
+					fld.type = rfbFileListData;
+					fld.numFiles = Swap16IfLE(0);
+					fld.dataSize = Swap16IfLE(0);
+					fld.compressedSize = Swap16IfLE(0);
+					fld.flags = msg.flr.flags | 0x80;
+					m_socket->SendExact((char *)&fld, sz_rfbFileListDataMsg);
+					break;
+				}
 				FileTransferItemInfo ftii;
 				if (strlen(path) == 0) {
 					TCHAR szDrivesList[256];
-					if (GetLogicalDriveStrings(255, szDrivesList) == 0)
+					if (GetLogicalDriveStrings(255, szDrivesList) == 0) {
+						omni_mutex_lock l(m_client->m_sendUpdateLock);
+						rfbFileListDataMsg fld;
+						fld.type = rfbFileListData;
+						fld.numFiles = Swap16IfLE(0);
+						fld.dataSize = Swap16IfLE(0);
+						fld.compressedSize = Swap16IfLE(0);
+						fld.flags = msg.flr.flags | 0x80;
+						m_socket->SendExact((char *)&fld, sz_rfbFileListDataMsg);
+						vncService::undoImpersonate();
 						break;
+					}
 					int i = 0;
 					while (szDrivesList[i] != '\0') {
 						char *drive = strdup(&szDrivesList[i]);
@@ -1265,6 +1286,7 @@ vncClientThread::run(void *arg)
 							}
 
 						} while (FindNextFile(FLRhandle, &FindFileData));
+						FindClose(FLRhandle);
 					} else {
 						if (LastError != ERROR_SUCCESS && LastError != ERROR_FILE_NOT_FOUND) {
 							omni_mutex_lock l(m_client->m_sendUpdateLock);
@@ -1276,10 +1298,10 @@ vncClientThread::run(void *arg)
 							fld.compressedSize = Swap16IfLE(0);
 							fld.flags = msg.flr.flags | 0x80;
 							m_socket->SendExact((char *)&fld, sz_rfbFileListDataMsg);
+							vncService::undoImpersonate();
 							break;
 						}
 					}
-					FindClose(FLRhandle);	
 				}
 				int dsSize = ftii.GetNumEntries() * 8;
 				int msgLen = sz_rfbFileListDataMsg + dsSize + ftii.GetSummaryNamesLength() + ftii.GetNumEntries();
@@ -1300,6 +1322,7 @@ vncClientThread::run(void *arg)
 				}
 				omni_mutex_lock l(m_client->m_sendUpdateLock);
 				m_socket->SendExact(pAllMessage, msgLen);
+				vncService::undoImpersonate();
 			}
 			break;
 
@@ -1310,6 +1333,12 @@ vncClientThread::run(void *arg)
 			}
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileDownloadRequestMsg-1))
 			{
+				if (!vncService::tryImpersonate()) {
+					char reason[] = "Cannot impersonate logged on user";
+					int reasonLen = strlen(reason);
+					m_client->SendFileDownloadFailed(reasonLen, reason);
+					break;
+				}
 				msg.fdr.fNameSize = Swap16IfLE(msg.fdr.fNameSize);
 				msg.fdr.position = Swap32IfLE(msg.fdr.position);
 				if (msg.fdr.fNameSize > 255) {
@@ -1317,6 +1346,7 @@ vncClientThread::run(void *arg)
 					char reason[] = "Path length exceeds 255 bytes";
 					int reasonLen = strlen(reason);
 					m_client->SendFileDownloadFailed(reasonLen, reason);
+					vncService::undoImpersonate();
 					break;
 				}
 				char path_file[255];
@@ -1345,6 +1375,7 @@ vncClientThread::run(void *arg)
 					char reason[] = "Cannot open file, perhaps it is absent or is a directory";
 					int reasonLen = strlen(reason);
 					m_client->SendFileDownloadFailed(reasonLen, reason);
+					vncService::undoImpersonate();
 					break;
 				}
 				sz_rfbFileSize = FindFileData.nFileSizeLow;
@@ -1362,6 +1393,7 @@ vncClientThread::run(void *arg)
 						m_client->SendFileDownloadPortion();
 					}
 				}
+				vncService::undoImpersonate();
 			}
 			break;
 
@@ -1372,6 +1404,12 @@ vncClientThread::run(void *arg)
 			}
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileUploadRequestMsg-1))
 			{
+				if (!vncService::tryImpersonate()) {
+					char reason[] = "Cannot impersonate logged on user";
+					int reasonLen = strlen(reason);
+					m_client->SendFileUploadCancel(reasonLen, reason);
+					break;
+				}
 				msg.fupr.fNameSize = Swap16IfLE(msg.fupr.fNameSize);
 				msg.fupr.position = Swap32IfLE(msg.fupr.position);
 				if (msg.fupr.fNameSize > MAX_PATH) {
@@ -1379,6 +1417,7 @@ vncClientThread::run(void *arg)
 					char reason[] = "Path length exceeds MAX_PATH value";
 					int reasonLen = strlen(reason);
 					m_client->SendFileUploadCancel(reasonLen, reason);
+					vncService::undoImpersonate();
 					break;
 				}
 				m_socket->ReadExact(m_client->m_UploadFilename, msg.fupr.fNameSize);
@@ -1392,9 +1431,11 @@ vncClientThread::run(void *arg)
 					char reason[] = "Could not create file";
 					int reasonLen = strlen(reason);
 					m_client->SendFileUploadCancel(reasonLen, reason);
+					vncService::undoImpersonate();
+					break;
 				}
-				DWORD dwError = GetLastError();
 				/*
+				DWORD dwError = GetLastError();
 				SYSTEMTIME systime;
 				FILETIME filetime;
 				GetSystemTime(&systime);
@@ -1414,6 +1455,7 @@ vncClientThread::run(void *arg)
 					}
 				}
 				*/
+				vncService::undoImpersonate();
 			}				
 			break;
 
@@ -1424,6 +1466,13 @@ vncClientThread::run(void *arg)
 			}
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileUploadDataMsg-1))
 			{
+				if (!vncService::tryImpersonate()) {
+					char reason[] = "Cannot impersonate logged on user";
+					int reasonLen = strlen(reason);
+					m_client->SendFileUploadCancel(reasonLen, reason);
+					m_client->CloseUndoneFileTransfer();
+					break;
+				}
 				msg.fud.realSize = Swap16IfLE(msg.fud.realSize);
 				msg.fud.compressedSize = Swap16IfLE(msg.fud.compressedSize);
 				if ((msg.fud.realSize == 0) && (msg.fud.compressedSize == 0)) {
@@ -1449,27 +1498,31 @@ vncClientThread::run(void *arg)
 //								 m_client->m_UploadFilename, dwBytePerSecond, dwFileSize, uploadTime);
 					vnclog.Print(LL_CLIENTS, VNCLOG("file upload complete: %s;\n"),
 								 m_client->m_UploadFilename);
+					vncService::undoImpersonate();
 					break;
 				}
 				DWORD dwNumberOfBytesWritten;
 				char *pBuff = new char [msg.fud.compressedSize];
 				m_socket->ReadExact(pBuff, msg.fud.compressedSize);
 				if (msg.fud.compressedLevel != 0) {
+					delete[] pBuff;
 					char reason[] = "Server does not support data compression on upload";
 					int reasonLen = strlen(reason);
 					m_client->SendFileUploadCancel(reasonLen, reason);
 					m_client->CloseUndoneFileTransfer();
+					vncService::undoImpersonate();
 					break;
 				}
 				BOOL bResult = WriteFile(m_client->m_hFileToWrite, pBuff, msg.fud.compressedSize, &dwNumberOfBytesWritten, NULL);
+				delete[] pBuff;
 				if ((dwNumberOfBytesWritten != msg.fud.compressedSize) || !bResult) {
 					char reason[] = "Error writing file data";
 					int reasonLen = strlen(reason);
 					m_client->SendFileUploadCancel(reasonLen, reason);
 					m_client->CloseUndoneFileTransfer();
+					vncService::undoImpersonate();
 					break;
 				}
-				delete [] pBuff;
 			}
 			break;
 
@@ -1480,12 +1533,14 @@ vncClientThread::run(void *arg)
 			}
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileDownloadCancelMsg-1))
 			{
+				vncService::tryImpersonate();
 				msg.fdc.reasonLen = Swap16IfLE(msg.fdc.reasonLen);
 				char *reason = new char[msg.fdc.reasonLen + 1];
 				m_socket->ReadExact(reason, msg.fdc.reasonLen);
 				reason[msg.fdc.reasonLen] = '\0';
 				m_client->CloseUndoneFileTransfer();
 				delete [] reason;
+				vncService::undoImpersonate();
 			}
 			break;
 
@@ -1496,12 +1551,14 @@ vncClientThread::run(void *arg)
 			}
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileUploadFailedMsg-1))
 			{
+				vncService::tryImpersonate();
 				msg.fuf.reasonLen = Swap16IfLE(msg.fuf.reasonLen);
 				char *reason = new char[msg.fuf.reasonLen + 1];
 				m_socket->ReadExact(reason, msg.fuf.reasonLen);
 				reason[msg.fuf.reasonLen] = '\0';
 				m_client->CloseUndoneFileTransfer();
 				delete [] reason;
+				vncService::undoImpersonate();
 			}
 			break;
 
@@ -1512,6 +1569,7 @@ vncClientThread::run(void *arg)
 			}
 			if (m_socket->ReadExact(((char *) &msg)+1, sz_rfbFileCreateDirRequestMsg-1))
 			{
+				vncService::tryImpersonate();
 				msg.fcdr.dNameLen = Swap16IfLE(msg.fcdr.dNameLen);
 				char *dirName = new char[msg.fcdr.dNameLen + 1];
 				m_socket->ReadExact(dirName, msg.fcdr.dNameLen);
@@ -1519,6 +1577,7 @@ vncClientThread::run(void *arg)
 				dirName = ConvertPath(dirName);
 				CreateDirectory((LPCTSTR) dirName, NULL);
 				delete [] dirName;
+				vncService::undoImpersonate();
 			}
 
 			break;

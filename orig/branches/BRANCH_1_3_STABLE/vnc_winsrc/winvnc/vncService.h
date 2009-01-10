@@ -1,4 +1,5 @@
 //  Copyright (C) 1999 AT&T Laboratories Cambridge. All Rights Reserved.
+//  Copyright (C) 2009 GlavSoft LLC. All Rights Reserved.
 //
 //  This file is part of the VNC system.
 //
@@ -46,6 +47,7 @@ class vncService
 {
 public:
 	vncService();
+	~vncService();
 
 	// SERVICE INSTALL & START FUNCTIONS
 
@@ -72,6 +74,12 @@ public:
 	static BOOL PostReloadMessage();
 	// Routine to process a user helper message
 	static BOOL ProcessUserHelperMessage(DWORD processId);
+
+	// Impersonate current user in an arbitrary thread. This function assumes
+	// that ProcessUserHelperMessage() was called when user logged on.
+	static bool tryImpersonate();
+	// Revert to self after successful tryImpersonate().
+	static void undoImpersonate();
 
 	// Routines to establish which OS we're running on
 	static BOOL IsWin95();

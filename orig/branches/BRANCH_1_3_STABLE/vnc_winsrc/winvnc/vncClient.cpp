@@ -1353,14 +1353,16 @@ vncClientThread::run(void *arg)
 			{
 				vnclog.Print(LL_INTINFO, VNCLOG("FileDownloadRequest message received\n"));
 
+				msg.fdr.fNameSize = Swap16IfLE(msg.fdr.fNameSize);
+				msg.fdr.position = Swap32IfLE(msg.fdr.position);
+
 				if (!vncService::tryImpersonate()) {
+					m_socket->ReadExact(NULL, msg.fdr.fNameSize);
 					char reason[] = "Cannot impersonate logged on user";
 					int reasonLen = strlen(reason);
 					m_client->SendFileDownloadFailed(reasonLen, reason);
 					break;
 				}
-				msg.fdr.fNameSize = Swap16IfLE(msg.fdr.fNameSize);
-				msg.fdr.position = Swap32IfLE(msg.fdr.position);
 				if (msg.fdr.fNameSize > 255) {
 					m_socket->ReadExact(NULL, msg.fdr.fNameSize);
 					char reason[] = "Path length exceeds 255 bytes";
@@ -1369,7 +1371,7 @@ vncClientThread::run(void *arg)
 					vncService::undoImpersonate();
 					break;
 				}
-				char path_file[255];
+				char path_file[255 + 1];
 				m_socket->ReadExact(path_file, msg.fdr.fNameSize);
 				path_file[msg.fdr.fNameSize] = '\0';
 				ConvertPath(path_file);
@@ -1426,14 +1428,16 @@ vncClientThread::run(void *arg)
 			{
 				vnclog.Print(LL_INTINFO, VNCLOG("FileUploadRequest message received\n"));
 
+				msg.fupr.fNameSize = Swap16IfLE(msg.fupr.fNameSize);
+				msg.fupr.position = Swap32IfLE(msg.fupr.position);
+
 				if (!vncService::tryImpersonate()) {
+					m_socket->ReadExact(NULL, msg.fupr.fNameSize);
 					char reason[] = "Cannot impersonate logged on user";
 					int reasonLen = strlen(reason);
 					m_client->SendFileUploadCancel(reasonLen, reason);
 					break;
 				}
-				msg.fupr.fNameSize = Swap16IfLE(msg.fupr.fNameSize);
-				msg.fupr.position = Swap32IfLE(msg.fupr.position);
 				if (msg.fupr.fNameSize > MAX_PATH) {
 					m_socket->ReadExact(NULL, msg.fupr.fNameSize);
 					char reason[] = "Path length exceeds MAX_PATH value";
@@ -1490,15 +1494,21 @@ vncClientThread::run(void *arg)
 			{
 				vnclog.Print(LL_INTINFO, VNCLOG("FileUploadData message received\n"));
 
+				msg.fud.realSize = Swap16IfLE(msg.fud.realSize);
+				msg.fud.compressedSize = Swap16IfLE(msg.fud.compressedSize);
+
 				if (!vncService::tryImpersonate()) {
+					if (msg.fud.realSize == 0 && msg.fud.compressedSize == 0) {
+						m_socket->ReadExact(NULL, sizeof(CARD32));
+					} else {
+						m_socket->ReadExact(NULL, msg.fud.compressedSize);
+					}
 					char reason[] = "Cannot impersonate logged on user";
 					int reasonLen = strlen(reason);
 					m_client->SendFileUploadCancel(reasonLen, reason);
 					m_client->CloseUndoneFileTransfer();
 					break;
 				}
-				msg.fud.realSize = Swap16IfLE(msg.fud.realSize);
-				msg.fud.compressedSize = Swap16IfLE(msg.fud.compressedSize);
 				if ((msg.fud.realSize == 0) && (msg.fud.compressedSize == 0)) {
 					CARD32 mTime;
 					m_socket->ReadExact((char *) &mTime, sizeof(CARD32));

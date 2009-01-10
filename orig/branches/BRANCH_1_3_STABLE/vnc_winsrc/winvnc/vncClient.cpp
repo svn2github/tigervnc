@@ -1283,10 +1283,10 @@ vncClientThread::run(void *arg)
 					strcat(path, "\\*");
 					HANDLE FLRhandle;
 					WIN32_FIND_DATA FindFileData;
-					SetErrorMode(SEM_FAILCRITICALERRORS);
+					UINT savedErrorMode = SetErrorMode(SEM_FAILCRITICALERRORS);
 					FLRhandle = FindFirstFile(path, &FindFileData);
 					DWORD LastError = GetLastError();
-					SetErrorMode(0);
+					SetErrorMode(savedErrorMode);
 					if (FLRhandle != INVALID_HANDLE_VALUE) {
 						do {
 							if (strcmp(FindFileData.cFileName, ".") != 0 &&
@@ -1383,10 +1383,10 @@ vncClientThread::run(void *arg)
 				DWORD dwNumberOfBytesRead = 0;
 				DWORD dwNumberOfAllBytesRead = 0;
 				WIN32_FIND_DATA FindFileData;
-				SetErrorMode(SEM_FAILCRITICALERRORS);
+				UINT savedErrorMode = SetErrorMode(SEM_FAILCRITICALERRORS);
 				hFile = FindFirstFile(path_file, &FindFileData);
 				DWORD LastError = GetLastError();
-				SetErrorMode(0);
+				SetErrorMode(savedErrorMode);
 
 				vnclog.Print(LL_CLIENTS, VNCLOG("file download requested: %s\n"),
 							 path_file);
@@ -1407,9 +1407,9 @@ vncClientThread::run(void *arg)
 					m_client->SendFileDownloadData(m_client->m_modTime);
 				} else {
 					if (sz_rfbFileSize <= sz_rfbBlockSize) sz_rfbBlockSize = sz_rfbFileSize;
-					SetErrorMode(SEM_FAILCRITICALERRORS);
+					UINT savedErrorMode = SetErrorMode(SEM_FAILCRITICALERRORS);
 					m_client->m_hFileToRead = CreateFile(path_file, GENERIC_READ, FILE_SHARE_READ, NULL,	OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
-					SetErrorMode(0);
+					SetErrorMode(savedErrorMode);
 					if (m_client->m_hFileToRead != INVALID_HANDLE_VALUE) {
 						m_client->m_bDownloadStarted = TRUE;
 						m_client->SendFileDownloadPortion();

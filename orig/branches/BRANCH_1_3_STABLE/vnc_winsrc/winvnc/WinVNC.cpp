@@ -145,6 +145,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 			i += arglen;
 			continue;
 		}
+		if (strncmp(&szCmdLine[i], winvncSilentMode, arglen) == 0 &&
+			arglen == strlen(winvncSilentMode))
+		{
+		  vncService::setSilentMode();
+			i += arglen;
+			continue;
+		}
 		if (strncmp(&szCmdLine[i], winvncRemoveService, arglen) == 0 &&
 			arglen == strlen(winvncRemoveService))
 		{

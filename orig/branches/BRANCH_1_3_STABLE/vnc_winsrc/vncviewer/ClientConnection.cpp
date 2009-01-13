@@ -506,8 +506,7 @@ void ClientConnection::CreateDisplay()
 		CheckMenuItem(GetSystemMenu(m_hwnd1, FALSE),
 					ID_TOOLBAR, MF_BYCOMMAND|MF_CHECKED);
 	}
-	SaveListConnection();
-	
+	SaveConnectionHistory();
 	// record which client created this window
 	
 #ifndef _WIN32_WCE
@@ -611,7 +610,7 @@ HWND ClientConnection::CreateToolbar()
 	return hwndToolbar;
 }
 
-void ClientConnection::SaveListConnection()
+void ClientConnection::SaveConnectionHistory()
 {
 	if (!m_serverInitiated) {
 		TCHAR  valname[3];
@@ -724,7 +723,13 @@ void ClientConnection::GetConnectDetails()
 		SessionDialog sessdlg(&m_opts, this);
 		if (!sessdlg.DoDialog()) {
 			throw QuietException("User Cancelled");
-		}		
+		}
+		// Add new connection to the connection history only if the VNC host name
+		// was entered interactively, as we should remember user input even if it
+		// does not seem to be correct. If the connection info was specified in
+		// the command line or in a configuration file, it will be added after the
+		// VNC connection is established successfully.
+		SaveConnectionHistory();
 	}
 	// This is a bit of a hack: 
 	// The config file may set various things in the app-level defaults which 

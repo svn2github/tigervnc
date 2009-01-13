@@ -131,7 +131,7 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 		switch (LOWORD(wParam)) {
 		case IDC_HOSTNAME_EDIT:
 			switch (HIWORD(wParam)) {
-			case  CBN_SELCHANGE:
+			case CBN_SELENDOK:
 				{
 					int a = (int)SendMessage(hcombo, CB_GETCURSEL, 0, 0L);
 					SendMessage(hcombo, CB_GETLBTEXT, a, (LPARAM)(int FAR*)buffer );

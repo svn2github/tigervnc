@@ -84,21 +84,20 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
             SessionDialog *_this = (SessionDialog *) lParam;
             CentreWindow(hwnd);
 			_this->m_cc->m_hSess = hwnd;
-            // Set up recently-used list
-            int dwbuflen=255;
-			TCHAR valname[256];
-			TCHAR buf[256];
-			int maxEntries = pApp->m_options.m_historyLimit;
 
-			for ( i = 0; i < maxEntries; i++) { 
-				itoa(i, valname, 10);
-				dwbuflen=255;
-				if (RegQueryValueEx( _this->m_hRegKey, (LPTSTR)valname, 
-					NULL, NULL, 
-					(LPBYTE)buf, (LPDWORD)&dwbuflen) != ERROR_SUCCESS) {
-					break;
+			// Load connection history to the combo box.
+			const int maxEntries = pApp->m_options.m_historyLimit;
+			int listIndex = 0;
+			for (i = 0; i < maxEntries; i++) {
+				TCHAR keyName[256];
+				itoa(i, keyName, 10);
+				TCHAR buf[256];
+				int dwbuflen = 255;
+				if (RegQueryValueEx(_this->m_hRegKey, keyName, NULL, NULL,
+									(LPBYTE)buf, (LPDWORD)&dwbuflen) == ERROR_SUCCESS) {
+					buf[255] = '\0';
+					SendMessage(hcombo, CB_INSERTSTRING, (WPARAM)listIndex++, (LPARAM)buf);
 				}
-				SendMessage(hcombo, CB_INSERTSTRING, (WPARAM)i, (LPARAM)(int FAR*)buf);
 			}
 			if (_this->m_pOpt->m_display[0] == '\0') {
 				SendMessage(hcombo, CB_SETCURSEL, 0, 0);

@@ -619,7 +619,7 @@ void ClientConnection::SaveListConnection()
 		int i, j;
 		int maxEntries = pApp->m_options.m_historyLimit;
 		TCHAR list[80];
-		HKEY m_hRegKey;
+		HKEY hKey;
 		TCHAR  buf[256];
 		DWORD dispos;
 		TCHAR  buf1[256];
@@ -628,23 +628,23 @@ void ClientConnection::SaveListConnection()
 		RegCreateKeyEx(HKEY_CURRENT_USER,
 					KEY_VNCVIEWER_HISTORI, 0, NULL, 
 					REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, 
-					NULL, &m_hRegKey, &dispos);
+					NULL, &hKey, &dispos);
 		_tcscpy(buf1, m_opts.m_display);
 							
 		for ( i = 0; i < maxEntries; i++) {
 			j = i;
 			itoa(i, valname, 10);
 			dwbuflen = 255;
-			if ((RegQueryValueEx( m_hRegKey, (LPTSTR)valname, 
+			if ((RegQueryValueEx( hKey, (LPTSTR)valname, 
 						NULL, NULL, 
 						(LPBYTE) buf, (LPDWORD) &dwbuflen) != ERROR_SUCCESS) ||
 						(_tcscmp(buf, m_opts.m_display) == NULL)) {
-				RegSetValueEx( m_hRegKey, valname, 
+				RegSetValueEx( hKey, valname, 
 							NULL, REG_SZ, 
 							(CONST BYTE *)buf1, (_tcslen(buf1)+1));
 				break;
 			}
-			RegSetValueEx(m_hRegKey, valname, 
+			RegSetValueEx(hKey, valname, 
 						NULL, REG_SZ, 
 						(CONST BYTE *)buf1, (_tcslen(buf1)+1)); 
 				_tcscpy(buf1, buf);
@@ -653,12 +653,12 @@ void ClientConnection::SaveListConnection()
 			dwbuflen = 255;
 			_tcscpy(valname, list);
 			_tcscpy(buf, "");
-			RegQueryValueEx( m_hRegKey, (LPTSTR)valname, 
+			RegQueryValueEx( hKey, (LPTSTR)valname, 
 						NULL, NULL, 
 						(LPBYTE)buf, (LPDWORD)&dwbuflen);
 			m_opts.delkey(buf, KEY_VNCVIEWER_HISTORI);
 		}
-		RegCloseKey(m_hRegKey);
+		RegCloseKey(hKey);
 		m_opts.SaveOpt(m_opts.m_display,
 						KEY_VNCVIEWER_HISTORI);
 	}		

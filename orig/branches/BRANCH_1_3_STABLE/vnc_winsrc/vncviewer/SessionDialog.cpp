@@ -167,6 +167,7 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 			pApp->m_options.LoadOpt(".listen", KEY_VNCVIEWER_HISTORI);
 			pApp->m_options.m_listening=true;
 			pApp->ListenMode();
+			_this->m_pOpt->CloseDialog();
 			EndDialog(hwnd, FALSE);
 			return TRUE; 				
 		case IDC_OK:             
@@ -186,12 +187,12 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 				_tcscpy(_this->m_pOpt->m_display, display);
 			}
 			
-			EndDialog(_this->m_pOpt->m_hParent, FALSE);
+			_this->m_pOpt->CloseDialog();
 			EndDialog(hwnd, TRUE);
 
 			return TRUE;						
 		case IDCANCEL:
-			EndDialog(_this->m_pOpt->m_hParent, FALSE);
+			_this->m_pOpt->CloseDialog();
 			EndDialog(hwnd, FALSE);			
 			return TRUE;				
 		case IDC_LOC_NET_RADIO:
@@ -221,7 +222,9 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 			return TRUE;
 		case IDC_OPTIONBUTTON:
 			{
-				if (SetForegroundWindow(_this->m_pOpt->m_hParent) != 0) return 0;
+				if (_this->m_pOpt->RaiseDialog()) {
+					return TRUE;	// Options dialog already shown
+				}
 				HWND hOptionButton = GetDlgItem(hwnd, IDC_OPTIONBUTTON);
 				_this->m_pOpt->DoDialog();				
 				GetDlgItemText(hwnd, IDC_HOSTNAME_EDIT, 

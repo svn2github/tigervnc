@@ -89,7 +89,8 @@ VNCOptions::VNCOptions()
 
 	LoadGenOpt();
 
-	
+	m_hParent = 0;
+
 #ifdef UNDER_CE
 	m_palmpc = false;
 	
@@ -167,7 +168,7 @@ VNCOptions& VNCOptions::operator=(VNCOptions& s)
 
 VNCOptions::~VNCOptions()
 {
-	
+	CloseDialog();
 }
 
 inline bool SwitchMatch(LPCTSTR arg, LPCTSTR swtch) {
@@ -613,6 +614,22 @@ int VNCOptions::DoDialog(bool running)
 	m_running = running;
 	return DialogBoxParam(pApp->m_instance, DIALOG_MAKEINTRESOURCE(IDD_PARENT), 
 							NULL, (DLGPROC) DlgProc, (LONG) this); 	
+}
+
+BOOL VNCOptions::RaiseDialog()
+{
+	if (m_hParent == 0) {
+		return FALSE;
+	}
+	return (SetForegroundWindow(m_hParent) != 0);
+}
+
+void VNCOptions::CloseDialog()
+{
+	if (m_hParent != 0) {
+		EndDialog(m_hParent, FALSE);
+		m_hParent = 0;
+	}
 }
 
 BOOL CALLBACK VNCOptions::DlgProc(HWND hwndDlg, UINT uMsg,

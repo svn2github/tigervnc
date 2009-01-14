@@ -130,6 +130,9 @@ public:
 #endif
 
 	int DoDialog(bool running = false);
+	BOOL RaiseDialog();
+	void CloseDialog();
+
 	void SetFromCommandLine(LPTSTR szCmdLine);
 
 

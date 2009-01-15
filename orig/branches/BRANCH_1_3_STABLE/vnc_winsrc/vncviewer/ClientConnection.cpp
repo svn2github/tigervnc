@@ -612,55 +612,87 @@ HWND ClientConnection::CreateToolbar()
 
 void ClientConnection::SaveConnectionHistory()
 {
-	if (!m_serverInitiated) {
-		TCHAR  valname[3];
-		int dwbuflen = 255;
-		int i, j;
-		int maxEntries = pApp->m_options.m_historyLimit;
-		TCHAR list[80];
-		HKEY hKey;
-		TCHAR  buf[256];
-		DWORD dispos;
-		TCHAR  buf1[256];
-				
-		itoa(maxEntries, list, 10);
-		RegCreateKeyEx(HKEY_CURRENT_USER,
-					KEY_VNCVIEWER_HISTORI, 0, NULL, 
-					REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, 
-					NULL, &hKey, &dispos);
-		_tcscpy(buf1, m_opts.m_display);
-							
-		for ( i = 0; i < maxEntries; i++) {
-			j = i;
-			itoa(i, valname, 10);
-			dwbuflen = 255;
-			if ((RegQueryValueEx( hKey, (LPTSTR)valname, 
-						NULL, NULL, 
-						(LPBYTE) buf, (LPDWORD) &dwbuflen) != ERROR_SUCCESS) ||
-						(_tcscmp(buf, m_opts.m_display) == NULL)) {
-				RegSetValueEx( hKey, valname, 
-							NULL, REG_SZ, 
-							(CONST BYTE *)buf1, (_tcslen(buf1)+1));
-				break;
+	if (m_serverInitiated) {
+		return;
+	}
+
+	// Create or open the registry key for connection history.
+	HKEY hKey;
+	LONG result = RegCreateKeyEx(HKEY_CURRENT_USER, KEY_VNCVIEWER_HISTORI,
+								 0, NULL, REG_OPTION_NON_VOLATILE,
+								 KEY_ALL_ACCESS, NULL, &hKey, NULL);
+	if (result != ERROR_SUCCESS) {
+		return;
+	}
+
+	// Determine maximum number of connections to remember.
+	const int maxEntries = pApp->m_options.m_historyLimit;
+	if (maxEntries > 1024) {
+		return;
+	}
+
+	// Allocate memory for the list of connections, 256 TCHARs an entry.
+	const int entryBufferSize = 256;
+	const int connListBufferSize = maxEntries * entryBufferSize;
+	TCHAR *connListBuffer = new TCHAR[connListBufferSize];
+	memset(connListBuffer, 0, connListBufferSize * sizeof(TCHAR));
+
+	// Index first characters of each entry for convenient access.
+	TCHAR **connList = new TCHAR*[maxEntries];
+	for (int i = 0; i < maxEntries; i++) {
+		connList[i] = &connListBuffer[i * entryBufferSize];
+	}
+
+	// Read the list of connections and remove it from the registry.
+	int numRead = 0;
+	for (int i = 0; i < maxEntries; i++) {
+		TCHAR valueName[16];
+		_sntprintf(valueName, 16, "%d", i);
+		LPBYTE bufPtr = (LPBYTE)connList[numRead];
+		DWORD bufSize = (entryBufferSize - 1) * sizeof(TCHAR);
+		LONG err = RegQueryValueEx(hKey, valueName, 0, 0, bufPtr, &bufSize);
+		if (err == ERROR_SUCCESS) {
+			if (connList[numRead][0] != '\0') {
+				numRead++;
 			}
-			RegSetValueEx(hKey, valname, 
-						NULL, REG_SZ, 
-						(CONST BYTE *)buf1, (_tcslen(buf1)+1)); 
-				_tcscpy(buf1, buf);
+			RegDeleteValue(hKey, valueName);
 		}
-		if (j == maxEntries) {
-			dwbuflen = 255;
-			_tcscpy(valname, list);
-			_tcscpy(buf, "");
-			RegQueryValueEx( hKey, (LPTSTR)valname, 
-						NULL, NULL, 
-						(LPBYTE)buf, (LPDWORD)&dwbuflen);
-			m_opts.delkey(buf, KEY_VNCVIEWER_HISTORI);
+	}
+
+	// Save current connection first.
+	const BYTE *newConnPtr = (const BYTE *)m_opts.m_display;
+	DWORD newConnSize = (_tcslen(m_opts.m_display) + 1) * sizeof(TCHAR);
+	RegSetValueEx(hKey, _T("0"), 0, REG_SZ, newConnPtr, newConnSize);
+
+	// Save the list of other connections.
+	// Don't forget to exclude duplicates of current connection and make
+	// sure the number of entries written will not exceed maxEntries.
+	int numWritten = 1;
+	int i;
+	for (i = 0; i < numRead && numWritten < maxEntries; i++) {
+		if (_tcscmp(connList[i], m_opts.m_display) != 0) {
+			TCHAR keyName[16];
+			_sntprintf(keyName, 16, "%d", numWritten);
+			LPBYTE bufPtr = (LPBYTE)connList[i];
+			DWORD bufSize = (_tcslen(connList[i]) + 1) * sizeof(TCHAR);
+			RegSetValueEx(hKey, keyName, 0, REG_SZ, bufPtr, bufSize);
+			numWritten++;
 		}
-		RegCloseKey(hKey);
-		m_opts.SaveOpt(m_opts.m_display,
-						KEY_VNCVIEWER_HISTORI);
-	}		
+	}
+
+	// If not everything is written due to the maxEntries limitation, then
+	// delete settings for the connection that was not saved. But make sure
+	// we do not delete settings for the current connection.
+	if (i < numRead) {
+		if (_tcscmp(connList[i], m_opts.m_display) != 0) {
+			RegDeleteKey(hKey, connList[i]);
+		}
+	}
+
+	RegCloseKey(hKey);
+
+	// Save connection options for current connection.
+	m_opts.SaveOpt(m_opts.m_display, KEY_VNCVIEWER_HISTORI);
 }
 
 void ClientConnection::EnableFullControlOptions()

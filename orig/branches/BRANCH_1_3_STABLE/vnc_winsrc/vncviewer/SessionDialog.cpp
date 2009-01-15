@@ -96,7 +96,9 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 				if (RegQueryValueEx(_this->m_hRegKey, keyName, NULL, NULL,
 									(LPBYTE)buf, (LPDWORD)&dwbuflen) == ERROR_SUCCESS) {
 					buf[255] = '\0';
-					SendMessage(hcombo, CB_INSERTSTRING, (WPARAM)listIndex++, (LPARAM)buf);
+					if (buf[0] != 0) {
+						SendMessage(hcombo, CB_INSERTSTRING, (WPARAM)listIndex++, (LPARAM)buf);
+					}
 				}
 			}
 			if (_this->m_pOpt->m_display[0] == '\0') {

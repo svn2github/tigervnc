@@ -156,8 +156,8 @@ private:
 	
 	// Just for temporary use
 	bool m_running;
-	
-	
+
+	void setHistoryLimit(int newLimit);
 };
 
 #endif // VNCOPTIONS_H__

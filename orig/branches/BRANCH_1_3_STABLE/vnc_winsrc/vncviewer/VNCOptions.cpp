@@ -1314,9 +1314,10 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 				} else {
 					pApp->m_options.m_toolbar = true;					
 				}
-				
-				pApp->m_options.m_historyLimit = GetDlgItemInt(hwnd,
-					IDC_EDIT_AMOUNT_LIST, NULL, FALSE);
+
+				int newLimit = GetDlgItemInt(hwnd, IDC_EDIT_AMOUNT_LIST, 0, FALSE);
+				_this->setHistoryLimit(newLimit);
+
 				pApp->m_options.m_listenPort = GetDlgItemInt(hwnd,
 					IDC_LISTEN_PORT, NULL, FALSE);
 				pApp->m_options.SaveGenOpt();
@@ -1675,5 +1676,50 @@ void VNCOptions::BrowseLogFile()
 			break;
 		}
 		return;
+	}
+}
+
+void VNCOptions::setHistoryLimit(int newLimit)
+{
+	if (newLimit > 1024) {
+		newLimit = 1024;
+	}
+
+	int oldLimit = pApp->m_options.m_historyLimit;
+	pApp->m_options.m_historyLimit = newLimit;
+
+	if (newLimit < oldLimit) {
+		// Open the registry key of connection history.
+		HKEY hKey;
+		LONG result = RegOpenKeyEx(HKEY_CURRENT_USER, KEY_VNCVIEWER_HISTORI,
+								   0, KEY_ALL_ACCESS,  &hKey);
+		if (result != ERROR_SUCCESS) {
+			return;
+		}
+
+		// Read the list of connections and remove everything exceeding
+		// new limit.
+		int numRead = 0;
+		for (int i = 0; i < oldLimit; i++) {
+			TCHAR valueName[16];
+			_sntprintf(valueName, 16, "%d", i);
+			TCHAR valueData[256];
+			memset(valueData, 0, 256 * sizeof(TCHAR));
+			LPBYTE bufPtr = (LPBYTE)valueData;
+			DWORD bufSize = 255 * sizeof(TCHAR);
+			LONG err = RegQueryValueEx(hKey, valueName, 0, 0, bufPtr, &bufSize);
+			if (err == ERROR_SUCCESS) {
+				if (valueData[0] != '\0') {
+					numRead++;
+				}
+				if (numRead > newLimit) {
+					// Delete both the list entry and the corresponding settings.
+					RegDeleteValue(hKey, valueName);
+					RegDeleteKey(hKey, valueData);
+				}
+			}
+		}
+
+		RegCloseKey(hKey);
 	}
 }

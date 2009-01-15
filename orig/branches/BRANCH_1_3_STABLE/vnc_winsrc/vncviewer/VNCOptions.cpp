@@ -1230,7 +1230,7 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 		case IDC_LOG_BROWSE:
 			_this->BrowseLogFile();
 			SetDlgItemText(hwnd, IDC_EDIT_LOG_FILE,
-						_this->m_logFilename);
+						   pApp->m_options.m_logFilename);
 			return 0;
 		case IDC_BUTTON_CLEAR_LIST: 
 			{

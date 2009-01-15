@@ -103,8 +103,13 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 			}
 			if (_this->m_pOpt->m_display[0] == '\0') {
 				SendMessage(hcombo, CB_SETCURSEL, 0, 0);
-				SendMessage(hcombo, CB_GETLBTEXT, 0, (LPARAM)(int FAR*)buffer );
-				_this->m_pOpt->LoadOpt(buffer, KEY_VNCVIEWER_HISTORI);
+				LRESULT r = SendMessage(hcombo, CB_GETLBTEXTLEN, 0, 0);
+				if (r > 1 && r <= 256) {
+					r = SendMessage(hcombo, CB_GETLBTEXT, 0, (LPARAM)buffer);
+					if (r > 1) {
+						_this->m_pOpt->LoadOpt(buffer, KEY_VNCVIEWER_HISTORI);
+					}
+				}
 			} else {
 				SetDlgItemText(hwnd, IDC_HOSTNAME_EDIT, _this->m_pOpt->m_display);
 			}

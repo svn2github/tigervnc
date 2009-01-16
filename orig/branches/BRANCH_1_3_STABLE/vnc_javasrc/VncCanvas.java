@@ -369,11 +369,6 @@ class VncCanvas extends Canvas
     rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
 				      rfb.framebufferHeight, false);
 
-    if (viewer.options.continuousUpdates) {
-      rfb.tryEnableContinuousUpdates(0, 0, rfb.framebufferWidth,
-                                     rfb.framebufferHeight);
-    }
-
     resetStats();
     boolean statsRestarted = false;
 
@@ -506,39 +501,14 @@ class VncCanvas extends Canvas
 	// format should be changed.
 	if (viewer.options.eightBitColors != (bytesPixel == 1)) {
           // Pixel format should be changed.
-          if (!rfb.continuousUpdatesAreActive()) {
-            // Continuous updates are not used. In this case, we just
-            // set new pixel format and request full update.
-            setPixelFormat();
-            fullUpdateNeeded = true;
-          } else {
-            // Otherwise, disable continuous updates first. Pixel
-            // format will be set later when we are sure that there
-            // will be no unsolicited framebuffer updates.
-            rfb.tryDisableContinuousUpdates();
-            break; // skip the code below
-          }
+          setPixelFormat();
+          fullUpdateNeeded = true;
 	}
 
-        // Enable/disable continuous updates to reflect the GUI setting.
-        boolean enable = viewer.options.continuousUpdates;
-        if (enable != rfb.continuousUpdatesAreActive()) {
-          if (enable) {
-            rfb.tryEnableContinuousUpdates(0, 0, rfb.framebufferWidth,
-                                           rfb.framebufferHeight);
-          } else {
-            rfb.tryDisableContinuousUpdates();
-          }
-        }
-
-        // Finally, request framebuffer update if needed.
-        if (fullUpdateNeeded) {
-          rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
-                                            rfb.framebufferHeight, false);
-        } else if (!rfb.continuousUpdatesAreActive()) {
-          rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
-                                            rfb.framebufferHeight, true);
-        }
+        // Request framebuffer update if needed.
+        int w = rfb.framebufferWidth;
+        int h = rfb.framebufferHeight;
+        rfb.writeFramebufferUpdateRequest(0, 0, w, h, !fullUpdateNeeded);
 
 	break;
 
@@ -553,25 +523,6 @@ class VncCanvas extends Canvas
 	String s = rfb.readServerCutText();
 	viewer.clipboard.setCutText(s);
 	break;
-
-      case RfbProto.EndOfContinuousUpdates:
-        if (rfb.continuousUpdatesAreActive()) {
-          rfb.endOfContinuousUpdates();
-
-          // Change pixel format if such change was pending. Note that we
-          // could not change pixel format while continuous updates were
-          // in effect.
-          boolean incremental = true;
-          if (viewer.options.eightBitColors != (bytesPixel == 1)) {
-            setPixelFormat();
-            incremental = false;
-          }
-          // From this point, we ask for updates explicitly.
-          rfb.writeFramebufferUpdateRequest(0, 0, rfb.framebufferWidth,
-                                            rfb.framebufferHeight,
-                                            incremental);
-        }
-        break;
 
       default:
 	throw new Exception("Unknown RFB message type " + msgType);

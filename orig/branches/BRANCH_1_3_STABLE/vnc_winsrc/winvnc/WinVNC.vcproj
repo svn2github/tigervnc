@@ -79,6 +79,8 @@
 				AdditionalDependencies="wsock32.lib comctl32.lib htmlhelp.lib"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
+				GenerateManifest="false"
+				ManifestFile="$(TargetFileName).manifest"
 				IgnoreDefaultLibraryNames=""
 				MapExports="true"
 				SubSystem="2"
@@ -86,6 +88,7 @@
 				EnableCOMDATFolding="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -172,11 +175,14 @@
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories=""
+				GenerateManifest="false"
+				ManifestFile=".\$(TargetFileName).manifest"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -751,6 +757,10 @@
 			</File>
 			<File
 				RelativePath=".\res\tightvnc.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\WinVNC.exe.manifest"
 				>
 			</File>
 			<File

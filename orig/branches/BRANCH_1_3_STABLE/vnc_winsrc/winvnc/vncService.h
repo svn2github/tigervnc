@@ -57,7 +57,7 @@ public:
 
 	// Routine to install the WinVNC service on the local machine
 	static int InstallService(BOOL silent=0);
-	static int ReinstallService();
+	static int ReinstallService(BOOL silent=0);
 
 	// Routine to remove the WinVNC service from the local machine
 	static int RemoveService(BOOL silent=0);
@@ -93,8 +93,6 @@ public:
 
 	// Routine to kill any other running copy of WinVNC
 	static BOOL KillRunningCopy();
-
-	static void setSilentMode() { m_silentMode = true; }
 
 	// Routine to set the current thread into the given desktop
 	static BOOL SelectHDESK(HDESK newdesktop);
@@ -146,8 +144,6 @@ public:
 	// Routine to make an already running copy of WinVNC disconnect all
 	// connected clients
 	static BOOL KillAllClients();
-
-    static bool m_silentMode;
 };
 
 #endif

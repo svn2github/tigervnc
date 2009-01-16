@@ -42,8 +42,6 @@
 #include "vncMenu.h"
 #include "vncTimedMsgBox.h"
 
-bool vncService::m_silentMode = false;
-
 // Error message logging
 void LogErrorMsg(char *message);
 
@@ -989,16 +987,15 @@ void ServiceStop()
 
 // SERVICE INSTALL ROUTINE
 int
-vncService::ReinstallService() {
+vncService::ReinstallService(BOOL silent) {
 	RemoveService(1);
-	InstallService(m_silentMode);
+	InstallService(silent);
 	return 0;
 }
 
 int
 vncService::InstallService(BOOL silent)
 {
-	silent |= m_silentMode;
 	const int pathlength = 2048;
 	char path[pathlength];
 	char servicecmd[pathlength];
@@ -1194,7 +1191,6 @@ vncService::InstallService(BOOL silent)
 int
 vncService::RemoveService(BOOL silent)
 {
-	silent |= m_silentMode;
 	// How to remove the WinVNC service depends upon the OS
 	switch (g_platform_id)
 	{

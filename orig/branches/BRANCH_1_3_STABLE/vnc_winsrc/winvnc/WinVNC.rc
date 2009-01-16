@@ -212,12 +212,12 @@ BEGIN
     GROUPBOX        "Incoming connections",IDC_STATIC_INCOMING,5,5,139,63
     CONTROL         "Accept socket connections",IDC_CONNECT_SOCK,"Button",
                     BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,13,16,128,12
-    LTEXT           "Primary password:",IDC_PASSWORD_LABEL,19,30,69,12,
+    LTEXT           "Primary password:",IDC_PASSWORD_LABEL,13,30,67,12,
                     SS_CENTERIMAGE | NOT WS_GROUP
-    EDITTEXT        IDC_PASSWORD,91,30,44,12,ES_PASSWORD | ES_AUTOHSCROLL
-    LTEXT           "View-only password:",IDC_PASSWORD_VIEWONLY_LABEL,19,47,
-                    69,12,SS_CENTERIMAGE | NOT WS_GROUP
-    EDITTEXT        IDC_PASSWORD_VIEWONLY,91,47,44,12,ES_PASSWORD | 
+    EDITTEXT        IDC_PASSWORD,84,30,51,12,ES_PASSWORD | ES_AUTOHSCROLL
+    LTEXT           "View-only password:",IDC_PASSWORD_VIEWONLY_LABEL,13,47,
+                    67,12,SS_CENTERIMAGE | NOT WS_GROUP
+    EDITTEXT        IDC_PASSWORD_VIEWONLY,84,47,51,12,ES_PASSWORD | 
                     ES_AUTOHSCROLL
     GROUPBOX        "Display or port numbers to use",IDC_STATIC_DISPLAY_PORT,
                     152,5,131,63
@@ -321,9 +321,9 @@ BEGIN
     LTEXT           "Default action:",IDC_STATIC_ACTION,25,46,67,12,
                     SS_CENTERIMAGE | NOT WS_GROUP
     CONTROL         "Refuse",IDC_ACTION_REFUSE,"Button",BS_AUTORADIOBUTTON | 
-                    WS_GROUP | WS_TABSTOP,95,46,57,12
+                    WS_GROUP | WS_TABSTOP,95,46,52,12
     CONTROL         "Accept",IDC_ACTION_ACCEPT,"Button",BS_AUTORADIOBUTTON,
-                    152,46,72,12
+                    152,46,52,12
     CONTROL         "Allow option to accept without authentication",
                     IDQUERYALLOWNOPASS,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
                     WS_TABSTOP,13,62,211,12
@@ -492,7 +492,7 @@ BEGIN
         VERTGUIDE, 13
         VERTGUIDE, 19
         VERTGUIDE, 58
-        VERTGUIDE, 91
+        VERTGUIDE, 84
         VERTGUIDE, 108
         VERTGUIDE, 135
         VERTGUIDE, 141

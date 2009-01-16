@@ -226,7 +226,6 @@ class OptionsFrame extends Frame
 
     preferredEncoding = RfbProto.EncodingRaw;
     boolean enableCompressLevel = false;
-    boolean enableQualityLevel = false;
 
     if (choices[encodingIndex].getSelectedItem().equals("RRE")) {
       preferredEncoding = RfbProto.EncodingRRE;
@@ -242,10 +241,8 @@ class OptionsFrame extends Frame
     } else if (choices[encodingIndex].getSelectedItem().equals("Tight")) {
       preferredEncoding = RfbProto.EncodingTight;
       enableCompressLevel = true;
-      enableQualityLevel = !eightBitColors;
     } else if (choices[encodingIndex].getSelectedItem().equals("Auto")) {
       preferredEncoding = -1;
-      enableQualityLevel = !eightBitColors;
     }
 
     // Handle compression level setting.
@@ -275,8 +272,6 @@ class OptionsFrame extends Frame
     if (jpegQuality < 0 || jpegQuality > 9) {
       jpegQuality = -1;
     }
-    labels[jpegQualityIndex].setEnabled(enableQualityLevel);
-    choices[jpegQualityIndex].setEnabled(enableQualityLevel);
 
     // Request cursor shape updates if necessary.
 
@@ -302,9 +297,7 @@ class OptionsFrame extends Frame
     eightBitColors =
       choices[eightBitColorsIndex].getSelectedItem().equals("Yes");
 
-    boolean enableJPEG = !eightBitColors &&
-      (choices[encodingIndex].getSelectedItem().equals("Tight") ||
-       choices[encodingIndex].getSelectedItem().equals("Auto"));
+    boolean enableJPEG = !eightBitColors;
 
     labels[jpegQualityIndex].setEnabled(enableJPEG);
     choices[jpegQualityIndex].setEnabled(enableJPEG);

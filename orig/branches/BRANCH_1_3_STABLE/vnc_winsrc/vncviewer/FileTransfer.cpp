@@ -655,8 +655,6 @@ FileTransfer::FileTransferDownload()
 			MessageBox(m_hwndFileTransfer, "Download failed: could not create local file",
 					   "Download Failed", MB_ICONEXCLAMATION | MB_OK);
 			SendMessage(m_hwndFTProgress, PBM_SETPOS, 0, 0);
-			// Send message to start download for next selected file.
-			PostMessage(m_hwndFileTransfer, WM_COMMAND, IDC_FTCOPY, 0);
 			return;
 		}
 		FILETIME Filetime;

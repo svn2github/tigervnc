@@ -223,8 +223,8 @@ private:
 
 	// ClientConnectionClipboard.cpp
 	void ProcessLocalClipboardChange();
-	void UpdateLocalClipboard(char *buf, int len);
-	void SendClientCutText(char *str, int len);
+	void UpdateLocalClipboard(char *buf, size_t len);
+	void SendClientCutText(char *str, size_t len);
 	void ReadServerCutText();
 
 	void ReadSetColourMapEntries();
@@ -269,18 +269,18 @@ private:
     unsigned int CountProcessOtherWindows();
 
     // Buffer for network operations
-	void CheckBufferSize(int bufsize);
+	void CheckBufferSize(size_t bufsize);
 	char *m_netbuf;
-	int m_netbufsize;
+	size_t m_netbufsize;
 	omni_mutex m_bufferMutex, 
 		m_bitmapdcMutex,  m_clipMutex,
 		m_readMutex, m_writeMutex, m_sockMutex,
 		m_cursorMutex;
 
 	// Buffer for zlib decompression.
-	void CheckZlibBufferSize(int bufsize);
+	void CheckZlibBufferSize(size_t bufsize);
 	unsigned char *m_zlibbuf;
-	int m_zlibbufsize;
+	size_t m_zlibbufsize;
 
 	// zlib decompression state
 	bool m_decompStreamInited;

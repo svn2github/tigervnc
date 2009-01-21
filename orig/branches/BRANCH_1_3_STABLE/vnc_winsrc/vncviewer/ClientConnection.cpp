@@ -2603,7 +2603,7 @@ ClientConnection::SendKeyEvent(CARD32 key, bool down)
 // SendClientCutText
 //
 
-void ClientConnection::SendClientCutText(char *str, int len)
+void ClientConnection::SendClientCutText(char *str, size_t len)
 {
     rfbClientCutTextMsg cct;
 
@@ -2984,12 +2984,13 @@ void ClientConnection::SetDormant(bool newstate)
 // The server has copied some text to the clipboard - put it 
 // in the local clipboard too.
 
-void ClientConnection::ReadServerCutText() {
+void ClientConnection::ReadServerCutText()
+{
 	rfbServerCutTextMsg sctm;
 	vnclog.Print(6, _T("Read remote clipboard change\n"));
 	ReadExact((char *) &sctm, sz_rfbServerCutTextMsg);
-	int len = Swap32IfLE(sctm.length);
-	
+	size_t len = Swap32IfLE(sctm.length);
+
 	CheckBufferSize(len);
 	if (len == 0) {
 		m_netbuf[0] = '\0';
@@ -3009,7 +3010,7 @@ void ClientConnection::ReadSetColourMapEntries()
 	int numEntries = Swap16IfLE(msg.nColours);
 
 	if (numEntries > 0) {
-		int nBytes = 6 * numEntries;
+		size_t nBytes = 6 * numEntries;
 		CheckBufferSize(nBytes);
 		ReadExact(m_netbuf, nBytes);
 	}
@@ -3130,51 +3131,61 @@ char *ClientConnection::ReadFailureReason()
 // Makes sure netbuf is at least as big as the specified size.
 // Note that netbuf itself may change as a result of this call.
 // Throws an exception on failure.
-void ClientConnection::CheckBufferSize(int bufsize)
+void ClientConnection::CheckBufferSize(size_t bufsize)
 {
 	if (m_netbufsize > bufsize) return;
 
+	// Don't try to allocate more than 2 gigabytes.
+	if (bufsize >= 0x80000000) {
+		vnclog.Print(1, _T("Requested buffer size is too big (%u bytes)\n"),
+					 (unsigned int)bufsize);
+		throw WarningException("Requested buffer size is too big.");
+	}
+
 	omni_mutex_lock l(m_bufferMutex);
 
-	char *newbuf = new char[bufsize+256];;
+	char *newbuf = new char[bufsize + 256];
 	if (newbuf == NULL) {
 		throw ErrorException("Insufficient memory to allocate network buffer.");
 	}
 
-	// Only if we're successful...
-
-	if (m_netbuf != NULL)
-		delete [] m_netbuf;
+	if (m_netbuf != NULL) {
+		delete[] m_netbuf;
+	}
 	m_netbuf = newbuf;
-	m_netbufsize=bufsize + 256;
-	vnclog.Print(4, _T("bufsize expanded to %d\n"), m_netbufsize);
+	m_netbufsize = bufsize + 256;
+	vnclog.Print(4, _T("Buffer size expanded to %u\n"),
+				 (unsigned int)m_netbufsize);
 }
 
 // Makes sure zlibbuf is at least as big as the specified size.
 // Note that zlibbuf itself may change as a result of this call.
 // Throws an exception on failure.
-void ClientConnection::CheckZlibBufferSize(int bufsize)
+void ClientConnection::CheckZlibBufferSize(size_t bufsize)
 {
-	unsigned char *newbuf;
-
 	if (m_zlibbufsize > bufsize) return;
+
+	// Don't try to allocate more than 2 gigabytes.
+	if (bufsize >= 0x80000000) {
+		vnclog.Print(1, _T("Requested zlib buffer size is too big (%u bytes)\n"),
+					 (unsigned int)bufsize);
+		throw WarningException("Requested zlib buffer size is too big.");
+	}
 
 	// omni_mutex_lock l(m_bufferMutex);
 
-	newbuf = (unsigned char *)new char[bufsize+256];
+	unsigned char *newbuf = new unsigned char[bufsize + 256];
 	if (newbuf == NULL) {
 		throw ErrorException("Insufficient memory to allocate zlib buffer.");
 	}
 
-	// Only if we're successful...
-
-	if (m_zlibbuf != NULL)
-		delete [] m_zlibbuf;
+	if (m_zlibbuf != NULL) {
+		delete[] m_zlibbuf;
+	}
 	m_zlibbuf = newbuf;
-	m_zlibbufsize=bufsize + 256;
-	vnclog.Print(4, _T("zlibbufsize expanded to %d\n"), m_zlibbufsize);
-
-
+	m_zlibbufsize = bufsize + 256;
+	vnclog.Print(4, _T("Zlib buffer size expanded to %u\n"),
+				 (unsigned int)m_zlibbufsize);
 }
 
 //

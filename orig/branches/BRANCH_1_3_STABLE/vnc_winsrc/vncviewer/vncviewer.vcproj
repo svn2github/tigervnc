@@ -73,8 +73,7 @@
 				AdditionalDependencies="winmm.lib wsock32.lib comctl32.lib htmlhelp.lib"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				GenerateManifest="false"
-				ManifestFile="$(TargetFileName).manifest"
+				AdditionalManifestDependencies="&quot;type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; processorArchitecture=&apos;X86&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos;&quot;"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -164,8 +163,7 @@
 				AdditionalDependencies="winmm.lib wsock32.lib comctl32.lib htmlhelp.lib"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				GenerateManifest="false"
-				ManifestFile="$(TargetFileName).manifest"
+				AdditionalManifestDependencies="&quot;type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; processorArchitecture=&apos;X86&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos;&quot;"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -248,10 +246,6 @@
 			</File>
 			<File
 				RelativePath="res\vnc32.BMP"
-				>
-			</File>
-			<File
-				RelativePath=".\vncviewer.exe.manifest"
 				>
 			</File>
 			<File

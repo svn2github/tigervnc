@@ -59,7 +59,6 @@ Name: "{group}\Documentation\Installation and Getting Started"; FileName: "{app}
 Name: "{group}\Documentation\Licensing Terms";        FileName: "{app}\LICENCE.txt";                                   WorkingDir: "{app}"                        ; Tasks: icon\common
 Name: "{group}\Documentation\Make a Donation";        FileName: "{app}\TightVNC-donate.url"                                                                       ; Tasks: icon\common
 Name: "{group}\Documentation\TightVNC Web Site";      FileName: "{app}\TightVNC.url"                                                                              ; Tasks: icon\common
-Name: "{group}\Documentation\What's New (Detailed Log)"; FileName: "{app}\Web\changelog-win32.html";                   WorkingDir: "{app}\Web"; Components: webdoc; Tasks: icon\common
 Name: "{group}\Documentation\What's New (Summary)";   FileName: "{app}\Web\whatsnew.html";                             WorkingDir: "{app}\Web"; Components: webdoc; Tasks: icon\common
 
 Name: "{userstartmenu}\{groupname}\Launch TightVNC Server";               FileName: "{app}\WinVNC.exe";                                    WorkingDir: "{app}";     Components: server; Tasks: icon\user
@@ -75,7 +74,6 @@ Name: "{userstartmenu}\{groupname}\Documentation\Installation and Getting Starte
 Name: "{userstartmenu}\{groupname}\Documentation\Licensing Terms";        FileName: "{app}\LICENCE.txt";                                   WorkingDir: "{app}"                        ; Tasks: icon\user
 Name: "{userstartmenu}\{groupname}\Documentation\Make a Donation";        FileName: "{app}\TightVNC-donate.url"                                                                       ; Tasks: icon\user
 Name: "{userstartmenu}\{groupname}\Documentation\TightVNC Web Site";      FileName: "{app}\TightVNC.url"                                                                              ; Tasks: icon\user
-Name: "{userstartmenu}\{groupname}\Documentation\What's New (Detailed Log)"; FileName: "{app}\Web\changelog-win32.html";                   WorkingDir: "{app}\Web"; Components: webdoc; Tasks: icon\user
 Name: "{userstartmenu}\{groupname}\Documentation\What's New (Summary)";   FileName: "{app}\Web\whatsnew.html";                             WorkingDir: "{app}\Web"; Components: webdoc; Tasks: icon\user
 
 [Tasks]

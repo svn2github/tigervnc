@@ -639,13 +639,14 @@ void ClientConnection::SaveConnectionHistory()
 
 	// Index first characters of each entry for convenient access.
 	TCHAR **connList = new TCHAR*[maxEntries];
-	for (int i = 0; i < maxEntries; i++) {
+	int i;
+	for (i = 0; i < maxEntries; i++) {
 		connList[i] = &connListBuffer[i * entryBufferSize];
 	}
 
 	// Read the list of connections and remove it from the registry.
 	int numRead = 0;
-	for (int i = 0; i < maxEntries; i++) {
+	for (i = 0; i < maxEntries; i++) {
 		TCHAR valueName[16];
 		_sntprintf(valueName, 16, "%d", i);
 		LPBYTE bufPtr = (LPBYTE)connList[numRead];
@@ -668,7 +669,6 @@ void ClientConnection::SaveConnectionHistory()
 	// Don't forget to exclude duplicates of current connection and make
 	// sure the number of entries written will not exceed maxEntries.
 	int numWritten = 1;
-	int i;
 	for (i = 0; i < numRead && numWritten < maxEntries; i++) {
 		if (_tcscmp(connList[i], m_opts.m_display) != 0) {
 			TCHAR keyName[16];

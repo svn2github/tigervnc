@@ -141,7 +141,7 @@ void ClientConnection::Init(VNCviewerApp *pApp)
 	m_hBitmapDC = NULL;
 	m_hBitmap = NULL;
 	m_hPalette = NULL;
-	m_encPasswd[0] = '\0';
+	m_passwdSet = false;
 
 	m_connDlg = NULL;
 
@@ -1175,7 +1175,7 @@ bool ClientConnection::AuthenticateVNC(char *errBuf, int errBufSize)
 
 	char passwd[MAXPWLEN + 1];
 	// Was the password already specified in a config file?
-	if (strlen((const char *) m_encPasswd) > 0) {
+	if (m_passwdSet) {
 		char *pw = vncDecryptPasswd(m_encPasswd);
 		strcpy(passwd, pw);
 		free(pw);
@@ -1207,6 +1207,7 @@ bool ClientConnection::AuthenticateVNC(char *errBuf, int errBufSize)
 			passwd[8] = '\0';
 		}
 		vncEncryptPasswd(m_encPasswd, passwd);
+		m_passwdSet = true;
 	}				
 
 	vncEncryptBytes(challenge, passwd);

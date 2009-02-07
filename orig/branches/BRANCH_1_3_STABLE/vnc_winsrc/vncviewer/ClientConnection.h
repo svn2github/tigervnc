@@ -329,6 +329,7 @@ private:
 
 	TCHAR *m_desktopName;
 	unsigned char m_encPasswd[8];
+	bool m_passwdSet;
 	int m_authScheme;
 	rfbServerInitMsg m_si;
 	rfbPixelFormat m_myFormat, m_pendingFormat;

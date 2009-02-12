@@ -11,7 +11,7 @@ AppSupportURL=http://www.tightvnc.com/support.html
 AppUpdatesURL=http://www.tightvnc.com/download.html
 DefaultDirName={pf}\TightVNC
 DefaultGroupName=TightVNC
-AllowNoIcons=no
+AllowNoIcons=yes
 InfoBeforeFile=InstInfo.rtf
 Compression=zip/9
 WindowVisible=no
@@ -46,46 +46,24 @@ Source: "Web\doc\man\*"; DestDir: "{app}\Web\doc\man"; Flags: ignoreversion; Com
 Source: "Web\doc\unix\*"; DestDir: "{app}\Web\doc\unix"; Flags: ignoreversion; Components: webdoc
 
 [Icons]
-Name: "{group}\Launch TightVNC Server";               FileName: "{app}\WinVNC.exe";                                    WorkingDir: "{app}";     Components: server; Tasks: icon\common
-Name: "{group}\Show User Settings";                   FileName: "{app}\WinVNC.exe";    Parameters: "-settings";        WorkingDir: "{app}";     Components: server; Tasks: icon\common
-Name: "{group}\TightVNC Viewer";                      FileName: "{app}\vncviewer.exe";                                 WorkingDir: "{app}";     Components: viewer; Tasks: icon\common
-Name: "{group}\Uninstall TightVNC";                   FileName: "{uninstallexe}";                                      WorkingDir: "{app}";                         Tasks: icon\common
-Name: "{group}\Administration\Install VNC Service";   FileName: "{app}\WinVNC.exe";    Parameters: "-install";         WorkingDir: "{app}";     Components: server; Tasks: icon\common
-Name: "{group}\Administration\Remove VNC Service";    FileName: "{app}\WinVNC.exe";    Parameters: "-remove";          WorkingDir: "{app}";     Components: server; Tasks: icon\common
-Name: "{group}\Administration\Run Service Helper";    FileName: "{app}\WinVNC.exe";    Parameters: "-servicehelper";   WorkingDir: "{app}";     Components: server; Tasks: icon\common
-Name: "{group}\Administration\Show Default Settings"; FileName: "{app}\WinVNC.exe";    Parameters: "-defaultsettings"; WorkingDir: "{app}";     Components: server; Tasks: icon\common
-Name: "{group}\Documentation\About VNC and TightVNC"; FileName: "{app}\Web\index.html";                                WorkingDir: "{app}\Web"; Components: webdoc; Tasks: icon\common
-Name: "{group}\Documentation\Installation and Getting Started"; FileName: "{app}\Web\winst.html";                      WorkingDir: "{app}\Web"; Components: webdoc; Tasks: icon\common
-Name: "{group}\Documentation\Licensing Terms";        FileName: "{app}\LICENCE.txt";                                   WorkingDir: "{app}"                        ; Tasks: icon\common
-Name: "{group}\Documentation\Make a Donation";        FileName: "{app}\TightVNC-donate.url"                                                                       ; Tasks: icon\common
-Name: "{group}\Documentation\TightVNC Web Site";      FileName: "{app}\TightVNC.url"                                                                              ; Tasks: icon\common
-Name: "{group}\Documentation\What's New (Summary)";   FileName: "{app}\Web\whatsnew.html";                             WorkingDir: "{app}\Web"; Components: webdoc; Tasks: icon\common
-
-Name: "{userstartmenu}\{groupname}\Launch TightVNC Server";               FileName: "{app}\WinVNC.exe";                                    WorkingDir: "{app}";     Components: server; Tasks: icon\user
-Name: "{userstartmenu}\{groupname}\Show User Settings";                   FileName: "{app}\WinVNC.exe";    Parameters: "-settings";        WorkingDir: "{app}";     Components: server; Tasks: icon\user
-Name: "{userstartmenu}\{groupname}\TightVNC Viewer";                      FileName: "{app}\vncviewer.exe";                                 WorkingDir: "{app}";     Components: viewer; Tasks: icon\user
-Name: "{userstartmenu}\{groupname}\Uninstall TightVNC";                   FileName: "{uninstallexe}";                                      WorkingDir: "{app}";                         Tasks: icon\user
-Name: "{userstartmenu}\{groupname}\Administration\Install VNC Service";   FileName: "{app}\WinVNC.exe";    Parameters: "-install";         WorkingDir: "{app}";     Components: server; Tasks: icon\user
-Name: "{userstartmenu}\{groupname}\Administration\Remove VNC Service";    FileName: "{app}\WinVNC.exe";    Parameters: "-remove";          WorkingDir: "{app}";     Components: server; Tasks: icon\user
-Name: "{userstartmenu}\{groupname}\Administration\Run Service Helper";    FileName: "{app}\WinVNC.exe";    Parameters: "-servicehelper";   WorkingDir: "{app}";     Components: server; Tasks: icon\user
-Name: "{userstartmenu}\{groupname}\Administration\Show Default Settings"; FileName: "{app}\WinVNC.exe";    Parameters: "-defaultsettings"; WorkingDir: "{app}";     Components: server; Tasks: icon\user
-Name: "{userstartmenu}\{groupname}\Documentation\About VNC and TightVNC"; FileName: "{app}\Web\index.html";                                WorkingDir: "{app}\Web"; Components: webdoc; Tasks: icon\user
-Name: "{userstartmenu}\{groupname}\Documentation\Installation and Getting Started"; FileName: "{app}\Web\winst.html";                      WorkingDir: "{app}\Web"; Components: webdoc; Tasks: icon\user
-Name: "{userstartmenu}\{groupname}\Documentation\Licensing Terms";        FileName: "{app}\LICENCE.txt";                                   WorkingDir: "{app}"                        ; Tasks: icon\user
-Name: "{userstartmenu}\{groupname}\Documentation\Make a Donation";        FileName: "{app}\TightVNC-donate.url"                                                                       ; Tasks: icon\user
-Name: "{userstartmenu}\{groupname}\Documentation\TightVNC Web Site";      FileName: "{app}\TightVNC.url"                                                                              ; Tasks: icon\user
-Name: "{userstartmenu}\{groupname}\Documentation\What's New (Summary)";   FileName: "{app}\Web\whatsnew.html";                             WorkingDir: "{app}\Web"; Components: webdoc; Tasks: icon\user
+Name: "{group}\Launch TightVNC Server";               FileName: "{app}\WinVNC.exe";                                    WorkingDir: "{app}";     Components: server;
+Name: "{group}\Show User Settings";                   FileName: "{app}\WinVNC.exe";    Parameters: "-settings";        WorkingDir: "{app}";     Components: server;
+Name: "{group}\TightVNC Viewer";                      FileName: "{app}\vncviewer.exe";                                 WorkingDir: "{app}";     Components: viewer;
+Name: "{group}\Uninstall TightVNC";                   FileName: "{uninstallexe}";                                      WorkingDir: "{app}";                        
+Name: "{group}\Administration\Install VNC Service";   FileName: "{app}\WinVNC.exe";    Parameters: "-install";         WorkingDir: "{app}";     Components: server;
+Name: "{group}\Administration\Remove VNC Service";    FileName: "{app}\WinVNC.exe";    Parameters: "-remove";          WorkingDir: "{app}";     Components: server;
+Name: "{group}\Administration\Run Service Helper";    FileName: "{app}\WinVNC.exe";    Parameters: "-servicehelper";   WorkingDir: "{app}";     Components: server;
+Name: "{group}\Administration\Show Default Settings"; FileName: "{app}\WinVNC.exe";    Parameters: "-defaultsettings"; WorkingDir: "{app}";     Components: server;
+Name: "{group}\Documentation\About VNC and TightVNC"; FileName: "{app}\Web\index.html";                                WorkingDir: "{app}\Web"; Components: webdoc;
+Name: "{group}\Documentation\Installation and Getting Started"; FileName: "{app}\Web\winst.html";                      WorkingDir: "{app}\Web"; Components: webdoc;
+Name: "{group}\Documentation\Licensing Terms";        FileName: "{app}\LICENCE.txt";                                   WorkingDir: "{app}"                        ;
+Name: "{group}\Documentation\Make a Donation";        FileName: "{app}\TightVNC-donate.url"                                                                       ;
+Name: "{group}\Documentation\TightVNC Web Site";      FileName: "{app}\TightVNC.url"                                                                              ;
+Name: "{group}\Documentation\What's New (Summary)";   FileName: "{app}\Web\whatsnew.html";                             WorkingDir: "{app}\Web"; Components: webdoc;
 
 [Tasks]
-Name: icon; Description: "Create a Start &Menu folder"; GroupDescription: "Additional icons:"; Components: server viewer
-Name: icon\common; Description: "&For all users"; GroupDescription: "Additional icons:"; Components: server viewer webdoc; Flags: exclusive
-Name: icon\user; Description: "For the current &user only"; GroupDescription: "Additional icons:"; Components: server viewer webdoc; Flags: exclusive unchecked
-;Name: quicklaunchicon; Description: "Create a &Quick Launch icon"; GroupDescription: "Additional icons:"; Components: server viewer; Flags: unchecked
-
 Name: associate; Description: "&Associate .vnc files with TightVNC Viewer"; GroupDescription: "File associations:"; Components: viewer
-Name: installapp; Description: "&Install TightVNC as an application"; GroupDescription: "Server configuration:"; Components: server; Flags: checkedonce exclusive; OnlyBelowVersion: 0,6.0
-Name: installservice; Description: "&Register new TightVNC Server as a system service"; GroupDescription: "Server configuration:"; Components: server; Flags: exclusive; OnlyBelowVersion: 0,6.0
-Name: startservice; Description: "&Start or restart TightVNC service"; GroupDescription: "Server configuration:"; Components: server; Flags: exclusive; OnlyBelowVersion: 0,6.0
+Name: installservice; Description: "&Register new TightVNC Server as a system service"; GroupDescription: "Server configuration:"; Components: server; Flags: unchecked; OnlyBelowVersion: 0,6.0
 
 [Registry]
 Root: HKCR; Subkey: ".vnc"; ValueType: string; ValueName: ""; ValueData: "VncViewer.Config"; Flags: uninsdeletevalue; Tasks: associate
@@ -94,9 +72,9 @@ Root: HKCR; Subkey: "VncViewer.Config\DefaultIcon"; ValueType: string; ValueName
 Root: HKCR; Subkey: "VncViewer.Config\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\vncviewer.exe"" -config ""%1"""; Tasks: associate
 
 [Run]
-Filename: "{app}\WinVNC.exe"; Parameters: "-silent -reinstall"; Tasks: installservice startservice
-Filename: "net"; Parameters: "start WinVNC"; Tasks: startservice; MinVersion: 0,4.0
-Filename: "{app}\WinVNC.exe"; Parameters: "-servicehelper"; Tasks: startservice
+Filename: "{app}\WinVNC.exe"; Parameters: "-silent -reinstall"; Tasks: installservice
+Filename: "net"; Parameters: "start WinVNC"; Tasks: installservice; MinVersion: 0,4.0
+Filename: "{app}\WinVNC.exe"; Parameters: "-servicehelper"; Tasks: installservice
 
 [UninstallRun]
 Filename: "{app}\WinVNC.exe"; Parameters: "-silent -remove";

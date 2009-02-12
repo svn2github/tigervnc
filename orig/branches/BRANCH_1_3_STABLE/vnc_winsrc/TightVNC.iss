@@ -77,5 +77,6 @@ Filename: "net"; Parameters: "start WinVNC"; Tasks: installservice; MinVersion: 
 Filename: "{app}\WinVNC.exe"; Parameters: "-servicehelper"; Tasks: installservice
 
 [UninstallRun]
+Filename: "{app}\WinVNC.exe"; Parameters: "-kill"; OnlyBelowVersion: 0,4.0
 Filename: "{app}\WinVNC.exe"; Parameters: "-silent -remove";
 

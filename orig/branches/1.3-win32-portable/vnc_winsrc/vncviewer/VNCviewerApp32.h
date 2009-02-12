@@ -37,8 +37,6 @@ public:
 	Daemon  *m_pdaemon;
 	~VNCviewerApp32();
 private:
-	// Set up registry for program's sounds
-	void RegisterSounds();
 
 // The list of modeless dialogs is maintained for proper message dispatching
 public:

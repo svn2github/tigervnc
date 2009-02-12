@@ -54,8 +54,6 @@ VNCviewerApp32::VNCviewerApp32(HINSTANCE hInstance, PSTR szCmdLine) :
 	} else {
 		m_options.m_listening = false;
 	}
-
-	RegisterSounds();
 }
 
 	
@@ -161,45 +159,6 @@ void VNCviewerApp32::ListenMode() {
 
 const char* BELL_APPL_KEY_NAME  = "AppEvents\\Schemes\\Apps\\VNCviewer";
 const char* BELL_LABEL = "VNCviewerBell";
-
-void VNCviewerApp32::RegisterSounds() {
-	
-	HKEY hBellKey;
-	char keybuf[256];
-	
-	sprintf(keybuf, "AppEvents\\EventLabels\\%s", BELL_LABEL);
-	// First create a label for it
-	if ( RegCreateKey(HKEY_CURRENT_USER, keybuf, &hBellKey)  == ERROR_SUCCESS ) {
-		RegSetValue(hBellKey, NULL, REG_SZ, "Bell", 0);
-		RegCloseKey(hBellKey);
-		
-		// Then put the detail in the app-specific area
-		
-		if ( RegCreateKey(HKEY_CURRENT_USER, BELL_APPL_KEY_NAME, &hBellKey)  == ERROR_SUCCESS ) {
-			
-			sprintf(keybuf, "%s\\%s", BELL_APPL_KEY_NAME, BELL_LABEL);
-			RegCreateKey(HKEY_CURRENT_USER, keybuf, &hBellKey);
-			RegSetValue(hBellKey, NULL, REG_SZ, "Bell", 0);
-			RegCloseKey(hBellKey);
-			
-			sprintf(keybuf, "%s\\%s\\.current", BELL_APPL_KEY_NAME, BELL_LABEL);
-			if (RegOpenKey(HKEY_CURRENT_USER, keybuf, &hBellKey) != ERROR_SUCCESS) {
-				RegCreateKey(HKEY_CURRENT_USER, keybuf, &hBellKey);
-				RegSetValue(hBellKey, NULL, REG_SZ, "ding.wav", 0);
-			}
-			RegCloseKey(hBellKey);
-			
-			sprintf(keybuf, "%s\\%s\\.default", BELL_APPL_KEY_NAME, BELL_LABEL);
-			if (RegOpenKey(HKEY_CURRENT_USER, keybuf, &hBellKey) != ERROR_SUCCESS) {
-				RegCreateKey(HKEY_CURRENT_USER, keybuf, &hBellKey);
-				RegSetValue(hBellKey, NULL, REG_SZ, "ding.wav", 0);
-			}
-			RegCloseKey(hBellKey);
-		}
-		
-	} 
-	
-}
 
 bool VNCviewerApp32::ProcessDialogMessage(MSG *pmsg)
 {

@@ -95,7 +95,7 @@ Root: HKCR; Subkey: "VncViewer.Config\shell\open\command"; ValueType: string; Va
 
 [Run]
 Filename: "{app}\WinVNC.exe"; Parameters: "-silent -reinstall"; Tasks: installservice startservice
-Filename: "net"; Parameters: "start WinVNC"; Tasks: startservice
+Filename: "net"; Parameters: "start WinVNC"; Tasks: startservice; MinVersion: 0,4.0
 Filename: "{app}\WinVNC.exe"; Parameters: "-servicehelper"; Tasks: startservice
 
 [UninstallRun]

@@ -1120,133 +1120,6 @@ static const TCHAR szSoftware[] = "Software";
 static const TCHAR szCompany[] = "ORL";
 static const TCHAR szProfile[] = "VNCHooks";
 
-HKEY GetRegistryKey()
-{
-	if (!useRegistry) return NULL;
-	HKEY hAppKey = NULL;
-	HKEY hSoftKey = NULL;
-	HKEY hCompanyKey = NULL;
-	if (RegOpenKeyEx(HKEY_CURRENT_USER, szSoftware, 0, KEY_WRITE|KEY_READ,
-		&hSoftKey) == ERROR_SUCCESS)
-	{
-		DWORD dw;
-		if (RegCreateKeyEx(hSoftKey, szCompany, 0, REG_NONE,
-			REG_OPTION_NON_VOLATILE, KEY_WRITE|KEY_READ, NULL,
-			&hCompanyKey, &dw) == ERROR_SUCCESS)
-		{
-			RegCreateKeyEx(hCompanyKey, szProfile, 0, REG_NONE,
-				REG_OPTION_NON_VOLATILE, KEY_WRITE|KEY_READ, NULL,
-				&hAppKey, &dw);
-		}
-	}
-	if (hSoftKey != NULL)
-		RegCloseKey(hSoftKey);
-	if (hCompanyKey != NULL)
-		RegCloseKey(hCompanyKey);
-
-	return hAppKey;
-}
-
-HKEY GetModuleKey(const char *proc_name)
-{
-	if (!useRegistry) return NULL;
-	HKEY hModule = NULL;
-
-	// Work out the registry key to save this under
-	sModulePrefs = (char *) malloc(strlen(sPrefSegment) + strlen(proc_name) + 1);
-	if (sModulePrefs == NULL)
-		return FALSE;
-	sprintf(sModulePrefs, "%s%s", sPrefSegment, proc_name);
-
-	// Check whether the library's entry exists!
-	HKEY hAppKey = GetRegistryKey();
-	if (hAppKey == NULL)
-		return NULL;
-
-	// Attempt to open the section for this application
-	if (RegOpenKeyEx(hAppKey,
-					sModulePrefs,
-					0, KEY_WRITE|KEY_READ,
-					&hModule
-					) != ERROR_SUCCESS)
-	{
-		// Cut off the app directory and just use the name
-		char *file_name = NameFromPath(proc_name);
-
-		if (file_name == NULL)
-		{
-			RegCloseKey(hAppKey);
-			return NULL;
-		}
-
-		// Adjust the moduleprefs name
-		sprintf(sModulePrefs, "%s%s", sPrefSegment, file_name);
-		free(file_name);
-
-		// Now get the module key again
-		DWORD dw;
-		if (RegCreateKeyEx(hAppKey,
-					sModulePrefs,
-					0, REG_NONE, REG_OPTION_NON_VOLATILE,
-					KEY_WRITE|KEY_READ,
-					NULL,
-					&hModule,
-					&dw) != ERROR_SUCCESS)
-		{
-			// Couldn't find/create the key - fail!
-			RegCloseKey(hAppKey);
-			return NULL;
-		}
-	}
-
-	// Close the application registry key
-	RegCloseKey(hAppKey);
-
-	return hModule;
-}
-
-int GetProfileInt(LPTSTR key, int def)
-{
-	DWORD type;
-	DWORD value;
-	ULONG size = sizeof(value);
-
-	if (RegQueryValueEx(
-		hModuleKey,
-		key,
-		NULL,
-		&type,
-		(unsigned char *)&value,
-		&size) == ERROR_SUCCESS)
-	{
-		// Is the value of the right type?
-		if (type != REG_DWORD)
-		{
-			return def;
-		}
-		else
-		{
-			return value;
-		}
-	}
-	else
-	{
-		return def;
-	}
-}
-
-void WriteProfileInt(LPTSTR key, int value)
-{
-	if (!useRegistry) return;
-	RegSetValueEx(
-		hModuleKey,
-		key,
-		0,
-		REG_DWORD,
-		(unsigned char *)&value,
-		sizeof(value));
-}
-
 BOOL InitInstance() 
 {
 	// Create the global atoms
@@ -1269,45 +1142,14 @@ BOOL InitInstance()
 		)) == 0)
 		return FALSE;
 
-	// Get the key for the module
-	hModuleKey = GetModuleKey(proc_name);
-	if (hModuleKey == NULL)
-		return FALSE;
-
 	// Read in the prefs
-	prf_use_GetUpdateRect = GetProfileInt(
-		"use_GetUpdateRect",
-		TRUE
-		);
-
-	prf_use_Timer = GetProfileInt(
-		"use_Timer",
-		FALSE
-		);
-	prf_use_KeyPress = GetProfileInt(
-		"use_KeyPress",
-		TRUE
-		);
-	prf_use_LButtonUp = GetProfileInt(
-		"use_LButtonUp",
-		TRUE
-		);
-	prf_use_MButtonUp = GetProfileInt(
-		"use_MButtonUp",
-		TRUE
-		);
-	prf_use_RButtonUp = GetProfileInt(
-		"use_RButtonUp",
-		TRUE
-		);
-	prf_use_Deferral = GetProfileInt(
-		"use_Deferral",
-#ifdef HORIZONLIVE
-		FALSE	// we use full screen polling anyway
-#else
-		TRUE
-#endif
-		);
+	prf_use_GetUpdateRect = TRUE;
+	prf_use_Timer = FALSE;
+	prf_use_KeyPress = TRUE;
+	prf_use_LButtonUp = TRUE;
+	prf_use_MButtonUp = TRUE;
+	prf_use_RButtonUp = TRUE;
+	prf_use_Deferral = TRUE;
 
 	return TRUE;
 }
@@ -1325,52 +1167,6 @@ BOOL ExitInstance()
 		GlobalDeleteAtom(VNC_POPUPSELN_ATOM);
 		VNC_POPUPSELN_ATOM = NULL;
 	}
-
-	// Write the module settings to disk
-	if (sModulePrefs != NULL)
-	{
-		WriteProfileInt(
-			"use_GetUpdateRect",
-			prf_use_GetUpdateRect
-			);
-
-		WriteProfileInt(
-			"use_Timer",
-			prf_use_Timer
-			);
-
-		WriteProfileInt(
-			"use_KeyPress",
-			prf_use_KeyPress
-			);
-
-		WriteProfileInt(
-			"use_LButtonUp",
-			prf_use_LButtonUp
-			);
-
-		WriteProfileInt(
-			"use_MButtonUp",
-			prf_use_MButtonUp
-			);
-
-		WriteProfileInt(
-			"use_RButtonUp",
-			prf_use_RButtonUp
-			);
-
-		WriteProfileInt(
-			"use_Deferral",
-			prf_use_Deferral
-			);
-
-		free(sModulePrefs);
-		sModulePrefs = NULL;
-	}
-
-	// Close the registry key for this module
-	if (hModuleKey != NULL)
-		RegCloseKey(hModuleKey);
 
 	return TRUE;
 }

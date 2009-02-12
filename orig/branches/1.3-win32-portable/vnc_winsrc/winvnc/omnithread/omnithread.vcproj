@@ -17,8 +17,8 @@
 	<Configurations>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory=".\../Release"
-			IntermediateDirectory=".\../Release"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
@@ -42,7 +42,6 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName=".\../Release/omnithread.tlb"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
@@ -54,10 +53,6 @@
 				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile=".\../Release/omnithread.pch"
-				AssemblerListingLocation=".\../Release/"
-				ObjectFile=".\../Release/"
-				ProgramDataBaseFileName=".\../Release/"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
 				CompileAs="2"
@@ -94,8 +89,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory=".\../Debug"
-			IntermediateDirectory=".\../Debug"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
@@ -119,7 +114,6 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName=".\../Debug/omnithread.tlb"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
@@ -131,10 +125,6 @@
 				RuntimeLibrary="1"
 				BufferSecurityCheck="true"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile=".\../Debug/omnithread.pch"
-				AssemblerListingLocation=".\../Debug/"
-				ObjectFile=".\../Debug/"
-				ProgramDataBaseFileName=".\../Debug/"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="4"

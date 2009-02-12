@@ -84,26 +84,32 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
             SessionDialog *_this = (SessionDialog *) lParam;
             CentreWindow(hwnd);
 			_this->m_cc->m_hSess = hwnd;
-            // Set up recently-used list
-            int dwbuflen=255;
-			TCHAR valname[256];
-			TCHAR buf[256];
-			int maxEntries = pApp->m_options.m_historyLimit;
 
-			for ( i = 0; i < maxEntries; i++) { 
-				itoa(i, valname, 10);
-				dwbuflen=255;
-				if (registry->QueryValueEx( _this->m_hRegKey, (LPTSTR)valname, 
-					NULL, NULL, 
-					(LPBYTE)buf, (LPDWORD)&dwbuflen) != ERROR_SUCCESS) {
-					break;
+			// Load connection history to the combo box.
+			const int maxEntries = pApp->m_options.m_historyLimit;
+			int listIndex = 0;
+			for (i = 0; i < maxEntries; i++) {
+				TCHAR keyName[256];
+				itoa(i, keyName, 10);
+			TCHAR buf[256];
+				int dwbuflen = 255;
+				if (registry->QueryValueEx(_this->m_hRegKey, keyName, NULL, NULL,
+									(LPBYTE)buf, (LPDWORD)&dwbuflen) == ERROR_SUCCESS) {
+					buf[255] = '\0';
+					if (buf[0] != 0) {
+						SendMessage(hcombo, CB_INSERTSTRING, (WPARAM)listIndex++, (LPARAM)buf);
 				}
-				SendMessage(hcombo, CB_INSERTSTRING, (WPARAM)i, (LPARAM)(int FAR*)buf);
+			}
 			}
 			if (_this->m_pOpt->m_display[0] == '\0') {
 				SendMessage(hcombo, CB_SETCURSEL, 0, 0);
-				SendMessage(hcombo, CB_GETLBTEXT, 0, (LPARAM)(int FAR*)buffer );
+				LRESULT r = SendMessage(hcombo, CB_GETLBTEXTLEN, 0, 0);
+				if (r > 1 && r <= 256) {
+					r = SendMessage(hcombo, CB_GETLBTEXT, 0, (LPARAM)buffer);
+					if (r > 1) {
 				_this->m_pOpt->LoadOpt(buffer, KEY_VNCVIEWER_HISTORI);
+					}
+				}
 			} else {
 				SetDlgItemText(hwnd, IDC_HOSTNAME_EDIT, _this->m_pOpt->m_display);
 			}
@@ -131,7 +137,7 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 		switch (LOWORD(wParam)) {
 		case IDC_HOSTNAME_EDIT:
 			switch (HIWORD(wParam)) {
-			case  CBN_SELCHANGE:
+			case CBN_SELENDOK:
 				{
 					int a = (int)SendMessage(hcombo, CB_GETCURSEL, 0, 0L);
 					SendMessage(hcombo, CB_GETLBTEXT, a, (LPARAM)(int FAR*)buffer );
@@ -168,6 +174,7 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 			pApp->m_options.LoadOpt(".listen", KEY_VNCVIEWER_HISTORI);
 			pApp->m_options.m_listening=true;
 			pApp->ListenMode();
+			_this->m_pOpt->CloseDialog();
 			EndDialog(hwnd, FALSE);
 			return TRUE; 				
 		case IDC_OK:             
@@ -187,12 +194,12 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 				_tcscpy(_this->m_pOpt->m_display, display);
 			}
 			
-			EndDialog(_this->m_pOpt->m_hParent, FALSE);
+			_this->m_pOpt->CloseDialog();
 			EndDialog(hwnd, TRUE);
 
 			return TRUE;						
 		case IDCANCEL:
-			EndDialog(_this->m_pOpt->m_hParent, FALSE);
+			_this->m_pOpt->CloseDialog();
 			EndDialog(hwnd, FALSE);			
 			return TRUE;				
 		case IDC_LOC_NET_RADIO:
@@ -222,7 +229,9 @@ BOOL CALLBACK SessionDialog::SessDlgProc(  HWND hwnd,  UINT uMsg,  WPARAM wParam
 			return TRUE;
 		case IDC_OPTIONBUTTON:
 			{
-				if (SetForegroundWindow(_this->m_pOpt->m_hParent) != 0) return 0;
+				if (_this->m_pOpt->RaiseDialog()) {
+					return TRUE;	// Options dialog already shown
+				}
 				HWND hOptionButton = GetDlgItem(hwnd, IDC_OPTIONBUTTON);
 				_this->m_pOpt->DoDialog();				
 				GetDlgItemText(hwnd, IDC_HOSTNAME_EDIT, 

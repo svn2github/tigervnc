@@ -18,8 +18,8 @@
 	<Configurations>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory=".\Release"
-			IntermediateDirectory=".\Release"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="1"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
@@ -43,7 +43,6 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName=".\$(ConfigurationName)/WinVNC.tlb"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
@@ -55,10 +54,6 @@
 				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile=".\$(ConfigurationName)/WinVNC.pch"
-				AssemblerListingLocation=".\Release/"
-				ObjectFile=".\Release/"
-				ProgramDataBaseFileName=".\Release/"
 				BrowseInformation="1"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
@@ -82,19 +77,17 @@
 				IgnoreImportLibrary="true"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="wsock32.lib comctl32.lib htmlhelp.lib"
-				OutputFile=".\$(ConfigurationName)/WinVNC.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
+				AdditionalManifestDependencies="&quot;type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; processorArchitecture=&apos;X86&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos;&quot;"
 				IgnoreDefaultLibraryNames=""
-				ProgramDatabaseFile=".\$(ConfigurationName)/WinVNC.pdb"
-				GenerateMapFile="true"
-				MapFileName=".\$(ConfigurationName)/WinVNC.map"
 				MapExports="true"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -120,8 +113,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory=".\Debug"
-			IntermediateDirectory=".\Debug"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="1"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
@@ -145,7 +138,6 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName=".\$(ConfigurationName)/WinVNC.tlb"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
@@ -156,10 +148,6 @@
 				RuntimeLibrary="1"
 				BufferSecurityCheck="true"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile=".\$(ConfigurationName)/WinVNC.pch"
-				AssemblerListingLocation=".\Debug/"
-				ObjectFile=".\Debug/"
-				ProgramDataBaseFileName=".\Debug/"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
@@ -176,25 +164,23 @@
 			<Tool
 				Name="VCPreLinkEventTool"
 				Description="Updating BuildTime"
-				CommandLine="cl /MT /Fo&quot;.\Debug/&quot; /Fd&quot;.\Debug/&quot; /nologo /c BuildTime.cpp"
+				CommandLine="cl /MTd /Fo&quot;.\Debug/&quot; /Fd&quot;.\Debug/&quot; /nologo /c BuildTime.cpp"
 			/>
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="wsock32.lib comctl32.lib htmlhelp.lib"
-				OutputFile=".\$(ConfigurationName)/WinVNC.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories=""
-				IgnoreDefaultLibraryNames="LIBCMT.lib"
+				AdditionalManifestDependencies="&quot;type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; processorArchitecture=&apos;X86&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos;&quot;"
+				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\$(ConfigurationName)/WinVNC.pdb"
-				GenerateMapFile="true"
-				MapFileName=".\$(ConfigurationName)/WinVNC.map"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"

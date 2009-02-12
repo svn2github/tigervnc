@@ -2284,10 +2284,11 @@ inline void vncDesktop::CheckRects(vncRegion &rgn, rectlist &rects)
 
 static const int BLOCK_SIZE = 32;
 
-// created for troubleshoot purposes;
-// when GetChangedRegion_Normal et al are suspected for bugs/need changes.
-// the code below is as simple and clear as possible
-void vncDesktop::GetChangedRegion_Dummy(vncRegion &rgn, const RECT &rect)
+/*
+// A dummy version of GetChangedRegion() created for troubleshoot purposes
+// when GetChangedRegion() et al are suspected for bugs/need changes.
+// The code below is as simple and clear as possible.
+void vncDesktop::GetChangedRegion(vncRegion &rgn, const RECT &rect)
 {
 	rgn.AddRect(rect);
 
@@ -2310,8 +2311,57 @@ void vncDesktop::GetChangedRegion_Dummy(vncRegion &rgn, const RECT &rect)
 		o_ptr += m_bytesPerRow;
 	}
 }
+*/
 
-void vncDesktop::GetChangedRegion_Normal(vncRegion &rgn, const RECT &rect)
+/*
+// DEBUG: Another dumb and slow version of GetChangedRegion().
+void vncDesktop::GetChangedRegion(vncRegion &rgn, const RECT &rect)
+{
+	RECT newRect;
+
+	vnclog.Print(LL_INTERR, VNCLOG("DEBUG: GetChangedRegion for %dx%d at (%d,%d)\n"),
+		(int)(rect.right - rect.left), (int)(rect.bottom - rect.top),
+		(int)rect.left, (int)rect.top);
+
+	// Copy the changes to the back buffer
+	const int top = rect.top - m_bmrect.top;
+	const int left = rect.left - m_bmrect.left;
+	_ASSERTE(top >= 0);
+	_ASSERTE(left >= 0);
+
+	const UINT bytesPerPixel = m_scrinfo.format.bitsPerPixel / 8;
+	const int offset = top * m_bytesPerRow + left * bytesPerPixel;
+
+	unsigned char *o_ptr = m_backbuff + offset;
+	unsigned char *n_ptr = m_mainbuff + offset;
+	const int bytes_in_row = (rect.right - rect.left) * bytesPerPixel;
+	for (int y = rect.top; y < rect.bottom; y++) {
+		int x0 = rect.left;
+		while (x0 < rect.right) {
+			unsigned char *pNew = m_mainbuff + y * m_bytesPerRow + x0 * bytesPerPixel;
+			unsigned char *pOld = m_backbuff + y * m_bytesPerRow + x0 * bytesPerPixel;
+			if (memcmp(pOld, pNew, bytesPerPixel) != 0) {
+				break;	// x0 points to the first difference at the left
+			}
+			x0++;
+		}
+		SetRect(&newRect, x0, y, rect.right, y + 1);
+		if (newRect.right - newRect.left > 0 && newRect.bottom - newRect.top > 0) {
+			rgn.AddRect(newRect);
+			vnclog.Print(LL_INTERR, VNCLOG("DEBUG:   added %dx%d at (%d,%d)\n"),
+				(int)(newRect.right - newRect.left), (int)(newRect.bottom - newRect.top),
+				(int)newRect.left, (int)newRect.top);
+		}
+
+		memcpy(o_ptr, n_ptr, bytes_in_row);
+		n_ptr += m_bytesPerRow;
+		o_ptr += m_bytesPerRow;
+	}
+	vnclog.Print(LL_INTERR, VNCLOG("DEBUG: numRects = %d\n"), rgn.numRects());
+}
+*/
+
+void vncDesktop::GetChangedRegion(vncRegion &rgn, const RECT &rect)
 {
 	const UINT bytesPerPixel = m_scrinfo.format.bitsPerPixel / 8;
 	const int bytes_per_scanline = (rect.right - rect.left) * bytesPerPixel;

@@ -168,17 +168,7 @@ protected:
 	void PollWindow(HWND hwnd);
 	void PollArea(const RECT &rect);
 	void CheckRects(vncRegion &rgn, rectlist &rects);
-	void GetChangedRegion_Normal(vncRegion &rgn, const RECT &rect);
-	void GetChangedRegion_Dummy(vncRegion &rgn, const RECT &rect);
-
-	void GetChangedRegion(vncRegion &rgn, const RECT &rect)
-	{
-#if 1
-		GetChangedRegion_Normal(rgn, rect);
-#else
-		GetChangedRegion_Dummy(rgn, rect);
-#endif
-	}
+	void GetChangedRegion(vncRegion &rgn, const RECT &rect);
 
 	void UpdateChangedRect(vncRegion &rgn, const RECT &rect);
 	void UpdateChangedSubRect(vncRegion &rgn, const RECT &rect);

@@ -91,6 +91,8 @@ VNCOptions::VNCOptions()
 
 	m_closeWindowClassName = NULL;
 
+	m_hParent = 0;
+
 #ifdef UNDER_CE
 	m_palmpc = false;
 	
@@ -171,6 +173,7 @@ VNCOptions::~VNCOptions()
 	if (m_closeWindowClassName != NULL) {
 		free(m_closeWindowClassName);
 	}
+	CloseDialog();
 }
 
 inline bool SwitchMatch(LPCTSTR arg, LPCTSTR swtch) {
@@ -663,6 +666,22 @@ int VNCOptions::DoDialog(bool running)
 							NULL, (DLGPROC) DlgProc, (LONG) this); 	
 }
 
+BOOL VNCOptions::RaiseDialog()
+{
+	if (m_hParent == 0) {
+		return FALSE;
+	}
+	return (SetForegroundWindow(m_hParent) != 0);
+}
+
+void VNCOptions::CloseDialog()
+{
+	if (m_hParent != 0) {
+		EndDialog(m_hParent, FALSE);
+		m_hParent = 0;
+	}
+}
+
 BOOL CALLBACK VNCOptions::DlgProc(HWND hwndDlg, UINT uMsg,
 										WPARAM wParam, LPARAM lParam)
 {
@@ -874,7 +893,7 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 				(_this->m_PreferredEncoding == rfbEncodingZlib) ||
 				(_this->m_PreferredEncoding == rfbEncodingZlibHex)));
 			
-			EnableWindow(hAllowJpeg, ((_this->m_PreferredEncoding == rfbEncodingTight) && !_this->m_Use8Bit));
+			EnableWindow(hAllowJpeg, !_this->m_Use8Bit);
 			
 			HWND hCompressLevel = GetDlgItem(hwnd, IDC_COMPRESSLEVEL);
 			SendMessage(hCompressLevel, TBM_SETRANGE, TRUE, (LPARAM) MAKELONG(1, 9)); 
@@ -892,8 +911,7 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 			
 			SetDlgItemInt(hwnd, IDC_STATIC_QUALITY, _this->m_jpegQualityLevel, FALSE);
 			
-			_this->EnableJpeg(hwnd, ((_this->m_PreferredEncoding == rfbEncodingTight) &&
-				_this->m_enableJpegCompression) && !_this->m_Use8Bit);
+			_this->EnableJpeg(hwnd, _this->m_enableJpegCompression && !_this->m_Use8Bit);
 			
 			HWND hRemoteCursor;
 			if (_this->m_requestShapeUpdates && !_this->m_ignoreShapeUpdates) {
@@ -951,14 +969,11 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 				HWND h8Bit = GetDlgItem(hwnd, IDC_8BITCHECK);
 				HWND hAllowJpeg = GetDlgItem(hwnd, IDC_ALLOW_JPEG);
 				HWND hListBox = GetDlgItem(hwnd, IDC_ENCODING);
-				int i = SendMessage(hListBox, CB_GETCURSEL, 0, 0);
 				if (SendMessage(h8Bit, BM_GETCHECK, 0, 0) != 0) {
-					if (i == 2) {
 						if (SendMessage(hAllowJpeg, BM_GETCHECK, 0, 0) != 0) {
 							_this->EnableJpeg(hwnd, TRUE);
 						}
 						EnableWindow(hAllowJpeg, TRUE);
-					}
 					SendMessage(h8Bit, BM_SETCHECK, FALSE, 0);
 				} else {
 					_this->EnableJpeg(hwnd, FALSE);
@@ -1081,29 +1096,16 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 			switch (HIWORD(wParam)) {
 			case CBN_SELCHANGE:
 				{			
-					HWND h8bit = GetDlgItem(hwnd, IDC_8BITCHECK);
-					HWND hAllowCompressLevel = GetDlgItem(hwnd, IDC_ALLOW_COMPRESSLEVEL);					
-					HWND hAllowJpeg = GetDlgItem(hwnd, IDC_ALLOW_JPEG);					
+					HWND hAllowCompressLevel = GetDlgItem(hwnd, IDC_ALLOW_COMPRESSLEVEL);
 					HWND hListBox = GetDlgItem(hwnd, IDC_ENCODING);
 					int i = SendMessage(hListBox ,CB_GETCURSEL, 0, 0);
 					switch (rfbcombo[i].rfbEncoding) {
 					case rfbEncodingTight:
-						if (SendMessage(h8bit, BM_GETCHECK, 0, 0) == 0) {
-							_this->EnableJpeg(hwnd, (SendMessage(hAllowJpeg,
-													BM_GETCHECK, 0, 0) == 1));							
-							EnableWindow(hAllowJpeg, TRUE);
-						}
-						_this->EnableCompress(hwnd,(SendMessage(hAllowCompressLevel,
-													BM_GETCHECK,0,0) == 1));
-						EnableWindow(hAllowCompressLevel, TRUE);
-						break;
 					case rfbEncodingZlib:
 					case rfbEncodingZlibHex:
 						_this->EnableCompress(hwnd,
 							(SendMessage(hAllowCompressLevel, BM_GETCHECK, 0, 0) == 1));
 						EnableWindow(hAllowCompressLevel, TRUE);						
-						_this->EnableJpeg(hwnd, FALSE);
-						EnableWindow(hAllowJpeg, FALSE);
 						break;
 					case rfbEncodingRRE:
 					case rfbEncodingCoRRE:
@@ -1111,8 +1113,6 @@ BOOL CALLBACK VNCOptions::DlgProcConnOptions(HWND hwnd, UINT uMsg,
 					case rfbEncodingHextile:
 						_this->EnableCompress(hwnd, FALSE);
 						EnableWindow(hAllowCompressLevel, FALSE);
-						_this->EnableJpeg(hwnd, FALSE);
-						EnableWindow(hAllowJpeg, FALSE);
 						break;
 					}
 					return 0;
@@ -1261,7 +1261,7 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 		case IDC_LOG_BROWSE:
 			_this->BrowseLogFile();
 			SetDlgItemText(hwnd, IDC_EDIT_LOG_FILE,
-						_this->m_logFilename);
+						   pApp->m_options.m_logFilename);
 			return 0;
 		case IDC_BUTTON_CLEAR_LIST: 
 			{
@@ -1345,9 +1345,10 @@ BOOL CALLBACK VNCOptions::DlgProcGlobalOptions(HWND hwnd, UINT uMsg,
 				} else {
 					pApp->m_options.m_toolbar = true;					
 				}
-				
-				pApp->m_options.m_historyLimit = GetDlgItemInt(hwnd,
-					IDC_EDIT_AMOUNT_LIST, NULL, FALSE);
+
+				int newLimit = GetDlgItemInt(hwnd, IDC_EDIT_AMOUNT_LIST, 0, FALSE);
+				_this->setHistoryLimit(newLimit);
+
 				pApp->m_options.m_listenPort = GetDlgItemInt(hwnd,
 					IDC_LISTEN_PORT, NULL, FALSE);
 				pApp->m_options.SaveGenOpt();
@@ -1706,5 +1707,50 @@ void VNCOptions::BrowseLogFile()
 			break;
 		}
 		return;
+	}
+}
+
+void VNCOptions::setHistoryLimit(int newLimit)
+{
+	if (newLimit > 1024) {
+		newLimit = 1024;
+	}
+
+	int oldLimit = pApp->m_options.m_historyLimit;
+	pApp->m_options.m_historyLimit = newLimit;
+
+	if (newLimit < oldLimit) {
+		// Open the registry key of connection history.
+		HKEY hKey;
+		LONG result = registry->OpenKeyEx(HKEY_CURRENT_USER, KEY_VNCVIEWER_HISTORI,
+								   0, KEY_ALL_ACCESS,  &hKey);
+		if (result != ERROR_SUCCESS) {
+			return;
+		}
+
+		// Read the list of connections and remove everything exceeding
+		// new limit.
+		int numRead = 0;
+		for (int i = 0; i < oldLimit; i++) {
+			TCHAR valueName[16];
+			_sntprintf(valueName, 16, "%d", i);
+			TCHAR valueData[256];
+			memset(valueData, 0, 256 * sizeof(TCHAR));
+			LPBYTE bufPtr = (LPBYTE)valueData;
+			DWORD bufSize = 255 * sizeof(TCHAR);
+			LONG err = registry->QueryValueEx(hKey, valueName, 0, 0, bufPtr, &bufSize);
+			if (err == ERROR_SUCCESS) {
+				if (valueData[0] != '\0') {
+					numRead++;
+				}
+				if (numRead > newLimit) {
+					// Delete both the list entry and the corresponding settings.
+					registry->DeleteValue(hKey, valueName);
+					registry->DeleteKey(hKey, valueData);
+				}
+			}
+		}
+
+		registry->CloseKey(hKey);
 	}
 }

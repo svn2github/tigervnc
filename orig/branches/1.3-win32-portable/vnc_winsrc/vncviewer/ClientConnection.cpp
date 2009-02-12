@@ -265,6 +265,8 @@ void ClientConnection::Run()
 		}
 	}
 
+	SaveConnectionHistory();
+
 	// Show the "Connecting..." dialog box
 	m_connDlg = new ConnectingDialog(m_pApp->m_instance, m_opts.m_display);
 
@@ -506,8 +508,6 @@ void ClientConnection::CreateDisplay()
 		CheckMenuItem(GetSystemMenu(m_hwnd1, FALSE),
 					ID_TOOLBAR, MF_BYCOMMAND|MF_CHECKED);
 	}
-	SaveConnectionHistory();
-	// record which client created this window
 	
 #ifndef _WIN32_WCE
 	// We want to know when the clipboard changes, so
@@ -755,14 +755,9 @@ void ClientConnection::GetConnectDetails()
 		SessionDialog sessdlg(&m_opts, this);
 		if (!sessdlg.DoDialog()) {
 			throw QuietException("User Cancelled");
+		}
 	}
-		// Add new connection to the connection history only if the VNC host name
-		// was entered interactively, as we should remember user input even if it
-		// does not seem to be correct. If the connection info was specified in
-		// the command line or in a configuration file, it will be added after the
-		// VNC connection is established successfully.
-		SaveConnectionHistory();
-	}
+
 	// This is a bit of a hack: 
 	// The config file may set various things in the app-level defaults which 
 	// we don't want to be used except for the first connection. So we clear them

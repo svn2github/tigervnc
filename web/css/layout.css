@@ -1,0 +1,56 @@
+body {
+	margin: 0px;
+	font-family: sans-serif;
+}
+
+#top {
+	border-bottom: solid 3px black;
+	padding: 10px;
+	background-color: #ffcf7a;
+	min-height: 120px;
+}
+
+#logo {
+	float: left;
+	margin: 10px;
+}
+
+#title {
+	font-size: 3em;
+	font-weight: 800;
+	padding-top: 20px;
+}
+
+#slogan {
+	font-style: italic;
+}
+
+#buttons {
+	float: right;
+	margin: 30px;
+	padding: 10px;
+
+	border: 1px solid black;
+	background-color: #ffcf7a;
+}
+
+#buttons ul {
+	margin: 0px;
+	padding: 0px;
+	list-style: none;
+}
+
+#body {
+	padding: 20px;
+}
+
+a {
+	text-decoration: none;
+	color: #008000;
+	font-style: italic;
+	font-weight: 800;
+}
+
+a:hover {
+	text-decoration: underline;
+}

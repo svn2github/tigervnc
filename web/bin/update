@@ -1,0 +1,17 @@
+#!/bin/bash
+
+if [ $# -ne 1 ]; then
+    echo "Syntax:"
+    echo "    $0 <username>"
+    exit 1
+fi
+
+USER="$1"
+
+if [ ! -d "css" ]; then
+    echo "You seem to be executing this script in the wrong directory!"
+    exit 2
+fi
+
+rsync --archive --progress --delete --exclude /bin --exclude .svn ./ $USER,tigervnc@web.sourceforge.net:htdocs/
+

@@ -54,3 +54,15 @@ a {
 a:hover {
 	text-decoration: underline;
 }
+
+table#members td {
+    vertical-align: top;
+    width: 30%;
+
+    padding: 10px;
+}
+
+table#members img {
+    float: right;
+}
+

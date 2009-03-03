@@ -31,7 +31,7 @@ body {
 	padding: 10px;
 
 	border: 1px solid black;
-	background-color: #ffcf7a;
+	background-color: #ffe0a0;
 }
 
 #buttons ul {
@@ -53,6 +53,10 @@ a {
 
 a:hover {
 	text-decoration: underline;
+}
+
+a:visited {
+	color: #b08040;
 }
 
 table#members td {

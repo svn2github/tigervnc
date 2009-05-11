@@ -8,7 +8,7 @@ fi
 
 USER="$1"
 
-if [ ! -d "css" ]; then
+if [ ! -d "htdocs" ]; then
     echo "You seem to be executing this script in the wrong directory!"
     exit 2
 fi

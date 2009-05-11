@@ -1,0 +1,44 @@
+#!/usr/bin/python
+
+import os
+import sys
+import urllib
+
+print "Content-type: text/html; charset=UTF-8"
+print
+
+import cgitb; cgitb.enable()
+
+sys.path.append("lib")
+import docutils.core
+import docutils.writers.html4css1
+
+def rest2html(string):
+    _w = docutils.writers.html4css1.Writer()
+    _w.translator_class = docutils.writers.html4css1.HTMLTranslator
+
+    options = {'initial_header_level' : 2}
+
+    output = docutils.core.publish_parts(string.decode("utf-8"),
+                                         writer=_w,
+                                         settings_overrides=options)
+
+    return output
+
+f = urllib.urlopen("http://tigervnc.svn.sourceforge.net/viewvc/tigervnc/rfbproto/rfbproto.rst")
+
+html = rest2html(f.read())
+
+print """
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+    <title>%s</title>
+</head>
+<body>
+    <h1>%s</h1>
+
+    %s
+</body>
+</html>""" % (html["title"], html["title"], html["body"])
+

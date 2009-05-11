@@ -13,5 +13,6 @@ if [ ! -d "css" ]; then
     exit 2
 fi
 
-rsync --archive --progress --delete --exclude /bin --exclude .svn ./ $USER,tigervnc@web.sourceforge.net:htdocs/
+rsync --archive --progress --delete --exclude .svn htdocs/ $USER,tigervnc@web.sourceforge.net:htdocs/
+rsync --archive --progress --delete --exclude .svn cgi-bin/ $USER,tigervnc@web.sourceforge.net:cgi-bin/
 

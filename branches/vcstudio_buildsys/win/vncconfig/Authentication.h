@@ -24,7 +24,7 @@
 #include <rfb_win32/OSVersion.h>
 #include <rfb_win32/MsgBox.h>
 #include <rfb/ServerCore.h>
-#include <rfb/Security.h>
+#include <rfb/SecurityServer.h>
 #include <rfb/SSecurityVncAuth.h>
 #include <rfb/Password.h>
 

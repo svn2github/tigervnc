@@ -1,8 +1,6 @@
 /* 
- * Copyright (C) 2004 Red Hat Inc.
- * Copyright (C) 2005 Martin Koegler
  * Copyright (C) 2010 TigerVNC Team
- *    
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -19,42 +17,23 @@
  * USA.
  */
 
-#ifndef __S_SECURITY_TLSBASE_H__
-#define __S_SECURITY_TLSBASE_H__
+#ifndef __RFB_SECURITYSERVER_H__
+#define __RFB_SECURITYSERVER_H__
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#ifndef HAVE_GNUTLS
-#error "This header should not be included without HAVE_GNUTLS defined"
-#endif
-
+#include <rfb/Configuration.h>
+#include <rfb/Security.h>
 #include <rfb/SSecurity.h>
-#include <rdr/InStream.h>
-#include <rdr/OutStream.h>
-#include <gnutls/gnutls.h>
 
 namespace rfb {
 
-  class SSecurityTLSBase : public SSecurity {
+  class SecurityServer : public Security {
   public:
-    SSecurityTLSBase();
-    virtual ~SSecurityTLSBase();
-    virtual bool processMsg(SConnection* sc);
-    virtual const char* getUserName() const {return 0;}
+    SecurityServer(void) : Security(secTypes) {}
 
-  protected:
-    void shutdown();
-    virtual void freeResources()=0;
-    virtual void setParams(gnutls_session session)=0;
+    /* Create server side SSecurity class instance */
+    SSecurity* GetSSecurity(rdr::U32 secType);
 
-  private:
-    static void initGlobal();
-
-    gnutls_session session;
-    rdr::InStream* fis;
-    rdr::OutStream* fos;
+    static StringParameter secTypes;
   };
 
 }

@@ -26,28 +26,49 @@
 #include <config.h>
 #endif
 
-#ifdef HAVE_GNUTLS
+#ifndef HAVE_GNUTLS
+#error "This header should not be compiled without HAVE_GNUTLS defined"
+#endif
 
-#include <rfb/CSecurityTLSBase.h>
+#include <rfb/CSecurity.h>
 #include <rfb/SSecurityVeNCrypt.h>
+#include <rfb/Security.h>
+#include <rdr/InStream.h>
+#include <rdr/OutStream.h>
+#include <gnutls/gnutls.h>
 
 namespace rfb {
-  class CSecurityTLS : public CSecurityTLSBase {
+  class CSecurityTLS : public CSecurity {
   public:
-    CSecurityTLS();
+    CSecurityTLS(bool _anon);
     virtual ~CSecurityTLS();
-    virtual int getType() const { return secTypeTLSNone; };
-    virtual const char* description() const { return "TLS Encryption without VncAuth"; }
+    virtual bool processMsg(CConnection* cc);
+    virtual int getType() const { return anon ? secTypeTLSNone : secTypeX509None; }
+    virtual const char* description() const
+      { return anon ? "TLS Encryption without VncAuth" : "X509 Encryption without VncAuth"; }
+
+    static StringParameter x509ca;
+    static StringParameter x509crl;
+
   protected:
-    virtual void freeResources();
-    virtual void setParam(gnutls_session session);
-    virtual void checkSession(gnutls_session session);
+    void shutdown();
+    void freeResources();
+    void setParam();
+    void checkSession();
+    CConnection *client;
 
   private:
+    static void initGlobal();
+
+    gnutls_session session;
     gnutls_anon_client_credentials anon_cred;
+    gnutls_certificate_credentials cert_cred;
+    bool anon;
+
+    char *cafile, *crlfile;
+    rdr::InStream* fis;
+    rdr::OutStream* fos;
   };
 }
 
-#endif /* HAVE_GNUTLS */
-
-#endif /* __C_SECURITY_TLS_H__ */
+#endif

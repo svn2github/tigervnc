@@ -26,17 +26,11 @@
 #include <config.h>
 #endif
 
-#ifndef HAVE_GNUTLS
-#error "This source should not be compiled without HAVE_GNUTLS defined"
-#endif
-
 #include <rfb/SSecurityVeNCrypt.h>
 #include <rfb/Exception.h>
 #include <rfb/LogWriter.h>
 #include <rdr/InStream.h>
 #include <rdr/OutStream.h>
-#include <rfb/SSecurityVncAuth.h>
-#include <rfb/SSecurityTLS.h>
 
 using namespace rfb;
 using namespace rdr;
@@ -44,25 +38,9 @@ using namespace std;
 
 static LogWriter vlog("SVeNCrypt");
 
-StringParameter SSecurityVeNCrypt::X509_CertFile
-("x509cert",
- "specifies path to the x509 certificate in PEM format",
- "", ConfServer);
-
-StringParameter SSecurityVeNCrypt::X509_KeyFile
-("x509key",
- "specifies path to the key of the x509 certificate in PEM format",
- "", ConfServer);
-
-StringParameter SSecurityVeNCrypt::secTypesStr
-("VeNCryptTypes",
- "Specify which security scheme to use for VeNCrypt connections (TLSNone, "
- "TLSVnc, TLSPlain, X509None, X509Vnc, X509Plain)",
- "TLSVnc,TLSPlain,X509Vnc,X509Plain");
-
-SSecurityVeNCrypt::SSecurityVeNCrypt(void)
+SSecurityVeNCrypt::SSecurityVeNCrypt(SecurityServer *sec) : security(sec)
 {
-  ssecurityStack = NULL;
+  ssecurity = NULL;
   haveSentVersion = false;
   haveRecvdMajorVersion = false;
   haveRecvdMinorVersion = false;
@@ -141,7 +119,8 @@ bool SSecurityVeNCrypt::processMsg(SConnection* sc)
    */
   if (!haveSentTypes) {
     list<U32> listSubTypes;
-    SSecurityVeNCrypt::getSecTypes(&listSubTypes);
+
+    listSubTypes = security->GetEnabledExtSecTypes();
 
     numTypes = listSubTypes.size();
     subTypes = new U32[numTypes];
@@ -178,109 +157,17 @@ bool SSecurityVeNCrypt::processMsg(SConnection* sc)
     if (!haveChosenType)
       chosenType = secTypeInvalid;
 
-    /* Set up the stack according to the chosen type */
-    switch(chosenType) {
-    case secTypeTLSNone:
-    case secTypeTLSVnc:
-    case secTypeTLSPlain:
-    case secTypeX509None:
-    case secTypeX509Vnc:
-    case secTypeX509Plain:
-      ssecurityStack = SSecurityVeNCrypt::getSSecurityStack(chosenType);
-	break;  
-    case secTypeInvalid:
-    case secTypeVeNCrypt: /* This would cause looping */
-    default:
-      throw AuthFailureException("No valid VeNCrypt sub-type");
-    }
+    vlog.debug("Choosing security type %s (%d)", secTypeName(chosenType),
+	       chosenType);
 
+    /* Set up the stack according to the chosen type */
+    if (chosenType == secTypeInvalid || chosenType == secTypeVeNCrypt)
+      throw AuthFailureException("No valid VeNCrypt sub-type");
+
+    ssecurity = security->GetSSecurity(chosenType);
   }
 
   /* continue processing the messages */
-  return ssecurityStack->processMsg(sc);
+  return ssecurity->processMsg(sc);
 }
-
-SSecurityStack* SSecurityVeNCrypt::getSSecurityStack(int secType)
-{
-  switch (secType) {
-  case secTypeTLSNone:
-    return new SSecurityStack(secTypeTLSNone, new SSecurityTLS());
-  case secTypeTLSVnc:
-    return new SSecurityStack(secTypeTLSVnc, new SSecurityTLS(), new SSecurityVncAuth());
-#if 0
-  /* Following types are not implemented, yet */
-  case secTypeTLSPlain:
-  case secTypeX509None:
-  case secTypeX509Vnc:
-  case secTypeX509Plain:
-#endif
-  default:
-    throw Exception("Bug in the SSecurityVeNCrypt::getSSecurityStack");
-  }
-}
-
-void SSecurityVeNCrypt::getSecTypes(list<U32>* secTypes)
-{
-  CharArray types;
-
-  types.buf = SSecurityVeNCrypt::secTypesStr.getData();
-  list<U32> configured = SSecurityVeNCrypt::parseSecTypes(types.buf);
-  list<U32>::iterator i;
-  for (i = configured.begin(); i != configured.end(); i++)
-    secTypes->push_back(*i);
-}
-
-U32 SSecurityVeNCrypt::secTypeNum(const char *name)
-{
-  if (strcasecmp(name, "TLSNone") == 0)
-    return secTypeTLSNone;
-  if (strcasecmp(name, "TLSVnc") == 0)
-    return secTypeTLSVnc;
-  if (strcasecmp(name, "TLSPlain") == 0)
-    return secTypeTLSPlain;
-  if (strcasecmp(name, "X509None") == 0)
-    return secTypeX509None;
-  if (strcasecmp(name, "X509Vnc") == 0)
-    return secTypeX509Vnc;
-  if (strcasecmp(name, "X509Plain") == 0)
-    return secTypeX509Plain;
-
-  return secTypeInvalid;
-}
-
-char* SSecurityVeNCrypt::secTypeName(U32 num)
-{
-  switch (num) {
-  case secTypePlain:
-    return "Plain";
-  case secTypeTLSNone:
-    return "TLSNone";
-  case secTypeTLSVnc:
-    return "TLSVnc";
-  case secTypeTLSPlain:
-    return "TLSPlain";
-  case secTypeX509None:
-    return "X509None";
-  case secTypeX509Vnc:
-    return "X509Vnc";
-  case secTypeX509Plain:
-    return "X509Plain";
-  default:
-    return "[unknown secType]";
-  }
-}
-
-list<U32> SSecurityVeNCrypt::parseSecTypes(const char *secTypes)
-{
-  list<U32> result;
-  CharArray types(strDup(secTypes)), type;
-  while (types.buf) {
-    strSplit(types.buf, ',', &type.buf, &types.buf);
-    int typeNum = SSecurityVeNCrypt::secTypeNum(type.buf);
-    if (typeNum != secTypeInvalid)
-      result.push_back(typeNum);
-  }
-  return result;
-}
-
 

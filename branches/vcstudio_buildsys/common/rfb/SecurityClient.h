@@ -1,6 +1,5 @@
-/* Copyright (C) 2009 TightVNC Team
- * Copyright (C) 2009 Red Hat, Inc.
- *
+/* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -16,26 +15,29 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
+//
+// secTypes.h - constants for the various security types.
+//
 
-#ifndef XORG_VERSION_H
-#define XORG_VERSION_H
+#ifndef __RFB_SECURITYCLIENT_H__
+#define __RFB_SECURITYCLIENT_H__
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
+#include <rfb/Configuration.h>
+#include <rfb/Security.h>
+#include <rfb/CSecurity.h>
 
-#if XORG_VERSION_CURRENT < ((1 * 10000000) + (5 * 100000) + (99 * 1000))
-#define XORG 15
-#elif XORG_VERSION_CURRENT < ((1 * 10000000) + (6 * 100000) + (99 * 1000))
-#define XORG 16
-#elif XORG_VERSION_CURRENT < ((1 * 10000000) + (7 * 100000) + (99 * 1000))
-#define XORG 17
-#elif XORG_VERSION_CURRENT < ((1 * 10000000) + (8 * 100000) + (99 * 1000))
-#define XORG 18
-#elif XORG_VERSION_CURRENT < ((1 * 10000000) + (9 * 100000) + (99 * 1000))
-#define XORG 19
-#else
-#error "X.Org newer than 1.9 is not supported"
-#endif
+namespace rfb {
+
+  class SecurityClient : public Security {
+  public:
+    SecurityClient(void) : Security(secTypes) {}
+
+    /* Create client side CSecurity class instance */
+    CSecurity* GetCSecurity(rdr::U32 secType);
+
+    static StringParameter secTypes;
+  };
+
+}
 
 #endif

@@ -45,6 +45,15 @@ namespace rfb {
   const rdr::U8 secTypeTLS     = 18;
   const rdr::U8 secTypeVeNCrypt= 19;
 
+  /* VeNCrypt subtypes */
+  const int secTypePlain       = 256;
+  const int secTypeTLSNone     = 257;
+  const int secTypeTLSVnc      = 258;
+  const int secTypeTLSPlain    = 259;
+  const int secTypeX509None    = 260;
+  const int secTypeX509Vnc     = 261;
+  const int secTypeX509Plain   = 262;
+
   // result types
 
   const rdr::U32 secResultOK = 0;
@@ -56,38 +65,36 @@ namespace rfb {
     /*
      * Create Security instance.
      */
-    Security(void);
-
-    /* Enable/Disable certain security type */
-    void EnableSecType(rdr::U8 secType);
-    void DisableSecType(rdr::U8 secType) { enabledSecTypes.remove(secType); }
-
-    /* Check if certain type is supported */
-    bool IsSupported(rdr::U8 secType);
-
-    /* Get list of enabled security types */
-    const std::list<rdr::U8>& GetEnabledSecTypes(void)
-      { return enabledSecTypes; }
-
-    /* Create server side SSecurity class instance */
-    SSecurity* GetSSecurity(rdr::U8 secType);
-
-    /* Create client side CSecurity class instance */
-    CSecurity* GetCSecurity(rdr::U8 secType);
-
-    static StringParameter secTypes;
+    Security(StringParameter &secTypes);
 
     /*
-     * Use variable directly instead of dumb get/set methods. It is used
-     * only in viewer-side code and MUST be set by viewer.
+     * Note about security types.
+     *
+     * Although RFB protocol specifies security types as U8 values,
+     * we map VeNCrypt subtypes (U32) into the standard security types
+     * to simplify user configuration. With this mapping user can configure
+     * both VeNCrypt subtypes and security types with only one option.
      */
+
+    /* Enable/Disable certain security type */
+    void EnableSecType(rdr::U32 secType);
+    void DisableSecType(rdr::U32 secType) { enabledSecTypes.remove(secType); }
+
+    /* Check if certain type is supported */
+    bool IsSupported(rdr::U32 secType);
+
+    /* Get list of enabled security types without VeNCrypt subtypes */
+    const std::list<rdr::U8> GetEnabledSecTypes(void);
+    /* Get list of enabled VeNCrypt subtypes */
+    const std::list<rdr::U32> GetEnabledExtSecTypes(void);
+
   private:
-    std::list<rdr::U8> enabledSecTypes;
+    std::list<rdr::U32> enabledSecTypes;
   };
 
-  const char* secTypeName(rdr::U8 num);
-  rdr::U8 secTypeNum(const char* name);
-  std::list<rdr::U8> parseSecTypes(const char* types);
+  const char* secTypeName(rdr::U32 num);
+  rdr::U32 secTypeNum(const char* name);
+  std::list<rdr::U32> parseSecTypes(const char* types);
 }
 
 #endif

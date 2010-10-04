@@ -1,6 +1,7 @@
-/* Copyright (C) 2009 TightVNC Team
- * Copyright (C) 2009 Red Hat, Inc.
- *
+/* 
+ * Copyright (C) 2006 Martin Koegler
+ * Copyright (C) 2010 TigerVNC Team
+ *    
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -17,25 +18,25 @@
  * USA.
  */
 
-#ifndef XORG_VERSION_H
-#define XORG_VERSION_H
+#ifndef __RFB_PAM_H__
+#define __RFB_PAM_H__
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
 #endif
 
-#if XORG_VERSION_CURRENT < ((1 * 10000000) + (5 * 100000) + (99 * 1000))
-#define XORG 15
-#elif XORG_VERSION_CURRENT < ((1 * 10000000) + (6 * 100000) + (99 * 1000))
-#define XORG 16
-#elif XORG_VERSION_CURRENT < ((1 * 10000000) + (7 * 100000) + (99 * 1000))
-#define XORG 17
-#elif XORG_VERSION_CURRENT < ((1 * 10000000) + (8 * 100000) + (99 * 1000))
-#define XORG 18
-#elif XORG_VERSION_CURRENT < ((1 * 10000000) + (9 * 100000) + (99 * 1000))
-#define XORG 19
-#else
-#error "X.Org newer than 1.9 is not supported"
+#ifndef HAVE_PAM
+#error "This header should not be included when PAM is unsupported"
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int do_pam_auth(const char *service, const char *username, const char *password);
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif

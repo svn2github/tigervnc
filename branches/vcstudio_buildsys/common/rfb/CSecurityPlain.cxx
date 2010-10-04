@@ -1,6 +1,6 @@
-/* Copyright (C) 2009 TightVNC Team
- * Copyright (C) 2009 Red Hat, Inc.
- *
+/* Copyright (C) 2005 Martin Koegler
+ * Copyright (C) 2010 TigerVNC Team
+ * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -17,25 +17,27 @@
  * USA.
  */
 
-#ifndef XORG_VERSION_H
-#define XORG_VERSION_H
+#include <rfb/CConnection.h>
+#include <rfb/CSecurityPlain.h>
+#include <rfb/UserPasswdGetter.h>
+#include <rfb/util.h>
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
+using namespace rfb;
 
-#if XORG_VERSION_CURRENT < ((1 * 10000000) + (5 * 100000) + (99 * 1000))
-#define XORG 15
-#elif XORG_VERSION_CURRENT < ((1 * 10000000) + (6 * 100000) + (99 * 1000))
-#define XORG 16
-#elif XORG_VERSION_CURRENT < ((1 * 10000000) + (7 * 100000) + (99 * 1000))
-#define XORG 17
-#elif XORG_VERSION_CURRENT < ((1 * 10000000) + (8 * 100000) + (99 * 1000))
-#define XORG 18
-#elif XORG_VERSION_CURRENT < ((1 * 10000000) + (9 * 100000) + (99 * 1000))
-#define XORG 19
-#else
-#error "X.Org newer than 1.9 is not supported"
-#endif
+bool CSecurityPlain::processMsg(CConnection* cc)
+{
+   rdr::OutStream* os = cc->getOutStream();
 
-#endif
+  CharArray username;
+  CharArray password;
+
+  (CSecurity::upg)->getUserPasswd(&username.buf, &password.buf);
+
+  // Return the response to the server
+  os->writeU32(strlen(username.buf));
+  os->writeU32(strlen(password.buf));
+  os->writeBytes(username.buf,strlen(username.buf));
+  os->writeBytes(password.buf,strlen(password.buf));
+  os->flush();
+  return true;
+}

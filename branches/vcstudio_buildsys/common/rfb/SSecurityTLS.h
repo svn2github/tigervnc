@@ -30,27 +30,45 @@
 #error "This header should not be included without HAVE_GNUTLS defined"
 #endif
 
-#include <rfb/SSecurityTLSBase.h>
+#include <rfb/SSecurity.h>
 #include <rfb/SSecurityVeNCrypt.h>
+#include <rdr/InStream.h>
+#include <rdr/OutStream.h>
+#include <gnutls/gnutls.h>
 
 namespace rfb {
 
-  class SSecurityTLS : public SSecurityTLSBase {
+  class SSecurityTLS : public SSecurity {
   public:
-    SSecurityTLS();
+    SSecurityTLS(bool _anon);
     virtual ~SSecurityTLS();
-    virtual int getType() const {return secTypeTLSNone;}
+    virtual bool processMsg(SConnection* sc);
+    virtual const char* getUserName() const {return 0;}
+    virtual int getType() const { return anon ? secTypeTLSNone : secTypeX509None;}
+
+    static StringParameter X509_CertFile;
+    static StringParameter X509_KeyFile;
+
   protected:
-    virtual void freeResources();
-    virtual void setParams(gnutls_session session);
+    void shutdown();
+    void setParams(gnutls_session session);
 
   private:
     static void initGlobal();
 
+    gnutls_session session;
     gnutls_dh_params dh_params;
     gnutls_anon_server_credentials anon_cred;
+    gnutls_certificate_credentials cert_cred;
+    char *keyfile, *certfile;
+
+    int type;
+    bool anon;
+
+    rdr::InStream* fis;
+    rdr::OutStream* fos;
   };
 
 }
 
-#endif /* __S_SECURITY_TLS_H__ */
+#endif

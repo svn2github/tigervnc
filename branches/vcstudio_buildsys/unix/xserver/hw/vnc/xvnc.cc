@@ -630,7 +630,11 @@ vfbInstallColormap(ColormapPtr pmap)
 
 	for (i = 0; i < entries; i++)  ppix[i] = i;
 	/* XXX truecolor */
+#if XORG < 19
 	QueryColors(pmap, entries, ppix, prgb);
+#else
+	QueryColors(pmap, entries, ppix, prgb, serverClient);
+#endif
 
 	for (i = 0; i < entries; i++) { /* convert xrgbs to xColorItems */
 	    defs[i].pixel = ppix[i] & 0xff; /* change pixel to index */
@@ -878,7 +882,11 @@ static Bool vncRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 static void
 xf86SetRootClip (ScreenPtr pScreen, Bool enable)
 {
+#if XORG < 19
     WindowPtr	pWin = WindowTable[pScreen->myNum];
+#else
+    WindowPtr	pWin = pScreen->root;
+#endif
     WindowPtr	pChild;
     Bool	WasViewable = (Bool)(pWin->viewable);
     Bool	anyMarked = FALSE;
@@ -1195,13 +1203,22 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     pScreen->blackPixel = pvfb->blackPixel;
     pScreen->whitePixel = pvfb->whitePixel;
 
-    if (!pvfb->pixelFormatDefined && pvfb->fb.depth == 16) {
-	pvfb->pixelFormatDefined = TRUE;
-	pvfb->rgbNotBgr = TRUE;
-	pvfb->blueBits = pvfb->redBits = 5;
-	pvfb->greenBits = 6;
+    if (!pvfb->pixelFormatDefined) {
+	switch (pvfb->fb.depth) {
+	case 16:
+	    pvfb->pixelFormatDefined = TRUE;
+	    pvfb->rgbNotBgr = TRUE;
+	    pvfb->blueBits = pvfb->redBits = 5;
+	    pvfb->greenBits = 6;
+	    break;
+	case 32:
+	    pvfb->pixelFormatDefined = TRUE;
+	    pvfb->rgbNotBgr = TRUE;
+	    pvfb->blueBits = pvfb->redBits = pvfb->greenBits = 8;
+	    break;
+	}
     }
-    
+
     if (pvfb->pixelFormatDefined) {
 	VisualPtr vis = pScreen->visuals;
 	for (int i = 0; i < pScreen->numVisuals; i++) {

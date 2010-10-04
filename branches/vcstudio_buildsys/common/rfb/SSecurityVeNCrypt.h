@@ -29,43 +29,22 @@
 #include <config.h>
 #endif
 
-#ifndef HAVE_GNUTLS
-#error "This header should not be included without HAVE_GNUTLS defined"
-#endif
-
 #include <rfb/SSecurityStack.h>
 #include <rfb/SConnection.h>
 
 namespace rfb {
 
-  /* VeNCrypt subtypes */
-  const int secTypePlain	= 256;
-  const int secTypeTLSNone	= 257;
-  const int secTypeTLSVnc	= 258;
-  const int secTypeTLSPlain	= 259;
-  const int secTypeX509None	= 260;
-  const int secTypeX509Vnc	= 261;
-  const int secTypeX509Plain	= 262;
-
   class SSecurityVeNCrypt : public SSecurity {
   public:
-    SSecurityVeNCrypt(void);
+    SSecurityVeNCrypt(SecurityServer *sec);
     ~SSecurityVeNCrypt();
     virtual bool processMsg(SConnection* sc);// { return true; }
     virtual int getType() const { return secTypeVeNCrypt; }
     virtual const char* getUserName() const { return NULL; }
 
-    static StringParameter X509_CertFile, X509_KeyFile, secTypesStr;
-
-    /* XXX Derive Security class and merge those functions appropriately ? */
-    static void getSecTypes(std::list<rdr::U32>* secTypes);
-    static rdr::U32 secTypeNum(const char *name);
-    static char* secTypeName(rdr::U32 num);
-    static std::list<rdr::U32> parseSecTypes(const char *types);
   protected:
-    static SSecurityStack* getSSecurityStack(int secType);
-
-    SSecurityStack *ssecurityStack;
+    SSecurity *ssecurity;
+    SecurityServer *security;
     bool haveSentVersion, haveRecvdMajorVersion, haveRecvdMinorVersion;
     bool haveSentTypes, haveChosenType;
     rdr::U8 majorVersion, minorVersion, numTypes;

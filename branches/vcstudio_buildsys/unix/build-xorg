@@ -73,7 +73,11 @@ init()
     if [ "$XORG_VERSION" = "7.4" ]; then
 	patch -p1 < $SRCDIR/unix/xserver15.patch
     else
-	patch -p1 < $SRCDIR/unix/xserver17.patch
+	patch -p1 < $SRCDIR/unix/xserver18.patch
+	for all in `find $SRCDIR/unix/xorg-7.5-patches/ -type f |grep '.*\.patch$'`; do
+	    echo Applying $all
+	    patch -p1 < $all
+	done
     fi
 
     popd
@@ -97,7 +101,12 @@ update_modules()
     for module in ${modules}; do
         tar jxf ~/.tigervnc-xorg-$XORG_VERSION/${module}.tar.bz2
     done
-    tar jxf ~/.tigervnc-xorg-$XORG_VERSION/Mesa.tar.bz2
+
+    [ -r ~/.tigervnc-xorg-$XORG_VERSION/Mesa.tar.bz2 ] && \
+        tar jxf ~/.tigervnc-xorg-$XORG_VERSION/Mesa.tar.bz2
+    [ -r ~/.tigervnc-xorg-$XORG_VERSION/Mesa.tar.gz ] && \
+        tar zxf ~/.tigervnc-xorg-$XORG_VERSION/Mesa.tar.gz
+
     tar jxf ~/.tigervnc-xorg-$XORG_VERSION/freetype.tar.bz2
     tar jxf ~/.tigervnc-xorg-$XORG_VERSION/xorg-server.tar.bz2
     cp -r $SRCDIR/unix/xserver xserver
@@ -126,10 +135,13 @@ build ()
         echo configuring ${module}
         echo ======================
         if [ "${module}" = "libX11" ]; then
-            extraoptions="${extraoptions} --without-xcb"
+            extraoptions="${extraoptions} --without-xcb --disable-specs"
         fi
         if [ "${module}" = "libSM" ]; then
             extraoptions="${extraoptions} --without-libuuid"
+        fi
+        if [ "${module}" = "pixman" ]; then
+            extraoptions="${extraoptions} --disable-gtk"
         fi
         if [ $STATIC = 1 ]; then
             extraoptions="${extraoptions} --enable-static --disable-shared"
@@ -159,7 +171,7 @@ build ()
     # build mesa
     echo "*** Building Mesa ***"
     pushd Mesa-*
-    ./configure ${1+"$@"} --prefix=${PREFIX} --with-driver=dri --disable-glut --without-demos
+    ./configure ${1+"$@"} --prefix=${PREFIX} --disable-driglx-direct --with-dri-drivers=swrast --with-driver=dri --disable-glut --without-demos
     if [ $? -ne 0 ]; then
 	echo "Failed to configure Mesa."
 	exit
@@ -187,7 +199,7 @@ build ()
     echo "*** Building xserver ***"
     pushd xorg/xserver
     autoreconf -fiv
-    XORGCFGFLAGS='--disable-xinerama --disable-xvfb --disable-xnest --disable-xorg'
+    XORGCFGFLAGS='--disable-xinerama --disable-xvfb --disable-xnest --disable-xorg --disable-dmx --disable-xwin --disable-xephyr --disable-kdrive --disable-config-dbus --disable-config-hal --disable-config-udev --with-sha1=libgcrypt'
     if [ $STATIC = 1 ]; then
         XORGCFGFLAGS="${XORGCFGFLAGS} --disable-shared --enable-static"
     fi
@@ -231,6 +243,10 @@ usage ()
     exit 1
 }
 
+if [ -x '/usr/bin/getconf' ]; then
+    MAKE_PARALLEL=`/usr/bin/getconf _NPROCESSORS_ONLN 2>&1`
+    [ "$MAKE_PARALLEL" -gt 1 ] && MAKE="$MAKE -j$MAKE_PARALLEL"
+fi
 
 while [ $# -gt 0 ]
 do
@@ -316,6 +332,12 @@ if [ $STATIC = 1 -a "$MODE" = "build" ]; then
     if [ -f ./xorg.build/syslib/libz.a ]; then
 	rm -f ./xorg.build/syslib/libz.a
     fi
+    if [ -f ./xorg.build/syslib/libgcrypt.a ]; then
+	rm -f ./xorg.build/syslib/libgcrypt.a
+    fi
+    if [ -f ./xorg.build/syslib/libgnutls.a ]; then
+	rm -f ./xorg.build/syslib/libgnutls.a
+    fi
     IS64BIT=`echo -e "#ifdef __x86_64__\nis64bit_yes\n#else\nis64bit_no\n#endif" | $CC $CFLAGS -E - | grep is64bit`
     STATICLIBDIR=
     case $IS64BIT in
@@ -343,6 +365,16 @@ if [ $STATIC = 1 -a "$MODE" = "build" ]; then
 	exit 1
     else
 	ln -fs $STATICLIBDIR/libz.a ./xorg.build/syslib
+    fi
+    if [ ! -f $STATICLIBDIR/libgcrypt.a ]; then
+	echo WARNING: Cannot find suitable libgcrypt.a.  Xvnc will depend on libgcrypt.so ...
+    else
+	ln -fs $STATICLIBDIR/libgcrypt.a ./xorg.build/syslib
+    fi
+    if [ ! -f $STATICLIBDIR/libgnutls.a ]; then
+	echo WARNING: Cannot find suitable libgnutls.a.  Xvnc will depend on libgnutls.so ...
+    else
+	ln -fs $STATICLIBDIR/libgnutls.a ./xorg.build/syslib
     fi
 fi
 

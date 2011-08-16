@@ -1,0 +1,224 @@
+# Swedish translations for TigerVNC package
+# Svenska översättningar för paket TigerVNC.
+# Copyright (C) 2005 RealVNC Ltd, Constantin Kaplinsky, Peter Astrand, Cendio AB
+# Copyright (C) 2011 TigerVNC Team
+# This file is distributed under the same license as the tightvnc package.
+# Peter Astrand <astrand@cendio.se>, 2005.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: TigerVNC 0.0.91\n"
+"Report-Msgid-Bugs-To: tigervnc-devel@lists.sourceforge.net\n"
+"POT-Creation-Date: 2011-06-27 23:58-0500\n"
+"PO-Revision-Date: 2010-10-11 12:11+0200\n"
+"Last-Translator: Peter Astrand <astrand@cendio.se>\n"
+"Language-Team: Swedish\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: \n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "About TigerVNC Viewer"
+msgstr "Om VNC-visaren"
+
+msgid "VNC authentication"
+msgstr "VNC-autentisering"
+
+#, c-format
+msgid "TigerVNC: %.240s"
+msgstr "TigerVNC: %.240s"
+
+msgid "Exit viewer"
+msgstr "Avsluta visaren"
+
+msgid "Full screen"
+msgstr "Fullskärm"
+
+msgid "Ctrl"
+msgstr "Ctrl"
+
+msgid "Alt"
+msgstr "Alt"
+
+#, c-format
+msgid "Send %s"
+msgstr "Skicka %s"
+
+msgid "Send Ctrl-Alt-Del"
+msgstr "Skicka Ctrl-Alt-Del"
+
+msgid "Refresh screen"
+msgstr "Uppdatera skärm"
+
+msgid "New connection..."
+msgstr "Ny anslutning..."
+
+msgid "Options..."
+msgstr "Inställningar..."
+
+msgid "Connection info..."
+msgstr "Information om anslutningen..."
+
+msgid "About TigerVNC viewer..."
+msgstr "Om TigerVNC-visaren..."
+
+msgid "Dismiss menu"
+msgstr "Stäng meny"
+
+msgid "VNC Menu"
+msgstr "VNC-meny"
+
+#, c-format
+msgid ""
+"Desktop name: %.80s\n"
+"Host: %.80s port: %d\n"
+"Size: %d x %d\n"
+"Pixel format: %s\n"
+"(server default %s)\n"
+"Requested encoding: %s\n"
+"Last used encoding: %s\n"
+"Line speed estimate: %d kbit/s\n"
+"Protocol version: %d.%d\n"
+"Security method: %s\n"
+msgstr ""
+"Skrivbordsnamn: %.80s\n"
+"Värd: %.80s port: %d\n"
+"Storlek: %d x %d\n"
+"Pixelformat: %s\n"
+"(serverstandard %s)\n"
+"Begärd kodning: %s\n"
+"Senast använd kodning: %s\n"
+"Uppskattad hastighet på förbindelsen: %d kbit/s\n"
+"Protokollversion: %d.%d\n"
+"Säkerhetsmetod: %s\n"
+
+msgid "VNC connection info"
+msgstr "VNC anslutningsinformation"
+
+msgid "VNC Viewer: Connection Options"
+msgstr "VNC-visare: Anslutningsalternativ"
+
+msgid "Encoding and Color Level:"
+msgstr "Kodning och färgnivå:"
+
+msgid "Inputs:"
+msgstr "Inmatning:"
+
+msgid "Misc:"
+msgstr "Diverse:"
+
+msgid "Auto select"
+msgstr "Automatiskt val"
+
+msgid "Full (all available colors)"
+msgstr "Full (alla tillgängliga färger)"
+
+msgid "Medium (256 colors)"
+msgstr "Medium (256 färger)"
+
+msgid "Low (64 colors)"
+msgstr "Låg (64 färger)"
+
+msgid "Very low (8 colors)"
+msgstr "Mycket låg (8 färger)"
+
+msgid "Custom compression level:"
+msgstr "Anpassad kompressionsnivå:"
+
+msgid "level (1=fast, 9=best)"
+msgstr "nivå (1=snabb, 9=bäst)"
+
+msgid "Allow JPEG compression:"
+msgstr "Tillåt JPEG-kompression:"
+
+msgid "quality (1=poor, 9=best)"
+msgstr "kvalitet (0=dålig, 9=bäst)"
+
+msgid "View only (ignore mouse & keyboard)"
+msgstr "Endast visning (ignorera mus och tangentbord)"
+
+msgid "Accept clipboard from server"
+msgstr "Acceptera urklipp från server"
+
+msgid "Send clipboard to server"
+msgstr "Skicka urklipp till server"
+
+msgid "Send primary selection & cut buffer as clipboard"
+msgstr "Skicka PRIMARY och CUT_BUFFER som urklipp"
+
+msgid "Shared (don't disconnect other viewers)"
+msgstr "Delad (koppla ej från andra visare)"
+
+msgid "Full-screen mode"
+msgstr "Fullskärmsläge"
+
+msgid "Render cursor locally"
+msgstr "Hantera muspekaren lokalt"
+
+msgid "Show dot when no cursor"
+msgstr "Visa punkt när muspekare saknas"
+
+msgid "OK"
+msgstr "Ok"
+
+msgid "Cancel"
+msgstr "Avbryt"
+
+msgid "Security:"
+msgstr "Säkerhet:"
+
+msgid "Extended encryption and authentication methods (VeNCrypt)"
+msgstr "Utökade krypterings- och autentiseringsmetoder (VeNCrypt)"
+
+msgid "Session encryption:"
+msgstr "Sessionskryptering:"
+
+msgid "None"
+msgstr "Ingen"
+
+msgid "TLS with anonymous certificates"
+msgstr "TLS med anonyma certifikat"
+
+msgid "TLS with X509 certificates"
+msgstr "TLS med X509-certifikat"
+
+msgid "Path to X509 CA certificate"
+msgstr "Sökväg till CA-certifikat för X509"
+
+msgid "Path to X509 CRL file"
+msgstr "Sökväg till CRL-fil för X509"
+
+msgid "Authentication:"
+msgstr "Autentisering:"
+
+msgid "Standard VNC (insecure without encryption)"
+msgstr "Standard-VNC (osäkert utan kryptering)"
+
+msgid "Username and password (insecure without encryption)"
+msgstr "Användarnamn och lösenord (osäkert utan kryptering)"
+
+msgid "Username:"
+msgstr "Användarnamn:"
+
+msgid "Password:"
+msgstr "Lösenord:"
+
+msgid "VNC Viewer: Connection Details"
+msgstr "VNC-visare: Anslutningsdetaljer"
+
+msgid "VNC server:"
+msgstr "VNC-server:"
+
+msgid "About..."
+msgstr "Om..."
+
+#, c-format
+msgid ""
+"TigerVNC Viewer for X version %s - built %s\n"
+"Copyright (C) 1999-2011 TigerVNC Team and many others (see README.txt)\n"
+"See http://www.tigervnc.org for information on TigerVNC."
+msgstr ""
+"TigerVNC-visare för X version %s - byggd %s\n"
+"Copyright (C) 1999-2011 TigerVNC Team and many others (see README.txt)\n"
+"Se http://www.tigervnc.org för information om TigerVNC."

@@ -160,14 +160,22 @@ echo   done.
 cd $OUTDIR/files
 if [ -f files.txt ]; then rm files.txt; fi
 if [ -f ../files.txt ]; then rm ../files.txt; fi
+if [ -f index.html ]; then rm index.html; fi
+if [ -f ../index.html ]; then rm ../index.html; fi
+echo "<html><body><table border=1 cellpadding=5>" >../index.html
+echo "<tr><th>File</th><th>Size</th><th>Date/Time</th><th>MD5 sum</th></tr>" >>../index.html
 for i in *; do
 	LSL=`ls -l $i`
 	SIZE=`echo $LSL | awk '{print $5}'`
 	DATE=`echo $LSL | awk '{print $6" "$7" "$8}'`
 	MD5=`md5sum -b $i | awk '{print $1}'`
 	echo -e "$i\t$SIZE\t\t$DATE\t$MD5" >>../files.txt
+	echo -e "<tr><td><a href=\"$i\">$i</a></td><td>$SIZE</td><td>$DATE</td><td>$MD5</td></tr>" >>../index.html
 done
+echo "</html></body>" >>../index.html
 mv ../files.txt .
+mv ../index.html .
+
 if [ "$PLATFORM" != "windows" ]; then
 	# sym links aren't implemented properly in MinGW
 	if [ -h $OUTDIR/../latest ]; then rm $OUTDIR/../latest; fi

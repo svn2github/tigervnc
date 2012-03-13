@@ -1,0 +1,27 @@
+if ls $OUTDIR/files/TigerVNC-[0-9]*.dmg >/dev/null 2>&1; then
+	if [ $FORCEBINARY = 0 ]; then
+		echo
+		echo Binary already exists!
+		echo Run $SCRIPT -fb to rebuild it.
+		echo
+		exit 1
+	else
+		rm -f $OUTDIR/files/TigerVNC-[0-9]*.dmg
+	fi
+fi
+
+exec > $OUTDIR/log-$PLATFORM.txt 2>&1
+
+mkdir osxx86
+pushd osxx86
+CFLAGS='-I/usr/lib/gcc/i686-apple-darwin10/4.2.1/include -O3 -m32' CXXFLAGS='-I/usr/include/c++/4.2.1 -I/usr/include/c++/4.2.1/i686-apple-darwin10 -I/usr/lib/gcc/i686-apple-darwin10/4.2.1/include -O3 -m32' LDFLAGS='-framework CoreFoundation -m32' cmake -G"Unix Makefiles" -DGNUTLS_INCLUDE_DIR=/opt/gnutls/osxx86/include/ -DGNUTLS_LIBRARY='/opt/gnutls/osxx86/lib/libgnutls.a;/opt/gnutls/osxx86/lib/libgcrypt.a;/opt/gnutls/osxx86/lib/libtasn1.a;/opt/gnutls/osxx86/lib/libgpg-error.a' -DJPEG_INCLUDE_DIR=/opt/libjpeg-turbo/include -DJPEG_LIBRARY=/opt/libjpeg-turbo/lib/libjpeg.a -DUSE_INCLUDED_FLTK=1 -DLIBINTL_LIBRARY=/opt/gettext/osxx86/lib/libintl.a -DICONV_LIBRARIES=/usr/lib/libiconv.dylib -DCMAKE_OSX_DEPLOYMENT_TARGET=10.4 -DCMAKE_OSX_SYSROOT=/Developer/SDKs/MacOSX10.4u.sdk -DUSE_INCLUDED_ZLIB=1 ..
+make
+popd
+
+mkdir osxx8664
+pushd osxx8664
+LDFLAGS="-framework CoreFoundation" cmake -G"Unix Makefiles" -DGNUTLS_INCLUDE_DIR=/opt/gnutls/osxx8664/include/ -DGNUTLS_LIBRARY='/opt/gnutls/osxx8664/lib/libgnutls.a;/opt/gnutls/osxx8664/lib/libgcrypt.a;/opt/gnutls/osxx8664/lib/libtasn1.a;/opt/gnutls/osxx8664/lib/libgpg-error.a' -DJPEG_INCLUDE_DIR=/opt/libjpeg-turbo/include -DJPEG_LIBRARY=/opt/libjpeg-turbo/lib/libjpeg.a -DUSE_INCLUDED_FLTK=1 -DLIBINTL_LIBRARY=/opt/gettext/osxx8664/lib/libintl.a -DICONV_LIBRARIES=/usr/lib/libiconv.dylib -DCMAKE_OSX_DEPLOYMENT_TARGET=10.5 -DCMAKE_OSX_SYSROOT=/Developer/SDKs/MacOSX10.5.sdk -DUSE_INCLUDED_ZLIB=1 ..
+make
+make udmg
+mv TigerVNC*.dmg $OUTDIR/files/
+popd

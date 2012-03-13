@@ -1,0 +1,27 @@
+#!/bin/sh
+
+set -u
+set -e
+
+if [ $# -lt 1 ]; then
+	echo USAGE: $0 \<SourceForge user name\>
+	exit -1
+fi
+
+BUILDDIR=$HOME/src/tiger.nightly/latest/files
+PROJWEB=/home/project-web/tigervnc/htdocs/
+SSHSERVER=$1,tigervnc@shell.sourceforge.net
+
+if [ ! -d $BUILDDIR ]; then
+	echo No nightly build to upload!
+	exit -1
+fi
+
+echo Uploading build ...
+chmod 644 $BUILDDIR/*
+ssh $SSHSERVER create
+ssh $SSHSERVER mkdir $PROJWEB/tiger.nightly || true
+ssh $SSHSERVER rm $PROJWEB/tiger.nightly/* || true
+scp $BUILDDIR/* $SSHSERVER:$PROJWEB/tiger.nightly
+
+exit 0

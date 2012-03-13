@@ -1,0 +1,32 @@
+if ls $OUTDIR/files/tigervnc-Linux-*86*-[0-9]*.tar.gz >/dev/null 2>&1; then
+	if [ $FORCEBINARY = 0 ]; then
+		echo
+		echo Binary already exists!
+		echo Run $SCRIPT -fb to rebuild it.
+		echo
+		exit 1
+	else
+		rm -f $OUTDIR/files/tigervnc-Linux-*86*-[0-9]*.tar.gz
+	fi
+fi
+
+exec > $OUTDIR/log-$PLATFORM.txt 2>&1
+
+export CC=gcc4
+export CXX=g++4
+
+mkdir linux
+pushd linux
+sh ../unix/build-xorg init
+XORGCFGFLAGS="--with-dri-driver-path=/opt/TigerVNC/lib/dri" CFLAGS='-O3 -m32' CXXFLAGS='-O3 -m32' sh ../unix/build-xorg build -DGNUTLS_INCLUDE_DIR=/opt/gnutls/linux/include/ -DGNUTLS_LIBRARY='/opt/gnutls/linux/lib/libgnutls.a;/opt/gnutls/linux/lib/libgcrypt.a;/opt/gnutls/linux/lib/libtasn1.a;/opt/gnutls/linux/lib/libgpg-error.a' -DJPEG_INCLUDE_DIR=/opt/libjpeg-turbo/include -DJPEG_LIBRARY=/opt/libjpeg-turbo/lib/libjpeg.a -DUSE_INCLUDED_FLTK=1 -DCMAKE_INSTALL_PREFIX=/opt/TigerVNC -DBUILD_JAVA=1
+sudo make servertarball
+cp tigervnc-Linux-i686-*.tar.gz $OUTDIR/files/
+popd
+
+mkdir linux64
+pushd linux64
+sh ../unix/build-xorg init
+XORGCFGFLAGS="--with-dri-driver-path=/opt/TigerVNC/lib/dri" sh ../unix/build-xorg build -DGNUTLS_INCLUDE_DIR=/opt/gnutls/linux64/include/ -DGNUTLS_LIBRARY='/opt/gnutls/linux64/lib/libgnutls.a;/opt/gnutls/linux64/lib/libgcrypt.a;/opt/gnutls/linux64/lib/libtasn1.a;/opt/gnutls/linux64/lib/libgpg-error.a' -DJPEG_INCLUDE_DIR=/opt/libjpeg-turbo/include -DJPEG_LIBRARY=/opt/libjpeg-turbo/lib64/libjpeg.a -DUSE_INCLUDED_FLTK=1 -DCMAKE_INSTALL_PREFIX=/opt/TigerVNC -DBUILD_JAVA=1
+sudo make servertarball
+cp tigervnc-Linux-x86_64-*.tar.gz $OUTDIR/files/
+popd

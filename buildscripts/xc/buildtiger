@@ -1,0 +1,177 @@
+#!/bin/bash
+
+TMPDIR=
+PREVDIR=`pwd`
+export SCRIPT=$0
+SCRIPTDIR=`dirname $0`
+
+pushd $SCRIPTDIR >/dev/null
+SCRIPTDIR=`pwd`
+popd >/dev/null
+
+set -u
+set -e
+trap onexit INT
+trap onexit TERM
+trap onexit EXIT
+
+PLATFORM=
+
+case "`uname -s`" in
+Linux)  export PLATFORM=linux ;;
+Darwin) export PLATFORM=osx ;;
+MINGW*) export PLATFORM=windows ;;
+*)      echo "Unsupported platform";  exit 1 ;;
+esac
+
+onexit()
+{
+	cd $PREVDIR
+	if [ ! "$TMPDIR" = "" ]; then
+		if [ "$PLATFORM" = "windows" ]; then
+			rm -rf $TMPDIR
+		else
+			sudo rm -rf $TMPDIR
+		fi
+	fi
+}
+
+usage()
+{
+	echo
+	echo "USAGE: $SCRIPT [-f | -s | -e ] <repository path, e.g. \"trunk\">"
+	echo
+	echo "-e = Use existing source tarball in the build directory for today's date"
+	echo "-f = Force new build (deletes all existing build files for today's date)"
+	echo "-fb = Use existing source tarball in the build directory for today's date,"
+	echo "      but force new binaries to be built for this platform"
+	echo "-s = Build source tarball only"
+	echo
+	exit 1
+}
+
+if [ ! -d $HOME/src/tiger.nightly ]; then
+	mkdir -p $HOME/src/tiger.nightly
+fi
+
+BUILD=`date +%Y%m%d`
+export OUTDIR=$HOME/src/tiger.nightly/$BUILD
+
+FORCE=0
+export FORCEBINARY=0
+SRCONLY=0
+NOSRC=0
+
+if [ $# -gt 0 ]; then
+	if [ "$1" = "-f" ]; then
+		FORCE=1
+		shift
+	elif [ "$1" = "-fb" ]; then
+		export FORCEBINARY=1
+		NOSRC=1
+		shift
+	elif [ "$1" = "-s" ]; then
+		SRCONLY=1
+		shift
+	elif [ "$1" = "-e" ]; then
+		if [ $SRCONLY = 1 ]; then
+			echo Cannot specify both -s and -e
+			exit 1
+		fi
+		NOSRC=1
+		shift
+	elif [ "$1" = "-h" -o "$1" = "-?" ]; then
+		usage
+	fi
+fi
+
+if [ $# -lt 1 -a $NOSRC = 0 ]; then
+	usage
+fi
+
+if [ ! -d $OUTDIR ]; then
+	mkdir -p $OUTDIR/files
+else
+	if [ $FORCE = 0 -a $NOSRC = 0 ]; then
+		if [ $SRCONLY = 0 ]; then
+			echo
+			echo Build already exists!
+			echo "Run $SCRIPT -f to force a full rebuild"
+			echo " or $SCRIPT -e to use existing source"
+			echo
+			exit 1
+		fi
+	else
+		if [ $NOSRC = 0 ]; then
+			if [ -d $OUTDIR/files ]; then
+				rm -f $OUTDIR/files/*
+				rmdir $OUTDIR/files
+			fi
+			rm -f $OUTDIR/*
+			rmdir $OUTDIR
+			mkdir -p $OUTDIR/files
+		fi
+	fi
+fi
+
+umask 022
+if [ "$PLATFORM" = "windows" ]; then
+	# /tmp maps to a directory in c:\Documents and Settings, which causes
+	# barfage in the MinGW resource compiler because of the pathname
+	# spaces.
+	TMPDIR=`mktemp -d /c/temp/tigerbuild.XXXXXX`
+else
+	TMPDIR=`mktemp -d /tmp/tigerbuild.XXXXXX`
+fi
+cd $TMPDIR
+if [ $NOSRC = 0 ]; then
+	echo Checking out TigerVNC ...
+	svn export https://tigervnc.svn.sourceforge.net/svnroot/tigervnc/$1 tigervnc
+	echo Creating source tarball and SRPM ...
+	pushd tigervnc
+	VERSION=`grep "set(VERSION" CMakeLists.txt | sed -e s/[^0-9\.]//g`
+	if [ "$VERSION" = "" ]; then
+		echo Could not parse version from CMakeLists.txt!
+		exit 1
+	fi
+	popd
+	mv tigervnc tigervnc-$VERSION
+	tar cfz tigervnc-$VERSION.tar.gz tigervnc-$VERSION
+	cp tigervnc-$VERSION.tar.gz $OUTDIR/files/
+else
+	if [ ! -f $OUTDIR/files/tigervnc-[0-9]*.tar.gz ]; then
+		echo Source tarball does not exist!
+		exit 1
+	fi
+fi
+
+if [ $SRCONLY = 1 ]; then
+	exit 0
+fi
+
+echo Untarring TigerVNC ...
+tar xfz $OUTDIR/files/tigervnc-[0-9]*.tar.gz
+echo   done.
+echo Building TigerVNC for $PLATFORM...
+cd tigervnc*
+sh $SCRIPTDIR/buildtiger.$PLATFORM
+echo   done.
+
+cd $OUTDIR/files
+if [ -f files.txt ]; then rm files.txt; fi
+if [ -f ../files.txt ]; then rm ../files.txt; fi
+for i in *; do
+	LSL=`ls -l $i`
+	SIZE=`echo $LSL | awk '{print $5}'`
+	DATE=`echo $LSL | awk '{print $6" "$7" "$8}'`
+	MD5=`md5sum -b $i | awk '{print $1}'`
+	echo -e "$i\t$SIZE\t\t$DATE\t$MD5" >>../files.txt
+done
+mv ../files.txt .
+if [ "$PLATFORM" != "windows" ]; then
+	# sym links aren't implemented properly in MinGW
+	if [ -h $OUTDIR/../latest ]; then rm $OUTDIR/../latest; fi
+	ln -fs $BUILD $OUTDIR/../latest
+fi
+
+exit 0
